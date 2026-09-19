@@ -12430,5 +12430,6073 @@
     "events": [],
     "expected": 0,
     "incomplete": false
+  },
+  {
+    "name": "structured-first-fault",
+    "case": {
+      "caseId": "correlated.structured-first-fault",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {}
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "runnableCase": {
+      "caseId": "correlated.structured-first-fault",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "roles": [
+          {
+            "roleId": "source",
+            "kind": "ROLE_KIND_ENDPOINT"
+          }
+        ],
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {},
+            "instructions": [
+              {
+                "instructionId": "read.0",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "instructionId": "read.1",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "events": [
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source"
+        },
+        "operation": "a",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "1"
+        },
+        "operation": "a",
+        "kind": "fault"
+      }
+    ],
+    "expected": 2,
+    "incomplete": false
+  },
+  {
+    "name": "structured-second-fault",
+    "case": {
+      "caseId": "correlated.structured-second-fault",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {}
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "runnableCase": {
+      "caseId": "correlated.structured-second-fault",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "roles": [
+          {
+            "roleId": "source",
+            "kind": "ROLE_KIND_ENDPOINT"
+          }
+        ],
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {},
+            "instructions": [
+              {
+                "instructionId": "read.0",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "instructionId": "read.1",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.2",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "events": [
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source"
+        },
+        "operation": "a",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "1"
+        },
+        "operation": "a",
+        "kind": "fault"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "2"
+        },
+        "operation": "a",
+        "kind": "faultAgain"
+      }
+    ],
+    "expected": 3,
+    "incomplete": false
+  },
+  {
+    "name": "structured-two-operations",
+    "case": {
+      "caseId": "correlated.structured-two-operations",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {}
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "runnableCase": {
+      "caseId": "correlated.structured-two-operations",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "roles": [
+          {
+            "roleId": "source",
+            "kind": "ROLE_KIND_ENDPOINT"
+          }
+        ],
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {},
+            "instructions": [
+              {
+                "instructionId": "read.0",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "instructionId": "read.1",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.2",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.3",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "events": [
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source"
+        },
+        "operation": "a",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "1"
+        },
+        "operation": "b",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "2"
+        },
+        "operation": "a",
+        "kind": "fault"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "3"
+        },
+        "operation": "b",
+        "kind": "fault"
+      }
+    ],
+    "expected": 2,
+    "incomplete": false
+  },
+  {
+    "name": "structured-interleaved-violation",
+    "case": {
+      "caseId": "correlated.structured-interleaved-violation",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {}
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "runnableCase": {
+      "caseId": "correlated.structured-interleaved-violation",
+      "version": {
+        "major": 1
+      },
+      "provenance": {
+        "producerId": "umpire.correlated.fixtures",
+        "definitions": [
+          {
+            "definitionId": "test.property",
+            "behaviorFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+            "provenance": "authored"
+          }
+        ],
+        "correlatedRules": [
+          {
+            "ruleId": "test.correlated.attempt",
+            "propertyId": "test.property",
+            "propertyFingerprint": "sha256:1c825a414df3a524164a1573d1e171aa0a0832a9d82a9511de43b52e283a6a90",
+            "projectionId": "test.projection",
+            "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated/Structured.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "localNames": [
+          {
+            "localName": "projection",
+            "definitionId": "test.projection"
+          },
+          {
+            "localName": "run",
+            "definitionId": "test.run"
+          },
+          {
+            "localName": "operation",
+            "definitionId": "test.operation"
+          },
+          {
+            "localName": "source",
+            "definitionId": "test.source"
+          },
+          {
+            "localName": "state",
+            "definitionId": "test.state"
+          },
+          {
+            "localName": "phase",
+            "definitionId": "test.phase"
+          },
+          {
+            "localName": "attempts",
+            "definitionId": "test.attempts"
+          },
+          {
+            "localName": "request",
+            "definitionId": "test.request"
+          },
+          {
+            "localName": "outcome",
+            "definitionId": "test.outcome"
+          },
+          {
+            "localName": "fault",
+            "definitionId": "test.fault"
+          },
+          {
+            "localName": "fact",
+            "definitionId": "test.fact"
+          },
+          {
+            "localName": "reply",
+            "definitionId": "test.reply"
+          },
+          {
+            "localName": "faultAgain",
+            "definitionId": "test.faultAgain"
+          },
+          {
+            "localName": "attempt",
+            "definitionId": "test.correlated.attempt"
+          }
+        ]
+      },
+      "program": {
+        "programId": "correlated.program",
+        "roles": [
+          {
+            "roleId": "source",
+            "kind": "ROLE_KIND_ENDPOINT"
+          }
+        ],
+        "observations": [
+          {
+            "observationId": "evidence",
+            "type": {
+              "singular": {
+                "message": {
+                  "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+                }
+              }
+            }
+          }
+        ],
+        "entrypoints": [
+          {
+            "entrypointId": "controller",
+            "controller": {},
+            "instructions": [
+              {
+                "instructionId": "read.0",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "instructionId": "read.1",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.2",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.3",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.4",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              },
+              {
+                "instructionId": "read.5",
+                "instruction": {
+                  "invokeRpc": {
+                    "endpointRoleId": "source",
+                    "method": "/test.correlated.Source/Read",
+                    "responseReads": [
+                      {
+                        "cardinality": "READ_CARDINALITY_ONE",
+                        "targets": [
+                          {
+                            "observationId": "evidence"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "guard": {
+                  "literal": {
+                    "boolValue": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "cleanup": {
+          "entrypointId": "cleanup"
+        }
+      },
+      "contract": {
+        "contractId": "correlated",
+        "correlated": {
+          "projectionId": "projection",
+          "projectionFingerprint": "sha256:62476c3736a4ff54a22ccd7e637b7b20a0eac4a340b7eed8e1bb1944a75318c1",
+          "evidenceObservationId": "evidence",
+          "scopeFields": [
+            "run"
+          ],
+          "operationField": "operation",
+          "sources": [
+            "source"
+          ],
+          "initialState": {
+            "definitionId": "state",
+            "value": "open-0"
+          },
+          "transitions": [
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-0"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-0"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-1"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-1"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "1"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "request",
+                "value": "request"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "fault",
+                "value": "fault"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "quiet"
+              },
+              "facts": [
+                {
+                  "definitionId": "fact",
+                  "value": "pendingAttempts"
+                }
+              ],
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "priorState": {
+                "definitionId": "state",
+                "value": "open-2"
+              },
+              "action": {
+                "definitionId": "reply",
+                "value": "reply"
+              },
+              "state": {
+                "definitionId": "state",
+                "value": "done-2"
+              },
+              "outcome": {
+                "definitionId": "outcome",
+                "value": "response"
+              },
+              "priorFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "open"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "done"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "2"
+                }
+              ]
+            }
+          ],
+          "projectionRules": [
+            {
+              "kind": "fault",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "faultAgain",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "fault",
+                    "value": "fault"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-2"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "facts": [
+                    {
+                      "definitionId": "fact",
+                      "value": "pendingAttempts"
+                    }
+                  ],
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "reply",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "reply",
+                    "value": "reply"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "done-1"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "response"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "done"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "request",
+              "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+              "outputs": [
+                {
+                  "action": {
+                    "definitionId": "request",
+                    "value": "request"
+                  },
+                  "state": {
+                    "definitionId": "state",
+                    "value": "open-0"
+                  },
+                  "outcome": {
+                    "definitionId": "outcome",
+                    "value": "quiet"
+                  },
+                  "stateFields": [
+                    {
+                      "definitionId": "phase",
+                      "value": "open"
+                    },
+                    {
+                      "definitionId": "attempts",
+                      "value": "0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "ruleId": "attempt",
+              "trigger": {
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_ACTION",
+                        "definitionId": "fault"
+                      }
+                    }
+                  }
+                }
+              },
+              "response": {
+                "compare": {
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "field": "CORRELATED_STEP_FIELD_STATE",
+                        "definitionId": "attempts"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "textValue": "1"
+                    }
+                  }
+                }
+              },
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL"
+            }
+          ],
+          "initialStateFields": [
+            {
+              "definitionId": "phase",
+              "value": "open"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    "events": [
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source"
+        },
+        "operation": "a",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "1"
+        },
+        "operation": "b",
+        "kind": "request"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "2"
+        },
+        "operation": "a",
+        "kind": "fault"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "3"
+        },
+        "operation": "b",
+        "kind": "fault"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "4"
+        },
+        "operation": "b",
+        "kind": "reply"
+      },
+      {
+        "identity": {
+          "scope": [
+            {
+              "fieldId": "run",
+              "value": {
+                "textValue": "run-1"
+              }
+            }
+          ],
+          "evidenceSource": "source",
+          "ordinal": "5"
+        },
+        "operation": "a",
+        "kind": "faultAgain"
+      }
+    ],
+    "expected": 3,
+    "incomplete": false
   }
 ]

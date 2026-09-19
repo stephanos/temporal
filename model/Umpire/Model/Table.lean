@@ -245,6 +245,10 @@ structure FiniteModelIdentity (Setup State Action Outcome Fact : Type) where
   actionId : Action → DefinitionId
   outcomeId : Outcome → DefinitionId
   factId : Fact → DefinitionId
+  /-- The fields one state holds, each as a model value under the field's own definition. A Model
+  whose states are atoms holds none; a machine's structured state holds one per field, so a Property
+  reads `phase` or `attempts` apart from the state that carries them. -/
+  stateFields : State → List ModelValue := fun _ => []
 
 namespace FiniteMachine
 
@@ -677,8 +681,13 @@ def checkModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     (Outcome := ModelValue)
     (Fact := ModelValue)
     lowered |>.mapError TableAdmissionError.invalidTable
-  Umpire.checkModel (validated.draftModel definition composition)
+  let checked ← Umpire.checkModel (validated.draftModel definition composition)
     |>.mapError TableAdmissionError.invalidTarget
+  -- The fields travel with the state they belong to, looked up by the lowered value the trace
+  -- carries, so the evaluator that reads a state can read its fields without a second identity.
+  let lowered := table.states.map fun entry =>
+    (ModelValue.named (identity.stateId entry.value) entry.key, identity.stateFields entry.value)
+  pure (checked.withStateFields fun state => (lowered.lookup state).getD [])
 
 /-- Check a table whose carriers stay typed, without the ModelValue lowering `checkModel` applies. -/
 def checkTypedModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]

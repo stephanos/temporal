@@ -373,7 +373,7 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 		Incomplete bool              `json:"incomplete"`
 	}
 	require.NoError(t, json.Unmarshal(encoded, &fixtures))
-	require.Len(t, fixtures, 15)
+	require.Len(t, fixtures, 19)
 	for _, fixture := range fixtures {
 		t.Run(fixture.Name, func(t *testing.T) {
 			var artifact testpilotspb.Case
@@ -391,6 +391,9 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			require.Equal(t, rules[0].GetProjectionId(), definitions[artifact.Contract.Correlated.ProjectionId])
 			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, rules[0].GetProjectionFingerprint())
 			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
+			// The structured fixtures project six events over a nine-row table, so one event's
+			// projection work is larger than the atomic fixtures' ceiling allows.
+			ceiling.MaxWorkPerEvent = 1000000
 			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})
 			require.NoError(t, err)
 			view := program.View()

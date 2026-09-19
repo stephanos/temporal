@@ -62,6 +62,17 @@ A Model holds several instances of each entity, bounded by Limits. References ar
 interpreted; the realization binds them to runtime identifiers. Several instances are what
 `TestNexusAsyncOperationWithMultipleCallers` needs (five operations sharing one handler workflow).
 
+> Amended during fn-85 `.4`, 2026-09-19. Instances are declared where a Scenario runs over them:
+> `instances: 2` on the `scenario`, with each action naming the instance that takes it
+> (`awaitStart 2`). The Search runs over the product of that many copies of the machine, so the
+> instances' steps interleave and every interleaving is a path; a Property written over one instance
+> is read over the product as the same claim per instance, on the acting instance's own slot, which
+> is a field of the product state. A Case follows each operation through one sequence, so every
+> instance performs the same actions, and the Producer reads the first instance back with every
+> instance's actions as the Program's path. The product's size is checked against the enumeration
+> bound where the count is written, an instance count of zero rejects there, and a Search that
+> cannot finish its interleavings within its Limits reports that the bound stopped it.
+
 ### 2.2 Action
 
 An action is a side effect performed by a **party**. It declares the entity it acts on (or creates),

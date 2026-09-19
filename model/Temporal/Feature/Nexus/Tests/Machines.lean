@@ -518,10 +518,12 @@ query attemptCompletes
   in: faultThenRetry
   limits: threeOccurrences
 
-/- The predicate fixes the one state the keyed form named, so the fingerprint is the keyed form's. -/
+/- The predicate fixes the one state the keyed form named, so the fingerprint was the keyed form's
+when the form changed (pinned at fcbc068); the value here is the one after fn-85 `.4` gave a
+machine's state fields a meaning. -/
 #guard (attemptCompletes.toOption.map fun checked =>
   checked.property.behaviorFingerprint.render) ==
-  some "sha256:f969ed928fc35e81757605f4d26bb0367b5ce9824ef292991f469a58372d5d8b"
+  some "sha256:c610cd4a976af184563203c4150073ab75fee68895f48c7b08222240a8bf755d"
 
 /- The Search finds the trace: three occurrences within a budget of three, one of them the timer's
 firing and one of them the fault. -/

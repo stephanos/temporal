@@ -51,7 +51,8 @@ func correlatedFacadeInputs(t testing.TB, fixture correlatedFacadeFixture) (*tes
 // correlatedFacadeProfile authorizes the evidence source the correlated Cases read, under the resource
 // ceilings the correlated corpus Cases declared before ceilings moved to the Profile: its runnable
 // Cases read one evidence value per instruction, so they need more nodes and Run Events than any
-// Temporal Case.
+// Temporal Case, and the structured corpus projects six events over a nine-row table, so one event's
+// projection work is larger than any Temporal Case's.
 func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
 	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
@@ -76,7 +77,7 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 		},
 		ContractLimits: &testpilotspb.ContractLimits{
 			MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16,
-			MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
+			MaxWorkPerEvent: 1000000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
 		},
 		CorrelatedLimits: &testpilotspb.CorrelatedLimits{
 			MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,

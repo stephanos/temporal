@@ -13,11 +13,22 @@ open Shared.CorrelatedObligation
 
 abbrev Row := Shared.CorrelatedObligation.Transition
 
-/-- The Model trace one portable row stands for. A state's fields are a way of reading the state the
-Contract needs and the Model does not: the Model already distinguishes two states by their own
-values, so the trace carries the state and drops the fields it is spelled out of. -/
+/-- The Model trace one portable row stands for: the states by their own values, which is how the
+Model distinguishes them. -/
 private def trace (row : Row) : ModelTrace ModelValue ModelValue ModelValue ModelValue :=
   ⟨row.1.atom, [.result row.2.1 ⟨row.2.2.outcome, row.2.2.state.atom, row.2.2.facts⟩]⟩
+
+/-- The fields the row's two states hold, read the way the portable evaluator reads them off the
+wire, so a source pattern that names a field answers on this side exactly as the portable step
+condition does on that one. -/
+private def rowFields (row : Row) (state : ModelValue) : List ModelValue :=
+  if state == row.1.atom then row.1.fields
+  else if state == row.2.2.state.atom then row.2.2.state.fields
+  else []
+
+/-- The checked input one portable row stands for. -/
+private def rowInput (binding : PortableReference) (row : Row) :=
+  checkPropertyEvaluationInput binding.reference (trace row) (rowFields row)
 
 /-- The applicable source predicates projected from one checked reference input. -/
 def coordinates (binding : PortableReference) (input : CheckedPropertyEvaluationInput binding.reference) :
@@ -43,14 +54,14 @@ private theorem append_coordinates (binding : PortableReference)
 /-- Every certified row is checked against its exact prior/action/result, including all facts. -/
 structure Rows (binding : PortableReference) (table : List Row) : Prop where
   valid : ∀ row ∈ table, ∃ input : CheckedPropertyEvaluationInput binding.reference,
-    checkPropertyEvaluationInput binding.reference (trace row) = .ok input ∧
+    rowInput binding row = .ok input ∧
     coordinates binding input = [binding.portable.coordinate row.2.1 row.2.2]
 
 private def checkRows (binding : PortableReference) :
     (table : List Row) → Except String (PLift (Rows binding table))
   | [] => pure ⟨⟨by simp⟩⟩
   | row :: rest => do
-      match checked : checkPropertyEvaluationInput binding.reference (trace row) with
+      match checked : rowInput binding row with
       | .error _ => throw "unsupported checked transition input"
       | .ok input =>
           if aligned : coordinates binding input = [binding.portable.coordinate row.2.1 row.2.2] then
@@ -102,7 +113,7 @@ inductive HistoryInput (binding : PortableReference) (initial : ModelValue) :
       HistoryInput binding initial [] input
   | extend (history input row next)
       (before : HistoryInput binding initial history input)
-      (checked : checkPropertyEvaluationInput binding.reference (trace row) = .ok next) :
+      (checked : rowInput binding row = .ok next) :
       HistoryInput binding initial (history ++ [row]) (append binding input next)
 
 /-- Exact admitted rows construct a checked reference input with the actual runtime coordinate sequence. -/

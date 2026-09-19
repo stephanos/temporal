@@ -6,6 +6,7 @@ import Umpire.Command.Records
 import Umpire.Command.Schema
 import Umpire.Command.Registry
 import Umpire.Command.Predicate
+import Umpire.Command.Instances
 
 /-!
 # The Model command grammar
@@ -420,13 +421,17 @@ elab "property" name:ident
     if let some refusal := result.refusal then
       throwErrorAt predicateRef refusal.message
     let groups ← result.groups.toArray.mapM groupTerm
+    -- The names are declared beside the Property, so a Query over several instances can read the
+    -- claim back and make it over each instance's slot.
+    let namesName := mkIdentFrom name (name.getId ++ `names)
+    elabCommand (← `(command|
+      def $namesName : Umpire.Command.PropertyNames := {
+        declaration := $ownerKey
+        roleName := $roleKey
+        groups := [$groups,*] }))
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Property :=
-        authoredProperty ($modelRef) values {
-          declaration := $ownerKey
-          roleName := $roleKey
-          groups := [$groups,*]
-        }))
+        authoredProperty ($modelRef) values $namesName))
     liftCoreM (Registry.recordProperty {
       declName := (← getCurrNamespace) ++ name.getId, «model» := declaredModel.declName })
 
@@ -447,34 +452,105 @@ elab "property" ident modelKeyword:"model:" ident (propertyWhen)? "holds:" term 
 /-! ### The `scenario` command
 
 `actions:` is the exact sequence the operation selects. Each occurrence's key is its position in
-that sequence, because that is what distinguishes two occurrences of the same Action. -/
+that sequence, because that is what distinguishes two occurrences of the same Action.
+
+A Scenario may run over several instances of the machine's entity: `instances:` says how many, and
+each action then names the instance that takes it, numbered from one -- `awaitStart 2`. The Search
+runs over the product of the instances, so their steps interleave and every interleaving is a path;
+a Case follows each instance through one sequence, so every instance performs the same actions. -/
+
+/-- One action of a Scenario, with the instance that takes it when there are several. -/
+syntax scenarioAction := ident (num)?
+
+/-- How many instances of the machine's entity a Scenario runs over. -/
+syntax scenarioInstances := "instances:" num
+
+private def zeroInstancesMessage : String :=
+  "an instance count of zero admits no instance to run the Scenario over; a Scenario runs over at \
+least one"
+
+private def tooManyInstancesMessage (count : Nat) : String :=
+  s!"{count} instances is more than nine; the product's keys number instances by one digit, and a \
+Scenario over more instances than that is a Search no bound would admit"
+
+private def unnumberedActionMessage (spelling : String) (count : Nat) : String :=
+  s!"'{spelling}' names no instance; a Scenario over {count} instances writes which instance takes \
+each action, `{spelling} 1` to `{spelling} {count}`"
+
+private def numberedActionMessage (spelling : String) : String :=
+  s!"'{spelling}' names an instance, but this Scenario declares no `instances:`; a Scenario over one \
+instance writes its actions bare"
+
+private def strayInstanceMessage (number count : Nat) : String :=
+  s!"instance {number} is not one of the {count} this Scenario runs over"
+
+private def productTooLargeMessage (states actions count size bound : Nat) : String :=
+  s!"{count} instances of a machine with {states} states and {actions} action classes multiply out \
+to {size} steps to enumerate; the bound is {bound}, so declare fewer instances or a smaller machine"
 
 elab "scenario" name:ident
     "model:" modelRef:ident
+    instances?:(scenarioInstances)?
     "starts:" setupRef:ident
-    "actions:" "[" selected:ident,+ "]" : command => do
+    "actions:" "[" selected:scenarioAction,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
     let declaredModel ← resolveDeclaredModel modelRef
     let roleKey := Lean.quote declaredModel.role
     -- The setup state must be one the Model can start in, not merely one it declares.
     let _ ← resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
-    let spellings ← selected.getElems.mapM
-      (resolveDeclared "action" declaredModel.actions declaredModel.actionType)
-    let entries ← spellings.mapIdxM fun position spelling =>
-      `(term| ($(Lean.quote (toString (position + 1))), $(Lean.quote spelling)))
+    let count ← match instances? with
+      | none => pure 1
+      | some declared =>
+          let `(scenarioInstances| instances: $countRef:num) := declared
+            | throwErrorAt declared "unsupported `instances:` line"
+          let count := countRef.getNat
+          if count == 0 then throwErrorAt countRef zeroInstancesMessage
+          if count > 9 then throwErrorAt countRef (tooManyInstancesMessage count)
+          -- The product is walked before the Search runs, so its size is checked here, at the line
+          -- that decides it, rather than discovered as an elaboration that never finishes.
+          let size := instancesSize declaredModel.states.size declaredModel.actions.size count
+          if size > enumerationBound then
+            throwErrorAt countRef (productTooLargeMessage declaredModel.states.size
+              declaredModel.actions.size count size enumerationBound)
+          pure count
+    let mut spellings : Array String := #[]
+    let mut occurrences : Array (String × Nat) := #[]
+    for entry in selected.getElems do
+      let `(scenarioAction| $actionRef:ident $[$number?:num]?) := entry
+        | throwErrorAt entry "unsupported action"
+      let spelling ← resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
+      let taker ← match number?, instances? with
+        | none, none => pure 1
+        | none, some _ => throwErrorAt actionRef (unnumberedActionMessage spelling count)
+        | some numberRef, none => throwErrorAt numberRef (numberedActionMessage spelling)
+        | some numberRef, some _ =>
+            let number := numberRef.getNat
+            if number == 0 || number > count then
+              throwErrorAt numberRef (strayInstanceMessage number count)
+            pure number
+      spellings := spellings.push spelling
+      occurrences := occurrences.push (spelling, taker)
+    let entries ← occurrences.mapIdxM fun position (spelling, taker) =>
+      let label := Lean.quote (toString (position + 1))
+      let action := Lean.quote spelling
+      let number := Lean.quote taker
+      `(term| Umpire.Command.ScenarioOccurrence.mk $label $action $number)
+    let namesName := mkIdentFrom name (name.getId ++ `names)
+    elabCommand (← `(command|
+      def $namesName : Umpire.Command.ScenarioNames := {
+        declaration := $ownerKey
+        roleName := $roleKey
+        setupState := $setupKey
+        occurrences := [$entries,*] }))
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Scenario :=
-        authoredScenario ($modelRef) values {
-          declaration := $ownerKey
-          roleName := $roleKey
-          setupState := $setupKey
-          occurrences := [$entries,*]
-        }))
+        authoredScenario ($modelRef) values $namesName))
     liftCoreM (Registry.recordScenario {
       declName := (← getCurrNamespace) ++ name.getId
       «model» := declaredModel.declName
-      «actions» := spellings })
+      «actions» := spellings
+      instances := count })
 
 macro "limits" name:ident
     "steps:" stepCount:num
@@ -542,9 +618,9 @@ private def mismatchedModelMessage (declaredProperty declaredScenario : Name) : 
 private def undeclaredMessage (kind : String) (spelling : Name) : String :=
   s!"'{spelling}' is not a {kind} declared by a `{kind}` command"
 
-/-- The Model a Query runs on, resolved from its Property and its Scenario rather than named again.
--/
-private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM Name := do
+/-- The Model a Query runs on, resolved from its Property and its Scenario rather than named again,
+and the number of instances the Scenario runs over. -/
+private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM (Name × Nat) := do
   let propertyName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo propertyRef)
   let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
   let environment ← getEnv
@@ -557,7 +633,25 @@ private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM Name
   unless declaredProperty.model == declaredScenario.model do
     throwErrorAt scenarioRef
       (mismatchedModelMessage declaredProperty.model declaredScenario.model)
-  pure declaredProperty.model
+  pure (declaredProperty.model, declaredScenario.instances)
+
+/-- The admission a Query evaluates: over the machine itself, or over the product of the instances
+its Scenario runs over, reading the Property and the Scenario back from their names. -/
+private def checkTerm (modelRef : Ident) (instances : Nat) (queryKey : Term)
+    (limitsRef propertyRef scenarioRef : Ident) (knownGaps : Term)
+    (form : Option Term) : CommandElabM Term := do
+  let form ← match form with
+    | some form => pure form
+    | none => `(QueryFormKind.selectWitness)
+  if instances == 1 then
+    `(check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
+      (knownGaps := $knownGaps) (form := $form))
+  else
+    let propertyNames := mkIdent (propertyRef.getId ++ `names)
+    let scenarioNames := mkIdent (scenarioRef.getId ++ `names)
+    let count := Lean.quote instances
+    `(Umpire.Command.checkInstances ($modelRef) $count $queryKey ($limitsRef)
+      ($propertyNames) ($scenarioNames) (knownGaps := $knownGaps) (form := $form))
 
 /-! ### Admission runs while the Model file compiles
 
@@ -625,13 +719,14 @@ elab "query" name:ident
     findKeyword:"find:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
-    let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
+    let (modelName, instances) ← queryModelName propertyRef scenarioRef
+    let modelRef := mkIdent modelName
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
+    let admission ← checkTerm modelRef instances queryKey limitsRef propertyRef scenarioRef
+      knownGaps none
     elabCommand (← `(command|
-      def $name : Except AdmissionError (CheckedModel ($modelRef)) :=
-        check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
-          (knownGaps := $knownGaps)))
+      def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef findKeyword name
 
@@ -639,13 +734,14 @@ elab "query" name:ident
     verifyKeyword:"verify:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
-    let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
+    let (modelName, instances) ← queryModelName propertyRef scenarioRef
+    let modelRef := mkIdent modelName
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
+    let admission ← checkTerm modelRef instances queryKey limitsRef propertyRef scenarioRef
+      knownGaps (some (← `(QueryFormKind.verifyClaim)))
     elabCommand (← `(command|
-      def $name : Except AdmissionError (CheckedModel ($modelRef)) :=
-        check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
-          (knownGaps := $knownGaps) (form := QueryFormKind.verifyClaim)))
+      def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef verifyKeyword name
 

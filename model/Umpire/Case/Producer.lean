@@ -110,6 +110,11 @@ structure Input (LawStatement : Law → Prop) where
   knownGaps : KnownGapSet
   /-- Where a rejection points when the construct it names is the Model's, not the Query's. -/
   source : SourceLocation
+  /-- The actions the Program performs, in path order, when they are not the operation's own
+  sequence: several instances of one entity interleave their actions on one path, and the Program
+  performs all of them while the Contract follows each operation through its own. `none` when the
+  operation's sequence is the Program's. -/
+  program : Option (List DefinitionId) := none
 
 /-! ### Identity
 
@@ -560,7 +565,7 @@ def produce {LawStatement : Law → Prop}
       input.property.source]
     knownGaps := input.knownGaps.toProvenanceGaps
     program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
-      occurrences
+      (input.program.getD occurrences)
     contractId := identity.contractId
     properties := [lowered.contractLowering]
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
