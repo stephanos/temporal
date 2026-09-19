@@ -231,16 +231,16 @@ private def runCheck
 
 private def invalidResultTable :=
   Umpire.Command.Tests.withStates lifecycle.table <|
-    lifecycle.table.states.filter fun entry => entry.value != State.succeeded
+    lifecycle.table.states.filter fun entry => entry.value != ({ state := .succeeded } : Lifecycle)
 
 private def outgoingTerminalTable :=
   Umpire.Command.Tests.withTransitions lifecycle.table <| lifecycle.table.transitions ++
-    [Umpire.Command.Tests.transitionRow "restart-after-success" State.succeeded Action.awaitStart
-      (lifecycle.resultsAt 0)]
+    [Umpire.Command.Tests.transitionRow "restart-after-success" ({ state := .succeeded } : Lifecycle)
+      lifecycle.Action.awaitStart (lifecycle.resultsAt 0)]
 
 private def extraSuccessResultTable :=
   Umpire.Command.Tests.withTransitions lifecycle.table <| lifecycle.table.transitions.map fun row =>
-      if row.action == Action.awaitSuccess then
+      if row.action == lifecycle.Action.awaitSuccess then
         Umpire.Command.Tests.transitionRow row.key row.source row.action
           (lifecycle.resultsAt 1 ++ (lifecycle.resultsAt 0))
       else row
@@ -293,17 +293,29 @@ property renamedResult
     state: succeeded
     outcome: completed
 
-model renamedLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+/-- The success slice records no Fact, so the Models below that exercise the declared-Fact path
+return into this domain rather than into the slice's empty one. -/
+private def records (phase : State) (outcome : Outcome) (recorded : Fact) :
+    List (Umpire.Step Lifecycle Outcome Fact) :=
+  [{ outcome, state := { state := phase }, facts := [recorded] }]
+
+def renamedStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .scheduled then [] else records .started .acknowledged .started
+
+def renamedSuccessStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .started then [] else records .succeeded .completed .succeeded
+
+machine renamedLifecycle
+  for: operation
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
+  evidence:
+    started: nexusOperationStarted
+    succeeded: nexusOperationCompleted
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
-    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
+    awaitStart: renamedStartStep
+    awaitSuccess: renamedSuccessStep
 
 property renamedModelResult
   model: renamedLifecycle
@@ -373,8 +385,12 @@ Producer no longer compares them against one expected model. -/
 order, so every clause still places, and its own identity still reaches the bytes. -/
 #guard differsFromCompletionCase renamedBehaviorResult
 
-private def modelMemberIds {DeclaredSetup DeclaredFact : Type} [BEq DeclaredSetup] [BEq DeclaredFact]
-    (candidate : Umpire.Command.DeclaredModel DeclaredSetup State Action Outcome DeclaredFact) :
+private def modelMemberIds {DeclaredSetup DeclaredState DeclaredAction DeclaredOutcome
+      DeclaredFact : Type}
+    [BEq DeclaredSetup] [BEq DeclaredState] [BEq DeclaredAction] [BEq DeclaredOutcome]
+    [BEq DeclaredFact]
+    (candidate : Umpire.Command.DeclaredModel DeclaredSetup DeclaredState DeclaredAction
+      DeclaredOutcome DeclaredFact) :
     List DefinitionId :=
   candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
     candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
@@ -536,21 +552,25 @@ theorem queryGapsDoNotChangeSuccessProperty : admitted.map (fun checked =>
     | _ => false) = some true := by
   native_decide
 
-/- The five blocks admit whatever the declaring inductives declare. This probe renames the role,
-adds a third transition, selects the start Action rather than the completion one, and states its
-own limits — every spelling a whitelist used to reject. -/
-model probeLifecycle
-  role: worker
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+/- The five blocks admit whatever the declaring inductives declare. This probe names another entity,
+adds a third transition (`awaitStart` out of `started`, a self-loop), selects the start Action rather
+than the completion one, and states its own limits -- every spelling a whitelist used to reject. -/
+entity worker
+
+def probeStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state == .succeeded then [] else records .started .acknowledged .started
+
+machine probeLifecycle
+  for: worker
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
+  evidence:
+    started: nexusOperationStarted
+    succeeded: nexusOperationCompleted
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
-    started + awaitStart → started, outcome: acknowledged, facts: [started]
-    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
+    awaitStart: probeStartStep
+    awaitSuccess: renamedSuccessStep
 
 property probeStart
   model: probeLifecycle
@@ -614,34 +634,28 @@ private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario 
   | _ => false
 
 /--
-error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
+error: 'awaitFinish' is not an action declared by an `action` command; a `steps:` line names the action its function steps on
 -/
 #guard_msgs (error) in
-model unknownActionLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+machine unknownActionLifecycle
+  for: operation
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
   steps:
-    scheduled + awaitFinish → started, outcome: acknowledged, facts: [started]
+    awaitFinish: renamedStartStep
 
 /--
-error: unknown Model state 'missing'; declared: scheduled, started, succeeded
+error: 'missing' is not a value of any field of the machine's state structure
 -/
 #guard_msgs (error) in
-model unknownStateLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+machine unknownStateLifecycle
+  for: operation
+  state: Lifecycle
   starts: [missing]
   ends: [succeeded]
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    awaitStart: renamedStartStep
 
 /- The verify form elaborates through the same owner and claims the requirement over every trace
 the Behavior admits, so it selects no witness. -/
@@ -694,16 +708,13 @@ is the reason to author the form at all. -/
 error: Model start states must be declared in sorted order, because the planner admits only a canonically ordered start-state list; 'succeeded' precedes 'scheduled'
 -/
 #guard_msgs (error) in
-model unsortedInitialLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+machine unsortedInitialLifecycle
+  for: operation
+  state: Lifecycle
   starts: [succeeded, scheduled]
   ends: [succeeded]
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    awaitStart: renamedStartStep
 
 /-! ### Known Gaps are the Query's own
 
@@ -756,29 +767,16 @@ query ungappedCompletion
    ("temporal.nexus.success.known-gap.operation-correlated-progress",
      "temporal.nexus.success.property.cancellationResolves")]
 
-enum UnsortedEnumAction
-  | resolve
-  | cancel
-
 /-! ### A Model may record no Fact
 
 The Nexus success Model records none: every step reaches a state named after what happened, so a
 Fact would only restate it. A row that names one, or a `require ...: fact ...` clause, then has
 nothing to name. -/
 
-/--
-error: this Model declares no facts, so 'started' names nothing
--/
-#guard_msgs (error) in
-model factlessRowLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  starts: [scheduled]
-  ends: [succeeded]
-  steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+/- A step function that returned a Fact the slice's empty domain has no member for would not
+elaborate: `Umpire.Step Lifecycle Outcome Fact` over the success slice's `Fact` has nothing to put in
+`facts`, so there is no spelling for the mistake the `model` command's rows could make. The Property
+clause still has somewhere to be wrong, and that is what is pinned. -/
 
 /--
 error: this Model declares no facts, so 'succeeded' names nothing
@@ -818,20 +816,17 @@ inductive ProbeDomainByHand where
 #guard (reprStr ProbeDomain.second) == (reprStr ProbeDomainByHand.second).replace
   "ProbeDomainByHand" "ProbeDomain"
 
-/--
-error: Model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
--/
-#guard_msgs (error) in
-model unsortedEnumActionLifecycle
-  role: operation
-  states: State
-  actions: UnsortedEnumAction
-  outcomes: Outcome
-  facts: Fact
-  starts: [scheduled]
-  ends: [succeeded]
-  steps:
-    scheduled + cancel → started, outcome: acknowledged, facts: [started]
+/-! ### The Action catalog is the command's, not the author's
+
+A machine synthesizes its Action domain from the `steps:` lines it is given and emits the catalog in
+canonical order, so the rule the `model` command enforced -- declare the Action constructors sorted,
+because the planner admits only a canonically ordered catalog -- is one an author can no longer
+break. It could not have stayed a rule either: a classed action contributes one member per
+assignment of its inputs, in its domain's member order, so no arrangement of `steps:` lines would
+sort them. -/
+
+#guard probeLifecycle.actionKeys.toList == ["awaitStart", "awaitSuccess"]
+#guard probeLifecycle.actionKeys.toList.mergeSort (· <= ·) == probeLifecycle.actionKeys.toList
 
 /-! Two Models in one namespace each generate their own setup domain, so neither can collide with
 the other's. -/
@@ -854,17 +849,14 @@ inductive Setup where
   | running
   deriving BEq, DecidableEq, Repr
 
-model coexistingLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
+machine coexistingLifecycle
+  for: operation
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
-    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
+    awaitStart: renamedStartStep
+    awaitSuccess: renamedSuccessStep
 
 /- The generated setup domain is the Model's own, and its constructor is named after the Model's
 first start state, which is what keeps the canonical setup key stable. -/
@@ -873,104 +865,92 @@ first start state, which is what keeps the canonical setup key stable. -/
 
 end OwnSetup
 
-inductive UnsortedAction where
-  | resolve
-  | cancel
-  deriving BEq, DecidableEq, Repr
+/-! ### Three of the `model` command's rejections are shapes a machine has no spelling for
+
+A duplicate row -- `scheduled + awaitStart` written twice -- is a second `match` arm in one function,
+which Lean rejects at the arm as redundant (pinned in `Temporal.Feature.Nexus.Tests.Machines`). An
+unsorted Action catalog is the command's to emit, above.
+
+An unreachable end state is a shape a machine is allowed to have, and the success slice is not where
+that shows: `ends:` names the values of one state field, so every state carrying one is terminal
+whether or not a step reaches it. `Temporal.Feature.Nexus.Tests.Machines` declares `timedOut` among
+`nexusProduct`'s ends and nothing there reaches it, because the refinement maps the protocol
+machine's timeouts onto it. What a machine checks instead is the opposite mistake: a state it
+reaches, does not end in, and can take no step from.
+
+A state domain that takes arguments is not rejected either -- a constructor carrying finite fields
+is one class per assignment of them, which is the granularity the whole surface is written at. What
+is rejected is a field with no finite member list, at the `enum` that declared it. -/
 
 /--
-error: Model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+error: cannot derive Finite for Temporal.Feature.Nexus.Success.Tests.AlsoUnbounded: its constructor Temporal.Feature.Nexus.Success.Tests.AlsoUnbounded.running's argument 'attempt', of type Nat, has no finite member list. A finite domain is an enum-like inductive, an inductive whose constructor arguments are themselves finite, Bool, a count as Fin (bound + 1), or a structure of those.
 -/
 #guard_msgs (error) in
-model unsortedActionLifecycle
-  role: operation
-  states: State
-  actions: UnsortedAction
-  outcomes: Outcome
-  facts: Fact
-  starts: [scheduled]
-  ends: [succeeded]
-  steps:
-    scheduled + cancel → started, outcome: acknowledged, facts: [started]
-
-inductive ParameterizedState where
+enum AlsoUnbounded
   | queued
   | running (attempt : Nat)
-  deriving BEq, DecidableEq, Repr
+
+/-! ### A machine too large to walk
+
+A machine's bound is not a row count an author writes out: the step functions are evaluated once per
+(state, action) pair, so what is bounded is the product. A state structure of five fields and an
+action of six flags reaches it without either one being large. -/
+
+enum WidePhase
+  | opening
+  | closing
+
+/-- Sixty-four classes from one constructor: a class is one assignment of the fields it carries, so
+an action with six flags is sixty-four actions to walk. -/
+enum WideFlags
+  | flags (a : Bool) (b : Bool) (c : Bool) (d : Bool) (e : Bool) (f : Bool)
+
+structure WideState where
+  phase : WidePhase
+  first : Fin 4
+  second : Fin 4
+  third : Fin 4
+  fourth : Fin 2
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
+action widen
+  party: caller
+  on: operation
+  input:
+    flags: WideFlags
+
+action settle
+  party: caller
+  on: operation
+
+def widenStep (_current : WideState) (_written : WideFlags) :
+    List (Umpire.Step WideState Outcome Fact) := []
+
+def settleStep (_current : WideState) : List (Umpire.Step WideState Outcome Fact) := []
 
 /--
-error: Model state 'running' takes arguments; a state domain must be an enum-like inductive
+error: enumerating 256 states over 65 action classes is 16640 steps, and the bound is 16384; a machine this size is bounded by its Limits or by symmetry, not walked
 -/
 #guard_msgs (error) in
-model parameterizedLifecycle
-  role: operation
-  states: ParameterizedState
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
-  starts: [queued]
-  ends: [running]
+machine overBoundLifecycle
+  for: operation
+  state: WideState
+  starts: [opening]
+  ends: [closing]
   steps:
-    queued + awaitStart → running, outcome: acknowledged, facts: [started]
-
-/--
-error: duplicate Model step: 'scheduled + awaitStart' is already declared
--/
-#guard_msgs (error) in
-model duplicateTransitionLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
-  starts: [scheduled]
-  ends: [succeeded]
-  steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
-    scheduled + awaitStart → succeeded, outcome: completed, facts: [succeeded]
-
-/--
-error: Model end state 'succeeded' is unreachable from every start state
--/
-#guard_msgs (error) in
-model unreachableTerminalLifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
-  facts: Fact
-  starts: [scheduled]
-  ends: [succeeded]
-  steps:
-    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
-
-/-- Declare a model with `count` identical step rows, so the elaboration bound is reachable
-without writing the rows out. The bound is checked before duplicate rows are, so identical rows
-reach it. -/
-local macro "boundedStepModel" modelName:ident count:num : command => do
-  let rows ← (List.replicate count.getNat ()).toArray.mapM fun _ =>
-    `(modelStep| scheduled + awaitStart → started, outcome: acknowledged, facts: [started])
-  `(command| model $modelName
-      role: operation
-      states: State
-      actions: Action
-      outcomes: Outcome
-      facts: Fact
-      starts: [scheduled]
-      ends: [succeeded]
-      steps: $rows*)
-
-/--
-error: the Model declares 257 steps; the elaboration bound is 256
--/
-#guard_msgs (error) in
-boundedStepModel overBoundLifecycle 257
+    widen: widenStep
+    settle: settleStep
 
 /-! ### Resolved references carry the constant they name
 
 Hover and go-to-definition on a member spelling work because the command gives that spelling the
 constructor it resolves to. This fails to elaborate if any recorded domain type or member spelling
-does not name a real constant -- which is exactly what would make the editor silent. -/
+does not name a real constant -- which is exactly what would make the editor silent.
+
+A machine's *state* key is the exception, and deliberately: it names an assignment of the state
+structure's fields rather than a constructor, so for a structure of several fields there is no one
+constant to point at. The declaring type is recorded either way, which is what the editor needs to
+reach the fields. -/
 
 open Lean in
 run_cmd do
@@ -978,8 +958,10 @@ run_cmd do
   let some declared := Umpire.Command.Registry.model? environment
       ``Temporal.Feature.Nexus.Success.lifecycle
     | throwError "the Nexus success Model is not recorded"
+  for declaringType in [declared.stateType, declared.actionType, declared.outcomeType,
+      declared.factType] do
+    discard <| getConstInfo declaringType
   for (declaringType, members) in [
-      (declared.stateType, declared.states),
       (declared.actionType, declared.actions),
       (declared.outcomeType, declared.outcomes),
       (declared.factType, declared.facts)] do
