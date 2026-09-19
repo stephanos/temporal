@@ -59,10 +59,15 @@ private def produceWith
     source := lifecycle.origin.source
     construct := "checked-completion"
   }
+  -- The Producer reads the realizable view, which for one instance is the Query's own.
   produceFromChecked { checked with
     «property» := property?.getD checked.property
     «behavior» := behavior?.getD checked.behavior
-    «witness» := witness? }
+    «witness» := witness?
+    realizable := { checked.realizable with
+      «property» := property?.getD checked.property
+      «behavior» := behavior?.getD checked.behavior
+      «witness» := witness? } }
 
 /-- One authored Property replaced by a single clause of the caller's choosing. -/
 private def propertyWithClauses (clauses : List PropertyClause) : Option CheckedProperty := do
@@ -371,7 +376,9 @@ private def renamedBehaviorResult :
   let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
     (.ofTarget checked.target)).mapError fun _ => Compiler.Error.mk
       checked.behavior.id.value lifecycle.origin.source "checked-behavior"
-  produceFromChecked { checked with «behavior» := renamedBehavior }
+  produceFromChecked { checked with
+    «behavior» := renamedBehavior
+    realizable := { checked.realizable with «behavior» := renamedBehavior } }
 
 /- A renamed model carries its own Target, Query and Property identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
@@ -617,7 +624,8 @@ private def misspelledProperty (values : Umpire.Command.ModelVocabulary) : Prope
 private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario :=
   Umpire.Command.authoredScenario lifecycle values {
     declaration := "successfulCompletion", roleName := "worker", setupState := "scheduled"
-    occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
+    occurrences := [{ label := "start", action := "awaitStart" },
+      { label := "completion", action := "awaitSuccess" }] }
 
 #guard match runCheck (propertyAuthor := misspelledProperty) with
   | .error (.admission (.property _)) => true
@@ -779,13 +787,15 @@ constructor at the spelling, before the command sees it. -/
   pure (checked.property.clauses.length == 2 && checked.vocabulary.facts.isEmpty)) == some true
 
 /- The predicate enumerates to exactly the clauses the keyed `require:` block wrote, so the Property
-carries the fingerprint it had: the authoring form changed and the behavior did not. -/
+carried the fingerprint it had when the form changed (pinned at fcbc068). The values below are the
+ones after fn-85 `.4` gave a machine's state fields a meaning, which every Property over a machine
+reads through, and which moved every one of these by the same cause. -/
 #guard (admitted.map fun checked => checked.property.behaviorFingerprint.render) ==
-  some "sha256:11e59f7f28ed7dda0fcca9bd7a9086360a1e7c52f21c0912657cd889ad6ec219"
+  some "sha256:0a64e621e1bb03b72e4498534e156cfd6790e4af2c196db62b3c00a8f8006357"
 #guard (renamedQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
-  some "sha256:46475870ff389d73513d46ed64d3a8daf897c03537e167b420a5c15c479e62f6"
+  some "sha256:f93aeeeb2e0019180a7786952b3fb8d8ea3673f9d80b62d8aca343818c9f881b"
 #guard (probeQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
-  some "sha256:fa9112a1c724b242192e99877bde63f5a08c3df9d2426d5e21fa106682c57227"
+  some "sha256:57387f1e9d5c1b6ac655bc335c3c4df725b5d6604e97f7e974925b76cb0a0bb6"
 
 /-! ### `enum` declares a domain
 
@@ -1246,6 +1256,175 @@ query mismatchedModels
 
 /-! The pre-respell spellings are gone rather than retired: every call site is in this repository
 and migrated in the same commit, so nothing outside it could be holding one. -/
+
+/-! ### Several instances of one entity
+
+A Scenario over `instances:` runs the Search over the product of that many copies of the machine,
+so their steps interleave and every interleaving is a path. The Property is read over the product
+as the same claim per instance, on the acting instance's own slot. A Producer reads one instance
+back: its sequence, and every instance's actions as the Program's path. -/
+
+scenario twoOperations
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 2, awaitSuccess 1, awaitSuccess 2]
+
+limits twoOperationTraces
+  steps: 4
+  actions: 4
+  search: 64
+
+query twoCompletions
+  find: successfulResult
+  in: twoOperations
+  limits: twoOperationTraces
+
+/- The Search ran over the product: each step is one instance's action and the state is both
+instances' states, slot by slot. -/
+#guard (do
+  let checked ← twoCompletions.toOption
+  let selected ← checked.witness
+  pure (checked.instances == 2 &&
+    selected.trace.steps.map (·.selectedAction.value) ==
+      ["1_awaitStart", "2_awaitStart", "1_awaitSuccess", "2_awaitSuccess"] &&
+    selected.trace.steps.map (·.state.value) ==
+      ["started_scheduled", "started_started", "succeeded_started", "succeeded_succeeded"] &&
+    -- The Property held on the product: two clauses per instance.
+    checked.property.clauses.length == 4)) == some true
+
+/- The other interleaving is another path, and the Scenario picks which. -/
+scenario secondFirst
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 2, awaitSuccess 2, awaitStart 1, awaitSuccess 1]
+
+query secondCompletesFirst
+  find: successfulResult
+  in: secondFirst
+  limits: twoOperationTraces
+
+#guard (do
+  let checked ← secondCompletesFirst.toOption
+  let selected ← checked.witness
+  pure (selected.trace.steps.map (·.state.value) ==
+    ["scheduled_started", "scheduled_succeeded", "started_succeeded", "succeeded_succeeded"])) ==
+  some true
+
+/- What a Producer reads is one instance: the machine as declared, the first instance's sequence,
+and its projection of the selected path -- with every instance's actions as the Program's path. -/
+#guard (do
+  let checked ← twoCompletions.toOption
+  let selected ← checked.realizable.witness
+  let program ← checked.realizable.program
+  pure (selected.trace.steps.map (·.selectedAction.value) == ["awaitStart", "awaitSuccess"] &&
+    selected.trace.steps.map (·.state.value) == ["started", "succeeded"] &&
+    program == [lifecycle.actionIdAt 0, lifecycle.actionIdAt 0, lifecycle.actionIdAt 1,
+      lifecycle.actionIdAt 1] &&
+    checked.realizable.property.clauses.length == 2)) == some true
+
+/- And a Case is produced from it. The success Model's actions are waits that no instruction
+performs, so the Program is the template's; the Contract follows the one sequence. -/
+#guard (match twoCompletions with
+  | .ok checked => (produceFromChecked checked).isOk
+  | .error _ => false)
+
+/- The instance count is a Limit: a Search that cannot finish within its budget says so. -/
+limits oneTrace
+  steps: 4
+  actions: 4
+  search: 1
+
+/--
+error: the search stopped at its declared bound after 1 traces; raise `limits` if the trace you mean is longer
+-/
+#guard_msgs (error) in
+query twoCompletionsCutShort
+  find: successfulResult
+  in: twoOperations
+  limits: oneTrace
+
+/-! What a Scenario over instances rejects, each where it is written. -/
+
+/--
+error: an instance count of zero admits no instance to run the Scenario over; a Scenario runs over at least one
+-/
+#guard_msgs (error) in
+scenario noInstances
+  model: lifecycle
+  instances: 0
+  starts: scheduled
+  actions: [awaitStart 1]
+
+/--
+error: 10 instances is more than nine; the product's keys number instances by one digit, and a Scenario over more instances than that is a Search no bound would admit
+-/
+#guard_msgs (error) in
+scenario tenInstances
+  model: lifecycle
+  instances: 10
+  starts: scheduled
+  actions: [awaitStart 1]
+
+/- The product is walked before the Search runs, so its size is checked where the count is
+written: seven instances of a three-state, two-action machine are 30618 steps to enumerate. -/
+/--
+error: 7 instances of a machine with 3 states and 2 action classes multiply out to 30618 steps to enumerate; the bound is 16384, so declare fewer instances or a smaller machine
+-/
+#guard_msgs (error) in
+scenario sevenInstances
+  model: lifecycle
+  instances: 7
+  starts: scheduled
+  actions: [awaitStart 1]
+
+/--
+error: 'awaitSuccess' names no instance; a Scenario over 2 instances writes which instance takes each action, `awaitSuccess 1` to `awaitSuccess 2`
+-/
+#guard_msgs (error) in
+scenario unnumbered
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitSuccess]
+
+/--
+error: 'awaitStart' names an instance, but this Scenario declares no `instances:`; a Scenario over one instance writes its actions bare
+-/
+#guard_msgs (error) in
+scenario numberedAlone
+  model: lifecycle
+  starts: scheduled
+  actions: [awaitStart 1, awaitSuccess]
+
+/--
+error: instance 3 is not one of the 2 this Scenario runs over
+-/
+#guard_msgs (error) in
+scenario strayInstance
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 3]
+
+/- A Case follows each operation through one sequence, so every instance performs the same
+actions; a Scenario whose instances differ is admitted as a Scenario and rejected at the Query
+that would produce a Case from it. -/
+scenario unevenOperations
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 2, awaitSuccess 1]
+
+/--
+error: instance 2 performs awaitStart where instance 1 performs awaitStart, awaitSuccess; a Case follows each operation through one sequence, so every instance performs the same actions
+-/
+#guard_msgs (error) in
+query unevenCompletion
+  find: successfulResult
+  in: unevenOperations
+  limits: twoOperationTraces
 
 /-! ### The `case` block
 

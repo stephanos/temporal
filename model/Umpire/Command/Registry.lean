@@ -48,11 +48,13 @@ structure PropertyEntry where
   model : Name
   deriving Inhabited, Repr, BEq
 
-/-- One Scenario declaration and the Action spellings it selects, in declaration order. -/
+/-- One Scenario declaration and the Action spellings it selects, in declaration order, with the
+number of instances of the entity it runs over. -/
 structure ScenarioEntry where
   declName : Name
   model : Name
   actions : Array String
+  instances : Nat := 1
   deriving Inhabited, Repr, BEq
 
 /-- One Query declaration: whether it selects a witness, and the Scenario it runs in. -/
