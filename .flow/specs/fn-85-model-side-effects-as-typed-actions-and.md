@@ -555,6 +555,30 @@ narrows a requirement without changing its intent, and the task that owns it rec
   confirmed by a kind per result. The Producer emits a Case's rules from the concrete steps of its
   own path, which is one result per kind on the seven functional Queries; a path that took the same
   kind to two results would need `.9`'s observation declarations to say which.
+- **A refinement is a stuttering forward simulation, decided over the tables (decided while
+  delivering `.6`).** `refines:` names the product machine and `map:` a Lean function from this
+  machine's state to its state, by the rule that replaced rows with step functions. Every row's
+  result is a product step from the mapped state -- the product action of the row's own name where
+  one carries it, else any that does -- or a stutter when the mapped states are equal; any other row
+  rejects at the `map:` line. Outcomes and facts read as the product's value of the same name, a
+  fact's constructor covering its members; a fact the product does not name is hidden, an outcome
+  it does not name rejects, and a product step may record less than the step it carries, never
+  more. The witness is `Umpire.TableRefinement.ofChecked (by decide +kernel)`, synthesized by the
+  command and never written, and `Umpire.ImplementationLink.Refinement` carries the obligations to
+  the kernels and to traces. A refinement is not an Implementation Link (SEM-08).
+- **A product Property is read on the refining machine through a state field (decided while
+  delivering `.6`).** A refining machine carries the product state each state reads as in a field
+  named after the product machine, so a product claim about a state -- a prior-state trigger, or
+  the state a clause fixes -- is a claim about that field, read apart from the state the way any
+  field is since `.4`; outcomes, facts and trigger Actions are the refining machine's values of the
+  same name, and a Query rejects at `find:` naming one the refining machine lacks. The Property
+  keeps its own identity. A stutter is checked like any step, so a product transition claim that
+  requires the state to change fails on a stutter; the Nexus Properties are stutter-invariant.
+- **A step out of an end state is admitted (decided while delivering `.6`).** `ends:` names the
+  phases an instance finishes in, and `DESIGN.md` writes steps out of them -- a completion after
+  the operation is over is `notFound`, a worker stopping afterwards records its fault -- which a
+  Search takes like any row. The `model`-era refusal of such a step is retired; the Success test
+  that pinned it now pins the table as noncanonical, which is the reason that remains.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command

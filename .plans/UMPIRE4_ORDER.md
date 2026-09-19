@@ -322,6 +322,22 @@ the machine's own law, one instance's Property is read on the acting slot, and t
 the first instance back with every instance's actions as the Program's path. Rejections are pinned
 where they are written. Its review is a self-review.
 
+**Task .6 is done, 2026-09-19.** A machine declares `refines:` and `map:` -- the product machine and
+a Lean function from its state to the product's -- and the command walks every row through the map:
+a row whose mapped states are a product step is that step, a row whose mapped states are equal is a
+stutter, and any other row rejects at the `map:` line naming the row, both readings and what the
+product lacks. Outcomes and facts read by name, a fact's constructor covering its members; a fact
+the product does not name is hidden, an outcome it does not name rejects, and a product step may
+record less than the protocol step it carries, never more. The derived step mapping is read back as
+data and pinned; the witness is `Umpire.ImplementationLink.Refinement`'s stuttering forward
+simulation, decided by the kernel over the two tables, with `traceForward` carrying every admitted
+protocol trace to an admitted product trace. A Property on the product machine is read on the
+protocol machine's paths through a state field named after the product machine, and a Query over a
+protocol Scenario may `find:` or `verify:` it. The product machine gained a `timeout` timer, the
+Scenario grammar took classed actions and a phase for `starts:`, a setup constructor is named by
+the start phase rather than the punctuated key, and the `model`-era refusal of a step out of an end
+state is retired because the design writes such steps. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
