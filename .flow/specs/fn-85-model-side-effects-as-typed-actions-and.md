@@ -657,6 +657,27 @@ narrows a requirement without changing its intent, and the task that owns it rec
   exceeded `MaxTransitions`, and the rules can take no other row. An instructed handler error or
   failed start completes the handler activation that produced it; the Run runs on to the caller's
   recorded failure rather than stopping as an effect failure.
+- **Silent steps fold into the next confirmed rule, timers are realization bindings, and the
+  templates are gone (task .11, 2026-09-19).** A Scenario step whose action has no evidence line
+  (`backoff`, `workerStop`) is confirmed by the evidence of the next mapped action: the Producer
+  folds it into that rule's confirmed steps ahead of the mapped step (`resolveEvidence`), and
+  records it as a capability Known Gap `<actionId>.unobserved` on the Case, so a Case says which of
+  its steps no observation confirms; a trailing silent step is a rejection. A timer is a
+  `TimerBinding` on the Realization (name to milliseconds), consumed by the schedule bindings as
+  the operation's `scheduleToStart` and `startToClose` durations, and observed through the
+  timed-out event under the Case's deadline: no wait-for-duration instruction, fn-87's boundary
+  line holds. `workerStop` is an ordinary `ActionBinding` whose node injects
+  `FAULT_KIND_WORKER_STOP` on the handler's own task-queue role, which the realization binds beside
+  the caller's, so the outage stops the handler alone. Every controller path opens with a read of
+  the scheduled event (`await-scheduled`, kind `evidence.scheduled`), because the runtime processes
+  a read's evidence when its instruction commits and a `pendingAttempts` read verified before the
+  scheduled transition is unauthorized; one operation's evidence across sources is chained by a
+  parent at lift, and a canceled reservation of an entrypoint that performs nothing is admitted at
+  completion. The `case` block names a `Realization` value in its `as` clause; the whole-Program
+  templates, the `fixture`-named form, `ProofPoint` and the `Success` set are gone and retired,
+  while `Success/Model.lean` stays as the command specimen its tests pin until fn-86 R3. Correlated
+  field policies type text, boolean and unsigned only, so the reads declare no fields and the
+  attempt count is Known Gap `attempts-field`.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
