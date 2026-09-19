@@ -5,6 +5,7 @@ import Umpire.Command.Finite
 import Umpire.Command.Records
 import Umpire.Command.Schema
 import Umpire.Command.Registry
+import Umpire.Command.Predicate
 
 /-!
 # The Model command grammar
@@ -31,7 +32,8 @@ an indented `word:` is a framework key introducing a value, and everything else 
 declared member, a number, or an operator. Nothing an author writes is a label the framework only
 carries back to them. -/
 
-/-- One `require:` line of a declared Property. Its clause key is derived from the line itself. -/
+/-- One line of the retired keyed `require:` block of a Property, kept so the form is rejected at
+its key with a message naming `holds:` rather than failing to parse. -/
 declare_syntax_cat modelRequirement
 
 syntax "state:" ident : modelRequirement
@@ -163,15 +165,42 @@ elab doc?:(docComment)? &"enum" name:ident
 
 /-! ### The `property` command
 
-A Property names its Model and the Action every clause is about, then one `require:` line per
-requirement. The clause key is the requirement -- its kind and the member it names -- so a duplicate
-requirement is a duplicate key, and rejects on the line that repeats it. -/
-
-private def duplicateRequirementMessage (key : String) : String :=
-  s!"duplicate requirement '{key}': this Property already requires it"
+A Property names its machine and a Lean predicate over the machine's steps: `Step → Bool` for a
+claim about the step one Action produces (`when:` names the Action), or `Step → Step → Bool` for a
+claim about the step before and the step after. The predicate is enumerated over the machine's own
+table into the clause records a Property has always carried -- `Umpire.Command.Predicate` says how
+-- so Search, the Behavior Fingerprint and Contract lowering never see a function. -/
 
 private def undeclaredModelMessage (spelling : Name) : String :=
   s!"'{spelling}' is not a Model declared by a `machine` command"
+
+private def retiredRequireMessage : String :=
+  "the keyed `require:` form is retired; a `property` names a `machine:` and a `holds:` \
+predicate over its steps, `Step → Bool` for a same-step claim under `when:` or \
+`Step → Step → Bool` for a transition claim"
+
+private def retiredModelKeyMessage : String :=
+  "`model:` is retired on `property`; the key is `machine:`"
+
+private def otherMachineStepMessage (carried expected : Name) : String :=
+  s!"the predicate reads steps of '{carried}', which is not this machine's state; a `holds:` \
+predicate is over `Step {expected} _ _`"
+
+private def notDecidableMessage : String :=
+  "the predicate is not decidable: `holds:` is a `Bool`-valued function over the machine's steps, \
+so a claim is written with `==`, `&&`, `||` and `!`, not as a proposition"
+
+private def predicateShapeMessage (expected : Name) : String :=
+  s!"a `holds:` predicate is `Step {expected} _ _ → Bool` for a same-step claim under `when:`, or \
+`Step {expected} _ _ → Step {expected} _ _ → Bool` for a transition claim"
+
+private def transitionWithWhenMessage : String :=
+  "a transition claim reads the step before, so it names no `when:` Action; a same-step claim \
+under `when:` is `Step → Bool`"
+
+private def sameStepWithoutWhenMessage : String :=
+  "a same-step claim names the Action it is about under `when:`; a claim over every step is a \
+transition claim, `Step → Step → Bool`"
 
 /-- Resolve one spelling against a Model's declared domain, reporting an unknown one in place. The
 message shape is every command's, so an author sees one vocabulary wherever they are. -/
@@ -190,61 +219,230 @@ private def resolveDeclared (domain : String) (declared : Array String) (declari
     liftTermElabM (Lean.Elab.addConstInfo member points)
   pure spelling
 
-/-- The Model a `model:` key names, resolved to what the `machine` command recorded about it. -/
+/-- The Model a `machine:` key names, resolved to what the `machine` command recorded about it. -/
 private def resolveDeclaredModel (modelRef : Ident) : CommandElabM Registry.ModelEntry := do
   let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
   match Registry.model? (← getEnv) modelName with
   | some declared => pure declared
   | none => throwErrorAt modelRef (undeclaredModelMessage modelName)
 
+/-- The Action a `when:` line names, as the key its class carries: a bare action, or a classed
+action with its inputs applied, `handlerReply (handlerError true)`. The key joins the constructor
+and its arguments with `-`, the way the machine command keys its Action members, so the written
+class is looked up rather than rebuilt. -/
+private partial def actionKeyOf (stx : Term) : String :=
+  match stx with
+  | `(($inner)) => actionKeyOf inner
+  | `($head:ident $arguments*) =>
+      "-".intercalate ((head.getId.eraseMacroScopes.getString!) ::
+        arguments.toList.map fun argument => actionKeyOf ⟨argument.raw⟩)
+  | `($head:ident) => head.getId.eraseMacroScopes.getString!
+  | `(true) => "true"
+  | `(false) => "false"
+  | `($number:num) => toString number.getNat
+  | _ => (stx.raw.reprint.getD "").trimAscii.toString
+
+/-- The arity a predicate's type has over the machine's `Step`, or the reason it has none. -/
+private def predicateArity (predicateRef : Term) (stateDecl outcomeDecl factDecl : Name)
+    (type : Expr) : CommandElabM Nat := liftTermElabM do
+  let stepType ← Meta.mkAppM ``Umpire.Step
+    #[← mkConstWithLevelParams stateDecl, ← mkConstWithLevelParams outcomeDecl,
+      ← mkConstWithLevelParams factDecl]
+  Meta.forallTelescopeReducing type fun arguments body => do
+    let body ← Meta.whnf body
+    if body.isSort then
+      throwErrorAt predicateRef notDecidableMessage
+    unless body.isConstOf ``Bool do
+      throwErrorAt predicateRef (predicateShapeMessage stateDecl)
+    if arguments.isEmpty || arguments.size > 2 then
+      throwErrorAt predicateRef (predicateShapeMessage stateDecl)
+    for argument in arguments do
+      let carried ← Meta.whnf (← Meta.inferType argument)
+      unless ← Meta.isDefEq carried stepType do
+        -- A `Step` over another machine's state names that state; anything else is the shape.
+        match carried.getAppFn.constName?, carried.getAppArgs[0]? with
+        | some head, some state =>
+            if head == ``Shared.SemanticData.Result || head == ``Umpire.Step then
+              match (← Meta.whnf state).getAppFn.constName? with
+              | some other => throwErrorAt predicateRef (otherMachineStepMessage other stateDecl)
+              | none => throwErrorAt predicateRef (predicateShapeMessage stateDecl)
+            else throwErrorAt predicateRef (predicateShapeMessage stateDecl)
+        | _, _ => throwErrorAt predicateRef (predicateShapeMessage stateDecl)
+    pure arguments.size
+
+/-- One attempt at elaborating the predicate, against an expected type or on its own terms. What
+Lean logs while trying is collected rather than reported, so an attempt that is only a diagnosis
+leaves nothing behind, and the attempt that is the claim's own shape reports exactly what it logged.
+-/
+private def attemptPredicate (predicateRef : Term) (expected : Option Expr) :
+    CommandElabM (Option Expr × MessageLog) := do
+  let saved ← get
+  modify fun state => { state with messages := {} }
+  let type? ← try
+      let type ← liftTermElabM do
+        Term.withoutErrToSorry do
+          let value ← match expected with
+            | some expected => Term.elabTermEnsuringType predicateRef expected
+            | none => Term.elabTerm predicateRef none
+          Term.synthesizeSyntheticMVarsNoPostponing
+          instantiateMVars (← Meta.inferType value)
+      pure (some type)
+    catch failure =>
+      logException failure
+      pure none
+  let logged := (← get).messages
+  modify fun state => { state with messages := saved.messages }
+  pure (if logged.hasErrors then none else type?, logged)
+
+/-- Elaborate the predicate against the shape its claim has -- `when:` makes it a same-step
+claim, its absence a transition claim -- and, when that fails, say which part is wrong: a predicate
+over another machine's steps, one that is not decidable, or one of the other shape. A predicate that
+elaborates as nothing reports Lean's own error at the term, against the shape the claim has. -/
+private def elabPredicate (predicateRef : Term) (arity : Nat)
+    (stateDecl outcomeDecl factDecl : Name) : CommandElabM Unit := do
+  let stepType ← liftTermElabM do
+    Meta.mkAppM ``Umpire.Step
+      #[← mkConstWithLevelParams stateDecl, ← mkConstWithLevelParams outcomeDecl,
+        ← mkConstWithLevelParams factDecl]
+  let boolType := mkConst ``Bool
+  let expected := if arity == 1 then mkForall `step .default stepType boolType
+    else mkForall `before .default stepType (mkForall `after .default stepType boolType)
+  let (elaborated?, logged) ← attemptPredicate predicateRef (some expected)
+  if elaborated?.isSome then
+    modify fun state => { state with messages := state.messages ++ logged }
+    return
+  -- On its own terms, to name the part that is wrong; and Lean's own error otherwise.
+  let (type?, _) ← attemptPredicate predicateRef none
+  if let some type := type? then
+    let found ← predicateArity predicateRef stateDecl outcomeDecl factDecl type
+    if found != arity then
+      if arity == 1 then throwErrorAt predicateRef transitionWithWhenMessage
+      else throwErrorAt predicateRef sameStepWithoutWhenMessage
+  modify fun state => { state with messages := state.messages ++ logged }
+  throwAbortCommand
+
+private unsafe def evalEnumeratedUnsafe (declName : Name) :
+    Elab.Term.TermElabM EnumeratedProperty :=
+  Meta.evalExpr EnumeratedProperty (.const ``Umpire.Command.EnumeratedProperty []) (.const declName [])
+
+/-- A Property's enumerated groups, read off the definition the command just emitted. -/
+@[implemented_by evalEnumeratedUnsafe]
+private opaque evalEnumerated (declName : Name) : Elab.Term.TermElabM EnumeratedProperty
+
+private def requirementTerm : PropertyRequirement → CommandElabM Term
+  | .stateClause label spelling =>
+      `(Umpire.Command.PropertyRequirement.stateClause $(Lean.quote label) $(Lean.quote spelling))
+  | .outcomeClause label spelling =>
+      `(Umpire.Command.PropertyRequirement.outcomeClause $(Lean.quote label) $(Lean.quote spelling))
+  | .factClause label spelling =>
+      `(Umpire.Command.PropertyRequirement.factClause $(Lean.quote label) $(Lean.quote spelling))
+
+private def groupTerm (group : PropertyGroup) : CommandElabM Term := do
+  let trigger ← match group.trigger with
+    | .action spelling => `(Umpire.Command.PropertyTrigger.action $(Lean.quote spelling))
+    | .priorState spelling => `(Umpire.Command.PropertyTrigger.priorState $(Lean.quote spelling))
+  let requirements ← group.requirements.toArray.mapM requirementTerm
+  `(({ trigger := $trigger, requirements := [$requirements,*] } : Umpire.Command.PropertyGroup))
+
+/-- The `when:` line of a same-step claim: the Action, bare or with its class applied. -/
+syntax propertyWhen := "when:" term
+
+/-- The definition that enumerates a same-step claim over the machine's table. -/
+private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
+    (key : String) (predicateRef : Term) : CommandElabM (TSyntax `command) := do
+  let machineName := declaredModel.declName
+  let stateType := mkIdent declaredModel.stateType
+  let outcomeType := mkIdent declaredModel.outcomeType
+  let stateKeyFor := mkIdent (machineName ++ `stateKeyFor)
+  let outcomeKeyFor := mkIdent (machineName ++ `outcomeKeyFor)
+  let factKeyFor := mkIdent (machineName ++ `factKeyFor)
+  let actionKeyFor := mkIdent (machineName ++ `actionKeyFor)
+  let transitions := mkIdent (machineName ++ `transitions)
+  let keyLiteral := Lean.quote key
+  `(command|
+    def $enumeratedName : Umpire.Command.EnumeratedProperty := Umpire.Command.enumerateSameStep
+      (Umpire.Command.members (α := $stateType))
+      (Umpire.Command.members (α := $outcomeType))
+      { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
+      $keyLiteral
+      (($transitions).filter (fun row => $actionKeyFor row.action == $keyLiteral)
+        |>.flatMap (·.results))
+      ($predicateRef))
+
+/-- The definition that enumerates a transition claim over the machine's table. -/
+private def transitionCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
+    (predicateRef : Term) : CommandElabM (TSyntax `command) := do
+  let machineName := declaredModel.declName
+  let stateType := mkIdent declaredModel.stateType
+  let outcomeType := mkIdent declaredModel.outcomeType
+  let stateKeyFor := mkIdent (machineName ++ `stateKeyFor)
+  let outcomeKeyFor := mkIdent (machineName ++ `outcomeKeyFor)
+  let factKeyFor := mkIdent (machineName ++ `factKeyFor)
+  let transitions := mkIdent (machineName ++ `transitions)
+  `(command|
+    def $enumeratedName : Umpire.Command.EnumeratedProperty := Umpire.Command.enumerateTransition
+      (Umpire.Command.members (α := $stateType))
+      (Umpire.Command.members (α := $outcomeType))
+      { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
+      ($transitions)
+      ($predicateRef))
+
 elab "property" name:ident
-    "model:" modelRef:ident
-    "when:" actionRef:ident
-    "require:" requirements:modelRequirement+ : command => do
+    "machine:" modelRef:ident
+    trigger?:(propertyWhen)?
+    "holds:" predicateRef:term : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let actionKey := Lean.quote actionRef.getId.toString
     let declaredModel ← resolveDeclaredModel modelRef
     let roleKey := Lean.quote declaredModel.role
-    let _ ← resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
-    let mut keys : Array String := #[]
-    let mut clauses : Array Term := #[]
-    for requirement in requirements do
-      -- Every member a requirement names is resolved here, against the Model's own domain, so a
-      -- misspelling is a located error while the Model file compiles rather than a `#guard` failure
-      -- in some other module.
-      let (kind, member) ← match requirement with
-        | `(modelRequirement| state: $member:ident) => do
-            let _ ← resolveDeclared "state" declaredModel.states declaredModel.stateType member
-            pure ("state", member)
-        | `(modelRequirement| outcome: $member:ident) => do
-            let _ ← resolveDeclared "outcome" declaredModel.outcomes declaredModel.outcomeType member
-            pure ("outcome", member)
-        | `(modelRequirement| fact: $member:ident) => do
-            let _ ← resolveDeclared "fact" declaredModel.facts declaredModel.factType member
-            pure ("fact", member)
-        | _ => throwErrorAt requirement "unsupported requirement"
-      let spelling := member.getId.eraseMacroScopes.toString
-      let key := kind ++ "-" ++ spelling
-      if keys.contains key then
-        throwErrorAt requirement (duplicateRequirementMessage key)
-      keys := keys.push key
-      let constructor := match kind with
-        | "state" => `stateClause
-        | "outcome" => `outcomeClause
-        | _ => `factClause
-      clauses := clauses.push (← `(term|
-        $(mkIdent (`Umpire.Command.PropertyRequirement ++ constructor))
-          $(Lean.quote key) $(Lean.quote spelling)))
+    -- `when:` names the Action a same-step claim is about; a claim with no `when:` is over the
+    -- step before and the step after.
+    let arity := if trigger?.isSome then 1 else 2
+    elabPredicate predicateRef arity declaredModel.stateType declaredModel.outcomeType
+      declaredModel.factType
+    let enumeratedName := mkIdentFrom name (name.getId ++ `enumerated)
+    let enumerated ← match trigger? with
+      | some trigger => do
+          let `(propertyWhen| when: $actionRef:term) := trigger
+            | throwErrorAt trigger "unsupported `when:` line"
+          let key := actionKeyOf actionRef
+          unless declaredModel.actions.contains key do
+            throwErrorAt actionRef (unknownMemberMessage "action" key
+              (declaredModel.actions.toList.map Name.mkSimple))
+          -- Hover a bare action's constructor where there is one; a classed key has none.
+          if let `($head:ident) := actionRef then
+            let points := declaredModel.actionType ++ Name.mkSimple key
+            if (← getEnv).contains points then
+              liftTermElabM (Lean.Elab.addConstInfo head points)
+          sameStepCommand enumeratedName declaredModel key predicateRef
+      | none => transitionCommand enumeratedName declaredModel predicateRef
+    elabCommand enumerated
+    let result ← liftTermElabM (evalEnumerated ((← getCurrNamespace) ++ enumeratedName.getId))
+    if let some refusal := result.refusal then
+      throwErrorAt predicateRef refusal.message
+    let groups ← result.groups.toArray.mapM groupTerm
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Property :=
         authoredProperty ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
-          actionSpelling := $actionKey
-          requirements := [$clauses,*]
+          groups := [$groups,*]
         }))
     liftCoreM (Registry.recordProperty {
       declName := (← getCurrNamespace) ++ name.getId, «model» := declaredModel.declName })
+
+/- The keyed form is retired. It is rejected here, at the key that used to introduce it, rather
+than gated by the vocabulary check: `require` is a bare word, and SEM-20 keeps bare words out of
+the gate. -/
+elab "property" ident "machine:" ident "when:" term
+    requireKeyword:"require:" modelRequirement+ : command => do
+  throwErrorAt requireKeyword retiredRequireMessage
+
+elab "property" ident modelKeyword:"model:" ident "when:" term
+    "require:" modelRequirement+ : command => do
+  throwErrorAt modelKeyword retiredModelKeyMessage
+
+elab "property" ident modelKeyword:"model:" ident (propertyWhen)? "holds:" term : command => do
+  throwErrorAt modelKeyword retiredModelKeyMessage
 
 /-! ### The `scenario` command
 
@@ -1576,6 +1774,26 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let factMembers ← domainMembers name factType
   let keyList : List ClassValue → Array Term := fun values =>
     (values.map fun value => Lean.quote value.key).toArray
+  -- An outcome and a fact are keyed the way a state is, so a `property` can name what a step
+  -- produced in the same spelling its clauses carry.
+  let outcomeKeysName := mkIdentFrom name (name.getId ++ `outcomeKeys)
+  let factKeysName := mkIdentFrom name (name.getId ++ `factKeys)
+  let outcomeKeyForName := mkIdentFrom name (name.getId ++ `outcomeKeyFor)
+  let factKeyForName := mkIdentFrom name (name.getId ++ `factKeyFor)
+  elabGenerated (← `(command|
+    def $outcomeKeysName : Array String := #[$(keyList outcomeMembers),*]))
+  elabGenerated (← `(command|
+    def $factKeysName : Array String := #[$(keyList factMembers),*]))
+  elabGenerated (← `(command|
+    def $outcomeKeyForName (produced : $(mkIdent outcomeType)) : String :=
+      match (Umpire.Command.members (α := $(mkIdent outcomeType))).idxOf? produced with
+      | some at? => ($outcomeKeysName)[at?]!
+      | none => ""))
+  elabGenerated (← `(command|
+    def $factKeyForName (recorded : $(mkIdent factType)) : String :=
+      match (Umpire.Command.members (α := $(mkIdent factType))).idxOf? recorded with
+      | some at? => ($factKeysName)[at?]!
+      | none => ""))
   -- Each state's fields, in the structure's own field order: the field's name and the member this
   -- state holds it at. A Contract compares `attempts` as a number and `phase` as an enum, and
   -- reading them back out of the state key is the parsing the key exists to avoid.
