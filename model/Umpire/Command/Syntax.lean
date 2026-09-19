@@ -739,6 +739,10 @@ private def unspellableFieldMessage (domain : Name) (field : String) (type : Mes
   m!"the class '{domain}' carries a field '{field}' of type {type}, which is not a domain a class \
 can be written over: a constructor field is another `enum` declaration, a `Bool`, or a count"
 
+private def unboundedSetupMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a finite domain; a `setup:` parameter is varied over its values, so it \
+ranges over an `enum` declaration, a `Bool`, or a count"
+
 private def notAnEnumMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an `enum` declaration; an input field ranges over an `enum`, whose members \
 are its classes and whose Definition ID they hang off"
@@ -904,7 +908,10 @@ where
         else if name == ``Fin then
           match (← liftTermElabM (Meta.whnf type)).getAppArgs[0]? with
           | some bound =>
-              match (← liftTermElabM (Meta.evalNat bound).run) with
+              -- The bound is reduced before it is read: a count's bound is written as a name once
+              -- it comes from the Limits rather than from the field, and `evalNat` reads arithmetic
+              -- and literals but does not unfold a constant to find them.
+              match (← liftTermElabM do (Meta.evalNat (← Meta.whnf bound)).run) with
               | some size =>
                   pure ((List.range size).map fun count => .atom (Name.mkSimple (toString count)))
               | none => unspellable
@@ -944,6 +951,23 @@ private def resolveDomain (domainRef : Ident) :
   let some declared := Registry.domain? (← getEnv) declName
     | throwErrorAt domainRef (notAnEnumMessage domainRef.getId)
   pure (declName, declared.id, ← domainMembers domainRef declName)
+
+/-- Resolve the domain a `setup:` parameter ranges over.
+
+A setup parameter configures the implementation under test; it is not an input an action carries.
+No class of it is ever written out and no example is ever stored against one, so the rule that a
+class's Definition ID hangs off the `enum` that declared it has nothing to attach to here. What a
+setup parameter has to be is finite, because varying the table over its values is what task `.5`
+does with it -- and `DESIGN.md` section 3's own parameters are `Bool`, which is finite without being
+an `enum`. -/
+private def resolveSetupDomain (domainRef : Ident) : CommandElabM Name := do
+  let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo domainRef)
+  liftTermElabM do
+    let domainType ← mkConstWithLevelParams declName
+    let finiteType ← Meta.mkAppM ``Umpire.Command.Finite #[domainType]
+    unless (← Meta.synthInstance? finiteType).isSome do
+      throwErrorAt domainRef (unboundedSetupMessage domainRef.getId)
+  pure declName
 
 elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   let mut refers : Array (String × String × Name) := #[]
@@ -1386,8 +1410,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     | `(machineKey| setup: $[$parameter:ident : $domain:ident]*) => do
         if !setupParameters.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "setup:")
         for named in parameter, ranged in domain do
-          let (declName, _, _) ← resolveDomain ranged
-          setupParameters := setupParameters.push (named.getId.toString, declName)
+          setupParameters := setupParameters.push
+            (named.getId.toString, ← resolveSetupDomain ranged)
     -- `recorded`, not `fact`: `fact:` is already a token of the `model` command's `require:` block,
     -- so `$fact:ident` tokenizes as `$` and that token rather than as an antiquotation. The same
     -- trap as `$actions:ident`, one category over.
@@ -1615,9 +1639,19 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
   -- something that never happens, which is a mistake about the machine and not about the evidence.
   let factNames := factMembersEarly.map fun member => member.key
+  -- A fact that carries fields has one member per assignment of them, and each member's key spells
+  -- that assignment out. The mapping an `evidence:` line writes is the constructor's, not the
+  -- member's: `DESIGN.md` section 3 records every `nexusOperationTimedOut` under one catalogued
+  -- event name whichever of the three timers fired. So a line may name the constructor and cover
+  -- its members -- which is also the only spelling an identifier admits, a member key being
+  -- punctuated.
+  let factConstructors := factMembersEarly.filterMap fun member =>
+    match member with
+    | .applied constructor _ => some constructor.getString!
+    | .atom _ => none
   for (recordedRef, _) in evidenceRefs do
     let spelling := recordedRef.getId.getString!
-    unless factNames.contains spelling do
+    unless factNames.contains spelling || factConstructors.contains spelling do
       throwErrorAt recordedRef
         (unreturnedEvidenceMessage spelling (", ".intercalate factNames))
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
