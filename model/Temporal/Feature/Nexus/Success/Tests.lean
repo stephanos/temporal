@@ -1475,7 +1475,7 @@ private def statedIdentity : Umpire.Case.Producer.Identity := {
 
 private def statedCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
   Umpire.Command.produceCase completion statedIdentity asyncNexusSuccess.realization
-    asyncNexusSuccess.evidence
+    asyncNexusSuccess.evidence (program := some Temporal.Case.Realization.Nexus.asyncPath)
 
 /-- Every identity the derivation moved, masked out of the canonical bytes. The longer spelling is
 replaced first, because it contains the shorter one. -/
@@ -1507,6 +1507,34 @@ of those two fields is the whole diff. -/
       derived.case_id == "temporal.case.async-nexus" &&
         stated.case_id == "temporal.case.async-nexus-success"
   | _, _ => false
+
+/-! ### Typed messages are checked in place
+
+A realization binds a class to the typed worker instruction that carries the class's API message,
+so the message's fields are the generated declarations' and a member the message does not declare
+rejects where it is written, at elaboration, with the field and the message named. This is the check
+task .2 deferred here: the descriptor could not check a member of `HandlerError.error_type`, a
+`string`, but a payload built from the generated message has every field typed. -/
+
+/--
+error: `retry_behaviour` is not a field of structure `temporal.api.nexus.v1.HandlerError`
+-/
+#guard_msgs (error) in
+example : temporal.api.nexus.v1.HandlerError :=
+  { error_type := "BAD_REQUEST", retry_behaviour := .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE }
+
+/--
+error: Type mismatch
+  "1s"
+has type
+  String
+but is expected to have type
+  Option google.protobuf.Duration
+-/
+#guard_msgs (error) in
+example : temporal.api.command.v1.ScheduleNexusOperationCommandAttributes :=
+  { endpoint := "endpoint", service := "service", operation := "operation"
+    schedule_to_close_timeout := "1s" }
 
 /-! ### Located diagnostics
 

@@ -104,7 +104,11 @@ private def instructions : Array Instruction := #[
   Program.finish (Expr.literal (Value.text "result")),
   Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
     (Expr.literal (Value.text "token")) "capability",
-  Program.injectFault "queue" .FAULT_KIND_WORKER_STOP
+  Program.injectFault "queue" .FAULT_KIND_WORKER_STOP,
+  Program.scheduleNexusOperation "endpoint" "service" "operation" (Payload.text "request")
+    (scheduleToClose := some (Duration.seconds 5)) (header := [("x-case", "1")]),
+  Program.nexusAsyncReply "capability",
+  Program.nexusOperationCompletion "capability" (Payload.text "done")
 ]
 
 private def injectFaultNamesRoleAndKind : Bool :=
@@ -112,6 +116,74 @@ private def injectFaultNamesRoleAndKind : Bool :=
   | some (.inject_fault fault) =>
     fault.role_id == "queue" && fault.kind == .FAULT_KIND_WORKER_STOP
   | _ => false
+
+/-- The schedule command carries its type, its attributes and the payload as the SDK spells it. -/
+private def scheduleCommandCarriesItsAttributes : Bool :=
+  match instructions[8]!.instruction with
+  | some (.workflow_command carried) =>
+    match carried.command.bind (·.attributes) with
+    | some (.schedule_nexus_operation_command_attributes attributes) =>
+      (carried.command.map (·.command_type)) == some .COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+        && attributes.endpoint == "endpoint" && attributes.service == "service"
+        && attributes.operation == "operation"
+        && (attributes.input.map (·.data)) == some "\"request\"".toUTF8
+        && (attributes.schedule_to_close_timeout.map (·.seconds)) == some 5
+        && attributes.schedule_to_start_timeout.isNone
+        && attributes.nexus_header.get? "x-case" == some "1"
+    | _ => false
+  | _ => false
+
+private def replyArm (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_handler_reply reply) =>
+    match reply.reply with
+    | some (.response response) =>
+      match response.variant with
+      | some (.async_success _) => "async"
+      | some (.sync_success sync) =>
+          if (sync.payload.map (·.data)) == some "\"answer\"".toUTF8 then "sync" else "sync?"
+      | _ => "response?"
+    | some (.error error) =>
+      if error.error_type == "BAD_REQUEST"
+          && error.retry_behavior == .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
+          && (error.failure.map (·.«message»)) == some "malformed" then "error" else "error?"
+    | none => "none"
+  | _ => "other"
+
+private def replySlot (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_handler_reply reply) => reply.handle_slot_id
+  | _ => "other"
+
+/-- The three typed replies each carry their own arm, and only the asynchronous one a handle. -/
+private def typedRepliesCarryTheirArms : Bool :=
+  let sync := Program.nexusSyncReply (Payload.text "answer")
+  let failed := Program.nexusHandlerError "BAD_REQUEST" "malformed"
+    .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
+  [replyArm instructions[9]!, replyArm sync, replyArm failed] == ["async", "sync", "error"]
+    && [replySlot instructions[9]!, replySlot sync, replySlot failed] == ["capability", "", ""]
+
+private def completionResult (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_operation_completion completion) =>
+    match completion.result with
+    | some (.payload payload) => "payload:" ++ String.fromUTF8! payload.data
+    | some (.failure failure) => "failure:" ++ failure.«message»
+    | none => "none"
+  | _ => "other"
+
+/-- A typed completion carries a payload or a failure over the handle Slot it consumes. -/
+private def typedCompletionsCarryTheirResults : Bool :=
+  let failed := Program.nexusOperationFailure "capability" { «message» := "failed" }
+  [completionResult instructions[10]!, completionResult failed] ==
+      ["payload:\"done\"", "failure:failed"]
+    && (match instructions[10]!.instruction, failed.instruction with
+      | some (.nexus_operation_completion a), some (.nexus_operation_completion b) =>
+          a.handle_slot_id == "capability" && b.handle_slot_id == "capability"
+      | _, _ => false)
+
+#guard ((Payload.json (.num 1)).metadata.get? "encoding") == some "json/plain".toUTF8
+#guard (Duration.milliseconds 1500).seconds == 1 && (Duration.milliseconds 1500).nanos == 500000000
 
 private def node := Program.node "start" instructions[0]!
   instructionLimits
@@ -199,7 +271,7 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 12
-#guard instructions.size == 8
+#guard instructions.size == 11
 #guard program.entrypoints.size == 4
 #guard match node.limits.bind (·.timeout), node.limits.bind (·.attempts) with
   | some (.timeout_milliseconds 1000), some (.max_attempts 2) => true
@@ -213,6 +285,9 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contract.rules.size == 2
 #guard run.events.size == 1
 #guard injectFaultNamesRoleAndKind
+#guard scheduleCommandCarriesItsAttributes
+#guard typedRepliesCarryTheirArms
+#guard typedCompletionsCarryTheirResults
 #guard match eventsDeadline.bound with
   | some (.rule_events 3) => true
   | _ => false

@@ -1,0 +1,189 @@
+{
+  "caseId": "temporal.case.conformance.static-rejection.command-type",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.conformance.static-rejection.command-type.property",
+        "behaviorFingerprint": "temporal.case.conformance.static-rejection.command-type/property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.conformance.static-rejection.command-type.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      },
+      {
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.worker.namespace"
+      },
+      {
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.task-queue.resource"
+      },
+      {
+        "roleId": "temporal.nexus-endpoint",
+        "kind": "ROLE_KIND_ENDPOINT",
+        "resourceBindingId": "temporal.nexus-endpoint.resource"
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "execute",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "umpire-conformance-workflow",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "schedule",
+            "instruction": {
+              "workflowCommand": {
+                "command": {
+                  "commandType": "COMMAND_TYPE_START_TIMER",
+                  "startTimerCommandAttributes": {
+                    "timerId": "timer",
+                    "startToFireTimeout": "1s"
+                  }
+                }
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          },
+          {
+            "instructionId": "finish",
+            "instruction": {
+              "finish": {
+                "result": {
+                  "literal": {
+                    "textValue": "done"
+                  }
+                }
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "handler",
+        "nexusHandler": {
+          "service": "umpire.conformance.service",
+          "operation": "operation",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "reply",
+            "instruction": {
+              "nexusHandlerReply": {
+                "response": {
+                  "syncSuccess": {
+                    "payload": {
+                      "metadata": {
+                        "encoding": "anNvbi9wbGFpbg=="
+                      },
+                      "data": "ImRvbmUi"
+                    }
+                  }
+                }
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
+  "contract": {
+    "contractId": "temporal.case.conformance.static-rejection.command-type.contract",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

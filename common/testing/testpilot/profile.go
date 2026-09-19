@@ -10,6 +10,7 @@ import (
 	"slices"
 	"unicode/utf8"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -84,10 +85,13 @@ type ConfigurationValue struct {
 // Configuration is the dynamic configuration the environment sets, and is part of the binding
 // fingerprint the prepared Case's identity carries.
 type ProfileSpec struct {
-	Identity            string
-	Catalog             *Catalog
-	Roles               []RolePolicy
-	Opcodes             []Opcode
+	Identity string
+	Catalog  *Catalog
+	Roles    []RolePolicy
+	Opcodes  []Opcode
+	// CommandTypes are the workflow command types a WorkflowCommand may carry: the ones the Driver
+	// realizes through its SDK, as DeriveProfile records them.
+	CommandTypes        []enumspb.CommandType
 	EnvironmentBindings []EnvironmentBinding
 	Configuration       []ConfigurationValue
 	ProgramLimits       *testpilotspb.ProgramLimits
@@ -102,6 +106,7 @@ func (p ProfileSpec) Snapshot() ProfileSpec {
 	snapshot.ContractLimits = proto.CloneOf(p.ContractLimits)
 	snapshot.CorrelatedLimits = proto.CloneOf(p.CorrelatedLimits)
 	snapshot.Opcodes = slices.Clone(p.Opcodes)
+	snapshot.CommandTypes = slices.Clone(p.CommandTypes)
 	snapshot.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
 	snapshot.Configuration = slices.Clone(p.Configuration)
 	snapshot.Roles = slices.Clone(p.Roles)

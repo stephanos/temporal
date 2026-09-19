@@ -92,19 +92,25 @@ private def unselectedBySetMessage (spelling : String) (selected : Array String)
   s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
 {spellingList selected}"
 
-private def templateTerm : TSyntax `caseTemplate → CommandElabM Term
+/-- The realization a `case` block names, and the program path it states where the Model's own
+actions realize nothing. The asynchronous Nexus form is the caller-side realization, whose classes
+are bound to the typed worker instructions and whose path is the realization's own (fn-85 .8); the
+synchronous form and the workflow form stay whole-Program templates until fn-85 .10 and .11. -/
+private def templateTerm : TSyntax `caseTemplate → CommandElabM (Term × Term)
   | `(caseTemplate| $named:ident service $service:str operation $operation:str
       responds $responds:ident) => do
       unless named.getId.eraseMacroScopes.toString == "nexusOperation" do
         throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
       match responds.getId.eraseMacroScopes.toString with
-      | "sync" => `(term| Temporal.Case.Template.nexusOperation $service $operation .sync)
-      | "async" => `(term| Temporal.Case.Template.nexusOperation $service $operation .async)
+      | "sync" => return (← `(term| Temporal.Case.Template.nexusOperation $service $operation .sync),
+          ← `(term| none))
+      | "async" => return (← `(term| Temporal.Case.Realization.asyncNexus $service $operation),
+          ← `(term| some Temporal.Case.Realization.Nexus.asyncPath))
       | spelling => throwErrorAt responds (unknownResponseMessage spelling)
   | `(caseTemplate| $named:ident type $workflowType:str) => do
       unless named.getId.eraseMacroScopes.toString == "workflow" do
         throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
-      `(term| Temporal.Case.Template.workflow $workflowType)
+      return (← `(term| Temporal.Case.Template.workflow $workflowType), ← `(term| none))
   | template => throwErrorAt template "unsupported realization template"
 
 elab "case" name:ident &"fixture" fixture:str
@@ -142,7 +148,7 @@ elab "case" name:ident &"fixture" fixture:str
   if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName)
     then throwErrorAt fixture (duplicateFixtureMessage fixtureName prior.caseId)
   let caseId := caseIdRoot ++ "." ++ fixtureName
-  let realization ← templateTerm template
+  let (realization, programPath) ← templateTerm template
   let mappings ← mapped.mapM fun entry => `(term|
     Umpire.Case.Producer.EvidenceMapping.mk
       (vocabulary.namedAction $(Lean.quote entry.1)) $(Lean.quote entry.2))
@@ -161,7 +167,8 @@ elab "case" name:ident &"fixture" fixture:str
   elabCommand (← `(command|
     def $name : Except Umpire.Case.Compiler.Error
         temporal.server.api.testpilot.v1.Case :=
-      Umpire.Command.produceCase $queryRef $identityName $realizationName $evidenceName))
+      Umpire.Command.produceCase $queryRef $identityName $realizationName $evidenceName
+        (program := $programPath)))
   liftCoreM (Registry.recordCase {
     declName := (← getCurrNamespace) ++ name.getId, caseId, fixture := fixtureName })
 
@@ -217,7 +224,7 @@ elab "case" name:ident
   for spelling in selected do
     unless mapped.any (·.1 == spelling) do
       throwErrorAt name (unmappedActionMessage spelling)
-  let realization ← templateTerm template
+  let (realization, programPath) ← templateTerm template
   let realizationName := mkIdentFrom name (name.getId ++ `realization)
   elabCommand (← `(command|
     def $realizationName : Umpire.Case.Producer.Realization := $realization))
@@ -253,7 +260,7 @@ elab "case" name:ident
       def $caseName : Except Umpire.Case.Compiler.Error
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
-          $evidenceName (claims := $claims)))
+          $evidenceName (claims := $claims) (program := $programPath)))
     liftCoreM (Registry.recordCase {
       declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
 

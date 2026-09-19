@@ -525,6 +525,117 @@ func (this *InjectFault) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type WorkflowCommand to the protobuf v3 wire format
+func (val *WorkflowCommand) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type WorkflowCommand from the protobuf v3 wire format
+func (val *WorkflowCommand) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *WorkflowCommand) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two WorkflowCommand values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *WorkflowCommand) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *WorkflowCommand
+	switch t := that.(type) {
+	case *WorkflowCommand:
+		that1 = t
+	case WorkflowCommand:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type NexusHandlerReply to the protobuf v3 wire format
+func (val *NexusHandlerReply) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type NexusHandlerReply from the protobuf v3 wire format
+func (val *NexusHandlerReply) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *NexusHandlerReply) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two NexusHandlerReply values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *NexusHandlerReply) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *NexusHandlerReply
+	switch t := that.(type) {
+	case *NexusHandlerReply:
+		that1 = t
+	case NexusHandlerReply:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type NexusOperationCompletion to the protobuf v3 wire format
+func (val *NexusOperationCompletion) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type NexusOperationCompletion from the protobuf v3 wire format
+func (val *NexusOperationCompletion) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *NexusOperationCompletion) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two NexusOperationCompletion values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *NexusOperationCompletion) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *NexusOperationCompletion
+	switch t := that.(type) {
+	case *NexusOperationCompletion:
+		that1 = t
+	case NexusOperationCompletion:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type InstructionLimits to the protobuf v3 wire format
 func (val *InstructionLimits) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

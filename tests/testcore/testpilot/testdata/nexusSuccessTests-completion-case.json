@@ -282,12 +282,13 @@
           {
             "instructionId": "complete-nexus-operation",
             "instruction": {
-              "completeNexusOperation": {
+              "nexusOperationCompletion": {
                 "handleSlotId": "completion-authority",
-                "result": {
-                  "literal": {
-                    "textValue": "completed"
-                  }
+                "payload": {
+                  "metadata": {
+                    "encoding": "anNvbi9wbGFpbg=="
+                  },
+                  "data": "ImNvbXBsZXRlZCI="
                 }
               }
             }
@@ -424,13 +425,19 @@
           {
             "instructionId": "start-nexus-operation",
             "instruction": {
-              "startNexusOperation": {
-                "endpointRoleId": "temporal.nexus-endpoint",
-                "service": "umpire.case.service",
-                "operation": "complete",
-                "input": {
-                  "literal": {
-                    "textValue": "request"
+              "workflowCommand": {
+                "command": {
+                  "commandType": "COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION",
+                  "scheduleNexusOperationCommandAttributes": {
+                    "endpoint": "temporal.nexus-endpoint",
+                    "service": "umpire.case.service",
+                    "operation": "complete",
+                    "input": {
+                      "metadata": {
+                        "encoding": "anNvbi9wbGFpbg=="
+                      },
+                      "data": "InJlcXVlc3Qi"
+                    }
                   }
                 }
               }
@@ -487,12 +494,9 @@
           {
             "instructionId": "respond-async",
             "instruction": {
-              "respondNexus": {
-                "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
-                "result": {
-                  "literal": {
-                    "textValue": "accepted"
-                  }
+              "nexusHandlerReply": {
+                "response": {
+                  "asyncSuccess": {}
                 },
                 "handleSlotId": "completion-authority"
               }
