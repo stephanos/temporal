@@ -48,10 +48,77 @@ belongs in the machine's enumerated Action domain at all, needs the instance mod
 - [ ] the async-Nexus fixture regenerates with only the structured-state diff, listed in the receipt; `make umpire-check-regression` exit 0
 
 
+## Decisions taken while delivering, 2026-09-19
+
+**A state field is an ordinary `ModelValue`.** Its definition is the field and its spelling is the
+member that field holds, so the correlated transition grew `prior_fields` and `state_fields` rather
+than a new message, and a step reference needed no new shape: naming a field's definition at a STATE
+reference reads that field, the way naming the state's own definition reads the state.
+
+**Both evaluators read the same two things.** Go reads `state` and `state_fields` off the admitted
+transition, so the Lean plan's state became a `StateValue` -- the state and its fields -- and
+`Predicate.holds` reads the same pair. The alternative considered and rejected was resolving a field
+reference into a set of accepted states at decode time: two mechanisms that happen to agree is the
+drift this tree exists to prevent.
+
+**Instances are fields of one state.** A Model holds several instances of the entity it tracks by
+keeping one state field per instance, which makes an interleaving an ordinary path rather than a
+second kind of search: each step moves one instance and leaves the other where it was, and the
+Search walks the product because the product is the machine's own state. No `instances: n` key was
+added; two fields over one domain is all an instance is, and the state-field record already keys the
+Contract by the field.
+
+**Three lines of the surface could not name a structured state, and each gained a spelling**:
+`starts:`/`ends:` take `field: value` (the spelling `.14`'s review recorded as owed), `property`'s
+`when:` and `scenario`'s `actions:` name an Action class the way an `examples:` line writes one, and
+`scenario`'s `starts:` names a start state by its fields.
+
+**The setup key is the start state's own**, not the generated constructor's name read back: a `Name`
+holding punctuation prints itself in guillemets and a catalog key admits only letters, digits, `-`
+and `_`. A one-field Model never reached that.
+
+### Moved to `.15`, with the reason
+
+A *Property* clause over a state field is not delivered here, and the boundary is principled rather
+than convenient. The Contract path already admits it -- `pattern` lowers a `.resultingState`
+reference with whatever definition it carries, and both evaluators read the field -- but the
+*checked* side compares against the Model trace's state, and `ModelTrace` carries a state as one
+value. A Property naming a field would be true on the portable side and false on the checked one,
+and the correspondence certificate is exactly what would fail.
+
+Making the Model trace carry a machine's fields is what `.15` is named for. The two acceptance items
+that rest on it go with it: `PropertyTraceField.state` per field with `naturalAtMost` reading a
+`count` field, and the end-to-end two-instance conformance scenario, whose whole point is a rule
+that reads a field. What is proven here instead is that the two evaluators compute the field rule
+identically, by paired focused tests written from the same worked transition on both sides.
+
 ## Done summary
-TBD
+
+The correlated Contract carries per-instance state fields and both evaluators read them, and a Model
+holds several instances of one entity as fields of one state.
+
+**The wire.** A state field is a `ModelValue` whose definition is the field; the correlated
+transition carries `prior_fields` and `state_fields` and the contract carries
+`initial_state_fields`. The `machine` command records each state's fields, `declareModel` gives each
+field its own definition, and the lowering attaches them at the one boundary that has both the
+Model's plan and the Model's declarations.
+
+**Both evaluators.** A STATE condition reads the state and every field the machine keeps, so a rule
+compares `attempts` as a number and `phase` as an enum rather than taking one spelling apart. Pinned
+by `TestCorrelatedStateConditionReadsMachineFields` and by `#guard`s on
+`Shared.CorrelatedObligation.Predicate.holds`, written from the same worked transition.
+
+**Instances.** `pairedOperations` is two instances of `operation` as two state fields: nine states,
+six action classes, one start state, one end state, nothing stuck, and a Query whose witness
+interleaves the two. The same Query at sixty-four candidates stops at its bound, because both
+instances are enabled almost everywhere.
+
+**Gates.** `make umpire-check-regression` exit 0 with nine live identities; the async-Nexus fixture
+carries the state fields under the Case-local name `state`, with provenance mapping it to its
+Definition ID.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d9e769a61, d00faa9db, e0f2c9c43
+- Tests: `make umpire-check-regression`, `lake build`,
+  `go test -tags test_dep ./common/testing/testpilot/...`
 - PRs:

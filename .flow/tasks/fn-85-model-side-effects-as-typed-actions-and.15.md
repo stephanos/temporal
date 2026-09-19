@@ -29,6 +29,28 @@ Split out of the former single `.3` by plan review round 1 (findings F2 and F3):
 - Task `.10` writes the Nexus Properties in this form, so this task lands before it.
 - Contract lowering reads `PropertyClause`; nothing downstream may learn that a predicate existed.
 
+### Moved here from task .4, 2026-09-19
+
+A Property clause over a machine's state field, and the two acceptance items that rest on it.
+
+`.4` put a machine's state fields on the wire and taught both evaluators to read them: a STATE
+condition reads the state and every field the machine keeps, so the Contract compares `attempts` as
+a number and `phase` as an enum. The Contract path already admits a Property that names a field --
+`Umpire.Case.Correlated.pattern` lowers a `.resultingState` reference with whatever definition it
+carries. What does not admit it is the *checked* side: `ModelTrace` carries a state as one value, so
+a Property naming a field is true on the portable side and false on the checked one, and the
+correspondence certificate is what fails.
+
+So this task's foundation is the Model trace carrying a machine's fields. Two items come with it:
+
+- `PropertyTraceField.state` per field, with `naturalAtMost` reading a `count` field.
+- The end-to-end two-instance conformance scenario `.4` names, whose whole point is a rule that
+  reads a field. `.4` proved instead that the two evaluators compute the field rule identically,
+  by paired focused tests from one worked transition; what is still owed is one Case replayed
+  through the Go evaluator against a field-reading rule.
+
+`Umpire.Case.CorrelatedProofs.trace` is where the fields are dropped today, and it says so.
+
 ## Acceptance
 - [ ] `property` takes a `Step → Bool` or `Step → Step → Bool` predicate and enumerates it into `PropertyClause` records; the keyed `require:` form no longer elaborates
 - [ ] `successfulResult` as a predicate has the fingerprint of its keyed form, pinned by `#guard`
