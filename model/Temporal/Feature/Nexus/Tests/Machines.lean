@@ -141,6 +141,14 @@ exists for the refinement to map onto and nothing here reaches it. -/
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
   ["scheduled", "succeeded", "started", "failed", "canceled"]
 
+/- Nothing the command declares rests on an unchecked proof. The canonical-table law is what the
+Behavior Fingerprint, Search and Contract lowering all read, and `elabCommand` logs a failure rather
+than throwing it -- so a machine too large to prove would otherwise be declared carrying `sorryAx`
+and read as complete. -/
+/-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProduct' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms nexusProduct
+
 /- Nothing here is stuck. Weak on its own -- `workerStop` steps from every state, so no state of this
 machine could be stuck -- which is why the rejection is pinned below on a machine that can be. -/
 #guard nexusProduct.stuck == none
@@ -245,6 +253,21 @@ machine stuckInStarted
   ends: [succeeded]
   steps:
     handlerReply: handlerReplyStep
+
+/- A step function's arguments after the state are the action's own input domains, in order. Two
+actions of the same arity over different domains are an ordinary slip, and it is caught at the line
+that named the function rather than inside the code the command generates. -/
+/--
+error: 'Temporal.Feature.Nexus.Tests.Machines.completeStep' takes Resolution where this action's input 1 is 'Temporal.Feature.Nexus.Tests.Commands.Reply'; a step function's arguments after the state are the action's own input domains, in order
+-/
+#guard_msgs in
+machine wrongInputDomain
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    handlerReply: completeStep
 
 /- Evidence names a fact the steps return; one that names another confirms nothing that happens. -/
 /--
