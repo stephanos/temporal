@@ -93,13 +93,12 @@ machine raceLifecycle
     resolve: resolveStep
     complete: completeStep
 
-/- Two `require` clauses, not the success slice's three. -/
+/- Two fixed values, not the success slice's three: the predicate reads the state and one fact, so
+those are the clauses it enumerates to. -/
 property cancellationSettles
-  model: raceLifecycle
+  machine: raceLifecycle
   when: resolve
-  require:
-    state: canceled
-    fact: settled
+  holds: fun step => step.state.phase == .canceled && step.facts.contains .settled
 
 scenario cancellationRace
   model: raceLifecycle
@@ -160,6 +159,11 @@ the two out of `cancelRequested` rather than the last row written. -/
     checked.property.clauses.map (·.id.value) ==
       ["temporal.nexus.success.raceSyntax.property.cancellationSettles.fact-settled",
         "temporal.nexus.success.raceSyntax.property.cancellationSettles.state-canceled"])) == some true
+
+/- The predicate fixes what the keyed `require:` block used to spell out, so the Property's
+fingerprint is the one that block produced. -/
+#guard (cancellation.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:179a0a4ab359c176901c15ea3bd5916ac7ca0447df89233baded4f09b55578ad"
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId
