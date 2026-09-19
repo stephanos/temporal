@@ -598,6 +598,20 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"testpilot." + "Capability",
 		"model" + "Lint",
 		"model" + "LintTests",
+		// The whole-Program templates, the fixture-named `case` form and the success slice's
+		// set, retired by fn-85 .11: a Case is produced from a set through a realization value.
+		"Temporal.Case." + "Template",
+		"Case.Template." + "NexusOperation",
+		"Case.Template." + "Workflow",
+		"Case/" + "Template",
+		"Case.Tests." + "ProofPoint",
+		"Case/Tests/" + "ProofPoint",
+		"Case.Tests." + "Template",
+		"Case/Tests/" + "Template",
+		"case" + "Template",
+		"nexusSuccess" + "Set",
+		"Hook" + "Placement",
+		"fault" + "RuleId",
 		"testpilot" + "ProtoJSONFixture",
 		// The observed read path is one use of the Case coordinate walker, derived by
 		// `Umpire.Case.Projection.lower`.
@@ -811,9 +825,6 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		},
 		"common/testing/testpilot/internal/ir/catalog.go": {
 			"." + "qualified": true,
-		},
-		"tests/testcore/testpilot/testdata/async-nexus-case.json": {
-			`"bounds"`: true,
 		},
 		"tests/testcore/testpilot/testdata/get-system-info-case.json": {
 			`"bounds"`: true,

@@ -8,7 +8,7 @@ each run under HSM and CHASM the way the set's `repeat: implementation` runs eac
 The Model's Queries make claims about the operation, read from recorded history and the
 `pendingAttempts` read; an assertion about something else -- a workflow result value, a link, an
 SDK error's rehydrated fields, a metric, mutable state -- is a gap named here, not a Property
-stretched to say it. fn-85 `.11` adds Queries 5 to 7.
+stretched to say it. Queries 1 to 4 are fn-85 `.10`'s and 5 to 7 are `.11`'s.
 
 ## Query 1: `syncCompletion` -- `TestNexusOperationSyncCompletion` (`:512`)
 
@@ -49,12 +49,44 @@ stretched to say it. fn-85 `.11` adds Queries 5 to 7.
 | `fail-operation` and `fail-operation-app-error`: the workflow error wraps the operation's application failure (`:2288-2316`) | the class `handlerReply (operationFailed)` is bound (`respond-failed`) and not on a `.10` path: Known Gap `operation-failed-reply` until a Query selects it |
 | the outbound request metric counts one request per case (`:2394-2398`) | Known Gap `metrics` |
 
+## Query 5: `retry` -- `TestNexusOperationRetriesAfterHTTPFault` (`:579`) and the `fail-handler-internal` case of `TestNexusSyncOperationErrorRehydration` (`:2242`)
+
+| Upstream assertion | Covered by |
+| --- | --- |
+| the first request fails in transport before it reaches the handler, and the retry succeeds: two outbound attempts, one handler call (`:604-615`, `:637-638`) | Known Gap `transport-fault`: the network is `observed`, so the Case cannot drop a delivery; the retryable class it drives is `handlerReply (handlerError (retryable := true))`, the same failure arriving as a reply, and the handler answers twice |
+| `run.Get` returns `"result"` (`:634-636`) | Known Gap `result-value` (as Query 1) |
+| after one backoff the operation completes (`:634`) | `retrySucceeds`: `when: handlerReply (syncSuccess)` fixes the state `succeeded` at attempt count 1 and fact `nexusOperationCompleted`; the `pendingAttempts` read confirms the retryable failure, its poll condition fixing `attempt == 1` (Known Gap `attempts-field`: the Contract confirms the kind, not the count), and the backoff is a silent step the completed event confirms with the reply (Known Gap `backoff.unobserved` on the Case) |
+| `fail-handler-internal`: the pending operation's last attempt error is an `Internal` handler error with the handler's message (`:2250-2257`) | the class example `Internal` is the handler error type the Driver sends; the pending error's type and message are Known Gap `sdk-error` (the `pendingAttempts` read exposes `attempt` only) |
+
+## Query 6: `scheduleToStartTimeout` -- `TestNexusOperationScheduleToStartTimeout` (`:3061`)
+
+| Upstream assertion | Covered by |
+| --- | --- |
+| the endpoint targets a queue no worker polls (`:3065-3082`) | the Case's `workerStop`: the handler's worker on its own queue is stopped before the workflow starts, an observation of the Run (`FAULT_INJECTED`) the live test asserts, and a silent step the timed-out event confirms with the deadline (Known Gap `workerStop.unobserved` on the Case) |
+| `DescribeWorkflowExecution` shows one pending operation with a two-second schedule-to-start timeout (`:3116-3120`) | Known Gap `pending-timeouts`: the read exposes `attempt` only; the deadline is the realization's timer binding (`scheduleToStart`, 2000 ms) |
+| `NexusOperationTimedOut` recorded (`:3134`) | `scheduleToStartFires`: `when: scheduleToStart` fixes `phase: timedOut` and fact `nexusOperationTimedOut (scheduleToStart)`, lifted from the timed-out event |
+| the timed-out event's timeout type is `SCHEDULE_TO_START` (`:3135-3136`) | an observation of the Run: the live test reads the type off the recorded event; the Contract confirms the event's kind and not its type (Known Gap `timeout-type`) |
+| the workflow completes (`:3139-3153`) | the Case's workflow finishes on every path, which the controller's close-event read waits for |
+
+## Query 7: `startToCloseTimeout` -- `TestNexusOperationStartToCloseTimeout` (`:3155`)
+
+| Upstream assertion | Covered by |
+| --- | --- |
+| the handler starts the operation asynchronously and never completes it (`:3160-3166`) | `handlerReply (async)` with no `complete` on the path |
+| `DescribeWorkflowExecution` shows one pending operation with a two-second start-to-close timeout (`:3207-3210`) | Known Gap `pending-timeouts` (`startToClose`, 2000 ms) |
+| `NexusOperationStarted` recorded (`:3224`) | the projection: the started event confirms `handlerReply (async)` on the witness |
+| `NexusOperationTimedOut` recorded with timeout type `START_TO_CLOSE` (`:3243-3246`) | `startToCloseFires`: `when: startToClose` fixes `phase: timedOut` and fact `nexusOperationTimedOut (startToClose)`; the type is the live test's observation (Known Gap `timeout-type`) |
+| the failure's cause message contains "operation timed out" (`:3247`) | Known Gap `sdk-error` |
+| the workflow completes (`:3250-3262`) | as Query 6 |
+
 ## Known Gaps this Model carries
 
-None is authored on a Query: the four Cases carry no `gap:` line, because each gap above is about
-what an upstream assertion reads that is not an observation of this Model, not about a Property the
-Model declares and cannot check. They are recorded here so `.13`'s closure can decide which become
-`gap:` lines and which stay out of scope.
+None is authored on a Query: no Case carries a `gap:` line, because each gap above is about what an
+upstream assertion reads that is not an observation of this Model, not about a Property the Model
+declares and cannot check. Two Cases carry a gap the Producer records: a silent step on the path --
+the `backoff` timer on Query 5, the `workerStop` on Query 6 -- is confirmed by the evidence of the
+step after it, and the Case says so as a capability gap coded `<step>.unobserved`. The rest are
+recorded here so `.13`'s closure can decide which become `gap:` lines and which stay out of scope.
 
 | Gap | Where it would be closed |
 | --- | --- |
@@ -68,3 +100,8 @@ Model declares and cannot check. They are recorded here so `.13`'s closure can d
 | `operation-failed-reply` | a Query over `handlerReply (operationFailed)` |
 | `metrics` | out of scope (spec Boundaries) |
 | `atConcurrencyLimit` | not modeled; DESIGN.md section 3's `.10` amendment names the keys, the cause and the three reasons |
+| `transport-fault` | a `driven` network party with a Testpilot fault kind that drops one delivery (spec Boundaries: fn-86 or later) |
+| `attempts-field` | the read's `attempt` is a signed integer, and a correlated field policy types text, boolean and unsigned only; a signed scalar kind in the correlated Contract |
+| `pending-timeouts` | the deadline fields of `PendingNexusOperationInfo` exposed as fields of the `pendingAttempts` read, after `attempts-field` |
+| `timeout-type` | the timed-out event's `timeout_type` as an evidence field the projection rule selects its confirmed step by |
+| `backoff.unobserved`, `workerStop.unobserved` | carried on the Case; closed by an observation of the backoff firing (the pending operation's state) or of the stop naming the operation |

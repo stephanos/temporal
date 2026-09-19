@@ -216,7 +216,7 @@ stated; the spec's stop condition did not fire. What landed: the protocol-migrat
 `Umpire.Command.Records` for entities, actions, observations, timers, setup parameters, evidence lines
 and the machine declaration; a `ProgramPlan` and per-action-class bindings replacing
 `Realization.program`, with the Producer placing instructions from the path; and
-`Temporal.Case.Realization.asyncNexus` with the proof in `Temporal.Case.Tests.ProofPoint`. Its review
+`Temporal.Case.Realization.asyncNexus` with the proof in a proof-point test module (`.11` retired it with the templates). Its review
 is a self-review, so a session with a second backend should re-review before the completion review.
 
 **The proof point's acceptance was amended during delivery:** the comparison is the Program, not the

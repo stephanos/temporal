@@ -21,9 +21,30 @@ enum Fact
 
 private def admitted := completion.toOption
 
+/-! The success lifecycle produces no checked-in Case since fn-85 .11; what the Producer does with a
+checked Model is pinned here through the caller realization, an identity of the slice's own and the
+two evidence lines its waits map to. Its actions bind to no instruction, so the Program is the
+realization's scaffolding alone, which is what these pins are about anyway: the Contract, the
+provenance and the rejections. -/
+
+private def successIdentity : Umpire.Case.Producer.Identity :=
+  { caseId := Temporal.Case.caseIdRoot ++ ".nexusSuccessTests.completion"
+    fixture := "nexusSuccessTests-completion" }
+
+private def successRealization : Umpire.Case.Producer.Realization :=
+  Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete"
+
+private def successEvidence (vocabulary : Umpire.Case.Producer.Vocabulary) :
+    List Umpire.Case.Producer.EvidenceMapping := [
+  ⟨vocabulary.namedAction "awaitStart", "nexusOperationStarted"⟩,
+  ⟨vocabulary.namedAction "awaitSuccess", "nexusOperationCompleted"⟩]
+
+private def successCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
+  Umpire.Command.produceCase completion successIdentity successRealization successEvidence
+
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
-#guard match Temporal.Feature.Nexus.Success.nexusSuccessSet.completion, admitted with
+#guard match successCase, admitted with
   | .ok output, some checked =>
       output.case_id == "temporal.case.nexusSuccessTests.completion" &&
       output.contract.map (·.rules.isEmpty) == some true &&
@@ -44,8 +65,8 @@ private def produceFromChecked
     (checked : Umpire.Command.CheckedModel «model»)
     (required : List DefinitionId := []) :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Umpire.Command.produce checked nexusSuccessSet.completion.identity nexusSuccessSet.realization
-    nexusSuccessSet.completion.evidence required
+  Umpire.Command.produce checked successIdentity successRealization
+    successEvidence required
 
 /-- Produce a Case from the checked model with one part replaced. Every part is carried into the
 Case; none is compared against an expected one. -/
@@ -118,7 +139,7 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 
 -- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
 -- are exactly the Query's, and the rejections below happen with those gaps in hand.
-#guard match admitted, Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
+#guard match admitted, successCase with
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
@@ -169,7 +190,7 @@ private def caseShape
 private def differsFromCompletionCase
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
-    caseShape produced != caseShape Temporal.Feature.Nexus.Success.nexusSuccessSet.completion
+    caseShape produced != caseShape successCase
 
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
@@ -194,7 +215,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
   | .ok _ => false
 
 private def checkedBindings : Bool :=
-  match admitted, Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
+  match admitted, successCase with
   | some checked, .ok output =>
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
@@ -1456,19 +1477,6 @@ query unevenCompletion
   in: unevenOperations
   limits: twoOperationTraces
 
-/-! ### The `case` block
-
-A set's Case derives every identity from the set's name and the Query's, so the derivation is what
-fixes the Case ID and the Contract ID; everything else the Case carries is unchanged by it. -/
-
-#guard nexusSuccessSet.completion.identity.caseId == "temporal.case.nexusSuccessTests.completion"
-#guard nexusSuccessSet.completion.identity.programId ==
-  "temporal.case.nexusSuccessTests.completion.program"
-#guard nexusSuccessSet.completion.identity.contractId ==
-  "temporal.case.nexusSuccessTests.completion.contract"
-#guard nexusSuccessSet.completion.identity.runScope == "nexusSuccessTests-completion"
-
-
 /-! ### Typed messages are checked in place
 
 A realization binds a class to the typed worker instruction that carries the class's API message,
@@ -1496,65 +1504,6 @@ but is expected to have type
 example : temporal.api.command.v1.ScheduleNexusOperationCommandAttributes :=
   { endpoint := "endpoint", service := "service", operation := "operation"
     schedule_to_close_timeout := "1s" }
-
-/-! ### Located diagnostics
-
-Every rejection lands on the syntax that caused it. -/
-
-/--
-error: Query 'Temporal.Feature.Nexus.Success.Tests.verifiedCompletion' verifies rather than finds; a Case realizes one selected trace, so its `realizes` Query must be a `find` form
--/
-#guard_msgs (error) in
-case verifyRealizes fixture "verify-realizes"
-  realizes verifiedCompletion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-
-/--
-error: the Scenario selects Action 'awaitSuccess' but no `evidence` line says which recorded event confirms it
--/
-#guard_msgs (error) in
-case unmappedAction fixture "unmapped-action"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-
-/--
-error: the Scenario never selects Action 'awaitCancel'; it selects: awaitStart, awaitSuccess
--/
-#guard_msgs (error) in
-case unselectedAction fixture "unselected-action"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-    awaitCancel ← history nexusOperationCanceled
-
-/--
-error: unknown history event kind 'nexusOperationSucceeded'; admitted: workflowExecutionStarted, workflowExecutionCompleted, workflowExecutionFailed, workflowExecutionTimedOut, workflowTaskScheduled, workflowTaskStarted, workflowTaskCompleted, workflowTaskTimedOut, workflowTaskFailed, activityTaskScheduled, activityTaskStarted, activityTaskCompleted, activityTaskFailed, activityTaskTimedOut, timerStarted, timerFired, activityTaskCancelRequested, activityTaskCanceled, timerCanceled, markerRecorded, workflowExecutionSignaled, workflowExecutionTerminated, workflowExecutionCancelRequested, workflowExecutionCanceled, requestCancelExternalWorkflowExecutionInitiated, requestCancelExternalWorkflowExecutionFailed, externalWorkflowExecutionCancelRequested, workflowExecutionContinuedAsNew, startChildWorkflowExecutionInitiated, startChildWorkflowExecutionFailed, childWorkflowExecutionStarted, childWorkflowExecutionCompleted, childWorkflowExecutionFailed, childWorkflowExecutionCanceled, childWorkflowExecutionTimedOut, childWorkflowExecutionTerminated, signalExternalWorkflowExecutionInitiated, signalExternalWorkflowExecutionFailed, externalWorkflowExecutionSignaled, upsertWorkflowSearchAttributes, workflowExecutionUpdateAccepted, workflowExecutionUpdateRejected, workflowExecutionUpdateCompleted, workflowPropertiesModifiedExternally, activityPropertiesModifiedExternally, workflowPropertiesModified, workflowExecutionUpdateAdmitted, nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut, nexusOperationCancelRequested, workflowExecutionOptionsUpdated, nexusOperationCancelRequestCompleted, nexusOperationCancelRequestFailed, workflowExecutionPaused, workflowExecutionUnpaused, workflowExecutionTimeSkippingTransitioned
--/
-#guard_msgs (error) in
-case unknownEventKind fixture "unknown-event-kind"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationSucceeded
-    awaitSuccess ← history nexusOperationCompleted
-
-/--
-error: fixture 'nexusSuccessTests-completion' is already registered by Case 'temporal.case.nexusSuccessTests.completion'
--/
-#guard_msgs (error) in
-case duplicateFixture fixture "nexusSuccessTests-completion"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
 
 #print axioms Umpire.Command.declareModel
 #print axioms Umpire.Command.check
@@ -1605,8 +1554,8 @@ private def probeParameter : DefinitionId :=
 
 /- Unbound by the realization: the Case carries an `input` Known Gap coded after the parameter,
 with the parameter as its subject. -/
-#guard (match Umpire.Command.produceCase configuredQuery nexusSuccessSet.completion.identity
-    nexusSuccessSet.realization nexusSuccessSet.completion.evidence with
+#guard (match Umpire.Command.produceCase configuredQuery successIdentity
+    successRealization successEvidence with
   | .ok output => (output.provenance.map fun provenance =>
       provenance.known_gaps.any fun gap =>
         gap.code == probeParameter.value ++ ".unbound" && gap.kind == .KNOWN_GAP_KIND_INPUT &&
@@ -1616,10 +1565,10 @@ with the parameter as its subject. -/
 
 /- Bound to a configuration key of the catalog: no gap. Which key a parameter binds to is the
 realization's, and the value it ran under is the Profile's to record. -/
-#guard (match Umpire.Command.produceCase configuredQuery nexusSuccessSet.completion.identity
-    { nexusSuccessSet.realization with
+#guard (match Umpire.Command.produceCase configuredQuery successIdentity
+    { successRealization with
       setup := [{ parameter := probeParameter, key := "history.enablechasm" }] }
-    nexusSuccessSet.completion.evidence with
+    successEvidence with
   | .ok output => (output.provenance.map fun provenance =>
       provenance.known_gaps.all fun gap => !gap.code.endsWith ".unbound") == some true
   | .error _ => false)
@@ -1632,18 +1581,6 @@ bytes did not move. -/
 
 A functional set compiles each of its `find` Queries to one Case under a derived identity. What the
 set command rejects is pinned here, each at the line that made it. -/
-
-/- The set's Case carries the derived identity. -/
-#guard (match nexusSuccessSet.completion with
-  | .ok output => output.case_id
-  | .error _ => "") == "temporal.case.nexusSuccessTests.completion"
-#guard nexusSuccessSet.completion.identity.fixture == "nexusSuccessTests-completion"
-
-/- The set declares what it is. -/
-#guard nexusSuccessTests.purpose == .functional
-#guard nexusSuccessTests.bindings == [("caller", .driven)]
-#guard nexusSuccessTests.queries.map (·.value) == ["temporal.nexus.success.query.completion"]
-#guard nexusSuccessTests.repeat == none
 
 /- A party the machine's actions name and the set does not bind. -/
 /--
@@ -1780,19 +1717,6 @@ set unknownPurpose
     caller: driven
   queries: [completion]
 
-/- A derived fixture is registered once: a second `case` over the same set would name the same
-fixture and Case ID. -/
-/--
-error: fixture 'nexusSuccessTests-completion' is already registered by Case 'temporal.case.nexusSuccessTests.completion'
--/
-#guard_msgs in
-case nexusSuccessAgain
-  realizes nexusSuccessTests
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-
 /- Only a functional set compiles to Cases. -/
 /--
 error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; only a functional set compiles to Cases, one per Query
@@ -1800,7 +1724,7 @@ error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; on
 #guard_msgs in
 case exploredCases
   realizes exploration
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
   evidence
     awaitStart ← history nexusOperationStarted
 
@@ -1890,14 +1814,14 @@ private def probedClaims (produced : Except Compiler.Error temporal.server.api.t
   | .error _ => none
 
 /- A path through the slow probe records the claim, with the example the Case ran. -/
-#guard probedClaims (Umpire.Command.produceCase slowProbed nexusSuccessSet.completion.identity
-    nexusSuccessSet.realization (probeEvidence "probe-slow")
+#guard probedClaims (Umpire.Command.produceCase slowProbed successIdentity
+    successRealization (probeEvidence "probe-slow")
     (claims := Umpire.Command.classClaims probedLifecycle [probe])) ==
   some [("temporal.nexus.success.tests.action.probe", "speed", "slow", "Sluggish")]
 
 /- A path through the quick probe, whose class has no example, records none. -/
-#guard probedClaims (Umpire.Command.produceCase quickProbed nexusSuccessSet.completion.identity
-    nexusSuccessSet.realization (probeEvidence "probe-quick")
+#guard probedClaims (Umpire.Command.produceCase quickProbed successIdentity
+    successRealization (probeEvidence "probe-quick")
     (claims := Umpire.Command.classClaims probedLifecycle [probe])) == some []
 
 end Temporal.Feature.Nexus.Success.Tests

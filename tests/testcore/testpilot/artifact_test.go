@@ -215,7 +215,7 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 func asyncNexusProfile(catalog *testpilot.Catalog) testpilot.ProfileSpec {
 	return NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: asyncNexusArtifactNamespace, TaskQueue: asyncNexusArtifactTaskQueue,
-		NexusEndpoint: "nexus-endpoint",
+		HandlerTaskQueue: asyncNexusArtifactTaskQueue + "-handler", NexusEndpoint: "nexus-endpoint",
 	})
 }
 
@@ -243,6 +243,7 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Equal(t, []string{
 		NexusCallerWorkerNamespaceBindingID,
 		NexusCallerTaskQueueBindingID,
+		NexusCallerHandlerTaskQueueBindingID,
 		NexusCallerEndpointBindingID,
 	}, testpilot.EnvironmentBindingIDs(source.GetProgram()))
 	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
@@ -251,12 +252,18 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 		source.GetProgram().GetRoles()[2].GetNamespaceBindingId())
 	require.Equal(t, NexusCallerTaskQueueBindingID,
 		source.GetProgram().GetRoles()[2].GetResourceBindingId())
-	require.Equal(t, NexusCallerEndpointBindingID,
+	require.Equal(t, NexusCallerHandlerTaskQueueBindingID,
 		source.GetProgram().GetRoles()[3].GetResourceBindingId())
+	require.Equal(t, NexusCallerEndpointBindingID,
+		source.GetProgram().GetRoles()[4].GetResourceBindingId())
 	startAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[0].
 		GetInstruction().GetInvokeRpc().GetRequestAssignments()
-	historyAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[3].
-		GetInstruction().GetInvokeRpc().GetRequestAssignments()
+	var historyAssignments []*testpilotspb.RequestAssignment
+	for _, instruction := range source.GetProgram().GetEntrypoints()[0].GetInstructions() {
+		if instruction.GetInstructionId() == "history" {
+			historyAssignments = instruction.GetInstruction().GetInvokeRpc().GetRequestAssignments()
+		}
+	}
 	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
 		startAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
 	require.Equal(t, NexusCallerTaskQueueBindingID,
@@ -268,10 +275,10 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.NoError(t, err)
 
 	firstProfile := NexusCallerProfile(catalog, NexusCallerEnvironment{
-		Namespace: "namespace-a", TaskQueue: "task-queue-a", NexusEndpoint: "nexus-endpoint-a",
+		Namespace: "namespace-a", TaskQueue: "task-queue-a", HandlerTaskQueue: "task-queue-a-handler", NexusEndpoint: "nexus-endpoint-a",
 	})
 	secondProfile := NexusCallerProfile(catalog, NexusCallerEnvironment{
-		Namespace: "namespace-b", TaskQueue: "task-queue-b", NexusEndpoint: "nexus-endpoint-b",
+		Namespace: "namespace-b", TaskQueue: "task-queue-b", HandlerTaskQueue: "task-queue-b-handler", NexusEndpoint: "nexus-endpoint-b",
 	})
 	first, err := testpilot.Prepare(source, firstProfile)
 	require.NoError(t, err)
@@ -374,7 +381,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.NotContains(t, identities, result.run.GetRunId())
 		identities[result.run.GetRunId()] = struct{}{}
-		// One recorded Nexus event per admitted semantic step: the scheduled event confirms the
+		// One recorded observation per admitted semantic step: the scheduled read confirms the
 		// schedule command, the started event the asynchronous reply, the completed event the
 		// completion.
 		require.Len(t, result.verdict.GetSupportingEventSequences(), 3)
@@ -450,16 +457,22 @@ func knownGapCodes(knownGaps []*testpilotspb.KnownGap) []string {
 	return result
 }
 
+// requireHistoryEvidence checks that every supporting sequence is a controller read of the
+// workflow's history: the scheduled poll supports the schedule command and the full read the
+// two replies, each with the observations it lifted.
 func requireHistoryEvidence(t testing.TB, run *testpilotspb.Run, sequences []int64) {
 	t.Helper()
+	instructions := map[string]int{}
 	for _, sequence := range sequences {
 		require.Positive(t, sequence)
 		require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
 		event := run.GetEvents()[sequence-1]
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
-		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
+		require.Contains(t, []string{"await-scheduled", "history"}, event.GetCoordinates().GetInstructionId())
 		require.NotEmpty(t, event.GetObservations())
+		instructions[event.GetCoordinates().GetInstructionId()]++
 	}
+	require.Equal(t, map[string]int{"await-scheduled": 1, "history": 2}, instructions)
 }
 
 func hasOutcome(run *testpilotspb.Run, instruction string, status testpilotspb.InstructionOutcomeStatus) bool {
@@ -556,7 +569,7 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		default:
 			result = succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})
 		}
-	case "await-close", "history":
+	case "await-scheduled", "await-close", "history":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
 			return nil, temporal.ErrInvalid
 		}
@@ -568,7 +581,8 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
 		// The close-event read resolves once the workflow closed; the double answers it with
-		// the close event alone, and the full read with the operation's events.
+		// the close event alone, and the scheduled poll and the full read with the operation's
+		// events.
 		if coordinate.InstructionID == "await-close" {
 			if typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
 				return nil, fmt.Errorf("close read without the close-event filter for run %q: %w", s.runID, temporal.ErrInvalid)
@@ -594,8 +608,29 @@ func decodeArtifactRequest(source, target proto.Message) error {
 	return proto.Unmarshal(wire, target)
 }
 
-func (s *artifactSession) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	return nil, temporal.ErrInvalid
+// PollRPC answers the scheduled-event poll from the same history the full read returns: the
+// operation is already scheduled by the time the double is asked, so one round satisfies the
+// predicate or the poll is rejected.
+func (s *artifactSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	if coordinate.InstructionID != "await-scheduled" || interval <= 0 || satisfied == nil {
+		return nil, temporal.ErrInvalid
+	}
+	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)
+	if err != nil {
+		return nil, err
+	}
+	result, err := handle.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+	done, err := satisfied(ctx, result.Response)
+	if err != nil {
+		return nil, err
+	}
+	if !done {
+		return nil, fmt.Errorf("scheduled poll unsatisfied by the double's history for run %q: %w", s.runID, temporal.ErrInvalid)
+	}
+	return handle, nil
 }
 func (s *artifactSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil

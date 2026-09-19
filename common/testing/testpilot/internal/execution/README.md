@@ -129,6 +129,11 @@ returned handles remain in `outstanding`, including partial and malformed Driver
 completion is an activation-level diagnostic fact at its controller origin, causally linked to the
 trigger's start; its source includes the reservation's position and ordinal. This does not claim a worker
 activation opened or closed: the Driver's separate Consume coordinate may use a different ActivationID.
+A reservation that completes with any outcome but success fails the Run, with one exception: a
+reserved entrypoint that carries no instruction may go undelivered, so its reservation released
+canceled when the parent activation finished is recorded as that diagnostic and the Run goes on. A
+Case whose path performs nothing on the handler still reserves the handler's activation, because
+the carrier can activate the entrypoint, not because the path needs it to.
 Workers retain their own replay-local DAG state and emit no per-SDK-instruction central stream.
 
 Reservation carrier authority is separate from ordinary endpoint method authorization. Each endpoint
@@ -195,7 +200,11 @@ instructions: each identity once, each source and operation key path once, a his
 event's attributes oneof carries, a Run Event kind that carries a payload, a read method the catalog
 knows whose path ends in repeated messages, and every path typed against the recorded value. A Run
 Event declaration is lifted by `scheduler.liftRunEvents` as the event is recorded, into the Program's
-one `CorrelatedEvidence` Observation, with ordinals dense per source across the Run. A read
+one `CorrelatedEvidence` Observation, with ordinals dense per source across the Run. Every lift names
+as its parent the operation's previously lifted evidence when that came from another source
+(`valueStore.chainEvidence`): ordinals order one source's evidence, only a parent orders evidence
+across sources, and the Run's own order is the order the Program's instructions took, so an
+operation read back by a poll and then by a history read is one comparable chain to the verifier. A read
 declaration is polled by a `ReadEvidence` instruction: the Session's `PollRPC` repeats the
 declaration's method with the request the assignments build until `readSatisfied` finds an element
 of the declared path satisfying `until`, and the instruction's one synthesized response read then

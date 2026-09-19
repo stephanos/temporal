@@ -29,6 +29,13 @@ type nexusResult struct {
 	// replied marks err as the reply the entrypoint instructed, a handler or operation error the
 	// handler returns on purpose, so the activation that produced it completed rather than failed.
 	replied bool
+	// retryable marks a replied handler error the caller retries: the activation stays open, and the
+	// retried delivery resumes the entrypoint at its next reply instruction.
+	retryable bool
+	// state and next carry an open activation across deliveries: the activation's values and the
+	// position in the entrypoint's order the next delivery resumes at.
+	state *activation.State
+	next  int
 }
 
 type workflowInterpreter struct {
@@ -161,7 +168,8 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 	if err := s.mu.lock(ctx); err != nil {
 		return nil, err
 	}
-	if existing := s.nexusResults[key]; existing != nil {
+	existing := s.nexusResults[key]
+	if existing != nil && !existing.retryable {
 		s.mu.unlock()
 		select {
 		case <-ctx.Done():
@@ -174,12 +182,19 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 		s.mu.unlock()
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
-	if len(s.nexusResults) >= boundedInt(s.definition.limits.GetMaxActivations()) {
-		s.mu.unlock()
-		return nil, ErrCapacity
+	result := existing
+	if result == nil {
+		if len(s.nexusResults) >= boundedInt(s.definition.limits.GetMaxActivations()) {
+			s.mu.unlock()
+			return nil, ErrCapacity
+		}
+		result = &nexusResult{}
+		s.nexusResults[key] = result
 	}
-	result := &nexusResult{done: make(chan struct{})}
-	s.nexusResults[key] = result
+	// A retried delivery reopens the activation its retryable reply left open: the same entry, with
+	// the reply the last delivery answered behind it.
+	result.retryable = false
+	result.done = make(chan struct{})
 	s.mu.unlock()
 
 	func() {
@@ -188,25 +203,43 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 				result.err = errors.New("nexus handler activation panicked")
 			}
 		}()
-		interpreted, err := s.interpretNexus(ctx, delivered, options)
+		interpreted, err := s.interpretNexus(ctx, delivered, options, result)
 		result.kind, result.value, result.raw, result.token, result.err = interpreted.kind, interpreted.value, interpreted.raw, interpreted.token, err
 		result.replied = interpreted.replied
 	}()
+	// Whether the next delivery on this route resumes or replays is read under the lock, so it is
+	// written there too, before the waiters are released.
+	var handlerErr *nexus.HandlerError
+	retryable := result.replied && result.err != nil && errors.As(result.err, &handlerErr) && handlerErr.Retryable()
+	if s.mu.lock(context.Background()) == nil {
+		result.retryable = retryable
+		s.mu.unlock()
+	}
 	close(result.done)
 	return result.response()
 }
 
-func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (nexusResult, error) {
+// interpretNexus runs the handler entrypoint from where its activation stands: from its first
+// instruction on the first delivery, and from the instruction after the reply the last delivery
+// answered when that reply was a retryable handler error the caller retried. The activation's
+// values are carried in `resume`, so the second reply's guards read what the first admitted.
+func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions, resume *nexusResult) (nexusResult, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
 		return nexusResult{}, ErrInvalid
 	}
-	state, err := activation.New(entry.plan)
-	if err != nil {
-		return nexusResult{}, err
+	if resume.state == nil {
+		state, err := activation.New(entry.plan)
+		if err != nil {
+			return nexusResult{}, err
+		}
+		resume.state, resume.next = state, 0
 	}
+	state := resume.state
 	instructions := entry.plan.Instructions()
-	for _, index := range entry.plan.Order() {
+	order := entry.plan.Order()
+	for position := resume.next; position < len(order); position++ {
+		index := order[position]
 		input, enabled, err := state.Evaluate(ctx, index)
 		if err != nil {
 			return nexusResult{}, err
@@ -221,6 +254,7 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
 				return nexusResult{}, err
 			}
+			resume.next = position + 1
 			kind, value, token, err := s.respondNexus(ctx, delivered, response, input, options)
 			return nexusResult{kind: kind, value: value, token: token, replied: kind == testpilotspb.NEXUS_RESPONSE_KIND_ERROR && err != nil}, err
 		case testpilot.NexusHandlerReply:
@@ -228,6 +262,7 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
 				return nexusResult{}, err
 			}
+			resume.next = position + 1
 			return s.replyTyped(ctx, delivered, reply, options)
 		default:
 			return nexusResult{}, ErrInvalid
@@ -236,21 +271,26 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 	return nexusResult{}, errors.New("nexus handler entrypoint completed without a reply")
 }
 
-// nexusActivationOutcome is what a start reports of its handler activation. A reply the entrypoint
-// instructed completes the activation whatever the SDK carries back, an error included, since the
-// handler did what the Program said; any other failed start failed the activation.
-func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr error) (*testpilotspb.InstructionOutcome, error) {
+// nexusActivationOutcome is what a start reports of its handler activation, and whether it reports
+// yet. A reply the entrypoint instructed completes the activation whatever the SDK carries back, an
+// error included, since the handler did what the Program said; any other failed start failed the
+// activation. A retryable handler error leaves the activation open for the retried delivery, so
+// nothing is reported until a later reply settles it.
+func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr error) (outcome *testpilotspb.InstructionOutcome, open bool, activationErr error) {
 	if startErr == nil {
-		return terminalOutcome(), nil
+		return terminalOutcome(), false, nil
 	}
 	if s.mu.lock(context.Background()) == nil {
 		result := s.nexusResults[delivered.Reservation().ID]
 		s.mu.unlock()
+		if result != nil && result.retryable {
+			return nil, true, nil
+		}
 		if result != nil && result.replied {
-			return terminalOutcome(), nil
+			return terminalOutcome(), false, nil
 		}
 	}
-	return sdkFailureOutcome(startErr), startErr
+	return sdkFailureOutcome(startErr), false, startErr
 }
 
 func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {

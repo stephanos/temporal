@@ -178,8 +178,9 @@ A row reads: **guard** `+` **what happens** `→` **state changes**, **evidence*
 Rows are ordered and the first matching row applies, so rejections go first. A row no input can
 reach is rejected as shadowed.
 
-A row with no guard (`+ workerStop`) matches in every state; `faultInjected` is a Testpilot Run
-Event in the observation catalog.
+A row with no guard (`+ workerStop`) matches in every state. The Run records the fault as a
+Testpilot Run Event, but nothing it records names the operation, so the row records nothing the
+operation's Contract can read (the `.11` amendment in section 3).
 
 **Setup parameters** are configuration that changes behavior on purpose, named after the setting
 (`recordCancelCompletion`, `atConcurrencyLimit`). The Profile binds them; a Case that needs a value its
@@ -406,7 +407,6 @@ enum ProductFact
   | nexusOperationFailed
   | nexusOperationCanceled
   | nexusOperationTimedOut
-  | faultInjected
 
 def handlerReplyStep (state : ProductState) (reply : Reply) :
     List (Step ProductState ProductOutcome ProductFact) :=
@@ -427,7 +427,7 @@ def completeStep (state : ProductState) (resolution : Resolution) :
     | .failed => productStep .failed .nexusOperationFailed
     | .canceled => productStep .canceled .nexusOperationCanceled
 
--- transportFaultStep returns []; workerStopStep records faultInjected and keeps the state;
+-- transportFaultStep returns []; workerStopStep keeps the state and records nothing;
 -- timeoutStep moves scheduled or started to timedOut and records nexusOperationTimedOut.
 
 machine nexusProduct
@@ -442,7 +442,6 @@ machine nexusProduct
     nexusOperationFailed: nexusOperationFailed
     nexusOperationCanceled: nexusOperationCanceled
     nexusOperationTimedOut: nexusOperationTimedOut
-    faultInjected: faultInjected
   steps:
     handlerReply: handlerReplyStep
     complete: completeStep
@@ -490,7 +489,6 @@ enum ProtocolFact
   | nexusOperationCanceled
   | nexusOperationTimedOut (timeoutType : TimeoutType)
   | pendingAttempts
-  | faultInjected
 
 def scheduleStep (state : ProtocolState)
     (scheduleToClose scheduleToStart startToClose : Timeout) :
@@ -515,7 +513,7 @@ def protocolHandlerReplyStep (state : ProtocolState) (reply : Reply) :
          facts := [.pendingAttempts] }]
 
 -- protocolTransportFaultStep is the retryable arm arriving as a dropped delivery;
--- protocolWorkerStopStep records faultInjected and keeps the state.
+-- protocolWorkerStopStep keeps the state and records nothing.
 
 def protocolCompleteStep (state : ProtocolState) (resolution : Resolution) :
     List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
@@ -560,7 +558,6 @@ machine nexusProtocol
     nexusOperationCanceled: nexusOperationCanceled
     nexusOperationTimedOut: nexusOperationTimedOut
     pendingAttempts: pendingAttempts
-    faultInjected: faultInjected
   steps:
     schedule: scheduleStep
     handlerReply: protocolHandlerReplyStep
@@ -670,6 +667,24 @@ handler error then success, the two timeouts) are `.11`'s; the canary set of sec
 > specimen's `find: terminalIsFinal` Query is rewritten too: a transition claim cannot be a
 > functional Query (section 2.5), so the four Queries find same-step claims and the product claim is
 > verified beside them.
+
+> Amended during fn-85 `.11`, 2026-09-19. Queries 5 to 7 landed with three consequences for the
+> specimen. **A step that records nothing is confirmed by the step after it.** `workerStop` no
+> longer records `faultInjected`: the Run records the fault as a Run Event, but nothing recorded
+> names the operation, so no source keyed by the scheduled event could lift it, and a fact the
+> Contract cannot key would have made every path through the stop unverifiable. The row keeps the
+> state and records nothing, like the `backoff` timer, and the Producer folds such a silent step
+> into the projection rule of the next observed step -- the machine has no other way from the state
+> before it to the state the evidence shows -- while the Case carries a capability Known Gap coded
+> `<step>.unobserved`. **The worker stop is placed before the workflow starts** whatever the path's
+> order, because a stop that raced the dispatch of the start request would sometimes lose; the
+> handler polls its own task queue (`temporal.handler-task-queue`) so the stop leaves the caller's
+> worker running. **The backoff is the server's timer.** The realization sets the two deadlines a
+> path names (two seconds each) and reads the backoff through the pending operation's attempt
+> count, which is what `pendingAttempts` confirms; the server's initial retry interval is one second
+> under both implementations. The retried start is answered by the same handler activation: the
+> Driver keeps an activation open across a retryable reply and answers the retry with the
+> entrypoint's next reply instruction.
 
 The realization, in sketch syntax (`Temporal.Case.Realization.asyncNexus` is the Lean value). A
 worker instruction carries the Temporal API message the action's `schema:` names, so a class example

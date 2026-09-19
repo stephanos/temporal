@@ -1,5 +1,5 @@
 {
-  "caseId": "temporal.case.nexusCallerTests.syncCompletion",
+  "caseId": "temporal.case.nexusCallerTests.scheduleToStartTimeout",
   "version": {
     "major": 1
   },
@@ -13,18 +13,18 @@
         "kind": "DEFINITION_KIND_TARGET"
       },
       {
-        "definitionId": "temporal.nexus.caller.behavior.syncReplied",
-        "behaviorFingerprint": "sha256:2e707f732c2018210d4e58899fa7197e78aae6064670d12b378b9f722b297de5",
+        "definitionId": "temporal.nexus.caller.behavior.scheduleToStartExpires",
+        "behaviorFingerprint": "sha256:8cc31997af88ca90b3dd6717e3559d5e6215160ee1ee22408edd33ecea774256",
         "kind": "DEFINITION_KIND_SCENARIO"
       },
       {
-        "definitionId": "temporal.nexus.caller.query.syncCompletion",
-        "behaviorFingerprint": "sha256:120e8f7e0b602e723414ec05f3d0d98cd74251d609b8dbf51855a470870f6992",
+        "definitionId": "temporal.nexus.caller.query.scheduleToStartTimeout",
+        "behaviorFingerprint": "sha256:fd103492652b52792d1d8cd5714877224df1054ece691f931778c295e28a7db6",
         "kind": "DEFINITION_KIND_QUERY"
       },
       {
-        "definitionId": "temporal.nexus.caller.property.syncSucceeds",
-        "behaviorFingerprint": "sha256:a4708e68a7b4dedeaaba04d53f1111291e100d19b470127769ecd52cfa010d26",
+        "definitionId": "temporal.nexus.caller.property.scheduleToStartFires",
+        "behaviorFingerprint": "sha256:920242bd28527c614f333a943cd92175ca204e8200636371955c426ff9539aee",
         "kind": "DEFINITION_KIND_PROPERTY"
       }
     ],
@@ -54,13 +54,21 @@
         "provenance": "lean-model"
       }
     ],
+    "knownGaps": [
+      {
+        "kind": "KNOWN_GAP_KIND_CAPABILITY",
+        "code": "temporal.nexus.caller.action.nexusProtocol.workerStop.unobserved",
+        "subject": "temporal.nexus.caller.action.nexusProtocol.workerStop",
+        "detail": "the step 'workerStop' records nothing an evidence line names, so the Contract infers it from the evidence of the step after it rather than observing it"
+      }
+    ],
     "correlatedRules": [
       {
-        "ruleId": "temporal.nexus.caller.property.syncSucceeds.fact-nexusOperationCompleted",
-        "propertyId": "temporal.nexus.caller.property.syncSucceeds",
-        "propertyFingerprint": "sha256:a4708e68a7b4dedeaaba04d53f1111291e100d19b470127769ecd52cfa010d26",
+        "ruleId": "temporal.nexus.caller.property.scheduleToStartFires.fact-nexusOperationTimedOut-scheduleToStart",
+        "propertyId": "temporal.nexus.caller.property.scheduleToStartFires",
+        "propertyFingerprint": "sha256:920242bd28527c614f333a943cd92175ca204e8200636371955c426ff9539aee",
         "projectionId": "temporal.nexus.caller.projection",
-        "projectionFingerprint": "sha256:0d33315d2d31fce7c894366d90357e5d97792e394334d9465e94c22e969a5054",
+        "projectionFingerprint": "sha256:375a72fd2e775909bd9d18aea91fb4514a37663a052136b353b28282837d8bc0",
         "source": {
           "path": "Temporal/Feature/Nexus/Caller/Model.lean",
           "line": 1,
@@ -75,8 +83,8 @@
         "definitionId": "temporal.nexus.caller.evidence.scheduled"
       },
       {
-        "localName": "completed",
-        "definitionId": "temporal.nexus.caller.evidence.completed"
+        "localName": "timedOut",
+        "definitionId": "temporal.nexus.caller.evidence.timedOut"
       },
       {
         "localName": "source.scheduled",
@@ -115,7 +123,7 @@
         "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.scheduleToClose"
       },
       {
-        "localName": "scheduleToStart",
+        "localName": "state-field.nexusProtocol.scheduleToStart",
         "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.scheduleToStart"
       },
       {
@@ -127,12 +135,12 @@
         "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.nexusProduct"
       },
       {
-        "localName": "schedule-unset-unset-unset",
-        "definitionId": "temporal.nexus.caller.action.nexusProtocol.schedule-unset-unset-unset"
+        "localName": "schedule-unset-expires-unset",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.schedule-unset-expires-unset"
       },
       {
-        "localName": "scheduled-0-unset-unset-unset",
-        "definitionId": "temporal.nexus.caller.state.nexusProtocol.scheduled-0-unset-unset-unset"
+        "localName": "scheduled-0-unset-expires-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.scheduled-0-unset-expires-unset"
       },
       {
         "localName": "accepted",
@@ -143,25 +151,29 @@
         "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationScheduled"
       },
       {
-        "localName": "handlerReply-syncSuccess",
-        "definitionId": "temporal.nexus.caller.action.nexusProtocol.handlerReply-syncSuccess"
+        "localName": "workerStop",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.workerStop"
       },
       {
-        "localName": "succeeded-0-unset-unset-unset",
-        "definitionId": "temporal.nexus.caller.state.nexusProtocol.succeeded-0-unset-unset-unset"
+        "localName": "action.nexusProtocol.scheduleToStart",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.scheduleToStart"
       },
       {
-        "localName": "nexusOperationCompleted",
-        "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationCompleted"
+        "localName": "timedOut-0-unset-expires-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.timedOut-0-unset-expires-unset"
       },
       {
-        "localName": "fact-nexusOperationCompleted",
-        "definitionId": "temporal.nexus.caller.property.syncSucceeds.fact-nexusOperationCompleted"
+        "localName": "nexusOperationTimedOut-scheduleToStart",
+        "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationTimedOut-scheduleToStart"
+      },
+      {
+        "localName": "fact-nexusOperationTimedOut-scheduleToStart",
+        "definitionId": "temporal.nexus.caller.property.scheduleToStartFires.fact-nexusOperationTimedOut-scheduleToStart"
       }
     ]
   },
   "program": {
-    "programId": "temporal.case.nexusCallerTests.syncCompletion.program",
+    "programId": "temporal.case.nexusCallerTests.scheduleToStartTimeout.program",
     "roles": [
       {
         "roleId": "temporal.workflow-service",
@@ -224,6 +236,15 @@
         "controller": {},
         "instructions": [
           {
+            "instructionId": "stop-handler-worker",
+            "instruction": {
+              "injectFault": {
+                "roleId": "temporal.handler-task-queue",
+                "kind": "FAULT_KIND_WORKER_STOP"
+              }
+            }
+          },
+          {
             "instructionId": "start-workflow",
             "instruction": {
               "invokeRpc": {
@@ -250,7 +271,7 @@
                     "target": "workflow_type.name",
                     "value": {
                       "literal": {
-                        "textValue": "umpire-nexusCallerTests-syncCompletion-workflow"
+                        "textValue": "umpire-nexusCallerTests-scheduleToStartTimeout-workflow"
                       }
                     }
                   },
@@ -422,7 +443,7 @@
                           "observationId": "correlated-evidence",
                           "rules": [
                             {
-                              "evidenceId": "completed"
+                              "evidenceId": "timedOut"
                             }
                           ]
                         }
@@ -438,7 +459,7 @@
       {
         "entrypointId": "workflow",
         "workflow": {
-          "workflowType": "umpire-nexusCallerTests-syncCompletion-workflow",
+          "workflowType": "umpire-nexusCallerTests-scheduleToStartTimeout-workflow",
           "workerRoleId": "temporal.worker",
           "taskQueueRoleId": "temporal.task-queue"
         },
@@ -458,7 +479,8 @@
                         "encoding": "anNvbi9wbGFpbg=="
                       },
                       "data": "InJlcXVlc3Qi"
-                    }
+                    },
+                    "scheduleToStartTimeout": "2s"
                   }
                 }
               }
@@ -509,29 +531,7 @@
           "operation": "complete",
           "workerRoleId": "temporal.worker",
           "taskQueueRoleId": "temporal.handler-task-queue"
-        },
-        "instructions": [
-          {
-            "instructionId": "respond-sync",
-            "instruction": {
-              "nexusHandlerReply": {
-                "response": {
-                  "syncSuccess": {
-                    "payload": {
-                      "metadata": {
-                        "encoding": "anNvbi9wbGFpbg=="
-                      },
-                      "data": "ImNvbXBsZXRlZCI="
-                    }
-                  }
-                }
-              }
-            },
-            "limits": {
-              "timeoutMilliseconds": "5000"
-            }
-          }
-        ]
+        }
       }
     ],
     "cleanup": {
@@ -549,35 +549,35 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "nexusCallerTests-syncCompletion"
+              "textValue": "nexusCallerTests-scheduleToStartTimeout"
             }
           }
         ],
         "operation": "event_id"
       },
       {
-        "evidenceId": "completed",
+        "evidenceId": "timedOut",
         "evidenceSource": "history",
         "historyEvent": {
-          "attributesField": "nexus_operation_completed_event_attributes"
+          "attributesField": "nexus_operation_timed_out_event_attributes"
         },
         "scope": [
           {
             "fieldId": "run",
             "value": {
-              "textValue": "nexusCallerTests-syncCompletion"
+              "textValue": "nexusCallerTests-scheduleToStartTimeout"
             }
           }
         ],
-        "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+        "operation": "attributes<nexus_operation_timed_out_event_attributes>.scheduled_event_id"
       }
     ]
   },
   "contract": {
-    "contractId": "temporal.case.nexusCallerTests.syncCompletion.contract",
+    "contractId": "temporal.case.nexusCallerTests.scheduleToStartTimeout.contract",
     "correlated": {
       "projectionId": "projection",
-      "projectionFingerprint": "sha256:0d33315d2d31fce7c894366d90357e5d97792e394334d9465e94c22e969a5054",
+      "projectionFingerprint": "sha256:375a72fd2e775909bd9d18aea91fb4514a37663a052136b353b28282837d8bc0",
       "evidenceObservationId": "correlated-evidence",
       "scopeFields": [
         "run"
@@ -598,12 +598,12 @@
             "value": "unscheduled-0-unset-unset-unset"
           },
           "action": {
-            "definitionId": "schedule-unset-unset-unset",
-            "value": "schedule-unset-unset-unset"
+            "definitionId": "schedule-unset-expires-unset",
+            "value": "schedule-unset-expires-unset"
           },
           "state": {
-            "definitionId": "scheduled-0-unset-unset-unset",
-            "value": "scheduled-0-unset-unset-unset"
+            "definitionId": "scheduled-0-unset-expires-unset",
+            "value": "scheduled-0-unset-expires-unset"
           },
           "outcome": {
             "definitionId": "accepted",
@@ -629,7 +629,7 @@
               "value": "unset"
             },
             {
-              "definitionId": "scheduleToStart",
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
               "value": "unset"
             },
             {
@@ -655,7 +655,77 @@
               "value": "unset"
             },
             {
-              "definitionId": "scheduleToStart",
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "unscheduled-0-unset-unset-unset",
+            "value": "unscheduled-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "workerStop",
+            "value": "workerStop"
+          },
+          "state": {
+            "definitionId": "unscheduled-0-unset-unset-unset",
+            "value": "unscheduled-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "unscheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "unscheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
               "value": "unset"
             },
             {
@@ -670,16 +740,86 @@
         },
         {
           "priorState": {
-            "definitionId": "scheduled-0-unset-unset-unset",
-            "value": "scheduled-0-unset-unset-unset"
+            "definitionId": "scheduled-0-unset-expires-unset",
+            "value": "scheduled-0-unset-expires-unset"
           },
           "action": {
-            "definitionId": "handlerReply-syncSuccess",
-            "value": "handlerReply-syncSuccess"
+            "definitionId": "workerStop",
+            "value": "workerStop"
           },
           "state": {
-            "definitionId": "succeeded-0-unset-unset-unset",
-            "value": "succeeded-0-unset-unset-unset"
+            "definitionId": "scheduled-0-unset-expires-unset",
+            "value": "scheduled-0-unset-expires-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "scheduled-0-unset-expires-unset",
+            "value": "scheduled-0-unset-expires-unset"
+          },
+          "action": {
+            "definitionId": "action.nexusProtocol.scheduleToStart",
+            "value": "scheduleToStart"
+          },
+          "state": {
+            "definitionId": "timedOut-0-unset-expires-unset",
+            "value": "timedOut-0-unset-expires-unset"
           },
           "outcome": {
             "definitionId": "accepted",
@@ -687,8 +827,8 @@
           },
           "facts": [
             {
-              "definitionId": "nexusOperationCompleted",
-              "value": "nexusOperationCompleted"
+              "definitionId": "nexusOperationTimedOut-scheduleToStart",
+              "value": "nexusOperationTimedOut-scheduleToStart"
             }
           ],
           "priorFields": [
@@ -705,8 +845,8 @@
               "value": "unset"
             },
             {
-              "definitionId": "scheduleToStart",
-              "value": "unset"
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
             },
             {
               "definitionId": "startToClose",
@@ -720,7 +860,7 @@
           "stateFields": [
             {
               "definitionId": "phase",
-              "value": "succeeded"
+              "value": "timedOut"
             },
             {
               "definitionId": "attempts",
@@ -731,8 +871,8 @@
               "value": "unset"
             },
             {
-              "definitionId": "scheduleToStart",
-              "value": "unset"
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
             },
             {
               "definitionId": "startToClose",
@@ -740,76 +880,94 @@
             },
             {
               "definitionId": "nexusProduct",
-              "value": "succeeded"
+              "value": "timedOut"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "timedOut-0-unset-expires-unset",
+            "value": "timedOut-0-unset-expires-unset"
+          },
+          "action": {
+            "definitionId": "workerStop",
+            "value": "workerStop"
+          },
+          "state": {
+            "definitionId": "timedOut-0-unset-expires-unset",
+            "value": "timedOut-0-unset-expires-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "timedOut"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "timedOut"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "timedOut"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "state-field.nexusProtocol.scheduleToStart",
+              "value": "expires"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "timedOut"
             }
           ]
         }
       ],
       "projectionRules": [
         {
-          "kind": "completed",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "handlerReply-syncSuccess",
-                "value": "handlerReply-syncSuccess"
-              },
-              "state": {
-                "definitionId": "succeeded-0-unset-unset-unset",
-                "value": "succeeded-0-unset-unset-unset"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "nexusOperationCompleted",
-                  "value": "nexusOperationCompleted"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "succeeded"
-                },
-                {
-                  "definitionId": "attempts",
-                  "value": "0"
-                },
-                {
-                  "definitionId": "scheduleToClose",
-                  "value": "unset"
-                },
-                {
-                  "definitionId": "scheduleToStart",
-                  "value": "unset"
-                },
-                {
-                  "definitionId": "startToClose",
-                  "value": "unset"
-                },
-                {
-                  "definitionId": "nexusProduct",
-                  "value": "succeeded"
-                }
-              ]
-            }
-          ]
-        },
-        {
           "kind": "evidence.scheduled",
           "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
           "outputs": [
             {
               "action": {
-                "definitionId": "schedule-unset-unset-unset",
-                "value": "schedule-unset-unset-unset"
+                "definitionId": "schedule-unset-expires-unset",
+                "value": "schedule-unset-expires-unset"
               },
               "state": {
-                "definitionId": "scheduled-0-unset-unset-unset",
-                "value": "scheduled-0-unset-unset-unset"
+                "definitionId": "scheduled-0-unset-expires-unset",
+                "value": "scheduled-0-unset-expires-unset"
               },
               "outcome": {
                 "definitionId": "accepted",
@@ -835,8 +993,8 @@
                   "value": "unset"
                 },
                 {
-                  "definitionId": "scheduleToStart",
-                  "value": "unset"
+                  "definitionId": "state-field.nexusProtocol.scheduleToStart",
+                  "value": "expires"
                 },
                 {
                   "definitionId": "startToClose",
@@ -849,11 +1007,103 @@
               ]
             }
           ]
+        },
+        {
+          "kind": "timedOut",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "workerStop",
+                "value": "workerStop"
+              },
+              "state": {
+                "definitionId": "scheduled-0-unset-expires-unset",
+                "value": "scheduled-0-unset-expires-unset"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "scheduled"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                },
+                {
+                  "definitionId": "scheduleToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "state-field.nexusProtocol.scheduleToStart",
+                  "value": "expires"
+                },
+                {
+                  "definitionId": "startToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "nexusProduct",
+                  "value": "scheduled"
+                }
+              ]
+            },
+            {
+              "action": {
+                "definitionId": "action.nexusProtocol.scheduleToStart",
+                "value": "scheduleToStart"
+              },
+              "state": {
+                "definitionId": "timedOut-0-unset-expires-unset",
+                "value": "timedOut-0-unset-expires-unset"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "facts": [
+                {
+                  "definitionId": "nexusOperationTimedOut-scheduleToStart",
+                  "value": "nexusOperationTimedOut-scheduleToStart"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "timedOut"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                },
+                {
+                  "definitionId": "scheduleToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "state-field.nexusProtocol.scheduleToStart",
+                  "value": "expires"
+                },
+                {
+                  "definitionId": "startToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "nexusProduct",
+                  "value": "timedOut"
+                }
+              ]
+            }
+          ]
         }
       ],
       "rules": [
         {
-          "ruleId": "fact-nexusOperationCompleted",
+          "ruleId": "fact-nexusOperationTimedOut-scheduleToStart",
           "trigger": {
             "compare": {
               "operator": "COMPARISON_OPERATOR_EQUAL",
@@ -861,13 +1111,13 @@
                 "reference": {
                   "correlatedStep": {
                     "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "schedule-unset-unset-unset"
+                    "definitionId": "schedule-unset-expires-unset"
                   }
                 }
               },
               "right": {
                 "literal": {
-                  "textValue": "schedule-unset-unset-unset"
+                  "textValue": "schedule-unset-expires-unset"
                 }
               }
             }
@@ -879,19 +1129,19 @@
                 "reference": {
                   "correlatedStep": {
                     "field": "CORRELATED_STEP_FIELD_FACT",
-                    "definitionId": "nexusOperationCompleted"
+                    "definitionId": "nexusOperationTimedOut-scheduleToStart"
                   }
                 }
               },
               "right": {
                 "literal": {
-                  "textValue": "nexusOperationCompleted"
+                  "textValue": "nexusOperationTimedOut-scheduleToStart"
                 }
               }
             }
           },
           "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "bound": "1",
+          "bound": "2",
           "ending": "TRACE_ENDING_PARTIAL"
         }
       ],
@@ -909,7 +1159,7 @@
           "value": "unset"
         },
         {
-          "definitionId": "scheduleToStart",
+          "definitionId": "state-field.nexusProtocol.scheduleToStart",
           "value": "unset"
         },
         {

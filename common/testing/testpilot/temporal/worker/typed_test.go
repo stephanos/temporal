@@ -217,7 +217,8 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 			nexusRoute, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
 			require.NoError(t, err)
 			// Before the entrypoint replies, a failed start is the activation's failure.
-			outcome, activationErr := session.nexusActivationOutcome(nexusRoute.activation, ErrInvalid)
+			outcome, open, activationErr := session.nexusActivationOutcome(nexusRoute.activation, ErrInvalid)
+			require.False(t, open)
 			require.ErrorIs(t, activationErr, ErrInvalid)
 			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, outcome.GetStatus())
 
@@ -225,11 +226,73 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 			tc.check(t, result, err, bridge)
 
 			// Whatever the reply carries back to the SDK, an instructed one completed the activation.
-			outcome, activationErr = session.nexusActivationOutcome(nexusRoute.activation, err)
+			outcome, open, activationErr = session.nexusActivationOutcome(nexusRoute.activation, err)
+			require.False(t, open)
 			require.NoError(t, activationErr)
 			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, outcome.GetStatus())
 		})
 	}
+}
+
+// A retryable handler error leaves its activation open: the caller retries the start, the retried
+// delivery is admitted as a replay of the same route, and the entrypoint answers it with its next
+// reply. The activation completes on that reply, and a further delivery replays it.
+func TestSessionAnswersTheRetriedStartWithTheNextReply(t *testing.T) {
+	retryable := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Error{Error: &nexuspb.HandlerError{ErrorType: "INTERNAL", Failure: &nexuspb.Failure{Message: "try again"}, RetryBehavior: enumspb.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE}}}
+	answer := jsonPayload(t, "answered")
+	sync := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: answer}}}}}
+	prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, func(program *testpilotspb.Program) {
+		first := program.Entrypoints[2].Instructions[0]
+		first.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: retryable}}
+		second := &testpilotspb.InstructionNode{
+			InstructionId: "respond-again", Limits: first.Limits,
+			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: sync}},
+		}
+		program.Entrypoints[2].Instructions = append(program.Entrypoints[2].Instructions, second)
+	})
+	host, definition := runtimeTestDriver(t, prepared)
+	options := SessionOptions{Bridge: newTestBridge(), NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+		return &struct{}{}, nil
+	}}
+	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
+	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
+	require.NoError(t, err)
+	header, err := session.preparedNexusHeader(workflowRoute.activation, "start", nil)
+	require.NoError(t, err)
+	startOptions := nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"}
+
+	first, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
+	require.NoError(t, err)
+	require.False(t, first.replay)
+	result, err := session.executeNexus(t.Context(), first.activation, nil, startOptions)
+	var handlerErr *nexus.HandlerError
+	require.ErrorAs(t, err, &handlerErr)
+	require.True(t, handlerErr.Retryable())
+	require.Nil(t, result)
+	_, open, _ := session.nexusActivationOutcome(first.activation, err)
+	require.True(t, open, "a retryable reply leaves the activation open for the retry")
+
+	retried, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
+	require.NoError(t, err)
+	require.True(t, retried.replay)
+	result, err = session.executeNexus(t.Context(), retried.activation, nil, startOptions)
+	require.NoError(t, err)
+	raw, ok := result.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
+	require.True(t, ok)
+	require.True(t, proto.Equal(answer, raw.Payload()))
+	outcome, open, activationErr := session.nexusActivationOutcome(retried.activation, err)
+	require.False(t, open)
+	require.NoError(t, activationErr)
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, outcome.GetStatus())
+
+	// The activation is settled: a third delivery replays the settling reply.
+	again, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
+	require.NoError(t, err)
+	result, err = session.executeNexus(t.Context(), again.activation, nil, startOptions)
+	require.NoError(t, err)
+	raw, ok = result.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
+	require.True(t, ok)
+	require.True(t, proto.Equal(answer, raw.Payload()))
 }
 
 // A carried completion reaches the callback as its body: a payload verbatim, and a failure as the

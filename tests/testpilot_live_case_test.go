@@ -23,9 +23,10 @@ import (
 // testpilotLiveResources names the physical resources one Case's Program binds symbolically. A
 // Case that declares no Nexus endpoint leaves NexusEndpoint empty and none is created.
 type testpilotLiveResources struct {
-	Namespace     string
-	TaskQueue     string
-	NexusEndpoint string
+	Namespace      string
+	TaskQueue      string
+	NexusEndpoint  string
+	NexusTaskQueue string
 }
 
 // testpilotLiveCase is one Case bound to those resources: the Profile snapshot taken before the
@@ -57,9 +58,10 @@ func newTestpilotLiveCase(
 	release, err := provision.Create(env.Context(), provision.Clients{
 		Workflow: env.FrontendClient(), Operator: env.OperatorClient(),
 	}, provision.Resources{
-		Namespace:     resources.Namespace,
-		TaskQueue:     resources.TaskQueue,
-		NexusEndpoint: resources.NexusEndpoint,
+		Namespace:      resources.Namespace,
+		TaskQueue:      resources.TaskQueue,
+		NexusEndpoint:  resources.NexusEndpoint,
+		NexusTaskQueue: resources.NexusTaskQueue,
 		// The functional cluster is discarded wholesale after the suite, and deleting a namespace
 		// is a server-side workflow that takes tens of seconds; waiting for it here buys nothing.
 		RetainNamespace: true,
@@ -109,14 +111,16 @@ func runEventAt(t testing.TB, run *testpilotpb.Run, sequence int64) *testpilotpb
 	return run.GetEvents()[sequence-1]
 }
 
-// requireCorrelatedNexusHistoryEvidence reads the supporting evidence back out of the Run. Each
-// supporting event carries both the history event it projected and the CorrelatedEvidence the same
-// projection lifted from it, and the two agree: the operation key every value carries is the
-// scheduled event every event of the operation names, and the events are the ones the Query's claim
-// supports, in the order the operation recorded them.
-func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, endpoint string, supporting []enumspb.EventType) {
+// requireCorrelatedNexusHistoryEvidence reads the supporting evidence back out of the Run's history
+// read. Each supporting event carries both the history event it projected and the
+// CorrelatedEvidence the same projection lifted from it, and the two agree: the operation key every
+// value carries is the scheduled event every event of the operation names, and the events are the
+// ones the Query's claim supports, in the order the operation recorded them. It returns the
+// scheduled event's id, which the reads the Run lifted before the history read are keyed by.
+func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, endpoint string, supporting []enumspb.EventType) int64 {
 	t.Helper()
 	require.Len(t, sequences, len(supporting))
+	require.NotEmpty(t, sequences)
 	var scheduledID int64
 	var requestID string
 	for index, sequence := range sequences {
@@ -142,6 +146,7 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 	}
 	require.NotEmpty(t, requestID)
 	requireScheduledNexusEndpoint(t, run, scheduledID, requestID, endpoint)
+	return scheduledID
 }
 
 // nexusEvidenceKind is the Case-local name of the evidence kind one history event kind lifts into.
@@ -155,6 +160,8 @@ func nexusEvidenceKind(eventType enumspb.EventType) string {
 		return "completed"
 	case enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED:
 		return "failed"
+	case enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT:
+		return "timedOut"
 	default:
 		return ""
 	}
@@ -173,6 +180,8 @@ func nexusOperationCoordinates(t testing.TB, event *historypb.HistoryEvent) (int
 		return attributes.NexusOperationCompletedEventAttributes.GetScheduledEventId(), attributes.NexusOperationCompletedEventAttributes.GetRequestId()
 	case *historypb.HistoryEvent_NexusOperationFailedEventAttributes:
 		return attributes.NexusOperationFailedEventAttributes.GetScheduledEventId(), attributes.NexusOperationFailedEventAttributes.GetRequestId()
+	case *historypb.HistoryEvent_NexusOperationTimedOutEventAttributes:
+		return attributes.NexusOperationTimedOutEventAttributes.GetScheduledEventId(), attributes.NexusOperationTimedOutEventAttributes.GetRequestId()
 	default:
 		require.FailNow(t, "history event is not a Nexus operation event", "%s", event.GetEventType())
 		return 0, ""

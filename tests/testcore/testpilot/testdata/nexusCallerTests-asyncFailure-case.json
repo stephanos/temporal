@@ -9,7 +9,7 @@
     "definitions": [
       {
         "definitionId": "temporal.nexus.caller.target.nexusProtocol",
-        "behaviorFingerprint": "sha256:ce430fb14e7b554662abd3df9bd3068c79ecc9b23db4578056fc429fc76244ab",
+        "behaviorFingerprint": "sha256:b38647500819c04cd82e179972ed23c76609d69e99a424748596295ce067af14",
         "kind": "DEFINITION_KIND_TARGET"
       },
       {
@@ -19,12 +19,12 @@
       },
       {
         "definitionId": "temporal.nexus.caller.query.asyncFailure",
-        "behaviorFingerprint": "sha256:83312657c722af2d397e0fe4e9fd3e375faea9664305c59d21a27de40f9119f0",
+        "behaviorFingerprint": "sha256:e8b181b7eb5f498a1687e552b0d414c2de0af1e3baf8592e7ca73e9a8848d2b3",
         "kind": "DEFINITION_KIND_QUERY"
       },
       {
         "definitionId": "temporal.nexus.caller.property.completionFails",
-        "behaviorFingerprint": "sha256:725f89353cda8bcc2e50144575c39eb69430d3fb74ec6bd5eaa1f26a5a182cf7",
+        "behaviorFingerprint": "sha256:c6200724760391d9f9ba98f2ff3be854f0113e9bb41824b18aa1916fc70328d5",
         "kind": "DEFINITION_KIND_PROPERTY"
       }
     ],
@@ -58,9 +58,9 @@
       {
         "ruleId": "temporal.nexus.caller.property.completionFails.fact-nexusOperationFailed",
         "propertyId": "temporal.nexus.caller.property.completionFails",
-        "propertyFingerprint": "sha256:725f89353cda8bcc2e50144575c39eb69430d3fb74ec6bd5eaa1f26a5a182cf7",
-        "projectionId": "temporal.nexus.success.projection",
-        "projectionFingerprint": "sha256:21c312f433bb3fee30d3422b2aa1c06c962af4a100ed2915be53eef0a23735cb",
+        "propertyFingerprint": "sha256:c6200724760391d9f9ba98f2ff3be854f0113e9bb41824b18aa1916fc70328d5",
+        "projectionId": "temporal.nexus.caller.projection",
+        "projectionFingerprint": "sha256:819e6c1d9a175cfaabdada1dea3444678f5a6d4e37eeae9183ecb4ef7feebc6b",
         "source": {
           "path": "Temporal/Feature/Nexus/Caller/Model.lean",
           "line": 1,
@@ -71,32 +71,36 @@
     ],
     "localNames": [
       {
-        "localName": "scheduled",
-        "definitionId": "temporal.nexus.success.evidence.scheduled"
+        "localName": "evidence.scheduled",
+        "definitionId": "temporal.nexus.caller.evidence.scheduled"
       },
       {
         "localName": "started",
-        "definitionId": "temporal.nexus.success.evidence.started"
+        "definitionId": "temporal.nexus.caller.evidence.started"
       },
       {
         "localName": "failed",
-        "definitionId": "temporal.nexus.success.evidence.failed"
+        "definitionId": "temporal.nexus.caller.evidence.failed"
       },
       {
-        "localName": "history",
-        "definitionId": "temporal.nexus.success.source.history"
+        "localName": "source.scheduled",
+        "definitionId": "temporal.nexus.caller.source.scheduled"
       },
       {
         "localName": "run",
-        "definitionId": "temporal.nexus.success.scope.run"
+        "definitionId": "temporal.nexus.caller.scope.run"
+      },
+      {
+        "localName": "history",
+        "definitionId": "temporal.nexus.caller.source.history"
       },
       {
         "localName": "projection",
-        "definitionId": "temporal.nexus.success.projection"
+        "definitionId": "temporal.nexus.caller.projection"
       },
       {
         "localName": "operation",
-        "definitionId": "temporal.nexus.success.scope.operation"
+        "definitionId": "temporal.nexus.caller.scope.operation"
       },
       {
         "localName": "unscheduled-0-unset-unset-unset",
@@ -195,6 +199,12 @@
         "resourceBindingId": "temporal.task-queue.resource"
       },
       {
+        "roleId": "temporal.handler-task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.handler-task-queue.resource"
+      },
+      {
         "roleId": "temporal.nexus-endpoint",
         "kind": "ROLE_KIND_ENDPOINT",
         "resourceBindingId": "temporal.nexus-endpoint.resource"
@@ -281,6 +291,48 @@
                     }
                   }
                 ]
+              }
+            }
+          },
+          {
+            "instructionId": "await-scheduled",
+            "instruction": {
+              "readEvidence": {
+                "evidenceId": "evidence.scheduled",
+                "endpointRoleId": "temporal.workflow-service",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ],
+                "until": {
+                  "present": {
+                    "operand": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "projectedValue": {}
+                          }
+                        },
+                        "path": "attributes<nexus_operation_scheduled_event_attributes>"
+                      }
+                    }
+                  }
+                },
+                "pollIntervalMilliseconds": "250"
               }
             }
           },
@@ -413,9 +465,6 @@
                           "observationId": "correlated-evidence",
                           "rules": [
                             {
-                              "evidenceId": "scheduled"
-                            },
-                            {
                               "evidenceId": "started"
                             },
                             {
@@ -505,7 +554,7 @@
           "service": "umpire.case.service",
           "operation": "complete",
           "workerRoleId": "temporal.worker",
-          "taskQueueRoleId": "temporal.task-queue"
+          "taskQueueRoleId": "temporal.handler-task-queue"
         },
         "instructions": [
           {
@@ -530,10 +579,11 @@
     },
     "evidence": [
       {
-        "evidenceId": "scheduled",
-        "evidenceSource": "history",
-        "historyEvent": {
-          "attributesField": "nexus_operation_scheduled_event_attributes"
+        "evidenceId": "evidence.scheduled",
+        "evidenceSource": "source.scheduled",
+        "read": {
+          "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+          "path": "history.events[*]"
         },
         "scope": [
           {
@@ -583,14 +633,15 @@
     "contractId": "temporal.case.nexusCallerTests.asyncFailure.contract",
     "correlated": {
       "projectionId": "projection",
-      "projectionFingerprint": "sha256:21c312f433bb3fee30d3422b2aa1c06c962af4a100ed2915be53eef0a23735cb",
+      "projectionFingerprint": "sha256:819e6c1d9a175cfaabdada1dea3444678f5a6d4e37eeae9183ecb4ef7feebc6b",
       "evidenceObservationId": "correlated-evidence",
       "scopeFields": [
         "run"
       ],
       "operationField": "operation",
       "sources": [
-        "history"
+        "history",
+        "source.scheduled"
       ],
       "initialState": {
         "definitionId": "unscheduled-0-unset-unset-unset",
@@ -1030,7 +1081,7 @@
           ]
         },
         {
-          "kind": "scheduled",
+          "kind": "evidence.scheduled",
           "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
           "outputs": [
             {

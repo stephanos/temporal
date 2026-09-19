@@ -146,8 +146,9 @@ func (i *nexusInboundInterceptor) StartOperation(ctx context.Context, input inte
 	}
 	activationCtx = context.WithValue(activationCtx, nexusRouteKey{}, routed)
 	result, startErr := i.Next.StartOperation(activationCtx, input)
-	if !routed.replay {
-		outcome, activationErr := routed.session.nexusActivationOutcome(routed.activation, startErr)
+	// A retried delivery is admitted as a replay of its route and settles the activation the
+	// retryable reply left open, so what finishes the activation is the reply, not the delivery.
+	if outcome, open, activationErr := routed.session.nexusActivationOutcome(routed.activation, startErr); !open {
 		routed.session.finishActivation(routed.activation, outcome, activationErr)
 	}
 	return result, startErr

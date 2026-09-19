@@ -53,7 +53,7 @@ moved out of the Case, and the testcore Profiles use the same set. Its instructi
 Temporal Cases), so a Case writes only the instruction limits that differ. Drivers read ceilings from
 `PreparedProgram.Limits`, the prepared Profile snapshot, never from the Case. The Profile is an authorization snapshot, so the derived value is
 returned for the caller to review and tighten before `Prepare`; canary callers keep hand-authored
-Profiles, and the hand-written async-nexus Profile stays the derivation oracle. MOD-12's `Prepare`
+Profiles, and the hand-written caller Profile stays the derivation oracle. MOD-12's `Prepare`
 then `Run` sequence is unchanged: derivation only decides what the Profile says.
 
 ## Provisioning

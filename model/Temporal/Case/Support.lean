@@ -2,13 +2,13 @@ import Temporal.Case.EventKind
 import Temporal.Testpilot.CaseSupport
 
 /-!
-# What every realization template shares
+# What every realization shares
 
 The roles a Case addresses, the two workflow-service methods it invokes, the observations it
 declares, and the history filter that makes a read wait for the close event. They live here rather
-than beside each template so two templates cannot drift into naming the same thing differently --
-`DeriveProfile` resolves a Case's bindings by the IDs the Program declares, so a divergence here is
-a divergence in what a Case authorizes.
+than beside each realization so two realizations cannot drift into naming the same thing
+differently -- `DeriveProfile` resolves a Case's bindings by the IDs the Program declares, so a
+divergence here is a divergence in what a Case authorizes.
 -/
 
 namespace Temporal.Case.Support
@@ -23,6 +23,9 @@ open temporal.server.api.testpilot.v1
 def workflowServiceRole := "temporal.workflow-service"
 def workerRole := "temporal.worker"
 def taskQueueRole := "temporal.task-queue"
+/-- The queue the Nexus handler polls, its own so a fault that stops the handler's worker leaves the
+caller workflow's running. -/
+def handlerTaskQueueRole := "temporal.handler-task-queue"
 def nexusEndpointRole := "temporal.nexus-endpoint"
 
 /-! ### Methods a Case invokes -/

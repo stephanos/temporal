@@ -13,7 +13,7 @@ import (
 func asyncNexusEnvironment() temporaldriver.Environment {
 	return temporaldriver.Environment{
 		Identity: "nexus-caller-profile", Namespace: "namespace",
-		TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
+		TaskQueue: "task-queue", HandlerTaskQueue: "task-queue-handler", NexusEndpoint: "nexus-endpoint",
 	}
 }
 
@@ -28,7 +28,8 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 	derived, err := temporaldriver.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
 	oracle := NexusCallerProfile(catalog, NexusCallerEnvironment{
-		Namespace: environment.Namespace, TaskQueue: environment.TaskQueue, NexusEndpoint: environment.NexusEndpoint,
+		Namespace: environment.Namespace, TaskQueue: environment.TaskQueue,
+		HandlerTaskQueue: environment.HandlerTaskQueue, NexusEndpoint: environment.NexusEndpoint,
 	})
 	require.Equal(t, oracle.Identity, derived.Identity)
 	require.Equal(t, oracle.Roles, derived.Roles)

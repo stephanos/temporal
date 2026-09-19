@@ -38,13 +38,19 @@ func bindCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, bin
 	t.Helper()
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
+	// A Case whose handler polls its own queue names it after the caller's; the endpoint routes to
+	// it, so the binding carries no slot of its own for a name that follows from the queue's.
+	handlerQueue := ""
+	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
+		handlerQueue = binding.TaskQueue + "-handler"
+	}
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity: binding.Identity, Namespace: binding.Namespace,
-		TaskQueue: binding.TaskQueue, NexusEndpoint: binding.NexusEndpoint,
+		TaskQueue: binding.TaskQueue, HandlerTaskQueue: handlerQueue, NexusEndpoint: binding.NexusEndpoint,
 		DynamicConfig: binding.DynamicConfig,
 	})
 	require.NoError(t, err)
-	resources := testpilotLiveResources{Namespace: binding.Namespace, TaskQueue: binding.TaskQueue}
+	resources := testpilotLiveResources{Namespace: binding.Namespace, TaskQueue: binding.TaskQueue, NexusTaskQueue: handlerQueue}
 	if binding.CreateEndpoint {
 		resources.NexusEndpoint = binding.NexusEndpoint
 	}

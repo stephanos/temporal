@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	NexusCallerWorkerNamespaceBindingID = "temporal.worker.namespace"
-	NexusCallerTaskQueueBindingID       = "temporal.task-queue.resource"
-	NexusCallerEndpointBindingID        = "temporal.nexus-endpoint.resource"
+	NexusCallerWorkerNamespaceBindingID  = "temporal.worker.namespace"
+	NexusCallerTaskQueueBindingID        = "temporal.task-queue.resource"
+	NexusCallerHandlerTaskQueueBindingID = "temporal.handler-task-queue.resource"
+	NexusCallerEndpointBindingID         = "temporal.nexus-endpoint.resource"
 )
 
 // NexusCallerAsyncCompletionFixture is the caller Model's Query 2 fixture, the async reply then
@@ -17,30 +18,35 @@ const (
 const NexusCallerAsyncCompletionFixture = "nexusCallerTests-asyncCompletion"
 
 type NexusCallerEnvironment struct {
-	Namespace     string
-	TaskQueue     string
-	NexusEndpoint string
+	Namespace        string
+	TaskQueue        string
+	HandlerTaskQueue string
+	NexusEndpoint    string
 }
 
-// NexusCallerProfile is the hand-written Profile every caller-set Case prepares under: the four
+// NexusCallerProfile is the hand-written Profile every caller-set Case prepares under: the five
 // roles the realization declares, the Opcodes its scaffolding and its typed instructions need, and
-// the three bindings the roles reference.
+// the four bindings the roles reference.
 func NexusCallerProfile(catalog *testpilot.Catalog, environment NexusCallerEnvironment) testpilot.ProfileSpec {
 	profile := caseProfile("nexus-caller-profile", catalog,
 		[]testpilot.RolePolicy{
 			workflowServiceRole(1),
 			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "temporal.task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+			{ID: "temporal.handler-task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "temporal.nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 		},
 		realizedNexusCapabilities(),
 		[]testpilot.EnvironmentBinding{
 			{ID: NexusCallerWorkerNamespaceBindingID, Value: environment.Namespace},
 			{ID: NexusCallerTaskQueueBindingID, Value: environment.TaskQueue},
+			{ID: NexusCallerHandlerTaskQueueBindingID, Value: environment.HandlerTaskQueue},
 			{ID: NexusCallerEndpointBindingID, Value: environment.NexusEndpoint},
 		})
 	// The realization schedules the operation through a workflow command, which the Profile
-	// admits per command type.
+	// admits per command type, and reads the scheduled event and the pending operation's attempt
+	// count back through polls.
+	profile.Opcodes = append(profile.Opcodes, testpilot.ReadEvidence)
 	profile.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
 	return profile
 }

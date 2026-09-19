@@ -34,9 +34,9 @@ helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `
 Gaps, and Correlated Rule bindings, and lowers them into the Case's typed provenance rows, which the
 runtime never reads.
 
-`Temporal.Feature.Nexus.Success.Producer` lowers the checked success model into the async Nexus
-example: its Contract carries no monitor Rule, only the Correlated capability the checked Property
-lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
+`Temporal.Feature.Nexus.Caller` authors the Nexus caller-side operation, and its functional set
+produces the seven caller Cases through `Temporal.Case.Realization.asyncNexus`: each Contract carries
+no monitor Rule, only the Correlated capability the checked Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
@@ -313,8 +313,8 @@ The Testpilot conformance and example trees are independently owner-managed by t
 ```sh
 make umpire-check-case-runtime-conformance
 make umpire-gen-case-runtime-conformance  # separate reviewed promotion
-model/.lake/build/bin/umpire-case async-nexus
-mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
+model/.lake/build/bin/umpire-case nexusCallerTests-asyncCompletion
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotNexusCallerAsyncCompletion$'
 ```
 
 The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both

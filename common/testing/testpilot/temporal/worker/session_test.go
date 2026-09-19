@@ -242,7 +242,7 @@ func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	result, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{})
+	result, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{}, &nexusResult{})
 	require.ErrorIs(t, err, context.Canceled)
 	require.Zero(t, result.kind)
 	require.Nil(t, result.value)

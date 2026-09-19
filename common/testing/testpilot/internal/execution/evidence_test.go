@@ -256,8 +256,11 @@ func TestSchedulerLiftsEveryDeclaredEvidenceSource(t *testing.T) {
 	for kind, want := range map[string]*testpilotspb.CorrelatedEvidence{
 		"started":       {Kind: "started", Operation: "5", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "history", Scope: scope}},
 		"faultInjected": {Kind: "faultInjected", Operation: "queue", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "run-events", Scope: scope}},
+		// The read's evidence follows the operation's history evidence, lifted before it from another
+		// source, as its causal parent.
 		"pendingAttempts": {Kind: "pendingAttempts", Operation: "5", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "describe", Scope: scope},
-			Fields: []*testpilotspb.NamedValue{{FieldId: "attempts", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "2"}}}}},
+			Parents: []*testpilotspb.CorrelatedIdentity{{EvidenceSource: "history", Scope: scope}},
+			Fields:  []*testpilotspb.NamedValue{{FieldId: "attempts", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "2"}}}}},
 	} {
 		require.Contains(t, lifted, kind)
 		require.True(t, proto.Equal(want, lifted[kind]), "%s: %v", kind, lifted[kind])
