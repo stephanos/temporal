@@ -40,6 +40,9 @@ inductive PredicateRefusal where
   | fixesNothing (trigger : String)
   /-- The requirements the predicate fixes admit a step it rejects, or reject one it accepts. -/
   | notCarried (trigger witness : String)
+  /-- The predicate reads the step before beyond its state: it accepts a step after some of the
+  steps that arrive at the prior state and rejects it after others. -/
+  | readsBefore (trigger witness : String)
   deriving BEq, Repr, Inhabited
 
 def PredicateRefusal.message : PredicateRefusal → String
@@ -55,6 +58,10 @@ outcome or fact, so it claims nothing"
       s!"the predicate is not a conjunction of one state, one outcome and facts at {trigger}: the \
 clauses it fixes cannot tell {witness} apart from the steps it accepts; a Property is one such \
 conjunction, so split it or restate it"
+  | .readsBefore trigger witness =>
+      s!"the predicate reads the step before beyond its state at {trigger}: it accepts {witness} \
+after some of the steps that arrive there and not after others; a transition claim is about the \
+state the step before reached, so read `before.state` or split the claim"
 
 /-- How the members of a machine's domains are spelled, which is what a clause names. -/
 structure StepKeys (State Outcome Fact : Type) where
@@ -169,11 +176,17 @@ def enumerateTransition [BEq State] [BEq Outcome] [BEq Fact]
     let results := (transitions.filter (·.source == prior)).flatMap (·.results)
     if results.isEmpty then none else
     let befores := arrivals outcomes transitions prior
-    -- The claim at this prior state is the predicate closed over every step before that reaches
-    -- it: a step after is accepted only if it is accepted whichever step came before.
+    let trigger := "prior state `" ++ keys.state prior ++ "`"
+    -- The claim at this prior state is the predicate over the steps that arrive there. It must
+    -- say the same of every step after whichever step came before: one it accepts after some
+    -- arrivals and not others reads the step before beyond its state, and closing it over the
+    -- arrivals would strengthen or weaken what the author wrote rather than carry it.
+    match results.find? fun after =>
+        befores.any (fun before => holds before after) != befores.all (fun before => holds before after) with
+    | some witness => some (Except.error (.readsBefore trigger (render keys witness)))
+    | none =>
     let accepts := fun (after : Step State Outcome Fact) =>
       befores.all fun before => holds before after
-    let trigger := "prior state `" ++ keys.state prior ++ "`"
     -- The label carries the prior state, so two prior states that fix the same value are two
     -- clauses rather than one id declared twice.
     match fixedRequirements states outcomes keys results accepts

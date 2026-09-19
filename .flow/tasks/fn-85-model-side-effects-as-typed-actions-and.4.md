@@ -124,6 +124,17 @@ beyond the fixture's fingerprints.
 Self-review: no second backend is installed in this cloud session, so this owes a cross-model
 re-review before the completion review, as the tasks before it do.
 
+### Re-review fix, 2026-09-19
+
+The cross-model re-review found the per-slot lift of a transition claim unsound: a group triggered
+by one slot's prior state has no clause naming which instance acts, so another instance's step
+leaves the slot where it was and violates a claim that its next state differs (`startedThenSucceeds`
+over `twoOperations` was found unsatisfiable and verified violated on a trace on which every step
+out of `started` does reach `succeeded`). `checkInstances` now rejects a Property with a
+prior-state group before searching, at the Scenario, and `twoTransitions` in the success tests
+pins the message; a sound lift waits on a clause that can conjoin a slot's prior state with the
+acting instance.
+
 ## Evidence
 - Commits: d9e769a, d00faa9, 482f43f
 - Tests: cd model && lake build; make umpire-check-testpilot-authoring; make umpire-check-case-runtime-conformance; make umpire-check-goldens; go test -tags test_dep ./common/testing/testpilot/...; LEAN_NUM_THREADS=1 make lint-model
