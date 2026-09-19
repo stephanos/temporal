@@ -350,6 +350,17 @@ on a divergence naming the switch, both values and both Verdicts, with the diver
 by a unit test. No dynamic-config setting bounds pending Nexus operations, so `atConcurrencyLimit`
 stays a Known Gap until one exists. Its review is a self-review.
 
+**Task .7 is done, 2026-09-19.** The `set` command groups Queries by purpose and binds every party
+except `system`, rejecting in place an unbound party, a bound `system`, a stray party, an
+`observed` party's action on a functional path, a `verify` Query, `repeat:` outside a functional set
+or naming a switch no realization registered, an exploratory set without a goal or budget, and the
+wrong keys for a purpose. The Temporal `case` block over a functional set realizes each Query under
+`temporal.case.<set>.<query>` and `<set>-<query>-case.json`, registered like any Case, so
+`umpire-case --list` and the list-driven generator carry it; the success slice's
+`nexusSuccessTests` produces `nexusSuccessTests-completion-case.json`. A Case records an abstraction
+claim row -- action, field, class, example -- for every class with an `examples:` line its Program
+performs, as the protocol's ninth provenance field. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
