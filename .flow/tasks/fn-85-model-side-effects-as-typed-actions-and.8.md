@@ -55,17 +55,148 @@ Add the three typed worker instructions (R10, first half): a workflow command ca
 - Memory: program admission must validate producer kinds and bound repeated lookups; charge the new instructions' work.
 
 ## Acceptance
-- [ ] the three instructions exist with carried API messages; the Lean declarations and the Go Driver support them; a conformance case per carried message passes against the Temporal Driver
-- [ ] an invalid duration, an unsettable field, a reply the activation does not admit and a non-admitted command type each reject at preparation with an existing category, pinned by unit test and corpus case
-- [ ] a class member or `examples:` member outside the action's `schema:` message rejects in place, pinned by `#guard_msgs` (deferred here from task .2: the members the design's own examples name are values of `temporal.api.nexus.v1.HandlerError.error_type`, a protobuf `string`, so until an action's payload declares typed fields the descriptor carries nothing to check them against)
-- [ ] the Nexus realization binds `schedule`, every `handlerReply` class and both `complete` classes to the new instructions; the hand-built Query 2 Case from task .1 regenerates on them with the diff listed
-- [ ] the extension checklist was followed and any missing place is added to it; `make umpire-check-regression` exit 0
+- [x] the three instructions exist with carried API messages; the Lean declarations and the Go Driver support them; a conformance case per carried message passes against the Temporal Driver
+- [x] an invalid duration, an unsettable field, a reply the activation does not admit and a non-admitted command type each reject at preparation with an existing category, pinned by unit test and corpus case
+- [x] a class member or `examples:` member outside the action's `schema:` message rejects in place, pinned by `#guard_msgs` (deferred here from task .2: the members the design's own examples name are values of `temporal.api.nexus.v1.HandlerError.error_type`, a protobuf `string`, so until an action's payload declares typed fields the descriptor carries nothing to check them against). **Delivered as the check the typed payload makes possible:** a realization builds each class's message from the generated declarations, so a field the message does not declare, or a value of the wrong type, rejects where it is written; the Model-level member check stays undecidable for a `string` field (see Done summary)
+- [x] the Nexus realization binds `schedule`, every `handlerReply` class and both `complete` classes to the new instructions; the hand-built Query 2 Case from task .1 regenerates on them with the diff listed
+- [x] the extension checklist was followed and any missing place is added to it; `make umpire-check-regression` exit 0
 
 
 ## Done summary
-TBD
+
+### The three instructions
+
+`Instruction.instruction` gains arms 9, 10 and 11: `WorkflowCommand` carries a
+`temporal.api.command.v1.Command` (its type and the attributes of that type; an endpoint field names
+the Case's endpoint role), `NexusHandlerReply` carries a `temporal.api.nexus.v1.StartOperationResponse`
+or `HandlerError` with the handle Slot an asynchronous response publishes into, and
+`NexusOperationCompletion` carries a `temporal.api.common.v1.Payload` or `temporal.api.failure.v1.Failure`
+over the handle Slot it consumes. The messages are imported, not wrapped in `Any`: the Lean ProtoJSON
+writer resolves an `Any` payload against the generated descriptor pool, so `Any` would have needed the
+same API descriptors compiled into Lean and given the Go side a type-URL check for nothing. The
+import closure is 28 API files (214 messages, 47 enums), compiled once by `Testpilot/Carried.lean`
+from `proto/api.binpb` (116 s in the cloud session) with every deprecation option cleared, because the
+protobuf library names a deprecated enum value by an unqualified name it cannot resolve;
+`Testpilot/Protocol.lean` passes `--descriptor_set_in`, skips the carried files, and rejects an API
+import `Testpilot.Carried.files` does not name, so the protocol module's own elaboration keeps its
+cost (49 s before, unchanged) and only an API import change pays the carried module's. The lakefile
+stamps both on `api.binpb`; the Makefile's protocol gate passes the descriptor set too.
+
+### Admission
+
+`internal/execution/typed.go` is the Driver-reach table: per carried message, the fields the Driver
+realizes and the fields it does not, with `TestDriverReachTableNamesEveryField` requiring every field
+of every carried message to be named, so an API regeneration that adds a field is reviewed there
+before a Case can carry it. The table lives with admission rather than beside the interpreter because
+preparation runs without a Driver; the interpreter reads only the fields the table names realized.
+A command's type must be the one its attributes arm denotes (derived from the arm's name, so every
+declared arm is covered), the Profile's new `CommandTypes` must list it, its durations must be valid,
+positive and within the Profile's total duration ceiling, its endpoint must be a declared endpoint
+role; a reply must carry one arm, publish a handle only when asynchronous and into an opaque Slot; a
+completion must consume an opaque Slot and carry one result. The rejections land in the existing
+categories at the field's own path: `unsupported` for a field the Driver cannot set and for a command
+type the Profile does not admit, `malformed` for an invalid duration, `limit_exceeded` for one over
+the ceiling, `type_mismatch` and `unsupported` for a reply the activation does not admit. An Await of
+a scheduled command yields the handler's payload whole as an `Any`, where the untyped start's Await
+keeps its text; the carrier route derivation and the worker's dispatch routing count a schedule
+command as a Nexus start. `DeriveProfile` records the command types the worker Driver realizes
+(`worker.CommandTypes`) and nothing more, so a Case carrying another type rejects as one the Profile
+does not admit.
+
+### The Driver
+
+`temporal/worker/typed.go` maps each message to the SDK call that produces it: a schedule command
+becomes `workflow.ExecuteNexusOperation` with the carried payload as an unconverted `RawValue`, the
+three carried timeouts (schedule-to-close defaulting to the instruction's own, as the untyped start
+does) and the carried Nexus header merged under the Run's routing header; a reply becomes the
+handler's return, a synchronous payload unconverted, an asynchronous reply through the completion
+authority the Session publishes under its own token, a handler error with its type, message and
+retry behavior, a failed start as an operation error; a completion becomes the callback body, a
+payload verbatim or a failure converted as the Nexus SDK converts a Temporal failure, canceled when
+its failure info says so. Every registered operation reads its input as a `RawValue` and returns
+`any`, since a schedule command carries any payload. One Driver test per carried message:
+`TestSDKWorkflowIssuesTheCarriedScheduleCommand` (payload, timeouts and the awaited payload through
+the SDK test environment), `TestSDKScheduleCommandCarriesItsOwnTimeouts`,
+`TestPreparedNexusHeaderCarriesTheCaseHeader`, `TestSessionAnswersTypedReplies` (four reply shapes)
+and `TestCompletionTransportDeliversCarriedPayloadAndFailure` (payload, failed, canceled). The live
+suite runs the regenerated Query 2 fixture end to end under both switch values.
+
+### Lean and the realization
+
+`Testpilot.Authoring` gains `Program.workflowCommand`, `scheduleNexusOperation`,
+`nexusHandlerReply`, `nexusSyncReply`, `nexusAsyncReply`, `nexusFailedReply`, `nexusHandlerError`,
+`nexusOperationCompletion` and `nexusOperationFailure`, with `Payload.json`/`Payload.text` (the SDK's
+`json/plain` spelling) and `Duration.seconds`/`milliseconds`, guarded in `Tests/Authoring.lean`. The
+Nexus realization binds eight classes, each under a hand-stated ID until `.10` derives them:
+`schedule`, `handlerReply` (async), `handlerReply.syncSuccess`, `handlerReply.operationFailed`,
+`handlerReply.handlerError.retryable`, `handlerReply.handlerError.nonRetryable`, `complete` and
+`complete.failed`, the handler's five on one `actions` item and the controller's two on another. The
+asynchronous `case` form now produces through the realization rather than the whole-Program template:
+the success slice's own actions are waits, so the realization states the path Query 2 runs
+(`Nexus.asyncPath`, passed as `produceCase`'s new `program` argument) until the protocol machine's
+actions are the path in `.10`; the synchronous form and the workflow template stay whole-Program
+templates on the untyped instructions, which the typed Nexus example also keeps, until fn-86 R3.
+The proof point compares the two Programs with the three bound instructions' messages erased and
+pins the typed shapes separately.
+
+**The regenerated fixtures.** `async-nexus-case.json` and `nexusSuccessTests-completion-case.json`
+change identically (40 lines each), in exactly the three bound instructions: `start-nexus-operation`
+is a `workflowCommand` with `COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION` and attributes `endpoint:
+temporal.nexus-endpoint, service: umpire.case.service, operation: complete, input: json/plain
+"request"` where it was a `startNexusOperation` with a text literal; `respond-async` is a
+`nexusHandlerReply` with `response.asyncSuccess {}` and the same handle Slot where it was a
+`respondNexus` of kind asynchronous with a text literal; `complete-nexus-operation` is a
+`nexusOperationCompletion` with `payload: json/plain "completed"` where it was a
+`completeNexusOperation` with a text literal. Roles, slots, observations, every other instruction,
+the Contract and the provenance are byte-identical.
+
+### The corpus and the checklist
+
+Four variants of the `static-preparation-rejection` class pin the four rejections with their
+category and path: `command-type` (a timer command), `invalid-duration` (a negative schedule-to-close
+timeout), `unsettable-field` (`user_metadata`) and `reply-not-admitted` (a synchronous reply
+publishing a handle). The facade Profile admits the worker, task-queue and Nexus endpoint roles, the
+typed opcodes and the schedule command type so each variant rejects on the message it carries.
+`Temporal/Feature/Nexus/Success/Tests.lean` pins with `#guard_msgs` that a carried message's member
+outside its schema rejects in place: a field `HandlerError` does not declare, and a duration written
+as text. The Model-level check `.2` deferred stays undecidable for what the design's examples name
+(`error_type` is a `string`, and the generated Lean API carries no enum value names); the check
+the typed payload makes possible is the one delivered.
+
+The extension checklist was followed place by place; it missed five places, now listed: an
+instruction that starts a Nexus operation must be named by `execution.startsNexusOperation` (carrier
+routes, `bindAwait`) and by the worker's `startsNexusOperation` and `addInstructionBindings`; a
+carried API message needs a Driver-reach row and its completeness test; the facade's `contract.go`
+aliases; `DeriveProfile`'s command types; and a public API import's descriptor-set plumbing and
+`Testpilot.Carried.files`. `README.md` (facade, execution, worker) documents the instructions.
+
+### What is not here
+
+The Case's Nexus header reaches the SDK through the outbound interceptor's context value, covered by
+the session-level merge test and the live run rather than by an interceptor unit test, because the
+SDK test environment's mock does not expose the header. `StartOperationResponse.links`, the
+deprecated `operation_error` arm, an asynchronous reply's own token, a Nexus failure's metadata,
+details, stack trace and cause, and a Temporal failure's `encoded_attributes` are unrealized and
+reject naming the field. Class members still bind to the realization's own values (`"request"`,
+`BAD_REQUEST`, `INTERNAL`); the `examples:` members reach the messages in `.10`, when the Model's
+classes are the path (research blockers B1, B2, B5).
+
+### Gates
+
+`lake build` green (631 jobs); `make umpire-gen-case-runtime-conformance` regenerated the two Query 2
+fixtures and produced the four corpus variants, every other fixture unchanged;
+`umpire-check-testpilot-protocol`, `umpire-check-testpilot-authoring`,
+`umpire-check-case-runtime-conformance`, `umpire-check-goldens`, `umpire-check-inventory` and
+`umpire-check-retired-vocabulary` exit 0; `go test -tags test_dep ./common/testing/testpilot/...
+./tests/testcore/testpilot/... ./tools/umpire/...` green; `GOLANGCI_LINT_BASE_REV=51f5056 make
+lint-code-fast` 0 issues; `CC=/usr/bin/cc make umpire-check-live-tests` green with 11 passing
+identities, `TestTestpilotAsyncNexusCase/hsm` and `/chasm` on the typed fixture among them;
+`LEAN_NUM_THREADS=1 make lint-model` at the baseline; `make umpire-check-regression` exit 0.
+
+Self-review: no second backend is installed in this cloud session, so this owes a cross-model
+re-review before the completion review, as the tasks before it do.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 990f534, e188b6d
+- Tests: cd model && lake build; make umpire-gen-case-runtime-conformance; make umpire-check-testpilot-protocol; make umpire-check-testpilot-authoring; make umpire-check-case-runtime-conformance; make umpire-check-goldens; make umpire-check-inventory; make umpire-check-retired-vocabulary; go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/...; GOLANGCI_LINT_BASE_REV=51f5056 make lint-code-fast; CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-live-tests; LEAN_NUM_THREADS=1 make lint-model; make umpire-check-regression
 - PRs:
