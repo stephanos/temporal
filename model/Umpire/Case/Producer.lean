@@ -541,7 +541,7 @@ def produce {LawStatement : Law → Prop}
     (input.vocabulary.stateAt 0)).mapError fun _ =>
     rejects realization.projectionId.value "projection.admission"
   let lowered ← Umpire.Case.Correlated.lower plan compiled realization.correlatedObservation
-    (Case.Projection.Coverage.empty plan)
+    (Case.Projection.Coverage.empty plan) input.vocabulary.statesWithFields
   compile {
     version := { major := 1 }
     caseId := identity.caseId

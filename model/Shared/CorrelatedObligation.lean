@@ -146,23 +146,27 @@ structure Clause where
   deriving BEq, DecidableEq
 
 /-- Predicate interpretation examines only the declared named transition values. -/
-def Predicate.holds (predicate : Predicate) (action : Atom) (result : Shared.SemanticData.Result Atom Atom Atom) : Bool :=
+def Predicate.holds (predicate : Predicate) (action : Atom)
+    (result : Shared.SemanticData.Result StateValue Atom Atom) : Bool :=
   let values := match predicate.field with
     | 1 => [action]
     | 2 => [result.outcome]
-    | 3 => [result.state]
+    -- The state and every field it holds. A reference names one of them by its definition, so
+    -- `phase` is read without the rest of the state and the state is read without its fields.
+    | 3 => result.state.atom :: result.state.fields
     | 4 => result.facts
     | _ => []
   values.any fun value => value.definitionId == predicate.reference &&
     predicate.equalsText.all (· == value.value)
 
 /-- One admitted table row determines each clause's trigger and response coordinate. -/
-def Clause.coordinate (clause : Clause) (action : Atom) (result : Shared.SemanticData.Result Atom Atom Atom) :
+def Clause.coordinate (clause : Clause) (action : Atom)
+    (result : Shared.SemanticData.Result StateValue Atom Atom) :
     Match :=
   ⟨clause.trigger.holds action result, clause.response.holds action result⟩
 
 
-abbrev Transition := Atom × Atom × Shared.SemanticData.Result Atom Atom Atom
+abbrev Transition := StateValue × Atom × Shared.SemanticData.Result StateValue Atom Atom
 
 variable {table : List Transition} {clauses : List Clause}
 
@@ -180,7 +184,7 @@ structure Window (clauses : List Clause) (history : List (Admitted table)) where
 
 structure Operation (table : List Transition) (clauses : List Clause) where
   key : String
-  state : Atom
+  state : StateValue
   history : List (Admitted table)
   windows : List (Window clauses history)
 
@@ -192,14 +196,14 @@ structure MonitorLimits where
 
 /-- The bounded operation-local state shared by source and portable evaluation. -/
 structure Monitor (table : List Transition) (clauses : List Clause) where
-  initial : Atom
+  initial : StateValue
   operations : List (Operation table clauses) := []
   transitions : Nat := 0
   obligations : Nat := 0
   work : Nat := 0
 
 private def Operation.start (table : List Transition) (clauses : List Clause)
-    (key : String) (initial : Atom) : Operation table clauses := {
+    (key : String) (initial : StateValue) : Operation table clauses := {
   key, state := initial, history := []
   windows := clauses.attach.map fun clause => ⟨clause, [], rfl⟩ }
 

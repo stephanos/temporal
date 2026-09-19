@@ -126,6 +126,10 @@
         "definitionId": "temporal.nexus.success.state.lifecycle.scheduled"
       },
       {
+        "localName": "state",
+        "definitionId": "temporal.nexus.success.state-field.lifecycle.state"
+      },
+      {
         "localName": "awaitStart",
         "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart"
       },
@@ -538,7 +542,19 @@
           "outcome": {
             "definitionId": "acknowledged",
             "value": "acknowledged"
-          }
+          },
+          "priorFields": [
+            {
+              "definitionId": "state",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "state",
+              "value": "started"
+            }
+          ]
         },
         {
           "priorState": {
@@ -556,7 +572,19 @@
           "outcome": {
             "definitionId": "lifecycle.completed",
             "value": "completed"
-          }
+          },
+          "priorFields": [
+            {
+              "definitionId": "state",
+              "value": "started"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "state",
+              "value": "succeeded"
+            }
+          ]
         }
       ],
       "projectionRules": [
@@ -576,7 +604,13 @@
               "outcome": {
                 "definitionId": "lifecycle.completed",
                 "value": "completed"
-              }
+              },
+              "stateFields": [
+                {
+                  "definitionId": "state",
+                  "value": "succeeded"
+                }
+              ]
             }
           ]
         },
@@ -596,7 +630,13 @@
               "outcome": {
                 "definitionId": "acknowledged",
                 "value": "acknowledged"
-              }
+              },
+              "stateFields": [
+                {
+                  "definitionId": "state",
+                  "value": "started"
+                }
+              ]
             }
           ]
         }
@@ -685,6 +725,12 @@
           "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
           "bound": "1",
           "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "initialStateFields": [
+        {
+          "definitionId": "state",
+          "value": "scheduled"
         }
       ]
     }

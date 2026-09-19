@@ -13,8 +13,11 @@ open Shared.CorrelatedObligation
 
 abbrev Row := Shared.CorrelatedObligation.Transition
 
+/-- The Model trace one portable row stands for. A state's fields are a way of reading the state the
+Contract needs and the Model does not: the Model already distinguishes two states by their own
+values, so the trace carries the state and drops the fields it is spelled out of. -/
 private def trace (row : Row) : ModelTrace ModelValue ModelValue ModelValue ModelValue :=
-  ⟨row.1, [.result row.2.1 row.2.2]⟩
+  ⟨row.1.atom, [.result row.2.1 ⟨row.2.2.outcome, row.2.2.state.atom, row.2.2.facts⟩]⟩
 
 /-- The applicable source predicates projected from one checked reference input. -/
 def coordinates (binding : PortableReference) (input : CheckedPropertyEvaluationInput binding.reference) :
