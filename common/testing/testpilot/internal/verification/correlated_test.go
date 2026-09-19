@@ -652,3 +652,54 @@ func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, e.correlated.accepted)
 }
+
+// A STATE condition reads the state and every field the machine keeps, so a Model whose states are
+// structured is compared field by field rather than by taking one spelling apart. The same
+// transition answers a reference to the state's own definition and to each of its fields, and
+// answers a definition it carries at neither.
+func TestCorrelatedStateConditionReadsMachineFields(t *testing.T) {
+	stateCondition := func(definitionID, text string) *testpilotspb.Expression {
+		step := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{
+			Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CorrelatedStep{
+				CorrelatedStep: &testpilotspb.CorrelatedStepReference{
+					Field:        testpilotspb.CORRELATED_STEP_FIELD_STATE,
+					DefinitionId: definitionID,
+				}}}}}
+		if text == "" {
+			return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{
+				Present: &testpilotspb.PresentExpression{Operand: step}}}
+		}
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{
+			Compare: &testpilotspb.CompareExpression{
+				Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
+				Left:     step,
+				Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{
+					Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}},
+			}}}
+	}
+	structured := &testpilotspb.CorrelatedTransition{
+		State: &testpilotspb.ModelValue{DefinitionId: "state", Value: "backingOff-1"},
+		StateFields: []*testpilotspb.ModelValue{
+			{DefinitionId: "phase", Value: "backingOff"},
+			{DefinitionId: "attempts", Value: "1"},
+		},
+	}
+	atomOnly := &testpilotspb.CorrelatedTransition{
+		State: &testpilotspb.ModelValue{DefinitionId: "state", Value: "backingOff-1"},
+	}
+
+	require.True(t, predicate(stateCondition("state", "backingOff-1"), structured))
+	require.True(t, predicate(stateCondition("phase", "backingOff"), structured))
+	require.True(t, predicate(stateCondition("attempts", "1"), structured))
+	require.True(t, predicate(stateCondition("attempts", ""), structured))
+
+	// The field is read as itself, so the wrong member of the right field is false rather than a
+	// substring of the state's spelling.
+	require.False(t, predicate(stateCondition("phase", "scheduled"), structured))
+	require.False(t, predicate(stateCondition("attempts", "0"), structured))
+	require.False(t, predicate(stateCondition("cancel", ""), structured))
+
+	// A Model whose states are atoms carries no fields and reads exactly as it did.
+	require.True(t, predicate(stateCondition("state", "backingOff-1"), atomOnly))
+	require.False(t, predicate(stateCondition("phase", "backingOff"), atomOnly))
+}
