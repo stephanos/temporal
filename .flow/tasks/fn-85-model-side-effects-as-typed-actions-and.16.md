@@ -144,9 +144,52 @@ Give `starts:`/`ends:` a `field: value` spelling here, or record why not.
 
 
 ## Done summary
-TBD
+
+`model` is retired. `machine` over step functions is the only way to declare a Model, every
+declaration in the tree is one, and the vocabulary gate fails on the retired spelling.
+
+**The design's protocol machine elaborates.** `DESIGN.md` section 3's `nexusProtocol`, without the
+`cancel` rows fn-79 owns and without the concurrency-limit rejection task `.5` owns, is
+`Temporal.Feature.Nexus.Tests.Machines.nexusProtocol`: 192 states over 23 action classes, 1152 rows,
+`depends on axioms: [propext]`, about forty seconds. What made it possible was not the machine but
+the law -- `satisfiesTransitionRequirement` was quadratic where `required` *is* the table's own
+transition list, and a single list comparison decides the same thing.
+
+**What the command learned for it.** An `evidence:` line may name a fact constructor and cover its
+members, because the mapping to a catalogued event is the constructor's. A `setup:` parameter ranges
+over any finite domain. A count's bound is reduced before it is read. `ends:` is required. An
+`evidence:` line's observed name resolves against the realization's catalog -- a hook a platform
+module installs, the way a `schema:` line's resolver already is, with Temporal answering from the
+generated history event kinds and the Testpilot Run Event kinds -- or against an `observation` the
+Model declares. A timer that fires and records nothing an `evidence:` line names is rejected unless
+`unobservable:` says so, and one that does is rejected if it says otherwise; a timer enabled in no
+state is rejected. The Action catalog is emitted in canonical order, which a Search requires and no
+arrangement of `steps:` lines could produce. A machine records a `ModelEntry`, so `property`,
+`scenario` and `query` see it and a Search can run over one. A `starts:` list must be sorted, and is
+rejected at the line rather than by admission. The setup constructor is named after the first start
+state, the way `model` named it.
+
+**Item 4 is pinned on `attemptLoop`**, a machine small enough for a Query to name by identifier: the
+timer has a row where its step returns a successor and nowhere else; a Query with three occurrences
+of budget finds the trace, one occurrence being the timer's firing and one the fault's; the same
+Query with one candidate of search budget stops at the limit. Nothing in the planner knows one of
+these Actions is a timer, so there is no place they could have been counted differently.
+
+**The migration.** Fifteen `model` declarations respelled and the specimens that pinned the command's
+diagnostics rewritten against the rules a machine has. The async-Nexus fixture regenerates
+byte-identical. Three of the command's rejections are shapes a machine has no spelling for and one --
+the unreachable end state -- is a rule a machine deliberately does not have; each says so where it
+stood.
+
+**Gates:** `make umpire-check-regression` exit 0 with nine live identities, `make lint-model` at the
+163 baseline (all in generated `Temporal/API/Proto.lean`), `lake build` green, `go vet` clean on the
+changed Go package.
+
+**Owed:** a cross-model re-review. `codex`, `cursor-agent` and `grok` are not installed in this cloud
+session, so the review rounds on this task were self-reviews against the gates.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 176bbe2fd, 5992c28eb, 1a11edb5b, 7122cf3ef, b2182b87a
+- Tests: `make umpire-check-regression` (exit 0), `make lint-model` (163, baseline), `lake build`,
+  `go test -tags test_dep ./tools/umpire/internal/retiredvocabulary/...`
 - PRs:
