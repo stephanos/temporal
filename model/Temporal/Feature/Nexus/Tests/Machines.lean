@@ -497,10 +497,9 @@ a timer, which is why nothing has to tell the Limits either. -/
 #guard attemptLoop.actionKeys.toList == ["retry", "transportFault", "workerStop"]
 
 property attemptEnds
-  model: attemptLoop
+  machine: attemptLoop
   when: workerStop
-  require:
-    state: finished
+  holds: fun step => step.state.phase == .finished
 
 /- The operation is dropped once, backs off, and is stopped: three occurrences, one of them the
 timer's and one of them the fault's. -/
@@ -518,6 +517,11 @@ query attemptCompletes
   find: attemptEnds
   in: faultThenRetry
   limits: threeOccurrences
+
+/- The predicate fixes the one state the keyed form named, so the fingerprint is the keyed form's. -/
+#guard (attemptCompletes.toOption.map fun checked =>
+  checked.property.behaviorFingerprint.render) ==
+  some "sha256:f969ed928fc35e81757605f4d26bb0367b5ce9824ef292991f469a58372d5d8b"
 
 /- The Search finds the trace: three occurrences within a budget of three, one of them the timer's
 firing and one of them the fault. -/
