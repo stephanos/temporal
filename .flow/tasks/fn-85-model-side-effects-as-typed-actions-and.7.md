@@ -52,7 +52,13 @@ purpose), a functional path performs no action of an `observed` party (the Case 
 perform it), and `repeat:` belongs to a functional set and names a switch a realization registered.
 The parties are scoped to the actions the set's Queries' machines step on -- an exploratory set,
 which lists no Query, to the actions declared beside it -- because a Model file imports other
-Models' actions. Eleven rejections are pinned in the success tests.
+Models' actions. Ten `set` rejections are pinned in the success tests by `#guard_msgs` (an unbound
+party, a bound `system`, a party no action names, an `observed` party's action on a functional path,
+a `verify` Query, `repeat:` on a canary set, an unregistered switch, an exploratory set without
+`cover:`, `queries:` on an exploratory set, an unknown purpose), and two more on the `case` block over
+a set (a duplicate derived fixture, a set that is not functional). An unknown binding word, a
+duplicate binding, a missing `budget:` and `cover:`/`budget:` on a non-exploratory set reject with
+their own messages but have no pin.
 
 A switch is the platform's, so `register_switch <SwitchBinding>` (Umpire) records its name and
 values, and `Temporal.Case.Syntax` registers the Nexus realization's `implementation` switch once;

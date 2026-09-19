@@ -20,12 +20,27 @@ Re-author Umpire's Temporal-free worked example with the commands (R5) so it no 
 - Export contract: the importers read about 25 raw symbols (`target`, `LawStatement`, `compiledArtifact`, `exactActionQuery`, `authoredProperty`, `modelSpec`, `switchCapabilityId`, ...); keep every exported name and type stable (define them from the command-elaborated declarations); a rename is a failure of this task, not a follow-up.
 - Definition root: the commands derive Definition IDs through `model_conventions root "temporal" under Temporal.Feature`; add an `Umpire.Examples` convention with root `umpire` so the Switch IDs (`switch.*`) stay byte-identical; if an ID must move, the goldens' diff is listed with the reason.
 - MOD-01: `Umpire.Examples` imports only `Umpire.Command` (the R7 rule applies to it).
+- Adjusted 2026-09-19 after fn-85 .14, .16, .15, .4 and .7 landed. The command surface the
+  re-authoring must meet: `machine` needs `for:` an `entity` (so the example declares one), a
+  `state:` structure of finite fields, `starts:` and `ends:` (both required since fn-85 .16; a step
+  out of an end state is admitted, so `ends:` lists the terminal state without forbidding steps
+  from it), `steps:` as one Lean function per action, and `evidence:` names resolved through the
+  platform's catalog hook -- which `Umpire.Examples` has none of, so the example writes no
+  `evidence:`; `property` takes `machine:`, optional `when:` and `holds:` a predicate (fn-85 .15),
+  and its fingerprint reads through the machine's state fields (fn-85 .4), so the three
+  fingerprints in `SwitchCompiledArtifact.json` move even if the ids do not; Definition IDs come
+  from `model_conventions` (`Umpire/Command/Registry.lean:349`; the only declaration is
+  `Temporal/Case/Conventions.lean:11`) as `<root>.<family>.<kind>.<name>`, and today's
+  `switch.state.power` carries no root segment, so a byte-identical golden is unlikely and the
+  listed diff with its reason is the expected outcome of the second acceptance line. `Umpire.Command`
+  also carries `set`, `register_switch` and `classClaims` (fn-85 .7); the example needs none of
+  them.
 
 ### Investigation targets
 **Required:**
 - `model/Umpire/Examples/Switch.lean:11-30` (Definition IDs) and the exported declarations the importers read
 - `model/Umpire/Tests/MigrationCompatibility.lean` (487 lines) — the compatibility family pins over Switch
-- `model/Temporal/Case/Conventions.lean` and `model/Umpire/Command/Registry.lean:143-147` — `model_conventions`
+- `model/Temporal/Case/Conventions.lean:11` and `model/Umpire/Command/Registry.lean:18,349` — `model_conventions`
 - `model/Temporal/Tool/Goldens.lean:62-74` — the Switch goldens and `SwitchPlanV2.json`
 
 **Optional:**

@@ -21,12 +21,32 @@ Close the spec (R13): write `model/AUTHORING.md` as a walk from an empty file to
 - Destinations for fn-83's tasks (from the planning record): .4 to fn-85 .7; .5's fault grammar to this spec's actions and the outage Model to fn-86 R4 (with the outage-order rule); .6 to fn-85 .10 Query 1; .8 to this task; .16 to fn-85 .7's derived identity; .17 to the realization's binding checks. Use `flowctl` to close them and record the mapping in each summary.
 - MOD-15: every new backticked dotted name the concept entries cite must resolve in `model/`; run `go test ./tools/umpire/vocabulary/...`.
 - Docs-gap list from the planning record is the checklist (each `path:line`).
+- Adjusted 2026-09-19 after .16, .15, .4, .6, .5 and .7 landed. **AUT-07a already reads
+  `machine`** (`.plans/UMPIRE4_SPEC.md:309-318` names `machine`, `property`, `scenario`, `limits`,
+  `query` and the `entity`, `enum`, `action`, `observation` declarations), and .16 retired the
+  `model` spelling in the vocabulary gate; what this task adds to the draft is `set` and the
+  `register_switch` registration (Umpire commands), and it says where the platform's Case-producing
+  `case … realizes <set>` block (`Temporal/Case/Syntax.lean:183-260`, the shape .11 leaves) stands
+  under AUT-07a, since AUT-07a says `Umpire.Command` must not name a feature and that block is
+  Temporal's. **The AUT-09 amendment** covers what landed: a `structure` of finite fields as the
+  state, one step function per action enumerated into the finite table (.3, .14), a `property`
+  predicate enumerated into clause records by probing (.15), `refines:`/`map:` decided by the
+  kernel over the two tables (.6), and a Scenario's `instances:` product (.4). **The concept
+  entries** must match the landed meaning: a class is a member of an input domain and an
+  abstraction claim is the presence of an `examples:` line (.2, .7); a setup parameter is bound by
+  the realization to a dynamic-config key and recorded by the Profile, an unbound one an `input`
+  Known Gap (.5); a switch is declared by the realization and registered, not a Model parameter
+  (.5, .7); a refinement is a stuttering forward simulation (.6). **Baselines:** live identities
+  are eleven since .5 and change again in .10 and .11; `lint-model` 163; `lint-code` 161.
+  **Doc drift to take here rather than in fn-86 .1/.9:** `model/README.md:37` names
+  `Temporal.Feature.Nexus.Success.Producer`, which does not exist. The drift markers
+  (`-- authoring: <name>`) are placed by .10 in the Caller Model; the Go drift test reads them.
 
 ### Investigation targets
 **Required:**
-- `.plans/UMPIRE4_SPEC.md:27-84,201-249,284-301` — concept glossary, MOD-02, AUT-07a, AUT-08, AUT-09
-- `.plans/UMPIRE4_ORDER.md:9-41,123-164` — the fn-83 and fn-85 entries
-- `model/Temporal/Feature/Nexus/DESIGN.md:1-5,543-600`
+- `.plans/UMPIRE4_SPEC.md:27-84,195-198,224-231,305-334` — concept glossary, MOD-10 and MOD-11, MOD-02, AUT-07 to AUT-09
+- `.plans/UMPIRE4_ORDER.md:9-41,180-408,472-524` — the fn-83 and fn-85 entries and the gate baselines
+- `model/Temporal/Feature/Nexus/DESIGN.md:1-5,615-672` — the header, section 5's "Today" column and section 6's "not yet reflected" note
 - `tools/umpire/vocabulary/spec_names_test.go:26-39` — the MOD-15 gate and its planned-rule escape
 - `tools/umpire/internal/retiredvocabulary/check.go:53-68` — `requiredFiles`
 

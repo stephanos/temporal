@@ -14,11 +14,20 @@ Close the spec (R8): draft under GOV-02 the AUT-08 amendment removing the expert
 - Use the docs-gap list in the planning record as the checklist; every `path:line` is either rewritten or recorded as still true.
 - MOD-15: every backticked dotted name cited by the new rule text must resolve; `go test ./tools/umpire/vocabulary/...`.
 - Gate order: `go clean -cache`, `make umpire-check-regression`, `make lint-model` (LEAN_NUM_THREADS=1), `make lint-code GOLANGCI_LINT_FIX=false`; record the numbers in the order document's baseline table; treat a `lint-code` count below 161 as a truncated run.
+- Adjusted 2026-09-19 after fn-85 .7 landed (fn-85 .13 still open): fn-85 .13 drafts its own
+  AUT-07a amendment (adding `set` and `register_switch`, placing the Temporal `case … realizes
+  <set>` block) and creates `model/AUTHORING.md`; this task's AUT-07a amendment is a delta on that
+  draft, not a second draft, and both stay marked as awaiting GOV-02 approval. AUT-07a already
+  names `machine` and the four declarations (`UMPIRE4_SPEC.md:309-318`); the sentence to remove is
+  AUT-08's "As an expert alternative, authors MAY construct `Umpire.Machine` directly …"
+  (`:324-326`). The `model/README.md:37` `Success.Producer` drift is fn-85 .13's (recorded there);
+  check it rather than redoing it. The live-identity baseline is eleven since fn-85 .5 and moves
+  with fn-85 .10 and .11 and with this spec's .3 and .6; record the final number.
 
 ### Investigation targets
 **Required:**
-- `.plans/UMPIRE4_SPEC.md:172-173,284-301` — MOD-11, AUT-07a, AUT-08 (the sentence at :298-299)
-- `.plans/UMPIRE4_ORDER.md:166-197,207-216,238,249-255`
+- `.plans/UMPIRE4_SPEC.md:197-198,305-334` — MOD-11, AUT-07 to AUT-09 (the expert-alternative sentence at :324-326)
+- `.plans/UMPIRE4_ORDER.md:410-462,472-524` — the fn-86 entry and the gate baselines (the fn-85 entry is `:180-408`; the ranges this task cited moved with it)
 - the docs-gap table for fn-86 in the planning record
 
 **Optional:**

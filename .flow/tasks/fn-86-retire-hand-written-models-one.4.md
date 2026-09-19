@@ -15,13 +15,25 @@ satisfies: [R6]
 - `Race.Terminal.targetResult` fed the terminal-closure projection; the product machine's `ends:` values are the same information; rebuild the projection from them.
 - The forward simulation must still be proved (`checkImplementationLink` returns `.complete`); its witness may be synthesized the way fn-85's refinement does (`decide`/`native_decide`) if the old hand proof no longer applies; record elaboration time.
 - MOD-10's single exception stays `Temporal.System.Nexus.ImplementationLink`; the new lint rule (task .8) leaves it outside.
+- Adjusted 2026-09-19 after fn-85 .14, .16 and .6 landed (fn-85 .10 still open). Until .10
+  promotes it, `nexusProduct` lives in `model/Temporal/Feature/Nexus/Tests/Machines.lean:105-123`
+  (a test module; anchor on the Caller Model once .10 lands, never on the test module). The product
+  machine has a `timeout` timer out of `scheduled` and `started` (fn-85 .6) and a required `ends:`
+  list, and Search takes steps out of end states, so "terminal" for the closure projection is
+  `ends:` membership, not the absence of successors. fn-85 .6 added
+  `Umpire.ImplementationLink.Refinement` (`RefinementMorphism`, `RefinedStep`,
+  `StutteringSimulation`, `TableRefinement.ofChecked (by decide +kernel)`) as the witness shape a
+  `machine` synthesizes; the link may reuse those obligations for its witness, but it stays the
+  SEM-08 Implementation Link, not a `refines:` (the spec and DESIGN.md section 6 both say so). A
+  product Property is read on the protocol machine through the `nexusProduct` state field (.6),
+  which is the evidence pins' route to the Caller Model's Queries.
 
 ### Investigation targets
 **Required:**
 - `model/Temporal/System/Nexus/ImplementationLink.lean:1-2,35-350,484,528` — imports, pinned elements, the Terminal use, the closure projection
 - `model/TemporalModelTests/Nexus/ImplementationLink.lean:1,302-354` — the evidence pins over Operations
-- `model/Umpire/ImplementationLink/Language.lean:520-620,1159` — the simulation and the checker
-- `model/Temporal/Feature/Nexus/Caller/Model.lean` (fn-85) — `nexusProduct`
+- `model/Umpire/ImplementationLink/Language.lean:445,520-620,1160` — the simulation, `traceForward` and `checkImplementationLink`; `model/Umpire/ImplementationLink/Refinement.lean` (fn-85 .6) — the stuttering simulation
+- `model/Temporal/Feature/Nexus/Caller/Model.lean` (fn-85 .10; until then `Temporal/Feature/Nexus/Tests/Machines.lean:105-123`) — `nexusProduct`
 - `model/ModelLint/ImportGraph.lean:120` — `implementationLinkConsumers`
 
 **Optional:**
