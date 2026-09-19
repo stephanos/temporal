@@ -139,7 +139,7 @@ because when an operation times out is the protocol's account of how and not wha
 exists for the refinement to map onto and nothing here reaches it. -/
 #guard (Umpire.Command.reachableFrom nexusProduct.starts
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
-  ["scheduled", "succeeded", "started", "failed", "canceled"]
+  ["scheduled", "canceled", "failed", "succeeded", "started"]
 
 /- Nothing the command declares rests on an unchecked proof. The canonical-table law is what the
 Behavior Fingerprint, Search and Contract lowering all read, and `elabCommand` logs a failure rather
@@ -321,6 +321,7 @@ machine nexusProtocol
   setup:
     atConcurrencyLimit: Bool
   timers: [backoff, scheduleToClose, scheduleToStart, startToClose]
+  unobservable: [backoff]
   evidence:
     nexusOperationScheduled: nexusOperationScheduled
     nexusOperationStarted: nexusOperationStarted
@@ -361,10 +362,13 @@ private def at' (phase : Phase) (attempts : Fin (attemptBound + 1) := 0)
 
 /- Every action class the machine steps on. `schedule` contributes eight, one per assignment of the
 three deadlines, because which timers an operation has is settled by the command that scheduled it
-and an example is written at the class. -/
+and an example is written at the class.
+
+The catalog is in canonical order -- sorted by the member key, which is the order a Search admits --
+rather than in the order the `steps:` lines are written, so it opens on the backoff timer and not on
+`schedule`. -/
 #guard nexusProtocol.actionKeys.size == 8 + 6 + 3 + 1 + 1 + 4
-#guard nexusProtocol.actionKeys.toList.take 2 ==
-  ["schedule-unset-unset-unset", "schedule-unset-unset-expires"]
+#guard nexusProtocol.actionKeys.toList.take 2 == ["backoff", "complete-canceled"]
 
 /- The machine begins before the operation exists, with every deadline at its first value: the
 schedule command is what sets them, so a machine that began already scheduled could never reach a
@@ -417,6 +421,134 @@ part of the Model's identity. -/
 /-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms nexusProtocol
+
+/-! ### What a Search makes of a timer
+
+A timer is an ordinary member of the machine's Action domain, so a Search selects it the way it
+selects anything else and the Limits count it the way they count anything else. Neither is a rule
+the command enforces -- there is no place where a timer could have been treated differently -- and
+this is the machine that shows it, small enough for a Query to be written over it by name.
+
+`DESIGN.md` section 3's protocol machine cannot be: a Scenario names its start state and its Actions
+with identifiers, and that machine's keys are punctuated -- `schedule-unset-unset-expires`, and a
+state key naming all five fields. Which surface a Scenario should use over a structured state is
+task `.5`'s question, and this module says only that the answer is not "the machine is special". -/
+
+enum AttemptPhase
+  | trying
+  | waiting
+  | finished
+
+structure AttemptState where
+  phase : AttemptPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum AttemptOutcome
+  | accepted
+
+enum AttemptFact
+  | pendingAttempts
+  | faultInjected
+
+/-- A dropped delivery puts the operation into its backoff, and the attempt count it raises is read
+back through a call rather than off the history. -/
+def attemptFaultStep (state : AttemptState) :
+    List (Step AttemptState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { phase := .waiting }, facts := [.pendingAttempts] }]
+
+/-- The backoff timer, which fires only out of the phase it backs off in. Nothing records that it
+fired, which is what `unobservable:` says. -/
+def attemptRetryStep (state : AttemptState) :
+    List (Step AttemptState AttemptOutcome AttemptFact) :=
+  if state.phase != .waiting then [] else
+  [{ outcome := .accepted, state := { phase := .trying }, facts := [] }]
+
+/-- Stopping the handler's worker ends the attempt, and the harness records that it injected the
+fault. -/
+def attemptStopStep (state : AttemptState) :
+    List (Step AttemptState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { phase := .finished }, facts := [.faultInjected] }]
+
+machine attemptLoop
+  for: operation
+  state: AttemptState
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: attemptFaultStep
+    workerStop: attemptStopStep
+    retry: attemptRetryStep
+
+/- The timer has a row where its step returns a successor and nowhere else. A Search reads the
+table, so this is the whole of "a timer fires only while it is enabled". -/
+#guard attemptLoop.transitions.filterMap (fun row =>
+  if attemptLoop.actionKeyFor row.action == "retry" then some (attemptLoop.stateKeyFor row.source)
+  else none) == ["waiting"]
+
+/- Three action classes, and the timer is one of them: nothing tells a Search that one of these is
+a timer, which is why nothing has to tell the Limits either. -/
+#guard attemptLoop.actionKeys.toList == ["retry", "transportFault", "workerStop"]
+
+property attemptEnds
+  model: attemptLoop
+  when: workerStop
+  require:
+    state: finished
+
+/- The operation is dropped once, backs off, and is stopped: three occurrences, one of them the
+timer's and one of them the fault's. -/
+scenario faultThenRetry
+  model: attemptLoop
+  starts: trying
+  actions: [transportFault, retry, workerStop]
+
+limits threeOccurrences
+  steps: 3
+  actions: 3
+  search: 16
+
+query attemptCompletes
+  find: attemptEnds
+  in: faultThenRetry
+  limits: threeOccurrences
+
+/- The Search finds the trace: three occurrences within a budget of three, one of them the timer's
+firing and one of them the fault. -/
+#guard (match attemptCompletes with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+
+/- The same Query with one candidate of search budget stops at the limit. A timer firing and a fault
+action are what it spent that budget on: nothing in the planner knows that one of these Actions is a
+timer, so there is no place where they could have been counted differently. -/
+limits oneCandidate
+  steps: 3
+  actions: 3
+  search: 1
+
+/--
+error: the search stopped at its declared bound after 1 traces; raise `limits` if the trace you mean is longer
+-/
+#guard_msgs in
+query attemptOutOfBudget
+  find: attemptEnds
+  in: faultThenRetry
+  limits: oneCandidate
+
+/- The count a machine keeps of its own attempts is bounded by the Limits the same way, and reaching
+that bound is what `limitReached` says of a count. Saturating rather than wrapping is what makes the
+claim readable: a count that rolled over would say the operation had never been retried. -/
+#guard (Umpire.Command.members (α := Fin (attemptBound + 1))).map Umpire.Command.limitReached ==
+  [false, false, true]
+#guard Umpire.Command.limitReached
+  (Umpire.Command.saturatingSucc (Fin.last attemptBound)) == true
 
 /-! ### What the machine command rejects
 
@@ -548,5 +680,189 @@ machine unreturnedEvidence
     nothingRecordsThis: nexusOperationScheduled
   steps:
     handlerReply: handlerReplyStep
+
+/-- A timer that fires and records what it did. -/
+def loudTimerStep (state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if state.phase != .started then [] else
+  [{ outcome := .accepted, state := { phase := .timedOut },
+     facts := [.nexusOperationTimedOut] }]
+
+/- A machine says where it ends. Without `ends:` nothing is terminal, so a Search runs to its limit
+on every path and a Property that requires an instance to finish holds by never being reached. -/
+/--
+error: the machine declares no 'ends:'; it is required
+-/
+#guard_msgs in
+machine endlessly
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  steps:
+    handlerReply: handlerReplyStep
+
+/-- A timer that fires and records nothing. Nothing drives a timer, so its evidence is the only way
+a Case can tell it fired. -/
+def quietTimerStep (state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if state.phase != .started then [] else
+  [{ outcome := .accepted, state := { phase := .succeeded }, facts := [] }]
+
+/--
+error: the timer 'quiet' fires and records nothing an `evidence:` line names, so no Contract can tell it fired; give it evidence, or declare it `unobservable:` and every Case whose path uses it carries a Known Gap
+-/
+#guard_msgs in
+machine silentTimer
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  timers: [quiet]
+  evidence:
+    nexusOperationStarted: nexusOperationStarted
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+    quiet: quietTimerStep
+
+/- Declaring it `unobservable:` is what admits the same machine, and what puts a Known Gap in every
+Case whose path fires the timer. -/
+machine gappedTimer
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  timers: [quiet]
+  unobservable: [quiet]
+  evidence:
+    nexusOperationStarted: nexusOperationStarted
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+    quiet: quietTimerStep
+
+/- The machine is declared, and the timer is one of its actions. What `unobservable:` records lives
+on the machine's registry entry rather than on the value, because a Case reads it while it is being
+built and nothing downstream of the table needs it. -/
+#guard gappedTimer.actionKeys.contains "quiet"
+#guard gappedTimer.stuck == none
+
+/- A timer whose firing the realization does record is observable, and declaring it unobservable
+would put a Known Gap in every Case that does not need one. -/
+/--
+error: the timer 'loud' records evidence, so a Contract can tell it fired; `unobservable:` is for a firing nothing records, and declaring an observable one would put a Known Gap in every Case that does not need it
+-/
+#guard_msgs in
+machine gappedObservable
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  timers: [loud]
+  unobservable: [loud]
+  evidence:
+    nexusOperationTimedOut: nexusOperationTimedOut
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+    loud: loudTimerStep
+
+/- `unobservable:` is about a timer: an action a party takes is driven, and what a Case does with it
+is decided by the binding rather than by the machine. -/
+/--
+error: 'handlerReply' is not a timer of this machine; `unobservable:` names a timer whose firing the realization records nowhere, and an action a party takes is driven rather than observed
+-/
+#guard_msgs in
+machine unobservableAction
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  unobservable: [handlerReply]
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+
+/-- A timer whose step function is enabled in no state. -/
+def neverEnabledStep (_state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) := []
+
+/--
+error: the timer 'asleep' is never enabled: its step function returns nothing in every state, so the timer never fires and the machine does not have it
+-/
+#guard_msgs in
+machine idleStep
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  timers: [asleep]
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+    asleep: neverEnabledStep
+
+/- The other side of an evidence line is recorded data the realization carries or an `observation`
+this Model declares. A name in neither confirms nothing that can be read back. -/
+/--
+error: 'nexusOperationDreamt' is neither a recorded event kind the realization carries nor an observation this Model declares; evidence names recorded data, so it is a generated history event kind, a Testpilot Run Event kind, or a derived `observation`
+-/
+#guard_msgs in
+machine strayObservation
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  evidence:
+    nexusOperationStarted: nexusOperationDreamt
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+
+/- A derived observation the Model declares is admitted beside the catalog: the attempt count is
+read back through a call because no history event records it. -/
+machine readObservation
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  evidence:
+    nexusOperationStarted: pendingAttempts
+  steps:
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+
+#guard readObservation.actionKeys.size == 11
+
+/- A `match` arm no input reaches is the design's "shadowed row", and nothing in the command has to
+say so: the step function is ordinary Lean, so Lean reports it at the arm that cannot be taken --
+before the machine is declared, and pointing at the arm rather than at the `steps:` line. -/
+/--
+error: Redundant alternative: Any expression matching
+  Reply.handlerError true
+will match one of the preceding alternatives
+-/
+#guard_msgs in
+def shadowedArm (_state : ProductState) (reply : Reply) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  match reply with
+  | .handlerError _ => []
+  | .handlerError true => []
+  | _ => []
+
 
 end Temporal.Feature.Nexus.Tests.Machines
