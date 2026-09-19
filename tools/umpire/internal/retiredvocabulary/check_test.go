@@ -125,6 +125,17 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		// The unsigned integer arm and kind, the Go entrypoint classification and the model's natural
 		// evidence scalar stay.
 		{line: "pb.Value_UnsignedIntegerValue{}, pb.SCALAR_KIND_UINT64, contract.EntrypointKind, testpilot.WorkflowEntrypoint, EvidenceValue.natural"},
+		{line: "mo" + "del lifecycle", want: []string{"mo" + "del <name>"}},
+		{line: "mo" + "del raceLifecycle", want: []string{"mo" + "del <name>"}},
+		// The word stays live: `model/` is the tree, `model:` is a key of `property` and `scenario`,
+		// `DeclaredModel` is what they resolve to, and a doc comment may wrap a line onto it.
+		{line: "  model: lifecycle"},
+		{line: "model: lifecycle"},
+		{line: "model/Umpire/Command/Syntax.lean"},
+		{line: "(candidate : Umpire.Command.DeclaredModel Setup State Action Outcome Fact)"},
+		{line: "model honest: a witness used to refute `skip` must be reachable *under* `skip`."},
+		{line: "model payload; the guard above proves every projection this module uses is admitted."},
+		{line: "machine lifecycle"},
 	} {
 		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
 	}

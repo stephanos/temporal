@@ -796,7 +796,7 @@ property factlessClause
 /-! ### `enum` declares a domain
 
 `enum` is shorthand for exactly the `inductive` an author would otherwise write, including the
-`deriving` clause the `model` command requires. It resolves nothing and reorders nothing. -/
+`deriving` clause the `machine` command requires. It resolves nothing and reorders nothing. -/
 
 /-- A probe domain declared through `enum`. -/
 enum ProbeDomain
@@ -811,7 +811,7 @@ inductive ProbeDomainByHand where
 
 #guard (ProbeDomain.first == ProbeDomain.first) && !(ProbeDomain.first == ProbeDomain.second)
 #guard decide (ProbeDomain.first ≠ ProbeDomain.second)
--- `enum` derives what the `model` command requires: equality, decidable equality, and Repr.
+-- `enum` derives what the `machine` command requires: equality, decidable equality, and Repr.
 #guard (reprStr ProbeDomain.second).endsWith "second"
 #guard (reprStr ProbeDomain.second) == (reprStr ProbeDomainByHand.second).replace
   "ProbeDomainByHand" "ProbeDomain"
@@ -837,7 +837,7 @@ the other's. -/
 
 /-! The two requirements the grammar does not spell -- Action constructors and start states are
 declared in sorted order -- are named by the diagnostic that enforces them. The setup domain is no
-longer one of them: the `model` command generates it, scoped to the Model, so nothing about it is
+longer one of them: the `machine` command generates it, scoped to the Model, so nothing about it is
 the author's to get wrong.
 
 A file that declares its own `Setup` is harmless, because the generated one is `<model>.Setup`. -/
@@ -1001,7 +1001,7 @@ property misspelledWhen
     state: succeeded
 
 /--
-error: 'Temporal.Feature.Nexus.Success.successfulResult' is not a Model declared by a `model` command
+error: 'Temporal.Feature.Nexus.Success.successfulResult' is not a Model declared by a `machine` command
 -/
 #guard_msgs (error) in
 property notAModel
