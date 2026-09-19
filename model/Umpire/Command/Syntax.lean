@@ -1202,6 +1202,12 @@ private def undeclaredStepActionMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
 its function steps on"
 
+private def unprovenTableMessage (states actions : Nat) : String :=
+  s!"this machine's canonical-table law did not check: {states} states over {actions} action \
+classes is past what the proof elaborates, and a Model declared anyway would carry `sorryAx` while \
+reading as complete. Reduce the state structure, or bound it -- every value derived from the table \
+rests on this law"
+
 private def machineTooLargeMessage (states actions bound : Nat) : String :=
   s!"enumerating {states} states over {actions} action classes is {states * actions} steps, and the \
 bound is {bound}; a machine this size is bounded by its Limits or by symmetry, not walked"
@@ -1234,6 +1240,11 @@ private def endsAcrossFieldsMessage (earlier later : String) : String :=
   s!"`ends:` names values of two different state fields, '{earlier}' and '{later}'; an instance ends \
 on the values of one field"
 
+private def stepArgumentMessage (declName : Name) (index : Nat) (expected : Name)
+    (carried : Expr) : MessageData :=
+  m!"'{declName}' takes {carried} where this action's input {index + 1} is '{expected}'; a step \
+function's arguments after the state are the action's own input domains, in order"
+
 private def stepSignatureMessage (declName : Name) : String :=
   s!"'{declName}' is not a step function; a `steps:` line names one of the shape \
 `State -> <the action's input domains, curried> -> List (Step State Outcome Fact)`"
@@ -1250,6 +1261,16 @@ private def noEndsFieldMessage (spelling : String) : String :=
   s!"'{spelling}' is not a value of any field of the machine's state structure"
 
 
+/-- Elaborate one of a machine's generated declarations.
+
+A machine's definitions are as long as its state space: `DESIGN.md` section 3's protocol machine has
+224 states, so its key array, its terminal list and its start list are list literals of that length,
+and a literal that long nests deeper than a Lean file's default recursion limit. The limit is raised
+on the generated declaration and nowhere else, because the length is the machine's size rather than
+anything an author wrote, and an author who hit the file's own limit should still hear about it. -/
+private def elabGenerated (generated : TSyntax `command) : CommandElabM Unit := do
+  elabCommand (← `(command| set_option maxRecDepth 65536 in $generated:command))
+
 /-- What one `steps:` line resolved to: the action it steps on, that action's input domains, and the
 function the author wrote. -/
 private structure ResolvedStep where
@@ -1265,8 +1286,9 @@ They are not keys the author writes. A step function's result type is
 `List (Step State Outcome Fact)`, so the machine's outcome and fact domains are already written down
 in the function the author wrote; asking for them again would be asking twice and admitting the
 answers to disagree. -/
-private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name) (arity : Nat) :
-    CommandElabM (Name × Name) := do
+private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name)
+    (domains : Array Name) : CommandElabM (Name × Name) := do
+  let arity := domains.size
   let some info := (← getEnv).find? declName
     | throwErrorAt stepRef (stepSignatureMessage declName)
   liftTermElabM do
@@ -1276,6 +1298,14 @@ private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name) (ari
       -- somewhere inside the synthesized dispatcher instead of here, at the line that named it.
       unless taken.size == arity + 1 do
         throwErrorAt stepRef (stepSignatureMessage declName)
+      -- Each argument after the state is the action's own input domain, in order. Two actions of
+      -- the same arity over different enums are an ordinary slip, and without this the mismatch
+      -- surfaces inside the synthesized dispatcher rather than at the line that named the function.
+      for index in [0:domains.size] do
+        let carried ← Meta.inferType taken[index + 1]!
+        let expected ← mkConstWithLevelParams domains[index]!
+        unless (← Meta.isDefEq carried expected) do
+          throwErrorAt stepRef (stepArgumentMessage declName index domains[index]! carried)
       -- Unified against the shape rather than matched on the head constant: `Umpire.Step` is an
       -- abbreviation, so a match on what it reduces to would name a type the author never wrote,
       -- and would break the day the abbreviation moves.
@@ -1296,6 +1326,11 @@ private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name) (ari
       pure (outcomeName, factName)
 
 elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => do
+  -- A machine's generated definitions are as long as its state space: `DESIGN.md` section 3's
+  -- protocol machine has 224 states, so its key array, its terminal list and its enumerated table
+  -- are lists of that length, and building a list term that long recurses deeper than a Lean file
+  -- normally does. The depth is raised for what this command generates and nothing else, because
+  -- the length is the machine's size rather than anything an author wrote.
   let mut entity : Option Registry.EntityEntry := none
   let mut stateRef : Option Ident := none
   let mut endRefs : Array Ident := #[]
@@ -1407,7 +1442,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       `(Lean.Parser.Term.bracketedBinderF|
         ($(mkIdent (Name.mkSimple field)) : $(mkIdent domain)))
     `(Lean.Parser.Command.ctor| | $constructorName:ident $binders*)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     inductive $actionType where
       $constructors:ctor*
       deriving BEq, DecidableEq, Repr, Umpire.Command.Finite))
@@ -1416,7 +1451,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut domains : Option (Name × Name) := none
   for resolved in steps do
     let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo resolved.function)
-    let found ← stepResultDomains resolved.function declName stateDecl resolved.domains.size
+    let found ← stepResultDomains resolved.function declName stateDecl resolved.domains
     match domains with
     | none => domains := some found
     | some expected =>
@@ -1435,7 +1470,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     `(Lean.Parser.Term.matchAltExpr|
       | .$constructorName:ident $binders* => $(resolved.function) $arguments*)
   let stepName := mkIdentFrom name (name.getId ++ `step)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $stepName ($stateBinder : $stateType) :
         $actionType → List (Umpire.Step $stateType $(mkIdent outcomeType) $(mkIdent factType))
       $dispatchArms:matchAlt*))
@@ -1450,17 +1485,17 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let stateKeysName := mkIdentFrom name (name.getId ++ `stateKeys)
   let actionKeysName := mkIdentFrom name (name.getId ++ `actionKeys)
   let rowKeyName := mkIdentFrom name (name.getId ++ `rowKey)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $stateKeysName : Array String := #[$(keyArray stateMembers),*]))
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $actionKeysName : Array String := #[$(keyArray actionMembers),*]))
   let stateKeyForName := mkIdentFrom name (name.getId ++ `stateKeyFor)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $stateKeyForName (state : $stateType) : String :=
       match (Umpire.Command.members (α := $stateType)).idxOf? state with
       | some at? => ($stateKeysName)[at?]!
       | none => ""))
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $rowKeyName (state : $stateType) (taken : $actionType) : String :=
       match (Umpire.Command.members (α := $actionType)).idxOf? taken with
       | some actionAt => $stateKeyForName state ++ "-" ++ ($actionKeysName)[actionAt]!
@@ -1471,6 +1506,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     match value with
     | .applied _ fields => fields
     | .atom _ => #[]
+  -- The structure's own field order, so a message reads as the structure is written.
+  let orderedFields : List String := match stateMembers.head? with
+    | some (.applied _ fields) => fields.toList.map Prod.fst
+    | _ => []
   let mut endField : Option String := none
   for endRef in endRefs do
     let spelling := endRef.getId.getString!
@@ -1487,7 +1526,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     -- Two fields that can both hold this value leave the machine's end undecided, and picking the
     -- first would decide it silently. The author writes which field they mean.
     if carriers.length > 1 then
-      throwErrorAt endRef (ambiguousStateValueMessage spelling (", ".intercalate carriers))
+      throwErrorAt endRef (ambiguousStateValueMessage spelling
+        (", ".intercalate (orderedFields.filter carriers.contains)))
     match endField with
     | none => endField := some field
     | some seen =>
@@ -1511,7 +1551,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     throwErrorAt stateType
       (machineTooLargeMessage stateMembers.length actionMembers.length enumerationBound)
   let transitionsName := mkIdentFrom name (name.getId ++ `transitions)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $transitionsName :
         List (Umpire.FiniteTransitionRow $stateType $actionType
           $(mkIdent outcomeType) $(mkIdent factType)) :=
@@ -1540,7 +1580,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     let some field := carriers.head?
       | throwErrorAt startRef (noEndsFieldMessage spelling)
     if carriers.length > 1 then
-      throwErrorAt startRef (ambiguousStateValueMessage spelling (", ".intercalate carriers))
+      throwErrorAt startRef (ambiguousStateValueMessage spelling
+        (", ".intercalate (orderedFields.filter carriers.contains)))
     -- The one member holding this value with every other field at its first: the members are in
     -- enumeration order and the first field varies slowest, so the first match is that member.
     let some member := stateMembers.find? fun candidate =>
@@ -1557,9 +1598,9 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         (unreturnedEvidenceMessage spelling (", ".intercalate factNames))
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
   let startsName := mkIdentFrom name (name.getId ++ `starts)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $terminalName : List $stateType := [$terminalTerms,*]))
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $startsName : List $stateType := [$startTerms,*]))
   -- The declared Model, on the enumerated rows. Everything downstream -- the Behavior Fingerprint,
   -- Search, Contract lowering, `umpire-inspect` -- reads this and never sees a step function.
@@ -1568,7 +1609,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- The constructor is built rather than written: an identifier inside a quotation is hygienic, so a
   -- literal `| only` would be declared under a macro scope and no name outside this command could
   -- reach it.
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     inductive $setupType where
       | $(mkIdent `only):ident
       deriving BEq, DecidableEq, Repr))
@@ -1585,7 +1626,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       outcomeKeys := [$(keyList outcomeMembers),*]
       factKeys := [$(keyList factMembers),*] })
   let origin ← originTerm
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $name := Umpire.Command.declareModel $origin $names ($setupName)
       (Umpire.Command.members (α := $stateType))
       (Umpire.Command.members (α := $actionType))
@@ -1593,11 +1634,22 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       (Umpire.Command.members (α := $(mkIdent factType)))
       ($startsName) ($terminalName) ($transitionsName)
       (by exact ⟨rfl, rfl, rfl⟩)))
+  -- `elabCommand` logs a failure rather than throwing it, so a table whose canonical-table law did
+  -- not check would be declared anyway, carrying `sorryAx` and looking complete. Everything reads
+  -- that law -- the Behavior Fingerprint, Search, Contract lowering -- and only `#print axioms`
+  -- would say otherwise, so the command says it here instead.
+  let declared := (← getCurrNamespace) ++ name.getId
+  if (← getEnv).contains declared then
+    let axioms ← liftCoreM (Lean.collectAxioms declared)
+    if axioms.contains ``sorryAx then
+      throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
+  else
+    throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
   -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
   -- without having finished. The table is what knows, so the check runs on the emitted table and is
   -- reported back at the `steps:` block that produced it.
   let stuckName := mkIdentFrom name (name.getId ++ `stuck)
-  elabCommand (← `(command|
+  elabGenerated (← `(command|
     def $stuckName : Option String :=
       (Umpire.Command.stuckState $startsName $terminalName $transitionsName).map $stateKeyForName))
   match ← liftTermElabM (evalStuckState ((← getCurrNamespace) ++ stuckName.getId)) with
@@ -1615,6 +1667,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     timers := timerNames
     evidence := evidenceRefs.map fun (recordedRef, observedRef) =>
       (recordedRef.getId.getString!, observedRef.getId.getString!) })
+
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
