@@ -70,9 +70,76 @@ in `.2`.
 
 **Split on 2026-09-18.** The protocol machine, the Limits accounting, the tree-wide migration of 18 `model` declarations and 33 specimens, retiring the `model` spelling, and the byte-identical fixture regeneration moved to task `.16`, for the reason plan review round 1 split the former single `.3`: one task was carrying the command, its diagnostics, the specimen, the accounting, the migration and a fixture regeneration at once. The command half is reviewable on its own; the migration half touches every Model in the tree and must keep fixtures byte-identical, which is a different risk and a different review.
 ## Done summary
-TBD
+`machine` is a command. It names the entity a machine tracks, the structure it keeps per instance,
+the states it begins and ends in, its timers, its setup parameters, its evidence lines, and one step
+function per action it steps on — and it turns those into a checked `Umpire.Machine` on rows
+enumerated from the author's own functions.
 
+The author writes one function per action, over that action's own inputs. The enumerator walks one
+`State → Action → List (Step …)`. The command is what turns the first into the second: an Action
+domain with one constructor per action it steps on, carrying that action's input fields and one
+constructor per timer, and a total step function dispatching to what the author wrote. Nothing
+downstream knows there was more than one. `DESIGN.md` section 3's `nexusProduct` is written this way
+and its table, reachable set, end states and action classes are pinned.
+
+### Decisions
+
+- **Outcome and Fact are read off the step functions**, not declared. A function returns
+  `List (Step State Outcome Fact)`, so asking for them as keys would admit two answers that disagree.
+  Read by unifying against the shape rather than matching a head constant, because `Umpire.Step` is
+  an abbreviation and a match on what it reduces to would name a type no author wrote.
+- **A timer is an action of the machine's domain**, not a separate kind: `system` behaviour with no
+  input, which no realization can drive. A timer no `steps:` line names never fires.
+- **`starts:` and `ends:` name values of one field**, which the values themselves identify; a value
+  carried by two fields is rejected as undecided rather than resolved silently. Every other field of
+  a start takes its first enumerated value — zero for a count, the first constructor for an enum.
+- **`setup:` is parsed and recorded, not varied over.** `declareModel` takes one setup value, and
+  varying it is task `.5`'s.
+- **The enumeration has its own bound**, larger than `elaborationBound`. That one bounds rows an
+  author writes; this one bounds evaluations nobody writes or reads.
+
+### Review
+
+Three rounds, each finding something real; round three had no Critical.
+
+Round one: a machine with no `starts:` began nowhere, so nothing was reachable, the stuck check had
+nothing to check, and every Property would have held vacuously. `ends:` picked the first field whose
+values spelled the name, giving a machine a terminal set its author never wrote. A count field could
+not be written at all — `Fin`'s members are spelled `0`, `1`, `2` and each rendered as an identifier
+no scope declares. And my own specimen guard could not fail: it claimed the Model reaches every end
+state while asserting only `stuck == none`, on a machine where `workerStop` self-loops from every
+state so nothing could be stuck.
+
+Round two found the worst one. Past about two dozen states the canonical-table law exceeded the
+recursion limit, and `elabCommand` logs rather than throws — so the Model was declared anyway,
+carrying `sorryAx` and reading as complete, with everything downstream resting on that law. The same
+trap as the `enum` deriving handler in `.2`. Generated declarations now carry the limits their length
+needs, and the command reads its own axioms and refuses a Model whose law did not check. The same
+round found that round one's stuck fix was wrong: stopping the walk at terminal states assumed a
+Search that does not take a row out of one, and Search takes every row the table carries, so the
+guard was hiding genuinely stuck states.
+
+Round three: the state binder was never type-checked, so a function over another type was reported
+as a machine too large to prove — a verdict about size on a type error. And the axiom guard inspected
+whatever a name already held, so a machine reusing a declared name checked someone else's constant,
+found it clean, and registered a machine whose declaration is a `Nat`.
+
+### What this task does not deliver, and where it went
+
+The protocol machine, the Limits accounting, the migration of 18 `model` declarations and 33
+specimens, retiring the `model` spelling, and the byte-identical fixture regeneration are task `.16`,
+split out on 2026-09-18 for the reason plan review round 1 split the former single `.3`.
+
+`.16` also carries two things this task measured or accepted rather than solved. The design's own
+protocol machine does not elaborate — 112 states over 11 actions proves in ten seconds, 112 over 23
+does not prove at all, so the cost is the canonical-table law forcing catalogs as long as the machine
+rather than the enumeration, and halving the retry bound does not help. And a state with two fields
+of the same enum can name neither a start nor an end, which `DESIGN.md` section 3's three `Timeout`
+fields reach immediately.
+
+Implementer and reviewer are the same session — no second backend is installed in a cloud session —
+so this owes a cross-model re-review before the spec's completion review, as `.1`, `.2` and `.3` do.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ac8592630, a689e3e1d, feef0e569, 521e417bd, 952672cab, bbcfc588b, c3ebca85e, 7a25f681c, 446c57ed4, a40aefef8, f40e14a9c, 7629df026
+- Tests: cd model && lake build, LEAN_NUM_THREADS=1 make lint-model
 - PRs:
