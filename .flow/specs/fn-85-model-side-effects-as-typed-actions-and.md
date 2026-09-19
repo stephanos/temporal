@@ -594,6 +594,23 @@ narrows a requirement without changing its intent, and the task that owns it rec
   constructed with the value's settings, and `CheckSwitchAgreement` fails naming the switch, both
   values and both Verdicts rule by rule. No dynamic-config setting bounds pending Nexus operations
   today, so the design's `atConcurrencyLimit` stays a Known Gap until one exists.
+- **A set is Umpire's; which Cases it produces is the platform's (decided while delivering `.7`).**
+  The `set` command checks what the Model alone decides -- the purpose's keys, every party the
+  set's machines' actions name bound and `system` not, each Query a `find` form, no `observed`
+  party's action on a functional path, `repeat:` naming a switch a realization registered
+  (`register_switch`) -- and records a `SetDeclaration`. The Temporal `case` block over a set
+  realizes every Query of a functional set under `temporal.case.<set>.<query>` and
+  `<set>-<query>-case.json`, one realization for all, each Case carrying the evidence lines for the
+  Actions its own path selects. `umpire-case --list` stays the registry: a functional set's
+  Queries beside the four Cases that register their values explicitly until fn-86 R3 migrates
+  them, and the `fixture`-named `case` block until `.11` removes it; the Go generator and the
+  artifact table were already list-driven (fn-83 `.4`'s Go half, dda17feda8).
+- **An abstraction claim is the presence of an example (decided while delivering `.7`, per the `.2`
+  amendment).** A machine's declared Model carries each action member's class as the Model spells
+  it, `classClaims` pairs every `examples:` line with the member that realizes its class, and the
+  Producer records the claims of the classes the Program performs as `AbstractionClaim` rows of
+  `CaseProvenance` (the protocol's ninth provenance field, additive). A class with no example
+  carries no claim and rejects nothing.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
