@@ -118,12 +118,24 @@ def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Actio
     throw .noncanonicalTable
   table.checkModel identity definition composition |>.mapError .finite
 
-/-- Every declared Step row must appear in the authored table exactly as declared. -/
+/-- Every declared Step row must appear in the authored table exactly as declared.
+
+The two lists being equal is the same claim, arrived at in one pass rather than in as many passes as
+there are rows. A Model whose table is enumerated from its own step functions is exactly that case:
+`required` *is* the table's own transition list, so the search below compares every row against every
+row to conclude what one comparison already says.
+
+This is not an optimisation of the checking; it is the difference between a Model that elaborates
+and one that does not. The search is quadratic in the row count with a structural comparison at each
+step, and a machine of `DESIGN.md` section 3's size exceeds what the proof can evaluate. The result
+is unchanged either way: equal lists satisfy the requirement, and unequal ones still take the
+search. -/
 def satisfiesTransitionRequirement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (rows required : List (FiniteTransitionRow State Action Outcome Fact)) : Bool :=
-  required.all fun declared => rows.any fun row =>
-    row.source == declared.source && row.action == declared.action &&
-      row.results == declared.results
+  rows == required ||
+    required.all fun declared => rows.any fun row =>
+      row.source == declared.source && row.action == declared.action &&
+        row.results == declared.results
 
 def TableLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (lawId : DefinitionId)
