@@ -625,8 +625,8 @@ umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
 		test "$$($$protoc --version)" = "libprotoc 29.5"; \
 		temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		"$$protoc" --proto_path=proto/internal --include_source_info --descriptor_set_out="$$temporary" \
-			$(TESTPILOT_PROTOCOL_PROTOS:proto/internal/%=%); \
+		"$$protoc" --proto_path=proto/internal --descriptor_set_in=$(API_BINPB) --include_source_info \
+			--descriptor_set_out="$$temporary" $(TESTPILOT_PROTOCOL_PROTOS:proto/internal/%=%); \
 		TESTPILOT_PROTOCOL_DESCRIPTOR_SET="$$temporary" \
 			mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot \
 			-run '^TestProtocolMessagesCarryLeadingComments$$'; \

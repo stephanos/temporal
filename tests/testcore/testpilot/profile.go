@@ -42,6 +42,16 @@ func nexusCapabilities() []testpilot.Opcode {
 	}
 }
 
+// realizedNexusCapabilities is the instruction set a Case the Nexus realization produces needs:
+// the typed worker instructions in place of the untyped Nexus ones (fn-85 R10), which the typed
+// Nexus example keeps until fn-86 removes them.
+func realizedNexusCapabilities() []testpilot.Opcode {
+	return []testpilot.Opcode{
+		testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.Await, testpilot.Finish,
+		testpilot.WorkflowCommand, testpilot.NexusHandlerReply, testpilot.NexusOperationCompletion,
+	}
+}
+
 // caseProfile assembles one ProfileSpec from the parts a Case chose, under the Temporal default
 // resource ceilings and instruction limits every Temporal Profile shares.
 func caseProfile(

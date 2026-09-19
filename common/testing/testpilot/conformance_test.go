@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -79,6 +80,10 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 		"inconclusive",
 		"static-preparation-rejection",
 		"static-preparation-rejection/expression-context",
+		"static-preparation-rejection/command-type",
+		"static-preparation-rejection/invalid-duration",
+		"static-preparation-rejection/unsettable-field",
+		"static-preparation-rejection/reply-not-admitted",
 		"cleanup-failure-after-proved-violation",
 		"cross-run-isolation",
 	}
@@ -195,11 +200,25 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	return testpilot.ProfileSpec{
 		Identity: "facade-conformance",
 		Catalog:  catalog,
-		Roles: []testpilot.RolePolicy{{
-			ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
-			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
-		}},
-		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
+		Roles: []testpilot.RolePolicy{
+			{
+				ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
+			},
+			// The typed-instruction rejection variants carry a workflow and a handler entrypoint;
+			// the Profile admits their roles, the typed opcodes and the Nexus schedule command type,
+			// so each variant rejects on the message it carries rather than on the Profile.
+			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+			{ID: "temporal.task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+			{ID: "temporal.nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
+		},
+		Opcodes:      []testpilot.Opcode{testpilot.InvokeRPC, testpilot.Finish, testpilot.WorkflowCommand, testpilot.NexusHandlerReply},
+		CommandTypes: []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION},
+		EnvironmentBindings: []testpilot.EnvironmentBinding{
+			{ID: "temporal.worker.namespace", Value: "conformance"},
+			{ID: "temporal.task-queue.resource", Value: "conformance-queue"},
+			{ID: "temporal.nexus-endpoint.resource", Value: "conformance-endpoint"},
+		},
 		ProgramLimits:  programLimits,
 		ContractLimits: contractLimits,
 		// temporal.DefaultInstructionLimits, spelled here for the same reason as the ceilings.

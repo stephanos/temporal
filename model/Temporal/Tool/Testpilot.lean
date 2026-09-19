@@ -72,6 +72,14 @@ def main (arguments : List String) : IO Unit :=
       renderTestpilot Temporal.Testpilot.conformanceStaticRejectionCase
   | ["conformance-static-preparation-rejection-expression-context"] =>
       renderTestpilot Temporal.Testpilot.conformanceExpressionContextRejectionCase
+  | ["conformance-static-preparation-rejection-command-type"] =>
+      renderTestpilot Temporal.Testpilot.conformanceCommandTypeRejectionCase
+  | ["conformance-static-preparation-rejection-invalid-duration"] =>
+      renderTestpilot Temporal.Testpilot.conformanceInvalidDurationRejectionCase
+  | ["conformance-static-preparation-rejection-unsettable-field"] =>
+      renderTestpilot Temporal.Testpilot.conformanceUnsettableFieldRejectionCase
+  | ["conformance-static-preparation-rejection-reply-not-admitted"] =>
+      renderTestpilot Temporal.Testpilot.conformanceReplyRejectionCase
   | ["conformance-cleanup-failure-after-proved-violation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCleanupFailureCase
   | ["conformance-cross-run-isolation"] =>

@@ -8,13 +8,19 @@ The `nexusOperation` template writes one Program per response form. This realiza
 declares the same scaffolding and binds each **action class** of a Model to the instruction that
 performs it, so the Producer puts those instructions where a Query's path took them.
 
-Three side effects decide an asynchronous operation's outcome, and each is one action class:
+Three side effects decide an asynchronous operation's outcome, and each is one action class,
+realized as the typed worker instruction that carries the Temporal API message the class names
+(fn-85 R10):
 
 | class | party | realized as | entrypoint |
 | --- | --- | --- | --- |
-| `schedule` | the workflow that calls the operation | `StartNexusOperation` on the Case's endpoint role | `workflow` |
-| `handlerReply` | the handler | `RespondNexus`, asynchronous, publishing the completion authority | `handler` |
-| `complete` | the handler | `CompleteNexusOperation` over the published handle | `controller` |
+| `schedule` | the workflow that calls the operation | a workflow command carrying `ScheduleNexusOperationCommandAttributes` on the Case's endpoint role | `workflow` |
+| `handlerReply (async)` | the handler | a handler reply carrying `StartOperationResponse.async_success`, publishing the completion authority | `handler` |
+| `handlerReply (syncSuccess)` | the handler | a handler reply carrying `StartOperationResponse.sync_success` with its payload | `handler` |
+| `handlerReply (operationFailed)` | the handler | a handler reply carrying `StartOperationResponse.failure` | `handler` |
+| `handlerReply (handlerError (retryable := r))` | the handler | a handler reply carrying `HandlerError` with that retry behavior | `handler` |
+| `complete (succeeded)` | the handler | a completion carrying a `Payload` over the published handle | `controller` |
+| `complete (failed)` | the handler | a completion carrying a `Failure` over the published handle | `controller` |
 
 `complete` is why a realization binds classes rather than parties: the handler's completion is
 performed by a controller instruction over a handle slot the handler published, so a per-party
@@ -23,11 +29,12 @@ binding would put it on the handler's entrypoint, where no such instruction can 
 Everything else the Program carries is scaffolding no Model declares -- starting the caller workflow,
 waiting for the authority, waiting on the scheduled operation, finishing the workflow, and reading
 history back -- and stays a fixed item. That is what the entrypoint item order says, and it is what
-lets this realization produce the same Program the template does while the Producer stays free of
-Nexus.
+lets this realization produce the same Program shape the template does while the Producer stays free
+of Nexus.
 
-The node builders are the template's own, reused rather than copied; fn-85 .11 deletes the template
-and they land here.
+The scaffolding node builders are the template's own, reused rather than copied; fn-85 .11 deletes
+the template and they land here. The class Definition IDs are hand-stated until fn-85 .10 derives
+them from the protocol machine's `action` declarations.
 -/
 
 namespace Temporal.Case.Realization.Nexus
@@ -41,41 +48,97 @@ open temporal.server.api.testpilot.v1 hiding ModelValue
 /-! ### Action classes
 
 The Definition IDs a Model's `action` declarations carry. fn-85 .2 derives them from an `Origin`;
-this proof states them, because the proof point runs before any command syntax exists. -/
+this proof states them, because the proof point runs before any command syntax exists. A class of an
+action is stated as its own ID, because a binding is per class: the Producer's path names classes,
+and each is realized as a different message. -/
 
 /-- The caller workflow schedules the operation. -/
 def scheduleAction : DefinitionId := .of "temporal.nexus.caller.action.schedule"
 
-/-- The handler answers the start request. The asynchronous class is the one this realization binds;
-a synchronous reply is a different class of the same action, bound in fn-85 .10. -/
+/-- The handler answers the start request asynchronously, publishing the completion authority. -/
 def handlerReplyAction : DefinitionId := .of "temporal.nexus.caller.action.handlerReply"
 
-/-- The handler completes an accepted operation, through the authority it published. -/
+/-- The handler answers synchronously with the operation's result. -/
+def handlerReplySyncAction : DefinitionId :=
+  .of "temporal.nexus.caller.action.handlerReply.syncSuccess"
+
+/-- The handler answers that the operation failed at its start. -/
+def handlerReplyFailedAction : DefinitionId :=
+  .of "temporal.nexus.caller.action.handlerReply.operationFailed"
+
+/-- The handler answers with a retryable handler error. -/
+def handlerErrorRetryableAction : DefinitionId :=
+  .of "temporal.nexus.caller.action.handlerReply.handlerError.retryable"
+
+/-- The handler answers with a non-retryable handler error. -/
+def handlerErrorNonRetryableAction : DefinitionId :=
+  .of "temporal.nexus.caller.action.handlerReply.handlerError.nonRetryable"
+
+/-- The handler completes an accepted operation successfully, through the authority it published. -/
 def completeAction : DefinitionId := .of "temporal.nexus.caller.action.complete"
+
+/-- The handler completes an accepted operation as failed. -/
+def completeFailedAction : DefinitionId := .of "temporal.nexus.caller.action.complete.failed"
+
+/-- The path an asynchronously answered operation takes: the caller schedules, the handler accepts
+asynchronously, the handler completes. A `case` block over the success slice realizes this path,
+because that slice's own actions are waits that realize nothing; fn-85 .10's protocol machine makes
+the Query's own path this one. -/
+def asyncPath : List DefinitionId := [scheduleAction, handlerReplyAction, completeAction]
 
 /-- The handle slot the handler's asynchronous reply publishes and the completion consumes. Naming it
 once is what keeps the two bindings agreeing about which authority they mean. -/
 private def completionAuthority : String := "completion-authority"
 
+/-- The failure a failed reply or completion carries: an application failure the handler names. -/
+private def handlerFailure : temporal.api.failure.v1.Failure :=
+  { «message» := "operation failed"
+    failure_info := some (.application_failure_info {
+      «type» := "OperationFailed", non_retryable := true }) }
+
 /-! ### The bindings
 
 Each binding builds its node from the id the Producer supplies, so the same class performed twice on
-one path produces two distinct nodes. -/
+one path produces two distinct nodes. The messages each carries are the ones the class names; the
+concrete values (the request and result payloads, the error types) are the realization's, until a
+Model's `examples:` supply them. -/
 
 private def scheduleBinding (service operation : String) : Umpire.Case.Producer.ActionBinding := {
   action := scheduleAction
   instructionId := "start-nexus-operation"
   node := fun _ instructionId =>
     Program.node instructionId
-      (Program.startNexusOperation Support.nexusEndpointRole service operation (text "request")) }
+      (Program.scheduleNexusOperation Support.nexusEndpointRole service operation
+        (Payload.text "request")) }
 
 private def handlerReplyBinding : Umpire.Case.Producer.ActionBinding := {
   action := handlerReplyAction
   instructionId := "respond-async"
   node := fun _ instructionId =>
-    Program.node instructionId
-      (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-        (text "accepted") completionAuthority)
+    Program.node instructionId (Program.nexusAsyncReply completionAuthority)
+      (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
+
+private def handlerReplySyncBinding : Umpire.Case.Producer.ActionBinding := {
+  action := handlerReplySyncAction
+  instructionId := "respond-sync"
+  node := fun _ instructionId =>
+    Program.node instructionId (Program.nexusSyncReply (Payload.text "completed"))
+      (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
+
+private def handlerReplyFailedBinding : Umpire.Case.Producer.ActionBinding := {
+  action := handlerReplyFailedAction
+  instructionId := "respond-failed"
+  node := fun _ instructionId =>
+    Program.node instructionId (Program.nexusFailedReply handlerFailure)
+      (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
+
+private def handlerErrorBinding (action : DefinitionId) (instructionId errorType : String)
+    (retryBehavior : temporal.api.enums.v1.NexusHandlerErrorRetryBehavior) :
+    Umpire.Case.Producer.ActionBinding := {
+  action
+  instructionId
+  node := fun _ instructionId =>
+    Program.node instructionId (Program.nexusHandlerError errorType "handler error" retryBehavior)
       (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
 
 private def completeBinding : Umpire.Case.Producer.ActionBinding := {
@@ -83,7 +146,13 @@ private def completeBinding : Umpire.Case.Producer.ActionBinding := {
   instructionId := "complete-nexus-operation"
   node := fun _ instructionId =>
     Program.node instructionId
-      (Program.completeNexusOperation completionAuthority (text "completed")) }
+      (Program.nexusOperationCompletion completionAuthority (Payload.text "completed")) }
+
+private def completeFailedBinding : Umpire.Case.Producer.ActionBinding := {
+  action := completeFailedAction
+  instructionId := "fail-nexus-operation"
+  node := fun _ instructionId =>
+    Program.node instructionId (Program.nexusOperationFailure completionAuthority handlerFailure) }
 
 /-! ### The plan
 
@@ -105,7 +174,7 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
           NexusOperation.startWorkflowNode (NexusOperation.workflowTypeOf identity),
         .fixed fun _ _ =>
           Program.node "await-completion-authority" (Program.awaitSlot completionAuthority),
-        .actions [completeAction],
+        .actions [completeAction, completeFailedAction],
         .fixed fun identity resolved => NexusOperation.historyNode identity resolved] },
     { activate := fun identity nodes =>
         NexusOperation.workflowEntrypointWith (NexusOperation.workflowTypeOf identity)
@@ -128,7 +197,8 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
     { activate := fun _ nodes =>
         Program.nexusHandler "handler" service operation
           Support.workerRole Support.taskQueueRole nodes
-      items := [.actions [handlerReplyAction]] }]
+      items := [.actions [handlerReplyAction, handlerReplySyncAction, handlerReplyFailedAction,
+        handlerErrorRetryableAction, handlerErrorNonRetryableAction]] }]
   cleanup := Program.cleanup "cleanup" #[] }
 
 /-! ### The switch and the setup parameters
@@ -180,8 +250,34 @@ def asyncNexus (service operation : String) : Umpire.Case.Producer.Realization :
     actions := [
       Nexus.scheduleBinding service operation,
       Nexus.handlerReplyBinding,
-      Nexus.completeBinding]
+      Nexus.handlerReplySyncBinding,
+      Nexus.handlerReplyFailedBinding,
+      Nexus.handlerErrorBinding Nexus.handlerErrorRetryableAction "respond-error-retryable"
+        "INTERNAL" .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE,
+      Nexus.handlerErrorBinding Nexus.handlerErrorNonRetryableAction "respond-error" "BAD_REQUEST"
+        .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE,
+      Nexus.completeBinding,
+      Nexus.completeFailedBinding]
     switches := [Nexus.implementationSwitch] }
+
+/- Every class the design names is bound, and each to the instruction that carries its message: the
+schedule to a workflow command, the replies to handler replies, the completions to completions. -/
+#guard ((asyncNexus "service" "operation").actions.map (·.action.value)) == [
+  "temporal.nexus.caller.action.schedule",
+  "temporal.nexus.caller.action.handlerReply",
+  "temporal.nexus.caller.action.handlerReply.syncSuccess",
+  "temporal.nexus.caller.action.handlerReply.operationFailed",
+  "temporal.nexus.caller.action.handlerReply.handlerError.retryable",
+  "temporal.nexus.caller.action.handlerReply.handlerError.nonRetryable",
+  "temporal.nexus.caller.action.complete",
+  "temporal.nexus.caller.action.complete.failed"]
+#guard ((asyncNexus "service" "operation").actions.map fun binding =>
+    match (binding.node (Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x") "n").instruction.bind (·.instruction) with
+    | some (.workflow_command _) => "command"
+    | some (.nexus_handler_reply _) => "reply"
+    | some (.nexus_operation_completion _) => "completion"
+    | _ => "other") ==
+  ["command", "reply", "reply", "reply", "reply", "reply", "completion", "completion"]
 
 /- A `repeat:` resolves against the switches the realization declares: the implementation switch is
 one, and an undeclared name is none, which is what rejects the `set`. -/

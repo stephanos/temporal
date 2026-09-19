@@ -12,6 +12,7 @@ import (
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
+	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexusrpc"
@@ -97,20 +98,47 @@ func (t *completionTransport) newEffect(info completionInfo) (testpilot.Capabili
 	return completionEffect{transport: t, info: info}, nil
 }
 
+// Accepts admits the untyped completion with an interpreter value, and the typed completion with
+// the payload or failure it carries.
 func (completionEffect) Accepts(_ context.Context, instruction *testpilotspb.Instruction, input proto.Message) bool {
-	value, ok := input.(*testpilotspb.Value)
-	return instruction.GetCompleteNexusOperation() != nil && ok && value.GetValue() != nil
-}
-
-func (e completionEffect) Invoke(ctx context.Context, input proto.Message, maxResponseBytes int64) testpilot.EffectResult {
-	data, err := proto.Marshal(input)
-	if err != nil {
-		return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "invalid_argument"}}
+	switch typed := input.(type) {
+	case *testpilotspb.Value:
+		return instruction.GetCompleteNexusOperation() != nil && typed.GetValue() != nil
+	case *commonpb.Payload:
+		return instruction.GetNexusOperationCompletion().GetPayload() != nil
+	case *failurepb.Failure:
+		return instruction.GetNexusOperationCompletion().GetFailure() != nil
+	default:
+		return false
 	}
-	return e.transport.complete(ctx, e.info, data, maxResponseBytes)
 }
 
-func (t *completionTransport) complete(ctx context.Context, info completionInfo, data []byte, maxResponseBytes int64) testpilot.EffectResult {
+// Invoke delivers the completion: an interpreter value as a protobuf payload of its own type, a
+// carried payload as it is, and a carried failure as the operation error it denotes.
+func (e completionEffect) Invoke(ctx context.Context, input proto.Message, maxResponseBytes int64) testpilot.EffectResult {
+	invalidArgument := testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "invalid_argument"}}
+	switch typed := input.(type) {
+	case *testpilotspb.Value:
+		data, err := proto.Marshal(typed)
+		if err != nil {
+			return invalidArgument
+		}
+		payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/protobuf"), "messageType": []byte("temporal.server.api.testpilot.v1.Value")}, Data: data}
+		return e.transport.complete(ctx, e.info, payload, nil, maxResponseBytes)
+	case *commonpb.Payload:
+		return e.transport.complete(ctx, e.info, proto.CloneOf(typed), nil, maxResponseBytes)
+	case *failurepb.Failure:
+		failure, err := operationError(typed)
+		if err != nil {
+			return invalidArgument
+		}
+		return e.transport.complete(ctx, e.info, nil, failure, maxResponseBytes)
+	default:
+		return invalidArgument
+	}
+}
+
+func (t *completionTransport) complete(ctx context.Context, info completionInfo, result *commonpb.Payload, failure *nexus.OperationError, maxResponseBytes int64) testpilot.EffectResult {
 	var body *boundedBody
 	var protocolCode int
 	caller := func(request *http.Request) (*http.Response, error) {
@@ -124,8 +152,11 @@ func (t *completionTransport) complete(ctx context.Context, info completionInfo,
 		return response, nil
 	}
 	client := nexusrpc.NewCompletionHTTPClient(nexusrpc.CompletionHTTPClientOptions{HTTPCaller: caller, Serializer: commonnexus.PayloadSerializer})
-	payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/protobuf"), "messageType": []byte("temporal.server.api.testpilot.v1.Value")}, Data: data}
-	err := client.CompleteOperation(ctx, info.URL, nexusrpc.CompleteOperationOptions{Header: info.Header, OperationToken: info.OperationToken, StartTime: info.StartTime, Result: payload})
+	options := nexusrpc.CompleteOperationOptions{Header: info.Header, OperationToken: info.OperationToken, StartTime: info.StartTime, Result: result, Error: failure}
+	if failure != nil {
+		options.Result = nil
+	}
+	err := client.CompleteOperation(ctx, info.URL, options)
 	if body != nil {
 		closeErr := body.Close()
 		if err == nil {

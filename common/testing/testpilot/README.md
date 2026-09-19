@@ -33,6 +33,21 @@ records one `FAULT_INJECTED` event per realized outage, carrying the fault in it
 payload, which a Contract reads through a path. Nothing about a requested fault is evidence until
 that event exists.
 
+A worker instruction may carry the Temporal API message the Driver realizes through its SDK
+(fn-85 R10): `WorkflowCommand` carries a `temporal.api.command.v1.Command`, `NexusHandlerReply` a
+`temporal.api.nexus.v1.StartOperationResponse` or `HandlerError`, and `NexusOperationCompletion` a
+`temporal.api.common.v1.Payload` or `temporal.api.failure.v1.Failure`. The message is carried whole,
+not evaluated: preparation admits it against the Driver-reach table in
+`internal/execution/typed.go`, which names per message the fields the Driver realizes and the fields
+it does not, so a field the Driver cannot set rejects `unsupported` at the field's own path, an
+invalid or over-ceiling duration rejects `malformed` or `limit_exceeded` at its field, a reply the
+activation does not admit rejects at its node, and a command whose type the Profile's
+`CommandTypes` does not list rejects `unsupported` at `command_type`. `temporal.DeriveProfile` lists
+the command types the worker Driver realizes (`worker.CommandTypes`) and nothing more. A command's
+endpoint field names the Case's endpoint role; the Driver resolves it to the bound resource. The
+Await of a scheduled command yields the handler's payload whole, as an `Any`, where the Await of the
+untyped start yields text.
+
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
 the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
@@ -91,6 +106,11 @@ first planned use.
    `testpilotProtocolSchemas` (`model/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
    list in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`.
    A Run-only message never enters the Case closure (`TestCaseImportClosureExcludesRunOnlyMessages`).
+   A field that carries a public API message imports that message's file from `proto/api.binpb`
+   (`--descriptor_set_in`, already passed by `make proto`, `umpire-check-testpilot-protocol` and
+   `Testpilot/Protocol.lean`); the file's whole import closure is compiled once into Lean by
+   `Testpilot/Carried.lean`, so each file the closure adds is appended to `Testpilot.Carried.files`,
+   which `Testpilot.Protocol` checks.
 2. **Generated code.** `make proto` regenerates `api/testpilot/v1` and runs the api-linter; a singular
    enum field naming an enum from another file of the package compiles only through the rewrite in
    `cmd/tools/protogen/enum_references.go`. `Testpilot/Protocol.lean` elaborates both closures with one
@@ -125,15 +145,25 @@ first planned use.
    `admission.bindInstruction` and `admission.bindNodeDataflow`, its outcome fields in
    `admission.bindOutcomes`, dispatch in `scheduler.acceptEffect` and any event it records in
    `scheduler.publishCompletion`. A workflow instruction also runs in `workflowInterpreter.execute`
-   (`temporal/worker/interpreter.go`).
+   (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`. An
+   instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
+   which the carrier route derivation and `bindAwait` read, and by the worker's
+   `startsNexusOperation` and `addInstructionBindings`, which prepare its dispatch route and
+   endpoint. An instruction that carries a public API message gets a row per carried message in the
+   Driver-reach table (`execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
+   name every field of every carried message, and the Driver's interpreter reads only the fields
+   the row names realized.
 5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
    oneof arm to map to the Opcode of its field number.
-6. Append the Opcode to `contract.Opcode` and move `contract.MaxOpcode`; `temporal.DeriveProfile`
-   authorizes it through `testpilot.InstructionOpcode`. A new Driver effect adds a
+6. Append the Opcode to `contract.Opcode`, move `contract.MaxOpcode` and alias it in the facade's
+   `contract.go`; `temporal.DeriveProfile` authorizes it through `testpilot.InstructionOpcode`, and
+   a workflow command's type through `worker.CommandTypes`. A new Driver effect adds a
    `contract.Session` method, implemented by the server, worker and composite Sessions and by every
    test Session.
-7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
-   what fn-85 R10 plans.
+7. Focused tests beside the binder and the Driver, and a Driver test per carried message
+   (`temporal/worker/typed_test.go`); a preparation rejection the instruction adds is a variant of
+   the `static-preparation-rejection` conformance class (`productionManifest` in the generator,
+   `Temporal.Testpilot.Conformance` in Lean, the facade Profile in `conformance_test.go`).
 8. and 9. As above.
 
 ### A new fault kind

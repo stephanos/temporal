@@ -65,6 +65,33 @@ def map (entries : Array (temporal.server.api.testpilot.v1.Value ×
 
 end Value
 
+namespace Payload
+
+/-! Constructors for the API payloads the typed instructions carry, spelled as the SDK's default data
+converter spells them. -/
+
+/-- A JSON payload: the SDK's `json/plain` encoding of one JSON value. -/
+def json (value : Lean.Json) : temporal.api.common.v1.Payload :=
+  { metadata := Std.HashMap.ofList [("encoding", "json/plain".toUTF8)]
+    data := value.compress.toUTF8 }
+
+/-- A text payload, as the SDK encodes a string argument. -/
+def text (value : String) : temporal.api.common.v1.Payload := json (.str value)
+
+end Payload
+
+namespace Duration
+
+/-- A whole number of seconds. -/
+def seconds (value : Int) : google.protobuf.Duration :=
+  { seconds := Int64.ofInt value, nanos := 0 }
+
+/-- A whole number of milliseconds. -/
+def milliseconds (value : Int) : google.protobuf.Duration :=
+  { seconds := Int64.ofInt (value / 1000), nanos := Int32.ofInt (value % 1000 * 1000000) }
+
+end Duration
+
 namespace Types
 
 /-! Constructors for generated Testpilot value schemas. -/
@@ -389,6 +416,73 @@ def respondNexus (kind : NexusResponseKind) (result : Expression)
 stops or resumes; the role's own resource binding identifies the queue. -/
 def injectFault (roleId : String) (kind : FaultKind) : Instruction :=
   { instruction := some (.inject_fault { role_id := roleId, kind }) }
+
+/-! #### Typed worker instructions
+
+Each carries the Temporal API message the Driver realizes through the SDK call that produces it. -/
+
+/-- Issue one workflow command from a workflow entrypoint, carrying the command the SDK would emit.
+The Profile admits commands per command type. -/
+def workflowCommand (command : temporal.api.command.v1.Command) : Instruction :=
+  { instruction := some (.workflow_command { command := some command }) }
+
+/-- Schedule one Nexus operation through a workflow command: `endpointRoleId` names the Case's
+endpoint role, which the Driver resolves to its bound resource, `input` is the operation's payload
+as the SDK sends it, and a timeout left `none` is the instruction's own (schedule-to-close) or
+unset (the other two). -/
+def scheduleNexusOperation (endpointRoleId serviceName operationName : String)
+    (input : Option temporal.api.common.v1.Payload := none)
+    (scheduleToClose scheduleToStart startToClose : Option google.protobuf.Duration := none)
+    (header : List (String × String) := []) : Instruction :=
+  workflowCommand {
+    command_type := .COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+    attributes := some (.schedule_nexus_operation_command_attributes {
+      endpoint := endpointRoleId, service := serviceName, operation := operationName, input
+      schedule_to_close_timeout := scheduleToClose
+      nexus_header := Std.HashMap.ofList header
+      schedule_to_start_timeout := scheduleToStart
+      start_to_close_timeout := startToClose }) }
+
+/-- Answer the Nexus operation that activated a handler entrypoint with a start response. An
+asynchronous response names the opaque Slot that receives the completion handle the Driver issues. -/
+def nexusHandlerReply (response : temporal.api.nexus.v1.StartOperationResponse)
+    (handleSlotId : String := "") : Instruction :=
+  { instruction := some (.nexus_handler_reply {
+      reply := some (.response response), handle_slot_id := handleSlotId }) }
+
+/-- Answer synchronously with the operation's result payload. -/
+def nexusSyncReply (payload : temporal.api.common.v1.Payload) : Instruction :=
+  nexusHandlerReply { variant := some (.sync_success { payload := some payload }) }
+
+/-- Answer asynchronously, publishing the completion handle into `handleSlotId`. -/
+def nexusAsyncReply (handleSlotId : String) : Instruction :=
+  nexusHandlerReply { variant := some (.async_success {}) } handleSlotId
+
+/-- Answer with the operation failed or canceled at its start, as the failure says. -/
+def nexusFailedReply (failure : temporal.api.failure.v1.Failure) : Instruction :=
+  nexusHandlerReply { variant := some (.failure failure) }
+
+/-- Answer with a handler error: its type as the Nexus protocol spells it, its message and its
+retry behavior. -/
+def nexusHandlerError (errorType text : String)
+    (retryBehavior : temporal.api.enums.v1.NexusHandlerErrorRetryBehavior) : Instruction :=
+  { instruction := some (.nexus_handler_reply {
+      reply := some (.error {
+        error_type := errorType, failure := some { «message» := text }
+        retry_behavior := retryBehavior }) }) }
+
+/-- Complete, from a controller, the asynchronous operation whose handle `handleSlotId` holds, with
+the payload the completion callback carries. -/
+def nexusOperationCompletion (handleSlotId : String)
+    (payload : temporal.api.common.v1.Payload) : Instruction :=
+  { instruction := some (.nexus_operation_completion {
+      handle_slot_id := handleSlotId, result := some (.payload payload) }) }
+
+/-- Complete the operation as failed, or canceled when the failure says so. -/
+def nexusOperationFailure (handleSlotId : String)
+    (failure : temporal.api.failure.v1.Failure) : Instruction :=
+  { instruction := some (.nexus_operation_completion {
+      handle_slot_id := handleSlotId, result := some (.failure failure) }) }
 
 /-- Name the instructions of the same entrypoint an instruction runs after, where that set is not the
 instruction before it: several instructions, one earlier than its predecessor, or none for a second

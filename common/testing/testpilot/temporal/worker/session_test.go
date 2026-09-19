@@ -242,11 +242,11 @@ func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	kind, value, token, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{})
+	result, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{})
 	require.ErrorIs(t, err, context.Canceled)
-	require.Zero(t, kind)
-	require.Nil(t, value)
-	require.Empty(t, token)
+	require.Zero(t, result.kind)
+	require.Nil(t, result.value)
+	require.Empty(t, result.token)
 }
 
 func TestStopRejectsDelayedAndUnreservedDelivery(t *testing.T) {

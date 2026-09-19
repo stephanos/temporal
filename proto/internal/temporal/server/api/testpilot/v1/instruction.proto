@@ -1,5 +1,9 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/api/command/v1/message.proto";
+import "temporal/api/common/v1/message.proto";
+import "temporal/api/failure/v1/message.proto";
+import "temporal/api/nexus/v1/message.proto";
 import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -37,6 +41,9 @@ message Instruction {
     Finish finish = 6;
     RespondNexus respond_nexus = 7;
     InjectFault inject_fault = 8;
+    WorkflowCommand workflow_command = 9;
+    NexusHandlerReply nexus_handler_reply = 10;
+    NexusOperationCompletion nexus_operation_completion = 11;
   }
 }
 
@@ -140,6 +147,40 @@ enum FaultKind {
   FAULT_KIND_UNSPECIFIED = 0;
   FAULT_KIND_WORKER_STOP = 1;
   FAULT_KIND_WORKER_RESUME = 2;
+}
+
+// WorkflowCommand issues one workflow command from a workflow entrypoint, carrying the command the
+// SDK would emit: its type and the attributes of that type, the same message the action's schema
+// names. The Driver maps the attributes to the SDK call that issues the command, so the Profile
+// admits commands per command type, and a field the Driver cannot set through the SDK rejects at
+// preparation naming it. An attributes field that names a Nexus endpoint names the Case's endpoint
+// role rather than a resource; the role's binding supplies the resource at dispatch. A schedule
+// timeout the attributes leave absent is the instruction's own timeout.
+message WorkflowCommand { temporal.api.command.v1.Command command = 1; }
+
+// NexusHandlerReply answers the Nexus operation that activated a Nexus handler entrypoint with the
+// reply the handler would return: a start response, synchronous with its payload, asynchronous
+// through a completion handle the Driver issues, or failed; or a handler error with its type,
+// message and retry behavior. The Driver issues the operation token, so an asynchronous response
+// carries none.
+message NexusHandlerReply {
+  oneof reply {
+    temporal.api.nexus.v1.StartOperationResponse response = 1;
+    temporal.api.nexus.v1.HandlerError error = 2;
+  }
+  // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
+  string handle_slot_id = 3;
+}
+
+// NexusOperationCompletion completes, from a controller, the asynchronous Nexus operation whose
+// handle a Slot holds, with what the completion callback carries: the operation's result payload, or
+// the failure it ends with, canceled when the failure says so and failed otherwise.
+message NexusOperationCompletion {
+  string handle_slot_id = 1;
+  oneof result {
+    temporal.api.common.v1.Payload payload = 2;
+    temporal.api.failure.v1.Failure failure = 3;
+  }
 }
 
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are

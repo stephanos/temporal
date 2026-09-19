@@ -5,8 +5,10 @@ import (
 	"slices"
 	"strings"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 )
 
 // Environment names the physical resources one Case's symbolic bindings resolve to, plus the
@@ -120,6 +122,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		Catalog:             catalog,
 		Roles:               roles,
 		Opcodes:             usage.authorizedOpcodes(),
+		CommandTypes:        usage.authorizedCommandTypes(),
 		EnvironmentBindings: bindings,
 		Configuration:       configuration,
 		ProgramLimits:       programLimits,
@@ -156,6 +159,7 @@ type programUsage struct {
 	carrierOrder map[string][]string
 	shapes       map[carrierKey]map[testpilot.EntrypointKind]int64
 	opcodes      map[testpilot.Opcode]bool
+	commandTypes map[enumspb.CommandType]bool
 	// reservable counts the workflow and Nexus-handler entrypoints a carrier reserves one activation of.
 	reservable map[testpilot.EntrypointKind]int64
 }
@@ -170,6 +174,20 @@ func (u *programUsage) authorizedOpcodes() []testpilot.Opcode {
 	return result
 }
 
+// authorizedCommandTypes are the command types the Case's workflow commands carry that the worker
+// Driver realizes, in enum order. A command type the Driver does not realize is left out, so the
+// Case rejects at preparation as one the Profile does not admit, rather than widened.
+func (u *programUsage) authorizedCommandTypes() []enumspb.CommandType {
+	var result []enumspb.CommandType
+	for _, commandType := range workerhost.CommandTypes() {
+		if u.commandTypes[commandType] {
+			result = append(result, commandType)
+		}
+	}
+	slices.Sort(result)
+	return result
+}
+
 func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.EntrypointKind, catalog *testpilot.Catalog) (*programUsage, error) {
 	usage := &programUsage{
 		methods:      map[string][]string{},
@@ -177,6 +195,7 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		carrierOrder: map[string][]string{},
 		shapes:       map[carrierKey]map[testpilot.EntrypointKind]int64{},
 		opcodes:      map[testpilot.Opcode]bool{},
+		commandTypes: map[enumspb.CommandType]bool{},
 		reservable:   map[testpilot.EntrypointKind]int64{},
 	}
 	for _, kind := range contexts {
@@ -209,6 +228,9 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		return ErrInvalid
 	}
 	u.opcodes[opcode] = true
+	if command := instruction.GetInstruction().GetWorkflowCommand(); command != nil {
+		u.commandTypes[command.GetCommand().GetCommandType()] = true
+	}
 	rpc := instruction.GetInstruction().GetInvokeRpc()
 	if rpc == nil {
 		return nil

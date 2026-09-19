@@ -38,6 +38,10 @@ input_file testpilotRunProto where
 input_file testpilotValueProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/value.proto"
 
+/-- The public API descriptor set the protocol's carried messages are compiled from. -/
+input_file apiDescriptorSet where
+  path := "../proto/api.binpb"
+
 target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
   let mut inputJobs : Array (Job FilePath) := #[]
   for input in #[
@@ -49,13 +53,15 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
     testpilotInstructionProto,
     testpilotProgramProto,
     testpilotRunProto,
-    testpilotValueProto
+    testpilotValueProto,
+    apiDescriptorSet
   ] do
     let inputTarget ← input.get
     inputJobs := inputJobs.push (← fetch inputTarget.default)
   let inputs := Job.collectArray (traceCaption := "Testpilot protocol schemas") inputJobs
   let stamp := pkg.buildDir / "testpilot-protocol-schemas"
   buildFileAfterDep stamp inputs fun _ => do
+    removeFileIfExists <| pkg.leanLibDir / "Testpilot/Carried.olean"
     removeFileIfExists <| pkg.leanLibDir / "Testpilot/Protocol.olean"
     createParentDirs stamp
     IO.FS.writeFile stamp ""

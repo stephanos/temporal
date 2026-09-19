@@ -603,8 +603,26 @@ func productionManifest() []manifestEntry {
 				},
 			},
 		},
+		typedRejectionEntry("command-type", "unsupported", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.command_type"),
+		typedRejectionEntry("invalid-duration", "malformed", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.schedule_nexus_operation_command_attributes.schedule_to_close_timeout"),
+		typedRejectionEntry("unsettable-field", "unsupported", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.user_metadata"),
+		typedRejectionEntry("reply-not-admitted", "unsupported", "handler.reply"),
 		acceptedEntry("cleanup-failure-after-proved-violation", "temporal.case.conformance.cleanup-failure", "VIOLATED", "VIOLATED", "STOPPED_BY_MONITOR", "FAILED", 1),
 		acceptedEntry("cross-run-isolation", "temporal.case.conformance.cross-run-isolation", "SATISFIED", "SATISFIED", "COMPLETED", "SUCCEEDED", 2),
+	}
+}
+
+// typedRejectionEntry is one of the four typed-instruction rejections R10 names, each a variant of
+// the static-preparation-rejection class pinned to its category and path.
+func typedRejectionEntry(variant, category, path string) manifestEntry {
+	return manifestEntry{
+		Class: "static-preparation-rejection", Variant: variant,
+		RendererArg: "conformance-static-preparation-rejection-" + variant,
+		CaseID:      "temporal.case.conformance.static-rejection." + variant,
+		Expected: expectedResult{
+			Class: "static-preparation-rejection", Preparation: "rejected",
+			PreparationError: &expectedPreparationError{Category: category, Path: path},
+		},
 	}
 }
 

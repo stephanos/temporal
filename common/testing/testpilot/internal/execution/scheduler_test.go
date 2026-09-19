@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
@@ -16,7 +17,7 @@ import (
 type schedulerHost struct {
 	contract.Session
 	bridge   contract.CapabilityBridge
-	complete func(context.Context, contract.Coordinate, contract.OpaqueCapability, *testpilotspb.Value) (contract.EffectHandle, error)
+	complete func(context.Context, contract.Coordinate, contract.OpaqueCapability, proto.Message) (contract.EffectHandle, error)
 	invoke   func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error)
 	reserve  func(context.Context, contract.ReservationRequest) ([]contract.ReservationHandle, error)
 	fault    func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error)
@@ -435,7 +436,7 @@ func (h *schedulerHost) Bridge(context.Context) (contract.CapabilityBridge, erro
 	return h.bridge, nil
 }
 func (h *schedulerHost) InvokeCapability(ctx context.Context, c contract.Coordinate, capability contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
-	return h.complete(ctx, c, capability, input.(*testpilotspb.Value))
+	return h.complete(ctx, c, capability, input)
 }
 
 type schedulerBridge struct {
@@ -481,9 +482,9 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
 			}
 			completed := false
-			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input *testpilotspb.Value) (contract.EffectHandle, error) {
+			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
 				require.Equal(t, capability, got)
-				require.Equal(t, "done", input.GetTextValue())
+				require.Equal(t, "done", input.(*testpilotspb.Value).GetTextValue())
 				require.Equal(t, "complete", c.InstructionID)
 				completed = true
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
@@ -506,6 +507,53 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 		})
 	}
 }
+
+// A typed completion delivers the payload or failure it carries to the capability, not an
+// evaluated interpreter value.
+func TestSchedulerDeliversTheCarriedCompletion(t *testing.T) {
+	for _, mode := range []string{"payload", "failure"} {
+		t.Run(mode, func(t *testing.T) {
+			c, catalog, policy := typedFixture(t)
+			if mode == "failure" {
+				c.Program.Entrypoints[0].Instructions[2].Instruction.GetNexusOperationCompletion().Result = &testpilotspb.NexusOperationCompletion_Failure{Failure: &failurepb.Failure{Message: "failed"}}
+			}
+			p, err := Prepare(c, catalog, policy)
+			require.NoError(t, err)
+			ready := make(chan struct{})
+			capability := &struct{}{}
+			bridge := &schedulerBridge{ready: ready, capability: capability}
+			h := &schedulerHost{bridge: bridge}
+			h.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
+				return []contract.ReservationHandle{&schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+				}}}}, nil
+			}
+			h.invoke = func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
+				close(ready)
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
+			}
+			var delivered proto.Message
+			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
+				require.Equal(t, capability, got)
+				require.Equal(t, "complete", c.InstructionID)
+				delivered = input
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}}, nil
+				}}, nil
+			}
+			s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
+			require.NoError(t, err)
+			require.NoError(t, s.execute(context.Background()))
+			s.waits.Wait()
+			if mode == "failure" {
+				require.True(t, proto.Equal(&failurepb.Failure{Message: "failed"}, delivered))
+			} else {
+				require.True(t, proto.Equal(payloadCompletion("handle").GetPayload(), delivered))
+			}
+		})
+	}
+}
+
 func TestSchedulerStopPreventsTriggerAndReservations(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	addWorker(c, &policy)
