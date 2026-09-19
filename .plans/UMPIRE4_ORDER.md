@@ -363,6 +363,20 @@ wrong keys for a purpose. The Temporal `case` block over a functional set realiz
 claim row -- action, field, class, example -- for every class with an `examples:` line its Program
 performs, as the protocol's ninth provenance field. Its review is a self-review.
 
+**Task .8 is done, 2026-09-19.** The protocol carries the Temporal API messages the design named:
+a workflow command carrying a `Command`, a handler reply carrying a `StartOperationResponse` or a
+`HandlerError`, and a completion carrying a `Payload` or a `Failure`, imported from `proto/api.binpb`
+and compiled once into Lean by `Testpilot/Carried.lean` so the protocol module's own rebuild keeps
+its cost. Preparation admits each message against a Driver-reach table naming the fields the Driver
+realizes, so an unsettable field, an invalid or over-ceiling duration, a reply the activation does
+not admit and a command type the Profile does not admit reject in the existing categories at the
+field's path, pinned by unit tests and four conformance corpus variants; the Profile admits commands
+per command type. The worker Driver maps each message to the SDK call that produces it, with a
+Driver test per carried message. The Nexus realization binds the schedule, every handler-reply class
+and both completion classes, the asynchronous `case` form produces through it, and the two Query 2
+fixtures regenerate on the typed instructions, differing in exactly the three bound instructions.
+The checklist missed five places, now listed. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
