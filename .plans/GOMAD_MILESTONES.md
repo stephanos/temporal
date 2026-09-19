@@ -173,7 +173,15 @@ measurements are what matter for F7.
   `testing/synctest` pass and `runtime` fails only `TestAtomicAlignment`, whose type-checking
   harness resolves `internal/abi` relative to the Gomad module rather than the built GOROOT;
   that looks like the tier driver's working directory, not the patch, and is unconfirmed. The
-  host tier was still running when this was written.
+  host tier takes 10m34s and passes every package but five: `runner`, `target`, `artifact`,
+  `choice`, `record`, `world`, `simulation` and `qualification` all pass under the linux
+  toolchain, including fresh-process execution and supervision. The five that fail do so for
+  reasons this section already names: tests pinned to the darwin identity (the profile and
+  descriptor goldens, the semantic-coverage identity, the `upgrade` package's own host literal,
+  and the boundary test that qualifies the committed darwin manifest against the host tree),
+  the adapter version drift from F1, and pack selection returning nothing because every pack is
+  bound to `darwin/arm64`, which two pack tests then index without checking. The modernc memory
+  source-inventory digest also differs on Linux, so that adapter identity is per platform too.
 - **What could not be exercised.** The runtime, live-capability and interception fixture tiers
   need the fixture corpus F1 restores. Compatibility packs are bound to `darwin/arm64` and, on
   any host, to the x/net version the root module has moved past. The clock audit is DTrace.
