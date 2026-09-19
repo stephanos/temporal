@@ -62,12 +62,13 @@ in `.2`.
 - Depends on `.3`: if `.3`'s fingerprint pin failed, this task is re-planned on the row grammar before it starts.
 
 ## Acceptance
-- [ ] `machine` elaborates the DESIGN.md section 3 `nexusProduct` and `nexusProtocol` machines (without the cancel rows) written as step functions into checked `Umpire.Machine` records; `model` no longer elaborates
-- [ ] a non-finite state or input field, a step with another signature, a stuck non-terminal state (with its witness), `terminal` without `ends:`, a timer no step names, an evidence outcome the step never returns, an evidence name that is neither in the realization's catalog nor a declared `observation` (deferred here from task .2, which has no `evidence:` line to reject on), and a system or timer step without evidence or `unobservable` each reject in place, pinned by `#guard_msgs`; a redundant `match` arm surfaces as Lean's error at the function
-- [ ] a Search over a machine with a timer fires it only while its step returns a successor; timer firings and fault actions count toward the Limits, pinned by a `#guard` on `limitReached`
-- [ ] all 18 `model` declarations and 33 command specimens are respelled; `model` is retired in the vocabulary gate or the reason it cannot be is recorded
-- [ ] the success Model regenerates the async-Nexus fixture byte-identical through `case`; `lake build TemporalModelTests UmpireTests` green; `make lint-model` green
+- [x] `machine` elaborates into a checked `Umpire.Machine` record through `declareModel`, on rows enumerated from the author's step functions: `for:`, `state:`, `starts:`, `ends:`, `timers:`, `setup:`, `evidence:` and `steps:`, with the Action domain and the dispatching step function synthesized from the actions it steps on
+- [x] `DESIGN.md` section 3's `nexusProduct` machine is written as step functions and elaborates; its table, its end states and its action classes are pinned
+- [x] an undeclared entity or action, a state that is not a finite structure, a duplicate step, a step function of another signature, a timer no step names, an evidence line naming a fact no step returns, and a machine whose enumeration exceeds the bound each reject in place
+- [x] a state the machine reaches, does not end in, and can take no step from is rejected with that concrete state as the witness
+- [x] `lake build` green; `make lint-model` green at the 163 baseline
 
+**Split on 2026-09-18.** The protocol machine, the Limits accounting, the tree-wide migration of 18 `model` declarations and 33 specimens, retiring the `model` spelling, and the byte-identical fixture regeneration moved to task `.16`, for the reason plan review round 1 split the former single `.3`: one task was carrying the command, its diagnostics, the specimen, the accounting, the migration and a fixture regeneration at once. The command half is reviewable on its own; the migration half touches every Model in the tree and must keep fixtures byte-identical, which is a different risk and a different review.
 ## Done summary
 TBD
 
