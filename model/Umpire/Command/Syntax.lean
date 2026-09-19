@@ -811,7 +811,14 @@ private partial def ClassValue.key : ClassValue → String
 enumeration knows every class as a tree, so the generated code that names one -- a key function's
 match arm, a member list -- is written from the same tree rather than from a second rendering. -/
 private partial def ClassValue.term : ClassValue → CommandElabM Term
-  | .atom spelling => `($(mkIdent spelling))
+  | .atom spelling =>
+      -- A count's member is a numeral, not a name: `Fin`'s members are spelled `0`, `1`, `2`, and
+      -- `mkIdent` would make each of them an identifier no scope declares.
+      let written := spelling.getString!
+      if !written.isEmpty && written.all Char.isDigit then
+        pure (Syntax.mkNumLit written)
+      else
+        `($(mkIdent spelling))
   | .applied constructor fields => do
       -- Positional, not by name: the fields are in declaration order here, and a pattern written
       -- positionally is one Lean accepts everywhere a term is accepted.
@@ -1235,6 +1242,10 @@ private def disagreeingDomainsMessage (outcome fact foundOutcome foundFact : Nam
   s!"this machine's steps return outcomes in '{outcome}' and facts in '{fact}', and this one returns \
 '{foundOutcome}' and '{foundFact}'; one machine has one outcome domain and one fact domain"
 
+private def ambiguousStateValueMessage (spelling : String) (fields : String) : String :=
+  s!"'{spelling}' is a value of more than one state field ({fields}), so which field it names is \
+undecided; a machine begins and ends on the values of one field, named unambiguously"
+
 private def noEndsFieldMessage (spelling : String) : String :=
   s!"'{spelling}' is not a value of any field of the machine's state structure"
 
@@ -1259,7 +1270,12 @@ private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name) (ari
   let some info := (← getEnv).find? declName
     | throwErrorAt stepRef (stepSignatureMessage declName)
   liftTermElabM do
-    Meta.forallBoundedTelescope info.type (some (arity + 1)) fun _ result => do
+    Meta.forallBoundedTelescope info.type (some (arity + 1)) fun taken result => do
+      -- `forallBoundedTelescope` takes *at most* the bound, so a function with fewer arguments than
+      -- the action declares inputs would reach the unification below with a function type and fail
+      -- somewhere inside the synthesized dispatcher instead of here, at the line that named it.
+      unless taken.size == arity + 1 do
+        throwErrorAt stepRef (stepSignatureMessage declName)
       -- Unified against the shape rather than matched on the head constant: `Umpire.Step` is an
       -- abbreviation, so a match on what it reduces to would name a type the author never wrote,
       -- and would break the day the abbreviation moves.
@@ -1337,6 +1353,9 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let some stateType := stateRef
     | throwErrorAt name (missingKeyMessage "machine" "state:")
   if stepRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "steps:")
+  -- Without `starts:` a Model begins nowhere, so nothing is reachable, every Property holds
+  -- vacuously and the stuck check passes by having nothing to check.
+  if startRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "starts:")
   -- The state's members are the machine's states. A structure is an inductive of one constructor, so
   -- the same walk that writes an action's classes writes them, and the same refusals apply.
   let stateDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
@@ -1457,14 +1476,18 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     let spelling := endRef.getId.getString!
     -- Every member is looked at, not the first: a field carries the value in the member that holds
     -- it, and the member a machine ends in is rarely the one it starts in.
-    let carriers := stateMembers.flatMap fun member =>
+    let carriers := (stateMembers.flatMap fun member =>
       (memberFields member).toList.filterMap fun (field, value) =>
         match value with
         | .atom declared => if declared.getString! == spelling then some field else none
         | .applied constructor _ =>
-            if constructor.getString! == spelling then some field else none
+            if constructor.getString! == spelling then some field else none).eraseDups
     let some field := carriers.head?
       | throwErrorAt endRef (noEndsFieldMessage spelling)
+    -- Two fields that can both hold this value leave the machine's end undecided, and picking the
+    -- first would decide it silently. The author writes which field they mean.
+    if carriers.length > 1 then
+      throwErrorAt endRef (ambiguousStateValueMessage spelling (", ".intercalate carriers))
     match endField with
     | none => endField := some field
     | some seen =>
@@ -1493,18 +1516,35 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         List (Umpire.FiniteTransitionRow $stateType $actionType
           $(mkIdent outcomeType) $(mkIdent factType)) :=
       Umpire.Command.enumerate $rowKeyName $stepName))
-  -- `starts:` names states the same way `ends:` does, against the same members.
-  let memberNamed : String → Option ClassValue := fun spelling =>
-    stateMembers.find? fun member =>
-      (memberFields member).any fun (_, held) =>
-        match held with
-        | .atom declared => declared.getString! == spelling
-        | .applied constructor _ => constructor.getString! == spelling
+  -- `starts:` names values of one field, the way `ends:` does. A state of several fields is not
+  -- determined by one of them, so every other field takes its own first enumerated value: zero for a
+  -- count, `false` for a flag, the first constructor for an enum. That is what a machine begins at,
+  -- and saying it once here is why a `starts:` line names a phase rather than a whole structure.
+  let heldValue : ClassValue → String → Option String := fun member field =>
+    (memberFields member).findSome? fun (named, held) =>
+      if named == field then
+        some (match held with
+          | .atom declared => declared.getString!
+          | .applied constructor _ => constructor.getString!)
+      else none
   let factMembersEarly ← domainMembers name factType
   let mut startTerms : Array Term := #[]
   for startRef in startRefs do
     let spelling := startRef.getId.getString!
-    let some member := memberNamed spelling
+    let carriers := (stateMembers.flatMap fun member =>
+      (memberFields member).toList.filterMap fun (field, value) =>
+        match value with
+        | .atom declared => if declared.getString! == spelling then some field else none
+        | .applied constructor _ =>
+            if constructor.getString! == spelling then some field else none).eraseDups
+    let some field := carriers.head?
+      | throwErrorAt startRef (noEndsFieldMessage spelling)
+    if carriers.length > 1 then
+      throwErrorAt startRef (ambiguousStateValueMessage spelling (", ".intercalate carriers))
+    -- The one member holding this value with every other field at its first: the members are in
+    -- enumeration order and the first field varies slowest, so the first match is that member.
+    let some member := stateMembers.find? fun candidate =>
+        heldValue candidate field == some spelling
       | throwErrorAt startRef (noEndsFieldMessage spelling)
     startTerms := startTerms.push (← member.term)
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
@@ -1571,7 +1611,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     id := ← definitionIdHere "machine" name.getId.toString
     entity := declaredEntity.declName
     stateType := stateDecl
-    steps := steps.map fun resolved => (resolved.action.declName, resolved.function.getId) })
+    steps := steps.map fun resolved => (resolved.action.name, resolved.function.getId)
+    timers := timerNames
+    evidence := evidenceRefs.map fun (recordedRef, observedRef) =>
+      (recordedRef.getId.getString!, observedRef.getId.getString!) })
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none

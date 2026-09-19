@@ -134,8 +134,15 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.outcome) == [.notFound]
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.state.phase) == [.succeeded]
 
-/- The Model reaches every one of its end states. Nothing here is stuck, which is what the command
-checked before it wrote the table. -/
+/- What the Model actually reaches. `timedOut` is not among them: the product machine has no timer,
+because when an operation times out is the protocol's account of how and not what, so the state
+exists for the refinement to map onto and nothing here reaches it. -/
+#guard (Umpire.Command.reachableFrom nexusProduct.starts nexusProduct.ends
+    nexusProduct.transitions).map nexusProduct.stateKeyFor ==
+  ["scheduled", "succeeded", "started", "failed", "canceled"]
+
+/- Nothing here is stuck. Weak on its own -- `workerStop` steps from every state, so no state of this
+machine could be stuck -- which is why the rejection is pinned below on a machine that can be. -/
 #guard nexusProduct.stuck == none
 
 /-! ### What the machine command rejects
@@ -222,6 +229,20 @@ machine idleTimer
   starts: [scheduled]
   ends: [succeeded]
   timers: [neverFires]
+  steps:
+    handlerReply: handlerReplyStep
+
+/- A state the machine reaches, does not end in, and can take no step from is where a Search stops
+without having finished. Only `handlerReply` steps here, so `started` is such a state. -/
+/--
+error: the machine reaches 'started', does not end there, and can take no step from it; either a step is missing or 'started' belongs under `ends:`
+-/
+#guard_msgs in
+machine stuckInStarted
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
   steps:
     handlerReply: handlerReplyStep
 
