@@ -311,6 +311,17 @@ refused with the step the clauses cannot tell apart. Every migrated Property car
 its keyed block had, pinned. The keyed form is rejected at its key naming `holds:`, and `DESIGN.md`
 section 3 carries the amendment. Its review is a self-review.
 
+**Task .4 is done, 2026-09-19.** Its first half (2026-09-19, earlier session) carried a machine's
+state fields on the Model and on the wire and made both evaluators read them. Its second half makes
+the fields readable on the Model side -- the evaluator reads a state and every field it holds, and a
+machine's capability means its fields, which moved every Property-over-a-machine fingerprint once --
+adds a structured two-operation Target to the conformance corpus whose rule reads the `attempts`
+field and whose two operations are tracked apart by both evaluators, and lets a Scenario run over
+`instances:` of one entity: the Search walks the product of that many copies of the machine under
+the machine's own law, one instance's Property is read on the acting slot, and the Producer reads
+the first instance back with every instance's actions as the Program's path. Rejections are pinned
+where they are written. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and

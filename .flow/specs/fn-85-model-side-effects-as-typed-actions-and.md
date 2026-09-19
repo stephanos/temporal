@@ -534,6 +534,27 @@ narrows a requirement without changing its intent, and the task that owns it rec
   as a step function with its fingerprint shown equal to the row form's and its elaboration time
   recorded against the Race baselines (6 to 12 ms per check); if it cannot reproduce the fingerprint,
   fall back to rows with that evidence.
+- **A state field is meant by the machine's capability (decided while delivering `.4`,
+  2026-09-19).** The Model-side Property evaluator admits a value only through a meaning of the
+  capability the Property requires, so a field a Property names -- `phase`, `attempts`, or an
+  instance's slot -- is meant beside the states that hold it. Every Property over a machine reads
+  through that capability, so every one's fingerprint moved once, by the same cause; the `.15` pins
+  showed equality with the keyed form at fcbc068 and now pin the moved values.
+- **Instances are a Search view, declared on the Scenario (decided while delivering `.4`).** A
+  Scenario's `instances:` count runs the Search over the product of that many copies of the
+  machine, built at the data level from the checked declaration with the machine's own law as its
+  authority; each slot is a state field of the product state, which is what lets one instance's
+  Property be read over the product on the acting slot. A Case follows each operation through one
+  sequence, so every instance performs the same actions, and the Producer reads the first instance
+  back with every instance's actions as the Program's path. The count is checked against the
+  enumeration bound where it is written and is at most nine, because the product's keys number
+  instances by one digit and the canonical catalog order Search admits is the order of those keys.
+- **A projection rule's confirmed steps are a sequence, not alternatives (recorded while
+  delivering `.4`).** One evidence kind confirms one step, continuing from the operation's own
+  state, so a structured machine whose action leads to different results from different counts is
+  confirmed by a kind per result. The Producer emits a Case's rules from the concrete steps of its
+  own path, which is one result per kind on the seven functional Queries; a path that took the same
+  kind to two results would need `.9`'s observation declarations to say which.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
