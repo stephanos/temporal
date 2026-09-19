@@ -166,14 +166,25 @@ structure Hook where
   name : String
   instruction : InstructionReference
 
+/-- The recorded data one evidence kind is read from: one arm of the recorded event's attributes
+oneof out of a history read, the payload of one Run Event kind the runtime records, or the elements
+of a repeated field read back through a unary RPC an instruction polls. -/
+inductive RecordedSource where
+  | historyEvent (attributesField : String)
+  | runEvent (kind : temporal.server.api.testpilot.v1.RunEventKind)
+  | read (method path : String)
+
 /-- What a realization knows about one admitted evidence kind. `eventKind` is the spelling an
-author writes; everything else is how the realization reads that kind back out of a response. -/
+author writes; everything else is how the realization reads that kind back out of recorded data,
+and it is emitted once, as the Program's declaration of the kind. -/
 structure EvidenceSource where
   eventKind : String
-  attributesField : String
+  recorded : RecordedSource
   operationKeyPath : String
   kindId : DefinitionId
   sourceId : DefinitionId
+  /-- The fields the kind exposes, each with the path read out of the recorded value. -/
+  fields : List (String × String) := []
 
 /-- One resolved (Action, source) pair: the Action a recorded event confirms, and how to read it. -/
 structure EvidenceRule where
@@ -503,6 +514,31 @@ private def actionNodes
     | none => throw (productionError source action.value "realization.action-unbound")
   pure nodes
 
+/-- The Program's evidence declarations: one per admitted kind the resolved rules read, in the
+order the rules first name them, each scoped to this Case's Run. -/
+private def evidenceDeclarations
+    (scopeField : DefinitionId)
+    (identity : Identity)
+    (resolved : List EvidenceRule) :
+    Array temporal.server.api.testpilot.v1.EvidenceDeclaration :=
+  let sources := resolved.foldl (fun (admitted : List EvidenceSource) rule =>
+    if admitted.any (·.kindId == rule.source.kindId) then admitted
+    else admitted ++ [rule.source]) []
+  sources.toArray.map fun admitted =>
+    let scope := #[Testpilot.Authoring.Program.evidenceScope scopeField.value identity.runScope]
+    let fields := admitted.fields.toArray.map fun (fieldId, path) =>
+      Testpilot.Authoring.Program.evidenceField fieldId path
+    match admitted.recorded with
+    | .historyEvent attributesField =>
+        Testpilot.Authoring.Program.historyEvidenceDeclaration admitted.kindId.value
+          admitted.sourceId.value attributesField admitted.operationKeyPath scope fields
+    | .runEvent kind =>
+        Testpilot.Authoring.Program.runEventEvidenceDeclaration admitted.kindId.value
+          admitted.sourceId.value kind admitted.operationKeyPath scope fields
+    | .read method readPath =>
+        Testpilot.Authoring.Program.readEvidenceDeclaration admitted.kindId.value
+          admitted.sourceId.value method readPath admitted.operationKeyPath scope fields
+
 /-- Assemble one Program from the realization's plan and the path's actions.
 
 An action the realization binds must also be placed exactly once: a binding no entrypoint's `actions`
@@ -534,7 +570,8 @@ def assembleProgram
     if path.contains binding.action && !placed.contains binding.action then
       throw (productionError source binding.action.value "realization.action-unplaced")
   pure (Testpilot.Authoring.Program.make identity.programId realization.plan.roles
-    realization.plan.slots realization.plan.observations entrypoints realization.plan.cleanup)
+    realization.plan.slots realization.plan.observations entrypoints realization.plan.cleanup
+    (evidenceDeclarations realization.scopeField identity resolved))
 
 /-- The Program one realization assembles for a path, for a caller that wants the Program alone:
 `umpire-inspect` and the template tests read the shape a realization produces without producing a

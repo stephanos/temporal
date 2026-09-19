@@ -187,6 +187,20 @@ evidence domain admits, and the lift to sit on one instruction of a controller e
 declared source no other instruction claims — a source ordinal is the position in that source's own
 dense stream, and only the emitting instruction can count it.
 
+A rule may instead name one of the Program's evidence declarations (`evidence_id`) and spell nothing
+else: the declaration must be a history event kind and the projected value the recorded
+`HistoryEvent`, and the rule's guard is the presence of the declared attributes arm, its scope,
+operation key and fields the declaration's. `bindEvidence` admits the declarations before the
+instructions: each identity once, each source and operation key path once, a history arm that the
+event's attributes oneof carries, a Run Event kind that carries a payload, a read method the catalog
+knows whose path ends in repeated messages, and every path typed against the recorded value. A Run
+Event declaration is lifted by `scheduler.liftRunEvents` as the event is recorded, into the Program's
+one `CorrelatedEvidence` Observation, with ordinals dense per source across the Run. A read
+declaration is polled by a `ReadEvidence` instruction: the Session's `PollRPC` repeats the
+declaration's method with the request the assignments build until `readSatisfied` finds an element
+of the declared path satisfying `until`, and the instruction's one synthesized response read then
+lifts every element the condition selects, `until` doubling as the lift's guard.
+
 `EvaluateInput` evaluates the compiled guard first and skips the input on false. Its callback must
 read only that activation's previously validated, immutable field/Slot snapshots, returning nil for
 absence. The adapter must not change those values during evaluation, return unvalidated target

@@ -29,19 +29,34 @@ private def workflowTemplate := Case.Template.workflow "umpire-example-workflow"
 #guard hookNames syncNexus == ["start", "completion"]
 #guard hookNames workflowTemplate == ["start", "completion"]
 
-/-! Each declares the event kinds its Cases may map evidence to, and nothing else. -/
+/-! Each declares the evidence kinds its Cases may map evidence to, and nothing else: the Nexus
+templates carry the two history events and the `pendingAttempts` read, the workflow template one
+history event. -/
 
-#guard sourceKinds asyncNexus == ["nexusOperationStarted", "nexusOperationCompleted"]
-#guard sourceKinds syncNexus == ["nexusOperationStarted", "nexusOperationCompleted"]
+#guard sourceKinds asyncNexus == ["nexusOperationStarted", "nexusOperationCompleted", "pendingAttempts"]
+#guard sourceKinds syncNexus == ["nexusOperationStarted", "nexusOperationCompleted", "pendingAttempts"]
 #guard sourceKinds workflowTemplate == ["workflowExecutionCompleted"]
 
-/-! The generated attributes field each source reads, resolved from the schema rather than spelled
-beside the kind. -/
+/-! The recorded data each source reads: a history source's generated attributes field, resolved
+from the schema rather than spelled beside the kind, and the read source's method, field and key,
+which are the catalog's. -/
 
-#guard (asyncNexus.sources.map (·.attributesField)) ==
+private def attributesFields (realization : Umpire.Case.Producer.Realization) : List String :=
+  realization.sources.filterMap fun source =>
+    match source.recorded with
+    | .historyEvent attributesField => some attributesField
+    | _ => none
+
+#guard attributesFields asyncNexus ==
   ["nexus_operation_started_event_attributes", "nexus_operation_completed_event_attributes"]
-#guard (workflowTemplate.sources.map (·.attributesField)) ==
-  ["workflow_execution_completed_event_attributes"]
+#guard attributesFields workflowTemplate == ["workflow_execution_completed_event_attributes"]
+
+#guard (match Case.Template.NexusOperation.pendingAttemptsSource.recorded with
+  | .read method path =>
+      method == Case.ReadKind.describeWorkflowExecutionMethod && path == "pending_nexus_operations"
+  | _ => false)
+#guard Case.Template.NexusOperation.pendingAttemptsSource.operationKeyPath == "scheduled_event_id"
+#guard Case.Template.NexusOperation.pendingAttemptsSource.fields == [("attempts", "attempt")]
 
 /-! ### Ordering in the synchronous Nexus form
 

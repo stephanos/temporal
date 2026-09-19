@@ -33,17 +33,45 @@ type Observation struct {
 	Type ir.Type
 }
 
-// ProgramView exposes only immutable observation schemas and execution ceilings.
+// EvidenceSourceKind is the recorded data one evidence declaration reads: a history event kind, a
+// Run Event kind or a value read back through a unary RPC.
+type EvidenceSourceKind uint8
+
+const (
+	HistoryEventSource EvidenceSourceKind = iota + 1
+	RunEventSource
+	ReadSource
+)
+
+// EvidenceDeclaration is the Contract-facing view of one declared evidence kind: the identity a
+// projection rule names, the source identity its ordinals count in, the recorded data it reads and
+// the fields it exposes.
+type EvidenceDeclaration struct {
+	ID, Source string
+	Kind       EvidenceSourceKind
+	Fields     []string
+}
+
+// ProgramView exposes only immutable observation schemas, evidence declarations and execution
+// ceilings.
 type ProgramView struct {
 	programID, catalogIdentity string
 	observations               []Observation
+	evidence                   []EvidenceDeclaration
 	limits                     *testpilotspb.ProgramLimits
 	maximumActivations         int64
 }
 
-func (v ProgramView) ProgramID() string                   { return v.programID }
-func (v ProgramView) CatalogIdentity() string             { return v.catalogIdentity }
-func (v ProgramView) Observations() []Observation         { return slices.Clone(v.observations) }
+func (v ProgramView) ProgramID() string           { return v.programID }
+func (v ProgramView) CatalogIdentity() string     { return v.catalogIdentity }
+func (v ProgramView) Observations() []Observation { return slices.Clone(v.observations) }
+func (v ProgramView) Evidence() []EvidenceDeclaration {
+	result := slices.Clone(v.evidence)
+	for i := range result {
+		result[i].Fields = slices.Clone(result[i].Fields)
+	}
+	return result
+}
 func (v ProgramView) Limits() *testpilotspb.ProgramLimits { return proto.CloneOf(v.limits) }
 func (v ProgramView) MaximumActivations() int64           { return v.maximumActivations }
 
@@ -59,6 +87,12 @@ type PreparedProgram struct {
 	carriers               map[carrierCoordinate]contract.ReservationCarrierPlan
 	roles                  map[string]resolvedRole
 	environmentFingerprint string
+	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
+	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
+	// those lifts, and a read's, emit into.
+	evidence                map[string]*evidenceDeclaration
+	runEventLifts           []*evidenceDeclaration
+	correlatedObservationID string
 }
 
 type resolvedRole struct {
@@ -129,6 +163,10 @@ type node struct {
 	assignments   []assignment
 	responseReads []responseRead
 	input         *ir.Expression
+	// until and pollIntervalMilliseconds bound a ReadEvidence poll: the poll ends when an element
+	// of the declared path satisfies until, which is also the guard of the lift it feeds.
+	until                    *ir.Expression
+	pollIntervalMilliseconds int64
 }
 type assignment struct {
 	target               *ir.Path
@@ -165,6 +203,35 @@ type evidenceLift struct {
 	element       ir.Type
 	rules         []evidenceRule
 }
+
+// evidenceDeclaration is the bound form of one EvidenceDeclaration: the recorded value's type, the
+// coordinates read out of it, and the source-specific handle the runtime reads through.
+type evidenceDeclaration struct {
+	id, source string
+	kind       EvidenceSourceKind
+	// element is the recorded value a lift reads: a history event, a Run Event payload or one
+	// element of a read path.
+	element   ir.Type
+	scope     []evidenceBinding
+	operation *ir.Path
+	fields    []evidenceBinding
+	// guard selects the recorded value: the presence of the declared history arm, or true for a
+	// Run Event payload, whose kind already selects it.
+	guard *ir.Expression
+	// attributesField names the history arm; runEventKind and payloadArm the Run Event kind and
+	// the arm it carries; method and readPath the RPC and the repeated field a read polls.
+	attributesField string
+	runEventKind    testpilotspb.RunEventKind
+	payloadArm      protoreflect.Name
+	method          protoreflect.MethodDescriptor
+	readPath        *ir.Path
+}
+
+// lift is the declaration as the one-rule lift a Run Event or a read feeds.
+func (d *evidenceDeclaration) lift(observationID string, guard *ir.Expression) *evidenceLift {
+	return &evidenceLift{observationID: observationID, element: d.element, rules: []evidenceRule{{guard: guard, scope: d.scope, source: d.source, kind: d.id, operation: d.operation, fields: d.fields}}}
+}
+
 type slotWriter struct {
 	graph    *graph
 	node     int

@@ -42,7 +42,7 @@ private def eventKey : String := field "event_id"
 def completedSource : Umpire.Case.Producer.EvidenceSource :=
   let kind := "workflowExecutionCompleted"
   { eventKind := kind
-    attributesField := (EventKind.attributesField? kind).getD kind
+    recorded := .historyEvent ((EventKind.attributesField? kind).getD kind)
     operationKeyPath := eventKey
     kindId := completedEvidenceKindId
     sourceId := evidenceSourceId }
@@ -79,12 +79,12 @@ private def plan (workflowType : String) : Umpire.Case.Producer.ProgramPlan := {
               assign (nested ["workflow_type", "name"]) (text workflowType),
               Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
               assign (field "request_id") runId]),
-        .fixed fun identity resolved =>
+        .fixed fun _ resolved =>
           Program.node "history"
             (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
               #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
                 #[Program.observationTarget historyObservation,
-                  Evidence.target runFieldId correlatedObservation identity resolved]])
+                  Evidence.target correlatedObservation resolved]])
             (Program.instructionLimits (timeoutMilliseconds := some 20000))] },
     { activate := fun _ nodes =>
         Program.workflow "workflow" workflowType workerRole taskQueueRole nodes

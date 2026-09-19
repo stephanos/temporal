@@ -13,6 +13,7 @@ type (
 	ReservationIdentity      = contract.ReservationIdentity
 	ReservationRequest       = contract.ReservationRequest
 	OpaqueCapability         = contract.OpaqueCapability
+	PollPredicate            = contract.PollPredicate
 	EffectResult             = contract.EffectResult
 	CapabilityEffect         = contract.CapabilityEffect
 	EffectHandle             = contract.EffectHandle
@@ -52,6 +53,7 @@ const (
 	WorkflowCommand          = contract.WorkflowCommand
 	NexusHandlerReply        = contract.NexusHandlerReply
 	NexusOperationCompletion = contract.NexusOperationCompletion
+	ReadEvidence             = contract.ReadEvidence
 	MaxOpcode                = contract.MaxOpcode
 )
 

@@ -67,6 +67,10 @@ func (s *recordingControllerSession) InvokeRPC(context.Context, testpilot.Coordi
 	s.invocations++
 	return recordingEffect{}, nil
 }
+func (s *recordingControllerSession) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	s.invocations++
+	return recordingEffect{}, nil
+}
 func (*recordingControllerSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return recordingEffect{}, nil
 }
@@ -95,6 +99,9 @@ type recordingWorkerSession struct {
 	closes      []string
 }
 
+func (*recordingWorkerSession) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	return nil, errors.New("worker Sessions do not poll")
+}
 func (s *recordingWorkerSession) Reserve(context.Context, testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
 	s.reserves++
 	return []testpilot.ReservationHandle{recordingReservation{}}, nil

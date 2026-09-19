@@ -1201,7 +1201,7 @@ machine idleStep
 /- The other side of an evidence line is recorded data the realization carries or an `observation`
 this Model declares. A name in neither confirms nothing that can be read back. -/
 /--
-error: 'nexusOperationDreamt' is neither a recorded event kind the realization carries nor an observation this Model declares; evidence names recorded data, so it is a generated history event kind, a Testpilot Run Event kind, or a derived `observation`
+error: 'nexusOperationDreamt' is neither a recorded event kind the realization carries, a read observation its catalog binds, nor an observation this Model declares; evidence names recorded data, so it is a generated history event kind, a Testpilot Run Event kind, a catalog read such as `pendingAttempts`, or a derived `observation`
 -/
 #guard_msgs in
 machine strayObservation

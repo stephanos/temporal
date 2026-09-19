@@ -13,7 +13,8 @@ names and spellings, and derives the provenance rows that say what each stands f
 **Local names.** The namespace is every Definition ID the Program and Contract name: each Contract
 rule id; in the correlated contract its projection, operation field, scope fields, sources, evidence
 kinds, field policies, captures, rule ids and the definition of every model value; the Program's
-evidence lift rules; and every model value that is itself a Definition ID. A local name is the last
+evidence declarations, the lift rules and read instructions that name them; and every model value
+that is itself a Definition ID. A local name is the last
 dotted segment of its Definition ID, extended leftward one segment at a time until no other
 Definition ID of the Case has the same suffix, so `action.schedule` and `state.schedule` stay apart
 where `schedule` alone would merge them.
@@ -266,31 +267,56 @@ private def correlatedContract (contract : CorrelatedContract) : m CorrelatedCon
 private def namedExpression (named : NamedExpression) : m NamedExpression := do
   pure { named with field_id := ← visitor.name named.field_id }
 
-/-- The evidence lift rules of one instruction; every other instruction names no Definition ID. -/
+/-- A name field an unnamed rule leaves empty stays empty: only a rule that spells its kind names
+a Definition ID there. -/
+private def optionalName (id : String) : m String :=
+  if id.isEmpty then pure id else visitor.name id
+
+/-- The evidence lift rules of a read and the declaration a read instruction names; every other
+instruction names no Definition ID. -/
 private def instruction (node : InstructionNode) : m InstructionNode := do
   let some wrapped := node.instruction | pure node
-  let some (.invoke_rpc invoke) := wrapped.instruction | pure node
-  let reads ← invoke.response_reads.mapM fun read => do
-    pure { read with targets := ← read.targets.mapM fun target => do
-      match target.target with
-      | some (.correlated_evidence lift) =>
-          pure { target with target := some (.correlated_evidence { lift with
-            rules := ← lift.rules.mapM fun rule => do
-              pure { rule with
-                evidence_source := ← visitor.name rule.evidence_source
-                kind := ← visitor.name rule.kind
-                scope := ← rule.scope.mapM (namedExpression visitor)
-                fields := ← rule.fields.mapM (namedExpression visitor) } }) }
-      | _ => pure target }
-  pure { node with instruction := some { wrapped with instruction := some (.invoke_rpc { invoke with
-    response_reads := reads }) } }
+  match wrapped.instruction with
+  | some (.invoke_rpc invoke) =>
+      let reads ← invoke.response_reads.mapM fun read => do
+        pure { read with targets := ← read.targets.mapM fun target => do
+          match target.target with
+          | some (.correlated_evidence lift) =>
+              pure { target with target := some (.correlated_evidence { lift with
+                rules := ← lift.rules.mapM fun rule => do
+                  pure { rule with
+                    evidence_source := ← optionalName visitor rule.evidence_source
+                    kind := ← optionalName visitor rule.kind
+                    evidence_id := ← optionalName visitor rule.evidence_id
+                    scope := ← rule.scope.mapM (namedExpression visitor)
+                    fields := ← rule.fields.mapM (namedExpression visitor) } }) }
+          | _ => pure target }
+      pure { node with instruction := some { wrapped with instruction := some (.invoke_rpc { invoke with
+        response_reads := reads }) } }
+  | some (.read_evidence read) =>
+      pure { node with instruction := some { wrapped with instruction := some (.read_evidence { read with
+        evidence_id := ← visitor.name read.evidence_id }) } }
+  | _ => pure node
+
+private def namedValue (named : NamedValue) : m NamedValue := do
+  pure { named with field_id := ← visitor.name named.field_id }
+
+/-- One evidence declaration: its kind, its source, its scope fields and its exposed fields. -/
+private def declaration (value : EvidenceDeclaration) : m EvidenceDeclaration := do
+  pure { value with
+    evidence_id := ← visitor.name value.evidence_id
+    evidence_source := ← visitor.name value.evidence_source
+    scope := ← value.scope.mapM (namedValue visitor)
+    fields := ← value.fields.mapM fun field => do
+      pure { field with field_id := ← visitor.name field.field_id } }
 
 private def program (value : Program) : m Program := do
   pure { value with
     entrypoints := ← value.entrypoints.mapM fun entrypoint => do
       pure { entrypoint with instructions := ← entrypoint.instructions.mapM (instruction visitor) }
     cleanup := ← value.cleanup.mapM fun cleanup => do
-      pure { cleanup with instructions := ← cleanup.instructions.mapM (instruction visitor) } }
+      pure { cleanup with instructions := ← cleanup.instructions.mapM (instruction visitor) }
+    evidence := ← value.evidence.mapM (declaration visitor) }
 
 /-- Visit every name and model value position of a Case's Program, Contract rules and correlated
 contract, in that order. -/
