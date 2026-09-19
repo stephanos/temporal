@@ -132,5 +132,24 @@ case asyncNexusSuccess fixture "async-nexus"
     awaitStart ← history nexusOperationStarted
     awaitSuccess ← history nexusOperationCompleted
 
+/-! ### The same Query as a functional set
+
+A set groups Queries by purpose and binds every party except `system`. A functional set compiles
+each `find` Query to one Case, whose identity derives from the set's name and the Query's: the Case
+ID is `temporal.case.<set>.<query>` and the fixture `<set>-<query>-case.json`, so a Case is named by
+what it is rather than by a `fixture` slot. The Case bytes do not depend on any switch value. -/
+set nexusSuccessTests
+  purpose: functional
+  bind:
+    caller: driven
+  queries: [completion]
+
+case nexusSuccessSet
+  realizes nexusSuccessTests
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
+
 end Temporal.Feature.Nexus.Success
 

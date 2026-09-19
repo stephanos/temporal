@@ -181,7 +181,7 @@ def DeclaredModel.instances [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [
   {
     origin, key := ownerKey, roleName := model.roleName, setupValue := model.setupValue,
     states, actions, outcomes := model.outcomes, facts := model.facts, initial, terminal,
-    setupParameters := model.setupParameters,
+    setupParameters := model.setupParameters, actionClasses := [],
     targetId, kernelId, capabilityId, providerId, lawId := model.lawId, operationRoleId,
     stateIds, stateFieldIds, stateFieldValues, actionIds, outcomeIds := model.outcomeIds,
     factIds := model.factIds, relationIds,

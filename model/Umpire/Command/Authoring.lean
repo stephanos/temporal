@@ -108,6 +108,10 @@ structure DeclaredNames where
   /-- The machine's setup parameters by name, in declaration order. A parameter is bound by the
   Profile through the realization, so the Model carries its name and nothing varies over it. -/
   setupParameters : List String := []
+  /-- Each action member's class, parallel to `actionKeys`: the action's name and, per input field,
+  the class the member assigns it as the Model spells it (`handlerError (retryable := true)`). It
+  is what an `examples:` line is matched against, so a Case knows which claims its path makes. -/
+  actionClasses : List (String × List (String × String)) := []
 
 inductive FiniteAdmissionError where
   | noncanonicalTable
@@ -190,6 +194,8 @@ structure DeclaredModel (Setup State Action Outcome Fact : Type)
   stateFieldValues : List (List (DefinitionId × String))
   /-- Each setup parameter's name and definition, in declaration order. -/
   setupParameters : List (String × DefinitionId)
+  /-- Each action member's name and class assignment, parallel to `actions` and `actionIds`. -/
+  actionClasses : List (String × List (String × String))
   actionIds : List DefinitionId
   outcomeIds : List DefinitionId
   factIds : List DefinitionId
@@ -369,8 +375,8 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     origin, key := ownerKey, roleName := names.roleName, setupValue,
     states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
-    stateIds, stateFieldIds, stateFieldValues, setupParameters, actionIds, outcomeIds, factIds,
-    relationIds,
+    stateIds, stateFieldIds, stateFieldValues, setupParameters,
+    actionClasses := names.actionClasses, actionIds, outcomeIds, factIds, relationIds,
     table, identity, lawStatement, law, lawProof,
     composition := Providers.empty |>.provide provider, modelSpec
   }
@@ -626,9 +632,10 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
-    (required : List DefinitionId := []) :
+    (required : List DefinitionId := [])
+    (claims : List Umpire.Case.Producer.ClassClaim := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  let input := producerInput checked
+  let input := { producerInput checked with claims }
   Umpire.Case.Producer.produce input identity realization (evidence input.vocabulary) required
 
 /-- The same, starting from the Query's own admission result. A Model the Query did not admit
@@ -640,13 +647,14 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
-    (required : List DefinitionId := []) :
+    (required : List DefinitionId := [])
+    (claims : List Umpire.Case.Producer.ClassClaim := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← admitted.mapError fun _ => {
     sourceDefinitionId := identity.caseId
     source := «model».origin.source
     construct := "checked-model" }
-  produce checked identity realization evidence required
+  produce checked identity realization evidence required claims
 
 
 /-! ### What went wrong, where the author wrote it
