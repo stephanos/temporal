@@ -603,6 +603,15 @@ private unsafe def evalDiagnosticUnsafe (diagnosticName : Name) :
 private opaque evalDiagnostic (diagnosticName : Name) :
     Elab.Term.TermElabM (Option (String × String))
 
+private unsafe def evalStuckStateUnsafe (diagnosticName : Name) :
+    Elab.Term.TermElabM (Option String) :=
+  Meta.evalExpr (Option String) (.app (.const ``Option [levelZero]) (.const ``String []))
+    (.const diagnosticName [])
+
+/-- A machine's stuck-state witness, read off the table the command just emitted. -/
+@[implemented_by evalStuckStateUnsafe]
+private opaque evalStuckState (diagnosticName : Name) : Elab.Term.TermElabM (Option String)
+
 /-- Report whatever admission said, on the part of the `query` block it belongs to. -/
 private def reportAdmission
     (name propertyRef scenarioRef limitsRef modelRef formKeyword : Syntax)
@@ -1186,6 +1195,10 @@ private def undeclaredStepActionMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
 its function steps on"
 
+private def stuckStateMessage (witness : String) : String :=
+  s!"the machine reaches '{witness}', does not end there, and can take no step from it; either a \
+step is missing or '{witness}' belongs under `ends:`"
+
 private def unnamedTimerMessage (spelling : String) : String :=
   s!"no `steps:` line names the timer '{spelling}'; a timer is `system` behaviour written as a step \
 function, and one that never fires is a timer the machine does not have"
@@ -1418,14 +1431,17 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     def $stateKeysName : Array String := #[$(keyArray stateMembers),*]))
   elabCommand (← `(command|
     def $actionKeysName : Array String := #[$(keyArray actionMembers),*]))
+  let stateKeyForName := mkIdentFrom name (name.getId ++ `stateKeyFor)
+  elabCommand (← `(command|
+    def $stateKeyForName (state : $stateType) : String :=
+      match (Umpire.Command.members (α := $stateType)).idxOf? state with
+      | some at? => ($stateKeysName)[at?]!
+      | none => ""))
   elabCommand (← `(command|
     def $rowKeyName (state : $stateType) (taken : $actionType) : String :=
-      let stateAt := (Umpire.Command.members (α := $stateType)).idxOf? state
-      let actionAt := (Umpire.Command.members (α := $actionType)).idxOf? taken
-      match stateAt, actionAt with
-      | some stateAt, some actionAt =>
-          ($stateKeysName)[stateAt]! ++ "-" ++ ($actionKeysName)[actionAt]!
-      | _, _ => ""))
+      match (Umpire.Command.members (α := $actionType)).idxOf? taken with
+      | some actionAt => $stateKeyForName state ++ "-" ++ ($actionKeysName)[actionAt]!
+      | none => ""))
   -- `ends:` names the values of one state field. Which field is not a key the author writes: the
   -- values name it, and naming values of two fields is the mistake the message reports.
   let memberFields : ClassValue → Array (String × ClassValue) := fun value =>
@@ -1489,8 +1505,11 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       throwErrorAt recordedRef
         (unreturnedEvidenceMessage spelling (", ".intercalate factNames))
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
+  let startsName := mkIdentFrom name (name.getId ++ `starts)
   elabCommand (← `(command|
     def $terminalName : List $stateType := [$terminalTerms,*]))
+  elabCommand (← `(command|
+    def $startsName : List $stateType := [$startTerms,*]))
   -- The declared Model, on the enumerated rows. Everything downstream -- the Behavior Fingerprint,
   -- Search, Contract lowering, `umpire-inspect` -- reads this and never sees a step function.
   let setupType := mkIdentFrom name (name.getId ++ `Setup)
@@ -1521,8 +1540,20 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       (Umpire.Command.members (α := $actionType))
       (Umpire.Command.members (α := $(mkIdent outcomeType)))
       (Umpire.Command.members (α := $(mkIdent factType)))
-      ([$startTerms,*]) ($terminalName) ($transitionsName)
+      ($startsName) ($terminalName) ($transitionsName)
       (by exact ⟨rfl, rfl, rfl⟩)))
+  -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
+  -- without having finished. The table is what knows, so the check runs on the emitted table and is
+  -- reported back at the `steps:` block that produced it.
+  let stuckName := mkIdentFrom name (name.getId ++ `stuck)
+  elabCommand (← `(command|
+    def $stuckName : Option String :=
+      (Umpire.Command.stuckState $startsName $terminalName $transitionsName).map $stateKeyForName))
+  match ← liftTermElabM (evalStuckState ((← getCurrNamespace) ++ stuckName.getId)) with
+  | none => pure ()
+  | some witness =>
+      let anchor := (stepRefs[0]?.map Prod.fst).getD name
+      throwErrorAt anchor (stuckStateMessage witness)
   liftCoreM (Registry.recordMachine {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
