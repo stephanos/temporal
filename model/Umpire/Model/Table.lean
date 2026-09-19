@@ -510,6 +510,42 @@ def machine [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
       simp [actionEq, resultsEq]
 }
 
+/-- The derived machine begins where the table's rows for that setup say it does. -/
+theorem machine_initialStates_mem [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Observation]
+    (validated : CheckedTable Setup State Action Outcome Observation)
+    (metadata : MachineMetadata) (setup : Setup) (state : State) :
+    state ∈ (validated.machine metadata).initialStates setup ↔
+      ∃ row ∈ validated.table.initial, row.setup = setup ∧ state ∈ row.states := by
+  simp only [machine, initialStates, List.mem_flatMap]
+  constructor
+  · rintro ⟨row, rowMember, stateMember⟩
+    by_cases setupEq : row.setup = setup
+    · simp [setupEq] at stateMember
+      exact ⟨row, rowMember, setupEq, stateMember⟩
+    · simp [setupEq] at stateMember
+  · rintro ⟨row, rowMember, setupEq, stateMember⟩
+    exact ⟨row, rowMember, by simp [setupEq, stateMember]⟩
+
+/-- The derived machine steps exactly where a row of the table says it does. -/
+theorem machine_steps_mem [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Observation]
+    (validated : CheckedTable Setup State Action Outcome Observation)
+    (metadata : MachineMetadata) (state : State) (action : Action)
+    (result : Step State Outcome Observation) :
+    result ∈ (validated.machine metadata).steps state action ↔
+      ∃ row ∈ validated.table.transitions,
+        row.source = state ∧ row.action = action ∧ result ∈ row.results := by
+  simp only [machine, steps, List.mem_flatMap]
+  constructor
+  · rintro ⟨row, rowMember, resultMember⟩
+    by_cases pairEq : row.source = state ∧ row.action = action
+    · simp [pairEq] at resultMember
+      exact ⟨row, rowMember, pairEq.1, pairEq.2, resultMember⟩
+    · simp [pairEq] at resultMember
+  · rintro ⟨row, rowMember, sourceEq, actionEq, resultMember⟩
+    exact ⟨row, rowMember, by simp [sourceEq, actionEq, resultMember]⟩
+
 /-- Package the exact derived machine through the existing ordinary Target authoring boundary. -/
 def draftModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Observation]

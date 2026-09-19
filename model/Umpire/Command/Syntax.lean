@@ -7,6 +7,7 @@ import Umpire.Command.Schema
 import Umpire.Command.Registry
 import Umpire.Command.Predicate
 import Umpire.Command.Instances
+import Umpire.Command.Refinement
 
 /-!
 # The Model command grammar
@@ -330,6 +331,14 @@ private unsafe def evalEnumeratedUnsafe (declName : Name) :
 @[implemented_by evalEnumeratedUnsafe]
 private opaque evalEnumerated (declName : Name) : Elab.Term.TermElabM EnumeratedProperty
 
+private unsafe def evalRefinementReportUnsafe (declName : Name) :
+    Elab.Term.TermElabM RefinementReport :=
+  Meta.evalExpr RefinementReport (.const ``Umpire.Command.RefinementReport []) (.const declName [])
+
+/-- A machine's derived step mapping, read off the definition the command just emitted. -/
+@[implemented_by evalRefinementReportUnsafe]
+private opaque evalRefinementReport (declName : Name) : Elab.Term.TermElabM RefinementReport
+
 private def requirementTerm : PropertyRequirement → CommandElabM Term
   | .stateClause label spelling =>
       `(Umpire.Command.PropertyRequirement.stateClause $(Lean.quote label) $(Lean.quote spelling))
@@ -432,8 +441,23 @@ elab "property" name:ident
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Property :=
         authoredProperty ($modelRef) values $namesName))
+    -- What a Query over a refining machine has to find on that machine by name: the Actions the
+    -- claims are about and the outcomes and facts they fix. A state is read through the map.
+    let triggered := result.groups.filterMap fun group => match group.trigger with
+      | .action spelling => some spelling
+      | .priorState _ => none
+    let fixed := fun (select : PropertyRequirement → Option String) =>
+      result.groups.flatMap fun group => group.requirements.filterMap select
     liftCoreM (Registry.recordProperty {
-      declName := (← getCurrNamespace) ++ name.getId, «model» := declaredModel.declName })
+      declName := (← getCurrNamespace) ++ name.getId
+      «model» := declaredModel.declName
+      «actions» := triggered.toArray
+      «outcomes» := (fixed fun requirement => match requirement with
+        | .outcomeClause _ spelling => some spelling
+        | _ => none).toArray
+      «facts» := (fixed fun requirement => match requirement with
+        | .factClause _ spelling => some spelling
+        | _ => none).toArray })
 
 /- The keyed form is retired. It is rejected here, at the key that used to introduce it, rather
 than gated by the vocabulary check: `require` is a bare word, and SEM-20 keeps bare words out of
@@ -459,8 +483,13 @@ each action then names the instance that takes it, numbered from one -- `awaitSt
 runs over the product of the instances, so their steps interleave and every interleaving is a path;
 a Case follows each instance through one sequence, so every instance performs the same actions. -/
 
-/-- One action of a Scenario, with the instance that takes it when there are several. -/
-syntax scenarioAction := ident (num)?
+/-- The inputs a classed action is written with, `complete (succeeded)`, keyed the way `when:` keys
+them. -/
+syntax scenarioArguments := "(" term,* ")"
+
+/-- One action of a Scenario -- bare, or classed with its inputs applied -- with the instance that
+takes it when there are several. -/
+syntax scenarioAction := ident (scenarioArguments)? (num)?
 
 /-- How many instances of the machine's entity a Scenario runs over. -/
 syntax scenarioInstances := "instances:" num
@@ -494,11 +523,20 @@ elab "scenario" name:ident
     "starts:" setupRef:ident
     "actions:" "[" selected:scenarioAction,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let setupKey := Lean.quote setupRef.getId.toString
     let declaredModel ← resolveDeclaredModel modelRef
     let roleKey := Lean.quote declaredModel.role
-    -- The setup state must be one the Model can start in, not merely one it declares.
-    let _ ← resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
+    -- The setup state must be one the Model can start in, not merely one it declares. A machine
+    -- over a structured state keys a state by every field, and a `starts:` line names its phase:
+    -- the one start state whose first field holds that spelling is the one meant.
+    let startKey ← do
+      let spelling := setupRef.getId.eraseMacroScopes.toString
+      let byPhase := declaredModel.starts.filter fun key =>
+        !declaredModel.starts.contains spelling &&
+          ((key.splitOn "-").head?).getD key == spelling
+      match byPhase.toList with
+      | [key] => pure key
+      | _ => resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
+    let setupKey := Lean.quote startKey
     let count ← match instances? with
       | none => pure 1
       | some declared =>
@@ -517,9 +555,21 @@ elab "scenario" name:ident
     let mut spellings : Array String := #[]
     let mut occurrences : Array (String × Nat) := #[]
     for entry in selected.getElems do
-      let `(scenarioAction| $actionRef:ident $[$number?:num]?) := entry
+      let `(scenarioAction| $actionRef:ident $[$arguments?:scenarioArguments]? $[$number?:num]?) :=
+          entry
         | throwErrorAt entry "unsupported action"
-      let spelling ← resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
+      let spelling ← match arguments? with
+        | none =>
+            resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
+        | some arguments =>
+            let `(scenarioArguments| ($inputs:term,*)) := arguments
+              | throwErrorAt arguments "unsupported action"
+            let key := "-".intercalate (actionRef.getId.eraseMacroScopes.getString! ::
+              inputs.getElems.toList.map fun input => actionKeyOf ⟨input.raw⟩)
+            unless declaredModel.actions.contains key do
+              throwErrorAt entry (unknownMemberMessage "action" key
+                (declaredModel.actions.toList.map Name.mkSimple))
+            pure key
       let taker ← match number?, instances? with
         | none, none => pure 1
         | none, some _ => throwErrorAt actionRef (unnumberedActionMessage spelling count)
@@ -618,9 +668,27 @@ private def mismatchedModelMessage (declaredProperty declaredScenario : Name) : 
 private def undeclaredMessage (kind : String) (spelling : Name) : String :=
   s!"'{spelling}' is not a {kind} declared by a `{kind}` command"
 
-/-- The Model a Query runs on, resolved from its Property and its Scenario rather than named again,
-and the number of instances the Scenario runs over. -/
-private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM (Name × Nat) := do
+private def unliftableMessage (kind spelling : String) (refined refining : Name) : String :=
+  s!"the Property names the {kind} '{spelling}' of '{refined}', and '{refining}' has no {kind} of \
+that name; a Property on the refined machine is read on the refining one through the values of \
+the same name, and a state through its `map:`"
+
+private def liftedInstancesMessage : String :=
+  "a Property on the refined machine is read on one instance of the refining one; a Query over \
+several instances names a Property on the machine its Scenario runs over"
+
+/-- What a Query runs on: the Model, the number of instances its Scenario runs over, and -- when
+the Property is declared on the machine the Scenario's machine refines -- that refined Model. -/
+private structure QueryTarget where
+  model : Name
+  instances : Nat := 1
+  lifted : Option Name := none
+
+/-- The Model a Query runs on, resolved from its Property and its Scenario rather than named again.
+The two name one Model, or the Scenario's machine `refines:` the Property's: then the Property is
+read on the refining machine's paths through its `map:`, and every Action, outcome and fact the
+Property names has to be one the refining machine names too. -/
+private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM QueryTarget := do
   let propertyName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo propertyRef)
   let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
   let environment ← getEnv
@@ -630,19 +698,40 @@ private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM (Nam
   let declaredScenario ← match Registry.scenario? environment scenarioName with
     | some declared => pure declared
     | none => throwErrorAt scenarioRef (undeclaredMessage "scenario" scenarioName)
-  unless declaredProperty.model == declaredScenario.model do
+  if declaredProperty.model == declaredScenario.model then
+    return { model := declaredProperty.model, instances := declaredScenario.instances }
+  let refines := (Registry.machine? environment declaredScenario.model).bind (·.refines)
+  unless refines == some declaredProperty.model do
     throwErrorAt scenarioRef
       (mismatchedModelMessage declaredProperty.model declaredScenario.model)
-  pure (declaredProperty.model, declaredScenario.instances)
+  if declaredScenario.instances > 1 then throwErrorAt scenarioRef liftedInstancesMessage
+  let some refining := Registry.model? environment declaredScenario.model
+    | throwErrorAt scenarioRef (undeclaredModelMessage declaredScenario.model)
+  let require := fun (kind : String) (declared : Array String) (named : Array String) =>
+    match named.find? fun spelling => !declared.contains spelling with
+    | some spelling => throwErrorAt propertyRef
+        (unliftableMessage kind spelling declaredProperty.model declaredScenario.model)
+    | none => pure ()
+  require "action" refining.actions declaredProperty.actions
+  require "outcome" refining.outcomes declaredProperty.outcomes
+  require "fact" refining.facts declaredProperty.facts
+  pure { model := declaredScenario.model, lifted := some declaredProperty.model }
 
 /-- The admission a Query evaluates: over the machine itself, or over the product of the instances
-its Scenario runs over, reading the Property and the Scenario back from their names. -/
+its Scenario runs over, reading the Property and the Scenario back from their names. A Property on
+the refined machine is read on the refining one through `Umpire.Command.refinedProperty`. -/
 private def checkTerm (modelRef : Ident) (instances : Nat) (queryKey : Term)
     (limitsRef propertyRef scenarioRef : Ident) (knownGaps : Term)
-    (form : Option Term) : CommandElabM Term := do
+    (form : Option Term) (lifted : Option Name := none) : CommandElabM Term := do
   let form ← match form with
     | some form => pure form
     | none => `(QueryFormKind.selectWitness)
+  if let some refined := lifted then
+    let propertyNames := mkIdent (propertyRef.getId ++ `names)
+    let refinedRef := mkIdent refined
+    return ← `(check ($modelRef) $queryKey ($limitsRef)
+      (fun values => Umpire.Command.refinedProperty ($modelRef) ($refinedRef) values $propertyNames)
+      ($scenarioRef) (knownGaps := $knownGaps) (form := $form))
   if instances == 1 then
     `(check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
       (knownGaps := $knownGaps) (form := $form))
@@ -719,12 +808,12 @@ elab "query" name:ident
     findKeyword:"find:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
-    let (modelName, instances) ← queryModelName propertyRef scenarioRef
-    let modelRef := mkIdent modelName
+    let target ← queryModelName propertyRef scenarioRef
+    let modelRef := mkIdent target.model
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
-    let admission ← checkTerm modelRef instances queryKey limitsRef propertyRef scenarioRef
-      knownGaps none
+    let admission ← checkTerm modelRef target.instances queryKey limitsRef propertyRef scenarioRef
+      knownGaps none target.lifted
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
@@ -734,12 +823,12 @@ elab "query" name:ident
     verifyKeyword:"verify:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
-    let (modelName, instances) ← queryModelName propertyRef scenarioRef
-    let modelRef := mkIdent modelName
+    let target ← queryModelName propertyRef scenarioRef
+    let modelRef := mkIdent target.model
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
-    let admission ← checkTerm modelRef instances queryKey limitsRef propertyRef scenarioRef
-      knownGaps (some (← `(QueryFormKind.verifyClaim)))
+    let admission ← checkTerm modelRef target.instances queryKey limitsRef propertyRef scenarioRef
+      knownGaps (some (← `(QueryFormKind.verifyClaim))) target.lifted
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
@@ -1296,6 +1385,8 @@ syntax "unobservable:" "[" ident,+ "]" : machineKey
 syntax "setup:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "evidence:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
+syntax "refines:" ident : machineKey
+syntax "map:" ident : machineKey
 
 @[run_parser_attribute_hooks] private def machineKeyword := declarationKeyword "machine"
 
@@ -1393,6 +1484,30 @@ private def noEndsFieldMessage (spelling : String) : String :=
   s!"'{spelling}' is not a value of any field of the machine's state structure"
 
 
+private def mapWithoutRefinesMessage : String :=
+  "`map:` says how this machine's state reads as another machine's, so `refines:` names that \
+machine; a `map:` without `refines:` maps to nothing"
+
+private def refinesWithoutMapMessage : String :=
+  "`refines:` names the machine this one refines, and `map:` names the function that reads this \
+machine's state as its state; a refinement needs both"
+
+private def undeclaredRefinedMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a machine declared by a `machine` command; `refines:` names the product \
+machine this one refines"
+
+private def mapShapeMessage (declName state refined : Name) : String :=
+  s!"'{declName}' is not a map from this machine's state to the refined machine's; `map:` names a \
+function `{state} → {refined}`"
+
+private def abstractFieldClashMessage (field : String) : String :=
+  s!"the state structure has a field named '{field}', which is the name the state this machine \
+reads as in the refined machine takes; rename the field"
+
+private def undecidedRefinementMessage (rows : Nat) : String :=
+  s!"the refinement did not decide over its {rows} rows, so no witness was synthesized; the \
+derived step mapping checked, so this is the size of the machine rather than its rows"
+
 /-- Elaborate one of a machine's generated declarations.
 
 A machine's definitions are as long as its state space: `DESIGN.md` section 3's protocol machine has
@@ -1485,8 +1600,16 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut setupParameters : Array (String × Name) := #[]
   let mut evidenceRefs : Array (Ident × Ident) := #[]
   let mut stepRefs : Array (Ident × Ident) := #[]
+  let mut refinesRef : Option Ident := none
+  let mut mapRef : Option Ident := none
   for entry in keys do
     match entry with
+    | `(machineKey| refines: $refinedRef:ident) => do
+        if refinesRef.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "refines:")
+        refinesRef := some refinedRef
+    | `(machineKey| map: $mapFn:ident) => do
+        if mapRef.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "map:")
+        mapRef := some mapFn
     | `(machineKey| for: $entityRef:ident) => do
         if entity.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "for:")
         let declName? ← try
@@ -1546,12 +1669,43 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- every path, the stuck check has no state it is allowed to stop in, and a Property that requires
   -- an instance to finish holds by never being reached. A machine says where it ends.
   if endRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "ends:")
+  -- A refinement is a `refines:` and a `map:` together: the machine refined, and the function that
+  -- reads this machine's state as its state. Neither says anything without the other.
+  let refinement ← match refinesRef, mapRef with
+    | none, none => pure none
+    | some refinedRef, none => throwErrorAt refinedRef refinesWithoutMapMessage
+    | none, some mapFn => throwErrorAt mapFn mapWithoutRefinesMessage
+    | some refinedRef, some mapFn => do
+        let declName? ← try
+            some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo refinedRef)
+          catch failure =>
+            if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+        let some refinedMachine := declName?.bind (Registry.machine? (← getEnv))
+          | throwErrorAt refinedRef (undeclaredRefinedMessage refinedRef.getId)
+        let some refinedModel := Registry.model? (← getEnv) refinedMachine.declName
+          | throwErrorAt refinedRef (undeclaredRefinedMessage refinedRef.getId)
+        pure (some (refinedRef, refinedMachine, refinedModel, mapFn))
   -- The state's members are the machine's states. A structure is an inductive of one constructor, so
   -- the same walk that writes an action's classes writes them, and the same refusals apply.
   let stateDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
   unless isStructure (← getEnv) stateDecl do
     throwErrorAt stateType (notAStateStructureMessage stateType.getId)
   let stateMembers ← domainMembers stateType stateDecl
+  -- The map is a function from this machine's state to the refined machine's, checked here at the
+  -- line that named it rather than inside the declarations generated from it.
+  if let some (_, _, refinedModel, mapFn) := refinement then
+    let mapDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo mapFn)
+    let some info := (← getEnv).find? mapDecl
+      | throwErrorAt mapFn (mapShapeMessage mapDecl stateDecl refinedModel.stateType)
+    liftTermElabM do
+      Meta.forallBoundedTelescope info.type (some 1) fun taken result => do
+        let shaped ← if taken.size != 1 then pure false else do
+          let carried ← Meta.inferType taken[0]!
+          let expectedState ← mkConstWithLevelParams stateDecl
+          let expectedRefined ← mkConstWithLevelParams refinedModel.stateType
+          pure ((← Meta.isDefEq carried expectedState) && (← Meta.isDefEq result expectedRefined))
+        unless shaped do
+          throwErrorAt mapFn (mapShapeMessage mapDecl stateDecl refinedModel.stateType)
   -- Every `steps:` line, resolved before anything is generated from any of them.
   let timerNames := timerRefs.map fun timerRef => timerRef.getId.getString!
   let mut steps : Array ResolvedStep := #[]
@@ -1855,9 +2009,11 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let setupType := mkIdentFrom name (name.getId ++ `Setup)
   -- The setup domain is the command's own: nothing else in a Model file mentions it, and varying a
   -- machine's table over its `setup:` parameters is task `.5`'s, so a machine carries one setup.
-  -- Its constructor is named after the machine's first start state, which is the convention the
-  -- `model` command set and what keeps a migrated Model's canonical setup key where it was.
-  let setupConstructor := Name.mkSimple (startKeys[0]!)
+  -- Its constructor is named after the machine's first start state as the `starts:` line spells
+  -- it -- the phase, not the key naming every field, which a structured state punctuates into
+  -- something no catalog key admits -- which is the convention the `model` command set and what
+  -- keeps a migrated Model's canonical setup key where it was.
+  let setupConstructor := Name.mkSimple (startRefs[0]!.getId.getString!)
   let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructor)
   -- The constructor is built rather than written: an identifier inside a quotation is hygienic, so a
   -- literal one would be declared under a macro scope and no name outside this command could
@@ -1890,13 +2046,34 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       match (Umpire.Command.members (α := $(mkIdent factType))).idxOf? recorded with
       | some at? => ($factKeysName)[at?]!
       | none => ""))
+  -- A refining machine reads each of its states as one of the refined machine's, and carries that
+  -- state as a field named after the refined machine: a Property on the refined machine is a claim
+  -- about that field here, read apart from the state the way any field is. The keys are computed
+  -- by the map itself, over the members, so the field says what the map says and nothing else.
+  let abstractKeys ← match refinement with
+    | none => pure #[]
+    | some (refinedRef, refinedMachine, _, mapFn) => do
+        if orderedFields.contains refinedMachine.name then
+          throwErrorAt refinedRef (abstractFieldClashMessage refinedMachine.name)
+        let abstractKeysName := mkIdentFrom name (name.getId ++ `abstractKeys)
+        let refinedStateKeyFor := mkIdent (refinedMachine.declName ++ `stateKeyFor)
+        elabGenerated (← `(command|
+          def $abstractKeysName : List String :=
+            (Umpire.Command.members (α := $stateType)).map fun state =>
+              $refinedStateKeyFor ($mapFn state)))
+        pure (← liftTermElabM
+          (evalStringList ((← getCurrNamespace) ++ abstractKeysName.getId))).toArray
   -- Each state's fields, in the structure's own field order: the field's name and the member this
   -- state holds it at. A Contract compares `attempts` as a number and `phase` as an enum, and
   -- reading them back out of the state key is the parsing the key exists to avoid.
-  let stateFieldList ← stateMembers.toArray.mapM fun member => do
+  let stateFieldList ← stateMembers.toArray.mapIdxM fun index member => do
     let held := match member with
       | .applied _ fields => fields
       | .atom _ => #[]
+    let held := match refinement, abstractKeys[index]? with
+      | some (_, refinedMachine, _, _), some key =>
+          held.push (refinedMachine.name, ClassValue.atom (Name.mkSimple key))
+      | _, _ => held
     let pairs ← held.mapM fun (field, value) =>
       `(term| ($(Lean.quote field), $(Lean.quote value.key)))
     `(term| [$pairs,*])
@@ -1945,6 +2122,49 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
   else
     throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
+  -- The refinement: the morphism this machine reads through, the step mapping derived from it and
+  -- reported at the `map:` line, and the witness -- the simulation's obligations over the two
+  -- tables, decided by the kernel over the rows rather than written by the author.
+  if let some (refinedRef, refinedMachine, refinedModel, mapFn) := refinement then
+    let refined := mkIdent refinedMachine.declName
+    let pairTerms := fun (pairs : List (String × String)) =>
+      pairs.toArray.mapM fun (protocol, product) =>
+        `(term| ($(Lean.quote protocol), $(Lean.quote product)))
+    let outcomePairs ← pairTerms
+      (sameNamedPairs (outcomeMembers.map (·.key)) refinedModel.outcomes.toList)
+    let factPairs ← pairTerms (sameNamedPairs (factMembers.map (·.key)) refinedModel.facts.toList)
+    let refinedOutcomeType := mkIdent refinedModel.outcomeType
+    let refinedFactType := mkIdent refinedModel.factType
+    let abstractionName := mkIdentFrom name (name.getId ++ `abstraction)
+    elabGenerated (← `(command|
+      def $abstractionName : Umpire.RefinementMorphism $setupType $stateType
+          $(mkIdent outcomeType) $(mkIdent factType)
+          $(mkIdent (refinedMachine.declName ++ `Setup)) $(mkIdent refinedModel.stateType)
+          $refinedOutcomeType $refinedFactType :=
+        Umpire.Command.refinementMorphism ($refined).setupValue $mapFn
+          $outcomeKeyForName (Umpire.Command.members (α := $refinedOutcomeType))
+          $(mkIdent (refinedMachine.declName ++ `outcomeKeyFor)) [$outcomePairs,*]
+          $factKeyForName (Umpire.Command.members (α := $refinedFactType))
+          $(mkIdent (refinedMachine.declName ++ `factKeyFor)) [$factPairs,*]))
+    let reportName := mkIdentFrom name (name.getId ++ `refinement)
+    elabGenerated (← `(command|
+      def $reportName : Umpire.Command.RefinementReport :=
+        Umpire.Command.deriveRefinement ($name) ($refined) $abstractionName
+          $(Lean.quote name.getId.toString) $(Lean.quote refinedMachine.name)))
+    let report ← liftTermElabM (evalRefinementReport ((← getCurrNamespace) ++ reportName.getId))
+    if let some rejected := report.rejected then
+      throwErrorAt mapFn rejected
+    let witnessName := mkIdentFrom name (name.getId ++ `refines)
+    elabGenerated (← `(command|
+      theorem $witnessName :
+          Umpire.TableRefinement ($name).table ($refined).table $abstractionName :=
+        Umpire.TableRefinement.ofChecked (by decide +kernel)))
+    let witness := (← getCurrNamespace) ++ witnessName.getId
+    let decided ← if (← getEnv).contains witness then
+        pure !(← liftCoreM (Lean.collectAxioms witness)).contains ``sorryAx
+      else pure false
+    unless decided do
+      throwErrorAt refinedRef (undecidedRefinementMessage report.rows.length)
   -- A machine declares a Model, so `property`, `scenario` and `query` have to see one. What they
   -- resolve members by is the key the table carries -- a state's key names every field of the
   -- structure -- because that is what the emitted rows, the Behavior Fingerprint and a Contract all
@@ -1971,7 +2191,11 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     timers := timerNames
     unobservable := unobservableNames
     evidence := evidenceRefs.map fun (recordedRef, observedRef) =>
-      (recordedRef.getId.getString!, observedRef.getId.getString!) })
+      (recordedRef.getId.getString!, observedRef.getId.getString!)
+    refines := refinement.map fun (_, refinedMachine, _, _) => refinedMachine.declName
+    abstraction := match refinement with
+      | some (_, _, _, mapFn) => mapFn.getId
+      | none => .anonymous })
 
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
