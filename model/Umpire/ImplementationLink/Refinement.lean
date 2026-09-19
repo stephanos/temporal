@@ -17,8 +17,8 @@ the same: `traceForward` carries every admitted trace of the detailed machine to
 of the simpler one, so a Property established on the simpler machine's paths holds on the detailed
 machine's paths read through the map.
 
-A refinement is not an Implementation Link. SEM-08 reserves that name for connecting
-`Temporal.Feature` to `Temporal.System`; a refinement connects two machines of one feature, and it
+A refinement is not an Implementation Link. SEM-08 reserves that name for connecting a feature
+model to the platform's system model; a refinement connects two machines of one feature, and it
 carries no Link-owned declaration, coverage or fingerprint. What it reuses is the simulation.
 -/
 
