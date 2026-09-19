@@ -269,7 +269,11 @@ theorem undeclaredResultIsRejected :
     (runCheck (authoredTable := invalidResultTable)).toOption.isNone := by
   native_decide
 
-theorem outgoingTerminalTransitionIsRejected :
+/- A step out of an end state is admitted since fn-85 `.6` -- a machine's table says what happens
+in every state, and `DESIGN.md` writes completions that arrive after the operation is over -- so
+this table is refused for the reason that remains: the row is one the declared machine does not
+have, and a Query runs on the machine as declared. -/
+theorem outgoingTerminalTransitionIsNoncanonical :
     (runCheck (authoredTable := outgoingTerminalTable)).toOption.isNone := by
   native_decide
 

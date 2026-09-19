@@ -237,6 +237,38 @@ every Case built from one.
 The check reuses the forward simulation inside `Umpire.ImplementationLink`. A refinement is not an
 Implementation Link: SEM-08 reserves that name for connecting `Temporal.Feature` to `Temporal.System`.
 
+> Amended during fn-85 `.6`, 2026-09-19. The `map:` above is written in the row grammar the user's
+> 2026-09-12 decision replaced with ordinary Lean, so a machine names a function instead:
+>
+> ```lean
+> def productOf (state : ProtocolState) : ProductState :=
+>   { phase := match state.phase with
+>     | .unscheduled | .scheduled | .backingOff => .scheduled
+>     | .started => .started
+>     | .succeeded => .succeeded
+>     | .failed => .failed
+>     | .canceled => .canceled
+>     | .timedOut => .timedOut }
+>
+> machine nexusProtocol
+>   for: operation
+>   refines: nexusProduct
+>   map: productOf
+> ```
+>
+> A field the map does not read is hidden by not being read, and `unscheduled` reads as `scheduled`
+> because the product machine begins there, which makes the schedule command a stutter. Outcomes
+> and facts read as the product's value of the same name, a fact's constructor covering its members
+> the way an `evidence:` line does; a fact the product does not name is one the product does not
+> see, and an outcome it does not name rejects. A product step may record less than the protocol
+> step it carries (a completion before the start records the Started event first), never more. The
+> product machine gains one timer, `timeout`, because a deadline firing is neither a stutter nor a
+> step a product without one could take. The derived step mapping is read back as
+> `nexusProtocol.refinement`, the witness `nexusProtocol.refines` is decided by the kernel over the
+> rows, and a Property on `nexusProduct` is read on `nexusProtocol` through a state field named
+> `nexusProduct` that carries the product state each protocol state reads as. The simulation is
+> `Umpire.ImplementationLink.Refinement`, a forward simulation that may stutter.
+
 ### 2.6 Set
 
 A set names a purpose, the Queries it runs (or, for exploration, what it must cover), and how each

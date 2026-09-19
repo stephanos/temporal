@@ -46,6 +46,11 @@ structure ModelEntry where
 structure PropertyEntry where
   declName : Name
   model : Name
+  /-- The Action spellings its same-step claims are about, and the outcome and fact spellings its
+  clauses fix: what a Query over a refining machine needs the refining machine to name. -/
+  actions : Array String := #[]
+  outcomes : Array String := #[]
+  facts : Array String := #[]
   deriving Inhabited, Repr, BEq
 
 /-- One Scenario declaration and the Action spellings it selects, in declaration order, with the
@@ -130,6 +135,10 @@ structure MachineEntry where
   unobservable : Array String
   /-- Each `evidence:` line as (the fact the steps return, the observation that confirms it). -/
   evidence : Array (String × String)
+  /-- The Model this machine `refines:`, as its declaration name, and the `map:` from this
+  machine's state to its state. A Property on that Model is read on this machine's paths. -/
+  refines : Option Name := none
+  abstraction : Name := .anonymous
   deriving Inhabited, Repr, BEq
 
 /-- One declared observation: the entity whose key finds its instance, and the field it reads. -/
