@@ -31,6 +31,11 @@ structure CheckedModel
   planning : FinitePlanningAvailability machine.authoritativeStep := .unavailable
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
+  /-- The fields each state holds, as model values under the fields' own definitions, for an
+  evaluator that reads a state's field apart from the state. Empty for a Model whose states are
+  atoms, which is what every Model was before machines kept structured state; it is derived from
+  the declared definitions and keys, so it is not part of the canonical metadata. -/
+  stateFields : State → List ModelValue := fun _ => []
 
 private structure ProvidersPayload (LawStatement : Law → Prop) where
   providers : List (Provider LawStatement)
@@ -525,6 +530,14 @@ def CheckedModel.withEquivalentMachine
   machine
   planning
 }
+
+/-- The same checked Model, reading each state's fields through `fields`. Nothing checked changes:
+the fields are a way of reading states the Model already distinguishes. -/
+def CheckedModel.withStateFields
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation)
+    (fields : State → List ModelValue) :
+    CheckedModel LawStatement Setup State Action Outcome Observation :=
+  { target with stateFields := fields }
 
 def canonicalCheckedModelJson
     (target : CheckedModel LawStatement Setup State Action Outcome Observation) : String :=

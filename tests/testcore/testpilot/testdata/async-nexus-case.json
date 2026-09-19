@@ -9,7 +9,7 @@
     "definitions": [
       {
         "definitionId": "temporal.nexus.success.target.lifecycle",
-        "behaviorFingerprint": "sha256:969c090cb98c99d33e06e548ecc07b502bf7d7f675d7701f95017c2c6c41730e",
+        "behaviorFingerprint": "sha256:ab88925312771a4f479873b30f217133afcbb910c9ff40f9605131bf569ec926",
         "kind": "DEFINITION_KIND_TARGET"
       },
       {
@@ -19,12 +19,12 @@
       },
       {
         "definitionId": "temporal.nexus.success.query.completion",
-        "behaviorFingerprint": "sha256:7c68ba7fc67e93ab3dc8c42b07a3980b1d9372c523380bc31ef9f1af3da0fbc0",
+        "behaviorFingerprint": "sha256:4f8c3ca0f2c335d3f74b52ad8011820f1a1e821b106efc2bc4c1ecaa318a0be1",
         "kind": "DEFINITION_KIND_QUERY"
       },
       {
         "definitionId": "temporal.nexus.success.property.successfulResult",
-        "behaviorFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "behaviorFingerprint": "sha256:cb27ee93f26387eaca3da35a5d7bf648e01d76bf76afbd5baee7bcfe5976345a",
         "kind": "DEFINITION_KIND_PROPERTY"
       }
     ],
@@ -72,9 +72,9 @@
       {
         "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
         "propertyId": "temporal.nexus.success.property.successfulResult",
-        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "propertyFingerprint": "sha256:cb27ee93f26387eaca3da35a5d7bf648e01d76bf76afbd5baee7bcfe5976345a",
         "projectionId": "temporal.nexus.success.projection",
-        "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
+        "projectionFingerprint": "sha256:06447544871f41d69ab1a4c084e2947e453244ad458c15a4102d23f497266a44",
         "source": {
           "path": "Temporal/Feature/Nexus/Success/Model.lean",
           "line": 1,
@@ -85,9 +85,9 @@
       {
         "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
         "propertyId": "temporal.nexus.success.property.successfulResult",
-        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "propertyFingerprint": "sha256:cb27ee93f26387eaca3da35a5d7bf648e01d76bf76afbd5baee7bcfe5976345a",
         "projectionId": "temporal.nexus.success.projection",
-        "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
+        "projectionFingerprint": "sha256:06447544871f41d69ab1a4c084e2947e453244ad458c15a4102d23f497266a44",
         "source": {
           "path": "Temporal/Feature/Nexus/Success/Model.lean",
           "line": 1,
@@ -512,7 +512,7 @@
     "contractId": "temporal.case.async-nexus.contract",
     "correlated": {
       "projectionId": "projection",
-      "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
+      "projectionFingerprint": "sha256:06447544871f41d69ab1a4c084e2947e453244ad458c15a4102d23f497266a44",
       "evidenceObservationId": "correlated-evidence",
       "scopeFields": [
         "run"

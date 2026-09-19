@@ -945,7 +945,8 @@ private def observeCandidate
   let mut current : PlanningObservations := { nonempty := true }
   for property in query.form.properties.mergeSort (fun left right =>
       decide (left.id.value ≤ right.id.value)) do
-    let input ← (checkPropertyEvaluationInput property candidate.trace).mapError fun error => {
+    let input ← (checkPropertyEvaluationInput property candidate.trace
+        query.target.stateFields).mapError fun error => {
       kind := QueryErrorKind.propertyEvaluationFailure
       definitionId := query.id
       sourcePath := error.sourcePath
