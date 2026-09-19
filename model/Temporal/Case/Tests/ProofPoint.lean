@@ -20,7 +20,11 @@ roles, slots, observations, entrypoints, instruction ids, guards, limits and dep
 everywhere but in the three bound instructions themselves: since fn-85 .8 the realization binds each
 class to the typed worker instruction that carries its API message, where the template keeps the
 untyped ones until fn-86 removes them, so the comparison erases those three instructions' messages
-on both sides and pins the typed shapes separately.
+on both sides and pins the typed shapes separately. Since fn-85 .10 one realization plan serves
+every Query of the caller set, which costs two scaffolding differences the comparison also sets
+aside and pins on their own: the controller waits for the workflow to close before it reads history,
+because a synchronous or failed operation gives it nothing else to wait on, and the workflow
+finishes with a literal under a guard that runs it whether or not the operation succeeded.
 
 What this does not yet compare is the whole Case. A Case's Contract is derived from the checked
 Property's clauses and the Scenario's action order, so re-authoring the Model's two waits
@@ -81,15 +85,46 @@ differently: untyped in the template, typed in the realization. -/
 private def boundIds : List String :=
   ["start-nexus-operation", "respond-async", "complete-nexus-operation"]
 
-/-- A Program with the bound instructions' messages erased, so what remains is the scaffolding, the
-placement and every coordinate a Contract reads back through. -/
+/-- The one instruction the realization spells differently for every path: its finish returns a
+literal under an unconditional guard, where the template's returns the awaited payload. -/
+private def finishId : String := "finish-workflow"
+
+/-- The one node the realization adds on every path: the close-event read before the history read.
+-/
+private def awaitCloseId : String := "await-close"
+
+/-- A Program with the bound instructions' messages erased and the two path-serving differences set
+aside, so what remains is the scaffolding, the placement and every coordinate a Contract reads back
+through. -/
 private def scaffolding (program : Except Umpire.Case.Compiler.Error Program) :
     Except Umpire.Case.Compiler.Error Program :=
   program.map fun program =>
     { program with entrypoints := program.entrypoints.map fun entrypoint =>
-        { entrypoint with instructions := entrypoint.instructions.map fun node =>
-            if boundIds.contains node.instruction_id then { node with instruction := none }
-            else node } }
+        { entrypoint with instructions :=
+            (entrypoint.instructions.filter (·.instruction_id != awaitCloseId)).map fun node =>
+              if boundIds.contains node.instruction_id then { node with instruction := none }
+              else if node.instruction_id == finishId then
+                { node with instruction := none, guard := none }
+              else node } }
+
+/-- The instruction ids of one entrypoint of the assembled Program, in order. -/
+private def assembledIds (entrypointId : String) : List String :=
+  match assembledProgram with
+  | .ok program =>
+      ((program.entrypoints.find? (·.entrypoint_id == entrypointId)).map fun entrypoint =>
+        entrypoint.instructions.toList.map (·.instruction_id)).getD []
+  | .error _ => []
+
+/- The two differences set aside, pinned: the close-event read sits between the completion and the
+history read, and the finish runs under an unconditional guard. -/
+#guard assembledIds "controller" ==
+  ["start-workflow", "await-completion-authority", "complete-nexus-operation", "await-close",
+    "history"]
+#guard (match assembledProgram with
+  | .ok program =>
+      ((program.entrypoints.find? (·.entrypoint_id == "workflow")).bind fun entrypoint =>
+        (entrypoint.instructions.find? (·.instruction_id == finishId)).map (·.guard.isSome))
+  | .error _ => none) == some true
 
 /- **The proof point.** Outside the three bound instructions, the assembled Program is byte-identical
 to the template's, so the path and the class bindings carry everything the template wrote by hand:
@@ -159,10 +194,11 @@ private def instructionIds
 #guard entrypointIds assembledProgram == ["controller", "workflow", "handler"]
 
 /- The controller interleaves scaffolding and one action: it starts the workflow, waits for the
-authority, performs the completion, then reads history. Reproducing this sequence from item order is
-what the design claims. -/
+authority, performs the completion, waits for the workflow to close, then reads history. Reproducing
+this sequence from item order is what the design claims. -/
 #guard instructionIds assembledProgram "controller" ==
-  ["start-workflow", "await-completion-authority", "complete-nexus-operation", "history"]
+  ["start-workflow", "await-completion-authority", "complete-nexus-operation", "await-close",
+    "history"]
 
 /- The workflow schedules the operation, then waits and finishes as scaffolding. -/
 #guard instructionIds assembledProgram "workflow" ==
@@ -172,8 +208,10 @@ what the design claims. -/
 #guard instructionIds assembledProgram "handler" == ["respond-async"]
 
 /- Each entrypoint's sequence matches the template's, which is where the dependency edges come from:
-after fn-87 an instruction depends on the one before it in its entrypoint unless it says otherwise. -/
-#guard instructionIds assembledProgram "controller" == instructionIds templateProgram "controller"
+after fn-87 an instruction depends on the one before it in its entrypoint unless it says otherwise.
+The one addition is the close-event read every path of the caller set needs. -/
+#guard (instructionIds assembledProgram "controller").filter (· != awaitCloseId) ==
+  instructionIds templateProgram "controller"
 #guard instructionIds assembledProgram "workflow" == instructionIds templateProgram "workflow"
 #guard instructionIds assembledProgram "handler" == instructionIds templateProgram "handler"
 
@@ -215,6 +253,6 @@ sees a duplicate. The retry Query of fn-85 .11 is the first Model that needs it.
     ((Temporal.Case.Realization.asyncNexus service operation).program identity
       (path := path ++ [Temporal.Case.Realization.Nexus.completeAction])) "controller" ==
   ["start-workflow", "await-completion-authority", "complete-nexus-operation",
-    "complete-nexus-operation-2", "history"]
+    "complete-nexus-operation-2", "await-close", "history"]
 
 end Temporal.Case.Tests.ProofPoint

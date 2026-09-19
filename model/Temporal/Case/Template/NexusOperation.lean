@@ -50,6 +50,10 @@ def runFieldId : DefinitionId := .of "temporal.nexus.success.scope.run"
 def operationFieldId : DefinitionId := .of "temporal.nexus.success.scope.operation"
 def startedEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.started"
 def completedEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.completed"
+def scheduledEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.scheduled"
+def failedEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.failed"
+def canceledEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.canceled"
+def timedOutEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.timedOut"
 
 /-- A started or a completed Nexus event records the scheduled event it answers and nothing else
 that names its operation, so that scheduled event id is the operation key on every side. -/
@@ -69,6 +73,29 @@ def startedSource : Umpire.Case.Producer.EvidenceSource :=
 
 def completedSource : Umpire.Case.Producer.EvidenceSource :=
   historySource "nexusOperationCompleted" completedEvidenceKindId
+
+def failedSource : Umpire.Case.Producer.EvidenceSource :=
+  historySource "nexusOperationFailed" failedEvidenceKindId
+
+def canceledSource : Umpire.Case.Producer.EvidenceSource :=
+  historySource "nexusOperationCanceled" canceledEvidenceKindId
+
+def timedOutSource : Umpire.Case.Producer.EvidenceSource :=
+  historySource "nexusOperationTimedOut" timedOutEvidenceKindId
+
+/-- The scheduled event is the one every other event of the operation names, so its own event id is
+the operation key, read from the event rather than from its attributes. -/
+def scheduledSource : Umpire.Case.Producer.EvidenceSource :=
+  let kind := "nexusOperationScheduled"
+  { eventKind := kind
+    recorded := .historyEvent ((EventKind.attributesField? kind).getD kind)
+    operationKeyPath := field "event_id"
+    kindId := scheduledEvidenceKindId
+    sourceId := evidenceSourceId }
+
+/-- Every history event kind a caller-side operation records, each keyed by the scheduled event. -/
+def historySources : List Umpire.Case.Producer.EvidenceSource :=
+  [scheduledSource, startedSource, completedSource, failedSource, canceledSource, timedOutSource]
 
 /-! ### The read source
 
@@ -126,6 +153,11 @@ def startWorkflowNode (workflowType : String) : InstructionNode :=
     Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
     assign (field "request_id") runId
   ] #[]
+
+/-- The close-event read: `GetWorkflowExecutionHistory` with the close-event filter resolves only
+once the workflow closes, so a read placed after it observes the whole history. -/
+def awaitCloseNode : InstructionNode :=
+  rpc "await-close" getHistoryMethod closeReadAssignments #[]
 
 /-- The full history read, run once the instruction before it succeeded. -/
 def historyNode
@@ -218,7 +250,7 @@ private def syncPlan (service operation : String) : Umpire.Case.Producer.Program
         .fixed fun identity _ => startWorkflowNode (workflowTypeOf identity),
         -- Nothing else in the controller observes the workflow, so this close-event read is what
         -- orders the full read after the operation completed.
-        .fixed fun _ _ => rpc "await-close" getHistoryMethod closeReadAssignments #[],
+        .fixed fun _ _ => awaitCloseNode,
         .fixed fun identity resolved => historyNode identity resolved] },
     { activate := fun identity nodes =>
         workflowEntrypointWith (workflowTypeOf identity) service operation nodes

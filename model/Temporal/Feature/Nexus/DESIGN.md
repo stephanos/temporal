@@ -303,8 +303,11 @@ Evidence mappings under `Temporal.System`, so this placement needs a rule amendm
 
 ## 3. Specimen
 
-The caller side of one workflow-scheduled Nexus operation on the HSM implementation. Cancellation is
-included to show a second state field; delivering it is fn-79's deferred scope, not fn-85's.
+The caller side of one workflow-scheduled Nexus operation, as `model/Temporal/Feature/Nexus/Caller/Model.lean`
+writes it since fn-85 `.10`: the Model file is the specimen, and the blocks below are its regions
+(`-- authoring: <name>` markers) in the landed grammar. Cancellation is fn-79's deferred scope and
+is not in the Model; the concurrency-limit rejection is not modeled either (the amendment at the end
+of this section says why).
 
 ```lean
 entity workflow
@@ -333,10 +336,6 @@ enum Resolution
 enum Delivery
   | accepted
   | notFound
-
-enum CancelReply
-  | delivered
-  | handlerError (retryable : Bool)
 
 -- Parties: caller, handler, network, worker. The reserved party `system` is the server.
 action schedule
@@ -372,22 +371,18 @@ action transportFault
 action workerStop                                 -- the handler's worker stops polling
   party: worker
 
-action requestCancel                              -- fn-79
-  party: caller
-  on: operation
-  schema: temporal.api.command.v1.RequestCancelNexusOperationCommandAttributes
-
-action cancelReply                                -- fn-79
-  party: handler
-  on: operation
-  schema: temporal.api.nexus.v1.CancelOperationResponse | temporal.api.nexus.v1.HandlerError
-  input:
-    reply: CancelReply
-
 observation pendingAttempts
   on: operation
   read: attempts
+```
 
+A machine is a structure of finite fields and one step function per action: the function returns
+every successor the Model permits from a state, and the empty list where the action is not
+permitted. The `machine` command enumerates the functions over the structure into the finite table
+that Search, the Behavior Fingerprint and Contract lowering read. The product machine says what an
+operation does:
+
+```lean
 enum ProductPhase
   | scheduled
   | started
@@ -396,17 +391,74 @@ enum ProductPhase
   | canceled
   | timedOut
 
+structure ProductState where
+  phase : ProductPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum ProductOutcome
+  | accepted
+  | notFound
+
+enum ProductFact
+  | nexusOperationScheduled
+  | nexusOperationStarted
+  | nexusOperationCompleted
+  | nexusOperationFailed
+  | nexusOperationCanceled
+  | nexusOperationTimedOut
+  | faultInjected
+
+def handlerReplyStep (state : ProductState) (reply : Reply) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if state.phase != .scheduled then [] else
+  match reply with
+  | .syncSuccess => productStep .succeeded .nexusOperationCompleted
+  | .async => productStep .started .nexusOperationStarted
+  | .operationFailed => productStep .failed .nexusOperationFailed
+  | .operationCanceled => productStep .canceled .nexusOperationCanceled
+  | .handlerError true => []                      -- the product cannot see a retry
+  | .handlerError false => productStep .failed .nexusOperationFailed
+
+def completeStep (state : ProductState) (resolution : Resolution) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if productTerminal state then [{ outcome := .notFound, state, facts := [] }]
+  else match resolution with
+    | .succeeded => productStep .succeeded .nexusOperationCompleted
+    | .failed => productStep .failed .nexusOperationFailed
+    | .canceled => productStep .canceled .nexusOperationCanceled
+
+-- transportFaultStep returns []; workerStopStep records faultInjected and keeps the state;
+-- timeoutStep moves scheduled or started to timedOut and records nexusOperationTimedOut.
+
 machine nexusProduct
   for: operation
+  state: ProductState
+  starts: [scheduled]
   ends: [succeeded, failed, canceled, timedOut]
-  state:
-    phase: ProductPhase
+  timers: [timeout]
+  evidence:
+    nexusOperationStarted: nexusOperationStarted
+    nexusOperationCompleted: nexusOperationCompleted
+    nexusOperationFailed: nexusOperationFailed
+    nexusOperationCanceled: nexusOperationCanceled
+    nexusOperationTimedOut: nexusOperationTimedOut
+    faultInjected: faultInjected
   steps:
-    none → phase: scheduled
-    phase: scheduled → phase: started | succeeded | failed | canceled | timedOut
-    phase: started → phase: succeeded | failed | canceled | timedOut
+    handlerReply: handlerReplyStep
+    complete: completeStep
+    transportFault: transportFaultStep
+    workerStop: workerStopStep
+    timeout: timeoutStep
+```
 
+The protocol machine says how the server gets there and refines the product machine through a map
+from its state to the product's. It begins before the operation exists (`unscheduled`), because a
+state structure has no "no instance yet" member and the schedule command is what sets the three
+deadline fields:
+
+```lean
 enum Phase
+  | unscheduled
   | scheduled
   | backingOff
   | started
@@ -415,115 +467,166 @@ enum Phase
   | canceled
   | timedOut
 
-enum CancelPhase
-  | notRequested
-  | requested
-  | delivering
-  | delivered
-  | rejected
+enum TimeoutType
+  | scheduleToClose
+  | scheduleToStart
+  | startToClose
+
+abbrev attemptBound : Nat := 2
+
+structure ProtocolState where
+  phase : Phase
+  attempts : Fin (attemptBound + 1)
+  scheduleToClose : Timeout
+  scheduleToStart : Timeout
+  startToClose : Timeout
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum ProtocolFact
+  | nexusOperationScheduled
+  | nexusOperationStarted
+  | nexusOperationCompleted
+  | nexusOperationFailed
+  | nexusOperationCanceled
+  | nexusOperationTimedOut (timeoutType : TimeoutType)
+  | pendingAttempts
+  | faultInjected
+
+def scheduleStep (state : ProtocolState)
+    (scheduleToClose scheduleToStart startToClose : Timeout) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .unscheduled then [] else
+  [{ outcome := .accepted
+     state := { phase := .scheduled, attempts := 0, scheduleToClose, scheduleToStart, startToClose }
+     facts := [.nexusOperationScheduled] }]
+
+def protocolHandlerReplyStep (state : ProtocolState) (reply : Reply) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .scheduled then [] else
+  match reply with
+  | .syncSuccess => moves state .succeeded [.nexusOperationCompleted]
+  | .async => moves state .started [.nexusOperationStarted]
+  | .operationFailed => moves state .failed [.nexusOperationFailed]
+  | .operationCanceled => moves state .canceled [.nexusOperationCanceled]
+  | .handlerError false => moves state .failed [.nexusOperationFailed]
+  | .handlerError true =>                          -- retry: no history event, the count is read back
+      [{ outcome := .accepted
+         state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
+         facts := [.pendingAttempts] }]
+
+-- protocolTransportFaultStep is the retryable arm arriving as a dropped delivery;
+-- protocolWorkerStopStep records faultInjected and keeps the state.
+
+def protocolCompleteStep (state : ProtocolState) (resolution : Resolution) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if terminalPhase state.phase then [{ outcome := .notFound, state, facts := [] }]
+  else if state.phase == .unscheduled then []
+  else
+    -- before a start, the server records a Started event first
+    let startedFirst : List ProtocolFact :=
+      if state.phase == .started then [] else [.nexusOperationStarted]
+    match resolution with
+    | .succeeded => moves state .succeeded (startedFirst ++ [.nexusOperationCompleted])
+    | .failed => moves state .failed (startedFirst ++ [.nexusOperationFailed])
+    | .canceled => moves state .canceled (startedFirst ++ [.nexusOperationCanceled])
+
+-- backoffStep moves backingOff to scheduled and records nothing.
+-- Each deadline fires only when the schedule command set it, over its own span:
+-- scheduleToClose in every running phase, scheduleToStart until the start, startToClose after it.
+
+def productOf (state : ProtocolState) : ProductState :=
+  { phase := match state.phase with
+    | .unscheduled | .scheduled | .backingOff => .scheduled
+    | .started => .started
+    | .succeeded => .succeeded
+    | .failed => .failed
+    | .canceled => .canceled
+    | .timedOut => .timedOut }
 
 machine nexusProtocol
   for: operation
+  state: ProtocolState
   refines: nexusProduct
-  map:
-    phase: backingOff → scheduled
-    attempts, cancel, scheduleToClose, scheduleToStart, startToClose → hidden
+  map: productOf
+  starts: [unscheduled]
   ends: [succeeded, failed, canceled, timedOut]
-  state:
-    phase: Phase
-    cancel: CancelPhase
-    attempts: count
-    scheduleToClose: Timeout
-    scheduleToStart: Timeout
-    startToClose: Timeout
-  setup:
-    atConcurrencyLimit: Bool
-    recordCancelCompletion: Bool
   timers: [backoff, scheduleToClose, scheduleToStart, startToClose]
+  unobservable: [backoff]
+  evidence:
+    nexusOperationScheduled: nexusOperationScheduled
+    nexusOperationStarted: nexusOperationStarted
+    nexusOperationCompleted: nexusOperationCompleted
+    nexusOperationFailed: nexusOperationFailed
+    nexusOperationCanceled: nexusOperationCanceled
+    nexusOperationTimedOut: nexusOperationTimedOut
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
   steps:
-    -- rejection first: the first matching row applies
-    atConcurrencyLimit: true + schedule
-      → reject, evidence: workflowTaskFailed
-    none + schedule (scheduleToClose := c, scheduleToStart := s, startToClose := t)
-      → phase: scheduled, cancel: notRequested, attempts: 0,
-        scheduleToClose: c, scheduleToStart: s, startToClose: t,
-        evidence: nexusOperationScheduled
+    schedule: scheduleStep
+    handlerReply: protocolHandlerReplyStep
+    complete: protocolCompleteStep
+    transportFault: protocolTransportFaultStep
+    workerStop: protocolWorkerStopStep
+    backoff: backoffStep
+    scheduleToClose: scheduleToCloseStep
+    scheduleToStart: scheduleToStartStep
+    startToClose: startToCloseStep
+```
 
-    -- the handler's reply to the server's start request
-    phase: scheduled + handlerReply (syncSuccess)
-      → phase: succeeded, evidence: nexusOperationCompleted
-    phase: scheduled + handlerReply (async)
-      → phase: started, evidence: nexusOperationStarted
-    phase: scheduled + handlerReply (operationFailed | handlerError (retryable := false))
-      → phase: failed, evidence: nexusOperationFailed
-    phase: scheduled + handlerReply (operationCanceled)
-      → phase: canceled, evidence: nexusOperationCanceled
-    phase: scheduled + handlerReply (handlerError (retryable := true)) | transportFault
-      → phase: backingOff, attempts: +1, evidence: pendingAttempts
-    phase: backingOff + after (backoff)
-      → phase: scheduled
-    + workerStop
-      → evidence: faultInjected
+A Property is a predicate over the step an action produces (`Step → Bool` under `when:`) or over
+the step before and the step after (`Step → Step → Bool`, no `when:`); the command enumerates it
+over the machine's table into the clauses Search and the Case read. A functional Query realizes a
+same-step claim, because the Case's Contract is that claim's clause triggered by the action the
+Case performs; a transition claim is searched and verified, never realized (section 2.5).
 
-    -- an async completion; before a start, the server records a Started event first
-    phase: scheduled | backingOff | started + complete (succeeded)
-      → phase: succeeded, result: accepted,
-        evidence: nexusOperationStarted when phase: scheduled | backingOff, nexusOperationCompleted
-    phase: scheduled | backingOff | started + complete (failed)
-      → phase: failed, result: accepted,
-        evidence: nexusOperationStarted when phase: scheduled | backingOff, nexusOperationFailed
-    phase: scheduled | backingOff | started + complete (canceled)
-      → phase: canceled, result: accepted,
-        evidence: nexusOperationStarted when phase: scheduled | backingOff, nexusOperationCanceled
-    terminal + complete
-      → result: notFound
-
-    -- timers fire only when the schedule command set them
-    phase: scheduled | backingOff | started, scheduleToClose: expires + after (scheduleToClose)
-      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := scheduleToClose)
-    phase: scheduled | backingOff, scheduleToStart: expires + after (scheduleToStart)
-      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := scheduleToStart)
-    phase: started, startToClose: expires + after (startToClose)
-      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := startToClose)
-
-    -- cancellation (fn-79)
-    not terminal, cancel: notRequested + requestCancel
-      → cancel: requested, evidence: nexusOperationCancelRequested
-    phase: started, cancel: requested
-      → cancel: delivering
-    cancel: delivering + cancelReply (delivered)
-      → cancel: delivered,
-        evidence: nexusOperationCancelRequestCompleted when recordCancelCompletion: true
-    cancel: delivering + cancelReply (handlerError (retryable := false))
-      → cancel: rejected,
-        evidence: nexusOperationCancelRequestFailed when recordCancelCompletion: true
-
+```lean
 -- A product Property, carried to every protocol path by the refinement.
 property terminalIsFinal
   machine: nexusProduct
-  when: terminal
-  require: phase unchanged
+  holds: fun before after =>
+    !(productTerminal before.state) || after.state.phase == before.state.phase
 
--- A bounded-progress Property (SEM-09): the bound is the timer the schedule command set.
-property endsBySchedulingDeadline
+-- Queries 1 to 4: one same-step claim per side effect that settles the operation.
+property syncSucceeds
   machine: nexusProtocol
-  when: schedule (scheduleToClose := expires)
-  require: terminal
-  within: after (scheduleToClose)
+  when: handlerReply (syncSuccess)
+  holds: fun step =>
+    step.state.phase == .succeeded && step.facts.contains .nexusOperationCompleted
+
+property completionSucceeds                        -- neither phase nor outcome fixed: a completion
+  machine: nexusProtocol                            -- resolves any running phase, and `accepted` is
+  when: complete (succeeded)                        -- every earlier step's outcome too
+  holds: fun step => step.facts.contains .nexusOperationCompleted
+
+property completionFails
+  machine: nexusProtocol
+  when: complete (failed)
+  holds: fun step => step.facts.contains .nexusOperationFailed
+
+property handlerErrorFails
+  machine: nexusProtocol
+  when: handlerReply (handlerError false)
+  holds: fun step => step.state.phase == .failed && step.facts.contains .nexusOperationFailed
 
 scenario asyncThenSucceeded
-  machine: nexusProtocol
-  actions: [schedule, handlerReply (async), complete (succeeded)]
+  model: nexusProtocol
+  starts: unscheduled
+  actions: [schedule (unset, unset, unset), handlerReply (async), complete (succeeded)]
 
-limits short
-  steps: 4
+limits three
+  steps: 3
   actions: 3
-  search: 32
+  search: 4096
 
 query asyncCompletion
-  find: terminalIsFinal
+  find: completionSucceeds
   in: asyncThenSucceeded
-  limits: short
+  limits: three
+
+query terminalHolds                               -- the product claim, outside the set
+  verify: terminalIsFinal
+  in: asyncThenSucceeded
+  limits: three
 
 set nexusCallerTests
   purpose: functional
@@ -533,38 +636,46 @@ set nexusCallerTests
     network: observed
     worker: driven
   repeat: implementation
-  queries: [syncCompletion, asyncCompletion, retryAfterHandlerError, scheduleToStartTimeout]
+  queries: [syncCompletion, asyncCompletion, asyncFailure, handlerError]
 
-set nexusCallerCanary
-  purpose: canary
-  bind:
-    caller: driven
-    handler: observed
-    network: observed
-    worker: observed
-  queries: [syncCompletion, asyncCompletion]
+case nexusCallerCases
+  realizes nexusCallerTests
+  as nexusOperation service "umpire.case.service" operation "complete" realized by asyncNexus
 ```
 
-> Amended during fn-85 `.15`, 2026-09-19. The two Properties above are written with a keyed
-> `require:` block, which the user's 2026-09-12 decision replaced with an ordinary Lean predicate
-> by the same rule that replaced rows with step functions. A same-step claim is `Step → Bool` under
-> `when:`; a transition claim such as `terminalIsFinal` is `Step → Step → Bool` over the step before
-> and the step after, with no `when:`:
->
-> ```lean
-> property terminalIsFinal
->   machine: nexusProduct
->   holds: fun before after => !(terminal before.state) || after.state.phase == before.state.phase
-> ```
->
-> The command enumerates the predicate over the machine's table into the state, outcome and facts
-> it fixes, so what Search and the Case read is the clause language the keyed block wrote by hand,
-> with the same fingerprint. A bounded-progress claim (`within:`) is not in this slice.
+The `case` block writes no evidence lines: each fact a witness step records is confirmed by the
+observation the machine's `evidence:` line maps it to, so the mapping is read off the witness at
+production, and the Case declares each observation once (fn-85 `.9`). Queries 5 to 7 (a retryable
+handler error then success, the two timeouts) are `.11`'s; the canary set of section 2.6 is `.12`'s.
 
-The realization, in sketch syntax (fn-85 makes it a Lean value in `Temporal.Case`). A worker
-instruction carries the Temporal API message the action's `schema:` names, so a class example fills
-that message and the Driver maps it to the SDK call that produces it. Each observation is declared
-once in the Case and read by both the Program and the Contract.
+> Amended during fn-85 `.15`, 2026-09-19. Properties are written with an ordinary Lean predicate
+> by the same rule that replaced rows with step functions; the keyed `require:` block of the earlier
+> specimen is not built. A same-step claim is `Step → Bool` under `when:`; a transition claim such
+> as `terminalIsFinal` is `Step → Step → Bool` over the step before and the step after, with no
+> `when:`. The command enumerates the predicate over the machine's table into the state, outcome and
+> facts it fixes, so what Search and the Case read is the clause language the keyed block wrote by
+> hand, with the same fingerprint. A bounded-progress claim (`within:`) is not in this slice.
+
+> Amended during fn-85 `.10`, 2026-09-19. The earlier specimen's `setup: atConcurrencyLimit: Bool`
+> and its `atConcurrencyLimit: true + schedule → reject` row are not modeled, and the Model declares
+> no setup parameter. The limit exists: HSM bounds pending operations per workflow through
+> `component.nexusoperations.limit.operation.concurrency` and CHASM through
+> `nexusoperation.limit.operation.concurrencyPerWorkflow.max`, and at the limit the schedule command
+> fails the workflow task with cause `PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writes no
+> `NexusOperationScheduled` event. Three things keep it out: a step function does not read the
+> setup, so the table cannot vary with it (R5's guard-row half); the key and the value differ per
+> switch value, which a key-only setup binding cannot say; and the rejection names no operation, so
+> no source keyed by the scheduled event can lift it. A Query that needs the row reopens it with R5's
+> second half as its first step (`UMPIRE4_RESEARCH_NEXUS_MODEL.md` section 1). The earlier
+> specimen's `find: terminalIsFinal` Query is rewritten too: a transition claim cannot be a
+> functional Query (section 2.5), so the four Queries find same-step claims and the product claim is
+> verified beside them.
+
+The realization, in sketch syntax (`Temporal.Case.Realization.asyncNexus` is the Lean value). A
+worker instruction carries the Temporal API message the action's `schema:` names, so a class example
+fills that message and the Driver maps it to the SDK call that produces it. Each binding names its
+class by the member key a path spells it by. Each observation is declared once in the Case and read
+by both the Program and the Contract.
 
 ```lean
 realization nexusCaller
@@ -585,8 +696,6 @@ realization nexusCaller
   timers:
     scheduleToStart: expires → 2s
     startToClose: expires → 2s
-  setup:
-    recordCancelCompletion → component.nexusoperations.recordCancelRequestCompletionEvents
   switches:
     implementation: hsm → nexusoperation.enableChasmWorkflowOperations = false,
                     chasm → nexusoperation.enableChasmWorkflowOperations = true

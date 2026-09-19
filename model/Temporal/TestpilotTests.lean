@@ -34,10 +34,10 @@ private def activationKind : Entrypoint → Option Nat
       | _, _ => false
   | .error _ => false
 
--- The async-nexus Case carries no monitor rule: everything its Contract says is the correlated
+-- The success set's Case carries no monitor rule: everything its Contract says is the correlated
 -- capability the checked model lowered into, reading the evidence this Program's history read
 -- lifts.
-#guard match Temporal.Feature.Nexus.Success.asyncNexusSuccess with
+#guard match Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
   | .ok output =>
       output.program.map (fun program => program.entrypoints.map activationKind) ==
         some #[some 0, some 1, some 2] &&

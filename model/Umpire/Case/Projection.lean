@@ -39,7 +39,9 @@ def Checked.operationField (plan : Checked target) : DefinitionId := plan.declar
 /-- Target-admitted initial state shared with checked semantic consumers. -/
 def Checked.initialState (plan : Checked target) : State := plan.initial
 
-/-- Closed executable table and mappings derived from the complete checked finite domain. -/
+/-- The executable table and mappings: the rows of the checked finite domain an operation can take
+from the admitted initial state under the actions the declaration's rules confirm or submit, closed
+under those actions. -/
 def Checked.executable (plan : Checked target) := plan.machine
 
 /-- Original checked field policies and limits for lossless portable lowering. -/
@@ -87,6 +89,19 @@ private def meaningJson
       array (steps.map fun (selected, result) => array [quote (action selected),
         quote (state result.state), quote (outcome result.outcome),
         array (result.facts.map (quote ∘ fact))])]
+
+/-- The states an operation can reach from the initial state by the given actions: the closure
+computed by breadth-first expansion over the finite domain, which as many iterations as the domain
+has states exhaust. -/
+private def reachableStates [DecidableEq State]
+    (steps : State → Action → List (Umpire.Step State Outcome Fact))
+    (actions : List Action) : Nat → List State → List State → List State
+  | 0, _, visited => visited
+  | fuel + 1, frontier, visited =>
+      let next := (frontier.flatMap fun state => actions.flatMap fun action =>
+        (steps state action).map (·.state)).eraseDups.filter fun state => !visited.contains state
+      if next.isEmpty then visited
+      else reachableStates steps actions fuel next (visited ++ next)
 
 /-- Validate declarations before allocating Run state; no semantic result is inferred from submission. -/
 def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -148,11 +163,23 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     array (declaration.sources.map (quote ∘ DefinitionId.value)), array rules,
     array ([limits.events, limits.buffered, limits.keys, limits.support, limits.work,
       limits.eventSize].map toString)]
+  -- The table carries the rows an operation can take: from the initial state, under the actions
+  -- the rules confirm or submit, and the states those reach. A row for an action no rule names
+  -- can never be admitted, and a row from a state no evidence can lead to can never be taken, so
+  -- neither is carried; every candidate of a carried (state, action) pair is, which is what the
+  -- runtime's work accounting counts.
+  let relevant : List Action := (declaration.rules.flatMap fun rule =>
+    match rule.meaning with
+    | .irrelevant => []
+    | .submission action => [action]
+    | .confirmed required steps => required.toList ++ steps.map (·.1)).eraseDups
+  let reachable := reachableStates target.machine.steps relevant domain.states.length
+    [initial] [initial]
   let machine : Shared.CorrelatedProjection.Plan DefinitionId State Action
       (Umpire.Step State Outcome Fact) := {
     initial
     rules := declaration.rules.map fun rule => ⟨rule.kind, rule.fields.length, rule.meaning⟩
-    transitions := domain.states.flatMap fun prior => domain.actions.flatMap fun action =>
+    transitions := reachable.flatMap fun prior => relevant.flatMap fun action =>
       (target.machine.steps prior action).map fun result => (prior, action, result)
     limits := declaration.limits }
   have sound : ∀ row ∈ machine.transitions,

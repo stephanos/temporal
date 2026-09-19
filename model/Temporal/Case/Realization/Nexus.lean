@@ -33,8 +33,14 @@ lets this realization produce the same Program shape the template does while the
 of Nexus.
 
 The scaffolding node builders are the template's own, reused rather than copied; fn-85 .11 deletes
-the template and they land here. The class Definition IDs are hand-stated until fn-85 .10 derives
-them from the protocol machine's `action` declarations.
+the template and they land here.
+
+Each binding names its class by the member key a Scenario's path spells it by
+(`handlerReply-async`, `complete-succeeded`), which the Producer resolves against the Model's own
+vocabulary, so the caller Model's protocol machine and any Model over the same classes produce
+through one realization. The hand-stated Definition IDs beside the keys are read only by the success
+slice, whose actions are waits and whose path the realization states (`asyncPath`), until fn-85 .11
+retires it.
 -/
 
 namespace Temporal.Case.Realization.Nexus
@@ -105,6 +111,7 @@ Model's `examples:` supply them. -/
 
 private def scheduleBinding (service operation : String) : Umpire.Case.Producer.ActionBinding := {
   action := scheduleAction
+  key := "schedule-unset-unset-unset"
   instructionId := "start-nexus-operation"
   node := fun _ instructionId =>
     Program.node instructionId
@@ -113,6 +120,7 @@ private def scheduleBinding (service operation : String) : Umpire.Case.Producer.
 
 private def handlerReplyBinding : Umpire.Case.Producer.ActionBinding := {
   action := handlerReplyAction
+  key := "handlerReply-async"
   instructionId := "respond-async"
   node := fun _ instructionId =>
     Program.node instructionId (Program.nexusAsyncReply completionAuthority)
@@ -120,6 +128,7 @@ private def handlerReplyBinding : Umpire.Case.Producer.ActionBinding := {
 
 private def handlerReplySyncBinding : Umpire.Case.Producer.ActionBinding := {
   action := handlerReplySyncAction
+  key := "handlerReply-syncSuccess"
   instructionId := "respond-sync"
   node := fun _ instructionId =>
     Program.node instructionId (Program.nexusSyncReply (Payload.text "completed"))
@@ -127,15 +136,17 @@ private def handlerReplySyncBinding : Umpire.Case.Producer.ActionBinding := {
 
 private def handlerReplyFailedBinding : Umpire.Case.Producer.ActionBinding := {
   action := handlerReplyFailedAction
+  key := "handlerReply-operationFailed"
   instructionId := "respond-failed"
   node := fun _ instructionId =>
     Program.node instructionId (Program.nexusFailedReply handlerFailure)
       (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
 
-private def handlerErrorBinding (action : DefinitionId) (instructionId errorType : String)
+private def handlerErrorBinding (action : DefinitionId) (key instructionId errorType : String)
     (retryBehavior : temporal.api.enums.v1.NexusHandlerErrorRetryBehavior) :
     Umpire.Case.Producer.ActionBinding := {
   action
+  key
   instructionId
   node := fun _ instructionId =>
     Program.node instructionId (Program.nexusHandlerError errorType "handler error" retryBehavior)
@@ -143,6 +154,7 @@ private def handlerErrorBinding (action : DefinitionId) (instructionId errorType
 
 private def completeBinding : Umpire.Case.Producer.ActionBinding := {
   action := completeAction
+  key := "complete-succeeded"
   instructionId := "complete-nexus-operation"
   node := fun _ instructionId =>
     Program.node instructionId
@@ -150,6 +162,7 @@ private def completeBinding : Umpire.Case.Producer.ActionBinding := {
 
 private def completeFailedBinding : Umpire.Case.Producer.ActionBinding := {
   action := completeFailedAction
+  key := "complete-failed"
   instructionId := "fail-nexus-operation"
   node := fun _ instructionId =>
     Program.node instructionId (Program.nexusOperationFailure completionAuthority handlerFailure) }
@@ -157,12 +170,21 @@ private def completeFailedBinding : Umpire.Case.Producer.ActionBinding := {
 /-! ### The plan
 
 The controller's sequence is the one place the interleaving matters: it starts the workflow, waits for
-the authority the handler publishes, performs the completion, and only then reads history. Writing
-those four as ordered items is what reproduces the template's dependency edges from path order alone.
+the authority the handler publishes when a completion is on the path, performs the completion, waits
+for the workflow to close, and only then reads history. Writing those as ordered items is what
+reproduces the template's dependency edges from path order alone.
+
+One plan serves every Query of a set. A synchronous reply and a handler error publish no authority,
+so the wait for it is emitted only when a completion class is on the path; the close-event read is
+what orders the history read behind the operation's outcome on every path, and the workflow finishes
+whether or not the operation succeeded, so its history closes on every path.
 -/
 
-/-- The asynchronous form's plan: the template's scaffolding, with the three side effects moved from
-fixed nodes to the places their classes land. -/
+/-- The classes whose instruction consumes the completion authority. -/
+private def completionKeys : List String := ["complete-succeeded", "complete-failed"]
+
+/-- The plan every caller-side Case is assembled from: the template's scaffolding, with the side
+effects moved from fixed nodes to the places their classes land. -/
 def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
   roles := NexusOperation.sharedRoles
   slots := #[Program.handleSlot completionAuthority]
@@ -172,9 +194,10 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
       items := [
         .fixed fun identity _ =>
           NexusOperation.startWorkflowNode (NexusOperation.workflowTypeOf identity),
-        .fixed fun _ _ =>
+        .whenOnPath completionKeys fun _ _ =>
           Program.node "await-completion-authority" (Program.awaitSlot completionAuthority),
         .actions [completeAction, completeFailedAction],
+        .fixed fun _ _ => NexusOperation.awaitCloseNode,
         .fixed fun identity resolved => NexusOperation.historyNode identity resolved] },
     { activate := fun identity nodes =>
         NexusOperation.workflowEntrypointWith (NexusOperation.workflowTypeOf identity)
@@ -188,12 +211,13 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
           Program.node "await-nexus-operation"
             (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
             (guard := some (boolean true)),
+        -- The workflow closes on every path: a failed operation is the await's recorded outcome,
+        -- not a reason to leave the workflow open, so the finish runs regardless and returns a
+        -- literal rather than the awaited payload a failed operation has none of.
         .fixed fun _ _ =>
-          Program.node "finish-workflow"
-            (Program.finish (Expr.outcome
-              (Ref.instruction "workflow" "await-nexus-operation")
-              .INSTRUCTION_OUTCOME_FIELD_VALUE))
-            (Program.instructionLimits (timeoutMilliseconds := some 5000))] },
+          Program.node "finish-workflow" (Program.finish (text "done"))
+            (Program.instructionLimits (timeoutMilliseconds := some 5000))
+            (guard := some (boolean true))] },
     { activate := fun _ nodes =>
         Program.nexusHandler "handler" service operation
           Support.workerRole Support.taskQueueRole nodes
@@ -246,18 +270,22 @@ so a Case produced here and a Case produced there read the same recorded history
 def asyncNexus (service operation : String) : Umpire.Case.Producer.Realization :=
   let template := Template.nexusOperation service operation .async
   { template with
+    producerId := "temporal.nexus.caller.testpilot"
     plan := Nexus.asyncPlan service operation
     actions := [
       Nexus.scheduleBinding service operation,
       Nexus.handlerReplyBinding,
       Nexus.handlerReplySyncBinding,
       Nexus.handlerReplyFailedBinding,
-      Nexus.handlerErrorBinding Nexus.handlerErrorRetryableAction "respond-error-retryable"
-        "INTERNAL" .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE,
-      Nexus.handlerErrorBinding Nexus.handlerErrorNonRetryableAction "respond-error" "BAD_REQUEST"
+      Nexus.handlerErrorBinding Nexus.handlerErrorRetryableAction "handlerReply-handlerError-true"
+        "respond-error-retryable" "INTERNAL" .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE,
+      Nexus.handlerErrorBinding Nexus.handlerErrorNonRetryableAction
+        "handlerReply-handlerError-false" "respond-error" "BAD_REQUEST"
         .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE,
       Nexus.completeBinding,
       Nexus.completeFailedBinding]
+    sources := Template.NexusOperation.historySources ++
+      [Template.NexusOperation.pendingAttemptsSource]
     switches := [Nexus.implementationSwitch] }
 
 /- Every class the design names is bound, and each to the instruction that carries its message: the
@@ -278,6 +306,18 @@ schedule to a workflow command, the replies to handler replies, the completions 
     | some (.nexus_operation_completion _) => "completion"
     | _ => "other") ==
   ["command", "reply", "reply", "reply", "reply", "reply", "completion", "completion"]
+
+/- Each binding names its class by the member key a protocol Scenario's path spells. -/
+#guard ((asyncNexus "service" "operation").actions.map (·.key)) == [
+  "schedule-unset-unset-unset", "handlerReply-async", "handlerReply-syncSuccess",
+  "handlerReply-operationFailed", "handlerReply-handlerError-true",
+  "handlerReply-handlerError-false", "complete-succeeded", "complete-failed"]
+
+/- Every history event kind of the operation is an admitted source, keyed by the scheduled event;
+the scheduled event itself by its own id; and the read observation beside them. -/
+#guard ((asyncNexus "service" "operation").sources.map (·.eventKind)) == [
+  "nexusOperationScheduled", "nexusOperationStarted", "nexusOperationCompleted",
+  "nexusOperationFailed", "nexusOperationCanceled", "nexusOperationTimedOut", "pendingAttempts"]
 
 /- A `repeat:` resolves against the switches the realization declares: the implementation switch is
 one, and an undeclared name is none, which is what rejects the `set`. -/
