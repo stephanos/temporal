@@ -226,4 +226,14 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard correlatedCapability.rules[0]!.captures.isEmpty
 #guard correlatedCapability.rules[0]!.correlation.isNone
 
+/- An abstraction claim row carries the action, the field, the class and the example, and a
+provenance that lists none carries an empty row list. -/
+#guard (Testpilot.Authoring.abstractionClaim "example.action" "field" "slow" "Sluggish").class_name ==
+  "slow"
+#guard (Testpilot.Authoring.abstractionClaim "example.action" "field" "slow" "Sluggish").«example» ==
+  "Sluggish"
+#guard (Testpilot.Authoring.provenance "producer" "1").abstraction_claims.size == 0
+#guard (Testpilot.Authoring.provenance "producer" "1"
+  (abstractionClaims := #[Testpilot.Authoring.abstractionClaim "a" "f" "c" "e"])).abstraction_claims.size == 1
+
 end Testpilot.Tests.Authoring

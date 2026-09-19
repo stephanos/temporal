@@ -80,6 +80,16 @@ structure ModelValueFingerprint where
   fingerprint : String
   deriving BEq, DecidableEq, Repr
 
+/-- One class of one action's input field a Case realized through the example its Model wrote for
+it. A class with an example stands for several concrete values the Model does not count, so the
+Case's Verdict is a claim about the class made through one of them, and the row says which. -/
+structure AbstractionClaimRow where
+  action : String
+  field : String
+  className : String
+  exampleValue : String
+  deriving BEq, DecidableEq, Repr
+
 /-- Compiler and source provenance for one Case artifact. -/
 structure Metadata where
   producerId : String
@@ -90,6 +100,7 @@ structure Metadata where
   correlatedRules : List CorrelatedRuleBinding := []
   localNames : List LocalName := []
   modelValueFingerprints : List ModelValueFingerprint := []
+  abstractionClaims : List AbstractionClaimRow := []
   deriving BEq, Repr
 
 open temporal.server.api.testpilot.v1 (CaseProvenance)
@@ -154,6 +165,9 @@ def make (metadata : Metadata) : Except Umpire.SourceLocation CaseProvenance := 
     (metadata.modelValueFingerprints.map fun value =>
       ({ local_name := value.localName, spelling := value.spelling,
          fingerprint := value.fingerprint } :
-        temporal.server.api.testpilot.v1.ModelValueFingerprint)).toArray)
+        temporal.server.api.testpilot.v1.ModelValueFingerprint)).toArray
+    (metadata.abstractionClaims.map fun claim =>
+      Testpilot.Authoring.abstractionClaim claim.action claim.field claim.className
+        claim.exampleValue).toArray)
 
 end Umpire.Provenance

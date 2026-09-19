@@ -36,6 +36,14 @@ unchanged bytes and pins that bound offline; the tagged live tests run it, and r
 Nexus Case on a *different* queue, because a pooled peer worker on the same physical queue would
 keep polling through the outage.
 
+A functional set's Cases are named by what they are: a Model file's `set` lists its `find` Queries
+and a `case` block over the set realizes each of them, with the Case ID `temporal.case.<set>.<query>`
+and the fixture `<set>-<query>-case.json`. `umpire-case --list` enumerates every registered Case --
+each set's Queries and the Cases that register their values explicitly -- sorted by Case ID, and the
+generator renders exactly that list, so a Query added to a set is a fixture the moment the generator
+runs. A Case whose path realizes a class with an `examples:` line carries an abstraction claim row in
+its provenance naming the action, the field, the class and the example it ran.
+
 Admission is checked once for every fixture rather than once per Case: `fixture_table_test.go`
 enumerates `testdata/*-case.json`, decodes each strictly, pins its identity, and -- where
 `DeriveProfile` can read the Case's Profile -- prepares it over unchanged bytes and rejects a
