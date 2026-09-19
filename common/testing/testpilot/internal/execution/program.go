@@ -6,6 +6,7 @@ import (
 	"context"
 	"slices"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -15,10 +16,12 @@ import (
 
 // Profile is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
 type Profile struct {
-	Identity               string
-	CatalogIdentity        string
-	Roles                  []contract.RolePolicy
-	Opcodes                []contract.Opcode
+	Identity        string
+	CatalogIdentity string
+	Roles           []contract.RolePolicy
+	Opcodes         []contract.Opcode
+	// CommandTypes are the workflow command types the Profile admits a WorkflowCommand to carry.
+	CommandTypes           []enumspb.CommandType
 	EnvironmentBindings    []contract.EnvironmentBinding
 	EnvironmentFingerprint string
 	Limits                 *testpilotspb.ProgramLimits

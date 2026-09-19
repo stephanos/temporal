@@ -186,7 +186,7 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 	prepared := make(map[nexusDispatchKey]nexus.Header)
 	routeKeys := make(map[nexusRouteIndex]struct{})
 	for _, instruction := range entry.plan.Instructions() {
-		if instruction.Opcode() != testpilot.StartNexusOperation {
+		if !startsNexusOperation(instruction) {
 			continue
 		}
 		sourceID := instruction.Source().GetInstructionId()
@@ -219,13 +219,26 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 }
 
 func (s *Session) preparedNexusDispatch(activation delivery.Activation, sourceID string, header nexus.Header, value *testpilotspb.Value) (nexus.Header, *testpilotspb.Value, error) {
-	if s == nil || sourceID == "" || value == nil || s.mu.lock(context.Background()) != nil {
+	if value == nil {
 		return nil, nil, ErrInvalid
+	}
+	prepared, err := s.preparedNexusHeader(activation, sourceID, header)
+	if err != nil {
+		return nil, nil, err
+	}
+	return prepared, proto.CloneOf(value), nil
+}
+
+// preparedNexusHeader is the header a Nexus dispatch of the named start instruction carries: the
+// header given, with the Run's routing header merged in, within the request byte ceiling.
+func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID string, header nexus.Header) (nexus.Header, error) {
+	if s == nil || sourceID == "" || s.mu.lock(context.Background()) != nil {
+		return nil, ErrInvalid
 	}
 	base := maps.Clone(s.nexusDispatch[nexusDispatchKey{workflowReservation: activation.Reservation().ID, sourceInstruction: sourceID}])
 	s.mu.unlock()
 	if base == nil {
-		return nil, nil, delivery.ErrRouteCrossed
+		return nil, delivery.ErrRouteCrossed
 	}
 	result := maps.Clone(header)
 	if result == nil {
@@ -233,14 +246,14 @@ func (s *Session) preparedNexusDispatch(activation delivery.Activation, sourceID
 	}
 	for name, route := range base {
 		if _, collision := result[name]; collision {
-			return nil, nil, delivery.ErrReservedHeader
+			return nil, delivery.ErrReservedHeader
 		}
 		result[name] = route
 	}
 	if nexusHeaderBytes(result) > s.host.options.requestBytes {
-		return nil, nil, ErrCapacity
+		return nil, ErrCapacity
 	}
-	return result, proto.CloneOf(value), nil
+	return result, nil
 }
 
 func (h *Driver) admitNexus(ctx context.Context, queue string, input delivery.NexusDelivery, cancel context.CancelFunc) (routedNexus, error) {

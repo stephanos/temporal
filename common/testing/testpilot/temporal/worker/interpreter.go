@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
+	commonpb "go.temporal.io/api/common/v1"
+	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -20,6 +22,8 @@ type nexusResult struct {
 	done  chan struct{}
 	kind  testpilotspb.NexusResponseKind
 	value *testpilotspb.Value
+	// raw is a typed synchronous reply's payload, returned unconverted.
+	raw   *commonpb.Payload
 	token string
 	err   error
 }
@@ -29,6 +33,9 @@ type workflowInterpreter struct {
 	ctx     workflow.Context
 	state   *activation.State
 	futures map[string]workflow.NexusOperationFuture
+	// typed marks the futures a schedule command started, whose results are payloads rather than
+	// interpreter values.
+	typed map[string]bool
 }
 
 func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
@@ -40,7 +47,7 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 	if err != nil {
 		return nil, err
 	}
-	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture), typed: make(map[string]bool)}
 	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
 		if err := ctx.Err(); err != nil {
@@ -65,6 +72,8 @@ func (i *workflowInterpreter) execute(index int, instruction testpilot.Instructi
 	switch instruction.Opcode() {
 	case testpilot.StartNexusOperation:
 		return nil, false, i.startNexus(index, instruction, input)
+	case testpilot.WorkflowCommand:
+		return nil, false, i.scheduleNexus(index, instruction)
 	case testpilot.Await:
 		return nil, false, i.awaitNexus(index, instruction)
 	case testpilot.Finish:
@@ -106,22 +115,27 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 	if future == nil {
 		return ErrInvalid
 	}
-	var result testpilotspb.Value
+	var result *testpilotspb.Value
 	ready := future.IsReady()
 	var err error
 	if !ready {
 		ready, err = workflow.AwaitWithTimeout(i.ctx, time.Duration(instruction.TimeoutMilliseconds())*time.Millisecond, future.IsReady)
 	}
 	if err == nil {
-		if ready {
-			err = future.Get(i.ctx, &result)
-		} else {
+		switch {
+		case !ready:
 			err = context.DeadlineExceeded
+		case i.typed[await.GetInstruction().GetInstructionId()]:
+			result, err = awaitedPayload(i.ctx, future)
+		default:
+			var value testpilotspb.Value
+			err = future.Get(i.ctx, &value)
+			result = &value
 		}
 	}
 	outcome := outcomeForError(err)
 	if err == nil {
-		outcome.Value = &result
+		outcome.Value = result
 	}
 	return i.state.Admit(context.Background(), index, outcome)
 }
@@ -139,7 +153,7 @@ func outcomeForError(err error) *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 }
 
-func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activation, _ *testpilotspb.Value, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[*testpilotspb.Value], error) {
+func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activation, _ any, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[any], error) {
 	key := delivered.Reservation().ID
 	if err := s.mu.lock(ctx); err != nil {
 		return nil, err
@@ -171,41 +185,51 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 				result.err = errors.New("nexus handler activation panicked")
 			}
 		}()
-		result.kind, result.value, result.token, result.err = s.interpretNexus(ctx, delivered, options)
+		interpreted, err := s.interpretNexus(ctx, delivered, options)
+		result.kind, result.value, result.raw, result.token, result.err = interpreted.kind, interpreted.value, interpreted.raw, interpreted.token, err
 	}()
 	close(result.done)
 	return result.response()
 }
 
-func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
+func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (nexusResult, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
-		return 0, nil, "", ErrInvalid
+		return nexusResult{}, ErrInvalid
 	}
 	state, err := activation.New(entry.plan)
 	if err != nil {
-		return 0, nil, "", err
+		return nexusResult{}, err
 	}
 	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
 		input, enabled, err := state.Evaluate(ctx, index)
 		if err != nil {
-			return 0, nil, "", err
+			return nexusResult{}, err
 		}
 		if !enabled {
 			continue
 		}
 		instruction := instructions[index]
-		if instruction.Opcode() != testpilot.RespondNexus {
-			return 0, nil, "", ErrInvalid
+		switch instruction.Opcode() {
+		case testpilot.RespondNexus:
+			response := instruction.Source().GetInstruction().GetRespondNexus()
+			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
+				return nexusResult{}, err
+			}
+			kind, value, token, err := s.respondNexus(ctx, delivered, response, input, options)
+			return nexusResult{kind: kind, value: value, token: token}, err
+		case testpilot.NexusHandlerReply:
+			reply := instruction.Source().GetInstruction().GetNexusHandlerReply()
+			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
+				return nexusResult{}, err
+			}
+			return s.replyTyped(ctx, delivered, reply, options)
+		default:
+			return nexusResult{}, ErrInvalid
 		}
-		response := instruction.Source().GetInstruction().GetRespondNexus()
-		if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
-			return 0, nil, "", err
-		}
-		return s.respondNexus(ctx, delivered, response, input, options)
 	}
-	return 0, nil, "", errors.New("nexus handler entrypoint completed without RespondNexus")
+	return nexusResult{}, errors.New("nexus handler entrypoint completed without a reply")
 }
 
 func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
@@ -229,31 +253,45 @@ func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activatio
 }
 
 func (s *Session) respondNexusAsync(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
-	if input == nil || s.options.NewCapability == nil || nilValue(s.options.Bridge) {
+	if input == nil {
 		return 0, nil, "", ErrInvalid
+	}
+	token, err := s.publishCompletionAuthority(ctx, delivered, response.GetHandleSlotId(), options)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	return response.GetKind(), nil, token, nil
+}
+
+// publishCompletionAuthority builds the completion effect for the operation the activation answers
+// asynchronously, publishes it as the opaque capability of the named handle Slot, and returns the
+// operation token the reply carries: the delivery's own request id.
+func (s *Session) publishCompletionAuthority(ctx context.Context, delivered delivery.Activation, handleSlotID string, options nexus.StartOperationOptions) (string, error) {
+	if s.options.NewCapability == nil || nilValue(s.options.Bridge) {
+		return "", ErrInvalid
 	}
 	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: delivered.RequestID(), StartTime: s.host.options.now()})
 	if err != nil {
-		return 0, nil, "", err
+		return "", err
 	}
 	capability, err := s.options.NewCapability(ctx, delivered.Coordinate(), invoke)
 	if err != nil {
-		return 0, nil, "", err
+		return "", err
 	}
 	if nilValue(capability) {
-		return 0, nil, "", ErrInvalid
+		return "", ErrInvalid
 	}
 	if err := s.publicationAllowed(ctx); err != nil {
 		s.lateDiagnostic(ctx, "completion_publication_late")
-		return 0, nil, "", err
+		return "", err
 	}
-	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), response.GetHandleSlotId(), capability); err != nil {
+	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), handleSlotID, capability); err != nil {
 		if errors.Is(s.publicationAllowed(ctx), ErrClosed) {
 			s.lateDiagnostic(ctx, "completion_publication_late")
 		}
-		return 0, nil, "", err
+		return "", err
 	}
-	return response.GetKind(), nil, delivered.RequestID(), nil
+	return delivered.RequestID(), nil
 }
 
 func (s *Session) publicationAllowed(ctx context.Context) error {
@@ -276,13 +314,16 @@ func (s *Session) publicationAllowed(ctx context.Context) error {
 	return ctx.Err()
 }
 
-func (r *nexusResult) response() (nexus.HandlerStartOperationResult[*testpilotspb.Value], error) {
+func (r *nexusResult) response() (nexus.HandlerStartOperationResult[any], error) {
 	if r.err != nil {
 		return nil, r.err
 	}
 	switch r.kind {
 	case testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS:
-		return &nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: proto.CloneOf(r.value)}, nil
+		if r.raw != nil {
+			return &nexus.HandlerStartOperationResultSync[any]{Value: converter.NewRawValue(proto.CloneOf(r.raw))}, nil
+		}
+		return &nexus.HandlerStartOperationResultSync[any]{Value: proto.CloneOf(r.value)}, nil
 	case testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS:
 		return &nexus.HandlerStartOperationResultAsync{OperationToken: r.token}, nil
 	default:
