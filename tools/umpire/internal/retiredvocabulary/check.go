@@ -763,6 +763,16 @@ func buildRetiredRules() ([]tokenRule, error) {
 			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])[Nn]exus` + generation + `([^A-Za-z0-9_]|$)`),
 		})
 	}
+	// The retired `model` command, which fn-85 replaced with `machine` over step functions. The word
+	// itself stays live everywhere -- `model/` is the tree, `model:` is a key of `property` and
+	// `scenario`, and `DeclaredModel` is what both of them resolve to -- so the identifier-boundary
+	// shape the rules above use would reject the whole surface. What is retired is the declaration,
+	// and a declaration is a column-0 keyword followed by the author's name and nothing else, which
+	// is a shape no prose line and no key takes.
+	rules = append(rules, tokenRule{
+		name:    "model <name>",
+		pattern: regexp.MustCompile(`^model [A-Za-z][A-Za-z0-9_']*$`),
+	})
 	// The Lake executable this spec renamed to `umpire-case`. The Driver's reservation carriers
 	// spell three unrelated wire constants that begin with the retired name, and Flow spec slugs end
 	// with it, so a non-hyphen boundary on both sides holds the executable name alone.

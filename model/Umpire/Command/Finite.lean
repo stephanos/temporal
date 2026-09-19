@@ -6,7 +6,7 @@ import Lean.Elab.Deriving.Basic
 
 A Model's behavior is ordinary Lean: one step function per action class group, `State → Action →
 List (Step State Outcome Fact)`. What Search, the Behavior Fingerprint, Contract lowering and
-`umpire-inspect` read is the finite table the `model` command has always produced. This module is the
+`umpire-inspect` read is the finite table a Model has always carried. This module is the
 bridge: it enumerates a step function over its declared domain into exactly those rows.
 
 Two things make that possible.

@@ -9,7 +9,7 @@ import Umpire.Command.Registry
 /-!
 # The Model command grammar
 
-Five commands -- `model`, `property`, `scenario`, `limits`, `query` -- and their expansion into
+Five commands -- `machine`, `property`, `scenario`, `limits`, `query` -- and their expansion into
 typed `Umpire.Command` declarations. Nothing here names a feature: a project says once, through
 `model_conventions`, which Definition ID root its declarations hang off and which namespace prefix
 is scaffolding.
@@ -31,12 +31,6 @@ an indented `word:` is a framework key introducing a value, and everything else 
 declared member, a number, or an operator. Nothing an author writes is a label the framework only
 carries back to them. -/
 
-/-- One `before + action → after` Step row. Its relation key is derived from the row itself. -/
-declare_syntax_cat modelStep
-
-syntax ident "+" ident "→" ident "," "outcome:" ident : modelStep
-syntax ident "+" ident "→" ident "," "outcome:" ident "," "facts:" "[" ident,* "]" : modelStep
-
 /-- One `require:` line of a declared Property. Its clause key is derived from the line itself. -/
 declare_syntax_cat modelRequirement
 
@@ -50,13 +44,6 @@ declare_syntax_cat modelGap
 
 syntax "gap:" ident "code:" str "subject:" str "detail:" str : modelGap
 syntax "gap:" ident "code:" str "detail:" str : modelGap
-
-/-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
-ceiling on how large a table the elaborator will build, not a modelling recommendation.
-
-It is `Umpire.Command.elaborationBound`, the same number a step function's enumeration is bounded by:
-both say "this Model is too big to elaborate", so they are one decision with one owner. -/
-private def transitionBound : Nat := Umpire.Command.elaborationBound
 
 /-- The last component of a constructor name, which is the spelling an author writes. -/
 private def shortName : Name → Name
@@ -72,69 +59,9 @@ private def unknownMemberMessage (domain spelling : String) (constructors : List
   else
     s!"unknown Model {domain} '{spelling}'; declared: {spellings constructors}"
 
-private def parameterizedConstructorMessage (domain spelling : String) : String :=
-  s!"Model {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
-
-private def duplicateTransitionMessage (source selected : String) : String :=
-  s!"duplicate Model step: '{source} + {selected}' is already declared"
-
-/-- A Step row's relation key. It is the row's own coordinates, because those are what make it
-unique -- the command rejects a second row leaving the same state on the same Action. -/
-private def relationKey (sourceState selectedAction : Ident) : String :=
-  (shortName sourceState.getId).toString ++ "-" ++ (shortName selectedAction.getId).toString
-
-private def unreachableTerminalMessage (spelling : String) : String :=
-  s!"Model end state '{spelling}' is unreachable from every start state"
-
-private def unsortedActionsMessage (earlier later : String) : String :=
-  "Model action constructors must be declared in sorted order, because the planner admits " ++
-    s!"only a canonically ordered Action catalog; '{later}' precedes '{earlier}'"
-
 private def unsortedInitialMessage (earlier later : String) : String :=
   "Model start states must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered start-state list; '{later}' precedes '{earlier}'"
-
-private def transitionBoundMessage (declared : Nat) : String :=
-  s!"the Model declares {declared} steps; the elaboration bound is {transitionBound}"
-
-/-- The ordered constructors of a named enum-like inductive. A constructor that takes arguments is
-not an enum-like member, so the domain is rejected at the type the model names. -/
-private def domainConstructors (domain : String) (typeRef : Ident) : CommandElabM (List Name) := do
-  let name ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo typeRef)
-  let info ← getConstInfoInduct name
-  for constructor in info.ctors do
-    let declaration ← getConstInfoCtor constructor
-    if declaration.numFields != 0 then
-      throwErrorAt typeRef
-        (parameterizedConstructorMessage domain (shortName constructor).toString)
-  pure info.ctors
-
-/-- Resolve one authored spelling against a declared domain, reporting an unknown one in place. -/
-private def resolveMember (domain : String) (constructors : List Name) (member : Ident) :
-    CommandElabM Ident := do
-  let spelling := member.getId.eraseMacroScopes
-  match constructors.find? fun constructor => shortName constructor == spelling with
-  | some constructor => pure (mkIdentFrom member constructor)
-  | none => throwErrorAt member (unknownMemberMessage domain spelling.toString constructors)
-
-/-- One transition row with every member resolved once, before the table is built from it. -/
-private structure ResolvedRow where
-  key : TSyntax `modelStep
-  sourceState : Ident
-  selectedAction : Ident
-  targetState : Ident
-  rowTerm : Term
-
-/-- The states reachable from `seen` over the declared `before → result` edges. -/
-private def reachableStates (edges : List (Name × Name)) : Nat → List Name → List Name
-  | 0, seen => seen
-  | fuel + 1, seen =>
-      let next := (edges.filterMap fun edge =>
-        if seen.contains edge.1 && !seen.contains edge.2 then some edge.2 else none).eraseDups
-      if next.isEmpty then seen else reachableStates edges fuel (seen ++ next)
-
-private def memberKeys (constructors : List Name) : Array Term :=
-  constructors.toArray.map fun constructor => Lean.quote (shortName constructor).toString
 
 /-! ### Where a declaration comes from
 
@@ -191,7 +118,7 @@ private def definitionIdHere (kind key : String) : CommandElabM String := do
 /-! ### Declaring a domain
 
 `enum` is the four vocabulary declarations a Model file makes, without the `deriving` clause the
-`model` command requires and the author has no reason to think about. It resolves nothing and
+`machine` command requires and the author has no reason to think about. It resolves nothing and
 reorders nothing: the constructors in declaration order are the ordered domain, which is what AUT-09
 means by author-provided. `enum` is shorthand for exactly the
 one it would have written. -/
@@ -233,162 +160,6 @@ elab doc?:(docComment)? &"enum" name:ident
       name := name.getId.toString
       id := ← definitionIdHere "enum" name.getId.toString })
 
-private def memberIdents (constructors : List Name) : Array Term :=
-  constructors.toArray.map fun constructor => mkIdent constructor
-
-/-- The `model` command's whole body. Two command spellings share it -- one that declares a Fact
-domain and one that declares none -- because an optional group in a command signature does not
-bind. -/
-private def elabModel
-    (name role stateType actionType outcomeType : Ident)
-    (factDomain : Option Ident)
-    (initialRefs terminalRefs : Array Ident)
-    (rows : Array (TSyntax `modelStep)) : CommandElabM Unit := do
-  let stateCtors ← domainConstructors "state" stateType
-  let actionCtors ← domainConstructors "action" actionType
-  let outcomeCtors ← domainConstructors "outcome" outcomeType
-  -- A Model that declares no Fact domain gets the empty one: no row can name a Fact, and no
-  -- `require ...: fact ...` clause can either, because there is nothing to name.
-  let factType : Ident := match factDomain with
-    | some declared => declared
-    | none => mkIdentFrom name ``NoFact
-  let factCtors ← match factDomain with
-    | some _ => domainConstructors "fact" factType
-    | none => pure []
-  let actionSpellings := actionCtors.map fun constructor => (shortName constructor).toString
-  for pair in actionSpellings.zip actionSpellings.tail do
-    unless pair.1 < pair.2 do
-      throwErrorAt actionType (unsortedActionsMessage pair.2 pair.1)
-  let initialStates ← initialRefs.toList.mapM (resolveMember "state" stateCtors)
-  let terminalStates ← terminalRefs.toList.mapM (resolveMember "state" stateCtors)
-  let setupConstructorName : Name := match initialStates.head? with
-    | some first => shortName first.getId
-    | none => `setup
-  let initialPairs := initialStates.zip initialRefs.toList
-  for pair in initialPairs.zip initialPairs.tail do
-    let earlier := (shortName pair.1.1.getId).toString
-    let later := (shortName pair.2.1.getId).toString
-    unless earlier < later do
-      throwErrorAt pair.2.2 (unsortedInitialMessage later earlier)
-  if rows.size > transitionBound then
-    throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
-  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `modelStep) => do
-    let resolve := fun (source selected resulting outcomeRef : Ident)
-        (observed : List Ident) => do
-      let sourceState ← resolveMember "state" stateCtors source
-      let selectedAction ← resolveMember "action" actionCtors selected
-      let targetState ← resolveMember "state" stateCtors resulting
-      let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
-      let observedFacts ← observed.mapM (resolveMember "fact" factCtors)
-      -- The relation key is the row: which state it leaves and which Action it takes. The command
-      -- already rejects two rows with that pair, so the key is unique without an author label.
-      let keyLiteral := Lean.quote (relationKey sourceState selectedAction)
-      let rowTerm ← `(term|
-        { key := $keyLiteral
-          source := $sourceState
-          action := $selectedAction
-          results := [step $resolvedOutcome $targetState
-            [$(observedFacts.toArray),*]] })
-      pure ({ key := row, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
-    match row with
-    | `(modelStep| $source:ident + $selected:ident → $resulting:ident ,
-        outcome: $outcomeRef:ident) =>
-        resolve source selected resulting outcomeRef []
-    | `(modelStep| $source:ident + $selected:ident → $resulting:ident ,
-        outcome: $outcomeRef:ident , facts: [$observed,*]) =>
-        resolve source selected resulting outcomeRef observed.getElems.toList
-    | _ => throwErrorAt row "unsupported Model step"
-  let mut declared : List ResolvedRow := []
-  for resolved in resolvedRows do
-    if declared.any fun candidate =>
-        candidate.sourceState.getId == resolved.sourceState.getId &&
-          candidate.selectedAction.getId == resolved.selectedAction.getId then
-      throwErrorAt resolved.key
-        (duplicateTransitionMessage
-          (shortName resolved.sourceState.getId).toString
-          (shortName resolved.selectedAction.getId).toString)
-    declared := declared ++ [resolved]
-  let edges := resolvedRows.map fun resolved =>
-    (resolved.sourceState.getId, resolved.targetState.getId)
-  let reached := reachableStates edges (edges.length + 1)
-    (initialStates.map fun entry => entry.getId)
-  for terminalState in terminalStates do
-    unless reached.contains terminalState.getId do
-      throwErrorAt terminalState
-        (unreachableTerminalMessage (shortName terminalState.getId).toString)
-  let transitionTerms := resolvedRows.map fun resolved => resolved.rowTerm
-  let declarationKey := Lean.quote name.getId.toString
-  let roleKey := Lean.quote role.getId.toString
-  let setupKey := Lean.quote setupConstructorName.toString
-  let names ← `(term|
-    { declaration := $declarationKey
-      roleName := $roleKey
-      setup := $setupKey
-      stateKeys := [$(memberKeys stateCtors),*]
-      actionKeys := [$(memberKeys actionCtors),*]
-      outcomeKeys := [$(memberKeys outcomeCtors),*]
-      factKeys := [$(memberKeys factCtors),*] })
-  let origin ← originTerm
-  -- The setup domain is the command's, not the author's: nothing else in a Model file mentions it,
-  -- and a file that had to declare one would be declaring scaffolding. It is scoped under the
-  -- Model's own name, so two Models in one namespace never collide, and its single constructor is
-  -- named after the Model's first start state, which is what keeps the canonical setup key -- and
-  -- every fingerprint built on it -- the value the author's own declaration produced.
-  let setupType := mkIdentFrom name (name.getId ++ `Setup)
-  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructorName)
-  elabCommand (← `(command|
-    inductive $setupType where
-      | $(mkIdent setupConstructorName):ident
-      deriving BEq, DecidableEq, Repr))
-  let spellingsOf := fun (constructors : List Name) =>
-    (constructors.map fun constructor => (shortName constructor).toString).toArray
-  liftCoreM (Registry.recordModel {
-    declName := (← getCurrNamespace) ++ name.getId
-    role := role.getId.eraseMacroScopes.toString
-    stateType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
-    actionType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo actionType)
-    outcomeType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo outcomeType)
-    factType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo factType)
-    «states» := spellingsOf stateCtors
-    «actions» := spellingsOf actionCtors
-    «outcomes» := spellingsOf outcomeCtors
-    «facts» := spellingsOf factCtors
-    «starts» := (initialStates.map fun declared =>
-      (shortName declared.getId).toString).toArray })
-  elabCommand (← `(command|
-    def $name := declareModel $origin $names ($setupName)
-      ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
-      ([$(memberIdents outcomeCtors),*]) (([$(memberIdents factCtors),*] : List $factType))
-      ([$(initialStates.toArray),*]) ([$(terminalStates.toArray),*])
-      ([$(transitionTerms.toArray),*])
-      (by exact ⟨rfl, rfl, rfl⟩)))
-
-/-! ### The `model` command
-
-Two spellings, one body: a Model that declares a Fact domain, and one that declares none. -/
-
-elab "model" name:ident
-    "role:" roleRef:ident
-    "states:" stateType:ident
-    "actions:" actionType:ident
-    "outcomes:" outcomeType:ident
-    "facts:" factType:ident
-    "starts:" "[" initialRefs:ident,+ "]"
-    "ends:" "[" terminalRefs:ident,+ "]"
-    "steps:" rows:modelStep+ : command =>
-  elabModel name roleRef stateType actionType outcomeType (some factType)
-    initialRefs.getElems terminalRefs.getElems rows
-
-elab "model" name:ident
-    "role:" roleRef:ident
-    "states:" stateType:ident
-    "actions:" actionType:ident
-    "outcomes:" outcomeType:ident
-    "starts:" "[" initialRefs:ident,+ "]"
-    "ends:" "[" terminalRefs:ident,+ "]"
-    "steps:" rows:modelStep+ : command =>
-  elabModel name roleRef stateType actionType outcomeType none
-    initialRefs.getElems terminalRefs.getElems rows
 
 /-! ### The `property` command
 
@@ -400,10 +171,10 @@ private def duplicateRequirementMessage (key : String) : String :=
   s!"duplicate requirement '{key}': this Property already requires it"
 
 private def undeclaredModelMessage (spelling : Name) : String :=
-  s!"'{spelling}' is not a Model declared by a `model` command"
+  s!"'{spelling}' is not a Model declared by a `machine` command"
 
 /-- Resolve one spelling against a Model's declared domain, reporting an unknown one in place. The
-message shape is the `model` command's, so an author sees one vocabulary wherever they are. -/
+message shape is every command's, so an author sees one vocabulary wherever they are. -/
 private def resolveDeclared (domain : String) (declared : Array String) (declaringType : Name)
     (member : Ident) : CommandElabM String := do
   let spelling := member.getId.eraseMacroScopes.toString
@@ -419,7 +190,7 @@ private def resolveDeclared (domain : String) (declared : Array String) (declari
     liftTermElabM (Lean.Elab.addConstInfo member points)
   pure spelling
 
-/-- The Model a `model:` key names, resolved to what the `model` command recorded about it. -/
+/-- The Model a `model:` key names, resolved to what the `machine` command recorded about it. -/
 private def resolveDeclaredModel (modelRef : Ident) : CommandElabM Registry.ModelEntry := do
   let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
   match Registry.model? (← getEnv) modelName with
@@ -696,7 +467,8 @@ own line for a rejection to point at. -/
 
 `entity`, `action` and `observation` are the vocabulary a Model is written in, and they are also
 field names inside the records the commands build -- `EntityReference.entity`, `Observation.entity`,
-`FiniteTransitionRow.action`. Reserving them as tokens, the way `model` and `property` are reserved,
+`FiniteTransitionRow.action`. Reserving them as tokens, the way `property` and `scenario` are
+reserved,
 would make every one of those fields unwritable. `&"entity"` alone does not work either: a
 non-reserved symbol is indexed under its own token, and a command that begins with a bare identifier
 is dispatched under `ident`, so the parser would only be reachable behind a doc comment.
@@ -1450,7 +1222,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         for named in parameter, ranged in domain do
           setupParameters := setupParameters.push
             (named.getId.toString, ← resolveSetupDomain ranged)
-    -- `recorded`, not `fact`: `fact:` is already a token of the `model` command's `require:` block,
+    -- `recorded`, not `fact`: `fact:` is already a token of the `property` command's `require:`
+    -- block,
     -- so `$fact:ident` tokenizes as `$` and that token rather than as an antiquotation. The same
     -- trap as `$actions:ident`, one category over.
     | `(machineKey| evidence: $[$recorded:ident : $observed:ident]*) => do
