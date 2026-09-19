@@ -1613,4 +1613,284 @@ realization's, and the value it ran under is the Profile's to record. -/
 bytes did not move. -/
 #guard lifecycle.setupParameters == []
 
+/-! ### Sets
+
+A functional set compiles each of its `find` Queries to one Case under a derived identity. What the
+set command rejects is pinned here, each at the line that made it. -/
+
+/- The set's Case carries the derived identity, and the same Program, Contract and provenance rows
+the `fixture`-named Case carries, because it realizes the same Query through the same realization.
+-/
+#guard (match nexusSuccessSet.completion with
+  | .ok output => output.case_id
+  | .error _ => "") == "temporal.case.nexusSuccessTests.completion"
+#guard nexusSuccessSet.completion.identity.fixture == "nexusSuccessTests-completion"
+#guard (match nexusSuccessSet.completion, asyncNexusSuccess with
+  | .ok derived, .ok named =>
+      derived.program.map (·.entrypoints.size) == named.program.map (·.entrypoints.size) &&
+        derived.contract.map (·.rules.size) == named.contract.map (·.rules.size) &&
+        derived.provenance.map (·.known_gaps.size) == named.provenance.map (·.known_gaps.size)
+  | _, _ => false)
+
+/- The set declares what it is. -/
+#guard nexusSuccessTests.purpose == .functional
+#guard nexusSuccessTests.bindings == [("caller", .driven)]
+#guard nexusSuccessTests.queries.map (·.value) == ["temporal.nexus.success.query.completion"]
+#guard nexusSuccessTests.repeat == none
+
+/- A party the machine's actions name and the set does not bind. -/
+/--
+error: party 'caller' performs actions and this set does not bind it; a set binds every party except `system` to `driven` or `observed`
+-/
+#guard_msgs in
+set unboundCaller
+  purpose: functional
+  queries: [completion]
+
+/--
+error: `system` is the implementation under test and performs no declared action; a set binds every other party and never `system`
+-/
+#guard_msgs in
+set boundSystem
+  purpose: functional
+  bind:
+    caller: driven
+    system: driven
+  queries: [completion]
+
+/--
+error: no declared action is performed by party 'auditor'; a set binds the parties the Model's actions name
+-/
+#guard_msgs in
+set strayParty
+  purpose: functional
+  bind:
+    caller: driven
+    auditor: observed
+  queries: [completion]
+
+/- A functional Case performs its Queries' actions, so a party the world performs cannot be on a
+functional path. -/
+/--
+error: the Case for Query 'Temporal.Feature.Nexus.Success.completion' cannot perform 'awaitStart': its party 'caller' is `observed`, so the world performs it and the Case only reads that it did; bind 'caller' `driven` or leave the Query out
+-/
+#guard_msgs in
+set observedCaller
+  purpose: functional
+  bind:
+    caller: observed
+  queries: [completion]
+
+query completionHolds
+  verify: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
+
+/- A Case realizes one selected trace, so a Query that verifies rather than finds has none. -/
+/--
+error: Query 'Temporal.Feature.Nexus.Success.Tests.completionHolds' verifies rather than finds; a functional set's Queries each realize one selected trace, so each is a `find` form
+-/
+#guard_msgs in
+set verifiedSet
+  purpose: functional
+  bind:
+    caller: driven
+  queries: [completionHolds]
+
+/- `repeat:` runs Cases once per switch value, so only a functional set has one; and the switch is
+one a realization declares. -/
+/--
+error: `repeat:` runs a functional set's Cases once per switch value, and a canary set produces no Cases to repeat
+-/
+#guard_msgs in
+set repeatedCanary
+  purpose: canary
+  bind:
+    caller: driven
+  repeat: implementation
+  queries: [completion]
+
+/--
+error: 'rollout' is not a switch the realization declares; declared: implementation
+-/
+#guard_msgs in
+set unknownSwitch
+  purpose: functional
+  bind:
+    caller: driven
+  repeat: rollout
+  queries: [completion]
+
+/- The Nexus realization's switch is declared, so a functional set may repeat over it. -/
+set repeatedSuccess
+  purpose: functional
+  bind:
+    caller: driven
+  repeat: implementation
+  queries: [completion]
+
+#guard repeatedSuccess.repeat == some "implementation"
+
+/- An exploratory set covers rather than lists, and names a goal and a budget. -/
+/--
+error: an exploratory set names what it covers under `cover:`: rows, results or classMembers
+-/
+#guard_msgs in
+set aimless
+  purpose: exploratory
+  bind:
+    caller: driven
+  budget: shortTrace
+
+/--
+error: an exploratory set covers rather than lists Queries; `queries:` belongs to a functional or canary set
+-/
+#guard_msgs in
+set listedExploration
+  purpose: exploratory
+  bind:
+    caller: driven
+  cover: rows
+  queries: [completion]
+
+set exploration
+  purpose: exploratory
+  bind:
+    caller: driven
+  cover: rows | classMembers
+  budget: shortTrace
+
+#guard exploration.cover == [.rows, .classMembers]
+#guard exploration.budget == some "shortTrace"
+
+/--
+error: unknown purpose 'smoke'; a set is functional, canary or exploratory
+-/
+#guard_msgs in
+set unknownPurpose
+  purpose: smoke
+  bind:
+    caller: driven
+  queries: [completion]
+
+/- A derived fixture is registered once: a second `case` over the same set would name the same
+fixture and Case ID. -/
+/--
+error: fixture 'nexusSuccessTests-completion' is already registered by Case 'temporal.case.nexusSuccessTests.completion'
+-/
+#guard_msgs in
+case nexusSuccessAgain
+  realizes nexusSuccessTests
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
+
+/- Only a functional set compiles to Cases. -/
+/--
+error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; only a functional set compiles to Cases, one per Query
+-/
+#guard_msgs in
+case exploredCases
+  realizes exploration
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+
+/-! ### Abstraction claims
+
+A class with an `examples:` line is an abstraction claim: the author claims several realized values
+behave alike in it, and a functional Case runs the example. The Case records the claim for each
+class its path performs, and no claim for a class with no example. -/
+
+enum Speed
+  | quick
+  | slow
+
+/-- A probe of the operation whose input class is claimed: a slow probe stands for every sluggish
+realized value, and a quick one for itself. -/
+action probe
+  party: caller
+  on: operation
+  input:
+    speed: Speed
+  examples:
+    slow → Sluggish
+
+def probeStep (current : Lifecycle) (_speed : Speed) :
+    List (Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) :=
+  if current.state != .scheduled then [] else
+  [{ outcome := .acknowledged, state := { state := .started }, facts := [] }]
+
+machine probedLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    probe: probeStep
+    awaitSuccess: awaitSuccessStep
+
+/- Each action member carries its class as the Model spells it, which is what an example names. -/
+#guard probedLifecycle.actionClasses ==
+  [("awaitSuccess", []), ("probe", [("speed", "quick")]), ("probe", [("speed", "slow")])]
+
+/- The claims the machine's actions make: one, at the slow probe, since only it has an example. -/
+#guard ((Umpire.Command.classClaims probedLifecycle [probe]).map fun claim =>
+  (claim.member.value.endsWith ".action.probedLifecycle.probe-slow", claim.row)) ==
+  [(true, { action := "temporal.nexus.success.tests.action.probe", field := "speed",
+            className := "slow", exampleValue := "Sluggish" })]
+
+
+property probedResult
+  machine: probedLifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
+
+scenario slowProbe
+  model: probedLifecycle
+  starts: scheduled
+  actions: [probe (slow), awaitSuccess]
+
+scenario quickProbe
+  model: probedLifecycle
+  starts: scheduled
+  actions: [probe (quick), awaitSuccess]
+
+query slowProbed
+  find: probedResult
+  in: slowProbe
+  limits: shortTrace
+
+query quickProbed
+  find: probedResult
+  in: quickProbe
+  limits: shortTrace
+
+/-- The evidence for one probe's path: an evidence line names an Action the path selects, so each
+Scenario's Case maps its own probe class. -/
+private def probeEvidence (member : String) (vocabulary : Umpire.Case.Producer.Vocabulary) :
+    List Umpire.Case.Producer.EvidenceMapping := [
+  ⟨vocabulary.namedAction member, "nexusOperationStarted"⟩,
+  ⟨vocabulary.namedAction "awaitSuccess", "nexusOperationCompleted"⟩]
+
+private def probedClaims (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
+    Option (List (String × String × String × String)) :=
+  match produced with
+  | .ok output => output.provenance.map fun provenance =>
+      provenance.abstraction_claims.toList.map fun claim =>
+        (claim.action, claim.field, claim.class_name, claim.«example»)
+  | .error _ => none
+
+/- A path through the slow probe records the claim, with the example the Case ran. -/
+#guard probedClaims (Umpire.Command.produceCase slowProbed asyncNexusSuccess.identity
+    asyncNexusSuccess.realization (probeEvidence "probe-slow")
+    (claims := Umpire.Command.classClaims probedLifecycle [probe])) ==
+  some [("temporal.nexus.success.tests.action.probe", "speed", "slow", "Sluggish")]
+
+/- A path through the quick probe, whose class has no example, records none. -/
+#guard probedClaims (Umpire.Command.produceCase quickProbed asyncNexusSuccess.identity
+    asyncNexusSuccess.realization (probeEvidence "probe-quick")
+    (claims := Umpire.Command.classClaims probedLifecycle [probe])) == some []
+
 end Temporal.Feature.Nexus.Success.Tests

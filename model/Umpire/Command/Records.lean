@@ -136,6 +136,69 @@ structure SetupParameter where
   domain : DefinitionId
   deriving BEq, Repr
 
+/-- How a set binds one party: the Case's own Program performs the party's actions, using each
+class's example, or a real deployment or the world performs them and the verifier reads which class
+occurred and checks the machine allows it. -/
+inductive PartyBinding where
+  | driven
+  | observed
+  deriving BEq, Repr
+
+def PartyBinding.name : PartyBinding → String
+  | .driven => "driven"
+  | .observed => "observed"
+
+/-- What a set is for: functional sets compile each `find` Query to a checked-in Case, canary sets
+are admitted for a deployment to run, and exploratory sets name a coverage goal and a budget. -/
+inductive SetPurpose where
+  | functional
+  | canary
+  | exploratory
+  deriving BEq, Repr
+
+def SetPurpose.name : SetPurpose → String
+  | .functional => "functional"
+  | .canary => "canary"
+  | .exploratory => "exploratory"
+
+/-- What an exploratory set covers: the machine's rows, its result values, or the members of each
+claimed class. -/
+inductive CoverageGoal where
+  | rows
+  | results
+  | classMembers
+  deriving BEq, Repr
+
+def CoverageGoal.name : CoverageGoal → String
+  | .rows => "rows"
+  | .results => "results"
+  | .classMembers => "classMembers"
+
+/-- A class with an example is an abstraction claim: the author claims several realized values
+behave alike in it, and a functional Case runs the example. The claim names the action, the field,
+the class as the Model spells it and the example as the `examples:` line spells it. -/
+structure AbstractionClaim where
+  action : DefinitionId
+  field : String
+  className : String
+  exampleValue : String
+  deriving BEq, Repr
+
+/-- One set of Queries grouped by purpose, with every party except `system` bound. `queries` are
+the Queries a functional or canary set runs, `cover` and `budget` an exploratory set's goal, and
+`repeat` the switch a functional set's Cases run once per value of. -/
+structure SetDeclaration where
+  id : DefinitionId
+  name : String
+  purpose : SetPurpose
+  bindings : List (String × PartyBinding) := []
+  «repeat» : Option String := none
+  queries : List DefinitionId := []
+  cover : List CoverageGoal := []
+  budget : Option String := none
+  source : SourceLocation
+  deriving BEq, Repr
+
 /-- A switch is a rollout flag between two implementations of one behavior -- Nexus under the HSM
 implementation or under CHASM -- and it is not a Model parameter: no machine's table varies over
 it. The realization declares it with the configuration each value sets, a functional set's `repeat`

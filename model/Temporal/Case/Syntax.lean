@@ -1,6 +1,7 @@
 import Temporal.Case.Conventions
 import Temporal.Case.EventKind
 import Temporal.Case.Registry
+import Temporal.Case.Realization.Nexus
 import Temporal.Case.Template
 
 /-!
@@ -22,6 +23,10 @@ open Lean Elab Command
 
 /-- The Definition ID root every Temporal Case ID hangs off. -/
 def caseIdRoot : String := "temporal.case"
+
+/-! The switches the Temporal realizations declare, registered once so a Model file's `set` resolves
+its `repeat:` against them. -/
+register_switch Temporal.Case.Realization.Nexus.implementationSwitch
 
 /-! The `case` block names the `find` Query whose selected trace the Case realizes, the realization
 template that runs it, and the recorded history event that confirms each Action the Scenario
@@ -74,6 +79,18 @@ private def unknownTemplateMessage (spelling : String) : String :=
 
 private def unknownResponseMessage (spelling : String) : String :=
   s!"unknown Nexus response form '{spelling}'; declared: sync, async"
+
+private def notASetMessage (spelling : String) : String :=
+  s!"'{spelling}' is neither a Query declared by a `query` command nor a set declared by a `set` \
+command; a `case` block realizes a `find` Query under a `fixture`, or every Query of a functional \
+set under identities derived from the set's and each Query's name"
+
+private def notFunctionalMessage (spelling purpose : String) : String :=
+  s!"set '{spelling}' is {purpose}; only a functional set compiles to Cases, one per Query"
+
+private def unselectedBySetMessage (spelling : String) (selected : Array String) : String :=
+  s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
+{spellingList selected}"
 
 private def templateTerm : TSyntax `caseTemplate → CommandElabM Term
   | `(caseTemplate| $named:ident service $service:str operation $operation:str
@@ -147,5 +164,97 @@ elab "case" name:ident &"fixture" fixture:str
       Umpire.Command.produceCase $queryRef $identityName $realizationName $evidenceName))
   liftCoreM (Registry.recordCase {
     declName := (← getCurrNamespace) ++ name.getId, caseId, fixture := fixtureName })
+
+/-! ### A functional set's Cases
+
+A `case` block over a set realizes every Query the set lists, each under an identity derived from
+the set's name and the Query's: the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture
+`<set>-<query>`. One realization and one evidence map serve them all, because the Queries run on
+one machine. Which claims each Case makes is its own path's: the Producer is handed every class
+claim the machine's actions declare and records the ones the path performs. -/
+
+/-- The declarations of the actions one machine steps on, for the claims their examples make. A
+timer is stepped on by name and has no `action` declaration, so it contributes nothing. -/
+private def machineActionDecls (environment : Environment)
+    (declaredMachine : Umpire.Command.Registry.MachineEntry) : Array Name :=
+  declaredMachine.steps.filterMap fun (spelling, _) =>
+    ((Umpire.Command.Registry.actions environment).find? (·.name == spelling)).map (·.declName)
+
+elab "case" name:ident
+    &"realizes" setRef:ident
+    &"as" template:caseTemplate
+    &"evidence" lines:caseEvidence+ : command => do
+  let setName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo setRef)
+  let environment ← getEnv
+  let some declaredSet := Umpire.Command.Registry.set? environment setName
+    | throwErrorAt setRef (notASetMessage setName.toString)
+  unless declaredSet.purpose == "functional" do
+    throwErrorAt setRef (notFunctionalMessage setName.toString declaredSet.purpose)
+  -- Every Query of the set, with the Actions its Scenario selects and the Model it runs on.
+  let mut queries : Array (Name × Array String × Name) := #[]
+  for queryName in declaredSet.queries do
+    let some declaredQuery := Umpire.Command.Registry.query? environment queryName
+      | throwErrorAt setRef (unregisteredQueryMessage queryName.toString)
+    let some declaredScenario :=
+        Umpire.Command.Registry.scenario? environment declaredQuery.scenario
+      | throwErrorAt setRef (unregisteredQueryMessage queryName.toString)
+    queries := queries.push (queryName, declaredScenario.actions, declaredScenario.model)
+  let selected := (queries.flatMap (·.2.1)).toList.eraseDups.toArray
+  let mut mapped : Array (String × String) := #[]
+  for line in lines do
+    match line with
+    | `(caseEvidence| $selectedAction:ident ← history $eventKind:ident) =>
+        let spelling := selectedAction.getId.eraseMacroScopes.toString
+        unless selected.contains spelling do
+          throwErrorAt selectedAction (unselectedBySetMessage spelling selected)
+        if mapped.any (·.1 == spelling) then
+          throwErrorAt selectedAction (duplicateEvidenceMessage spelling)
+        let kind := eventKind.getId.eraseMacroScopes.toString
+        if (EventKind.attributesField? kind).isNone then
+          throwErrorAt eventKind (unknownEventKindMessage kind)
+        mapped := mapped.push (spelling, kind)
+    | _ => throwErrorAt line "unsupported Nexus evidence line"
+  for spelling in selected do
+    unless mapped.any (·.1 == spelling) do
+      throwErrorAt name (unmappedActionMessage spelling)
+  let realization ← templateTerm template
+  let realizationName := mkIdentFrom name (name.getId ++ `realization)
+  elabCommand (← `(command|
+    def $realizationName : Umpire.Case.Producer.Realization := $realization))
+  for (queryName, selectedByQuery, modelName) in queries do
+    let short := queryName.getString!
+    -- Each Case carries the evidence lines for the Actions its own path selects: a line for an
+    -- Action the path never selects is a rejection at production, not a mapping to keep.
+    let mappings ← (mapped.filter fun entry => selectedByQuery.contains entry.1).mapM
+      fun entry => `(term|
+        Umpire.Case.Producer.EvidenceMapping.mk
+          (vocabulary.namedAction $(Lean.quote entry.1)) $(Lean.quote entry.2))
+    let fixtureName := declaredSet.name ++ "-" ++ short
+    if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName) then
+      throwErrorAt setRef (duplicateFixtureMessage fixtureName prior.caseId)
+    let caseId := caseIdRoot ++ "." ++ declaredSet.name ++ "." ++ short
+    -- The claims the machine's actions make, for the Producer to record the ones this path performs.
+    let claims ← match Umpire.Command.Registry.machine? environment modelName with
+      | some declaredMachine =>
+          let actionRefs := (machineActionDecls environment declaredMachine).map mkIdent
+          `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*])
+      | none => `(term| [])
+    let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
+    let identityName := mkIdentFrom name (caseName.getId ++ `identity)
+    let evidenceName := mkIdentFrom name (caseName.getId ++ `evidence)
+    elabCommand (← `(command|
+      def $identityName : Umpire.Case.Producer.Identity :=
+        { caseId := $(Lean.quote caseId), fixture := $(Lean.quote fixtureName) }))
+    elabCommand (← `(command|
+      def $evidenceName : Umpire.Case.Producer.Vocabulary →
+          List Umpire.Case.Producer.EvidenceMapping :=
+        fun vocabulary => [$mappings,*]))
+    elabCommand (← `(command|
+      def $caseName : Except Umpire.Case.Compiler.Error
+          temporal.server.api.testpilot.v1.Case :=
+        Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
+          $evidenceName (claims := $claims)))
+    liftCoreM (Registry.recordCase {
+      declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
 
 end Temporal.Case

@@ -141,6 +141,23 @@ structure MachineEntry where
   abstraction : Name := .anonymous
   deriving Inhabited, Repr, BEq
 
+/-- One declared set: its purpose, the Queries it runs and the switch it repeats over, for the
+command that produces its Cases to read. -/
+structure SetEntry where
+  declName : Name
+  name : String
+  purpose : String
+  queries : Array Name := #[]
+  «repeat» : Option String := none
+  deriving Inhabited, Repr, BEq
+
+/-- One switch a realization registered, by name and by the names of its values. A `set`'s
+`repeat:` names one of these. -/
+structure SwitchEntry where
+  name : String
+  values : Array String := #[]
+  deriving Inhabited, Repr, BEq
+
 /-- One declared observation: the entity whose key finds its instance, and the field it reads. -/
 structure ObservationEntry where
   declName : Name
@@ -216,6 +233,18 @@ initialize observationExtension :
     addImportedFn := collect
   }
 
+initialize setExtension : SimplePersistentEnvExtension SetEntry (Array SetEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
+initialize switchExtension : SimplePersistentEnvExtension SwitchEntry (Array SwitchEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize conventionsExtension :
     SimplePersistentEnvExtension Conventions (Array Conventions) ←
   registerSimplePersistentEnvExtension {
@@ -249,6 +278,22 @@ def recordAction (entry : ActionEntry) : CoreM Unit :=
 
 def recordObservation (entry : ObservationEntry) : CoreM Unit :=
   modifyEnv fun env => observationExtension.addEntry env entry
+
+def recordSet (entry : SetEntry) : CoreM Unit :=
+  modifyEnv fun env => setExtension.addEntry env entry
+
+def recordSwitch (entry : SwitchEntry) : CoreM Unit :=
+  modifyEnv fun env => switchExtension.addEntry env entry
+
+def sets (env : Environment) : Array SetEntry := setExtension.getState env
+
+def set? (env : Environment) (declName : Name) : Option SetEntry :=
+  (sets env).find? (·.declName == declName)
+
+def switches (env : Environment) : Array SwitchEntry := switchExtension.getState env
+
+def switch? (env : Environment) (name : String) : Option SwitchEntry :=
+  (switches env).find? (·.name == name)
 
 def models (env : Environment) : Array ModelEntry := modelExtension.getState env
 def properties (env : Environment) : Array PropertyEntry := propertyExtension.getState env

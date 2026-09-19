@@ -94,6 +94,14 @@ def namedFact (values : Vocabulary) (spelling : String) : ModelValue :=
 
 end Vocabulary
 
+/-- One class an `examples:` line claims, as the Producer looks for it on a path: the Definition ID
+of the machine's action member that realizes the class, and the provenance row to record when the
+path performs it. A class with no example is no claim, so it never reaches here. -/
+structure ClassClaim where
+  member : DefinitionId
+  row : Provenance.AbstractionClaimRow
+  deriving BEq, Repr
+
 /-- Everything the Producer reads out of a checked authoring bundle. `witness` stays optional
 because a Query that verifies rather than selects has none, and rejecting that at production is
 what keeps the diagnostic on the Case rather than on the Query. -/
@@ -119,6 +127,9 @@ structure Input (LawStatement : Law → Prop) where
   the Profile through the realization's configuration key; one the realization binds to no key is a
   Known Gap of the Case. -/
   setupParameters : List (String × DefinitionId) := []
+  /-- The abstraction claims the Model's actions make, by the member that realizes each. The Case
+  records the ones its path performs. -/
+  claims : List ClassClaim := []
 
 /-! ### Identity
 
@@ -246,7 +257,7 @@ an environment running under it sets. -/
 structure SwitchValue where
   name : String
   configuration : List (String × String) := []
-  deriving BEq, Repr
+  deriving BEq, Repr, Inhabited
 
 /-- A switch as the realization declares it: a rollout flag between two implementations of one
 behavior, with the configuration each value sets. It is not a Model parameter; a functional set's
@@ -254,7 +265,7 @@ behavior, with the configuration each value sets. It is not a Model parameter; a
 structure SwitchBinding where
   name : String
   values : List SwitchValue
-  deriving BEq, Repr
+  deriving BEq, Repr, Inhabited
 
 structure Realization where
   /-- The scaffolding every Case of this feature carries, with the places its actions land. -/
@@ -623,6 +634,10 @@ def produce {LawStatement : Law → Prop}
     knownGaps := knownGaps.toProvenanceGaps
     program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
       (input.program.getD occurrences)
+    -- A claim is recorded for each class the Program performs: every instance's actions, not only
+    -- the operation the Contract follows, because each of them ran the class's example.
+    abstractionClaims := (input.claims.filter fun claim =>
+      (input.program.getD occurrences).contains claim.member).map (·.row)
     contractId := identity.contractId
     properties := [lowered.contractLowering]
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
