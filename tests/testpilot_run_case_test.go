@@ -24,6 +24,10 @@ type CaseBinding struct {
 	// CleanupTimeout bounds every resource this binding creates. Zero takes the shared default;
 	// a Case with more worker entrypoints to stop names a longer one.
 	CleanupTimeout time.Duration
+	// DynamicConfig is the dynamic configuration the environment runs under -- a switch value's
+	// settings, a bound setup parameter -- which the derived Profile records. The Case bytes do not
+	// depend on it.
+	DynamicConfig map[string]string
 }
 
 // bindCase provisions the resources the binding names, derives the Profile the Case implies, and
@@ -37,6 +41,7 @@ func bindCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, bin
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity: binding.Identity, Namespace: binding.Namespace,
 		TaskQueue: binding.TaskQueue, NexusEndpoint: binding.NexusEndpoint,
+		DynamicConfig: binding.DynamicConfig,
 	})
 	require.NoError(t, err)
 	resources := testpilotLiveResources{Namespace: binding.Namespace, TaskQueue: binding.TaskQueue}

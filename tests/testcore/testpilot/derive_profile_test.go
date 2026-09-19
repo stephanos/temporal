@@ -69,6 +69,61 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 	require.Equal(t, unaryOracle.EnvironmentBindings, derivedUnary.EnvironmentBindings)
 }
 
+// The environment's dynamic configuration -- a switch value, a bound setup parameter -- is recorded
+// on the Profile in the catalog's spelling, sorted, and is part of the binding fingerprint, so a
+// Case run under two switch values runs under two Profiles over the same bytes.
+func TestDeriveProfileRecordsTheEnvironmentsConfiguration(t *testing.T) {
+	source := loadLeanCase(t, "async-nexus")
+	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	environment := asyncNexusEnvironment()
+	environment.DynamicConfig = map[string]string{
+		"nexusoperation.enableChasmWorkflowOperations": "true",
+		"history.enableChasm":                          "true",
+	}
+
+	derived, err := temporaldriver.DeriveProfile(source, catalog, environment)
+	require.NoError(t, err)
+	require.Equal(t, []testpilot.ConfigurationValue{
+		{Key: "history.enablechasm", Value: "true"},
+		{Key: "nexusoperation.enablechasmworkflowoperations", Value: "true"},
+	}, derived.Configuration)
+
+	plain, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
+	require.NoError(t, err)
+	require.Empty(t, plain.Configuration)
+	plainFingerprint, err := plain.BindingFingerprint()
+	require.NoError(t, err)
+	configuredFingerprint, err := derived.BindingFingerprint()
+	require.NoError(t, err)
+	require.NotEqual(t, plainFingerprint, configuredFingerprint)
+
+	// The same configuration spelled with a different case is the same Profile.
+	respelled := asyncNexusEnvironment()
+	respelled.DynamicConfig = map[string]string{
+		"NexusOperation.EnableChasmWorkflowOperations": "true",
+		"History.EnableChasm":                          "true",
+	}
+	derivedRespelled, err := temporaldriver.DeriveProfile(source, catalog, respelled)
+	require.NoError(t, err)
+	require.Equal(t, derived.Configuration, derivedRespelled.Configuration)
+
+	for name, configuration := range map[string]map[string]string{
+		"empty key":   {"": "true"},
+		"empty value": {"history.enableChasm": ""},
+		"two spellings of one key": {
+			"history.enableChasm": "true", "history.enablechasm": "false",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			invalid := asyncNexusEnvironment()
+			invalid.DynamicConfig = configuration
+			_, err := temporaldriver.DeriveProfile(source, catalog, invalid)
+			require.Error(t, err)
+		})
+	}
+}
+
 func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)

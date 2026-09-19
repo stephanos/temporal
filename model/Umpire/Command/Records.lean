@@ -136,6 +136,17 @@ structure SetupParameter where
   domain : DefinitionId
   deriving BEq, Repr
 
+/-- A switch is a rollout flag between two implementations of one behavior -- Nexus under the HSM
+implementation or under CHASM -- and it is not a Model parameter: no machine's table varies over
+it. The realization declares it with the configuration each value sets, a functional set's `repeat`
+names it, each Query's Case runs once per value under a Profile that sets it, and a verdict that
+differs between values is a divergence the live test reports. This record carries what a `set`
+resolves `repeat:` against: the switch's name and its values' names. -/
+structure Switch where
+  name : String
+  values : List String
+  deriving BEq, Repr
+
 /-- How one outcome of one action class is confirmed: through a declared or catalogued observation,
 optionally only when a guard over the state before the step holds, or not at all.
 

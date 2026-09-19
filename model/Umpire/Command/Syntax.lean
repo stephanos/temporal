@@ -2077,6 +2077,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     let pairs ← held.mapM fun (field, value) =>
       `(term| ($(Lean.quote field), $(Lean.quote value.key)))
     `(term| [$pairs,*])
+  let setupParameterTerms : Array Term := setupParameters.map fun (parameter, _) =>
+    Lean.quote parameter
   let names ← `(term|
     { declaration := $(Lean.quote name.getId.toString)
       roleName := $(Lean.quote declaredEntity.name)
@@ -2085,7 +2087,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       stateFields := [$stateFieldList,*]
       actionKeys := [$(keyList actionMembers),*]
       outcomeKeys := [$(keyList outcomeMembers),*]
-      factKeys := [$(keyList factMembers),*] })
+      factKeys := [$(keyList factMembers),*]
+      setupParameters := [$setupParameterTerms,*] })
   -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
   -- without having finished. The table is what knows, so the check runs on the emitted table and is
   -- reported back at the `steps:` block that produced it.

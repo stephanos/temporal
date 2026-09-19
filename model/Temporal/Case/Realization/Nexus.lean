@@ -1,4 +1,5 @@
 import Temporal.Case.Template.NexusOperation
+import Temporal.DynamicConfig
 
 /-!
 # The Nexus caller-side realization
@@ -130,6 +131,39 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
       items := [.actions [handlerReplyAction]] }]
   cleanup := Program.cleanup "cleanup" #[] }
 
+/-! ### The switch and the setup parameters
+
+The realization declares the switch a functional set repeats over and binds the machine's setup
+parameters to the configuration keys the Profile sets them through. Both name keys of the generated
+dynamic-config catalog, so a key that leaves the registry fails here rather than at a Run. -/
+
+/-- The value a `Bool` setting takes, spelled the way the Profile records it. -/
+private def flag (setting : Temporal.DynamicConfig.Setting) (enabled : Bool) : String × String :=
+  (setting.key, toString enabled)
+
+/-- The Nexus implementation switch: the same Model runs under the HSM implementation and under
+CHASM, and which one is the three settings the upstream Nexus suites set at environment
+construction. The value names are what a `repeat:` names and what a live test spells its
+environments after. -/
+def implementationSwitch : Umpire.Case.Producer.SwitchBinding := {
+  name := "implementation"
+  values := [
+    { name := "hsm", configuration := implementation false },
+    { name := "chasm", configuration := implementation true }] }
+where
+  implementation (chasm : Bool) : List (String × String) := [
+    flag Temporal.DynamicConfig.Settings.history_enablechasm chasm,
+    flag Temporal.DynamicConfig.Settings.history_enablechasmcallbacks chasm,
+    flag Temporal.DynamicConfig.Settings.nexusoperation_enablechasmworkflowoperations chasm]
+
+/- The switch is declared once, with its two values. -/
+#guard implementationSwitch.values.map (·.name) == ["hsm", "chasm"]
+#guard (implementationSwitch.values.map fun value => value.configuration.map (·.1)) ==
+  [["history.enablechasm", "history.enablechasmcallbacks",
+    "nexusoperation.enablechasmworkflowoperations"],
+   ["history.enablechasm", "history.enablechasmcallbacks",
+    "nexusoperation.enablechasmworkflowoperations"]]
+
 end Temporal.Case.Realization.Nexus
 
 namespace Temporal.Case.Realization
@@ -146,6 +180,13 @@ def asyncNexus (service operation : String) : Umpire.Case.Producer.Realization :
     actions := [
       Nexus.scheduleBinding service operation,
       Nexus.handlerReplyBinding,
-      Nexus.completeBinding] }
+      Nexus.completeBinding]
+    switches := [Nexus.implementationSwitch] }
+
+/- A `repeat:` resolves against the switches the realization declares: the implementation switch is
+one, and an undeclared name is none, which is what rejects the `set`. -/
+#guard ((asyncNexus "service" "operation").switch? "implementation").map
+  (·.values.map (·.name)) == some ["hsm", "chasm"]
+#guard ((asyncNexus "service" "operation").switch? "rollout").isNone
 
 end Temporal.Case.Realization
