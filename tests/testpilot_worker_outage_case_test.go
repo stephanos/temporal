@@ -44,8 +44,8 @@ func TestTestpilotWorkerOutageCase(t *testing.T) {
 func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	outage := bindCase(t, env, loadTestpilotCase(t, "worker-outage"), workerOutageBinding())
-	plain := bindCase(t, env, loadTestpilotCase(t, "async-nexus"), CaseBinding{
-		Identity: "async-nexus-profile", Namespace: "umpire-worker-outage-peer",
+	plain := bindCase(t, env, loadTestpilotCase(t, nexusCallerQueries[1].fixture()), CaseBinding{
+		Identity: "nexus-caller-profile", Namespace: "umpire-worker-outage-peer",
 		TaskQueue: "umpire-worker-outage-peer-queue", NexusEndpoint: "umpire-worker-outage-peer-endpoint",
 		CreateEndpoint: true,
 	})

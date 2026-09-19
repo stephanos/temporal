@@ -216,8 +216,18 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 			require.NoError(t, err)
 			nexusRoute, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
 			require.NoError(t, err)
+			// Before the entrypoint replies, a failed start is the activation's failure.
+			outcome, activationErr := session.nexusActivationOutcome(nexusRoute.activation, ErrInvalid)
+			require.ErrorIs(t, activationErr, ErrInvalid)
+			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, outcome.GetStatus())
+
 			result, err := session.executeNexus(t.Context(), nexusRoute.activation, nil, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 			tc.check(t, result, err, bridge)
+
+			// Whatever the reply carries back to the SDK, an instructed one completed the activation.
+			outcome, activationErr = session.nexusActivationOutcome(nexusRoute.activation, err)
+			require.NoError(t, activationErr)
+			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, outcome.GetStatus())
 		})
 	}
 }

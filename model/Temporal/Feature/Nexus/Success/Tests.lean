@@ -23,9 +23,9 @@ private def admitted := completion.toOption
 
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
-#guard match Temporal.Feature.Nexus.Success.asyncNexusSuccess, admitted with
+#guard match Temporal.Feature.Nexus.Success.nexusSuccessSet.completion, admitted with
   | .ok output, some checked =>
-      output.case_id == "temporal.case.async-nexus" &&
+      output.case_id == "temporal.case.nexusSuccessTests.completion" &&
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
@@ -44,8 +44,8 @@ private def produceFromChecked
     (checked : Umpire.Command.CheckedModel «model»)
     (required : List DefinitionId := []) :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Umpire.Command.produce checked asyncNexusSuccess.identity asyncNexusSuccess.realization
-    asyncNexusSuccess.evidence required
+  Umpire.Command.produce checked nexusSuccessSet.completion.identity nexusSuccessSet.realization
+    nexusSuccessSet.completion.evidence required
 
 /-- Produce a Case from the checked model with one part replaced. Every part is carried into the
 Case; none is compared against an expected one. -/
@@ -118,7 +118,7 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 
 -- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
 -- are exactly the Query's, and the rejections below happen with those gaps in hand.
-#guard match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
+#guard match admitted, Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
@@ -169,7 +169,7 @@ private def caseShape
 private def differsFromCompletionCase
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
-    caseShape produced != caseShape Temporal.Feature.Nexus.Success.asyncNexusSuccess
+    caseShape produced != caseShape Temporal.Feature.Nexus.Success.nexusSuccessSet.completion
 
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
@@ -194,7 +194,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
   | .ok _ => false
 
 private def checkedBindings : Bool :=
-  match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
+  match admitted, Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
   | some checked, .ok output =>
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
@@ -1458,55 +1458,16 @@ query unevenCompletion
 
 /-! ### The `case` block
 
-`fixture` is the only identity slot the grammar has, so the derivation is what moves the Case ID and
-the Contract ID; everything else the Case carries is unchanged by it. -/
+A set's Case derives every identity from the set's name and the Query's, so the derivation is what
+fixes the Case ID and the Contract ID; everything else the Case carries is unchanged by it. -/
 
-#guard asyncNexusSuccess.identity.caseId == "temporal.case.async-nexus"
-#guard asyncNexusSuccess.identity.programId == "temporal.case.async-nexus.program"
-#guard asyncNexusSuccess.identity.contractId == "temporal.case.async-nexus.contract"
-#guard asyncNexusSuccess.identity.runScope == "async-nexus"
+#guard nexusSuccessSet.completion.identity.caseId == "temporal.case.nexusSuccessTests.completion"
+#guard nexusSuccessSet.completion.identity.programId ==
+  "temporal.case.nexusSuccessTests.completion.program"
+#guard nexusSuccessSet.completion.identity.contractId ==
+  "temporal.case.nexusSuccessTests.completion.contract"
+#guard nexusSuccessSet.completion.identity.runScope == "nexusSuccessTests-completion"
 
-/-- The identity the fixture carried before the derivation: the same Model under it must produce a
-byte-identical Program and Contract, so the receipt's diff is complete. -/
-private def statedIdentity : Umpire.Case.Producer.Identity := {
-  caseId := "temporal.case.async-nexus-success"
-  fixture := "async-nexus"
-  programId := "temporal.case.async-nexus.program" }
-
-private def statedCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Umpire.Command.produceCase completion statedIdentity asyncNexusSuccess.realization
-    asyncNexusSuccess.evidence (program := some Temporal.Case.Realization.Nexus.asyncPath)
-
-/-- Every identity the derivation moved, masked out of the canonical bytes. The longer spelling is
-replaced first, because it contains the shorter one. -/
-private def maskIdentities (encoded : String) : String :=
-  (encoded.replace "temporal.case.async-nexus-success" "MASKED").replace
-    "temporal.case.async-nexus" "MASKED"
-
-private def maskedBytes
-    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : IO String := do
-  match produced with
-  | .ok output =>
-      match ← Testpilot.ProtoJSON.canonical output with
-      | .ok encoded => pure (maskIdentities encoded)
-      | .error failure => throw (IO.userError (toString failure))
-  | .error failure => throw (IO.userError (reprStr failure))
-
-/- Masked comparison on the canonical bytes: with the Case ID and the Contract ID masked out, the
-derived Case and the same Model under the stated identity are byte-identical, so the receipt's diff
-of those two fields is the whole diff. -/
-/-- info: true -/
-#guard_msgs (info) in
-#eval do
-  let derived ← maskedBytes asyncNexusSuccess
-  let stated ← maskedBytes statedCase
-  pure (derived == stated)
-
-#guard match asyncNexusSuccess, statedCase with
-  | .ok derived, .ok stated =>
-      derived.case_id == "temporal.case.async-nexus" &&
-        stated.case_id == "temporal.case.async-nexus-success"
-  | _, _ => false
 
 /-! ### Typed messages are checked in place
 
@@ -1585,10 +1546,10 @@ case unknownEventKind fixture "unknown-event-kind"
     awaitSuccess ← history nexusOperationCompleted
 
 /--
-error: fixture 'async-nexus' is already registered by Case 'temporal.case.async-nexus'
+error: fixture 'nexusSuccessTests-completion' is already registered by Case 'temporal.case.nexusSuccessTests.completion'
 -/
 #guard_msgs (error) in
-case duplicateFixture fixture "async-nexus"
+case duplicateFixture fixture "nexusSuccessTests-completion"
   realizes completion
   as nexusOperation service "umpire.case.service" operation "complete" responds async
   evidence
@@ -1644,8 +1605,8 @@ private def probeParameter : DefinitionId :=
 
 /- Unbound by the realization: the Case carries an `input` Known Gap coded after the parameter,
 with the parameter as its subject. -/
-#guard (match Umpire.Command.produceCase configuredQuery asyncNexusSuccess.identity
-    asyncNexusSuccess.realization asyncNexusSuccess.evidence with
+#guard (match Umpire.Command.produceCase configuredQuery nexusSuccessSet.completion.identity
+    nexusSuccessSet.realization nexusSuccessSet.completion.evidence with
   | .ok output => (output.provenance.map fun provenance =>
       provenance.known_gaps.any fun gap =>
         gap.code == probeParameter.value ++ ".unbound" && gap.kind == .KNOWN_GAP_KIND_INPUT &&
@@ -1655,10 +1616,10 @@ with the parameter as its subject. -/
 
 /- Bound to a configuration key of the catalog: no gap. Which key a parameter binds to is the
 realization's, and the value it ran under is the Profile's to record. -/
-#guard (match Umpire.Command.produceCase configuredQuery asyncNexusSuccess.identity
-    { asyncNexusSuccess.realization with
+#guard (match Umpire.Command.produceCase configuredQuery nexusSuccessSet.completion.identity
+    { nexusSuccessSet.realization with
       setup := [{ parameter := probeParameter, key := "history.enablechasm" }] }
-    asyncNexusSuccess.evidence with
+    nexusSuccessSet.completion.evidence with
   | .ok output => (output.provenance.map fun provenance =>
       provenance.known_gaps.all fun gap => !gap.code.endsWith ".unbound") == some true
   | .error _ => false)
@@ -1672,19 +1633,11 @@ bytes did not move. -/
 A functional set compiles each of its `find` Queries to one Case under a derived identity. What the
 set command rejects is pinned here, each at the line that made it. -/
 
-/- The set's Case carries the derived identity, and the same Program, Contract and provenance rows
-the `fixture`-named Case carries, because it realizes the same Query through the same realization.
--/
+/- The set's Case carries the derived identity. -/
 #guard (match nexusSuccessSet.completion with
   | .ok output => output.case_id
   | .error _ => "") == "temporal.case.nexusSuccessTests.completion"
 #guard nexusSuccessSet.completion.identity.fixture == "nexusSuccessTests-completion"
-#guard (match nexusSuccessSet.completion, asyncNexusSuccess with
-  | .ok derived, .ok named =>
-      derived.program.map (·.entrypoints.size) == named.program.map (·.entrypoints.size) &&
-        derived.contract.map (·.rules.size) == named.contract.map (·.rules.size) &&
-        derived.provenance.map (·.known_gaps.size) == named.provenance.map (·.known_gaps.size)
-  | _, _ => false)
 
 /- The set declares what it is. -/
 #guard nexusSuccessTests.purpose == .functional
@@ -1937,14 +1890,14 @@ private def probedClaims (produced : Except Compiler.Error temporal.server.api.t
   | .error _ => none
 
 /- A path through the slow probe records the claim, with the example the Case ran. -/
-#guard probedClaims (Umpire.Command.produceCase slowProbed asyncNexusSuccess.identity
-    asyncNexusSuccess.realization (probeEvidence "probe-slow")
+#guard probedClaims (Umpire.Command.produceCase slowProbed nexusSuccessSet.completion.identity
+    nexusSuccessSet.realization (probeEvidence "probe-slow")
     (claims := Umpire.Command.classClaims probedLifecycle [probe])) ==
   some [("temporal.nexus.success.tests.action.probe", "speed", "slow", "Sluggish")]
 
 /- A path through the quick probe, whose class has no example, records none. -/
-#guard probedClaims (Umpire.Command.produceCase quickProbed asyncNexusSuccess.identity
-    asyncNexusSuccess.realization (probeEvidence "probe-quick")
+#guard probedClaims (Umpire.Command.produceCase quickProbed nexusSuccessSet.completion.identity
+    nexusSuccessSet.realization (probeEvidence "probe-quick")
     (claims := Umpire.Command.classClaims probedLifecycle [probe])) == some []
 
 end Temporal.Feature.Nexus.Success.Tests

@@ -119,25 +119,14 @@ query completion
     subject: "cancellationResolves"
     detail: "Operation-correlated progress counting is unsupported by the success slice."
 
-/-
-The Case the selected trace realizes. `fixture` is the only identity slot: the Case ID is
-`temporal.case.async-nexus`, the Program and Contract IDs derive from it, and the Run scope is the
-fixture name. Each `evidence` line says which recorded history event confirms one Action; the Step
-it confirms is read from the `steps` block above, along the witness trace.
--/
-case asyncNexusSuccess fixture "async-nexus"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-
-/-! ### The same Query as a functional set
+/-! ### The Query as a functional set
 
 A set groups Queries by purpose and binds every party except `system`. A functional set compiles
 each `find` Query to one Case, whose identity derives from the set's name and the Query's: the Case
 ID is `temporal.case.<set>.<query>` and the fixture `<set>-<query>-case.json`, so a Case is named by
-what it is rather than by a `fixture` slot. The Case bytes do not depend on any switch value. -/
+what it is rather than by a `fixture` slot. The Case bytes do not depend on any switch value. Each
+`evidence` line says which recorded history event confirms one Action; this slice's machine records
+no Fact, so the lines are written here rather than read off its `evidence:` block. -/
 set nexusSuccessTests
   purpose: functional
   bind:
