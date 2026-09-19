@@ -134,6 +134,34 @@ def enumerateBounded
   else
     .ok (enumerate rowKey steps)
 
+/-! ### The states a Model can reach, and the ones it cannot leave -/
+
+/-- Every state reachable from `starts` by the table's own rows, bounded by the domain's size.
+
+The bound is the number of states, because a walk that has not settled after visiting every state
+once is a walk that never will. -/
+def reachableFrom [BEq State] [Finite State]
+    (starts : List State)
+    (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : List State :=
+  let grow := fun (seen : List State) =>
+    transitions.foldl (init := seen) fun seen row =>
+      if seen.contains row.source then
+        row.results.foldl (init := seen) fun seen result =>
+          if seen.contains result.state then seen else seen ++ [result.state]
+      else seen
+  (List.range (cardinality State + 1)).foldl (init := starts) fun seen _ => grow seen
+
+/-- The first state a Model reaches, does not end in, and can take no step from.
+
+A state like that is where a Search stops without having finished, so it is either a state the author
+meant to list under `ends:` or a step they meant to write. Reported as the state itself, because
+which state it is is the whole of what the author needs to know. -/
+def stuckState [BEq State] [Finite State]
+    (starts ends : List State)
+    (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : Option State :=
+  (reachableFrom starts transitions).find? fun state =>
+    !ends.contains state && !transitions.any fun row => row.source == state
+
 end Umpire.Command
 
 /-! ### Deriving `Finite`
