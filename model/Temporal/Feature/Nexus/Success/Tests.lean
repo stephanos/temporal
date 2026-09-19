@@ -1167,6 +1167,19 @@ property disjunction
   when: awaitStart
   holds: fun step => step.outcome == .acknowledged || step.facts.contains .succeeded
 
+/- A transition claim is about the state the step before reached. One that reads the step before's
+outcome accepts a step after some of the arrivals at `started` and not after others, and closing it
+over the arrivals would strengthen what the author wrote into a claim they did not make. -/
+/--
+error: the predicate reads the step before beyond its state at prior state `started`: it accepts the step to started with outcome completed and facts [] after some of the steps that arrive there and not after others; a transition claim is about the state the step before reached, so read `before.state` or split the claim
+-/
+#guard_msgs (error) in
+property readsTheOutcomeBefore
+  machine: forkedLifecycle
+  holds: fun before after =>
+    before.state.state != .started || before.outcome != .completed ||
+      after.state.state == .succeeded
+
 /- A predicate that only reads a fact fixes only that fact: the states its accepted steps happen to
 share are not something it rejects when changed, so no state clause is read off the table. -/
 property recordsSuccess
@@ -1281,6 +1294,19 @@ limits twoOperationTraces
 
 query twoCompletions
   find: successfulResult
+  in: twoOperations
+  limits: twoOperationTraces
+
+/- A transition claim is read on one instance: it is triggered by the state one slot was in, and
+no clause says which instance then acts, so another instance's step would leave the slot where it
+was and violate a claim that its next state differs. A Query over several instances names a
+same-step Property. -/
+/--
+error: a transition claim is read on one instance: it is triggered by the state one instance was in, and another instance's step would leave that instance where it was; a Scenario over several instances names a same-step Property under `when:`
+-/
+#guard_msgs in
+query twoTransitions
+  find: startedThenSucceeds
   in: twoOperations
   limits: twoOperationTraces
 

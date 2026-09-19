@@ -347,8 +347,10 @@ Nexus realization declares the `implementation` switch (`hsm`, `chasm`) with the
 upstream suites set, resolved by name for `.7`'s `repeat:`; the live harness runs the async-Nexus
 Case once per value under a dedicated environment constructed with the value's settings and fails
 on a divergence naming the switch, both values and both Verdicts, with the divergence check pinned
-by a unit test. No dynamic-config setting bounds pending Nexus operations, so `atConcurrencyLimit`
-stays a Known Gap until one exists. Its review is a self-review.
+by a unit test. `atConcurrencyLimit` is not bound: the limit exists, one key per implementation,
+but binding it needs a setup-varying table, a value per key and a key per switch value, which the
+research spike of 2026-09-19 (`UMPIRE4_RESEARCH_NEXUS_MODEL.md`) recommends `.10` resolve by
+dropping the parameter. Its review is a self-review.
 
 **Task .7 is done, 2026-09-19.** The `set` command groups Queries by purpose and binds every party
 except `system`, rejecting in place an unbound party, a bound `system`, a stray party, an

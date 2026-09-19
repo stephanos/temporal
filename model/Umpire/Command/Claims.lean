@@ -30,9 +30,4 @@ def classClaims {Setup State Act Outcome Fact : Type}
           row := { action := action.id.value, field, className,
                    exampleValue := found.member.value } }
 
-/-- The same claims as the Model's own record, for a reader that does not need the member. -/
-def AbstractionClaim.ofRow (row : Umpire.Provenance.AbstractionClaimRow) : AbstractionClaim :=
-  { action := .of row.action, field := row.field, className := row.className,
-    exampleValue := row.exampleValue }
-
 end Umpire.Command

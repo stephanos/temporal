@@ -2202,6 +2202,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     entity := declaredEntity.declName
     stateType := stateDecl
     steps := steps.map fun resolved => (resolved.action.name, resolved.function.getId)
+    actionDecls := steps.filterMap fun resolved =>
+      if resolved.action.declName.isAnonymous then none else some resolved.action.declName
     timers := timerNames
     unobservable := unobservableNames
     evidence := evidenceRefs.map fun (recordedRef, observedRef) =>
@@ -2374,24 +2376,32 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     | "exploratory" => `(term| Umpire.Command.SetPurpose.exploratory)
     | other => throwErrorAt purposeRef (unknownPurposeMessage other)
   -- Every party the Model's actions name is bound, `system` is not, and nothing else is. The
-  -- actions are the ones the set's Queries' machines step on; a set that lists no Query -- an
-  -- exploratory one -- binds the parties of the actions declared beside it.
+  -- actions are the ones the set's Queries' machines step on, by the declarations the machines
+  -- resolved; a set that lists no Query -- an exploratory one -- binds the parties of the actions
+  -- declared beside it. Each Query is resolved to its constant once, here, so the party check and
+  -- the checks below read the same declaration.
   let environment ← getEnv
   let currentNamespace ← getCurrNamespace
-  let steppedOn : Array String := ((queryRefs.map (·.2)).getD #[]).flatMap fun queryRef =>
-    match (Registry.queries environment).find? fun declared =>
-        declared.declName.getString! == queryRef.getId.eraseMacroScopes.getString! with
-    | some declared =>
-        match Registry.scenario? environment declared.scenario with
-        | some declaredScenario =>
-            match Registry.machine? environment declaredScenario.model with
-            | some declaredMachine => declaredMachine.steps.map (·.1)
-            | none => #[]
+  let mut resolvedQueries : Array (Syntax × Name × Registry.QueryEntry) := #[]
+  let listedQueries : Array Ident := (queryRefs.map (·.2)).getD #[]
+  for queryRef in listedQueries do
+    let queryName? ← try
+        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo queryRef)
+      catch failure =>
+        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    let some declared := queryName?.bind (Registry.query? environment)
+      | throwErrorAt queryRef (undeclaredMessage "query" queryRef.getId)
+    resolvedQueries := resolvedQueries.push (queryRef, queryName?.getD .anonymous, declared)
+  let steppedOn : Array Name := resolvedQueries.flatMap fun (_, _, declared) =>
+    match Registry.scenario? environment declared.scenario with
+    | some declaredScenario =>
+        match Registry.machine? environment declaredScenario.model with
+        | some declaredMachine => declaredMachine.actionDecls
         | none => #[]
     | none => #[]
   let declaredActions := (Registry.actions environment).filter fun declared =>
-    if steppedOn.isEmpty then currentNamespace.isPrefixOf declared.declName
-    else steppedOn.contains declared.name
+    if resolvedQueries.isEmpty then currentNamespace.isPrefixOf declared.declName
+    else steppedOn.contains declared.declName
   let parties := (declaredActions.map (·.party)).toList.eraseDups
   let mut seenParties : Array String := #[]
   for (partyRef, party, modeRef, mode) in bindings do
@@ -2433,14 +2443,7 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
   let origin ← originTerm
   let mut queryNames : Array Name := #[]
   let mut queryIdTerms : Array Term := #[]
-  for queryRef in (queryRefs.map (·.2)).getD #[] do
-    let queryName? ← try
-        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo queryRef)
-      catch failure =>
-        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
-    let some declared := queryName?.bind (Registry.query? environment)
-      | throwErrorAt queryRef (undeclaredMessage "query" queryRef.getId)
-    let queryName := queryName?.getD .anonymous
+  for (queryRef, queryName, declared) in resolvedQueries do
     unless declared.selectsWitness do
       throwErrorAt queryRef (verifyQueryInSetMessage queryName.toString purposeSpelling)
     if purposeSpelling == "functional" then
