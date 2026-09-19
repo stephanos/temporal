@@ -98,6 +98,17 @@ the first; `enumerateBounded` reads it for the second. A Model past it is reject
 that exceeded it, never enumerated part-way. -/
 def elaborationBound : Nat := 256
 
+/-- How large a space a machine's enumeration may walk.
+
+Deliberately larger than `elaborationBound`, because the two bound different things. That one bounds
+the rows an author *writes*, where 256 is already far past what anyone reads. This one bounds the
+(state, action) pairs a step function is *evaluated* at, which nobody writes and nobody reads: the
+Nexus protocol machine of `DESIGN.md` section 3 is 224 states over 23 action classes, and refusing
+5152 evaluations would refuse the design's own specimen for being the size it is. What the bound is
+for is the case the FizzBee comparison names -- several instances of a structured state multiplying
+out -- where the number stops being thousands and starts being millions. -/
+def enumerationBound : Nat := 16384
+
 /-- The size of the space `enumerate` would walk, which is what a bound is checked against. It is
 the product of the domains, not the number of rows, because the walk evaluates the step function once
 per pair whether or not the pair is enabled. -/
