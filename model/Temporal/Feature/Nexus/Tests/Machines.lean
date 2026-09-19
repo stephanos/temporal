@@ -137,7 +137,7 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 /- What the Model actually reaches. `timedOut` is not among them: the product machine has no timer,
 because when an operation times out is the protocol's account of how and not what, so the state
 exists for the refinement to map onto and nothing here reaches it. -/
-#guard (Umpire.Command.reachableFrom nexusProduct.starts nexusProduct.ends
+#guard (Umpire.Command.reachableFrom nexusProduct.starts
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
   ["scheduled", "succeeded", "started", "failed", "canceled"]
 

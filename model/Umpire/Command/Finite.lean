@@ -152,15 +152,14 @@ def enumerateBounded
 The bound is the number of states, because a walk that has not settled after visiting every state
 once is a walk that never will. -/
 def reachableFrom [BEq State] [Finite State]
-    (starts ends : List State)
+    (starts : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : List State :=
   let grow := fun (seen : List State) =>
     transitions.foldl (init := seen) fun seen row =>
-      -- The walk follows the table, terminal rows included. Stopping at `ends` would assume a
-      -- Search that does not take a row out of a terminal state, and Search takes every row the
-      -- table carries: a state reachable only that way is genuinely reachable, and calling it
-      -- unreachable would hide a stuck state rather than a false one. `ends` stays a parameter
-      -- because `stuckState` reads it, not because the walk does.
+      -- The walk follows the table, terminal rows included. Stopping at the machine's ends would
+      -- assume a Search that does not take a row out of a terminal state, and Search takes every
+      -- row the table carries: a state reachable only that way is genuinely reachable, and calling
+      -- it unreachable would hide a stuck state rather than a false one.
       if seen.contains row.source then
         row.results.foldl (init := seen) fun seen result =>
           if seen.contains result.state then seen else seen ++ [result.state]
@@ -175,7 +174,7 @@ which state it is is the whole of what the author needs to know. -/
 def stuckState [BEq State] [Finite State]
     (starts ends : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : Option State :=
-  (reachableFrom starts ends transitions).find? fun state =>
+  (reachableFrom starts transitions).find? fun state =>
     !ends.contains state && !transitions.any fun row => row.source == state
 
 end Umpire.Command
