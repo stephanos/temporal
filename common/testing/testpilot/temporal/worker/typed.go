@@ -126,12 +126,12 @@ func (s *Session) replyTyped(ctx context.Context, delivered delivery.Activation,
 			if err != nil {
 				return nexusResult{}, err
 			}
-			return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR}, failure
+			return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR, replied: true}, failure
 		default:
 			return nexusResult{}, ErrInvalid
 		}
 	case *testpilotspb.NexusHandlerReply_Error:
-		return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR}, handlerError(typed.Error)
+		return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR, replied: true}, handlerError(typed.Error)
 	default:
 		return nexusResult{}, ErrInvalid
 	}

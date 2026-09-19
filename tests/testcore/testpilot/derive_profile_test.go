@@ -12,7 +12,7 @@ import (
 
 func asyncNexusEnvironment() temporaldriver.Environment {
 	return temporaldriver.Environment{
-		Identity: "async-nexus-profile", Namespace: "namespace",
+		Identity: "nexus-caller-profile", Namespace: "namespace",
 		TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	}
 }
@@ -20,14 +20,14 @@ func asyncNexusEnvironment() temporaldriver.Environment {
 // The hand-written Profile is the derivation oracle: if deriving the same Case does not reproduce
 // it field for field, the derivation is guessing rather than reading the Case.
 func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
-	source := loadLeanCase(t, "async-nexus")
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	environment := asyncNexusEnvironment()
 
 	derived, err := temporaldriver.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
-	oracle := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
+	oracle := NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: environment.Namespace, TaskQueue: environment.TaskQueue, NexusEndpoint: environment.NexusEndpoint,
 	})
 	require.Equal(t, oracle.Identity, derived.Identity)
@@ -39,7 +39,7 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 	require.True(t, proto.Equal(oracle.ContractLimits, derived.ContractLimits))
 }
 
-// The typed Cases pin the parts the async-nexus shape cannot: two reserved Nexus handler
+// The typed Cases pin the parts the caller set's shape cannot: two reserved Nexus handler
 // activations on one carrier, and a Case with no Nexus handler at all.
 func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
@@ -73,7 +73,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 // on the Profile in the catalog's spelling, sorted, and is part of the binding fingerprint, so a
 // Case run under two switch values runs under two Profiles over the same bytes.
 func TestDeriveProfileRecordsTheEnvironmentsConfiguration(t *testing.T) {
-	source := loadLeanCase(t, "async-nexus")
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	environment := asyncNexusEnvironment()
@@ -127,7 +127,7 @@ func TestDeriveProfileRecordsTheEnvironmentsConfiguration(t *testing.T) {
 func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	source := loadLeanCase(t, "async-nexus")
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	derived, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
 	require.NoError(t, err)
 
@@ -199,7 +199,7 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 		"unset activation": func(c *testpilotspb.Case) { c.Program.Entrypoints[0].Activation = nil },
 	} {
 		t.Run(name, func(t *testing.T) {
-			source := loadLeanCase(t, "async-nexus")
+			source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 			mutate(source)
 			_, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
 			require.Error(t, err)
@@ -207,6 +207,6 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 	}
 	_, err = temporaldriver.DeriveProfile(nil, catalog, asyncNexusEnvironment())
 	require.Error(t, err)
-	_, err = temporaldriver.DeriveProfile(loadLeanCase(t, "async-nexus"), catalog, temporaldriver.Environment{})
+	_, err = temporaldriver.DeriveProfile(loadLeanCase(t, NexusCallerAsyncCompletionFixture), catalog, temporaldriver.Environment{})
 	require.Error(t, err)
 }

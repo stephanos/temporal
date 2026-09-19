@@ -168,7 +168,7 @@ func syntheticResult(source *testpilotspb.Case) *testpilotspb.Value {
 // Profile it was derived from is rejected before any Driver I/O.
 func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) {
 	getSystemInfo := loadLeanCase(t, "get-system-info")
-	asyncNexus := loadLeanCase(t, "async-nexus")
+	asyncNexus := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
 	// The async Nexus Case's Contract is its correlated capability; the system-info Case's is a rule.
 	require.Len(t, getSystemInfo.GetContract().GetRules(), 1)
@@ -213,7 +213,7 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 }
 
 func asyncNexusProfile(catalog *testpilot.Catalog) testpilot.ProfileSpec {
-	return AsyncNexusProfile(catalog, AsyncNexusEnvironment{
+	return NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: asyncNexusArtifactNamespace, TaskQueue: asyncNexusArtifactTaskQueue,
 		NexusEndpoint: "nexus-endpoint",
 	})
@@ -237,40 +237,40 @@ func (d *validatingArtifactDriver) Open(ctx context.Context, runID string, progr
 }
 
 func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *testing.T) {
-	source := loadLeanCase(t, "async-nexus")
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	require.Equal(t, int32(1), source.GetVersion().GetMajor())
 	require.Equal(t, int32(0), source.GetVersion().GetMinor())
 	require.Equal(t, []string{
-		AsyncNexusWorkerNamespaceBindingID,
-		AsyncNexusTaskQueueBindingID,
-		AsyncNexusEndpointBindingID,
+		NexusCallerWorkerNamespaceBindingID,
+		NexusCallerTaskQueueBindingID,
+		NexusCallerEndpointBindingID,
 	}, testpilot.EnvironmentBindingIDs(source.GetProgram()))
-	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
 		source.GetProgram().GetRoles()[1].GetNamespaceBindingId())
-	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
 		source.GetProgram().GetRoles()[2].GetNamespaceBindingId())
-	require.Equal(t, AsyncNexusTaskQueueBindingID,
+	require.Equal(t, NexusCallerTaskQueueBindingID,
 		source.GetProgram().GetRoles()[2].GetResourceBindingId())
-	require.Equal(t, AsyncNexusEndpointBindingID,
+	require.Equal(t, NexusCallerEndpointBindingID,
 		source.GetProgram().GetRoles()[3].GetResourceBindingId())
 	startAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[0].
 		GetInstruction().GetInvokeRpc().GetRequestAssignments()
 	historyAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[3].
 		GetInstruction().GetInvokeRpc().GetRequestAssignments()
-	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
 		startAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
-	require.Equal(t, AsyncNexusTaskQueueBindingID,
+	require.Equal(t, NexusCallerTaskQueueBindingID,
 		startAssignments[3].GetValue().GetReference().GetEnvironmentBindingId())
-	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
 		historyAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
-	firstProfile := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
+	firstProfile := NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: "namespace-a", TaskQueue: "task-queue-a", NexusEndpoint: "nexus-endpoint-a",
 	})
-	secondProfile := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
+	secondProfile := NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: "namespace-b", TaskQueue: "task-queue-b", NexusEndpoint: "nexus-endpoint-b",
 	})
 	first, err := testpilot.Prepare(source, firstProfile)
@@ -314,21 +314,21 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Zero(t, validating.opens)
 }
 
-func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
-	source := loadLeanCase(t, "async-nexus")
+func TestLeanNexusCallerCasePreparesWithCheckedProvenance(t *testing.T) {
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog))
 	require.NoError(t, err)
-	require.Equal(t, "temporal.nexus.success.testpilot", source.GetProvenance().GetProducerId())
+	require.Equal(t, "temporal.nexus.caller.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
 	provenance := source.GetProvenance()
 	require.Equal(t, []string{
-		"temporal.nexus.success.target.lifecycle",
-		"temporal.nexus.success.behavior.successfulCompletion",
-		"temporal.nexus.success.query.completion",
-		"temporal.nexus.success.property.successfulResult",
+		"temporal.nexus.caller.target.nexusProtocol",
+		"temporal.nexus.caller.behavior.asyncThenSucceeded",
+		"temporal.nexus.caller.query.asyncCompletion",
+		"temporal.nexus.caller.property.completionSucceeds",
 	}, definitionIDs(provenance.GetDefinitions()))
 	require.Equal(t, []testpilotspb.DefinitionKind{
 		testpilotspb.DEFINITION_KIND_TARGET,
@@ -339,14 +339,13 @@ func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
 	for _, definition := range provenance.GetDefinitions() {
 		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, definition.GetBehaviorFingerprint())
 	}
-	require.Equal(t, []string{
-		"temporal.nexus.success.known-gap.cancellation",
-		"temporal.nexus.success.known-gap.operation-correlated-progress",
-	}, knownGapCodes(provenance.GetKnownGaps()))
+	// No path of the caller set uses an unobservable timer and the machine binds no setup
+	// parameter, so the Case carries no Known Gap.
+	require.Empty(t, knownGapCodes(provenance.GetKnownGaps()))
 }
 
 func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
-	source := loadLeanCase(t, "async-nexus")
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile := asyncNexusProfile(catalog)
@@ -375,9 +374,10 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.NotContains(t, identities, result.run.GetRunId())
 		identities[result.run.GetRunId()] = struct{}{}
-		// One recorded Nexus event per admitted semantic step: the started event and the completed
-		// one. The scheduled event names no model step, so it supports nothing.
-		require.Len(t, result.verdict.GetSupportingEventSequences(), 2)
+		// One recorded Nexus event per admitted semantic step: the scheduled event confirms the
+		// schedule command, the started event the asynchronous reply, the completed event the
+		// completion.
+		require.Len(t, result.verdict.GetSupportingEventSequences(), 3)
 		requireHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences())
 	}
 	require.Equal(t, int64(6), successDriver.opens.Load())
@@ -419,7 +419,8 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, test.status, actual.GetDisposition())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
-			require.Less(t, len(verdict.GetSupportingEventSequences()), 2)
+			// Fewer than the three steps a satisfied Run supports: the completion is never admitted.
+			require.Less(t, len(verdict.GetSupportingEventSequences()), 3)
 			require.Equal(t, test.status == testpilotspb.RUN_DISPOSITION_INCOMPLETE, actual.GetEvaluationFailure() != nil)
 		})
 	}
@@ -500,7 +501,7 @@ func (h *artifactDriver) Identity(context.Context) (testpilot.DriverIdentity, er
 func (h *artifactDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
 
 func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if program.Snapshot().GetProgramId() != "temporal.case.async-nexus.program" {
+	if program.Snapshot().GetProgramId() != "temporal.case.nexusCallerTests.asyncCompletion.program" {
 		return nil, temporal.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)
@@ -555,7 +556,7 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		default:
 			result = succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})
 		}
-	case "history":
+	case "await-close", "history":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
 			return nil, temporal.ErrInvalid
 		}
@@ -565,6 +566,18 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		}
 		if typed.GetNamespace() != asyncNexusArtifactNamespace || typed.GetExecution().GetWorkflowId() != s.runID {
 			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporal.ErrInvalid)
+		}
+		// The close-event read resolves once the workflow closed; the double answers it with
+		// the close event alone, and the full read with the operation's events.
+		if coordinate.InstructionID == "await-close" {
+			if typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
+				return nil, fmt.Errorf("close read without the close-event filter for run %q: %w", s.runID, temporal.ErrInvalid)
+			}
+			result = succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
+				EventId: s.ordinal + 3, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
+				Attributes: &historypb.HistoryEvent_WorkflowExecutionCompletedEventAttributes{WorkflowExecutionCompletedEventAttributes: &historypb.WorkflowExecutionCompletedEventAttributes{}},
+			}}}})
+			break
 		}
 		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal, s.mode))
 	default:

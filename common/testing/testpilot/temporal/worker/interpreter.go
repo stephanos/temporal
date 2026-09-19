@@ -26,6 +26,9 @@ type nexusResult struct {
 	raw   *commonpb.Payload
 	token string
 	err   error
+	// replied marks err as the reply the entrypoint instructed, a handler or operation error the
+	// handler returns on purpose, so the activation that produced it completed rather than failed.
+	replied bool
 }
 
 type workflowInterpreter struct {
@@ -187,6 +190,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 		}()
 		interpreted, err := s.interpretNexus(ctx, delivered, options)
 		result.kind, result.value, result.raw, result.token, result.err = interpreted.kind, interpreted.value, interpreted.raw, interpreted.token, err
+		result.replied = interpreted.replied
 	}()
 	close(result.done)
 	return result.response()
@@ -218,7 +222,7 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 				return nexusResult{}, err
 			}
 			kind, value, token, err := s.respondNexus(ctx, delivered, response, input, options)
-			return nexusResult{kind: kind, value: value, token: token}, err
+			return nexusResult{kind: kind, value: value, token: token, replied: kind == testpilotspb.NEXUS_RESPONSE_KIND_ERROR && err != nil}, err
 		case testpilot.NexusHandlerReply:
 			reply := instruction.Source().GetInstruction().GetNexusHandlerReply()
 			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
@@ -230,6 +234,23 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 		}
 	}
 	return nexusResult{}, errors.New("nexus handler entrypoint completed without a reply")
+}
+
+// nexusActivationOutcome is what a start reports of its handler activation. A reply the entrypoint
+// instructed completes the activation whatever the SDK carries back, an error included, since the
+// handler did what the Program said; any other failed start failed the activation.
+func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr error) (*testpilotspb.InstructionOutcome, error) {
+	if startErr == nil {
+		return terminalOutcome(), nil
+	}
+	if s.mu.lock(context.Background()) == nil {
+		result := s.nexusResults[delivered.Reservation().ID]
+		s.mu.unlock()
+		if result != nil && result.replied {
+			return terminalOutcome(), nil
+		}
+	}
+	return sdkFailureOutcome(startErr), startErr
 }
 
 func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {

@@ -282,7 +282,7 @@ structure Lowered (plan : Projection.Checked target) (compiled : Property.Correl
   stateFields : StateFields
   decoding : Testpilot.Correlated.decode limits wire = .ok decoded
   meaning : decoded = Correlated.meaning stateFields plan compiled keyed
-  maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
+  maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 ≤
     target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
@@ -346,7 +346,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
         let certificates ← (CorrelatedProofs.certifyAll compiled.portableReferences
           (liftedRows stateFields plan.executable.transitions) plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
-            (fun maximum row => max maximum row.2.2.facts.length) 0 =
+            (fun maximum row => max maximum row.2.2.facts.length) 0 ≤
             target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0 then
           if candidateCounts : ∀ row ∈ plan.executable.transitions,
               (plan.executable.transitions.filter (fun candidate =>
@@ -355,7 +355,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
             pure ⟨wire, limits, decoded, keyed, stateFields, decoding, agreement, maximumFacts,
               candidateCounts, certificates.down⟩
           else throw (failed "portable work candidate multiplicity differs from checked kernel")
-        else throw (failed "portable work maximum fact count differs from checked description")
+        else throw (failed "portable work maximum fact count exceeds the checked description")
       else throw (failed "portable correlated meaning roundtrip mismatch")
 
 /-- Carry the checked property/source mapping in opaque Umpire provenance, not executable metadata. -/

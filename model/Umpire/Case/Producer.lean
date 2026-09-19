@@ -195,6 +195,7 @@ structure EvidenceRule where
 structure EvidenceMapping where
   action : ModelValue
   eventKind : String
+  deriving BEq, Repr
 
 /-- The two fault kinds a Scenario may declare. -/
 inductive FaultKind where
@@ -221,11 +222,15 @@ sequence interleaves scaffolding and actions -- a controller that starts a workf
 an action, then reads history -- says so by ordering its items, so the assembly reproduces that
 sequence without knowing what any of them mean. -/
 
-/-- One item in an entrypoint's instruction sequence: a node the realization always emits, or the
-place where the path's actions of the named classes land. -/
+/-- One item in an entrypoint's instruction sequence: a node the realization always emits, a node it
+emits only when the path performs one of the named classes, or the place where the path's actions
+of the named classes land. -/
 inductive EntrypointItem where
   /-- A node every Case carries, built from the identity and the evidence rules it must lift. -/
   | fixed (node : Identity → List EvidenceRule → InstructionNode)
+  /-- A node a Case carries only when its path performs a class one of `keys` names: scaffolding
+  one side effect needs, such as the wait for a handle another party publishes. -/
+  | whenOnPath (keys : List String) (node : Identity → List EvidenceRule → InstructionNode)
   /-- The actions of these classes, in the order the path performs them. -/
   | actions (classes : List DefinitionId)
 
@@ -249,11 +254,31 @@ structure ProgramPlan where
   cleanup : Cleanup
 
 /-- What one action class is realized as. `node` builds the instruction the party performs; the
-Producer supplies the node's id, so a class performed twice on one path cannot collide. -/
+Producer supplies the node's id, so a class performed twice on one path cannot collide.
+
+A binding names its class by `key`, the member key a Scenario's path spells it by
+(`handlerReply-async`, `schedule-unset-unset-unset`), and the Producer resolves the key against the
+Model's vocabulary, so one realization serves every Model whose actions carry those classes.
+`action` is the Definition ID a realization states for a Model whose own actions realize nothing
+and whose path the realization states instead; it is read only where the key resolves to no
+member. -/
 structure ActionBinding where
   action : DefinitionId
   instructionId : String
   node : Identity → String → InstructionNode
+  key : String := ""
+
+/-- The Definition ID a binding's class has in this Model: the vocabulary's action member of the
+binding's key, or the id the binding states where the vocabulary has no such member. -/
+def ActionBinding.resolve (binding : ActionBinding) (vocabulary : Option Vocabulary) :
+    DefinitionId :=
+  match vocabulary with
+  | some values =>
+      if binding.key.isEmpty then binding.action
+      else
+        let named := values.namedAction binding.key
+        if named.definitionId.value.isEmpty then binding.action else named.definitionId
+  | none => binding.action
 
 /-- One setup parameter of a machine as the realization binds it: the parameter's Definition ID and
 the configuration key the Profile sets it under. The value a Case's path assumed is not written
@@ -448,7 +473,26 @@ private def projectionDeclaration
 
 An `evidence` line names an event kind; the realization says which kinds it admits. A kind outside
 that list, a selected Action with no line, and a line for an Action the witness never selects each
-reject by name. -/
+reject by name.
+
+A Model whose machine carries `evidence:` lines needs no `evidence` lines of its own: each fact a
+witness step records is confirmed by the observation the machine's line maps it to, so the mapping
+is read off the witness. A classed fact is covered by the line naming its constructor. -/
+
+/-- Whether an `evidence:` line's fact spelling covers a recorded fact: the member itself, or the
+constructor whose members the fact is one of. -/
+private def coversFact (spelling factValue : String) : Bool :=
+  factValue == spelling || factValue.startsWith (spelling ++ "-")
+
+/-- The evidence mappings a witness implies under the machine's own `evidence:` lines: one per fact
+a step records that some line covers, naming the step's Action. -/
+def derivedEvidence
+    (catalog : List (String × String))
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :
+    List EvidenceMapping :=
+  (steps.flatMap fun step => step.facts.filterMap fun fact =>
+    (catalog.find? fun entry => coversFact entry.1 fact.value).map fun entry =>
+      ({ action := step.selectedAction, eventKind := entry.2 } : EvidenceMapping)).eraseDups
 
 private def resolveEvidence
     (source : SourceLocation)
@@ -551,7 +595,13 @@ def assembleProgram
     (identity : Identity)
     (resolved : List EvidenceRule)
     (realization : Realization)
-    (path : List DefinitionId) : Except Error Program := do
+    (path : List DefinitionId)
+    (vocabulary : Option Vocabulary := none) : Except Error Program := do
+  -- Each binding's class as this Model names it, so the path's ids and the bindings' agree.
+  let bindings := realization.actions.map fun binding =>
+    { binding with action := binding.resolve vocabulary }
+  let onPath (keys : List String) : Bool :=
+    bindings.any fun binding => keys.contains binding.key && path.contains binding.action
   let mut entrypoints : Array Entrypoint := #[]
   let mut placed : List DefinitionId := []
   for plan in realization.plan.entrypoints do
@@ -559,14 +609,21 @@ def assembleProgram
     for item in plan.items do
       match item with
       | .fixed node => nodes := nodes.push (node identity resolved)
+      | .whenOnPath keys node =>
+          if onPath keys then nodes := nodes.push (node identity resolved)
       | .actions classes =>
+          -- An `actions` item names classes by the ids the realization states; the ones its
+          -- bindings resolved carry the Model's ids instead, so the item is read through them.
+          let classes := classes.map fun stated =>
+            (((realization.actions.zip bindings).find? (·.1.action == stated)).map
+              (·.2.action)).getD stated
           for action in classes do
             if placed.contains action then
               throw (productionError source action.value "realization.action-placed-twice")
-          nodes := nodes ++ (← actionNodes source identity realization.actions path classes)
+          nodes := nodes ++ (← actionNodes source identity bindings path classes)
           placed := placed ++ classes
     entrypoints := entrypoints.push (plan.activate identity nodes)
-  for binding in realization.actions do
+  for binding in bindings do
     if path.contains binding.action && !placed.contains binding.action then
       throw (productionError source binding.action.value "realization.action-unplaced")
   pure (Testpilot.Authoring.Program.make identity.programId realization.plan.roles
@@ -585,7 +642,7 @@ def Realization.program
     (resolved : List EvidenceRule := [])
     (path : List DefinitionId := [])
     (source : SourceLocation := { path := "" }) : Except Error Program :=
-  assembleProgram source identity resolved realization path
+  assembleProgram source identity resolved realization path none
 
 /-! ### Production -/
 
@@ -600,7 +657,8 @@ def produce {LawStatement : Law → Prop}
     (identity : Identity)
     (realization : Realization)
     (evidence : List EvidenceMapping)
-    (required : List DefinitionId := []) :
+    (required : List DefinitionId := [])
+    (evidenceCatalog : List (String × String) := []) :
     Except Error temporal.server.api.testpilot.v1.Case := do
   let rejects := productionError input.source
   -- A Case realizes one selected trace, so a Query that verifies rather than selects has no
@@ -622,6 +680,10 @@ def produce {LawStatement : Law → Prop}
         | some opening => pure opening
         | none => throw (rejects first.value "behavior.action.undeclared")
     | none => throw (rejects input.scenario.id.value "behavior.sequence.absent")
+  -- Evidence lines written at the Case, or, where it wrote none, the ones the machine's own
+  -- `evidence:` lines imply along the witness.
+  let evidence := if evidence.isEmpty then derivedEvidence evidenceCatalog selected.trace.steps
+    else evidence
   let evidenceRules ← resolveEvidence input.source realization selectedValues
     selected.trace.steps evidence
   let correlatedRules ← input.property.clauses.mapM
@@ -670,7 +732,7 @@ def produce {LawStatement : Law → Prop}
       input.property.source]
     knownGaps := knownGaps.toProvenanceGaps
     program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
-      (input.program.getD occurrences)
+      (input.program.getD occurrences) (some input.vocabulary)
     -- A claim is recorded for each class the Program performs: every instance's actions, not only
     -- the operation the Contract follows, because each of them ran the class's example.
     abstractionClaims := (input.claims.filter fun claim =>

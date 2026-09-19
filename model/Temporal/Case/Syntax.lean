@@ -40,11 +40,19 @@ declare_syntax_cat caseTemplate
 
 syntax ident &"service" str &"operation" str &"responds" ident : caseTemplate
 syntax ident &"type" str : caseTemplate
+/-- A realization named directly: the Model's own actions are the path, and the realization binds
+each class the path performs. -/
+syntax ident &"service" str &"operation" str &"realized" &"by" ident : caseTemplate
 
 /-- One `evidence` line: the Action the Scenario selects, and the recorded event that confirms it. -/
 declare_syntax_cat caseEvidence
 
 syntax ident "←" &"history" ident : caseEvidence
+
+/-- The `evidence` block of a `case` over a set. A set whose machine carries `evidence:` lines
+writes none: each fact a witness step records is confirmed by the observation the machine's line
+maps it to, read off the witness at production. -/
+syntax caseEvidenceBlock := &"evidence" caseEvidence+
 
 private def spellingList (spellings : Array String) : String :=
   ", ".intercalate spellings.toList
@@ -77,6 +85,9 @@ private def unknownEventKindMessage (spelling : String) : String :=
 private def unknownTemplateMessage (spelling : String) : String :=
   s!"unknown realization template '{spelling}'; declared: nexusOperation, workflow"
 
+private def unknownRealizationMessage (spelling : String) : String :=
+  s!"unknown realization '{spelling}'; declared: asyncNexus"
+
 private def unknownResponseMessage (spelling : String) : String :=
   s!"unknown Nexus response form '{spelling}'; declared: sync, async"
 
@@ -107,6 +118,14 @@ private def templateTerm : TSyntax `caseTemplate → CommandElabM (Term × Term)
       | "async" => return (← `(term| Temporal.Case.Realization.asyncNexus $service $operation),
           ← `(term| some Temporal.Case.Realization.Nexus.asyncPath))
       | spelling => throwErrorAt responds (unknownResponseMessage spelling)
+  | `(caseTemplate| $named:ident service $service:str operation $operation:str
+      realized by $realization:ident) => do
+      unless named.getId.eraseMacroScopes.toString == "nexusOperation" do
+        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
+      unless realization.getId.eraseMacroScopes.toString == "asyncNexus" do
+        throwErrorAt realization
+          (unknownRealizationMessage realization.getId.eraseMacroScopes.toString)
+      return (← `(term| Temporal.Case.Realization.asyncNexus $service $operation), ← `(term| none))
   | `(caseTemplate| $named:ident type $workflowType:str) => do
       unless named.getId.eraseMacroScopes.toString == "workflow" do
         throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
@@ -190,7 +209,10 @@ private def machineActionDecls (declaredMachine : Umpire.Command.Registry.Machin
 elab "case" name:ident
     &"realizes" setRef:ident
     &"as" template:caseTemplate
-    &"evidence" lines:caseEvidence+ : command => do
+    block?:(caseEvidenceBlock)? : command => do
+  let lines : Array (TSyntax `caseEvidence) := match block? with
+    | some block => block.raw[1].getArgs.map (⟨·⟩)
+    | none => #[]
   let setName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo setRef)
   let environment ← getEnv
   let some declaredSet := Umpire.Command.Registry.set? environment setName
@@ -221,9 +243,12 @@ elab "case" name:ident
           throwErrorAt eventKind (unknownEventKindMessage kind)
         mapped := mapped.push (spelling, kind)
     | _ => throwErrorAt line "unsupported Nexus evidence line"
-  for spelling in selected do
-    unless mapped.any (·.1 == spelling) do
-      throwErrorAt name (unmappedActionMessage spelling)
+  -- Lines written at the Case must cover every selected Action; a Case that writes none reads the
+  -- machine's own `evidence:` lines along each witness at production.
+  if block?.isSome then
+    for spelling in selected do
+      unless mapped.any (·.1 == spelling) do
+        throwErrorAt name (unmappedActionMessage spelling)
   let (realization, programPath) ← templateTerm template
   let realizationName := mkIdentFrom name (name.getId ++ `realization)
   elabCommand (← `(command|
@@ -240,12 +265,16 @@ elab "case" name:ident
     if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName) then
       throwErrorAt setRef (duplicateFixtureMessage fixtureName prior.caseId)
     let caseId := caseIdRoot ++ "." ++ declaredSet.name ++ "." ++ short
-    -- The claims the machine's actions make, for the Producer to record the ones this path performs.
-    let claims ← match Umpire.Command.Registry.machine? environment modelName with
-      | some declaredMachine =>
+    -- The claims the machine's actions make, for the Producer to record the ones this path performs,
+    -- and the machine's own `evidence:` lines, which a Case with no lines of its own reads.
+    let (claims, catalog) ← match Umpire.Command.Registry.machine? environment modelName with
+      | some declaredMachine => do
           let actionRefs := (machineActionDecls declaredMachine).map mkIdent
-          `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*])
-      | none => `(term| [])
+          let pairs ← declaredMachine.evidence.mapM fun (fact, observed) =>
+            `(term| ($(Lean.quote fact), $(Lean.quote observed)))
+          pure (← `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*]),
+            ← `(term| ([$pairs,*] : List (String × String))))
+      | none => do pure (← `(term| []), ← `(term| ([] : List (String × String))))
     let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
     let identityName := mkIdentFrom name (caseName.getId ++ `identity)
     let evidenceName := mkIdentFrom name (caseName.getId ++ `evidence)
@@ -260,7 +289,8 @@ elab "case" name:ident
       def $caseName : Except Umpire.Case.Compiler.Error
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
-          $evidenceName (claims := $claims) (program := $programPath)))
+          $evidenceName (claims := $claims) (program := $programPath)
+          (evidenceCatalog := $catalog)))
     liftCoreM (Registry.recordCase {
       declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
 

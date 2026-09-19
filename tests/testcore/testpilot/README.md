@@ -10,13 +10,16 @@ Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownershi
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
-The async Nexus fixture is one canonical Case 1.0 artifact with symbolic resource references.
-Fixture tests prepare its unchanged bytes against two physical Profiles, confirm distinct binding
-identities, and reject missing or inconsistent references before dispatch. The tagged live test adds
-two isolated namespaces, queues, and named Nexus routes and verifies both Runs satisfy the same
-Contract with correlated history evidence.
+The caller Model's functional set (`model/Temporal/Feature/Nexus/Caller/Model.lean`) produces one
+fixture per Query, `nexusCallerTests-<query>-case.json`: sync success, async reply then succeeded
+callback, async reply then failed callback, and a non-retryable handler error. Each is one canonical
+Case 1.0 artifact with symbolic resource references. Fixture tests prepare the async-completion
+fixture's unchanged bytes against two physical Profiles, confirm distinct binding identities, and
+reject missing or inconsistent references before dispatch. The tagged live tests run each Query once
+per value of the implementation switch, under two isolated namespaces, queues and named Nexus routes
+each, and verify every Run satisfies the same Contract with correlated history evidence.
 
-`derive_profile_test.go` holds the derivation oracle: the hand-written `AsyncNexusProfile`,
+`derive_profile_test.go` holds the derivation oracle: the hand-written `NexusCallerProfile`,
 `TypedNexusProfile` and `TypedUnaryProfile` are compared field for field against
 `temporal.DeriveProfile` over the same fixture bytes, including the identity the binding supplies.
 Live tests no longer hand-write a Profile at all. `bindCase` under `tests/` takes a decoded Case and

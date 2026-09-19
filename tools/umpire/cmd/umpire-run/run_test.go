@@ -61,7 +61,7 @@ func verdictSession(status testpilotspb.VerdictStatus, rules ...*testpilotspb.Ru
 func TestRunExitsZeroAndReportsEveryRuleVerdictWhenSatisfied(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		verdictSession(testpilotspb.VERDICT_STATUS_SATISFIED,
 			&testpilotspb.RuleVerdict{
 				RuleId: "clause-one", Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
@@ -95,7 +95,7 @@ func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
-			code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+			code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 				verdictSession(probe.status))
 
 			require.Equal(t, probe.code, code)
@@ -117,12 +117,12 @@ func TestRunExitsThreeWithOneStderrLineWhenTheRunFails(t *testing.T) {
 		}, nil
 	}
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr, failing)
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr, failing)
 
 	require.Equal(t, exitFailed, code)
 	require.Empty(t, stdout.String())
 	require.Equal(t, []string{
-		`run Case "temporal.case.async-nexus": frontend refused the connection`,
+		`run Case "temporal.case.nexusCallerTests.asyncCompletion": frontend refused the connection`,
 	}, strings.Split(strings.TrimSpace(stderr.String()), "\n"))
 }
 
@@ -140,7 +140,7 @@ func (d refusingDriver) Open(context.Context, string, testpilot.PreparedProgram)
 }
 
 func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
-	encoded, err := os.ReadFile(fixturePath(t, "async-nexus-case.json"))
+	encoded, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	driver := refusingDriver{err: errors.New("driver is unavailable")}
 	var stdout, stderr bytes.Buffer
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		func(context.Context, config, *testpilotspb.Case) (*session, error) {
 			return &session{
 				run: func(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
@@ -220,8 +220,8 @@ func TestRunRejectsMissingFlagsAndPositionalArgumentsBeforeAnyServerCall(t *test
 	}{
 		{"no case", []string{"--grpc", "a", "--http", "b", "--namespace", "c", "--task-queue", "d"}, "--case is required"},
 		{"no namespace", []string{"--case", "x", "--grpc", "a", "--http", "b", "--task-queue", "d"}, "--namespace is required"},
-		{"positional", append(requiredFlags(t, "async-nexus-case.json"), "extra"), "accepts no positional arguments"},
-		{"non-positive timeout", append(requiredFlags(t, "async-nexus-case.json"), "--timeout", "0s"), "--timeout must be positive"},
+		{"positional", append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "extra"), "accepts no positional arguments"},
+		{"non-positive timeout", append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--timeout", "0s"), "--timeout must be positive"},
 	} {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -262,7 +262,7 @@ func TestRunHonoursTheTimeoutWhileBinding(t *testing.T) {
 	}
 
 	started := time.Now()
-	code := Run(append(requiredFlags(t, "async-nexus-case.json"), "--timeout", "50ms"),
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--timeout", "50ms"),
 		&stdout, &stderr, blocking)
 
 	require.Equal(t, exitFailed, code)
@@ -297,7 +297,7 @@ func TestRunReportsACreateCollision(t *testing.T) {
 		return nil, errors.New(`register namespace "umpire-run-namespace": namespace already exists`)
 	}
 
-	code := Run(append(requiredFlags(t, "async-nexus-case.json"), "--create"),
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--create"),
 		&stdout, &stderr, colliding)
 
 	require.Equal(t, exitFailed, code)
@@ -317,7 +317,7 @@ func TestRunReportsEveryLeakedResourceOnItsOwnLine(t *testing.T) {
 		return bound, nil
 	}
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr, leaking)
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr, leaking)
 
 	require.Equal(t, exitSatisfied, code)
 	require.Equal(t, []string{

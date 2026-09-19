@@ -22,16 +22,16 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	// build of the CLI is not what that budget is for.
 	binary := buildUmpireRun(t)
 	env := newTestpilotTestEnvironment(t)
-	endpointName := "umpire-run-async-nexus-endpoint"
+	endpointName := "umpire-run-nexus-caller-endpoint"
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	command := exec.CommandContext(ctx, binary,
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "async-nexus-case.json"),
+		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
-		"--namespace", "umpire-run-async-nexus",
-		"--task-queue", "umpire-run-async-nexus-queue",
+		"--namespace", "umpire-run-nexus-caller",
+		"--task-queue", "umpire-run-nexus-caller-queue",
 		"--nexus-endpoint", endpointName,
 		"--create",
 		"--timeout", "2m",
@@ -66,7 +66,7 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 	defer cancel()
 
 	command := exec.CommandContext(ctx, binary,
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "async-nexus-case.json"),
+		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", "127.0.0.1:1",
 		"--http", "127.0.0.1:1",
 		"--namespace", "umpire-run-unreachable",

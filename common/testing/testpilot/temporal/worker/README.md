@@ -39,7 +39,11 @@ synchronous payload unconverted, an asynchronous reply through the completion au
 publishes under its own token, a handler error with its type and retry behavior, or a failed start
 as an operation error; and a `NexusOperationCompletion` becomes the completion callback's body, a
 payload verbatim or a failure converted as the Nexus SDK converts a Temporal failure, canceled when
-its failure info says so. Which fields of each message reach the SDK is the Driver-reach table in
+its failure info says so. A handler error or failed start the entrypoint instructed is the reply
+the SDK carries back, not a failure of the activation that produced it: the start interceptor
+finishes that activation as succeeded, so the Run runs on to the caller's recorded failure, while a
+start that failed any other way still fails its activation. Which fields of each message reach the
+SDK is the Driver-reach table in
 `internal/execution/typed.go`; the interpreter reads only the fields that table names realized, and
 `CommandTypes` names the command types this Driver realizes for `DeriveProfile`. Every registered
 Nexus operation reads its input as a `RawValue`, since a schedule command carries any payload.

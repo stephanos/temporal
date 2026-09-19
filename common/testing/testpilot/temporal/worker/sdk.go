@@ -146,12 +146,9 @@ func (i *nexusInboundInterceptor) StartOperation(ctx context.Context, input inte
 	}
 	activationCtx = context.WithValue(activationCtx, nexusRouteKey{}, routed)
 	result, startErr := i.Next.StartOperation(activationCtx, input)
-	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
-	if startErr != nil {
-		outcome = sdkFailureOutcome(startErr)
-	}
 	if !routed.replay {
-		routed.session.finishActivation(routed.activation, outcome, startErr)
+		outcome, activationErr := routed.session.nexusActivationOutcome(routed.activation, startErr)
+		routed.session.finishActivation(routed.activation, outcome, activationErr)
 	}
 	return result, startErr
 }

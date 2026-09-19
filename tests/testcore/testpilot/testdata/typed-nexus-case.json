@@ -138,14 +138,6 @@
         "definitionId": "temporal.nexus.success.typed-nexus.outcome.completed"
       },
       {
-        "localName": "poll-history",
-        "definitionId": "temporal.nexus.success.typed-nexus.action.poll-history"
-      },
-      {
-        "localName": "no-progress",
-        "definitionId": "temporal.nexus.success.typed-nexus.outcome.no-progress"
-      },
-      {
         "localName": "bounded-completion",
         "definitionId": "temporal.nexus.success.typed-nexus.clause.bounded-completion"
       },
@@ -1077,24 +1069,6 @@
         {
           "priorState": {
             "definitionId": "state.scheduled",
-            "value": "scheduled-730248b6"
-          },
-          "action": {
-            "definitionId": "poll-history",
-            "value": "poll-history"
-          },
-          "state": {
-            "definitionId": "state.scheduled",
-            "value": "scheduled-730248b6"
-          },
-          "outcome": {
-            "definitionId": "no-progress",
-            "value": "no-progress"
-          }
-        },
-        {
-          "priorState": {
-            "definitionId": "state.scheduled",
             "value": "scheduled-f3cdbff8"
           },
           "action": {
@@ -1126,24 +1100,6 @@
           "outcome": {
             "definitionId": "outcome.completed",
             "value": "completed-bfaa155a"
-          }
-        },
-        {
-          "priorState": {
-            "definitionId": "state.scheduled",
-            "value": "scheduled-f3cdbff8"
-          },
-          "action": {
-            "definitionId": "poll-history",
-            "value": "poll-history"
-          },
-          "state": {
-            "definitionId": "state.scheduled",
-            "value": "scheduled-f3cdbff8"
-          },
-          "outcome": {
-            "definitionId": "no-progress",
-            "value": "no-progress"
           }
         }
       ],
