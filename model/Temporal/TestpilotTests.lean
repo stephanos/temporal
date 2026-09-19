@@ -1,6 +1,4 @@
 import Temporal.Testpilot
-import Temporal.Case.Template
-import Temporal.Feature.Nexus.Success.Model
 import Umpire.Variations.Tests.Lowering
 
 namespace Temporal.TestpilotTests
@@ -32,31 +30,6 @@ private def activationKind : Entrypoint → Option Nat
           | _ => false
         | _, _ => false
       | _, _ => false
-  | .error _ => false
-
--- The success set's Case carries no monitor rule: everything its Contract says is the correlated
--- capability the checked model lowered into, reading the evidence this Program's history read
--- lifts.
-#guard match Temporal.Feature.Nexus.Success.nexusSuccessSet.completion with
-  | .ok output =>
-      output.program.map (fun program => program.entrypoints.map activationKind) ==
-        some #[some 0, some 1, some 2] &&
-      output.contract.map (·.rules.isEmpty) == some true &&
-      (match output.contract.bind (·.«correlated») with
-        | some capability =>
-            let name := Umpire.Case.LocalNames.nameIn (output.provenance.getD {})
-            capability.evidence_observation_id == Temporal.Case.Support.correlatedObservation &&
-            capability.projection_id == name Temporal.Case.Template.NexusOperation.projectionId.value &&
-            capability.rules.size == 2 &&
-            -- The Behavior places the required Action one semantic transition after the
-            -- operation's opening one, so that is the window each clause carries.
-            capability.rules.all (fun clause =>
-              clause.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
-              clause.ending == .TRACE_ENDING_PARTIAL) &&
-            capability.projection_rules.map (·.kind) == #[
-              name Temporal.Case.Template.NexusOperation.completedEvidenceKindId.value,
-              name Temporal.Case.Template.NexusOperation.startedEvidenceKindId.value]
-        | none => false)
   | .error _ => false
 
 -- The worker-outage Case's stop instruction is the lowered fault intent itself, not a hand-written

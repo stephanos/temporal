@@ -1,6 +1,5 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus.Caller.Model
-import Temporal.Feature.Nexus.Success.Model
 import Temporal.Feature.Nexus.Success.TypedUnary
 import Temporal.Feature.Nexus.Success.TypedNexus
 import Testpilot.Examples.Synthetic

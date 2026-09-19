@@ -9,6 +9,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/proto"
 )
 
 type valueStore struct {
@@ -20,7 +21,11 @@ type valueStore struct {
 	attempts    int64
 	activations map[string]*activationValues
 	controllers map[string]bool
-	slots       map[string]*testpilotspb.Value
+	// lastEvidence is, per operation key, the identity of the evidence most recently lifted for
+	// it, whatever its source: the Run's order is the causal order of one operation's evidence
+	// across sources, and a lift names the previous one as its parent when it came from another.
+	lastEvidence map[string]*testpilotspb.CorrelatedIdentity
+	slots        map[string]*testpilotspb.Value
 }
 type activationValues struct {
 	store    *valueStore
@@ -49,6 +54,23 @@ func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) 
 	}
 	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotspb.Value{}}, nil
 }
+
+// chainEvidence gives lifted evidence its causal parent: the operation's previously lifted evidence
+// when that came from another source. Ordinals order the evidence of one source; across sources
+// only a parent does, and the Run's own order is the order the Program's instructions took, so
+// evidence of one operation lifted by successive instructions is comparable to the verifier.
+func (s *valueStore) chainEvidence(evidence *testpilotspb.CorrelatedEvidence) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.lastEvidence == nil {
+		s.lastEvidence = map[string]*testpilotspb.CorrelatedIdentity{}
+	}
+	if previous := s.lastEvidence[evidence.Operation]; previous != nil && previous.EvidenceSource != evidence.Identity.EvidenceSource {
+		evidence.Parents = append(evidence.Parents, proto.CloneOf(previous))
+	}
+	s.lastEvidence[evidence.Operation] = proto.CloneOf(evidence.Identity)
+}
+
 func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -392,5 +392,5 @@ the module being elaborated. A project declares those conventions once, with `mo
 and every declaration in it inherits them.
 
 What stays outside is everything about turning a checked Model into something a runtime executes:
-the realization templates, which recorded event confirms which Action, and what a Case ID is rooted
+the realizations, which recorded event confirms which Action, and what a Case ID is rooted
 at. Those belong to whoever owns the runtime, which declares its own `case` command beside them.

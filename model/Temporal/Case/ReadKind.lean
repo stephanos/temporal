@@ -10,8 +10,11 @@ of the operation key inside one element and the fields the observation exposes; 
 admits it emits the Program's declaration from here, so the name an `evidence` line writes and the
 declaration the Case carries cannot drift apart.
 
-`pendingAttempts` is the one binding today: a retryable attempt failure writes no history event, and
-only `DescribeWorkflowExecution` shows the pending operation's `attempt`.
+`pendingAttempts` reads what no history event records: a retryable attempt failure leaves only the
+pending operation's `attempt` behind, in `DescribeWorkflowExecution`. `scheduledEvent` reads the
+scheduled event out of history as soon as it exists, ahead of the history read that closes the Run:
+the verifier orders one operation's evidence across sources by the order it was lifted in, so the
+evidence that opens the operation is lifted before any poll that follows it.
 -/
 
 namespace Temporal.Case.ReadKind
@@ -41,7 +44,19 @@ def pendingAttempts : Binding := {
   operationKey := field "scheduled_event_id"
   fields := [("attempts", field "attempt")] }
 
-def bindings : List Binding := [pendingAttempts]
+def getWorkflowExecutionHistoryMethod :=
+  "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+
+/-- The scheduled event, read out of history by its own event id. It exposes no field: the
+Contract confirms the kind, and the event's attributes are read by the history read that follows. -/
+def scheduledEvent : Binding := {
+  name := "nexusOperationScheduled"
+  method := getWorkflowExecutionHistoryMethod
+  path := historyEvents
+  operationKey := field "event_id"
+  fields := [] }
+
+def bindings : List Binding := [pendingAttempts, scheduledEvent]
 
 /-- Every read observation an `evidence:` line may name. -/
 def admitted : List String := bindings.map (·.name)

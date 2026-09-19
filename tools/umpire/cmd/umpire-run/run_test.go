@@ -148,7 +148,7 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	require.NoError(t, err)
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity: "umpire-run.probe", Namespace: "probe", TaskQueue: "probe-queue",
-		NexusEndpoint: "probe-endpoint",
+		HandlerTaskQueue: "probe-queue-handler", NexusEndpoint: "probe-endpoint",
 	})
 	require.NoError(t, err)
 	prepared, err := testpilot.Prepare(source, profile)

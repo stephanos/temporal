@@ -36,6 +36,9 @@ type Resources struct {
 	Namespace     string
 	TaskQueue     string
 	NexusEndpoint string
+	// NexusTaskQueue is the queue the Nexus endpoint routes to when the Case's handler polls one of
+	// its own. Empty routes the endpoint to TaskQueue.
+	NexusTaskQueue string
 	// Retention is the namespace's workflow execution retention. Zero takes DefaultRetention.
 	Retention time.Duration
 	// ReadyTimeout bounds the wait for the namespace cache to serve the new namespace. Zero takes
@@ -91,12 +94,16 @@ func Create(ctx context.Context, clients Clients, resources Resources) (Cleanup,
 	}
 
 	if resources.NexusEndpoint != "" {
+		target := resources.NexusTaskQueue
+		if target == "" {
+			target = resources.TaskQueue
+		}
 		created, err := clients.Operator.CreateNexusEndpoint(ctx, &operatorservice.CreateNexusEndpointRequest{
 			Spec: &nexuspb.EndpointSpec{
 				Name: resources.NexusEndpoint,
 				Target: &nexuspb.EndpointTarget{Variant: &nexuspb.EndpointTarget_Worker_{
 					Worker: &nexuspb.EndpointTarget_Worker{
-						Namespace: resources.Namespace, TaskQueue: resources.TaskQueue,
+						Namespace: resources.Namespace, TaskQueue: target,
 					},
 				}},
 			},
