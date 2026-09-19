@@ -107,22 +107,26 @@ structure DeclaredNames where
   stateFields : List (List (String × String)) := []
 
 inductive FiniteAdmissionError where
-  | outgoingTerminalTransition
   | noncanonicalTable
   | finite (error : TableAdmissionError)
 
+/-- Admit a declared table as a Query's Model.
+
+A step out of an end state is admitted. `ends:` names the phases an instance finishes in, and
+`DESIGN.md` writes steps out of them -- a completion that arrives after the operation is over is
+`notFound`, a worker stopping afterwards records its fault -- which a Search takes the way it takes
+every row the table carries. The `model` command refused such a step as an authoring slip; the
+`machine` command's tables are enumerated from step functions that say what happens in every state,
+and a step the operation no longer feels is something they say. -/
 def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
     (table : FiniteTable Setup State Action Outcome Fact)
     (canonicalTable : FiniteTable Setup State Action Outcome Fact)
     (identity : FiniteModelIdentity Setup State Action Outcome Fact)
     (definition : TableModelSpec)
-    (composition : Providers LawStatement)
-    (terminal : State → Bool) : Except FiniteAdmissionError (QueryModel LawStatement) := do
+    (composition : Providers LawStatement) : Except FiniteAdmissionError (QueryModel LawStatement) := do
   let _ ← table.validate
     |>.mapError (FiniteAdmissionError.finite ∘ TableAdmissionError.invalidTable)
-  if table.transitions.any fun row => terminal row.source then
-    throw .outgoingTerminalTransition
   if table ≠ canonicalTable then
     throw .noncanonicalTable
   table.checkModel identity definition composition |>.mapError .finite
@@ -546,7 +550,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (authoredDefinition : TableModelSpec := model.modelSpec) :
     Except AdmissionError (CheckedModel model) := do
   let target ← checkFiniteTarget authoredTable model.table model.identity authoredDefinition
-    model.composition (fun value => model.terminal.contains value) |>.mapError .invalidTarget
+    model.composition |>.mapError .invalidTarget
   let vocabulary ← modelVocabulary model authoredTable |>.mapError .invalidVocabulary
   let admitted ← Search.admit target (propertyAuthor vocabulary)
       (some (behaviorAuthor vocabulary)) {
@@ -651,9 +655,10 @@ def Diagnostic.anchorLimits : String := "limits"
 def Diagnostic.anchorQuery : String := "query"
 
 private def finiteAdmissionDescription : FiniteAdmissionError → String
-  | .outgoingTerminalTransition => "an end state has an outgoing Step"
   | .noncanonicalTable => "the declared Steps are not in canonical order"
-  | .finite _ => "the Step table was not admitted"
+  | .finite (.invalidTable error) => s!"the Step table was not admitted: {reprStr error}"
+  | .finite (.invalidTarget diagnostic) =>
+      s!"the Step table was not admitted: {reprStr diagnostic.error} at {reprStr diagnostic.path}"
 
 private def traceActions (trace : Scenario.Trace) : String :=
   ", ".intercalate (trace.trace.steps.map fun step => step.selectedAction.value)

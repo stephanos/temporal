@@ -306,7 +306,7 @@ Case follows each operation through one sequence, so every instance performs the
   -- The one instance a Producer reads: the machine as declared, its Property and the first
   -- instance's own sequence, admitted on their own.
   let target ← checkFiniteTarget model.table model.table model.identity model.modelSpec
-    model.composition (fun value => model.terminal.contains value) |>.mapError .invalidTarget
+    model.composition |>.mapError .invalidTarget
   let vocabulary ← modelVocabulary model model.table |>.mapError .invalidVocabulary
   let own : ScenarioNames := { scenarioNames with
     occurrences := (scenarioNames.occurrences.filter (·.instanceNumber == 1)).map fun occurrence =>
