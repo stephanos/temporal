@@ -104,7 +104,8 @@ action transportFault
   on: operation
 
 /-- The handler's worker stops polling. An action that names no entity is behavior no entity
-records. -/
+records: the Run records the fault, but nothing recorded names the operation, so the machines keep
+their state and record nothing at it. -/
 action workerStop
   party: worker
 
@@ -150,7 +151,6 @@ enum ProductFact
   | nexusOperationFailed
   | nexusOperationCanceled
   | nexusOperationTimedOut
-  | faultInjected
 
 private def productStep (phase : ProductPhase) (recorded : ProductFact) :
     List (Step ProductState ProductOutcome ProductFact) :=
@@ -193,10 +193,12 @@ whether a delivery was retried is the protocol's account of how, not what. -/
 def transportFaultStep (_state : ProductState) :
     List (Step ProductState ProductOutcome ProductFact) := []
 
-/-- The handler's worker stopping is a fault the run records and the operation does not feel. -/
-def workerStopStep (state : ProductState) :
-    List (Step ProductState ProductOutcome ProductFact) :=
-  [{ outcome := .accepted, state, facts := [.faultInjected] }]
+/-- The handler's worker stopping is a fault the Run records and the operation does not feel. The
+product machine cannot see it, like the transport fault: a step that kept the state and recorded
+nothing would be indistinguishable from a stutter, and the refinement would read every stutter as
+this step. -/
+def workerStopStep (_state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) := []
 
 /-- One of the operation's deadlines firing. Which deadline is the protocol's account of how, so the
 product machine has one timer, and it fires while the operation runs. -/
@@ -218,7 +220,6 @@ machine nexusProduct
     nexusOperationFailed: nexusOperationFailed
     nexusOperationCanceled: nexusOperationCanceled
     nexusOperationTimedOut: nexusOperationTimedOut
-    faultInjected: faultInjected
   steps:
     handlerReply: handlerReplyStep
     complete: completeStep
@@ -286,7 +287,6 @@ enum ProtocolFact
   | nexusOperationCanceled
   | nexusOperationTimedOut (timeoutType : TimeoutType)
   | pendingAttempts
-  | faultInjected
 
 /-- The four phases the design ends on. A completion that arrives after one of them is not found. -/
 def terminalPhase (phase : Phase) : Bool :=
@@ -336,10 +336,12 @@ def protocolTransportFaultStep (state : ProtocolState) :
      state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
      facts := [.pendingAttempts] }]
 
-/-- The handler's worker stopping is a fault the run records and the operation does not feel. -/
+/-- The handler's worker stopping is a fault the Run records and the operation does not feel, so
+the step keeps the state and records nothing. On a path it is confirmed by the evidence of the step
+after it, and the Case says so in a Known Gap. -/
 def protocolWorkerStopStep (state : ProtocolState) :
     List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  [{ outcome := .accepted, state, facts := [.faultInjected] }]
+  [{ outcome := .accepted, state, facts := [] }]
 
 /-- An asynchronous completion. Before a start, the server records a Started event first, which is
 why the evidence is two facts and not one -- and why the product machine, which has no `backingOff`
@@ -417,7 +419,6 @@ machine nexusProtocol
     nexusOperationCanceled: nexusOperationCanceled
     nexusOperationTimedOut: nexusOperationTimedOut
     pendingAttempts: pendingAttempts
-    faultInjected: faultInjected
   steps:
     schedule: scheduleStep
     handlerReply: protocolHandlerReplyStep
@@ -478,6 +479,38 @@ property handlerErrorFails
   when: handlerReply (handlerError false)
   holds: fun step => step.state.phase == .failed && step.facts.contains .nexusOperationFailed
 
+/-- Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state, so
+every field is named. -/
+def succeededOnRetry : ProtocolState :=
+  { phase := .succeeded, attempts := 1, scheduleToClose := .unset, scheduleToStart := .unset,
+    startToClose := .unset }
+
+/- A synchronous reply to the retried attempt settles the operation as succeeded on its second
+attempt: the count the retryable failure raised is still one, and the completed event records the
+reply. -/
+property retrySucceeds
+  machine: nexusProtocol
+  when: handlerReply (syncSuccess)
+  holds: fun step =>
+    step.state == succeededOnRetry && step.facts.contains .nexusOperationCompleted
+
+/- The schedule-to-start deadline settles an operation no handler started as timed out, and the
+timed-out event records which deadline it was. -/
+property scheduleToStartFires
+  machine: nexusProtocol
+  when: scheduleToStart
+  holds: fun step =>
+    step.state.phase == .timedOut &&
+      step.facts.contains (.nexusOperationTimedOut (timeoutType := .scheduleToStart))
+
+/- The start-to-close deadline settles a started operation no handler completed as timed out. -/
+property startToCloseFires
+  machine: nexusProtocol
+  when: startToClose
+  holds: fun step =>
+    step.state.phase == .timedOut &&
+      step.facts.contains (.nexusOperationTimedOut (timeoutType := .startToClose))
+
 -- authoring: scenarios
 
 /-! ### The paths the Queries run
@@ -506,8 +539,33 @@ scenario nonRetryableError
   starts: unscheduled
   actions: [schedule (unset, unset, unset), handlerReply (handlerError false)]
 
+/- The retryable error backs the operation off; the backoff timer fires and records nothing; the
+retried attempt is answered synchronously. -/
+scenario retriedThenSucceeded
+  model: nexusProtocol
+  starts: unscheduled
+  actions: [schedule (unset, unset, unset), handlerReply (handlerError true), backoff,
+    handlerReply (syncSuccess)]
+
+/- The schedule command sets the schedule-to-start deadline; the handler's worker stops, so nothing
+answers the start request; the deadline fires. The worker stops after the schedule in the
+operation's order, where the stop changes nothing; the realization stops it before the workflow
+starts, where the stop cannot race the dispatch. -/
+scenario scheduleToStartExpires
+  model: nexusProtocol
+  starts: unscheduled
+  actions: [schedule (unset, expires, unset), workerStop, scheduleToStart]
+
+/- The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
+never completes; the deadline fires. -/
+scenario startToCloseExpires
+  model: nexusProtocol
+  starts: unscheduled
+  actions: [schedule (unset, unset, expires), handlerReply (async), startToClose]
+
 /- Nine actions are enabled before the operation is scheduled and eleven once it is, so an exact
-sequence of two is found among ninety-nine candidates and one of three among about a thousand. -/
+sequence of two is found among ninety-nine candidates, one of three among about a thousand and one
+of four among about ten thousand. -/
 limits two
   steps: 2
   actions: 2
@@ -518,14 +576,21 @@ limits three
   actions: 3
   search: 4096
 
+limits four
+  steps: 4
+  actions: 4
+  search: 32768
+
 -- authoring: queries
 
 /-! ### The Queries
 
-Queries 1 to 4 of the design's seven: sync success, async reply then succeeded callback, async
-reply then failed callback, non-retryable handler error. Each finds its same-step claim on its path
-and is realized by the set below. The product claim is verified over every trace of one path,
-outside the set, because a `verify` Query realizes nothing. -/
+The design's seven: sync success, async reply then succeeded callback, async reply then failed
+callback, non-retryable handler error, retryable handler error then sync success after one backoff,
+schedule-to-start timeout with the handler's worker stopped, start-to-close timeout after an
+asynchronous reply. Each finds its same-step claim on its path and is realized by the set below.
+The product claim is verified over every trace of one path, outside the set, because a `verify`
+Query realizes nothing. -/
 
 query syncCompletion
   find: syncSucceeds
@@ -546,6 +611,21 @@ query handlerError
   find: handlerErrorFails
   in: nonRetryableError
   limits: two
+
+query retry
+  find: retrySucceeds
+  in: retriedThenSucceeded
+  limits: four
+
+query scheduleToStartTimeout
+  find: scheduleToStartFires
+  in: scheduleToStartExpires
+  limits: three
+
+query startToCloseTimeout
+  find: startToCloseFires
+  in: startToCloseExpires
+  limits: three
 
 query terminalHolds
   verify: terminalIsFinal
@@ -568,7 +648,8 @@ set nexusCallerTests
     network: observed
     worker: driven
   repeat: implementation
-  queries: [syncCompletion, asyncCompletion, asyncFailure, handlerError]
+  queries: [syncCompletion, asyncCompletion, asyncFailure, handlerError, retry,
+    scheduleToStartTimeout, startToCloseTimeout]
 
 -- authoring: case
 
@@ -576,12 +657,14 @@ set nexusCallerTests
 
 One realization serves every Query: the Producer places each class the path performs where the
 realization binds it. The evidence each Case lifts is read off the machine's own `evidence:` lines
-along the witness, so nothing is written twice. Each Case is `temporal.case.nexusCallerTests.<query>`
-and the fixture `nexusCallerTests-<query>-case.json`. -/
+along the witness, so nothing is written twice; a step that records nothing -- the backoff timer,
+the worker stop -- is confirmed by the evidence of the step after it, and the Case carries a Known
+Gap naming it. Each Case is `temporal.case.nexusCallerTests.<query>` and the fixture
+`nexusCallerTests-<query>-case.json`. -/
 
 case nexusCallerCases
   realizes nexusCallerTests
-  as nexusOperation service "umpire.case.service" operation "complete" realized by asyncNexus
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
 -- authoring: end
 

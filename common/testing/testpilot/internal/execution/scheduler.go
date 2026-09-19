@@ -75,6 +75,18 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	}
 	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
 }
+
+// performsNothing reports whether the named entrypoint of the source Program carries no instruction
+// at all. The source is read rather than a prepared graph because a worker entrypoint's graph is
+// the worker's own, and it is worker entrypoints a carrier reserves.
+func (s *scheduler) performsNothing(entrypointID string) bool {
+	for _, entrypoint := range s.values.program.source.GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == entrypointID {
+			return len(entrypoint.GetInstructions()) == 0
+		}
+	}
+	return false
+}
 func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -773,7 +785,13 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if completion.reservation != nil {
 		reservation := completion.reservation
 		id := reservation.identity
-		if completion.result.Outcome == nil || completion.result.Outcome.Status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
+		status := completion.result.Outcome.GetStatus()
+		// A reserved activation whose entrypoint performs nothing may go undelivered: the Program
+		// reserved it because its carrier can activate the entrypoint, not because the Case needs it
+		// to run, so the reservation released unconsumed when its parent finished is recorded as
+		// canceled rather than failing the Run.
+		unused := status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED && s.performsNothing(id.EntrypointID)
+		if completion.result.Outcome == nil || status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && !unused || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}
 		publish := s.recorder.publish

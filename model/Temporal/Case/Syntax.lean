@@ -2,17 +2,18 @@ import Temporal.Case.Conventions
 import Temporal.Case.EventKind
 import Temporal.Case.Registry
 import Temporal.Case.Realization.Nexus
-import Temporal.Case.Template
 
 /-!
-# The `case` command
+# The `case` block
 
-A Model file's last block, and the one part of the command surface Temporal owns: it names the
-realization template that runs the Model, and the recorded history event that confirms each Action
-the Scenario selects. The five Model commands it sits beside are `Umpire.Command`'s.
+A Model file's last block, and the one part of the command surface Temporal owns: it names the set
+whose Queries it realizes and the realization that runs them, and, for a machine that declares no
+`evidence:` catalog, the recorded history event that confirms each Action the set's Queries select.
+The commands it sits beside are `Umpire.Command`'s.
 
-The Case ID prefix is Temporal's too. `fixture` is the only identity slot the grammar has; every
-other identity derives from it.
+The Case ID prefix is Temporal's too. Every identity derives from the set's name and each Query's:
+the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture `<set>-<query>`, so a Case is named by
+what it is rather than by a slot of its own.
 -/
 
 namespace Temporal.Case
@@ -28,22 +29,6 @@ def caseIdRoot : String := "temporal.case"
 its `repeat:` against them. -/
 register_switch Temporal.Case.Realization.Nexus.implementationSwitch
 
-/-! The `case` block names the `find` Query whose selected trace the Case realizes, the realization
-template that runs it, and the recorded history event that confirms each Action the Scenario
-selects. `fixture` is the only identity slot: the Case ID is `<caseIdRoot>.<fixture>`, the Program
-and Contract IDs derive from it, and the Run scope is the fixture name.
-
-It is an elaborator rather than a macro because it resolves names -- the Query's form, the
-Scenario's Action order, the admitted history event kinds -- and registers the Case it declares. -/
-
-declare_syntax_cat caseTemplate
-
-syntax ident &"service" str &"operation" str &"responds" ident : caseTemplate
-syntax ident &"type" str : caseTemplate
-/-- A realization named directly: the Model's own actions are the path, and the realization binds
-each class the path performs. -/
-syntax ident &"service" str &"operation" str &"realized" &"by" ident : caseTemplate
-
 /-- One `evidence` line: the Action the Scenario selects, and the recorded event that confirms it. -/
 declare_syntax_cat caseEvidence
 
@@ -58,17 +43,10 @@ private def spellingList (spellings : Array String) : String :=
   ", ".intercalate spellings.toList
 
 private def unregisteredQueryMessage (spelling : String) : String :=
-  s!"'{spelling}' is not a Query declared by a `query` command; a `case` block realizes one"
-
-private def verifyQueryMessage (spelling : String) : String :=
-  s!"Query '{spelling}' verifies rather than finds; a Case realizes one selected trace, so its " ++
-    "`realizes` Query must be a `find` form"
-
-private def unselectedActionMessage (spelling : String) (selected : Array String) : String :=
-  s!"the Scenario never selects Action '{spelling}'; it selects: {spellingList selected}"
+  s!"'{spelling}' is not a Query declared by a `query` command"
 
 private def unmappedActionMessage (spelling : String) : String :=
-  s!"the Scenario selects Action '{spelling}' but no `evidence` line says which recorded event " ++
+  s!"the set's Queries select Action '{spelling}' but no `evidence` line says which recorded event " ++
     "confirms it"
 
 private def duplicateEvidenceMessage (spelling : String) : String :=
@@ -82,19 +60,9 @@ private def unknownEventKindMessage (spelling : String) : String :=
   | .error reported => reported
   | .ok _ => ""
 
-private def unknownTemplateMessage (spelling : String) : String :=
-  s!"unknown realization template '{spelling}'; declared: nexusOperation, workflow"
-
-private def unknownRealizationMessage (spelling : String) : String :=
-  s!"unknown realization '{spelling}'; declared: asyncNexus"
-
-private def unknownResponseMessage (spelling : String) : String :=
-  s!"unknown Nexus response form '{spelling}'; declared: sync, async"
-
 private def notASetMessage (spelling : String) : String :=
-  s!"'{spelling}' is neither a Query declared by a `query` command nor a set declared by a `set` \
-command; a `case` block realizes a `find` Query under a `fixture`, or every Query of a functional \
-set under identities derived from the set's and each Query's name"
+  s!"'{spelling}' is not a set declared by a `set` command; a `case` block realizes every Query of \
+a functional set under identities derived from the set's and each Query's name"
 
 private def notFunctionalMessage (spelling purpose : String) : String :=
   s!"set '{spelling}' is {purpose}; only a functional set compiles to Cases, one per Query"
@@ -103,101 +71,19 @@ private def unselectedBySetMessage (spelling : String) (selected : Array String)
   s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
 {spellingList selected}"
 
-/-- The realization a `case` block names, and the program path it states where the Model's own
-actions realize nothing. The asynchronous Nexus form is the caller-side realization, whose classes
-are bound to the typed worker instructions and whose path is the realization's own (fn-85 .8); the
-synchronous form and the workflow form stay whole-Program templates until fn-85 .10 and .11. -/
-private def templateTerm : TSyntax `caseTemplate → CommandElabM (Term × Term)
-  | `(caseTemplate| $named:ident service $service:str operation $operation:str
-      responds $responds:ident) => do
-      unless named.getId.eraseMacroScopes.toString == "nexusOperation" do
-        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
-      match responds.getId.eraseMacroScopes.toString with
-      | "sync" => return (← `(term| Temporal.Case.Template.nexusOperation $service $operation .sync),
-          ← `(term| none))
-      | "async" => return (← `(term| Temporal.Case.Realization.asyncNexus $service $operation),
-          ← `(term| some Temporal.Case.Realization.Nexus.asyncPath))
-      | spelling => throwErrorAt responds (unknownResponseMessage spelling)
-  | `(caseTemplate| $named:ident service $service:str operation $operation:str
-      realized by $realization:ident) => do
-      unless named.getId.eraseMacroScopes.toString == "nexusOperation" do
-        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
-      unless realization.getId.eraseMacroScopes.toString == "asyncNexus" do
-        throwErrorAt realization
-          (unknownRealizationMessage realization.getId.eraseMacroScopes.toString)
-      return (← `(term| Temporal.Case.Realization.asyncNexus $service $operation), ← `(term| none))
-  | `(caseTemplate| $named:ident type $workflowType:str) => do
-      unless named.getId.eraseMacroScopes.toString == "workflow" do
-        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
-      return (← `(term| Temporal.Case.Template.workflow $workflowType), ← `(term| none))
-  | template => throwErrorAt template "unsupported realization template"
-
-elab "case" name:ident &"fixture" fixture:str
-    &"realizes" queryRef:ident
-    &"as" template:caseTemplate
-    &"evidence" lines:caseEvidence+ : command => do
-  let queryName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo queryRef)
-  let environment ← getEnv
-  let declaredQuery ← match Umpire.Command.Registry.query? environment queryName with
-    | some declared => pure declared
-    | none => throwErrorAt queryRef (unregisteredQueryMessage queryName.toString)
-  unless declaredQuery.selectsWitness do
-    throwErrorAt queryRef (verifyQueryMessage queryName.toString)
-  let selected := match Umpire.Command.Registry.scenario? environment declaredQuery.scenario with
-    | some declared => declared.actions
-    | none => #[]
-  let mut mapped : Array (String × String) := #[]
-  for line in lines do
-    match line with
-    | `(caseEvidence| $selectedAction:ident ← history $eventKind:ident) =>
-        let spelling := selectedAction.getId.eraseMacroScopes.toString
-        unless selected.contains spelling do
-          throwErrorAt selectedAction (unselectedActionMessage spelling selected)
-        if mapped.any (·.1 == spelling) then
-          throwErrorAt selectedAction (duplicateEvidenceMessage spelling)
-        let kind := eventKind.getId.eraseMacroScopes.toString
-        if (EventKind.attributesField? kind).isNone then
-          throwErrorAt eventKind (unknownEventKindMessage kind)
-        mapped := mapped.push (spelling, kind)
-    | _ => throwErrorAt line "unsupported Nexus evidence line"
-  for spelling in selected do
-    unless mapped.any (·.1 == spelling) do
-      throwErrorAt name (unmappedActionMessage spelling)
-  let fixtureName := fixture.getString
-  if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName)
-    then throwErrorAt fixture (duplicateFixtureMessage fixtureName prior.caseId)
-  let caseId := caseIdRoot ++ "." ++ fixtureName
-  let (realization, programPath) ← templateTerm template
-  let mappings ← mapped.mapM fun entry => `(term|
-    Umpire.Case.Producer.EvidenceMapping.mk
-      (vocabulary.namedAction $(Lean.quote entry.1)) $(Lean.quote entry.2))
-  let identityName := mkIdentFrom name (name.getId ++ `identity)
-  let realizationName := mkIdentFrom name (name.getId ++ `realization)
-  let evidenceName := mkIdentFrom name (name.getId ++ `evidence)
-  elabCommand (← `(command|
-    def $identityName : Umpire.Case.Producer.Identity :=
-      { caseId := $(Lean.quote caseId), fixture := $(Lean.quote fixtureName) }))
-  elabCommand (← `(command|
-    def $realizationName : Umpire.Case.Producer.Realization := $realization))
-  elabCommand (← `(command|
-    def $evidenceName : Umpire.Case.Producer.Vocabulary →
-        List Umpire.Case.Producer.EvidenceMapping :=
-      fun vocabulary => [$mappings,*]))
-  elabCommand (← `(command|
-    def $name : Except Umpire.Case.Compiler.Error
-        temporal.server.api.testpilot.v1.Case :=
-      Umpire.Command.produceCase $queryRef $identityName $realizationName $evidenceName
-        (program := $programPath)))
-  liftCoreM (Registry.recordCase {
-    declName := (← getCurrNamespace) ++ name.getId, caseId, fixture := fixtureName })
-
 /-! ### A functional set's Cases
 
 A `case` block over a set realizes every Query the set lists, each under an identity derived from
-the set's name and the Query's: the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture
-`<set>-<query>`. One realization and one evidence map serve them all, because the Queries run on
-one machine. Which claims each Case makes is its own path's: the Producer is handed every class
-claim the machine's actions declare and records the ones the path performs. -/
+the set's name and the Query's. One realization and one evidence map serve them all, because the
+Queries run on one machine. Which claims each Case makes is its own path's: the Producer is handed
+every class claim the machine's actions declare and records the ones the path performs.
+
+The realization is a `Umpire.Case.Producer.Realization` value, named or written in parentheses:
+`as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")`.
+
+It is an elaborator rather than a macro because it resolves names -- the set, its Queries, their
+Scenarios' Action orders, the machine's `evidence:` catalog -- and registers the Cases it
+declares. -/
 
 /-- The declarations of the actions one machine steps on, as the machine resolved them, for the
 claims their examples make. A timer is stepped on by name and has no `action` declaration, so it is
@@ -208,7 +94,7 @@ private def machineActionDecls (declaredMachine : Umpire.Command.Registry.Machin
 
 elab "case" name:ident
     &"realizes" setRef:ident
-    &"as" template:caseTemplate
+    &"as" realization:term:max
     block?:(caseEvidenceBlock)? : command => do
   let lines : Array (TSyntax `caseEvidence) := match block? with
     | some block => block.raw[1].getArgs.map (⟨·⟩)
@@ -249,7 +135,6 @@ elab "case" name:ident
     for spelling in selected do
       unless mapped.any (·.1 == spelling) do
         throwErrorAt name (unmappedActionMessage spelling)
-  let (realization, programPath) ← templateTerm template
   let realizationName := mkIdentFrom name (name.getId ++ `realization)
   elabCommand (← `(command|
     def $realizationName : Umpire.Case.Producer.Realization := $realization))
@@ -289,8 +174,7 @@ elab "case" name:ident
       def $caseName : Except Umpire.Case.Compiler.Error
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
-          $evidenceName (claims := $claims) (program := $programPath)
-          (evidenceCatalog := $catalog)))
+          $evidenceName (claims := $claims) (evidenceCatalog := $catalog)))
     liftCoreM (Registry.recordCase {
       declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
 
