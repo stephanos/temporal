@@ -13,10 +13,10 @@ open temporal.server.api.testpilot.v1
 open Shared.SemanticData
 open Shared
 
-abbrev Result := Shared.SemanticData.Result Atom Atom Atom
+abbrev Result := Shared.SemanticData.Result StateValue Atom Atom
 abbrev Field := CorrelatedProjection.EvidenceField Name Scalar
 abbrev Event := CorrelatedProjection.Event Name Field
-abbrev Plan := CorrelatedProjection.Plan Name Atom Atom Result
+abbrev Plan := CorrelatedProjection.Plan Name StateValue Atom Result
 
 abbrev Predicate := Shared.CorrelatedObligation.Predicate
 abbrev Predicate.mk := Shared.CorrelatedObligation.Predicate.mk
@@ -99,9 +99,15 @@ def atom (value : ModelValue) : Atom := ⟨⟨value.definition_id⟩, value.valu
 private def checkedAtom (value : ModelValue) : Except String Atom := do
   if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid semantic value"
   pure (atom value)
+/-- One state and the fields it holds, both checked the way any model value is. -/
+private def checkedState (value : ModelValue) (fields : Array ModelValue) :
+    Except String StateValue := do
+  pure ⟨← checkedAtom value, ← fields.toList.mapM checkedAtom⟩
+
 private def result (value : CorrelatedTransition) : Except String Result := do
   if !value.«Unknown.Fields».isEmpty then throw "unknown transition field"
-  pure ⟨← checkedAtom (← required value.outcome), ← checkedAtom (← required value.state),
+  pure ⟨← checkedAtom (← required value.outcome),
+    ← checkedState (← required value.state) value.state_fields,
     ← value.facts.toList.mapM checkedAtom⟩
 
 /-- The Reference arms a correlated condition may read. Every other arm belongs to another expression
@@ -275,7 +281,8 @@ def decode (limits : CorrelatedLimits) (wire : CorrelatedContract) : Except Stri
     throw "empty correlated capability"
   let transitions ← wire.transitions.toList.mapM fun tr => do
     if !tr.«Unknown.Fields».isEmpty then throw "unknown transition field"
-    pure (← checkedAtom (← required tr.prior_state), ← checkedAtom (← required tr.action), ← result tr)
+    pure (← checkedState (← required tr.prior_state) tr.prior_fields,
+      ← checkedAtom (← required tr.action), ← result tr)
   let policies ← wire.projection_rules.toList.mapM fun rule => do
     let fields ← rule.fields.toList.mapM fun field => do
       if !field.«Unknown.Fields».isEmpty || !validId field.field_id then throw "invalid field policy"
@@ -363,7 +370,9 @@ def decode (limits : CorrelatedLimits) (wire : CorrelatedContract) : Except Stri
     pure (Clause.mk clause.rule_id (← natural clause.bound) final trigger response,
       clause.rule_id, Keyed.mk captures correlation)
   pure {
-    plan := { initial := ← checkedAtom (← required wire.initial_state), rules, transitions, limits := projectionLimits }
+    plan := {
+      initial := ← checkedState (← required wire.initial_state) wire.initial_state_fields
+      rules, transitions, limits := projectionLimits }
     clauses := clauseData.map (·.1)
     keyed := clauseData.map (·.2)
     scopeFields := wire.scope_fields.toList.map Name.mk

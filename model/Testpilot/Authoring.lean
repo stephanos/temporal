@@ -497,12 +497,14 @@ Its resource ceilings are the Profile's; its rules keep the windows that carry t
 def correlated (projectionId projectionFingerprint evidenceObservationId operationField : String)
     (scopeFields sources : Array String) (initialState : ModelValue)
     (transitions : Array CorrelatedTransition) (projectionRules : Array CorrelatedProjectionRule)
-    (rules : Array CorrelatedRule) : CorrelatedContract :=
+    (rules : Array CorrelatedRule)
+    (initialStateFields : Array ModelValue := #[]) : CorrelatedContract :=
   { projection_id := projectionId,
     projection_fingerprint := projectionFingerprint,
     evidence_observation_id := evidenceObservationId, scope_fields := scopeFields,
     operation_field := operationField, sources, initial_state := some initialState,
-    transitions, projection_rules := projectionRules, rules }
+    transitions, projection_rules := projectionRules, rules,
+    initial_state_fields := initialStateFields }
 
 /-- Assemble a generated Contract while preserving rule order. A Contract may carry deterministic
 monitor rules, one correlated capability, or both, and declares no resource ceilings. -/

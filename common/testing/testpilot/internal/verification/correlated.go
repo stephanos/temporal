@@ -291,7 +291,9 @@ func (r *correlatedMonitor) sequences(ids []*testpilotspb.CorrelatedIdentity) []
 }
 
 // predicate reports whether an admitted step condition holds on tr. A FACT condition holds when any
-// of the step's facts satisfies it.
+// of the step's facts satisfies it. A STATE condition reads the state and every field the machine
+// keeps, so a reference names `phase` without the rest of the state and the state without its
+// fields; a Model whose states are atoms carries no fields and reads exactly as it did.
 func predicate(e *testpilotspb.Expression, tr *testpilotspb.CorrelatedTransition) bool {
 	condition, _ := readStepCondition(e)
 	var values []*testpilotspb.ModelValue
@@ -301,7 +303,7 @@ func predicate(e *testpilotspb.Expression, tr *testpilotspb.CorrelatedTransition
 	case testpilotspb.CORRELATED_STEP_FIELD_OUTCOME:
 		values = []*testpilotspb.ModelValue{tr.Outcome}
 	case testpilotspb.CORRELATED_STEP_FIELD_STATE:
-		values = []*testpilotspb.ModelValue{tr.State}
+		values = append([]*testpilotspb.ModelValue{tr.State}, tr.StateFields...)
 	case testpilotspb.CORRELATED_STEP_FIELD_FACT:
 		values = tr.Facts
 	default:

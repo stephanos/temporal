@@ -10,6 +10,17 @@ structure Atom where
   value : String
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- One machine state: the state itself, and the fields it holds.
+
+A machine's state is a structure, so a state value is a spelling of several field values run
+together. Everything that only needs to tell two states apart reads `atom`; a Contract that compares
+`attempts` as a number or `phase` as an enum reads `fields`, rather than reading the spelling back
+apart. A Model whose states carry no fields has an empty list and is exactly the atom it was. -/
+structure StateValue where
+  atom : Atom
+  fields : List Atom := []
+  deriving BEq, DecidableEq, Ord, Repr
+
 structure Result (State Outcome Fact : Type) where
   outcome : Outcome
   state : State
