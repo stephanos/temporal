@@ -230,7 +230,9 @@ private def transition (row : CorrelatedTransition) : m CorrelatedTransition := 
     action := ← optionalValue visitor row.action
     state := ← optionalValue visitor row.state
     outcome := ← optionalValue visitor row.outcome
-    facts := ← row.facts.mapM (modelValue visitor) }
+    facts := ← row.facts.mapM (modelValue visitor)
+    prior_fields := ← row.prior_fields.mapM (modelValue visitor)
+    state_fields := ← row.state_fields.mapM (modelValue visitor) }
 
 private def correlatedRule (rule : CorrelatedRule) : m CorrelatedRule := do
   pure { rule with
@@ -250,6 +252,7 @@ private def correlatedContract (contract : CorrelatedContract) : m CorrelatedCon
     operation_field := ← visitor.name contract.operation_field
     sources := ← contract.sources.mapM visitor.name
     initial_state := ← optionalValue visitor contract.initial_state
+    initial_state_fields := ← contract.initial_state_fields.mapM (modelValue visitor)
     transitions := ← contract.transitions.mapM (transition visitor)
     projection_rules := ← contract.projection_rules.mapM fun rule => do
       pure { rule with

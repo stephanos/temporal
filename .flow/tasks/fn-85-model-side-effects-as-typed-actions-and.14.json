@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T12:00:00.000000Z",
+  "depends_on": [
+    "fn-85-model-side-effects-as-typed-actions-and.3"
+  ],
+  "id": "fn-85-model-side-effects-as-typed-actions-and.14",
+  "priority": null,
+  "spec": "fn-85-model-side-effects-as-typed-actions-and",
+  "spec_path": ".flow/tasks/fn-85-model-side-effects-as-typed-actions-and.14.md",
+  "status": "todo",
+  "title": "The machine command: state fields, setup, timers, step functions; Limits accounting; model retired",
+  "updated_at": "2026-09-19T00:30:40.643063Z"
+}

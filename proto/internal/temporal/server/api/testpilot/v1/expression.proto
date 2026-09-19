@@ -142,7 +142,9 @@ message CorrelatedCaptureReference {
 // present when any fact has the definition, and it equals a literal when any such fact does.
 message CorrelatedStepReference {
   CorrelatedStepField field = 1;
-  // The Case-local name of the definition, as a ModelValue spells it.
+  // The Case-local name of the definition, as a ModelValue spells it. With a STATE field this is
+  // either the whole state's definition or one state field's, because a structured Model carries
+  // its fields beside the state atom and each field is a model value under its own definition.
   string definition_id = 2;
 }
 

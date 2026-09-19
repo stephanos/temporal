@@ -1,4 +1,6 @@
 import Umpire.Command.Authoring
+import Umpire.Command.Catalog
+import Umpire.Command.Records
 import Umpire.Command.Registry
 import Umpire.Command.Syntax
 

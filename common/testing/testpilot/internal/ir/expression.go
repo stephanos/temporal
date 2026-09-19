@@ -123,7 +123,7 @@ type Operator uint8
 const (
 	Literal Operator = iota + 1
 	ReferenceValue
-	Project
+	ReadPath
 	IsPresent
 	Compare
 	Not
@@ -319,7 +319,7 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 		return nil, invalid(TypeMismatch, "expression", "expression type does not match expected type")
 	}
 	if result.absent && !allowAbsent {
-		return nil, invalid(Unavailable, "expression", "reference or projection requires an explicit presence guard")
+		return nil, invalid(Unavailable, "expression", "reference or path read requires an explicit presence guard")
 	}
 	return result, nil
 }
@@ -336,9 +336,9 @@ func (b *compiler) node(source proto.Message, path string, expected *Type, facts
 		return &Expression{reference: reference}, err
 	case "path":
 		if payloadReference(messageField(value.Message(), "operand").Interface()) {
-			return b.projectPayload(value.Message(), path+".path", facts, depth)
+			return b.readPayloadPath(value.Message(), path+".path", facts, depth)
 		}
-		return b.project(value.Message(), path+".path", facts, depth)
+		return b.readPath(value.Message(), path+".path", facts, depth)
 	case "present":
 		return b.unary(IsPresent, messageField(value.Message(), "operand").Interface(), path+".present", facts, depth)
 	case "not":
@@ -423,7 +423,7 @@ func (b *compiler) literal(value *testpilotspb.Value, expected *Type, depth int6
 	return result, nil
 }
 
-func (b *compiler) project(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
+func (b *compiler) readPath(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
 	operand, err := b.bind(messageField(value, "operand").Interface(), location+".operand", nil, facts, true, depth+1)
 	if err != nil {
 		return nil, err
@@ -432,7 +432,7 @@ func (b *compiler) project(value protoreflect.Message, location string, facts ma
 	if err != nil {
 		return nil, err
 	}
-	return b.projectOperand(operand, path, facts, depth)
+	return b.readOperandPath(operand, path, facts, depth)
 }
 
 // payloadReference reports whether source is a reference to the evaluated Run Event's payload.
@@ -441,10 +441,10 @@ func payloadReference(source proto.Message) bool {
 	return ok && expression.GetReference().GetRunEvent().GetPayload() != nil
 }
 
-// projectPayload binds a path from the Run Event payload. Its first segment names the payload arm,
+// readPayloadPath binds a path from the Run Event payload. Its first segment names the payload arm,
 // which must be declared in scope, and the rest of the path reads inside that arm, so the read is
 // typed by the arm's descriptor and absent unless the arm is known to be carried.
-func (b *compiler) projectPayload(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
+func (b *compiler) readPayloadPath(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
 	if err := b.budget.charge(depth+1, 1, 0, "expression"); err != nil {
 		return nil, err
 	}
@@ -480,15 +480,15 @@ func (b *compiler) projectPayload(value protoreflect.Message, location string, f
 	if err != nil {
 		return nil, err
 	}
-	return b.projectOperand(operand, path, facts, depth)
+	return b.readOperandPath(operand, path, facts, depth)
 }
 
-// projectOperand reads a bound path out of an already bound operand.
-func (b *compiler) projectOperand(operand *Expression, path *Path, facts map[string]bool, depth int64) (*Expression, error) {
+// readOperandPath reads a bound path out of an already bound operand.
+func (b *compiler) readOperandPath(operand *Expression, path *Path, facts map[string]bool, depth int64) (*Expression, error) {
 	if err := b.budget.charge(depth, int64(len(path.steps)), 0, "expression.path"); err != nil {
 		return nil, err
 	}
-	result := &Expression{operator: Project, children: []*Expression{operand}, path: path, typ: path.typ}
+	result := &Expression{operator: ReadPath, children: []*Expression{operand}, path: path, typ: path.typ}
 	if operand.key != "" {
 		result.key = operand.key + "/" + path.text
 	}
@@ -600,7 +600,7 @@ func (b *compiler) presenceFacts(e *Expression, truth bool) (map[string]bool, er
 		return nil, err
 	}
 	switch e.operator {
-	case Literal, ReferenceValue, Project, Compare:
+	case Literal, ReferenceValue, ReadPath, Compare:
 	case IsPresent:
 		if e.children[0].key != "" {
 			return map[string]bool{e.children[0].key: truth}, nil

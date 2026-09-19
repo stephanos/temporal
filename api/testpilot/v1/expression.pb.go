@@ -1320,7 +1320,9 @@ func (x *CorrelatedCaptureReference) GetOrdinal() int64 {
 type CorrelatedStepReference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Field CorrelatedStepField    `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedStepField" json:"field,omitempty"`
-	// The Case-local name of the definition, as a ModelValue spells it.
+	// The Case-local name of the definition, as a ModelValue spells it. With a STATE field this is
+	// either the whole state's definition or one state field's, because a structured Model carries
+	// its fields beside the state atom and each field is a model value under its own definition.
 	DefinitionId  string `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

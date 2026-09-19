@@ -626,6 +626,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"OpaqueCapability" + "Type",
 		"capability" + "_slot_id",
 		"Capability" + "SlotId",
+		// The Opcode facade on the generic package, now `InstructionOpcode`; hand-written Go no
+		// longer calls an Opcode a capability.
+		"Instruction" + "Capability",
 		"invoke" + "RPC",
 		"Role" + "Definition",
 		"Slot" + "Definition",
@@ -760,6 +763,16 @@ func buildRetiredRules() ([]tokenRule, error) {
 			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])[Nn]exus` + generation + `([^A-Za-z0-9_]|$)`),
 		})
 	}
+	// The retired `model` command, which fn-85 replaced with `machine` over step functions. The word
+	// itself stays live everywhere -- `model/` is the tree, `model:` is a key of `property` and
+	// `scenario`, and `DeclaredModel` is what both of them resolve to -- so the identifier-boundary
+	// shape the rules above use would reject the whole surface. What is retired is the declaration,
+	// and a declaration is a column-0 keyword followed by the author's name and nothing else, which
+	// is a shape no prose line and no key takes.
+	rules = append(rules, tokenRule{
+		name:    "model <name>",
+		pattern: regexp.MustCompile(`^model [A-Za-z][A-Za-z0-9_']*$`),
+	})
 	// The Lake executable this spec renamed to `umpire-case`. The Driver's reservation carriers
 	// spell three unrelated wire constants that begin with the retired name, and Flow spec slugs end
 	// with it, so a non-hyphen boundary on both sides holds the executable name alone.
@@ -787,16 +800,7 @@ func buildRetiredRules() ([]tokenRule, error) {
 	return rules, nil
 }
 
-// protocolMigrationBaseline is the frozen pre-migration copy of the Testpilot protocol snapshot
-// and fixtures the fn-87 equivalence test maps from. It must keep spelling every name the
-// migration retires, and it holds nothing else and is never regenerated, so the whole prefix is
-// allowed rather than one entry per retired token.
-const protocolMigrationBaseline = "common/testing/testpilot/internal/protocolmigration/testdata/baseline/"
-
 func allowedNegativeFixture(relativePath, token string) bool {
-	if strings.HasPrefix(relativePath, protocolMigrationBaseline) {
-		return true
-	}
 	allowed := map[string]map[string]bool{
 		"tools/umpire/cmd/umpire-gen-regression-views/render_test.go": {
 			"umpire-experiment/" + "v1": true,

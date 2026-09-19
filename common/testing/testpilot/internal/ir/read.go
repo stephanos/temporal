@@ -148,7 +148,7 @@ func ReadValue(ctx context.Context, value *testpilotspb.Value, typ Type, path *P
 		return nil, 0, invalid(Malformed, "path", "context, message value, path and positive work required")
 	}
 	r := runtimeExpression{ctx: ctx, limit: limits.Work, copyWork: true}
-	result, err := r.project(path, value, typ)
+	result, err := r.readPath(path, value, typ)
 	if err != nil || result == nil {
 		return nil, r.work, err
 	}

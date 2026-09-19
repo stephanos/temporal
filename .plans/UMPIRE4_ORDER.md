@@ -116,15 +116,15 @@ compatibility promise (`buf` breaking ignores the package), so there is no `v2` 
 capabilities stay with their owners: typed worker instructions and per-Case observation declarations
 with fn-85 R10, cancel with fn-79, correlated transitions over structured machine state with fn-85.
 
-**All 17 tasks done 2026-09-13; the spec completion review has not run.** Delivery paused there on
-the user's request. The plan review was SHIP on its second round, and every task landed serially in
-this checkout with its own review SHIP:
+**All 17 tasks done and the completion review SHIP, 2026-09-13.** The plan review was SHIP on its
+second round, and every task landed serially in this checkout with its own review SHIP:
 
 - **Landed:** the equivalence harness over a frozen descriptor snapshot (59 declared mapping steps);
   glossary renames; one file per concept with documented messages and a closure test; one
   `Expression`, which correlated conditions and evidence-lift guards also use; a Run Event payload
-  oneof; one opaque-handle encoding, unsigned integers instead of `natural`, and a wire
-  `EntrypointKind`; resource ceilings in the Profile; entrypoint order by default with `after`;
+  oneof; one opaque-handle encoding, unsigned integers instead of `natural`, and the wire
+  `EntrypointKind` removed in favour of a Go classification in the Driver-contract leaf; resource
+  ceilings in the Profile; entrypoint order by default with `after`;
   derived bindings, reservations and outcome fields; structured provenance with Case-local names and
   short model values; declaration-order ProtoJSON with string field paths and named enums; the
   absent-operand rule; and the extension checklist in `common/testing/testpilot/README.md`.
@@ -145,12 +145,31 @@ this checkout with its own review SHIP:
   - `cmd/tools/protogen` rewrites cross-file enum references.
 - **Rule drafts pending GOV-02** in `UMPIRE4_SPEC.md`: SEM-16, ART-09 and ART-13 restatements and the
   Case, Provenance and Profile glossary entries.
+- **Completion review, 2026-09-13:** SHIP, recorded in
+  [`.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/completion-review.md`](../.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/completion-review.md).
+  Every requirement R1 to R15 is met, with R5's presence deviation and R9's amendment recorded in the
+  spec. The review is recorded through `flowctl`, so the spec carries the receipt and
+  `completion_review_status: ship`, with the backend recorded as `claude` because the reviewer was the
+  delivering session rather than a separate model. **The spec is not closed**: `flowctl spec close`
+  refuses because runtime task state lives in the clone's `.git` common-dir and a fresh cloud clone has
+  none, so all 17 tasks read `todo` from the committed snapshot — the shape every historical spec in
+  this store has. Closing is one command in a clone that carries the runtime state.
+- **The four deferred follow-ups landed with the review.** `ir` calls a path read a read (`ReadPath`,
+  `readPath`, `readPayloadPath`, `readOperandPath`, `pathReadWork`, and a diagnostic that says "path
+  read"); hand-written Go no longer calls an Opcode a capability (`InstructionOpcode`, `opcode`
+  locals, opcode diagnostics, and the retired facade name held by the vocabulary gate); the frozen
+  baseline tree is a `.gitignore` negation beside the other testpilot ones rather than a `git add -f`;
+  and `cmd/tools/protogen` sorts its rewrite offsets explicitly and skips a selector's `Sel`. fn-85
+  .1 then removes that tree and its negation together, since the oracle's subject is discharged; the
+  negation is what the tree needs for as long as it is tracked, not churn.
 - **Left open:**
-  - the completion review;
-  - regenerating the spec's local HTML lens;
-  - `ir` still says "projection" for path reads, and hand-written Go still calls Opcodes
-    "capability";
-  - the frozen baseline tree is committed with `git add -f` despite `.gitignore`.
+  - regenerating the spec's local HTML lens (no spec in the repository has one; markdown is the
+    record);
+  - the Driver contract's hand-written Go still says capability in the effect-handle sense
+    (`CapabilityEffect`, `CapabilityBridge` and the server Session's slots and claims). The rename
+    table retires those names on the wire and says the runtime concepts say effect handle, but fn-87
+    carved the Driver seam out; renaming it touches the server, worker and composite Sessions, every
+    test Session, the conformance corpus and Umpire's lowering, so it wants its own change.
 - **Intermittent live failures:** three tests also fail at base commits in about one or two runs in
   ten. They are the umpire-run namespace-delete timeout, the typed Nexus evidence-ordering mismatch,
   and an async-Nexus Run ending INCONCLUSIVE.
@@ -190,14 +209,127 @@ Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**Next to run** once fn-87's completion review is SHIP; delivery is paused on the user's request
-(2026-09-13). **R3 authoring form decided 2026-09-12:** machines are Lean step functions over a structure of
-finite fields, enumerated at elaboration into the same finite table, per
-[the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is not built.
+**In delivery. Task .1 is done, 2026-09-14, and the early proof point holds.** The Program the
+Producer assembles from the path `[schedule, handlerReply, complete]` is byte-identical to the one the
+`nexusOperation` template writes by hand, so the party-to-entrypoint design carries what the template
+stated; the spec's stop condition did not fire. What landed: the protocol-migration oracle retired;
+`Umpire.Command.Records` for entities, actions, observations, timers, setup parameters, evidence lines
+and the machine declaration; a `ProgramPlan` and per-action-class bindings replacing
+`Realization.program`, with the Producer placing instructions from the path; and
+`Temporal.Case.Realization.asyncNexus` with the proof in `Temporal.Case.Tests.ProofPoint`. Its review
+is a self-review, so a session with a second backend should re-review before the completion review.
 
-**Broken into 13 tasks on 2026-09-12; needs a plan review.** Flow records its dependencies on fn-84
-and fn-87, and fn-83 and fn-22 now depend on it; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
-blocked tasks as superseded.
+**The proof point's acceptance was amended during delivery:** the comparison is the Program, not the
+Case. A correlated clause embeds its trigger action's Model Value and that action's occurrence bound in
+the Contract itself, not only in provenance, so re-authoring two waits as three side effects changes
+the Contract by construction -- which is the point of the re-authoring and which no identity mask
+covers. `.2` and `.3` settle the Contract's shape once the Model is authored through the commands.
+
+**Task .3 is done, 2026-09-14, and the authoring form holds.** A step function over a structure of
+finite fields enumerates to exactly the rows an author would have written -- same rows, same order,
+same keys -- so the two forms fill the same table and fingerprint the same value, and the row grammar
+stays unbuilt. `Umpire.Command.Finite` carries the domain, its deriving handler refuses a non-finite
+field by naming it, and `enumerateBounded` refuses a domain past `elaborationBound` with both factors
+rather than truncating. Elaborating the prototype measured inside the noise of its own import.
+
+**Task .2 is done, 2026-09-15.** `entity`, `action` and `observation` elaborate into the task .1
+records, and `DESIGN.md` section 3's entities, input domains, actions and derived observation are the
+specimen they are checked against, machines and the fn-79 cancel actions excepted. `schema:` stores
+the message names and asks a platform whether they resolve; `Temporal.Case.Schema` answers from the
+descriptor closures of the RPCs those messages travel on, and a test says the stored entry is shorter
+than the descriptor of the message it names.
+
+Three things were decided during delivery.
+
+- **The three command words are not reserved tokens.** `entity`, `action` and `observation` are also
+  field names in the records the commands build (`EntityReference.entity`, `FiniteTransitionRow.action`),
+  so reserving them the way `model` and `property` are reserved would make those fields unwritable.
+  A plain `&"entity"` does not work either: Lean indexes a non-reserved symbol under its own token
+  while a command beginning with a bare identifier dispatches under `ident`, so the parser was only
+  reachable behind a doc comment. `nonReservedSymbolNoAntiquot word (includeIdent := true)` indexes it
+  under both, which is what makes a column-0 `entity` a command without taking the word away from the
+  tree.
+- **The schema check decides whether a name resolves, and not whether a class member is in it.** The
+  members the design's own examples name -- `BadRequest`, `Internal` -- are values of
+  `temporal.api.nexus.v1.HandlerError.error_type`, which the generated schema types as a `string`, so
+  the descriptor carries nothing to check them against. R2's "a class member or example outside the
+  schema" moved to `.8`, which gives an action's payload the typed fields a member can be checked
+  against, and is recorded on that task.
+- **Two R1 and R2 rejections have no syntax to fire on in `.2`.** An instance bound of zero was already
+  `.4`'s, where instance bounds are declared. An evidence name that is neither catalogued nor declared
+  moved to `.14`, which introduces `evidence:`; it is recorded there.
+- **A class is a member of an input domain, not a constructor.** `handlerError (retryable : Bool)` is
+  one constructor and two classes, which is the granularity `DESIGN.md` section 2.2 writes an example
+  at and the only reading under which the design's own two example lines are both legal. It follows
+  that every class has exactly one member and nothing in a Model counts the realized values a class
+  covers, so R8's abstraction claim is triggered by the presence of an `examples:` line rather than by
+  a member count. That amendment is recorded on `.7`.
+
+**Seven review rounds; six NEEDS_WORK, all fixed, round seven SHIP.** Round one found that a declaration's rules were
+being applied against the whole import closure rather than the file -- the second feature Model to
+declare `entity workflow` would have been rejected by the first -- and that a reference rebuilt the
+referenced declaration's Definition ID from the *referring* file's `Origin`, so an entity, enum or
+observation named across files pointed at a name in the wrong family. Round two found the second fix
+half done: an entity's id was stored, but an enum's was still rebuilt at the reference, reading the
+referring file's `model_conventions` visibility. A declaration now records its own id where it is
+written -- `Registry.EntityEntry.id` and the new `Registry.DomainEntry` -- and every reference emits
+that. `Temporal.Feature.Nexus.Tests.SecondModel` is the second Model file both defects needed to
+surface.
+
+Round three found the walk could still exhaust the stack: a failed `deriving` is logged rather than
+thrown, so a domain whose members do not enumerate was recorded anyway, and the bound is a width
+rather than a depth. A domain is recorded only once its `Finite` instance exists. Round four found
+that flattening a class to a string to compare it deleted the parentheses separating a constructor's
+name from its first field's, so an example of `a (bc := false)` was stored, silently, against
+`ab (c := false)`; a class is now a tree compared structurally. Round five found a written
+constructor's qualification read and discarded, which `DESIGN.md` section 3 reaches in the feature's
+own vocabulary -- `Reply` and `CancelReply` both declare `handlerError (retryable : Bool)`. Round six
+found `refer:` had no uniqueness rule on its field names, and three sites still asserting the
+superseded reading, `DESIGN.md` among them.
+
+Gates on the closing tree: `lake build` green, `make lint-model` at 163, `make
+umpire-check-regression` exit 0 with nine live identities.
+
+Its review is a self-review: no second backend is reachable in a cloud session, so `codex exec`,
+`cursor-agent` and `grok` are not installed and all fall back to the session model. `.1`, `.2` and
+`.3` each owe a cross-model re-review before the completion review.
+
+**`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
+needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
+It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
+`flowctl start` is unaffected. **R3 authoring form decided 2026-09-12:**
+machines are Lean step functions over a structure of finite fields, enumerated at elaboration into the
+same finite table, per [the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is
+not built.
+
+**Broken into 13 tasks on 2026-09-12. Plan review round 1, 2026-09-13: NEEDS_WORK**, recorded in
+[`.flow/artifacts/fn-85-model-side-effects-as-typed-actions-and/plan-review.md`](../.flow/artifacts/fn-85-model-side-effects-as-typed-actions-and/plan-review.md).
+Every requirement has a task and the ordering holds; the revisions are one blocker and four smaller
+findings, none of them a design change:
+
+- **Blocker: no task owns the protocol-migration oracle.**
+  `common/testing/testpilot/internal/protocolmigration` pairs each frozen pre-fn-87 baseline fixture
+  with its regenerated counterpart one to one, fails on any difference no declared step explains, on
+  an undeclared addition, and on a deleted baseline fixture — and it has no removal list. `.4`, `.8`
+  and `.9` change the wire and rewrite every fixture; `.10` deletes `async-nexus-case.json` and adds
+  four fixtures; `.11` adds three more. CI runs the oracle
+  (`.github/workflows/umpire.yml`), so this is a gate. Decide before `.4`: retire the oracle, whose
+  declared subject fn-87's completion review has discharged, or extend it with declared steps and a
+  removal list. Retiring is the smaller change.
+- `.1`'s "a grep for `nexus` in `Umpire/` is empty" cannot pass — three files already match, two in
+  prose and one as fixture-identity test data. Restate it as no Nexus-specific branch in the Producer.
+- `.3` is over-sized: split its three planned commits into three tasks, or at least move the
+  `property`-predicate change out, so the step-function prototype's fallback stays actionable.
+- The `property`-predicate decision has no requirement row, so the coverage table cannot fail on it.
+- `.13` closes fn-83's six blocked tasks "through `flowctl`", which needs runtime state a fresh clone
+  does not have; the fallback is named.
+
+The split moved dependencies with it: `.4` and `.6` need the `machine` command, so they depend on
+`.14` rather than on `.3` alone, and `.10` writes its Properties as predicates, so it depends on `.15`.
+`flowctl ready` now offers `.1` and `.3`, and blocks the rest correctly.
+
+Flow records its dependencies on fn-84 and fn-87, and fn-83 and fn-22 now depend on it; the fn-83
+tasks it builds on (.13, .14, .15) are done. It closes fn-83's six blocked tasks as superseded.
 
 **Cancellation stays deferred.** The design's cancel Query and its Testpilot instructions overlap
 fn-79, which resumes only on an explicit user request, so on 2026-09-10 they moved out of fn-85 into
@@ -233,11 +365,29 @@ exception, because it is the spec's only Feature-to-System Implementation Link (
 Testpilot conformance and synthetic Cases stay, since they test the runtime.
 
 **Depends on fn-85** (recorded in Flow). The early proof point expresses the typed unary Property as
-a field relation that lowers to the same Contract field reads before any deletion. **Broken into 9
-tasks on 2026-09-12; needs a plan review.** The order stays fn-87, fn-85, fn-86: fn-87 does not touch
-the Race, Lifecycle, Operations or Experimental models, so deleting them earlier buys nothing, and
-Lifecycle cannot go before fn-85 because the kept Implementation Link imports it until fn-86 .4
-re-anchors it.
+a field relation that lowers to the same Contract field reads before any deletion. The order stays
+fn-87, fn-85, fn-86: fn-87 does not touch the Race, Lifecycle, Operations or Experimental models, so
+deleting them earlier buys nothing, and Lifecycle cannot go before fn-85 because the kept
+Implementation Link imports it until fn-86 .4 re-anchors it.
+
+**Broken into 9 tasks on 2026-09-12. Plan review round 1, 2026-09-13: NEEDS_WORK**, recorded in
+[`.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md`](../.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md).
+No blocker: inventory first, `.4` before `.5`, and a direct-import lint rule are all right. Five
+findings, applied:
+
+- `.1`'s typed-unary Contract baseline is a scaffold and `.2` deletes it, rather than leaving a
+  generated Contract no generator writes.
+- `.5` left `umpire-inspect`, `umpire-list` and `umpire-explain` an open either/or inside a deletion
+  task. Decided: re-point the inspector's registry at the Caller Model's Queries, keep Switch, keep the
+  three targets. `umpire-case --list/--render` renders Cases, not Plans, so it replaces neither
+  `inspect` nor `explain`, and all three are documented.
+- `.7` checks the Definition IDs the command path produces before touching a Switch golden: the
+  goldens carry `switch.*` ids and three fingerprints, and the commands derive ids from `Origin`, so
+  the compatibility-family pin is part of the task.
+- R1 gained "keep with the reason" as a destination, which the two `Temporal.Testpilot` runtime-testing
+  modules and the kept Implementation Link need.
+- `.1` re-reads the tree as fn-85 left it and corrects the file lists of `.2`, `.3` and `.6` first;
+  every fn-86 task was written against the pre-fn-85 tree.
 
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
@@ -253,6 +403,36 @@ These remain open in Flow and are outside the first-canary critical path.
 | [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; .2 and .3 start after fn-86 R6, because their root list pins `TemporalExperimentalTests`, which fn-86 deletes; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
 
 ## Gate baselines
+
+Re-measured 2026-09-13 on a four-core, 16 GB cloud session at the fn-87 closeout, with the
+pre-installed toolchain (`/opt/temporal-toolchain`) on `PATH`:
+
+| Gate | This session |
+| ---- | ------------ |
+| every `umpire-check-regression` constituent, run individually | exit 0 — model build 595 Lean jobs, eight offline checks, **nine passing live identities** and no intermittent failure on the first run |
+| `make umpire-check-retired-vocabulary` | exit 0, and about twenty minutes: 353 compiled rules against every line of every scanned tree, the frozen baseline fixtures included. It is the slowest offline gate by an order of magnitude |
+| `make umpire-check-regression-views` | exit 0 only after the `go list` stderr fix below |
+| `make lint-model` | 163 in generated `Temporal/API/Proto.lean`, `Shared` and `Umpire.Lint` clean — the baseline exactly |
+| `make lint-code GOLANGCI_LINT_FIX=false` | **not measurable as cloned**: the gate passes `--new-from-rev=main`, the clone is shallow and carries only `umpire` and the working branch, and `git merge-base HEAD main` has no answer even after fetching `main`, so golangci-lint reports the whole tree (7,576 pre-existing diagnostics) instead of 161. Deepen the clone until `main` shares an ancestor to reproduce the number. What answers the gate's question meanwhile is the same config and build tags over the changed package trees with `--new-from-rev` at the pre-change commit: **0 issues** |
+
+**`flowctl` is not in a cloud session's image.** Install it from GitHub through the plugin
+marketplace — `claude plugin marketplace add gmickel/flow-next`, then
+`claude plugin install flow-next@flow-next` — which puts `scripts/flowctl` under
+`~/.claude/plugins/cache/flow-next/flow-next/<version>/`. The published 5.2.2 carries the same store
+`SCHEMA_VERSION` (3) as this repository's `.flow`, so it reads and writes the store without migrating
+it. What a fresh clone still cannot do is change task status: runtime state lives in the clone's `.git`
+common-dir, so every task reads `todo` from the committed snapshot and `start`, `done` and
+`spec close` refuse. Reviews, dependencies, spec status and validation all work.
+
+Three environment notes for a cloud session: `mise` is a passthrough shim, so `/opt/temporal-toolchain/*/bin`
+must be on `PATH` before any `make` target that uses `lake` or `protoc`; and warm the Go module cache
+(`go mod download`) before the first gate, then discard the `go.sum` hashes that download adds; and
+`git fetch origin main` gives the branch a name but not a merge base, because the clone is shallow.
+
+`tools/umpire/regression/ci_workflow_test.go` decoded `go list -deps -test -json` from
+`CombinedOutput`, so a cold module cache's download progress landed in the JSON stream and
+`TestTestpilotOwnsCaseProtocolAndRuntime` failed with `invalid character 'g' looking for beginning of
+value` on a green tree. It now reads stdout alone.
 
 Measured 2026-09-10 after the upstream merge, on a host with disk headroom:
 

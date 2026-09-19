@@ -84,7 +84,7 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	})
 	for _, entrypoint := range plans {
 		for _, instruction := range entrypoint.GetInstructions() {
-			opcodes[testpilot.InstructionCapability(instruction.GetInstruction())] = true
+			opcodes[testpilot.InstructionOpcode(instruction.GetInstruction())] = true
 			if rpc := instruction.GetInstruction().GetInvokeRpc(); rpc != nil {
 				methods[rpc.GetEndpointRoleId()+rpc.GetMethod()] = true
 			}

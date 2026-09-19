@@ -11,6 +11,12 @@ Re-author Umpire's Temporal-free worked example with the commands (R5) so it no 
 **Touches:** [model/Umpire/Examples/**, model/Umpire/Command/**, model/Umpire/Artifact/Tests/**, model/Umpire/Evidence/Tests/Fixtures.lean, model/Umpire/ImplementationLink/Tests/Application.lean, model/Umpire/PromotionTests.lean, model/Umpire/Search/Tests/Admission.lean, model/Umpire/Tests/MigrationCompatibility.lean, model/Umpire/Variations/Tests/Fixtures.lean, model/Temporal/Tool/Goldens.lean]
 
 ### Approach
+- Plan review round 1 (F3): check the Definition IDs first. `Fixtures/SwitchCompiledArtifact.json`
+  carries `switch.state.power`, `switch.setup.subject-is-off` and `switch.role.subject` plus three
+  behavior fingerprints, and the commands derive Definition IDs from `Origin`. If the command path
+  cannot reproduce those ids the artifact identity moves, so
+  `model/Umpire/Tests/MigrationCompatibility.lean` is part of this task, not a discovery inside it.
+  Report the ids the command path produces before touching any golden.
 - Export contract: the importers read about 25 raw symbols (`target`, `LawStatement`, `compiledArtifact`, `exactActionQuery`, `authoredProperty`, `modelSpec`, `switchCapabilityId`, ...); keep every exported name and type stable (define them from the command-elaborated declarations); a rename is a failure of this task, not a follow-up.
 - Definition root: the commands derive Definition IDs through `model_conventions root "temporal" under Temporal.Feature`; add an `Umpire.Examples` convention with root `umpire` so the Switch IDs (`switch.*`) stay byte-identical; if an ID must move, the goldens' diff is listed with the reason.
 - MOD-01: `Umpire.Examples` imports only `Umpire.Command` (the R7 rule applies to it).

@@ -11,6 +11,8 @@ Let a Model hold several instances of each entity bounded by Limits, with Search
 **Touches:** [proto/internal/temporal/server/api/testpilot/**, api/testpilot/**, model/Testpilot/**, model/Umpire/Case/**, model/Umpire/Property.lean, model/Umpire/Property/**, model/Umpire/Search.lean, model/Umpire/Query.lean, common/testing/testpilot/**]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Protocol: follow fn-87's extension checklist (`common/testing/testpilot/README.md`) for the new correlated shape; additive fields, no compatibility shim, fixtures regenerate through their generators, a Driver conformance case per changed message.
 - State: an instance's state is a record of named fields; the Contract's correlated transition carries `prior` and `next` field records and the projection rule matches on fields, so `attempts` compares as a number and `phase` as an enum without parsing one atom.
 - Instances: the fixed-width tuple from task .3 becomes the setup shape; `Query.FiniteDomain.canonicalRoleAssignments` enumerates instance assignments; a bound of zero rejects; exceeding a bound reports `limitReached`.
@@ -30,6 +32,15 @@ Let a Model hold several instances of each entity bounded by Limits, with Search
 ### Key context
 - fn-87's boundary table assigns "correlated transitions over structured machine state" to this spec; this is that task.
 - Memory: check unbounded Lean numbers before protobuf narrowing (`count` crosses into a fixed-width field).
+
+### Deferred here from task .14, 2026-09-18
+
+`DESIGN.md` writes an instance's creation as a row from `none`, taken by the action that `creates:`
+the entity. That is a different shape from a step over an existing state -- its function takes no
+prior state, and its successors are the machine's *initial* states rather than transition rows -- so
+`machine` takes a `starts:` key naming those states directly, as the `model` command did. Deciding
+whether a creating action's step function produces the initial states, and whether that action
+belongs in the machine's enumerated Action domain at all, needs the instance model this task owns.
 
 ## Acceptance
 - [ ] the correlated Contract carries per-instance state fields; the Lean interpreter and the Go evaluator agree on `correlated.json` and on a new two-instance conformance case

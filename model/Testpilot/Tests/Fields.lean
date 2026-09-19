@@ -306,4 +306,47 @@ private def bareBudget : CorrelatedLimits := { budget with max_captures := 0, ma
 #guard (Testpilot.Correlated.decode bareBudget bare).toOption.map (fun compiled => compiled.captures == 0 &&
   compiled.keyed == [("response", ⟨[], none⟩)]) == some true
 
+/-! ### A STATE condition reads the state and every field the machine keeps
+
+The Go evaluator reads `state` and `state_fields` off the admitted transition;
+`Shared.CorrelatedObligation.Predicate.holds` reads the same two, and this is the claim that says
+so on one worked transition. A field is read as itself, so the wrong member of the right field is
+false rather than a substring of the state's own spelling. -/
+
+private def atom (definitionId spelling : String) : Atom := ⟨Name.mk definitionId, spelling⟩
+
+/-- One step of a machine whose state is a phase and an attempt count. -/
+private def backingOff : Shared.SemanticData.Result StateValue Atom Atom :=
+  ⟨atom "outcome" "accepted",
+    ⟨atom "state" "backingOff-1", [atom "phase" "backingOff", atom "attempts" "1"]⟩,
+    [atom "fact" "pendingAttempts"]⟩
+
+/-- The same step of a Model whose states are atoms: no fields, and every reference reads as it
+did before a machine had any. -/
+private def atomOnly : Shared.SemanticData.Result StateValue Atom Atom :=
+  ⟨atom "outcome" "accepted", ⟨atom "state" "backingOff-1", []⟩, [atom "fact" "pendingAttempts"]⟩
+
+private def stateCondition (definitionId : String) (equalsText : Option String) :
+    Shared.CorrelatedObligation.Predicate :=
+  ⟨3, Name.mk definitionId, equalsText⟩
+
+private def taken : Atom := atom "action" "transportFault"
+
+#guard (stateCondition "state" (some "backingOff-1")).holds taken backingOff
+#guard (stateCondition "phase" (some "backingOff")).holds taken backingOff
+#guard (stateCondition "attempts" (some "1")).holds taken backingOff
+#guard (stateCondition "attempts" none).holds taken backingOff
+
+#guard !(stateCondition "phase" (some "scheduled")).holds taken backingOff
+#guard !(stateCondition "attempts" (some "0")).holds taken backingOff
+#guard !(stateCondition "cancel" none).holds taken backingOff
+
+#guard (stateCondition "state" (some "backingOff-1")).holds taken atomOnly
+#guard !(stateCondition "phase" (some "backingOff")).holds taken atomOnly
+
+/- A field is not a fact and a fact is not a field: the two are read under different step fields, so
+neither answers the other's reference. -/
+#guard !(Shared.CorrelatedObligation.Predicate.mk 4 (Name.mk "phase") none).holds taken backingOff
+#guard !(stateCondition "fact" none).holds taken backingOff
+
 end Testpilot.Tests.Fields

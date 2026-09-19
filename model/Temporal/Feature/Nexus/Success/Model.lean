@@ -23,32 +23,60 @@ expands into the existing Umpire Target, Property, Scenario, and Query owners.
 
 namespace Temporal.Feature.Nexus.Success
 
+/-- The operation this slice tracks. A machine tracks one entity's instances, and recorded data
+finds one through the entity's key. -/
+entity operation
+
 /-- The operation has three success-lifecycle states. -/
 enum State
   | scheduled
   | started
   | succeeded
 
-/-- Waiting recognizes an observed change; it does not cause the operation to change. -/
-enum Action
-  | awaitStart
-  | awaitSuccess
+/-- A machine's states are the members of a structure, so its fields can be enumerated. This one has
+a single field, so a state key is the phase the author writes and nothing else. -/
+structure Lifecycle where
+  state : State
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
 
 enum Outcome
   | acknowledged
   | completed
 
-model lifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
+/-- This slice records no Fact: every step reaches a state named after what happened, so a Fact would
+only restate it. An empty domain is how a machine says that -- the step functions return into it,
+and the declared Model's fact catalog is empty. -/
+inductive Fact where
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
+/-- Waiting recognizes an observed change; it does not cause the operation to change. -/
+action awaitStart
+  party: caller
+  on: operation
+
+action awaitSuccess
+  party: caller
+  on: operation
+
+/-- Read a step function as what may happen, not as an execution instruction: it returns every
+successor the Model permits from this state, and the empty list where the Action is not permitted at
+all. -/
+def awaitStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .scheduled then [] else
+  [{ outcome := .acknowledged, state := { state := .started }, facts := [] }]
+
+def awaitSuccessStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .started then [] else
+  [{ outcome := .completed, state := { state := .succeeded }, facts := [] }]
+
+machine lifecycle
+  for: operation
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
-  -- Read `before + action → after` as one permitted model step, not an execution instruction.
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged
-    started + awaitSuccess → succeeded, outcome: completed
+    awaitStart: awaitStartStep
+    awaitSuccess: awaitSuccessStep
 
 /- `awaitSuccess` must expose the complete Target-owned success result. -/
 property successfulResult

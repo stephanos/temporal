@@ -55,44 +55,49 @@ private def historyAssignments : Array RequestAssignment := #[
   assign (field "history_event_filter_type") closeEventFilter
 ]
 
-private def program
-    (workflowType : String)
-    (identity : Umpire.Case.Producer.Identity)
-    (resolved : List Umpire.Case.Producer.EvidenceRule) : Program :=
-  Program.make identity.programId
-    #[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
-      Program.role workerRole .ROLE_KIND_WORKER
-        (namespaceBindingId := namespaceBinding),
-      Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
-        (namespaceBindingId := namespaceBinding)
-        (resourceBindingId := taskQueueBinding)]
-    #[]
-    #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation correlatedEvidenceType]
-    #[Program.controller "controller" #[
-        Program.node "start-workflow"
-          (Program.invokeRpc workflowServiceRole startWorkflowMethod #[
-            Program.environmentAssignment (field "namespace") namespaceBinding,
-            assign (field "workflow_id") runId,
-            assign (nested ["workflow_type", "name"]) (text workflowType),
-            Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
-            assign (field "request_id") runId]),
-        Program.node "history"
-          (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
-            #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
-              #[Program.observationTarget historyObservation,
-                Evidence.target runFieldId correlatedObservation identity resolved]])
-          (Program.instructionLimits (timeoutMilliseconds := some 20000))],
-      Program.workflow "workflow" workflowType workerRole taskQueueRole #[
-        Program.node "finish-workflow" (Program.finish (text "completed"))]]
-    (Program.cleanup "cleanup" #[])
+/-- This template's Program carries no action: a Case over it drives nothing the Model declares, so
+every item is the realization's own and its plan is the Program written out as a sequence. -/
+private def plan (workflowType : String) : Umpire.Case.Producer.ProgramPlan := {
+  roles := #[
+    Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
+    Program.role workerRole .ROLE_KIND_WORKER
+      (namespaceBindingId := namespaceBinding),
+    Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
+      (namespaceBindingId := namespaceBinding)
+      (resourceBindingId := taskQueueBinding)]
+  observations := #[
+    Program.observation historyObservation historyEventType,
+    Program.observation correlatedObservation correlatedEvidenceType]
+  entrypoints := [
+    { activate := fun _ nodes => Program.controller "controller" nodes
+      items := [
+        .fixed fun _ _ =>
+          Program.node "start-workflow"
+            (Program.invokeRpc workflowServiceRole startWorkflowMethod #[
+              Program.environmentAssignment (field "namespace") namespaceBinding,
+              assign (field "workflow_id") runId,
+              assign (nested ["workflow_type", "name"]) (text workflowType),
+              Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
+              assign (field "request_id") runId]),
+        .fixed fun identity resolved =>
+          Program.node "history"
+            (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
+              #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
+                #[Program.observationTarget historyObservation,
+                  Evidence.target runFieldId correlatedObservation identity resolved]])
+            (Program.instructionLimits (timeoutMilliseconds := some 20000))] },
+    { activate := fun _ nodes =>
+        Program.workflow "workflow" workflowType workerRole taskQueueRole nodes
+      items := [
+        .fixed fun _ _ => Program.node "finish-workflow" (Program.finish (text "completed"))] }]
+  cleanup := Program.cleanup "cleanup" #[] }
 
 end Workflow
 
 /-- One controller-started workflow that finishes, with the history read the Case's evidence is
 lifted from. Its fault rule ID keeps the outage-order spelling the checked-in artifact asserts. -/
 def workflow (workflowType : String) : Umpire.Case.Producer.Realization := {
-  program := Workflow.program workflowType
+  plan := Workflow.plan workflowType
   producerId := "temporal.case.workflow"
   producerVersion := "1"
   projectionId := Workflow.projectionId

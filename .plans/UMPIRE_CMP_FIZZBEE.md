@@ -93,20 +93,39 @@ always assertion ParticipantsConsistent:
 Umpire today:
 
 ```lean
+entity operation
+
 enum State  | scheduled | started | succeeded
-enum Action | awaitStart | awaitSuccess
 enum Outcome | acknowledged | completed
 
-model lifecycle
-  role: operation
-  states: State
-  actions: Action
-  outcomes: Outcome
+structure Lifecycle where
+  state : State
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
+action awaitStart
+  party: caller
+  on: operation
+
+action awaitSuccess
+  party: caller
+  on: operation
+
+def awaitStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .scheduled then [] else
+  [{ outcome := .acknowledged, state := { state := .started }, facts := [] }]
+
+def awaitSuccessStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  if current.state != .started then [] else
+  [{ outcome := .completed, state := { state := .succeeded }, facts := [] }]
+
+machine lifecycle
+  for: operation
+  state: Lifecycle
   starts: [scheduled]
   ends: [succeeded]
   steps:
-    scheduled + awaitStart → started, outcome: acknowledged
-    started + awaitSuccess → succeeded, outcome: completed
+    awaitStart: awaitStartStep
+    awaitSuccess: awaitSuccessStep
 
 property successfulResult
   model: lifecycle

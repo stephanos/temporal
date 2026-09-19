@@ -96,6 +96,15 @@ structure DeclaredNames where
   actionKeys : List String
   outcomeKeys : List String
   factKeys : List String
+  /-- Each state's fields, in the state structure's own field order and parallel to `stateKeys`:
+  the field's name, and the member of that field's domain this state holds.
+
+  A machine's state is a structure, so a state key is a spelling of several field values run
+  together. The Contract has to compare them apart -- `attempts` as a number, `phase` as an enum --
+  and reading a key back apart is exactly the parsing the key exists to avoid. Empty for a Model
+  whose states carry no fields, which is what a one-field state and an atom both look like to
+  everything that does not ask. -/
+  stateFields : List (List (String × String)) := []
 
 inductive FiniteAdmissionError where
   | outgoingTerminalTransition
@@ -118,12 +127,24 @@ def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Actio
     throw .noncanonicalTable
   table.checkModel identity definition composition |>.mapError .finite
 
-/-- Every declared Step row must appear in the authored table exactly as declared. -/
+/-- Every declared Step row must appear in the authored table exactly as declared.
+
+The two lists being equal is the same claim, arrived at in one pass rather than in as many passes as
+there are rows. A Model whose table is enumerated from its own step functions is exactly that case:
+`required` *is* the table's own transition list, so the search below compares every row against every
+row to conclude what one comparison already says.
+
+This is not an optimisation of the checking; it is the difference between a Model that elaborates
+and one that does not. The search is quadratic in the row count with a structural comparison at each
+step, and a machine of `DESIGN.md` section 3's size exceeds what the proof can evaluate. The result
+is unchanged either way: equal lists satisfy the requirement, and unequal ones still take the
+search. -/
 def satisfiesTransitionRequirement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (rows required : List (FiniteTransitionRow State Action Outcome Fact)) : Bool :=
-  required.all fun declared => rows.any fun row =>
-    row.source == declared.source && row.action == declared.action &&
-      row.results == declared.results
+  rows == required ||
+    required.all fun declared => rows.any fun row =>
+      row.source == declared.source && row.action == declared.action &&
+        row.results == declared.results
 
 def TableLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (lawId : DefinitionId)
@@ -154,6 +175,12 @@ structure DeclaredModel (Setup State Action Outcome Fact : Type)
   lawId : DefinitionId
   operationRoleId : DefinitionId
   stateIds : List DefinitionId
+  /-- Each state field's own definition, by the field's name, in the structure's field order. One
+  field has one definition across every state, because it is the same field. -/
+  stateFieldIds : List (String × DefinitionId)
+  /-- Each state's fields as model values, parallel to `states`: the field's definition and the
+  spelling this state holds it at. -/
+  stateFieldValues : List (List (DefinitionId × String))
   actionIds : List DefinitionId
   outcomeIds : List DefinitionId
   factIds : List DefinitionId
@@ -264,6 +291,14 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let lawId := origin.ownedId "law" ownerKey "canonical-table"
   let operationRoleId := origin.ownedId "role" ownerKey names.roleName
   let stateIds := names.stateKeys.map (origin.ownedId "state" ownerKey)
+  -- A state field is a model value under its own definition, so a reference that names one reads it
+  -- the way it reads any other part of a step. The definition is the field's, shared by every state,
+  -- and the spelling is the member that state holds.
+  let stateFieldNames := (names.stateFields.flatMap (·.map Prod.fst)).eraseDups
+  let stateFieldIds := stateFieldNames.map fun field =>
+    (field, origin.ownedId "state-field" ownerKey field)
+  let stateFieldValues := names.stateFields.map fun fields =>
+    fields.map fun (field, spelling) => (origin.ownedId "state-field" ownerKey field, spelling)
   let actionIds := names.actionKeys.map (origin.ownedId "action" ownerKey)
   let outcomeIds := names.outcomeKeys.map (origin.ownedId "outcome" ownerKey)
   let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
@@ -300,6 +335,9 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       origin.metadata capabilityId .capability,
       origin.metadata providerId .provider, origin.metadata lawId .law] ++
     (meanings.map fun provided => origin.metadata provided.definitionId provided.kind) ++
+    -- The fields are declared but not provided: a state field is a way of reading a state the
+    -- provider already means, not a second thing the capability supplies.
+    (stateFieldIds.map fun (_, fieldId) => origin.metadata fieldId .state) ++
     table.transitions.map fun row =>
       origin.metadata (origin.ownedId "relation" ownerKey row.key) .relation
   let modelSpec : TableModelSpec := {
@@ -313,7 +351,7 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     origin, key := ownerKey, roleName := names.roleName, setupValue,
     states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
-    stateIds, actionIds, outcomeIds, factIds, relationIds,
+    stateIds, stateFieldIds, stateFieldValues, actionIds, outcomeIds, factIds, relationIds,
     table, identity, lawStatement, law, lawProof,
     composition := Providers.empty |>.provide provider, modelSpec
   }
@@ -358,6 +396,8 @@ def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
     actions := ← model.actions.mapM checked.actionValue
     outcomes := ← model.outcomes.mapM checked.outcomeValue
     facts := ← model.facts.mapM checked.factValue
+    stateFields := model.stateFieldValues.map fun fields =>
+      fields.map fun (definitionId, spelling) => ModelValue.named definitionId spelling
   }
 
 def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]

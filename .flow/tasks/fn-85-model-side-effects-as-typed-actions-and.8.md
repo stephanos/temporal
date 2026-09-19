@@ -11,6 +11,8 @@ Add the three typed worker instructions (R10, first half): a workflow command ca
 **Touches:** [proto/internal/temporal/server/api/testpilot/**, api/testpilot/**, model/Testpilot/**, model/Temporal/Case/**, common/testing/testpilot/**]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Carried messages: import the public API protos into the Testpilot package (the Case's closure grows by those files only; fn-87's closure test must still exclude Run-only messages) or carry `google.protobuf.Any` with the type checked at preparation; pick the form that keeps `Testpilot.Protocol` elaboration within the current build time and record it.
 - Driver: a `ScheduleNexusOperationCommandAttributes` becomes `workflow.ExecuteNexusOperation` with options (the three timeouts); a `StartOperationResponse` sync/async arm becomes the handler's return, a `HandlerError` the returned error with its type and retry behavior; a completion `Payload` or `Failure` becomes the completion callback body.
 - SDK reach: a message field the Driver cannot set through the SDK rejects at preparation naming the field; keep the list per message in one table beside the interpreter so an API regeneration is reviewed against it.
@@ -35,6 +37,7 @@ Add the three typed worker instructions (R10, first half): a workflow command ca
 ## Acceptance
 - [ ] the three instructions exist with carried API messages; the Lean declarations and the Go Driver support them; a conformance case per carried message passes against the Temporal Driver
 - [ ] an invalid duration, an unsettable field, a reply the activation does not admit and a non-admitted command type each reject at preparation with an existing category, pinned by unit test and corpus case
+- [ ] a class member or `examples:` member outside the action's `schema:` message rejects in place, pinned by `#guard_msgs` (deferred here from task .2: the members the design's own examples name are values of `temporal.api.nexus.v1.HandlerError.error_type`, a protobuf `string`, so until an action's payload declares typed fields the descriptor carries nothing to check them against)
 - [ ] the Nexus realization binds `schedule`, every `handlerReply` class and both `complete` classes to the new instructions; the hand-built Query 2 Case from task .1 regenerates on them with the diff listed
 - [ ] the extension checklist was followed and any missing place is added to it; `make umpire-check-regression` exit 0
 

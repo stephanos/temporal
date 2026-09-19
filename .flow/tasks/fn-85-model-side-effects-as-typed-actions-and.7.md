@@ -33,7 +33,7 @@ Add the `set` command with `purpose:`, `bind:`, `repeat:`, `queries:`, `cover:` 
 ## Acceptance
 - [ ] `set` declarations elaborate; each R7 rejection this task owns has a `#guard_msgs` specimen; a functional set over the success Model produces a Case with ID `temporal.case.<set>.<query>` and fixture `<set>-<query>-case.json`
 - [ ] `umpire-case --list` prints exactly the functional sets' Queries sorted by Case ID; the Go generator has no functional table and no fixed-count guard; the artifact test is table-driven
-- [ ] a Case realizing a multi-value class carries the claim row with action, field, class and example; single-value classes carry none; a missing example rejects at production naming the class
+- [ ] a Case realizing a multi-value class carries the claim row with action, field, class and example; single-value classes carry none; a missing example rejects at production naming the class. **Amended by task .2:** a class is a *member* of the input domain, so every class has exactly one member and nothing in the Model counts the concrete values a class covers. The claim's trigger is therefore the presence of an `examples:` line for that class, not a member count: a class an author wrote an example for is one they claim several realized values behave alike in, and a class with no example carries no claim
 - [ ] `make umpire-check-case-runtime-conformance` exit 0; `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` green
 
 
