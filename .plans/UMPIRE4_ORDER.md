@@ -377,6 +377,21 @@ and both completion classes, the asynchronous `case` form produces through it, a
 fixtures regenerate on the typed instructions, differing in exactly the three bound instructions.
 The checklist missed five places, now listed. Its review is a self-review.
 
+**Task .9 is done, 2026-09-19.** A Program declares each kind of correlated evidence once
+(`Program.evidence`): its source as a history event arm, a Run Event kind or a unary read, its scope,
+key path and fields. A history read's lift rule names the declaration and spells nothing else, a
+`ReadEvidence` controller instruction polls a read declaration through the new `Session.PollRPC`
+until an element satisfies its condition and lifts what the condition selects, a Run Event kind is
+lifted by the scheduler as the event is recorded, and the correlated Contract's projection rules
+resolve against the declarations; the Case compiler localizes the new names with the rest. The
+undeclared reference and the duplicate source-and-key rejections land in `unknown` and `malformed`,
+pinned by two corpus variants beside three accepted ones, one per source. `pendingAttempts` is the
+read catalog's one binding (`Temporal.Case.ReadKind`: `DescribeWorkflowExecution`,
+`pending_nexus_operations`, key `scheduled_event_id`, field `attempts`), the third answer an
+`evidence:` line resolves against, and the Nexus template carries it beside its two history kinds.
+The two Query 2 fixtures regenerate on by-name rules with their two declarations. The `case` block's
+evidence lines stay for `.11`. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
