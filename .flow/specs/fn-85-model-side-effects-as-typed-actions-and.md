@@ -639,6 +639,24 @@ narrows a requirement without changing its intent, and the task that owns it rec
   condition. A Run Event kind is lifted by the scheduler as it records the event, so a fault is
   evidence without an instruction reading it back. The read catalog (`Temporal.Case.ReadKind`) is the
   third answer an `evidence:` line resolves against, `pendingAttempts` its one binding.
+- **A set's Case derives its evidence from the machine's catalog, and its bindings are keyed
+  (task .10, 2026-09-19).** `case <name> realizes <set> as nexusOperation service … operation …
+  realized by asyncNexus` names a realization and writes no `evidence` lines: the elaborator quotes
+  the set's machine `evidence:` catalog and the Producer maps each Action on a Query's path to the
+  kind whose fact it records (`derivedEvidence`: the fact's value is the kind's spelling, or that
+  spelling and a hyphen), so the mapping is written once, on the machine; the `evidence` block stays
+  for a machine without a catalog. A realization's `ActionBinding` carries the member key a classed
+  Scenario action resolves to (`handlerReply-async`, `complete-succeeded`), resolved through the
+  vocabulary at assembly with the stated action id as the fallback, and `whenOnPath` places a
+  controller node only on the paths that need it (`await-completion-authority` on the completion
+  paths). `nexusProtocol` takes no `setup:` parameter: `atConcurrencyLimit` has no dynamic-config
+  key, so it is not an input a Case binds; the rows it selected are the `attempt` step's own branch.
+  A Contract carries only the projection rows reachable from the initial state under the actions
+  its rules name (`Projection.check`), not the machine's whole table, and `maximumFacts` bounds the
+  checked description from above: the protocol machine's 1152 rows made a 2.6 MB fixture that
+  exceeded `MaxTransitions`, and the rules can take no other row. An instructed handler error or
+  failed start completes the handler activation that produced it; the Run runs on to the caller's
+  recorded failure rather than stopping as an effect failure.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
