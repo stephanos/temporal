@@ -1202,11 +1202,16 @@ private def undeclaredStepActionMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
 its function steps on"
 
+private def alreadyDeclaredMessage (declared : Name) : String :=
+  s!"'{declared}' is already declared; a machine takes the name it is given, and checking this one \
+would be checking something else that happens to share it"
+
 private def unprovenTableMessage (states actions : Nat) : String :=
-  s!"this machine's canonical-table law did not check: {states} states over {actions} action \
-classes is past what the proof elaborates, and a Model declared anyway would carry `sorryAx` while \
-reading as complete. Reduce the state structure, or bound it -- every value derived from the table \
-rests on this law"
+  s!"this machine's canonical-table law did not check, so the Model it would declare carries \
+`sorryAx` while reading as complete -- and every value derived from the table rests on that law. If \
+the errors above are a timeout, {states} states over {actions} action classes is past what the proof \
+elaborates and the state structure has to be smaller or bounded; otherwise they say what else went \
+wrong"
 
 private def machineTooLargeMessage (states actions bound : Nat) : String :=
   s!"enumerating {states} states over {actions} action classes is {states * actions} steps, and the \
@@ -1240,6 +1245,10 @@ private def endsAcrossFieldsMessage (earlier later : String) : String :=
   s!"`ends:` names values of two different state fields, '{earlier}' and '{later}'; an instance ends \
 on the values of one field"
 
+private def stepStateMessage (declName : Name) (carried expected : Expr) : MessageData :=
+  m!"'{declName}' takes {carried} where this machine's state is {expected}; a step function's first \
+argument is the state it steps from"
+
 private def stepArgumentMessage (declName : Name) (index : Nat) (expected : Name)
     (carried : Expr) : MessageData :=
   m!"'{declName}' takes {carried} where this action's input {index + 1} is '{expected}'; a step \
@@ -1269,7 +1278,13 @@ and a literal that long nests deeper than a Lean file's default recursion limit.
 on the generated declaration and nowhere else, because the length is the machine's size rather than
 anything an author wrote, and an author who hit the file's own limit should still hear about it. -/
 private def elabGenerated (generated : TSyntax `command) : CommandElabM Unit := do
-  elabCommand (← `(command| set_option maxRecDepth 65536 in $generated:command))
+  -- Heartbeats for the same reason as depth: the canonical-table law is proved by `rfl` over a
+  -- table as large as the machine, so its cost is the machine's size and not anything an author
+  -- wrote. A machine still too large for these refuses, because the command reads its own axioms.
+  elabCommand (← `(command|
+    set_option maxRecDepth 65536 in
+    set_option maxHeartbeats 1000000 in
+    $generated:command))
 
 /-- What one `steps:` line resolved to: the action it steps on, that action's input domains, and the
 function the author wrote. -/
@@ -1298,9 +1313,16 @@ private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name)
       -- somewhere inside the synthesized dispatcher instead of here, at the line that named it.
       unless taken.size == arity + 1 do
         throwErrorAt stepRef (stepSignatureMessage declName)
-      -- Each argument after the state is the action's own input domain, in order. Two actions of
-      -- the same arity over different enums are an ordinary slip, and without this the mismatch
-      -- surfaces inside the synthesized dispatcher rather than at the line that named the function.
+      -- The first argument is the state. Without this a function over another type reaches the
+      -- dispatcher, fails there, and is then reported by the axiom guard as a machine too large to
+      -- prove -- a verdict about size on what is a type error.
+      let carriedState ← Meta.inferType taken[0]!
+      let expectedState ← mkConstWithLevelParams stateDecl
+      unless (← Meta.isDefEq carriedState expectedState) do
+        throwErrorAt stepRef (stepStateMessage declName carriedState expectedState)
+      -- Each argument after it is the action's own input domain, in order. Two actions of the same
+      -- arity over different enums are an ordinary slip, and without this the mismatch surfaces
+      -- inside the synthesized dispatcher rather than at the line that named the function.
       for index in [0:domains.size] do
         let carried ← Meta.inferType taken[index + 1]!
         let expected ← mkConstWithLevelParams domains[index]!
@@ -1435,6 +1457,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- that action's input fields. The author writes one function per action over that action's own
   -- inputs; the enumerator walks one `State -> Action -> List (Step ...)`, and this is what makes
   -- the first into the second without the author writing a sum type by hand.
+  let declared := (← getCurrNamespace) ++ name.getId
+  let declaredBefore := (← getEnv).contains declared
   let actionType := mkIdentFrom name (name.getId ++ `Action)
   let constructors ← steps.mapM fun resolved => do
     let constructorName := mkIdent (Name.mkSimple resolved.action.name)
@@ -1625,6 +1649,19 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       actionKeys := [$(keyList actionMembers),*]
       outcomeKeys := [$(keyList outcomeMembers),*]
       factKeys := [$(keyList factMembers),*] })
+  -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
+  -- without having finished. The table is what knows, so the check runs on the emitted table and is
+  -- reported back at the `steps:` block that produced it.
+  let stuckName := mkIdentFrom name (name.getId ++ `stuck)
+  elabGenerated (← `(command|
+    def $stuckName : Option String :=
+      (Umpire.Command.stuckState $startsName $terminalName $transitionsName).map $stateKeyForName))
+  match ← liftTermElabM (evalStuckState ((← getCurrNamespace) ++ stuckName.getId)) with
+  | none => pure ()
+  | some witness =>
+      let anchor := (stepRefs[0]?.map Prod.fst).getD name
+      throwErrorAt anchor (stuckStateMessage witness)
+
   let origin ← originTerm
   elabGenerated (← `(command|
     def $name := Umpire.Command.declareModel $origin $names ($setupName)
@@ -1638,25 +1675,16 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- not check would be declared anyway, carrying `sorryAx` and looking complete. Everything reads
   -- that law -- the Behavior Fingerprint, Search, Contract lowering -- and only `#print axioms`
   -- would say otherwise, so the command says it here instead.
-  let declared := (← getCurrNamespace) ++ name.getId
+  -- A name the file already declared would be inspected instead of this machine's, and a clean
+  -- axiom set on somebody else's constant says nothing about this one.
+  if declaredBefore then
+    throwErrorAt name (alreadyDeclaredMessage declared)
   if (← getEnv).contains declared then
     let axioms ← liftCoreM (Lean.collectAxioms declared)
     if axioms.contains ``sorryAx then
       throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
   else
     throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
-  -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
-  -- without having finished. The table is what knows, so the check runs on the emitted table and is
-  -- reported back at the `steps:` block that produced it.
-  let stuckName := mkIdentFrom name (name.getId ++ `stuck)
-  elabGenerated (← `(command|
-    def $stuckName : Option String :=
-      (Umpire.Command.stuckState $startsName $terminalName $transitionsName).map $stateKeyForName))
-  match ← liftTermElabM (evalStuckState ((← getCurrNamespace) ++ stuckName.getId)) with
-  | none => pure ()
-  | some witness =>
-      let anchor := (stepRefs[0]?.map Prod.fst).getD name
-      throwErrorAt anchor (stuckStateMessage witness)
   liftCoreM (Registry.recordMachine {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
