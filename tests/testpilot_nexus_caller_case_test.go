@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -37,16 +38,56 @@ type switchRun struct {
 	verdict *testpilotpb.Verdict
 }
 
-// TestTestpilotAsyncNexusCase runs the one Case once per value of the Nexus implementation switch,
-// each under its own cluster constructed with that value's settings, the way the upstream Nexus
-// suites run under HSM and CHASM. Under each value the Case is bound to two isolated namespaces,
-// queues and endpoints and run twice concurrently against each, so a Run's effects are shown to
-// stay in its own namespace on a live cluster. The Case bytes are the same under every value; the
-// Profile is not, because it records the configuration it ran under; and a Verdict that differs
-// between the values fails naming both, because that is a finding about the implementations, not
-// a flake.
-func TestTestpilotAsyncNexusCase(t *testing.T) {
-	caseSource := loadTestpilotCase(t, "async-nexus")
+// nexusCallerQuery is one Query of the caller Model's functional set as the live suite runs it: the
+// fixture the set produced for it, and the history events its Contract's supporting evidence must
+// project, in the order the operation records them.
+type nexusCallerQuery struct {
+	name       string
+	supporting []enumspb.EventType
+	// terminal is the history event the operation settles on, read from the Run whether or not
+	// the Contract's clause supports it.
+	terminal enumspb.EventType
+}
+
+func (q nexusCallerQuery) fixture() string { return "nexusCallerTests-" + q.name }
+
+// Every admitted semantic step of the operation supports the clause: the scheduled event confirms
+// the schedule command, then each event the path's side effects record.
+var nexusCallerQueries = []nexusCallerQuery{
+	{name: "syncCompletion", supporting: []enumspb.EventType{enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED, enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED}, terminal: enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED},
+	{name: "asyncCompletion", supporting: []enumspb.EventType{enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED, enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED, enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED}, terminal: enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED},
+	{name: "asyncFailure", supporting: []enumspb.EventType{enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED, enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED, enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED}, terminal: enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED},
+	{name: "handlerError", supporting: []enumspb.EventType{enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED, enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED}, terminal: enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED},
+}
+
+// The four Queries of the caller Model's functional set, one live test each, run the way the
+// upstream Nexus suites run under HSM and CHASM: once per value of the implementation switch, each
+// under its own cluster constructed with that value's settings.
+func TestTestpilotNexusCallerSyncCompletion(t *testing.T) {
+	runNexusCallerQueryUnderEachSwitchValue(t, nexusCallerQueries[0])
+}
+
+func TestTestpilotNexusCallerAsyncCompletion(t *testing.T) {
+	runNexusCallerQueryUnderEachSwitchValue(t, nexusCallerQueries[1])
+}
+
+func TestTestpilotNexusCallerAsyncFailure(t *testing.T) {
+	runNexusCallerQueryUnderEachSwitchValue(t, nexusCallerQueries[2])
+}
+
+func TestTestpilotNexusCallerHandlerError(t *testing.T) {
+	runNexusCallerQueryUnderEachSwitchValue(t, nexusCallerQueries[3])
+}
+
+// runNexusCallerQueryUnderEachSwitchValue runs one Query's Case once per value of the Nexus
+// implementation switch. Under each value the Case is bound to two isolated namespaces, queues and
+// endpoints and run twice concurrently against each, so a Run's effects are shown to stay in its
+// own namespace on a live cluster. The Case bytes are the same under every value; the Profile is
+// not, because it records the configuration it ran under; and a Verdict that differs between the
+// values fails naming both, because that is a finding about the implementations, not a flake.
+func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuery) {
+	t.Helper()
+	caseSource := loadTestpilotCase(t, query.fixture())
 	caseSnapshot := proto.CloneOf(caseSource)
 
 	runs := make([]switchRun, 0, 8)
@@ -62,9 +103,9 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 			bindings := make([]CaseBinding, 0, 2)
 			lives := make([]testpilotLiveCase, 0, 2)
 			for _, suffix := range []string{"a", "b"} {
-				resource := "umpire-async-nexus-" + value.Name + "-" + suffix
+				resource := "umpire-" + query.name + "-" + value.Name + "-" + suffix
 				binding := CaseBinding{
-					Identity:  "async-nexus-profile-" + value.Name,
+					Identity:  query.fixture() + "-profile-" + value.Name,
 					Namespace: resource, TaskQueue: resource + "-queue",
 					NexusEndpoint: resource + "-endpoint", CreateEndpoint: true,
 					DynamicConfig: value.Configuration(),
@@ -95,20 +136,7 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 			runIDs := make(map[string]struct{}, len(lives)*2)
 			for result := range results {
 				require.NoError(t, result.err)
-				require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
-				require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus())
-				require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
-				require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
-				// One rule verdict per scoped clause the checked Property lowered into, each answered
-				// by the two recorded Nexus events the projection admitted as this operation's
-				// semantic steps. Two clauses: the Model records no Fact, because every step reaches
-				// a state named after what happened.
-				require.Len(t, result.verdict.GetRules(), 2)
-				for _, rule := range result.verdict.GetRules() {
-					require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-					require.Equal(t, result.verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
-				}
-				requireCorrelatedNexusHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences(), bindings[result.environment].NexusEndpoint)
+				requireNexusCallerVerdict(t, query, result.run, result.verdict, bindings[result.environment].NexusEndpoint)
 				require.NotContains(t, runIDs, result.run.GetRunId())
 				runIDs[result.run.GetRunId()] = struct{}{}
 
@@ -133,11 +161,7 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	first, second := runs[0].live.prepared, runs[len(runs)-1].live.prepared
 	require.NotEqual(t, runs[0].value.Name, runs[len(runs)-1].value.Name)
 	require.True(t, proto.Equal(first.Snapshot(), second.Snapshot()))
-	require.True(t, proto.Equal(first.Snapshot().GetContract(), second.Snapshot().GetContract()))
-	require.True(t, proto.Equal(first.Snapshot().GetProvenance(), second.Snapshot().GetProvenance()))
 	require.Equal(t, first.Snapshot().GetCaseId(), second.Snapshot().GetCaseId())
-	require.Equal(t, first.Snapshot().GetProgram().GetProgramId(), second.Snapshot().GetProgram().GetProgramId())
-	require.Equal(t, first.Snapshot().GetContract().GetContractId(), second.Snapshot().GetContract().GetContractId())
 	require.NotEqual(t, runs[0].live.profile.Configuration, runs[len(runs)-1].live.profile.Configuration)
 
 	// Every Verdict, reported together: a divergence names the switch, both values and both.
@@ -149,14 +173,34 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
 }
 
-func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
+// requireNexusCallerVerdict is what every Run of a caller Query must show: the Run completed and
+// cleaned up, every scoped clause of the Property is satisfied, and the supporting evidence is the
+// history event the Query's claim names, lifted under the operation's scheduled event.
+func requireNexusCallerVerdict(t testing.TB, query nexusCallerQuery, run *testpilotpb.Run, verdict *testpilotpb.Verdict, endpoint string) {
+	t.Helper()
+	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
+	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.True(t, proto.Equal(verdict, run.GetVerdict()))
+	// One rule verdict per scoped clause the checked Property lowered into: the claim fixes the
+	// recorded fact, so there is one.
+	require.Len(t, verdict.GetRules(), 1)
+	for _, rule := range verdict.GetRules() {
+		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
+		require.Equal(t, verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
+	}
+	requireCorrelatedNexusHistoryEvidence(t, run, verdict.GetSupportingEventSequences(), endpoint, query.supporting)
+	requireNexusHistoryEvent(t, run, query.terminal)
+}
+
+func TestTestpilotNexusCallerCaseMissingRemoteEndpoint(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	caseSource := loadTestpilotCase(t, "async-nexus")
+	caseSource := loadTestpilotCase(t, nexusCallerQueries[1].fixture())
 	// The endpoint the Case binds is deliberately not created, so the Nexus operation never
 	// completes and the Run closes incomplete and inconclusive.
 	live := bindCase(t, env, caseSource, CaseBinding{
-		Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-missing",
-		TaskQueue: "umpire-async-nexus-queue-missing", NexusEndpoint: "umpire-async-nexus-endpoint-missing",
+		Identity: "async-completion-profile", Namespace: "umpire-async-completion-missing",
+		TaskQueue: "umpire-async-completion-queue-missing", NexusEndpoint: "umpire-async-completion-endpoint-missing",
 		CreateEndpoint: false,
 	})
 
@@ -170,23 +214,16 @@ func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone is what a new live test costs after this
-// spec: name the fixture, assert the Verdict. Everything else -- the namespace, the queue, the
-// Nexus endpoint, the derived Profile, the Driver -- follows from the Case's own bytes.
-func TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone(t *testing.T) {
+// TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone is what a new live test costs: name the
+// fixture, assert the Verdict. Everything else -- the namespace, the queue, the Nexus endpoint, the
+// derived Profile, the Driver -- follows from the Case's own bytes.
+func TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
+	query := nexusCallerQueries[1]
 
-	run, verdict := runCase(t, env, "async-nexus")
+	run, verdict := runCase(t, env, query.fixture())
 
-	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	require.Len(t, verdict.GetRules(), 2)
-	for _, rule := range verdict.GetRules() {
-		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-	}
-	requireCorrelatedNexusHistoryEvidence(t, run, verdict.GetSupportingEventSequences(),
-		"umpire-async-nexus-endpoint")
+	requireNexusCallerVerdict(t, query, run, verdict, "umpire-"+query.fixture()+"-endpoint")
 }
 
 func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
