@@ -115,6 +115,10 @@ structure Input (LawStatement : Law → Prop) where
   performs all of them while the Contract follows each operation through its own. `none` when the
   operation's sequence is the Program's. -/
   program : Option (List DefinitionId) := none
+  /-- The machine's setup parameters, each as its name and its Definition ID. A parameter is bound by
+  the Profile through the realization's configuration key; one the realization binds to no key is a
+  Known Gap of the Case. -/
+  setupParameters : List (String × DefinitionId) := []
 
 /-! ### Identity
 
@@ -229,11 +233,39 @@ structure ActionBinding where
   instructionId : String
   node : Identity → String → InstructionNode
 
+/-- One setup parameter of a machine as the realization binds it: the parameter's Definition ID and
+the configuration key the Profile sets it under. The value a Case's path assumed is not written
+here: the Case bytes do not depend on it, and the Profile records the value it ran under. -/
+structure SetupBinding where
+  parameter : DefinitionId
+  key : String
+  deriving BEq, Repr
+
+/-- One value of a switch: its name, and the configuration -- each key with the value it takes --
+an environment running under it sets. -/
+structure SwitchValue where
+  name : String
+  configuration : List (String × String) := []
+  deriving BEq, Repr
+
+/-- A switch as the realization declares it: a rollout flag between two implementations of one
+behavior, with the configuration each value sets. It is not a Model parameter; a functional set's
+`repeat` names it and each Query's Case runs once per value. -/
+structure SwitchBinding where
+  name : String
+  values : List SwitchValue
+  deriving BEq, Repr
+
 structure Realization where
   /-- The scaffolding every Case of this feature carries, with the places its actions land. -/
   plan : ProgramPlan
   /-- What each action class is realized as. An action on a path with no binding rejects. -/
   actions : List ActionBinding := []
+  /-- The configuration key each setup parameter of the machine is bound to. A parameter with no
+  binding is one the Profile cannot set, so the Case carries a Known Gap naming it. -/
+  setup : List SetupBinding := []
+  /-- The switches this realization declares. A `repeat:` names one of these or rejects. -/
+  switches : List SwitchBinding := []
   producerId : String
   producerVersion : String := "1"
   projectionId : DefinitionId
@@ -253,6 +285,27 @@ structure Realization where
   projectionLimits : Case.Projection.Limits
   /-- Evaluation ceilings for the correlated consumer, separate from the semantic window. -/
   runLimits : Property.Correlated.Limits
+
+/-- The switch a `repeat:` names, or `none` for one this realization does not declare, which is
+what rejects the `set`. -/
+def Realization.switch? (realization : Realization) (name : String) : Option SwitchBinding :=
+  realization.switches.find? (·.name == name)
+
+/-- The Known Gaps a Case carries for the setup parameters the realization binds to no
+configuration key. The Profile sets a parameter through its key, so an unbound one runs under
+whatever value the environment happens to have, and the Case says so rather than claim otherwise.
+The gap is an `input` gap coded after the parameter, with the parameter as its subject. -/
+def unboundSetupGaps
+    (realization : Realization)
+    (setupParameters : List (String × DefinitionId)) : List KnownGap :=
+  setupParameters.filterMap fun (name, parameter) =>
+    if realization.setup.any (·.parameter == parameter) then none
+    else some {
+      kind := .input
+      code := DefinitionId.of (parameter.value ++ ".unbound")
+      subject := some parameter
+      detail := some s!"the setup parameter '{name}' is bound to no configuration key of the \
+realization, so the Profile cannot set it and the Case runs under the environment's own value" }
 
 /-! ### The derived correlated Property
 
@@ -547,6 +600,10 @@ def produce {LawStatement : Law → Prop}
     rejects realization.projectionId.value "projection.admission"
   let lowered ← Umpire.Case.Correlated.lower plan compiled realization.correlatedObservation
     (Case.Projection.Coverage.empty plan) input.vocabulary.statesWithFields
+  -- The Query's own Known Gaps, and one per setup parameter the realization leaves unbound.
+  let knownGaps ← (KnownGapSet.ofUnordered
+      (input.knownGaps.toList ++ unboundSetupGaps realization input.setupParameters)).mapError
+    fun _ => rejects input.queryId.value "known-gaps.setup"
   compile {
     version := { major := 1 }
     caseId := identity.caseId
@@ -563,7 +620,7 @@ def produce {LawStatement : Law → Prop}
         behaviorFingerprint := correlatedProperty.behaviorFingerprint.render, kind := .«property» }]
     sources := [input.target.source, input.scenario.source, input.querySource,
       input.property.source]
-    knownGaps := input.knownGaps.toProvenanceGaps
+    knownGaps := knownGaps.toProvenanceGaps
     program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
       (input.program.getD occurrences)
     contractId := identity.contractId

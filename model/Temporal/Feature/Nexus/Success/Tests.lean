@@ -1546,4 +1546,71 @@ case duplicateFixture fixture "async-nexus"
 #print axioms Temporal.Feature.Nexus.Success.lifecycle
 #print axioms Temporal.Feature.Nexus.Success.completion
 
+/-! ### A setup parameter, bound or not
+
+A machine's `setup:` parameter is bound by the Profile through the realization's configuration key.
+The Case bytes do not depend on its value; what they carry is whether the realization binds it at
+all, because one it does not bind runs under whatever value the environment has, and the Case says
+so as an `input` Known Gap naming the parameter. -/
+
+/-- The success lifecycle with a setup parameter no realization of the success slice binds. -/
+machine configuredLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  setup:
+    probe: Bool
+  steps:
+    awaitStart: awaitStartStep
+    awaitSuccess: awaitSuccessStep
+
+property configuredResult
+  machine: configuredLifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
+
+scenario configuredCompletion
+  model: configuredLifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitSuccess]
+
+query configuredQuery
+  find: configuredResult
+  in: configuredCompletion
+  limits: shortTrace
+
+/- The parameter is declared under a definition of its own, owned by the machine. -/
+#guard configuredLifecycle.setupParameters.map (·.1) == ["probe"]
+#guard (configuredLifecycle.setupParameters.map fun (_, parameter) =>
+  parameter.value.endsWith ".setup.configuredLifecycle.probe") == [true]
+
+private def probeParameter : DefinitionId :=
+  ((configuredLifecycle.setupParameters.head?).map (·.2)).getD (.of "")
+
+/- Unbound by the realization: the Case carries an `input` Known Gap coded after the parameter,
+with the parameter as its subject. -/
+#guard (match Umpire.Command.produceCase configuredQuery asyncNexusSuccess.identity
+    asyncNexusSuccess.realization asyncNexusSuccess.evidence with
+  | .ok output => (output.provenance.map fun provenance =>
+      provenance.known_gaps.any fun gap =>
+        gap.code == probeParameter.value ++ ".unbound" && gap.kind == .KNOWN_GAP_KIND_INPUT &&
+          gap.subject_presence.map (fun | .subject subject => subject) ==
+            some probeParameter.value) == some true
+  | .error _ => false)
+
+/- Bound to a configuration key of the catalog: no gap. Which key a parameter binds to is the
+realization's, and the value it ran under is the Profile's to record. -/
+#guard (match Umpire.Command.produceCase configuredQuery asyncNexusSuccess.identity
+    { asyncNexusSuccess.realization with
+      setup := [{ parameter := probeParameter, key := "history.enablechasm" }] }
+    asyncNexusSuccess.evidence with
+  | .ok output => (output.provenance.map fun provenance =>
+      provenance.known_gaps.all fun gap => !gap.code.endsWith ".unbound") == some true
+  | .error _ => false)
+
+/- The success Model itself declares no setup parameter, so its Case carries no such gap and its
+bytes did not move. -/
+#guard lifecycle.setupParameters == []
+
 end Temporal.Feature.Nexus.Success.Tests
