@@ -615,6 +615,20 @@ narrows a requirement without changing its intent, and the task that owns it rec
   Producer records the claims of the classes the Program performs as `AbstractionClaim` rows of
   `CaseProvenance` (the protocol's ninth provenance field, additive). A class with no example
   carries no claim and rejects nothing.
+- **Typed instructions import the API messages; the Driver-reach table lives with admission
+  (decided while delivering `.8`).** The three worker instructions carry
+  `temporal.api.command.v1.Command`, `temporal.api.nexus.v1.StartOperationResponse` or
+  `HandlerError`, and `temporal.api.common.v1.Payload` or `temporal.api.failure.v1.Failure` as
+  imported fields, not as `Any`: the Lean ProtoJSON writer resolves an `Any` against the generated
+  pool, so `Any` would have cost the same descriptors and bought only a type-URL check. The API
+  import closure is compiled once by `Testpilot/Carried.lean` from `proto/api.binpb`, apart from the
+  protocol's own module so a protocol edit keeps its rebuild cost. Which fields of each message the
+  Driver realizes is one table in `internal/execution/typed.go`, beside admission rather than the
+  interpreter, because preparation runs without a Driver; a completeness test names every field of
+  every carried message. The Profile admits workflow commands per command type (`CommandTypes`),
+  which `DeriveProfile` fills from the worker Driver's own list. A Model whose actions realize
+  nothing (the success slice's waits) produces through the realization on the path the realization
+  states (`Nexus.asyncPath`) until `.10`'s protocol machine makes the Query's path the side effects.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
