@@ -116,8 +116,14 @@ structure MachineEntry where
   entity : Name
   /-- The structure whose members are the machine's states. -/
   stateType : Name
-  /-- Each `steps:` line as (the action's declaration name, the step function). -/
-  steps : Array (Name × Name)
+  /-- Each `steps:` line as (the action's spelling, the step function). A timer is spelled by its own
+  name: it is `system` behaviour and has no `action` declaration to be named by, and recording them
+  all as one name would make two timers indistinguishable to whoever reads this. -/
+  steps : Array (String × Name)
+  /-- The timers the machine declares, each of which a `steps:` line names. -/
+  timers : Array String
+  /-- Each `evidence:` line as (the fact the steps return, the observation that confirms it). -/
+  evidence : Array (String × String)
   deriving Inhabited, Repr, BEq
 
 /-- One declared observation: the entity whose key finds its instance, and the field it reads. -/

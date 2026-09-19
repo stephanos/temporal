@@ -152,11 +152,14 @@ def enumerateBounded
 The bound is the number of states, because a walk that has not settled after visiting every state
 once is a walk that never will. -/
 def reachableFrom [BEq State] [Finite State]
-    (starts : List State)
+    (starts ends : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : List State :=
   let grow := fun (seen : List State) =>
     transitions.foldl (init := seen) fun seen row =>
-      if seen.contains row.source then
+      -- An instance that has ended takes no further step, so the walk does not leave a terminal
+      -- state even where the table has a row from one. Walking through would report a state no
+      -- Search can reach, which reads as a missing step the author does not have to write.
+      if seen.contains row.source && !ends.contains row.source then
         row.results.foldl (init := seen) fun seen result =>
           if seen.contains result.state then seen else seen ++ [result.state]
       else seen
@@ -170,7 +173,7 @@ which state it is is the whole of what the author needs to know. -/
 def stuckState [BEq State] [Finite State]
     (starts ends : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : Option State :=
-  (reachableFrom starts transitions).find? fun state =>
+  (reachableFrom starts ends transitions).find? fun state =>
     !ends.contains state && !transitions.any fun row => row.source == state
 
 end Umpire.Command
