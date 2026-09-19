@@ -411,6 +411,23 @@ umpire-check-regression` exit 0 with **20 passing live identities** (eleven befo
 adds two unused-binder warnings from the `enum` command's generated binders, the pattern
 `Tests/Commands.lean` carries. Its review is a self-review.
 
+**Task .11 is done, 2026-09-19.** The Caller Model adds Queries 5 to 7: a retryable handler error
+then sync success after one backoff, with `pendingAttempts` polled until `attempt == 1`; a
+schedule-to-start timeout after `workerStop` stops the handler's worker on its own task queue; an
+async reply then a start-to-close timeout. Timers are `TimerBinding`s on the Realization (2000 ms
+each) passed to the schedule command and observed through the timed-out event, so no
+wait-for-duration instruction was needed. The Producer folds a silent step into the next confirmed
+rule and carries it as a capability Known Gap (`backoff.unobserved`, `workerStop.unobserved`);
+every controller path first reads the scheduled event (`await-scheduled`), the runtime chains one
+operation's evidence across sources by a parent, admits a canceled reservation of an entrypoint
+that performs nothing, and the worker keeps a retryable handler activation open for the retried
+start. The whole-Program templates, the `fixture`-named `case` form, the `caseTemplate` grammar,
+`ProofPoint` and the `Success` set are gone and retired; `case … realizes <set> as <Realization>`
+is the one Case-producing command. Seven fixtures, `COVERAGE.md` mapping all seven upstream
+tests, timer stability three runs under both values (4.2 to 4.8 s per Query), `make
+umpire-check-regression` exit 0 with **29 passing live identities** (20 before). `lint-model` at
+the `.10` baseline. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
