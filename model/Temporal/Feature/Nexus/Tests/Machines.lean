@@ -138,4 +138,106 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 checked before it wrote the table. -/
 #guard nexusProduct.stuck == none
 
+/-! ### What the machine command rejects
+
+Each at the line that made it, because a Model file is read and corrected one line at a time. -/
+
+/- A machine tracks one entity's instances, so `for:` names one the file declared. -/
+/--
+error: 'notAnEntity' is not an entity declared by an `entity` command; a machine tracks one entity's instances, so `for:` names one
+-/
+#guard_msgs in
+machine untrackedEntity
+  for: notAnEntity
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    handlerReply: handlerReplyStep
+
+/--
+error: 'notAnAction' is not an action declared by an `action` command; a `steps:` line names the action its function steps on
+-/
+#guard_msgs in
+machine unknownStep
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    notAnAction: handlerReplyStep
+
+/- A machine's states are the members of a structure, so its fields can be enumerated. -/
+/--
+error: 'ProductPhase' is not a finite state structure; a machine's `state:` names a `structure` whose fields are all finite, so its members can be enumerated
+-/
+#guard_msgs in
+machine phaseAsState
+  for: operation
+  state: ProductPhase
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    handlerReply: handlerReplyStep
+
+/- One action has one step function; two would not say which applies. -/
+/--
+error: the machine steps on 'handlerReply' twice; one action has one step function, and two would not say which one applies
+-/
+#guard_msgs in
+machine twiceStepped
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    handlerReply: handlerReplyStep
+    handlerReply: handlerReplyStep
+
+/-- A step function takes the state and the action's inputs, and returns what may happen. This one
+returns phases, so it says what the state became and not what may happen -- no outcome, no evidence,
+and nothing a row could carry. -/
+def wrongShape (_state : ProductState) : List ProductPhase := []
+
+/--
+error: 'Temporal.Feature.Nexus.Tests.Machines.wrongShape' is not a step function; a `steps:` line names one of the shape `State -> <the action's input domains, curried> -> List (Step State Outcome Fact)`
+-/
+#guard_msgs in
+machine wronglyShaped
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    transportFault: wrongShape
+
+/- A timer no `steps:` line names never fires. -/
+/--
+error: no `steps:` line names the timer 'neverFires'; a timer is `system` behaviour written as a step function, and one that never fires is a timer the machine does not have
+-/
+#guard_msgs in
+machine idleTimer
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  timers: [neverFires]
+  steps:
+    handlerReply: handlerReplyStep
+
+/- Evidence names a fact the steps return; one that names another confirms nothing that happens. -/
+/--
+error: no step of this machine returns the fact 'nothingRecordsThis', so nothing it confirms ever happens; the steps return nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut, faultInjected
+-/
+#guard_msgs in
+machine unreturnedEvidence
+  for: operation
+  state: ProductState
+  starts: [scheduled]
+  ends: [succeeded]
+  evidence:
+    nothingRecordsThis: nexusOperationScheduled
+  steps:
+    handlerReply: handlerReplyStep
+
 end Temporal.Feature.Nexus.Tests.Machines
