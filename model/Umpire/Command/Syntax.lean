@@ -1,5 +1,6 @@
 import Lean.Elab.Command
 import Lean.Elab.ElabRules
+import Umpire.Command.Catalog
 import Umpire.Command.Finite
 import Umpire.Command.Records
 import Umpire.Command.Schema
@@ -410,8 +411,12 @@ private def resolveDeclared (domain : String) (declared : Array String) (declari
     throwErrorAt member (unknownMemberMessage domain spelling
       (declared.toList.map Name.mkSimple))
   -- Give the spelling the constructor it names, so the editor hovers it and goes to its
-  -- definition. The emitted records keep the spelling, so no Definition ID moves.
-  liftTermElabM (Lean.Elab.addConstInfo member (declaringType ++ Name.mkSimple spelling))
+  -- definition. A machine's state key names an assignment of the structure's fields rather than a
+  -- constructor, so for one of those there is nothing to point at. The emitted records keep the
+  -- spelling either way, so no Definition ID moves.
+  let points := declaringType ++ Name.mkSimple spelling
+  if (← getEnv).contains points then
+    liftTermElabM (Lean.Elab.addConstInfo member points)
   pure spelling
 
 /-- The Model a `model:` key names, resolved to what the `model` command recorded about it. -/
@@ -607,6 +612,15 @@ private unsafe def evalStuckStateUnsafe (diagnosticName : Name) :
     Elab.Term.TermElabM (Option String) :=
   Meta.evalExpr (Option String) (.app (.const ``Option [levelZero]) (.const ``String []))
     (.const diagnosticName [])
+
+private unsafe def evalStringListUnsafe (diagnosticName : Name) :
+    Elab.Term.TermElabM (List String) :=
+  Meta.evalExpr (List String) (.app (.const ``List [levelZero]) (.const ``String []))
+    (.const diagnosticName [])
+
+/-- A list of keys read off a table the command just emitted. -/
+@[implemented_by evalStringListUnsafe]
+private opaque evalStringList (diagnosticName : Name) : Elab.Term.TermElabM (List String)
 
 /-- A machine's stuck-state witness, read off the table the command just emitted. -/
 @[implemented_by evalStuckStateUnsafe]
@@ -1212,6 +1226,7 @@ syntax "state:" ident : machineKey
 syntax "ends:" "[" ident,+ "]" : machineKey
 syntax "starts:" "[" ident,+ "]" : machineKey
 syntax "timers:" "[" ident,+ "]" : machineKey
+syntax "unobservable:" "[" ident,+ "]" : machineKey
 syntax "setup:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "evidence:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
@@ -1248,6 +1263,24 @@ step is missing or '{witness}' belongs under `ends:`"
 private def unnamedTimerMessage (spelling : String) : String :=
   s!"no `steps:` line names the timer '{spelling}'; a timer is `system` behaviour written as a step \
 function, and one that never fires is a timer the machine does not have"
+
+private def silentTimerMessage (spelling : String) : String :=
+  s!"the timer '{spelling}' fires and records nothing an `evidence:` line names, so no Contract can \
+tell it fired; give it evidence, or declare it `unobservable:` and every Case whose path uses it \
+carries a Known Gap"
+
+private def idleTimerMessage (spelling : String) : String :=
+  s!"the timer '{spelling}' is never enabled: its step function returns nothing in every state, so \
+the timer never fires and the machine does not have it"
+
+private def notATimerMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a timer of this machine; `unobservable:` names a timer whose firing the \
+realization records nowhere, and an action a party takes is driven rather than observed"
+
+private def observableTimerMessage (spelling : String) : String :=
+  s!"the timer '{spelling}' records evidence, so a Contract can tell it fired; `unobservable:` is \
+for a firing nothing records, and declaring an observable one would put a Known Gap in every Case \
+that does not need it"
 
 private def unreturnedEvidenceMessage (spelling : String) (returned : String) : String :=
   s!"no step of this machine returns the fact '{spelling}', so nothing it confirms ever happens; \
@@ -1382,6 +1415,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut endRefs : Array Ident := #[]
   let mut startRefs : Array Ident := #[]
   let mut timerRefs : Array Ident := #[]
+  let mut unobservableRefs : Array Ident := #[]
   let mut setupParameters : Array (String × Name) := #[]
   let mut evidenceRefs : Array (Ident × Ident) := #[]
   let mut stepRefs : Array (Ident × Ident) := #[]
@@ -1407,6 +1441,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     | `(machineKey| timers: [$members,*]) => do
         if !timerRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "timers:")
         timerRefs := members.getElems
+    | `(machineKey| unobservable: [$members,*]) => do
+        if !unobservableRefs.isEmpty then
+          throwErrorAt entry (duplicateKeyMessage "machine" "unobservable:")
+        unobservableRefs := members.getElems
     | `(machineKey| setup: $[$parameter:ident : $domain:ident]*) => do
         if !setupParameters.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "setup:")
         for named in parameter, ranged in domain do
@@ -1437,6 +1475,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- Without `starts:` a Model begins nowhere, so nothing is reachable, every Property holds
   -- vacuously and the stuck check passes by having nothing to check.
   if startRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "starts:")
+  -- Without `ends:` no state is terminal: `terminal` names nothing, a Search runs to its limit on
+  -- every path, the stuck check has no state it is allowed to stop in, and a Property that requires
+  -- an instance to finish holds by never being reached. A machine says where it ends.
+  if endRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "ends:")
   -- The state's members are the machine's states. A structure is an inductive of one constructor, so
   -- the same walk that writes an action's classes writes them, and the same refusals apply.
   let stateDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
@@ -1524,7 +1566,14 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       $dispatchArms:matchAlt*))
   -- The Action domain's own members, read back now that it exists.
   let actionDecl := (← getCurrNamespace) ++ actionType.getId
-  let actionMembers ← domainMembers name actionDecl
+  -- The Action catalog is emitted in canonical order rather than in the order the `steps:` lines
+  -- happen to be written. A Search admits a Model whose catalog is sorted by the Definition ID of
+  -- each member, and those ids differ only in the member key, so sorting by the key is that order.
+  -- It cannot be left to the author: a classed action contributes one member per assignment of its
+  -- inputs, in its domain's member order, so no arrangement of `steps:` lines can sort
+  -- `complete-succeeded`, `complete-failed` and `complete-canceled`.
+  let actionMembers := (← domainMembers name actionDecl).mergeSort fun left right =>
+    left.key ≤ right.key
   -- A row's key is its state's key and its action's key, and each of those is the member's position
   -- in the enumeration rather than a second rendering of it. Indexing `members` is what keeps the
   -- keys and the walk in step: they are the same list, read the same way.
@@ -1537,17 +1586,28 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     def $stateKeysName : Array String := #[$(keyArray stateMembers),*]))
   elabGenerated (← `(command|
     def $actionKeysName : Array String := #[$(keyArray actionMembers),*]))
+  -- The catalog as a list of its own members, in that same order. Everything that reads an action
+  -- by position -- the key function, the enumeration, the declared Model -- reads this one list, so
+  -- there is no second order for them to disagree about.
+  let actionsName := mkIdentFrom name (name.getId ++ `actions)
+  let actionTerms ← actionMembers.toArray.mapM ClassValue.term
+  elabGenerated (← `(command|
+    def $actionsName : List $actionType := [$actionTerms,*]))
   let stateKeyForName := mkIdentFrom name (name.getId ++ `stateKeyFor)
   elabGenerated (← `(command|
     def $stateKeyForName (state : $stateType) : String :=
       match (Umpire.Command.members (α := $stateType)).idxOf? state with
       | some at? => ($stateKeysName)[at?]!
       | none => ""))
+  let actionKeyForName := mkIdentFrom name (name.getId ++ `actionKeyFor)
+  elabGenerated (← `(command|
+    def $actionKeyForName (taken : $actionType) : String :=
+      match ($actionsName).idxOf? taken with
+      | some at? => ($actionKeysName)[at?]!
+      | none => ""))
   elabGenerated (← `(command|
     def $rowKeyName (state : $stateType) (taken : $actionType) : String :=
-      match (Umpire.Command.members (α := $actionType)).idxOf? taken with
-      | some actionAt => $stateKeyForName state ++ "-" ++ ($actionKeysName)[actionAt]!
-      | none => ""))
+      $stateKeyForName state ++ "-" ++ $actionKeyForName taken))
   -- `ends:` names the values of one state field. Which field is not a key the author writes: the
   -- values name it, and naming values of two fields is the mistake the message reports.
   let memberFields : ClassValue → Array (String × ClassValue) := fun value =>
@@ -1603,7 +1663,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     def $transitionsName :
         List (Umpire.FiniteTransitionRow $stateType $actionType
           $(mkIdent outcomeType) $(mkIdent factType)) :=
-      Umpire.Command.enumerate $rowKeyName $stepName))
+      Umpire.Command.enumerateOver $actionsName $rowKeyName $stepName))
   -- `starts:` names values of one field, the way `ends:` does. A state of several fields is not
   -- determined by one of them, so every other field takes its own first enumerated value: zero for a
   -- count, `false` for a flag, the first constructor for an enum. That is what a machine begins at,
@@ -1617,6 +1677,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       else none
   let factMembersEarly ← domainMembers name factType
   let mut startTerms : Array Term := #[]
+  let mut startKeys : Array String := #[]
   for startRef in startRefs do
     let spelling := startRef.getId.getString!
     let carriers := (stateMembers.flatMap fun member =>
@@ -1636,6 +1697,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         heldValue candidate field == some spelling
       | throwErrorAt startRef (noEndsFieldMessage spelling)
     startTerms := startTerms.push (← member.term)
+    startKeys := startKeys.push member.key
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
   -- something that never happens, which is a mistake about the machine and not about the evidence.
   let factNames := factMembersEarly.map fun member => member.key
@@ -1654,6 +1716,60 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     unless factNames.contains spelling || factConstructors.contains spelling do
       throwErrorAt recordedRef
         (unreturnedEvidenceMessage spelling (", ".intercalate factNames))
+  -- The other side of an evidence line is the recorded data that confirms the fact. Most names need
+  -- no declaration because the realization already carries them -- for Temporal, the generated
+  -- history event kinds and the Testpilot Run Event kinds -- so the registry is asked first and the
+  -- platform about whatever nothing declared. A Model file that imports no platform catalog module
+  -- gets no check, the way a `schema:` line does.
+  let declaredObservations := (Registry.observations (← getEnv)).map fun entry => entry.name
+  for (_, observedRef) in evidenceRefs do
+    let spelling := observedRef.getId.getString!
+    unless declaredObservations.contains spelling do
+      match ← (Umpire.Command.checkCatalog spelling : IO _) with
+      | .ok () => pure ()
+      | .error reason => throwErrorAt observedRef reason
+  -- Which facts a Contract can read: the members an evidence line names, either as the member's own
+  -- key or as the constructor covering it.
+  let evidenceSpellings := evidenceRefs.map fun (recordedRef, _) => recordedRef.getId.getString!
+  let evidencedMembers := factMembersEarly.filter fun member =>
+    match member with
+    | .atom spelling => evidenceSpellings.contains spelling.getString!
+    | .applied constructor _ =>
+        evidenceSpellings.contains member.key || evidenceSpellings.contains constructor.getString!
+  let evidencedTerms ← evidencedMembers.toArray.mapM ClassValue.term
+  -- A timer is `system` behaviour: nothing drives it, so the only way a Case can tell it fired is
+  -- the evidence its rows record. One that records none is a step a Contract cannot see, which is
+  -- what `unobservable:` says out loud and turns into a Known Gap.
+  let silentName := mkIdentFrom name (name.getId ++ `silent)
+  let idleName := mkIdentFrom name (name.getId ++ `idle)
+  elabGenerated (← `(command|
+    def $silentName : List String :=
+      ($actionsName).filterMap fun taken =>
+        let rows := ($transitionsName).filter fun row => row.action == taken
+        if rows.isEmpty then none
+        else if rows.any (fun row => row.results.any fun step => step.facts.any fun recorded =>
+            (([$evidencedTerms,*] : List $(mkIdent factType))).contains recorded) then none
+        else some ($actionKeyForName taken)))
+  elabGenerated (← `(command|
+    def $idleName : List String :=
+      ($actionsName).filterMap fun taken =>
+        if ($transitionsName).any (fun row => row.action == taken) then none
+        else some ($actionKeyForName taken)))
+  let silent ← liftTermElabM (evalStringList ((← getCurrNamespace) ++ silentName.getId))
+  let idle ← liftTermElabM (evalStringList ((← getCurrNamespace) ++ idleName.getId))
+  let unobservableNames := unobservableRefs.map fun timerRef => timerRef.getId.getString!
+  for timerRef in timerRefs do
+    let spelling := timerRef.getId.getString!
+    if idle.contains spelling then
+      throwErrorAt timerRef (idleTimerMessage spelling)
+    if silent.contains spelling && !unobservableNames.contains spelling then
+      throwErrorAt timerRef (silentTimerMessage spelling)
+  for unobservedRef in unobservableRefs do
+    let spelling := unobservedRef.getId.getString!
+    unless timerNames.contains spelling do
+      throwErrorAt unobservedRef (notATimerMessage spelling)
+    unless silent.contains spelling do
+      throwErrorAt unobservedRef (observableTimerMessage spelling)
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
   let startsName := mkIdentFrom name (name.getId ++ `starts)
   elabGenerated (← `(command|
@@ -1700,7 +1816,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   elabGenerated (← `(command|
     def $name := Umpire.Command.declareModel $origin $names ($setupName)
       (Umpire.Command.members (α := $stateType))
-      (Umpire.Command.members (α := $actionType))
+      ($actionsName)
       (Umpire.Command.members (α := $(mkIdent outcomeType)))
       (Umpire.Command.members (α := $(mkIdent factType)))
       ($startsName) ($terminalName) ($transitionsName)
@@ -1719,6 +1835,22 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
   else
     throwErrorAt name (unprovenTableMessage stateMembers.length actionMembers.length)
+  -- A machine declares a Model, so `property`, `scenario` and `query` have to see one. What they
+  -- resolve members by is the key the table carries -- a state's key names every field of the
+  -- structure -- because that is what the emitted rows, the Behavior Fingerprint and a Contract all
+  -- read. A machine over a one-field state keeps the bare spellings a `model` had.
+  liftCoreM (Registry.recordModel {
+    declName := declared
+    role := declaredEntity.name
+    stateType := stateDecl
+    actionType := actionDecl
+    outcomeType
+    factType
+    «states» := (stateMembers.map (·.key)).toArray
+    «actions» := (actionMembers.map (·.key)).toArray
+    «outcomes» := (outcomeMembers.map (·.key)).toArray
+    «facts» := (factMembers.map (·.key)).toArray
+    «starts» := startKeys })
   liftCoreM (Registry.recordMachine {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
@@ -1727,6 +1859,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     stateType := stateDecl
     steps := steps.map fun resolved => (resolved.action.name, resolved.function.getId)
     timers := timerNames
+    unobservable := unobservableNames
     evidence := evidenceRefs.map fun (recordedRef, observedRef) =>
       (recordedRef.getId.getString!, observedRef.getId.getString!) })
 
