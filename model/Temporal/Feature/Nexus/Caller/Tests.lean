@@ -22,8 +22,8 @@ open Temporal.Feature.Nexus.Caller
 #guard nexusProduct.table.states.length == 6
 #guard nexusProduct.ends.length == 4
 
-/- Every action class the machine steps on: six replies, three resolutions, the two faults, and the
-one timer. -/
+/- Every action class the machine steps on: six replies, three resolutions, the two faults it cannot
+see, and the one timer. -/
 #guard nexusProduct.actionKeys.size == 12
 
 /- A retryable handler error is invisible here: it is the protocol machine that backs off. -/
@@ -94,6 +94,12 @@ after it does not. Both record the completion. -/
 #guard (scheduleToStartStep (at' .scheduled (scheduleToStart := .expires))).flatMap (·.facts) ==
   [.nexusOperationTimedOut (timeoutType := .scheduleToStart)]
 
+/- The handler's worker stopping keeps the state and records nothing: the Run records the fault, but
+nothing recorded names the operation. The product machine does not see it at all. -/
+#guard protocolWorkerStopStep (at' .scheduled (scheduleToStart := .expires)) ==
+  [{ outcome := .accepted, state := at' .scheduled (scheduleToStart := .expires), facts := [] }]
+#guard workerStopStep { phase := .scheduled } == []
+
 /- Nothing is stuck: the operation's own phase decides which steps are enabled. -/
 #guard nexusProtocol.stuck == none
 
@@ -133,9 +139,9 @@ are the schedule command and the backoff timer. -/
 #guard nexusProtocol.refinement.rows.lookup "backingOff-1-unset-unset-unset-complete-succeeded" ==
   some (some "complete-succeeded")
 
-/- The rows the product machine does not see: every schedule command, every retry and every
-backoff. -/
-#guard (nexusProtocol.refinement.rows.filter (·.2.isNone)).length == 24 * 8 + 24 + 24 + 24
+/- The rows the product machine does not see: every schedule command, every retry, every backoff
+and every worker stop. -/
+#guard (nexusProtocol.refinement.rows.filter (·.2.isNone)).length == 24 * 8 + 24 + 24 + 24 + 192
 
 /-- The phase a refinement row leaves from: the first segment of its key. -/
 private def rowPhase (row : String × Option String) : String :=
@@ -143,11 +149,13 @@ private def rowPhase (row : String × Option String) : String :=
 
 /- **Stutter invariance.** A product Property read on the protocol machine is checked on every row,
 stutters included, and on a stutter the mapped state before and after are equal. `terminalIsFinal`
-triggers only at a terminal prior state, and no stutter has one: every row the product machine does
-not see leaves from a phase that reads as `scheduled`. That is the fact the invariance argument
-rests on (`UMPIRE4_RESEARCH_NEXUS_MODEL.md` section 2), pinned rather than assumed. -/
+triggers only at a terminal prior state, and the only stutters that leave one are the worker stop's,
+which keep the phase: every other row the product machine does not see leaves from a phase that
+reads as `scheduled`. That is the fact the invariance argument rests on
+(`UMPIRE4_RESEARCH_NEXUS_MODEL.md` section 2), pinned rather than assumed. -/
 #guard (nexusProtocol.refinement.rows.filter (·.2.isNone)).all fun row =>
-  ["unscheduled", "scheduled", "backingOff"].contains (rowPhase row)
+  ["unscheduled", "scheduled", "backingOff"].contains (rowPhase row) ||
+    row.1.endsWith "-workerStop"
 
 /- The product state a protocol state reads as is a field of the protocol state, named after the
 product machine. -/
@@ -183,6 +191,22 @@ info: 'Temporal.Feature.Nexus.Caller.nexusProtocol.refines' depends on axioms: [
 #guard (match handlerError with
   | .ok checked => checked.run.result.outcome.name
   | .error _ => "admission failed") == "found"
+#guard (match retry with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+#guard (match scheduleToStartTimeout with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+#guard (match startToCloseTimeout with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+
+/- A timer is named under `when:` like any action, and a Scenario lists it where it fires. -/
+#guard retriedThenSucceeded.names.occurrences.map (·.action) ==
+  ["schedule-unset-unset-unset", "handlerReply-handlerError-true", "backoff",
+    "handlerReply-syncSuccess"]
+#guard scheduleToStartExpires.names.occurrences.map (·.action) ==
+  ["schedule-unset-expires-unset", "workerStop", "scheduleToStart"]
 
 /- The product claim is verified over every trace of the asynchronous path, and keeps its own
 identity: it is the product Property and no other. -/
@@ -209,9 +233,12 @@ query timesOutOnProtocol
 
 /-! ### The Cases
 
-One realization serves the four Queries, and each Case's Program is the path's: the completion
+One realization serves the seven Queries, and each Case's Program is the path's: the completion
 classes land on the controller between the wait for the authority and the close-event read, and
-that wait is emitted only where a completion is on the path. -/
+that wait is emitted only where a completion is on the path; the attempt-count poll only where a
+retryable failure is; the worker stop, before the workflow starts, only where the path stops the
+worker. Every Case reads the scheduled event as soon as it exists, so the evidence that opens the
+operation is lifted before any poll that follows it. -/
 
 private def instructionIds (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case)
     (entrypointId : String) : List String :=
@@ -223,14 +250,24 @@ private def instructionIds (produced : Except Compiler.Error temporal.server.api
   | .error _ => []
 
 #guard instructionIds nexusCallerCases.syncCompletion "controller" ==
-  ["start-workflow", "await-close", "history"]
+  ["start-workflow", "await-scheduled", "await-close", "history"]
 #guard instructionIds nexusCallerCases.syncCompletion "handler" == ["respond-sync"]
 #guard instructionIds nexusCallerCases.asyncCompletion "controller" ==
-  ["start-workflow", "await-completion-authority", "complete-nexus-operation", "await-close",
-    "history"]
+  ["start-workflow", "await-scheduled", "await-completion-authority", "complete-nexus-operation",
+    "await-close", "history"]
 #guard instructionIds nexusCallerCases.asyncFailure "controller" ==
-  ["start-workflow", "await-completion-authority", "fail-nexus-operation", "await-close", "history"]
+  ["start-workflow", "await-scheduled", "await-completion-authority", "fail-nexus-operation",
+    "await-close", "history"]
 #guard instructionIds nexusCallerCases.handlerError "handler" == ["respond-error"]
+#guard instructionIds nexusCallerCases.retry "controller" ==
+  ["start-workflow", "await-scheduled", "pending-attempts", "await-close", "history"]
+#guard instructionIds nexusCallerCases.retry "handler" == ["respond-error-retryable", "respond-sync"]
+#guard instructionIds nexusCallerCases.scheduleToStartTimeout "controller" ==
+  ["stop-handler-worker", "start-workflow", "await-scheduled", "await-close", "history"]
+#guard instructionIds nexusCallerCases.scheduleToStartTimeout "handler" == []
+#guard instructionIds nexusCallerCases.startToCloseTimeout "controller" ==
+  ["start-workflow", "await-scheduled", "await-close", "history"]
+#guard instructionIds nexusCallerCases.startToCloseTimeout "handler" == ["respond-async"]
 
 /-- The evidence kinds a Case declares, in the order its witness records them. -/
 private def declaredKinds
@@ -242,22 +279,77 @@ private def declaredKinds
   | .error _ => []
 
 /- The evidence each Case lifts is read off the machine's `evidence:` lines along its witness: one
-declaration per recorded kind, the scheduled event first. -/
-#guard declaredKinds nexusCallerCases.syncCompletion == ["scheduled", "completed"]
-#guard declaredKinds nexusCallerCases.asyncCompletion == ["scheduled", "started", "completed"]
-#guard declaredKinds nexusCallerCases.asyncFailure == ["scheduled", "started", "failed"]
-#guard declaredKinds nexusCallerCases.handlerError == ["scheduled", "failed"]
+declaration per recorded kind, the scheduled event first. A kind read by a poll keeps its
+`evidence.` prefix under the Case's local names, a history kind is named by its event. -/
+#guard declaredKinds nexusCallerCases.syncCompletion == ["evidence.scheduled", "completed"]
+#guard declaredKinds nexusCallerCases.asyncCompletion ==
+  ["evidence.scheduled", "started", "completed"]
+#guard declaredKinds nexusCallerCases.asyncFailure == ["evidence.scheduled", "started", "failed"]
+#guard declaredKinds nexusCallerCases.handlerError == ["evidence.scheduled", "failed"]
+#guard declaredKinds nexusCallerCases.retry ==
+  ["evidence.scheduled", "evidence.pendingAttempts", "completed"]
+#guard declaredKinds nexusCallerCases.scheduleToStartTimeout == ["evidence.scheduled", "timedOut"]
+#guard declaredKinds nexusCallerCases.startToCloseTimeout ==
+  ["evidence.scheduled", "started", "timedOut"]
 
-/- Every Case is named by the set and the Query, and none carries a Known Gap: no path uses an
-unobservable timer, and the machine has no setup parameter left unbound. -/
+/- Every Case is named by the set and the Query. -/
 #guard (match nexusCallerCases.asyncCompletion with
   | .ok output => output.case_id
   | .error _ => "") == "temporal.case.nexusCallerTests.asyncCompletion"
 #guard nexusCallerCases.asyncCompletion.identity.fixture == "nexusCallerTests-asyncCompletion"
-#guard [nexusCallerCases.syncCompletion, nexusCallerCases.asyncCompletion,
-    nexusCallerCases.asyncFailure, nexusCallerCases.handlerError].all fun produced =>
+
+/-- The Known Gaps a Case carries, as (kind, code). -/
+private def knownGaps (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
+    List (temporal.server.api.testpilot.v1.KnownGapKind × String) :=
   match produced with
-  | .ok output => (output.provenance.map (·.known_gaps.isEmpty)) == some true
-  | .error _ => false
+  | .ok output =>
+      (output.provenance.map fun provenance =>
+        provenance.known_gaps.toList.map fun gap => (gap.kind, gap.code)).getD []
+  | .error _ => []
+
+/- A path with no silent step carries no Known Gap: the machine has no setup parameter left
+unbound, and every step it takes records what confirms it. -/
+#guard [nexusCallerCases.syncCompletion, nexusCallerCases.asyncCompletion,
+    nexusCallerCases.asyncFailure, nexusCallerCases.handlerError,
+    nexusCallerCases.startToCloseTimeout].all fun produced => knownGaps produced == []
+
+/- A silent step on the path -- the unobservable backoff, the worker stop that records nothing -- is
+a capability Known Gap coded after the step: the Contract infers it from the evidence of the step
+after it. -/
+#guard ((knownGaps nexusCallerCases.retry).map fun (kind, code) =>
+  (kind == temporal.server.api.testpilot.v1.KnownGapKind.KNOWN_GAP_KIND_CAPABILITY,
+    code.endsWith ".backoff.unobserved")) == [(true, true)]
+#guard ((knownGaps nexusCallerCases.scheduleToStartTimeout).map fun (kind, code) =>
+  (kind == temporal.server.api.testpilot.v1.KnownGapKind.KNOWN_GAP_KIND_CAPABILITY,
+    code.endsWith ".workerStop.unobserved")) == [(true, true)]
+
+/-- The confirmed steps each projection rule of a Case carries, by kind in the Contract's order: a
+silent step is confirmed with the step after it. -/
+private def confirmedSteps
+    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
+    List (String × Nat) :=
+  match produced with
+  | .ok output =>
+      ((output.contract.bind (·.«correlated»)).map fun capability =>
+        capability.projection_rules.toList.map fun rule =>
+          (rule.kind, rule.outputs.size)).getD []
+  | .error _ => []
+
+#guard confirmedSteps nexusCallerCases.retry ==
+  [("completed", 2), ("evidence.pendingAttempts", 1), ("evidence.scheduled", 1)]
+#guard confirmedSteps nexusCallerCases.scheduleToStartTimeout ==
+  [("evidence.scheduled", 1), ("timedOut", 2)]
+#guard confirmedSteps nexusCallerCases.asyncCompletion ==
+  [("completed", 1), ("evidence.scheduled", 1), ("started", 1)]
+
+/- A derived fixture is registered once: a second `case` over the same set would name the same
+fixture and Case ID. -/
+/--
+error: fixture 'nexusCallerTests-syncCompletion' is already registered by Case 'temporal.case.nexusCallerTests.syncCompletion'
+-/
+#guard_msgs in
+case nexusCallerAgain
+  realizes nexusCallerTests
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
 end Temporal.Feature.Nexus.Caller.Tests

@@ -17,11 +17,37 @@ import (
 // parameters bound through the realization's keys, and the value of the switch a functional set
 // repeats over -- keyed by the setting's key and valued by its text; the derived Profile records it.
 type Environment struct {
-	Identity      string
-	Namespace     string
-	TaskQueue     string
-	NexusEndpoint string
-	DynamicConfig map[string]string
+	Identity  string
+	Namespace string
+	TaskQueue string
+	// HandlerTaskQueue is the queue a Nexus handler entrypoint polls when the Program binds it apart
+	// from the workflow's, so a fault on the handler's worker leaves the caller's running; a Program
+	// that binds one queue leaves it empty.
+	HandlerTaskQueue string
+	NexusEndpoint    string
+	DynamicConfig    map[string]string
+}
+
+// HandlerTaskQueueBindingID names the resource binding of the task-queue role a Nexus handler
+// entrypoint polls when that role differs from every workflow entrypoint's, or "" when the Program
+// binds one queue for both. A caller provisioning the Case's Nexus endpoint routes it to that queue.
+func HandlerTaskQueueBindingID(program *testpilotspb.Program) string {
+	workflowQueues := map[string]bool{}
+	handlerQueues := map[string]bool{}
+	for _, entrypoint := range program.GetEntrypoints() {
+		if workflow := entrypoint.GetWorkflow(); workflow != nil {
+			workflowQueues[workflow.GetTaskQueueRoleId()] = true
+		}
+		if handler := entrypoint.GetNexusHandler(); handler != nil {
+			handlerQueues[handler.GetTaskQueueRoleId()] = true
+		}
+	}
+	for _, role := range program.GetRoles() {
+		if role.GetKind() == testpilotspb.ROLE_KIND_TASK_QUEUE && handlerQueues[role.GetRoleId()] && !workflowQueues[role.GetRoleId()] {
+			return role.GetResourceBindingId()
+		}
+	}
+	return ""
 }
 
 // configurationOf records the environment's dynamic configuration in the canonical spelling the
@@ -303,6 +329,7 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 // rather than resolving to empty.
 func deriveBindings(program *testpilotspb.Program, environment Environment) ([]testpilot.EnvironmentBinding, error) {
 	values := map[string]string{}
+	handlerQueue := HandlerTaskQueueBindingID(program)
 	for _, role := range program.GetRoles() {
 		switch role.GetKind() {
 		case testpilotspb.ROLE_KIND_WORKER, testpilotspb.ROLE_KIND_TASK_QUEUE:
@@ -310,7 +337,11 @@ func deriveBindings(program *testpilotspb.Program, environment Environment) ([]t
 				values[id] = environment.Namespace
 			}
 			if id := role.GetResourceBindingId(); id != "" && role.GetKind() == testpilotspb.ROLE_KIND_TASK_QUEUE {
-				values[id] = environment.TaskQueue
+				if id == handlerQueue {
+					values[id] = environment.HandlerTaskQueue
+				} else {
+					values[id] = environment.TaskQueue
+				}
 			}
 		case testpilotspb.ROLE_KIND_ENDPOINT:
 			if id := role.GetResourceBindingId(); id != "" {

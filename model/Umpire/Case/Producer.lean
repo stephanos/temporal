@@ -24,9 +24,9 @@ caller supplies, which is why this module holds under SCP-02 while producing Tem
 
 What still rejects, and why: a witness the Query did not select (a Case realizes one selected
 trace, so a `verify`-form Query has none), an evidence line naming a kind the realization does not
-admit, a selected Action with no evidence line, an evidence line for an Action the witness never
-selects, a clause whose shape no correlated predicate can carry, and a requested clause the
-lowering did not produce. None of those is waivable by a Known Gap.
+admit, a path ending on a step no evidence line confirms, an evidence line for an Action the
+witness never selects, a clause whose shape no correlated predicate can carry, and a requested
+clause the lowering did not produce. None of those is waivable by a Known Gap.
 -/
 
 namespace Umpire.Case.Producer
@@ -156,15 +156,13 @@ def Identity.ofFixture (root fixture : String) : Identity :=
 A realization is the Program a Case runs plus the coordinates a Contract needs to read it back. It
 is a value, not syntax: adding a shape is one declaration in the owning feature namespace. -/
 
-inductive HookPlacement where
-  | before
-  | after
-  deriving BEq, DecidableEq, Repr
-
-/-- A named point of a realization's Program a fault line may be placed against. -/
-structure Hook where
+/-- A timer of the machine as the realization makes it fire: the duration the realized deadline is
+set to. A timer the platform owns, such as a retry backoff, has no binding; the realization reads
+its duration and does not set it. -/
+structure TimerBinding where
   name : String
-  instruction : InstructionReference
+  milliseconds : Nat
+  deriving BEq, Repr
 
 /-- The recorded data one evidence kind is read from: one arm of the recorded event's attributes
 oneof out of a history read, the payload of one Run Event kind the runtime records, or the elements
@@ -196,19 +194,6 @@ structure EvidenceMapping where
   action : ModelValue
   eventKind : String
   deriving BEq, Repr
-
-/-- The two fault kinds a Scenario may declare. -/
-inductive FaultKind where
-  | workerStop
-  | workerResume
-  deriving BEq, DecidableEq, Repr
-
-/-- One `fault` line of a Scenario, resolved against the realization's hooks. -/
-structure FaultLine where
-  kind : FaultKind
-  hook : String
-  placement : HookPlacement
-  deriving BEq, DecidableEq, Repr
 
 /-! #### The Program as a plan
 
@@ -322,12 +307,9 @@ structure Realization where
   operationKey : DefinitionId
   historyObservation : String
   correlatedObservation : String
-  /-- The role a fault line's outage is injected against. -/
-  taskQueueRole : String
-  /-- The Contract rule the Producer adds to order a Scenario's `fault` lines. It is read only when
-  the Scenario carries some, so a Case with no fault line never carries this ID. -/
-  faultRuleId : String
-  hooks : List Hook := []
+  /-- The durations the machine's timers realize as. A timer with no binding is one the platform
+  owns. -/
+  timers : List TimerBinding := []
   sources : List EvidenceSource
   projectionLimits : Case.Projection.Limits
   /-- Evaluation ceilings for the correlated consumer, separate from the semantic window. -/
@@ -337,6 +319,10 @@ structure Realization where
 what rejects the `set`. -/
 def Realization.switch? (realization : Realization) (name : String) : Option SwitchBinding :=
   realization.switches.find? (·.name == name)
+
+/-- The duration a timer realizes as, or `none` for a timer the platform owns. -/
+def Realization.timer? (realization : Realization) (name : String) : Option TimerBinding :=
+  realization.timers.find? (·.name == name)
 
 /-- The Known Gaps a Case carries for the setup parameters the realization binds to no
 configuration key. The Profile sets a parameter through its key, so an unbound one runs under
@@ -456,9 +442,13 @@ private def stepOf
   (steps.find? fun step => step.selectedAction == action).map fun step =>
     { «state» := step.state, «outcome» := step.outcome, «facts» := step.facts }
 
+/-- One resolved evidence rule and the steps its evidence confirms: the silent steps the witness
+took before the rule's own, then the rule's own. -/
+abbrev ResolvedRule := EvidenceRule × List (ModelValue × Step ModelValue ModelValue ModelValue)
+
 private def projectionDeclaration
     (realization : Realization)
-    (rules : List (EvidenceRule × Step ModelValue ModelValue ModelValue)) :
+    (rules : List ResolvedRule) :
     Case.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := realization.projectionId
   scopeFields := [realization.scopeField]
@@ -466,18 +456,25 @@ private def projectionDeclaration
   sources := (rules.map (·.1.source.sourceId)).eraseDups
   rules := rules.map fun entry =>
     { kind := entry.1.source.kindId
-      meaning := .confirmed none [(entry.1.action, entry.2)] }
+      meaning := .confirmed none entry.2 }
   «limits» := realization.projectionLimits }
 
 /-! ### Evidence resolution
 
 An `evidence` line names an event kind; the realization says which kinds it admits. A kind outside
-that list, a selected Action with no line, and a line for an Action the witness never selects each
-reject by name.
+that list, a line for an Action the witness never selects, and a mapped Action the witness performs
+twice each reject by name.
 
 A Model whose machine carries `evidence:` lines needs no `evidence` lines of its own: each fact a
 witness step records is confirmed by the observation the machine's line maps it to, so the mapping
-is read off the witness. A classed fact is covered by the line naming its constructor. -/
+is read off the witness. A classed fact is covered by the line naming its constructor.
+
+A step that records nothing an evidence line names is silent: an `unobservable:` timer, or an
+action whose step keeps the operation where it was. The Contract cannot see it fire, so the rule of
+the next observed step confirms the silent steps before it together with its own -- the machine has
+no other way from the state before them to the state the evidence shows -- and the Case carries a
+Known Gap naming each, because the step is inferred rather than observed. A silent step the path
+ends on is confirmed by nothing and rejects. -/
 
 /-- Whether an `evidence:` line's fact spelling covers a recorded fact: the member itself, or the
 constructor whose members the fact is one of. -/
@@ -494,29 +491,52 @@ def derivedEvidence
     (catalog.find? fun entry => coversFact entry.1 fact.value).map fun entry =>
       ({ action := step.selectedAction, eventKind := entry.2 } : EvidenceMapping)).eraseDups
 
+/-- The Known Gap a silent step on the path records: the Contract infers the step from the evidence
+of the step after it. -/
+private def silentGap (action : ModelValue) : KnownGap := {
+  kind := .capability
+  code := DefinitionId.of (action.definitionId.value ++ ".unobserved")
+  subject := some action.definitionId
+  detail := some s!"the step '{action.value}' records nothing an evidence line names, so the \
+Contract infers it from the evidence of the step after it rather than observing it" }
+
 private def resolveEvidence
     (source : SourceLocation)
     (realization : Realization)
     (selected : List ModelValue)
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
     (evidence : List EvidenceMapping) :
-    Except Error (List (EvidenceRule × Step ModelValue ModelValue ModelValue)) := do
-  let resolved ← evidence.mapM fun mapping => do
+    Except Error (List ResolvedRule × List KnownGap) := do
+  let admitted ← evidence.mapM fun mapping => do
     let admitted ← match realization.sources.find? (·.eventKind == mapping.eventKind) with
       | some admitted => pure admitted
       | none => throw (productionError source mapping.eventKind "evidence.kind-unknown")
     unless selected.any (· == mapping.action) do
       throw (productionError source mapping.action.definitionId.value
         "evidence.action-unselected")
-    match stepOf steps mapping.action with
-    | some step => pure (({ action := mapping.action, source := admitted } : EvidenceRule), step)
+    unless steps.any (·.selectedAction == mapping.action) do
+      throw (productionError source mapping.action.definitionId.value
+        "evidence.action-unwitnessed")
+    pure (mapping.action, admitted)
+  let mut resolved : List ResolvedRule := []
+  let mut silent : List (ModelValue × Step ModelValue ModelValue ModelValue) := []
+  let mut gaps : List KnownGap := []
+  for step in steps do
+    let taken : Step ModelValue ModelValue ModelValue :=
+      { «state» := step.state, «outcome» := step.outcome, «facts» := step.facts }
+    match admitted.find? (·.1 == step.selectedAction) with
+    | some (action, admitted) =>
+        if resolved.any (·.1.action == action) then
+          throw (productionError source action.definitionId.value "evidence.action-repeated")
+        resolved := resolved ++ [({ action, source := admitted }, silent ++ [(action, taken)])]
+        silent := []
     | none =>
-        throw (productionError source mapping.action.definitionId.value
-          "evidence.action-unwitnessed")
-  for action in selected do
-    unless evidence.any (·.action == action) do
-      throw (productionError source action.definitionId.value "evidence.action-unmapped")
-  pure resolved
+        silent := silent ++ [(step.selectedAction, taken)]
+        unless gaps.any (·.subject == some step.selectedAction.definitionId) do
+          gaps := gaps ++ [silentGap step.selectedAction]
+  if let some (action, _) := silent.head? then
+    throw (productionError source action.definitionId.value "evidence.action-unmapped")
+  pure (resolved, gaps)
 
 /-! ### Program assembly
 
@@ -684,7 +704,7 @@ def produce {LawStatement : Law → Prop}
   -- `evidence:` lines imply along the witness.
   let evidence := if evidence.isEmpty then derivedEvidence evidenceCatalog selected.trace.steps
     else evidence
-  let evidenceRules ← resolveEvidence input.source realization selectedValues
+  let (evidenceRules, silentGaps) ← resolveEvidence input.source realization selectedValues
     selected.trace.steps evidence
   let correlatedRules ← input.property.clauses.mapM
     (scopedClauseOf input.source realization.scopeField realization.operationKey
@@ -710,9 +730,11 @@ def produce {LawStatement : Law → Prop}
     rejects realization.projectionId.value "projection.admission"
   let lowered ← Umpire.Case.Correlated.lower plan compiled realization.correlatedObservation
     (Case.Projection.Coverage.empty plan) input.vocabulary.statesWithFields
-  -- The Query's own Known Gaps, and one per setup parameter the realization leaves unbound.
+  -- The Query's own Known Gaps, one per setup parameter the realization leaves unbound, and one
+  -- per silent step the path takes.
   let knownGaps ← (KnownGapSet.ofUnordered
-      (input.knownGaps.toList ++ unboundSetupGaps realization input.setupParameters)).mapError
+      (input.knownGaps.toList ++ unboundSetupGaps realization input.setupParameters ++
+        silentGaps)).mapError
     fun _ => rejects input.queryId.value "known-gaps.setup"
   compile {
     version := { major := 1 }

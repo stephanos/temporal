@@ -252,6 +252,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 			}
 			evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
 		}
+		a.store.chainEvidence(evidence)
 		encoded, err := proto.Marshal(evidence)
 		if err != nil {
 			return nil, invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")

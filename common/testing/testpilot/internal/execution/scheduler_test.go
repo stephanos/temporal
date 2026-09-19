@@ -142,6 +142,64 @@ func (h *schedulerReservation) Identity() contract.ReservationIdentity { return 
 func (h *schedulerReservation) Consume(context.Context) (contract.Coordinate, error) {
 	return h.activation, nil
 }
+
+// A reserved entrypoint that carries no instruction may go undelivered: its reservation, released
+// canceled when the parent finished, is recorded and the Run goes on. The same release of an
+// entrypoint that does perform something fails the Run.
+func TestSchedulerAdmitsAnUnusedReservationOfAnEmptyEntrypoint(t *testing.T) {
+	for _, mode := range []string{"empty", "performing"} {
+		t.Run(mode, func(t *testing.T) {
+			c, catalog, policy := fixture(t)
+			addWorker(c, &policy)
+			second := proto.CloneOf(c.Program.Entrypoints[1])
+			second.EntrypointId = "workflow_second"
+			if mode == "performing" {
+				second.Instructions = []*testpilotspb.InstructionNode{{InstructionId: "finish", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: textValue("done")}}}}}, Limits: rpcNode("finish").Limits}}
+			}
+			c.Program.Entrypoints = append(c.Program.Entrypoints, second)
+			p, err := Prepare(c, catalog, policy)
+			require.NoError(t, err)
+			host := &schedulerHost{}
+			var origin contract.Coordinate
+			host.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
+				origin = r.Origin
+				h := &schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: 0, ID: "reservation." + r.EntrypointID}, activation: contract.Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: "actual-" + r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+				}}}
+				return []contract.ReservationHandle{h}, nil
+			}
+			host.invoke = func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
+			}
+			s, err := newScheduler(p, "run", "case", host, schedulerMonitor{}, time.Now)
+			require.NoError(t, err)
+			require.NoError(t, s.execute(context.Background()))
+			// The second entrypoint's reservation, released canceled by its parent's completion.
+			released := schedulerCompletion{
+				reservation: &scheduledReservation{identity: contract.ReservationIdentity{Origin: origin, EntrypointID: "workflow_second", ID: "reservation.workflow_second"}, source: "scheduler.g0.n0.a1.r1", cause: "scheduler.g0.n0.a1.started"},
+				result:      contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED}},
+			}
+			decision, err := s.publishCompletion(context.Background(), released)
+			if mode == "performing" {
+				require.Error(t, err)
+				require.Equal(t, Stop, decision)
+				require.True(t, s.recorder.incomplete)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, Continue, decision)
+			require.False(t, s.recorder.incomplete)
+			recorded := false
+			for _, event := range s.recorder.run.Events {
+				if event.Kind == testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC && event.GetOutcome().GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED {
+					recorded = true
+				}
+			}
+			require.True(t, recorded, "the released reservation is recorded as canceled")
+		})
+	}
+}
+
 func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 	for _, mode := range []string{"exact", "partial", "error", "nil", "duplicate-id", "ordinal-range", "crossed", "effect-error"} {
 		t.Run(mode, func(t *testing.T) {

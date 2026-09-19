@@ -49,8 +49,11 @@ type config struct {
 	Namespace     string
 	TaskQueue     string
 	NexusEndpoint string
-	Create        bool
-	Timeout       time.Duration
+	// HandlerTaskQueue is the queue the Case's Nexus handler polls when the Case binds one apart
+	// from the caller's; empty derives `<task-queue>-handler` for a Case that binds one.
+	HandlerTaskQueue string
+	Create           bool
+	Timeout          time.Duration
 }
 
 // session is one bound Case: how to run it once, and how to release everything the binding opened.
@@ -127,6 +130,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&configuration.Namespace, "namespace", "", "namespace the Case binds to")
 	flags.StringVar(&configuration.TaskQueue, "task-queue", "", "task queue the Case binds to")
 	flags.StringVar(&configuration.NexusEndpoint, "nexus-endpoint", "", "Nexus endpoint the Case binds to")
+	flags.StringVar(&configuration.HandlerTaskQueue, "handler-task-queue", "", "task queue the Case's Nexus handler polls when it binds one of its own (default <task-queue>-handler)")
 	flags.BoolVar(&configuration.Create, "create", false, "create the named resources and delete them on exit")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
 	if err := flags.Parse(arguments); err != nil {
@@ -238,14 +242,22 @@ func openSession(ctx context.Context, configuration config, source *testpilotspb
 		return nil, errors.Join(err, releaseAll(context.WithoutCancel(ctx), releases))
 	}
 
+	handlerQueue := ""
+	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
+		handlerQueue = configuration.HandlerTaskQueue
+		if handlerQueue == "" {
+			handlerQueue = configuration.TaskQueue + "-handler"
+		}
+	}
 	if configuration.Create {
 		cleanup, err := provision.Create(ctx, provision.Clients{
 			Workflow: workflowservice.NewWorkflowServiceClient(connection),
 			Operator: operatorservice.NewOperatorServiceClient(connection),
 		}, provision.Resources{
-			Namespace:     configuration.Namespace,
-			TaskQueue:     configuration.TaskQueue,
-			NexusEndpoint: configuration.NexusEndpoint,
+			Namespace:      configuration.Namespace,
+			TaskQueue:      configuration.TaskQueue,
+			NexusEndpoint:  configuration.NexusEndpoint,
+			NexusTaskQueue: handlerQueue,
 		})
 		if err != nil {
 			return fail(err)
@@ -258,10 +270,11 @@ func openSession(ctx context.Context, configuration config, source *testpilotspb
 		return fail(fmt.Errorf("build method catalog: %w", err))
 	}
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
-		Identity:      "umpire-run." + configuration.Namespace,
-		Namespace:     configuration.Namespace,
-		TaskQueue:     configuration.TaskQueue,
-		NexusEndpoint: configuration.NexusEndpoint,
+		Identity:         "umpire-run." + configuration.Namespace,
+		Namespace:        configuration.Namespace,
+		TaskQueue:        configuration.TaskQueue,
+		HandlerTaskQueue: handlerQueue,
+		NexusEndpoint:    configuration.NexusEndpoint,
 	})
 	if err != nil {
 		return fail(fmt.Errorf("derive Profile for Case %q: %w", source.GetCaseId(), err))
