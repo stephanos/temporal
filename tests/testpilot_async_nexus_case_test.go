@@ -5,99 +5,103 @@ package tests
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/api/serviceerror"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/tests/testcore"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 	"google.golang.org/protobuf/proto"
 )
 
 const testpilotCleanupTimeout = 5 * time.Second
 
-type testpilotLiveBinding struct {
+// switchRun is one Case bound and run under one value of a switch: the environment that set the
+// value's configuration, the bound Case, and what the Run produced.
+type switchRun struct {
+	value   testpilotcore.SwitchValue
 	binding CaseBinding
 	live    testpilotLiveCase
+	run     *testpilotpb.Run
+	verdict *testpilotpb.Verdict
 }
 
-type testpilotLiveRunResult struct {
-	environment int
-	run         *testpilotpb.Run
-	verdict     *testpilotpb.Verdict
-	err         error
-}
-
+// TestTestpilotAsyncNexusCase runs the one Case once per value of the Nexus implementation switch,
+// each under its own environment constructed with that value's settings, the way the upstream Nexus
+// suites run under HSM and CHASM. The Case bytes are the same under every value; the Profile is
+// not, because it records the configuration it ran under; and a Verdict that differs between the
+// values fails naming both, because that is a finding about the implementations, not a flake.
 func TestTestpilotAsyncNexusCase(t *testing.T) {
-	env := newTestpilotTestEnvironment(t)
 	caseSource := loadTestpilotCase(t, "async-nexus")
 	caseSnapshot := proto.CloneOf(caseSource)
 
-	environments := []CaseBinding{
-		{Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-a", TaskQueue: "umpire-async-nexus-queue-a", NexusEndpoint: "umpire-async-nexus-endpoint-a", CreateEndpoint: true},
-		{Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-b", TaskQueue: "umpire-async-nexus-queue-b", NexusEndpoint: "umpire-async-nexus-endpoint-b", CreateEndpoint: true},
-	}
-	bindings := make([]testpilotLiveBinding, len(environments))
-	for index, environment := range environments {
-		live := bindCase(t, env, caseSource, environment)
-		bindings[index] = testpilotLiveBinding{binding: environment, live: live}
-	}
+	runs := make([]switchRun, 0, 2)
+	for _, value := range testpilotcore.NexusImplementationSwitch() {
+		// A subtest per value: each has its own dedicated cluster, constructed with the value's
+		// settings, and its own resources named after the value.
+		t.Run(value.Name, func(t *testing.T) {
+			options := make([]testcore.TestOption, 0, len(value.Settings))
+			for _, setting := range value.Settings {
+				options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))
+			}
+			env := newTestpilotTestEnvironment(t, options...)
+			binding := CaseBinding{
+				Identity:  "async-nexus-profile-" + value.Name,
+				Namespace: "umpire-async-nexus-" + value.Name, TaskQueue: "umpire-async-nexus-queue-" + value.Name,
+				NexusEndpoint: "umpire-async-nexus-endpoint-" + value.Name, CreateEndpoint: true,
+				DynamicConfig: value.Configuration(),
+			}
+			live := bindCase(t, env, caseSource, binding)
+			require.True(t, proto.Equal(caseSnapshot, caseSource))
+			require.Len(t, live.profile.Configuration, len(value.Settings))
 
+			run, verdict, err := live.prepared.Run(env.Context(), live.driver)
+			require.NoError(t, err)
+			require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
+			require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
+			require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+			require.True(t, proto.Equal(verdict, run.GetVerdict()))
+			// One rule verdict per scoped clause the checked Property lowered into, each answered by
+			// the two recorded Nexus events the projection admitted as this operation's semantic
+			// steps. Two clauses: the Model records no Fact, because every step reaches a state
+			// named after what happened.
+			require.Len(t, verdict.GetRules(), 2)
+			for _, rule := range verdict.GetRules() {
+				require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
+				require.Equal(t, verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
+			}
+			requireCorrelatedNexusHistoryEvidence(t, run, verdict.GetSupportingEventSequences(), binding.NexusEndpoint)
+			_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
+			require.NoError(t, err)
+			require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
+			require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
+			runs = append(runs, switchRun{value: value, binding: binding, live: live, run: run, verdict: verdict})
+		})
+	}
+	require.Len(t, runs, 2)
+
+	// Identical Case bytes under every value: the same Case, Program, Contract and provenance; and
+	// two Profiles, because each records the configuration it ran under.
+	first, second := runs[0].live.prepared, runs[1].live.prepared
+	require.True(t, proto.Equal(first.Snapshot(), second.Snapshot()))
+	require.True(t, proto.Equal(first.Snapshot().GetContract(), second.Snapshot().GetContract()))
+	require.True(t, proto.Equal(first.Snapshot().GetProvenance(), second.Snapshot().GetProvenance()))
+	require.Equal(t, first.Snapshot().GetCaseId(), second.Snapshot().GetCaseId())
+	require.Equal(t, first.Snapshot().GetProgram().GetProgramId(), second.Snapshot().GetProgram().GetProgramId())
+	require.Equal(t, first.Snapshot().GetContract().GetContractId(), second.Snapshot().GetContract().GetContractId())
+	require.NotEqual(t, first.Identity().Bindings, second.Identity().Bindings)
+	require.NotEqual(t, runs[0].live.profile.Configuration, runs[1].live.profile.Configuration)
+	require.NotEqual(t, runs[0].run.GetRunId(), runs[1].run.GetRunId())
+
+	// Both Verdicts, reported together: a divergence names the switch, both values and both.
+	results := make([]testpilotcore.SwitchVerdict, 0, len(runs))
+	for _, run := range runs {
+		results = append(results, testpilotcore.SwitchVerdict{Value: run.value.Name, Verdict: run.verdict})
+	}
+	require.NoError(t, testpilotcore.CheckSwitchAgreement(testpilotcore.NexusImplementationSwitchName, results))
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot(), bindings[1].live.prepared.Snapshot()))
-	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot().GetContract(), bindings[1].live.prepared.Snapshot().GetContract()))
-	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot().GetProvenance(), bindings[1].live.prepared.Snapshot().GetProvenance()))
-	require.Equal(t, bindings[0].live.prepared.Snapshot().GetCaseId(), bindings[1].live.prepared.Snapshot().GetCaseId())
-	require.Equal(t, bindings[0].live.prepared.Snapshot().GetProgram().GetProgramId(), bindings[1].live.prepared.Snapshot().GetProgram().GetProgramId())
-	require.Equal(t, bindings[0].live.prepared.Snapshot().GetContract().GetContractId(), bindings[1].live.prepared.Snapshot().GetContract().GetContractId())
-	require.NotEqual(t, bindings[0].live.prepared.Identity().Bindings, bindings[1].live.prepared.Identity().Bindings)
-
-	results := make(chan testpilotLiveRunResult, len(bindings)*2)
-	var runs sync.WaitGroup
-	for index, binding := range bindings {
-		for range 2 {
-			runs.Go(func() {
-				run, verdict, err := binding.live.prepared.Run(env.Context(), binding.live.driver)
-				results <- testpilotLiveRunResult{environment: index, run: run, verdict: verdict, err: err}
-			})
-		}
-	}
-	runs.Wait()
-	close(results)
-
-	runIDs := make(map[string]struct{}, len(bindings)*2)
-	for result := range results {
-		require.NoError(t, result.err)
-		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
-		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus())
-		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
-		require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
-		// One rule verdict per scoped clause the checked Property lowered into, each answered by the
-		// two recorded Nexus events the projection admitted as this operation's semantic steps.
-		// Two clauses: the Model records no Fact, because every step reaches a state named
-		// after what happened.
-		require.Len(t, result.verdict.GetRules(), 2)
-		for _, rule := range result.verdict.GetRules() {
-			require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-			require.Equal(t, result.verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
-		}
-		requireCorrelatedNexusHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences(), bindings[result.environment].binding.NexusEndpoint)
-		require.NotContains(t, runIDs, result.run.GetRunId())
-		runIDs[result.run.GetRunId()] = struct{}{}
-
-		_, err := bindings[result.environment].live.client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
-		require.NoError(t, err)
-		_, err = bindings[1-result.environment].live.client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
-		var notFound *serviceerror.NotFound
-		require.ErrorAs(t, err, &notFound)
-	}
-	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	for _, binding := range bindings {
-		require.Equal(t, binding.live.profile.EnvironmentBindings, binding.live.driver.Snapshot().EnvironmentBindings)
-		require.True(t, proto.Equal(caseSnapshot, binding.live.prepared.Snapshot()))
-	}
 }
 
 func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
