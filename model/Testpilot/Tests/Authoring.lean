@@ -108,8 +108,47 @@ private def instructions : Array Instruction := #[
   Program.scheduleNexusOperation "endpoint" "service" "operation" (Payload.text "request")
     (scheduleToClose := some (Duration.seconds 5)) (header := [("x-case", "1")]),
   Program.nexusAsyncReply "capability",
-  Program.nexusOperationCompletion "capability" (Payload.text "done")
+  Program.nexusOperationCompletion "capability" (Payload.text "done"),
+  Program.readEvidence "attempts" "endpoint" #[assignment]
+    (Expr.present (Expr.path Expr.projectedValue (Path.make #[Path.field "attempt"]))) 250
 ]
+
+private def evidence : Array EvidenceDeclaration := #[
+  Program.historyEvidenceDeclaration "started" "history" "started_event_attributes"
+    (Path.make #[Path.oneofMember "attributes" "started_event_attributes",
+      Path.field "scheduled_event_id"])
+    #[Program.evidenceScope "run" "fixture"],
+  Program.runEventEvidenceDeclaration "faultInjected" "run-events" .RUN_EVENT_KIND_FAULT_INJECTED
+    (Path.make #[Path.field "role_id"]),
+  Program.readEvidenceDeclaration "attempts" "describe" "/example.Service/Describe"
+    (Path.make #[Path.field "pending"]) (Path.make #[Path.field "scheduled_event_id"])
+    #[Program.evidenceScope "run" "fixture"]
+    #[Program.evidenceField "attempts" (Path.make #[Path.field "attempt"])]
+]
+
+/-- Each declaration carries its source arm, and a by-name rule carries only the name. -/
+private def evidenceDeclarationsCarryTheirSources : Bool :=
+  (match evidence[0]!.source with
+    | some (.history_event arm) => arm.attributes_field == "started_event_attributes"
+    | _ => false)
+  && (match evidence[1]!.source with
+    | some (.run_event recorded) => recorded.kind == .RUN_EVENT_KIND_FAULT_INJECTED
+    | _ => false)
+  && (match evidence[2]!.source with
+    | some (.read read) => read.method == "/example.Service/Describe" && read.path == "pending"
+    | _ => false)
+  && evidence[2]!.fields.size == 1
+  && (Program.declaredEvidenceRule "started").evidence_id == "started"
+  && (Program.declaredEvidenceRule "started").guard.isNone
+
+/-- A read instruction names its declaration, its role, its condition and its interval. -/
+private def readEvidenceNamesItsDeclaration : Bool :=
+  match instructions[11]!.instruction with
+  | some (.read_evidence read) =>
+    read.evidence_id == "attempts" && read.endpoint_role_id == "endpoint"
+      && read.request_assignments.size == 1 && read.until.isSome
+      && read.poll_interval_milliseconds == 250
+  | _ => false
 
 private def injectFaultNamesRoleAndKind : Bool :=
   match instructions[7]!.instruction with
@@ -206,7 +245,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.workflow "workflow" "Workflow" "worker" "queue" #[node],
     Program.activity "activity" "Activity" "worker" "queue" #[node],
     Program.nexusHandler "handler" "service" "operation" "worker" "queue" #[node]]
-  (Program.cleanup "cleanup" #[node])
+  (Program.cleanup "cleanup" #[node]) evidence
 
 private def transition := Contract.transition "take" "start" "done"
   #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
@@ -271,7 +310,11 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 12
-#guard instructions.size == 11
+#guard instructions.size == 12
+#guard evidence.size == 3
+#guard evidenceDeclarationsCarryTheirSources
+#guard readEvidenceNamesItsDeclaration
+#guard (program.evidence.size == 3)
 #guard program.entrypoints.size == 4
 #guard match node.limits.bind (·.timeout), node.limits.bind (·.attempts) with
   | some (.timeout_milliseconds 1000), some (.max_attempts 2) => true

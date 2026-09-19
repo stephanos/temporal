@@ -1,0 +1,162 @@
+{
+  "caseId": "temporal.case.conformance.satisfied.read-evidence",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.conformance.satisfied.read-evidence.property",
+        "behaviorFingerprint": "temporal.case.conformance.satisfied.read-evidence/property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.conformance.satisfied.read-evidence.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "evidence",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "pending-attempts",
+            "instruction": {
+              "readEvidence": {
+                "evidenceId": "pendingAttempts",
+                "endpointRoleId": "temporal.workflow-service",
+                "until": {
+                  "compare": {
+                    "operator": "COMPARISON_OPERATOR_GREATER_THAN",
+                    "left": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "projectedValue": {}
+                          }
+                        },
+                        "path": "attempt"
+                      }
+                    },
+                    "right": {
+                      "literal": {
+                        "signedIntegerValue": "1"
+                      }
+                    }
+                  }
+                },
+                "pollIntervalMilliseconds": "100"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "evidence": [
+      {
+        "evidenceId": "pendingAttempts",
+        "evidenceSource": "describe",
+        "read": {
+          "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
+          "path": "pending_nexus_operations"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "conformance"
+            }
+          }
+        ],
+        "operation": "scheduled_event_id",
+        "fields": [
+          {
+            "fieldId": "attempts",
+            "path": "attempt"
+          }
+        ]
+      }
+    ]
+  },
+  "contract": {
+    "contractId": "temporal.case.conformance.satisfied.read-evidence.contract",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "present": {
+                "operand": {
+                  "reference": {
+                    "observationId": "evidence"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

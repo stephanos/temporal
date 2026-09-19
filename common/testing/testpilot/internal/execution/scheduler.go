@@ -31,6 +31,9 @@ type scheduler struct {
 	closing          bool
 	closed           chan struct{}
 	lateTimeout      time.Duration
+	// runEventOrdinals count the evidence lifted per source out of recorded Run Events.
+	evidenceMu       sync.Mutex
+	runEventOrdinals map[string]int64
 }
 type scheduledActivation struct {
 	values    *activationValues
@@ -70,7 +73,7 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond}, nil
+	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
 }
 func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
@@ -606,7 +609,7 @@ func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto
 	c := s.coordinate(task)
 	var request proto.Message
 	var input *testpilotspb.Value
-	if n.opcode == contract.InvokeRPC {
+	if n.opcode == contract.InvokeRPC || n.opcode == contract.ReadEvidence {
 		var enabled bool
 		var err error
 		request, enabled, _, err = a.request(ctx, c, a.workLimit())
@@ -694,6 +697,12 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	switch n.opcode {
 	case contract.InvokeRPC:
 		effect, err = s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
+	case contract.ReadEvidence:
+		a := task.activation.values
+		effect, err = s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
+			satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
+			return satisfied, err
+		})
 	case contract.InjectFault:
 		fault := n.source.Instruction.GetInjectFault()
 		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
@@ -805,6 +814,12 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		coordinate := eventCoordinates(batch.coordinate)
 		coordinate.EmittedIndex = fact.index
 		facts = append(facts, &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, fact.read, fact.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: fact.observations})
+	}
+	if err := s.liftRunEvents(ctx, a, facts); err != nil {
+		if completion.cleanup {
+			return Stop, err
+		}
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	if completion.cleanup {
 		return s.recorder.publishCleanup(ctx, facts, func() error { return a.commit(ctx, batch) })
