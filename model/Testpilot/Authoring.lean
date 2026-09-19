@@ -375,6 +375,51 @@ def responseRead (path : String) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
   { path, cardinality, targets }
 
+/-! #### Evidence declarations
+
+A Program declares each kind of correlated evidence once: the recorded data it is read from, the
+Run coordinates that scope it, the path of its operation key and the fields it exposes. A lift
+names the declaration with `declaredEvidenceRule`, a read instruction with `readEvidence`, and a
+correlated Contract's projection rule by its kind, so nothing is written twice. -/
+
+/-- A Run coordinate every evidence identity of the kind carries, as the Case declares it. -/
+def evidenceScope (fieldId value : String) : NamedValue :=
+  { field_id := fieldId, value := some (Value.text value) }
+
+/-- One field the evidence exposes, read from the recorded value at `path`. -/
+def evidenceField (fieldId path : String) : EvidenceFieldDeclaration :=
+  { field_id := fieldId, path }
+
+/-- Evidence lifted from one arm of the recorded history event's `attributes` oneof, keyed by the
+`operation` path read from the event. -/
+def historyEvidenceDeclaration (evidenceId evidenceSource attributesField operation : String)
+    (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.history_event { attributes_field := attributesField })
+    scope, operation, fields }
+
+/-- Evidence lifted from the payload of every Run Event of `kind` the runtime records, keyed by the
+`operation` path read from the payload. -/
+def runEventEvidenceDeclaration (evidenceId evidenceSource : String) (kind : RunEventKind)
+    (operation : String) (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.run_event { kind }), scope, operation, fields }
+
+/-- Evidence read back through the unary RPC `method`: each element of the repeated field at `path`
+in its response, keyed by the `operation` path read from the element, polled by `readEvidence`. -/
+def readEvidenceDeclaration (evidenceId evidenceSource method path operation : String)
+    (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.read { method, path }), scope, operation, fields }
+
+/-- A lift rule that names a history declaration instead of spelling itself: its guard is the
+presence of the declared arm and its coordinates are the declaration's. -/
+def declaredEvidenceRule (evidenceId : String) : CorrelatedEvidenceRule :=
+  { (default : CorrelatedEvidenceRule) with evidence_id := evidenceId }
+
 /-- Write the bounds that carry one instruction's behavior where they differ from the Profile's
 instruction defaults: its dispatch timeout and its highest attempt. A bound left `none` takes the
 Profile's default. Its resource ceilings are the Profile's, so a Case declares none of them. -/
@@ -484,6 +529,19 @@ def nexusOperationFailure (handleSlotId : String)
   { instruction := some (.nexus_operation_completion {
       handle_slot_id := handleSlotId, result := some (.failure failure) }) }
 
+/-- Poll, from a controller, the RPC the read declaration `evidenceId` names on `endpointRoleId`:
+the request the assignments build is sent every `pollIntervalMilliseconds` until an element of the
+declared path satisfies `condition`, a boolean over `Expr.projectedValue`, or the instruction times
+out. Every element the condition selects is lifted into the Program's CorrelatedEvidence
+Observation under the declaration's coordinates. -/
+def readEvidence (evidenceId endpointRoleId : String)
+    (assignments : Array RequestAssignment) (condition : Expression)
+    (pollIntervalMilliseconds : Int64) : Instruction :=
+  { instruction := some (.read_evidence {
+      evidence_id := evidenceId, endpoint_role_id := endpointRoleId
+      request_assignments := assignments, «until» := some condition
+      poll_interval_milliseconds := pollIntervalMilliseconds }) }
+
 /-- Name the instructions of the same entrypoint an instruction runs after, where that set is not the
 instruction before it: several instructions, one earlier than its predecessor, or none for a second
 root. -/
@@ -531,10 +589,10 @@ declares no resource ceilings and no environment bindings: the Profile it is adm
 the ceilings and the values of the bindings its roles and expressions reference. -/
 def make (programId : String) (roles : Array Role) (slots : Array Slot)
     (observations : Array Observation) (entrypoints : Array Entrypoint)
-    (cleanup : Cleanup) :
+    (cleanup : Cleanup) (evidence : Array EvidenceDeclaration := #[]) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,
-    cleanup := some cleanup }
+    cleanup := some cleanup, evidence }
 
 end Program
 

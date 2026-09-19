@@ -26,7 +26,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 		return nil, w.work, err
 	}
 	batch.outcome, batch.fields = snapshot.Outcome, snapshot.Fields
-	if n.opcode != contract.InvokeRPC {
+	if n.opcode != contract.InvokeRPC && n.opcode != contract.ReadEvidence {
 		if !isNil(result.Response) {
 			return nil, w.work, invalid(ir.Unsupported, "response_read", "only RPCs return raw responses")
 		}

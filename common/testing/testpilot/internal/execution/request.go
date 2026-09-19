@@ -17,7 +17,7 @@ func (a *activationValues) request(ctx context.Context, c contract.Coordinate, l
 	if err != nil {
 		return nil, false, 0, err
 	}
-	if n.opcode != contract.InvokeRPC {
+	if n.opcode != contract.InvokeRPC && n.opcode != contract.ReadEvidence {
 		return nil, false, 0, invalid(ir.TypeMismatch, "request", "RPC instruction required")
 	}
 	if n.guard != nil {

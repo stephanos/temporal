@@ -347,7 +347,7 @@ func (a *admission) bindSchemas() error {
 		a.observations[observation.ObservationId] = typ
 		a.prepared.view.observations = append(a.prepared.view.observations, Observation{ID: observation.ObservationId, Type: typ})
 	}
-	return nil
+	return a.bindEvidence(p)
 }
 
 // bindEnvironment resolves the Program's derived binding graph against the Profile. Every binding a

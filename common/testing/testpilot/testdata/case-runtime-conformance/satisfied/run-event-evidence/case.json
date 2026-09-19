@@ -1,0 +1,145 @@
+{
+  "caseId": "temporal.case.conformance.satisfied.run-event-evidence",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.conformance.satisfied.run-event-evidence.property",
+        "behaviorFingerprint": "temporal.case.conformance.satisfied.run-event-evidence/property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.conformance.satisfied.run-event-evidence.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      },
+      {
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.worker.namespace"
+      },
+      {
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.task-queue.resource"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "evidence",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "fault",
+            "instruction": {
+              "injectFault": {
+                "roleId": "temporal.task-queue",
+                "kind": "FAULT_KIND_WORKER_STOP"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "evidence": [
+      {
+        "evidenceId": "faultInjected",
+        "evidenceSource": "run-events",
+        "runEvent": {
+          "kind": "RUN_EVENT_KIND_FAULT_INJECTED"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "conformance"
+            }
+          }
+        ],
+        "operation": "role_id"
+      }
+    ]
+  },
+  "contract": {
+    "contractId": "temporal.case.conformance.satisfied.run-event-evidence.contract",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_FAULT_INJECTED"
+              ]
+            },
+            "predicate": {
+              "present": {
+                "operand": {
+                  "reference": {
+                    "observationId": "evidence"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

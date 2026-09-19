@@ -53,6 +53,21 @@ lift a projected value into a declared `CorrelatedEvidence` Observation through 
 the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
 Correlated Contract that admits no evidence answers inconclusive: silence is not a satisfied property.
 
+A Program declares each kind of that evidence once, in `Program.evidence`: the recorded data it is
+read from, the Run coordinates that scope it, the path of its operation key and the fields it
+exposes. The source is one of three. A history event kind is an arm of the recorded `HistoryEvent`'s
+attributes oneof, lifted by a history read whose rule names the declaration (`evidence_id`) and
+spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
+event's payload: an injected fault becomes `faultInjected` evidence keyed by the role it stopped. A
+read is a repeated field in the response of a unary RPC, polled from a controller by a
+`ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and
+every element the condition selects is lifted; `pendingAttempts` reads
+`DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`.
+A Correlated Contract's projection rules name the declarations by kind, so the kind, source, key
+path and fields are written once and cannot drift; a reference to an undeclared kind, or the same
+source and key path declared twice, rejects at preparation. A Program that declares nothing keeps
+the spelled-out lift rules, which slot-bound reads still use.
+
 ## Field paths and enum literals
 
 A Case reads and writes protobuf fields through field paths: `PathExpression.path`, a request
@@ -144,7 +159,11 @@ first planned use.
 4. `execution.InstructionOpcode` and `opcodeContext` (which entrypoint kind may declare it), a binder in
    `admission.bindInstruction` and `admission.bindNodeDataflow`, its outcome fields in
    `admission.bindOutcomes`, dispatch in `scheduler.acceptEffect` and any event it records in
-   `scheduler.publishCompletion`. A workflow instruction also runs in `workflowInterpreter.execute`
+   `scheduler.publishCompletion`. An instruction that reads evidence back names a declaration, which
+   `admission.bindEvidence` (`execution/evidence.go`) binds; a new evidence source kind is a new arm
+   of `EvidenceDeclaration.source`, bound there, lifted where its data appears (`liftRunEvents` for
+   a recorded event, the instruction's response reads for a read), and listed in the Lean catalog
+   the `evidence:` line resolves against (`Temporal.Case.Catalog`, with `EventKind` and `ReadKind`). A workflow instruction also runs in `workflowInterpreter.execute`
    (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`. An
    instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
    which the carrier route derivation and `bindAwait` read, and by the worker's
@@ -159,7 +178,8 @@ first planned use.
    `contract.go`; `temporal.DeriveProfile` authorizes it through `testpilot.InstructionOpcode`, and
    a workflow command's type through `worker.CommandTypes`. A new Driver effect adds a
    `contract.Session` method, implemented by the server, worker and composite Sessions and by every
-   test Session.
+   test Session (`PollRPC` is the worked example: the server Session polls, the worker refuses, the
+   composite routes to the controller Session).
 7. Focused tests beside the binder and the Driver, and a Driver test per carried message
    (`temporal/worker/typed_test.go`); a preparation rejection the instruction adds is a variant of
    the `static-preparation-rejection` conformance class (`productionManifest` in the generator,

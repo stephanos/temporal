@@ -44,6 +44,7 @@ message Instruction {
     WorkflowCommand workflow_command = 9;
     NexusHandlerReply nexus_handler_reply = 10;
     NexusOperationCompletion nexus_operation_completion = 11;
+    ReadEvidence read_evidence = 12;
   }
 }
 
@@ -181,6 +182,20 @@ message NexusOperationCompletion {
     temporal.api.common.v1.Payload payload = 2;
     temporal.api.failure.v1.Failure failure = 3;
   }
+}
+
+// ReadEvidence polls, from a controller, the RPC the read-source EvidenceDeclaration it names reads
+// through, until an element of the declared path satisfies `until` or the instruction's timeout
+// expires, and then lifts every element `until` selects into the declaration's evidence. The request
+// is built from the assignments once, at dispatch, and sent again after each interval; a poll that
+// fails is the instruction's outcome.
+message ReadEvidence {
+  string evidence_id = 1;
+  string endpoint_role_id = 2;
+  repeated RequestAssignment request_assignments = 3;
+  // A boolean over the projected value, one element of the declared path.
+  Expression until = 4;
+  int64 poll_interval_milliseconds = 5;
 }
 
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are

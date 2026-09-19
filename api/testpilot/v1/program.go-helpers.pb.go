@@ -44,6 +44,191 @@ func (this *Program) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type EvidenceDeclaration to the protobuf v3 wire format
+func (val *EvidenceDeclaration) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type EvidenceDeclaration from the protobuf v3 wire format
+func (val *EvidenceDeclaration) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *EvidenceDeclaration) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two EvidenceDeclaration values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *EvidenceDeclaration) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *EvidenceDeclaration
+	switch t := that.(type) {
+	case *EvidenceDeclaration:
+		that1 = t
+	case EvidenceDeclaration:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type HistoryEventSource to the protobuf v3 wire format
+func (val *HistoryEventSource) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type HistoryEventSource from the protobuf v3 wire format
+func (val *HistoryEventSource) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *HistoryEventSource) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two HistoryEventSource values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *HistoryEventSource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *HistoryEventSource
+	switch t := that.(type) {
+	case *HistoryEventSource:
+		that1 = t
+	case HistoryEventSource:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type RunEventSource to the protobuf v3 wire format
+func (val *RunEventSource) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type RunEventSource from the protobuf v3 wire format
+func (val *RunEventSource) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *RunEventSource) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two RunEventSource values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *RunEventSource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *RunEventSource
+	switch t := that.(type) {
+	case *RunEventSource:
+		that1 = t
+	case RunEventSource:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ReadSource to the protobuf v3 wire format
+func (val *ReadSource) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ReadSource from the protobuf v3 wire format
+func (val *ReadSource) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ReadSource) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ReadSource values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ReadSource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ReadSource
+	switch t := that.(type) {
+	case *ReadSource:
+		that1 = t
+	case ReadSource:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type EvidenceFieldDeclaration to the protobuf v3 wire format
+func (val *EvidenceFieldDeclaration) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type EvidenceFieldDeclaration from the protobuf v3 wire format
+func (val *EvidenceFieldDeclaration) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *EvidenceFieldDeclaration) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two EvidenceFieldDeclaration values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *EvidenceFieldDeclaration) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *EvidenceFieldDeclaration
+	switch t := that.(type) {
+	case *EvidenceFieldDeclaration:
+		that1 = t
+	case EvidenceFieldDeclaration:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Role to the protobuf v3 wire format
 func (val *Role) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

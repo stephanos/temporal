@@ -519,7 +519,7 @@ def OperationCase.scheduledEvidenceKindId (entry : OperationCase) : DefinitionId
   .of ("temporal.nexus.success.typed-nexus.evidence.scheduled-" ++ entry.operation)
 
 /-- The operation identity a scheduled event retains, the one field the Link correlation reads. -/
-def retainedOperationIdentity : List (EvidenceFieldDeclaration × FieldDisposition) :=
+def retainedOperationIdentity : List (Umpire.EvidenceFieldDeclaration × FieldDisposition) :=
   [(⟨operationIdentityFieldId, .text⟩, .retain)]
 
 def projectionLimits : Case.Projection.Limits := {

@@ -80,6 +80,16 @@ def main (arguments : List String) : IO Unit :=
       renderTestpilot Temporal.Testpilot.conformanceUnsettableFieldRejectionCase
   | ["conformance-static-preparation-rejection-reply-not-admitted"] =>
       renderTestpilot Temporal.Testpilot.conformanceReplyRejectionCase
+  | ["conformance-static-preparation-rejection-undeclared-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceUndeclaredEvidenceRejectionCase
+  | ["conformance-static-preparation-rejection-duplicate-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceDuplicateEvidenceRejectionCase
+  | ["conformance-satisfied-history-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceHistoryEvidenceCase
+  | ["conformance-satisfied-run-event-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceRunEventEvidenceCase
+  | ["conformance-satisfied-read-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceReadEvidenceCase
   | ["conformance-cleanup-failure-after-proved-violation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCleanupFailureCase
   | ["conformance-cross-run-isolation"] =>

@@ -94,3 +94,49 @@ func TestDeriveProfileAdmitsOnlyRealizableCommandTypes(t *testing.T) {
 		require.NotEqual(t, enumspb.COMMAND_TYPE_UNSPECIFIED, commandType)
 	}
 }
+
+// DeriveProfile authorizes a read declaration's method on the role its poll names, and the
+// ReadEvidence Opcode, so a Case that polls a read observation prepares under its derived Profile.
+func TestDeriveProfileAuthorizesTheMethodAReadDeclarationPolls(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	environment := temporal.Environment{Identity: "read", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"}
+	const describe = "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution"
+	source := commandCase(&commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION,
+		Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+			Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", ScheduleToCloseTimeout: durationpb.New(2000000000),
+		}},
+	})
+	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT})
+	source.Program.Observations = []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
+	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{{
+		EvidenceId: "pendingAttempts", EvidenceSource: "describe", Operation: "scheduled_event_id",
+		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describe, Path: "pending_nexus_operations"}},
+		Fields: []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "attempts", Path: "attempt"}},
+	}}
+	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{
+		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
+		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "pending-attempts", Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
+			EvidenceId: "pendingAttempts", EndpointRoleId: "workflow-service", PollIntervalMilliseconds: 100,
+			Until: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}}, Path: "attempt"}}}}}},
+		}}}}},
+	})
+	profile, err := temporal.DeriveProfile(source, catalog, environment)
+	require.NoError(t, err)
+	require.Contains(t, profile.Opcodes, testpilot.ReadEvidence)
+	var methods []string
+	for _, role := range profile.Roles {
+		if role.ID == "workflow-service" {
+			methods = role.Methods
+		}
+	}
+	require.Equal(t, []string{describe}, methods)
+	_, err = testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+
+	// A poll of a kind the Program does not declare as a read has no method to authorize.
+	source.Program.Evidence[0].Source = &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: "nexus_operation_started_event_attributes"}}
+	_, err = temporal.DeriveProfile(source, catalog, environment)
+	require.ErrorIs(t, err, temporal.ErrInvalid)
+}

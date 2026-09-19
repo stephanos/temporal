@@ -292,7 +292,7 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 // a variant alone.
 func TestValidateManifestKeepsSixClassesWithTheirRootCases(t *testing.T) {
 	entries := productionManifest()
-	require.Len(t, entries, 11)
+	require.Len(t, entries, 16)
 	require.NoError(t, validateManifest(entries))
 	variant := func(class, name string) manifestEntry {
 		return manifestEntry{Class: class, Variant: name, RendererArg: "render", CaseID: "case", Expected: expectedResult{Class: class}}
@@ -303,7 +303,7 @@ func TestValidateManifestKeepsSixClassesWithTheirRootCases(t *testing.T) {
 		message string
 	}{
 		{"seventh class", append(slices.Clone(entries), variant("seventh", "")), "has 7 classes, want exactly 6"},
-		{"variant without its root Case", append(slices.Clone(entries[:9]), entries[10], variant("cleanup-failure-after-proved-violation", "second")), `class "cleanup-failure-after-proved-violation" has no Case at its root`},
+		{"variant without its root Case", append(slices.Clone(append(slices.Clone(entries[:9]), entries[10:]...)), variant("cleanup-failure-after-proved-violation", "second")), `class "cleanup-failure-after-proved-violation" has no Case at its root`},
 		{"duplicate variant", append(slices.Clone(entries), entries[4]), `duplicate Testpilot conformance Case "static-preparation-rejection/expression-context"`},
 		{"nested variant", append(slices.Clone(entries), variant("satisfied", "a/b")), `variant "a/b" is not one path segment`},
 	} {

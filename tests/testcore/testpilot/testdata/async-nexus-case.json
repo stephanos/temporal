@@ -98,20 +98,20 @@
     ],
     "localNames": [
       {
-        "localName": "history",
-        "definitionId": "temporal.nexus.success.source.history"
-      },
-      {
         "localName": "evidence.started",
         "definitionId": "temporal.nexus.success.evidence.started"
       },
       {
-        "localName": "run",
-        "definitionId": "temporal.nexus.success.scope.run"
-      },
-      {
         "localName": "evidence.completed",
         "definitionId": "temporal.nexus.success.evidence.completed"
+      },
+      {
+        "localName": "history",
+        "definitionId": "temporal.nexus.success.source.history"
+      },
+      {
+        "localName": "run",
+        "definitionId": "temporal.nexus.success.scope.run"
       },
       {
         "localName": "projection",
@@ -346,62 +346,10 @@
                           "observationId": "correlated-evidence",
                           "rules": [
                             {
-                              "scope": [
-                                {
-                                  "fieldId": "run",
-                                  "value": {
-                                    "literal": {
-                                      "textValue": "async-nexus"
-                                    }
-                                  }
-                                }
-                              ],
-                              "evidenceSource": "history",
-                              "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id",
-                              "kind": "evidence.started",
-                              "guard": {
-                                "present": {
-                                  "operand": {
-                                    "path": {
-                                      "operand": {
-                                        "reference": {
-                                          "projectedValue": {}
-                                        }
-                                      },
-                                      "path": "attributes<nexus_operation_started_event_attributes>"
-                                    }
-                                  }
-                                }
-                              }
+                              "evidenceId": "evidence.started"
                             },
                             {
-                              "scope": [
-                                {
-                                  "fieldId": "run",
-                                  "value": {
-                                    "literal": {
-                                      "textValue": "async-nexus"
-                                    }
-                                  }
-                                }
-                              ],
-                              "evidenceSource": "history",
-                              "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id",
-                              "kind": "evidence.completed",
-                              "guard": {
-                                "present": {
-                                  "operand": {
-                                    "path": {
-                                      "operand": {
-                                        "reference": {
-                                          "projectedValue": {}
-                                        }
-                                      },
-                                      "path": "attributes<nexus_operation_completed_event_attributes>"
-                                    }
-                                  }
-                                }
-                              }
+                              "evidenceId": "evidence.completed"
                             }
                           ]
                         }
@@ -510,7 +458,41 @@
     ],
     "cleanup": {
       "entrypointId": "cleanup"
-    }
+    },
+    "evidence": [
+      {
+        "evidenceId": "evidence.started",
+        "evidenceSource": "history",
+        "historyEvent": {
+          "attributesField": "nexus_operation_started_event_attributes"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "async-nexus"
+            }
+          }
+        ],
+        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+      },
+      {
+        "evidenceId": "evidence.completed",
+        "evidenceSource": "history",
+        "historyEvent": {
+          "attributesField": "nexus_operation_completed_event_attributes"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "async-nexus"
+            }
+          }
+        ],
+        "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+      }
+    ]
   },
   "contract": {
     "contractId": "temporal.case.async-nexus.contract",

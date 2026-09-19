@@ -41,13 +41,15 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 		return contract.NexusHandlerReply
 	case *testpilotspb.Instruction_NexusOperationCompletion:
 		return contract.NexusOperationCompletion
+	case *testpilotspb.Instruction_ReadEvidence:
+		return contract.ReadEvidence
 	default:
 		return 0
 	}
 }
 func opcodeContext(opcode contract.Opcode) contract.EntrypointKind {
 	switch opcode {
-	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault, contract.NexusOperationCompletion:
+	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault, contract.NexusOperationCompletion, contract.ReadEvidence:
 		return contract.ControllerEntrypoint
 	case contract.StartNexusOperation, contract.Await, contract.Finish, contract.WorkflowCommand:
 		return contract.WorkflowEntrypoint
@@ -127,6 +129,8 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		return a.bindNexusHandlerReply(g, i, n)
 	case contract.NexusOperationCompletion:
 		return a.bindNexusOperationCompletion(g, n)
+	case contract.ReadEvidence:
+		return a.bindReadEvidence(g, n)
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
@@ -232,7 +236,7 @@ func (a *admission) bindFault(g *graph, n *node) error {
 func (a *admission) bindOutcomes(g *graph, n *node) error {
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS] = a.outcomeTypes.status
 	switch {
-	case n.opcode == contract.InvokeRPC || n.opcode == contract.CompleteNexusOperation || n.opcode == contract.NexusOperationCompletion:
+	case n.opcode == contract.InvokeRPC || n.opcode == contract.CompleteNexusOperation || n.opcode == contract.NexusOperationCompletion || n.opcode == contract.ReadEvidence:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
 	case g.context != contract.ControllerEntrypoint:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
@@ -382,6 +386,9 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 	return lift, nil
 }
 func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
+	if source.GetEvidenceId() != "" {
+		return a.bindDeclaredRule(g, n, location, source, typ)
+	}
 	if !validID(source.GetEvidenceSource()) || !validID(source.GetKind()) {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
@@ -395,18 +402,18 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	if err != nil {
 		return nil, err
 	}
-	operation, err := a.bindEvidencePath(g, n, typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
+	operation, err := a.bindEvidencePath(nodePath(g, n), typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
 	if err != nil {
 		return nil, err
 	}
 	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
 	// a typed scalar the portable decoder reads as text, unsigned integer or boolean.
-	scope, err := a.bindEvidenceBindings(g, n, location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
+	scope, err := a.bindEvidenceBindings(nodePath(g, n), location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
 	if err != nil {
 		return nil, err
 	}
-	fields, err := a.bindEvidenceBindings(g, n, location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
+	fields, err := a.bindEvidenceBindings(nodePath(g, n), location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
 	if err != nil {
 		return nil, err
 	}
@@ -432,15 +439,15 @@ var evidenceIntegerKinds = []testpilotspb.ScalarKind{
 	testpilotspb.SCALAR_KIND_SFIXED64,
 }
 
-// bindEvidenceBindings binds the named expressions at location. Each is a text literal or a path
-// read directly from the projected value; the lift reads its paths itself, so no other expression is
-// admitted.
-func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+// bindEvidenceBindings binds the named expressions at location, rejecting at errorPath. Each is a
+// text literal or a path read directly from the projected value; the lift reads its paths itself,
+// so no other expression is admitted.
+func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
 	for index, source := range sources {
 		if source == nil || !validID(source.GetFieldId()) || seen[source.GetFieldId()] {
-			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires one unique declared field")
+			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires one unique declared field")
 		}
 		seen[source.GetFieldId()] = true
 		site := ir.Site{Context: ir.EvidenceLiftContext, Path: fmt.Sprintf("%s[%d].value", location, index)}
@@ -451,36 +458,36 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ
 		case *testpilotspb.Expression_Literal:
 			literal, isText := supply.Literal.GetValue().(*testpilotspb.Value_TextValue)
 			if !isText {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a text")
+				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a text")
 			}
 			text := literal.TextValue
 			if text == "" {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
+				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: text})
 		case *testpilotspb.Expression_Path:
 			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+				return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 			}
-			path, err := a.bindEvidencePath(g, n, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
+			path, err := a.bindEvidencePath(errorPath, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
 			if err != nil {
 				return nil, err
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), path: path})
 		default:
-			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 		}
 	}
 	return bound, nil
 }
-func (a *admission) bindEvidencePath(g *graph, n *node, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
+func (a *admission) bindEvidencePath(errorPath string, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
 	path, err := a.prepared.catalog.BindPath(typ, location, source, a.expressionLimits())
 	if err != nil {
 		return nil, err
 	}
 	read := path.Type()
 	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence binding reads an unsupported scalar")
+		return nil, invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
 	}
 	return path, nil
 }
@@ -617,10 +624,14 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return bindIn(scope, value, field, expected)
 	}
 	switch n.opcode {
-	case contract.InvokeRPC:
+	case contract.InvokeRPC, contract.ReadEvidence:
 		inputScope := maps.Clone(scope)
 		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
-		err = a.bindAssignments(g, n, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+		sources, field := n.source.Instruction.GetInvokeRpc().GetRequestAssignments(), "instruction.invoke_rpc"
+		if n.opcode == contract.ReadEvidence {
+			sources, field = n.source.Instruction.GetReadEvidence().GetRequestAssignments(), "instruction.read_evidence"
+		}
+		err = a.bindAssignments(g, n, sources, field, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
 			return bindIn(inputScope, value, field, expected)
 		})
 	case contract.AwaitSlot:
@@ -664,16 +675,18 @@ func expressionPath(g *graph, n *node, field string) string {
 	return fmt.Sprintf("program.entrypoints[%s].instructions[%s].%s", g.id, n.source.InstructionId, field)
 }
 
-func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.Expression, string, *ir.Type) (*ir.Expression, error)) error {
+// bindAssignments binds the request assignments of an instruction that builds a request for
+// n.method; field locates the instruction arm the assignments sit under.
+func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.RequestAssignment, field string, bind func(*testpilotspb.Expression, string, *ir.Type) (*ir.Expression, error)) error {
 	input, err := messageType(a.prepared.catalog, n.method.Input())
 	if err != nil {
 		return err
 	}
-	for index, source := range n.source.Instruction.GetInvokeRpc().RequestAssignments {
+	for index, source := range sources {
 		if source == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
 		}
-		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].target", index)), source.Target, a.expressionLimits())
+		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("%s.request_assignments[%d].target", field, index)), source.Target, a.expressionLimits())
 		if err != nil {
 			return err
 		}
@@ -707,7 +720,7 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.E
 			}
 			valueSource = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
 		}
-		value, err := bind(valueSource, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].value", index), &typ)
+		value, err := bind(valueSource, fmt.Sprintf("%s.request_assignments[%d].value", field, index), &typ)
 		if err != nil {
 			return err
 		}

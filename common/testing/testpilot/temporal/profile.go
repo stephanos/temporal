@@ -162,6 +162,8 @@ type programUsage struct {
 	commandTypes map[enumspb.CommandType]bool
 	// reservable counts the workflow and Nexus-handler entrypoints a carrier reserves one activation of.
 	reservable map[testpilot.EntrypointKind]int64
+	// evidence is the Program's declarations, which give a ReadEvidence poll its method.
+	evidence map[string]*testpilotspb.EvidenceDeclaration
 }
 
 func (u *programUsage) authorizedOpcodes() []testpilot.Opcode {
@@ -197,11 +199,15 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		opcodes:      map[testpilot.Opcode]bool{},
 		commandTypes: map[enumspb.CommandType]bool{},
 		reservable:   map[testpilot.EntrypointKind]int64{},
+		evidence:     map[string]*testpilotspb.EvidenceDeclaration{},
 	}
 	for _, kind := range contexts {
 		if kind == testpilot.WorkflowEntrypoint || kind == testpilot.NexusHandlerEntrypoint {
 			usage.reservable[kind]++
 		}
+	}
+	for _, declaration := range program.GetEvidence() {
+		usage.evidence[declaration.GetEvidenceId()] = declaration
 	}
 	for _, entrypoint := range program.GetEntrypoints() {
 		controller := contexts[entrypoint.GetEntrypointId()] == testpilot.ControllerEntrypoint
@@ -232,6 +238,13 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		u.commandTypes[command.GetCommand().GetCommandType()] = true
 	}
 	rpc := instruction.GetInstruction().GetInvokeRpc()
+	if read := instruction.GetInstruction().GetReadEvidence(); read != nil {
+		declaration := u.evidence[read.GetEvidenceId()]
+		if declaration.GetRead() == nil {
+			return ErrInvalid
+		}
+		rpc = &testpilotspb.InvokeRpc{EndpointRoleId: read.GetEndpointRoleId(), Method: declaration.GetRead().GetMethod()}
+	}
 	if rpc == nil {
 		return nil
 	}

@@ -1,3 +1,5 @@
+import Temporal.Case.ReadKind
+import Temporal.Case.Support
 import Temporal.Testpilot.GetSystemInfo
 
 namespace Temporal.Testpilot
@@ -174,5 +176,125 @@ def conformanceReplyRejectionCase : Except Umpire.Case.Compiler.Error Case :=
     (Program.nexusHandlerReply { variant := some (.sync_success { payload := some (Payload.text "done") }) }
       "completion-authority")
     (handleSlot := true)
+
+/-! ### One accepted Case per evidence source, and the two declaration rejections
+
+Each Case declares one evidence kind on its Program and lifts it once: a history read names the
+declaration by its rule, a Run Event is lifted as the runtime records it, and a read declaration is
+polled by a `ReadEvidence` instruction. The Contract is satisfied by the event that carries the
+lifted evidence, so the Verdict pins the lift and not only the instruction. -/
+
+private def evidenceObservation := "evidence"
+
+/-- The monitor rule that reads the lifted evidence off the event kind that carries it. -/
+private def evidenceRule (carrier : RunEventKind) : ContractRule :=
+  Contract.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
+      Contract.state "terminal" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition "complete" "pending" "terminal" #[carrier]
+      (Expr.present (Expr.observation evidenceObservation))
+      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
+
+private def evidenceProgram (caseId : String) (roles : Array Role)
+    (nodes : Array InstructionNode) (evidence : Array EvidenceDeclaration) : Program :=
+  Program.make (caseId ++ ".program")
+    (#[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT] ++ roles)
+    #[] #[Program.observation evidenceObservation Temporal.Case.Support.correlatedEvidenceType]
+    #[Program.controller "controller" nodes]
+    (Program.cleanup "cleanup" #[]) evidence
+
+private def evidenceCase (variant : String) (carrier : RunEventKind) (roles : Array Role)
+    (nodes : Array InstructionNode) (evidence : Array EvidenceDeclaration) :
+    Except Umpire.Case.Compiler.Error Case :=
+  let caseId := "temporal.case.conformance.satisfied." ++ variant
+  let property := conformanceProperty caseId
+  Umpire.Case.Compiler.compile {
+    version := { major := 1 }
+    caseId
+    producerId := "temporal.case.compiler"
+    producerVersion := "1"
+    definitions := [binding "temporal.workflow-service" "temporal-workflow-service/v1" .target, property]
+    sources := [source]
+    knownGaps := []
+    program := evidenceProgram caseId roles nodes evidence
+    contractId := caseId ++ ".contract"
+    properties := [.monitor property (evidenceRule carrier)]
+  }
+
+private def startedArm := "nexus_operation_started_event_attributes"
+private def historySourceId := "history"
+
+private def historyDeclaration (evidenceId : String) : EvidenceDeclaration :=
+  Program.historyEvidenceDeclaration evidenceId historySourceId startedArm
+    (historyAttribute startedArm "scheduled_event_id")
+    #[Program.evidenceScope "run" "conformance"]
+
+private def historyNode (ruleName : String) : InstructionNode :=
+  Program.node "history"
+    (Program.invokeRpc workflowServiceRole Temporal.Case.Support.getHistoryMethod #[]
+      #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
+        #[Program.correlatedEvidenceTarget evidenceObservation
+          #[Program.declaredEvidenceRule ruleName]]])
+    (Program.instructionLimits (timeoutMilliseconds := some 5000))
+
+/-- A history event lifted by the rule that names its declaration. -/
+def conformanceHistoryEvidenceCase : Except Umpire.Case.Compiler.Error Case :=
+  evidenceCase "history-evidence" .RUN_EVENT_KIND_INSTRUCTION_COMPLETED #[]
+    #[historyNode "started"] #[historyDeclaration "started"]
+
+/-- A Run Event lifted as the runtime records it: the fault the controller injects. -/
+def conformanceRunEventEvidenceCase : Except Umpire.Case.Compiler.Error Case :=
+  evidenceCase "run-event-evidence" .RUN_EVENT_KIND_FAULT_INJECTED
+    #[Program.role workerRole .ROLE_KIND_WORKER (namespaceBindingId := "temporal.worker.namespace"),
+      Program.role queueRole .ROLE_KIND_TASK_QUEUE
+        (namespaceBindingId := "temporal.worker.namespace")
+        (resourceBindingId := "temporal.task-queue.resource")]
+    #[Program.node "fault" (Program.injectFault queueRole .FAULT_KIND_WORKER_STOP)
+      (Program.instructionLimits (timeoutMilliseconds := some 5000))]
+    #[Program.runEventEvidenceDeclaration "faultInjected" "run-events"
+      .RUN_EVENT_KIND_FAULT_INJECTED (field "role_id")
+      #[Program.evidenceScope "run" "conformance"]]
+
+/-- The pending operation's attempt count read back through `DescribeWorkflowExecution`, polled
+until an element's attempt is above one. -/
+def conformanceReadEvidenceCase : Except Umpire.Case.Compiler.Error Case :=
+  let read := Temporal.Case.ReadKind.pendingAttempts
+  evidenceCase "read-evidence" .RUN_EVENT_KIND_INSTRUCTION_COMPLETED #[]
+    #[Program.node "pending-attempts"
+      (Program.readEvidence read.name workflowServiceRole #[]
+        (Expr.compare .COMPARISON_OPERATOR_GREATER_THAN
+          (Expr.path Expr.projectedValue (field "attempt")) (signedInteger 1))
+        100)
+      (Program.instructionLimits (timeoutMilliseconds := some 5000))]
+    #[Program.readEvidenceDeclaration read.name "describe" read.method read.path
+      read.operationKey #[Program.evidenceScope "run" "conformance"]
+      (read.fields.toArray.map fun (fieldId, path) => Program.evidenceField fieldId path)]
+
+private def evidenceRejectionCase (variant : String) (nodes : Array InstructionNode)
+    (evidence : Array EvidenceDeclaration) : Except Umpire.Case.Compiler.Error Case :=
+  let caseId := "temporal.case.conformance.static-rejection." ++ variant
+  let property := conformanceProperty caseId
+  Umpire.Case.Compiler.compile {
+    version := { major := 1 }
+    caseId
+    producerId := "temporal.case.compiler"
+    producerVersion := "1"
+    definitions := [binding "temporal.workflow-service" "temporal-workflow-service/v1" .target, property]
+    sources := [source]
+    knownGaps := []
+    program := evidenceProgram caseId #[] nodes evidence
+    contractId := caseId ++ ".contract"
+    properties := [.monitor property (conformanceRule .CONTRACT_STATE_STATUS_SATISFIED true)]
+  }
+
+/-- A lift rule naming a kind no declaration carries. -/
+def conformanceUndeclaredEvidenceRejectionCase : Except Umpire.Case.Compiler.Error Case :=
+  evidenceRejectionCase "undeclared-evidence" #[historyNode "completed"]
+    #[historyDeclaration "started"]
+
+/-- The same source and operation key path declared twice, under two identities. -/
+def conformanceDuplicateEvidenceRejectionCase : Except Umpire.Case.Compiler.Error Case :=
+  evidenceRejectionCase "duplicate-evidence" #[historyNode "started"]
+    #[historyDeclaration "started", historyDeclaration "started-again"]
 
 end Temporal.Testpilot

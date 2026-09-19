@@ -1,4 +1,5 @@
 import Temporal.Case.EventKind
+import Temporal.Case.ReadKind
 import Testpilot.Protocol
 import Umpire.Command
 
@@ -9,7 +10,7 @@ Evidence names recorded data that confirms a step. `Umpire` stores the name and 
 whether the realization already carries it; this module is Temporal's answer, and what it admits is
 what a Temporal Run actually records.
 
-Two catalogs, because a Run produces two kinds of recorded data.
+Three catalogs, because a Run produces two kinds of recorded data and a Case can read a third.
 
 The history event kinds are the `attributes` oneof of the generated `HistoryEvent`, read off the
 schema by `Temporal.Case.EventKind` rather than listed anywhere. They are what a Case reads back
@@ -21,9 +22,13 @@ as the evidence of an injected worker outage. Its names are read off the generat
 descriptor, which is an `IO` value -- so they are read once, here, in the `initialize` block that
 installs the check, and the check closes over the result.
 
-A name in neither catalog is not thereby wrong: it may be a derived observation, such as a value
-read back through a call, and those are declared with an `observation` command. The command asks the
-registry first and this module only about what nothing declared.
+The read observations are `Temporal.Case.ReadKind`: values a Case reads back through a unary RPC
+rather than out of recorded history, `pendingAttempts` among them, each bound to the method, the
+field and the key the realization polls.
+
+A name in none of the three is not thereby wrong: it may be a derived observation the Model itself
+declares with an `observation` command. The command asks the registry first and this module only
+about what nothing declared.
 -/
 
 namespace Temporal.Case.Catalog
@@ -62,12 +67,14 @@ def runEventKinds : IO (List String) := do
 
 /-- The verdict on one evidence name, against a catalog already read. -/
 def check (runEvents : List String) (observed : String) : Except String Unit :=
-  if (Temporal.Case.EventKind.admitted.contains observed) || runEvents.contains observed then
+  if (Temporal.Case.EventKind.admitted.contains observed) || runEvents.contains observed
+      || Temporal.Case.ReadKind.admitted.contains observed then
     .ok ()
   else
-    .error s!"'{observed}' is neither a recorded event kind the realization carries nor an \
-observation this Model declares; evidence names recorded data, so it is a generated history event \
-kind, a Testpilot Run Event kind, or a derived `observation`"
+    .error s!"'{observed}' is neither a recorded event kind the realization carries, a read \
+observation its catalog binds, nor an observation this Model declares; evidence names recorded \
+data, so it is a generated history event kind, a Testpilot Run Event kind, a catalog read such as \
+`pendingAttempts`, or a derived `observation`"
 
 initialize do
   let runEvents ← runEventKinds

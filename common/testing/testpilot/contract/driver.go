@@ -5,6 +5,7 @@ package contract
 
 import (
 	"context"
+	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
@@ -35,6 +36,9 @@ type ReservationRequest struct {
 
 // OpaqueCapability values are Driver-owned and never passed to expression or response read code.
 type OpaqueCapability interface{}
+
+// PollPredicate decides whether a polled response ends the poll.
+type PollPredicate func(context.Context, proto.Message) (bool, error)
 
 type EffectResult struct {
 	Outcome  *testpilotspb.InstructionOutcome
@@ -79,6 +83,11 @@ type CapabilityBridge interface {
 type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
+	// PollRPC repeats one unary RPC on the named endpoint role at the interval until the runtime's
+	// predicate accepts a response, the context ends or a poll fails: the effect's result is the
+	// accepted response, the first failed poll's outcome, or the timeout. The predicate is bounded
+	// and performs no I/O; a Driver evaluates it on each response it receives.
+	PollRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, PollPredicate) (EffectHandle, error)
 	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
 	// InjectFault realizes one deliberate outage on the named ROLE_KIND_TASK_QUEUE role.
 	InjectFault(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
