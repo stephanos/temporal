@@ -49,16 +49,98 @@ A Case declares each observation once with its source (a history event kind, a R
 - Spec Decision Context: "Program and Contract declaring observations separately" was rejected because the same event kind, key path and fields were written twice and could drift.
 
 ## Acceptance
-- [ ] every fixture declares each observation once; Program waits and Contract rules refer to declarations by name; a Case that declares the same source and key path twice, or references an undeclared observation, rejects at preparation with an existing category
-- [ ] `pendingAttempts` is a read observation whose source is `DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`, declared once; a conformance case reads it through the Temporal Driver
-- [ ] a Driver conformance case exists per observation source (history event, Run Event, read)
-- [ ] fixtures regenerate with the diff listed; `make umpire-check-regression` exit 0
+- [x] every fixture declares each observation once; Program waits and Contract rules refer to declarations by name; a Case that declares the same source and key path twice, or references an undeclared observation, rejects at preparation with an existing category
+- [x] `pendingAttempts` is a read observation whose source is `DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`, declared once; a conformance case reads it through the Temporal Driver
+- [x] a Driver conformance case exists per observation source (history event, Run Event, read)
+- [x] fixtures regenerate with the diff listed; `make umpire-check-regression` exit 0
 
 
 ## Done summary
-TBD
+
+### The declaration
+
+`Program.evidence` (program.proto) declares each kind of correlated evidence once: its identity, the
+source identity its ordinals count in, the recorded data it is read from as a `source` oneof --
+`HistoryEventSource { attributes_field }`, `RunEventSource { kind }` or `ReadSource { method, path }`
+-- the Run coordinates that scope it (`NamedValue` literals), the path of its operation key and the
+fields it exposes (`EvidenceFieldDeclaration { field_id, path }`). A `CorrelatedEvidenceRule` may
+name a declaration (`evidence_id`, field 7) and spell nothing else; a `ReadEvidence` instruction
+(arm 12, controller only) names a read declaration, an endpoint role, request assignments, a
+boolean `until` over one element of the declared path and a poll interval. The correlated Contract's
+projection rules already name kinds, and the Case compiler's local-name pass now renames the
+declarations, the by-name rules and the read instructions with everything else, so the kind, the
+source, the key path and the fields are written once: the regenerated async-Nexus fixture's two lift
+rules are `evidenceId: evidence.started` / `evidence.completed` and its Program carries the two
+declarations the Contract's projection rules name.
+
+### Admission and the runtime
+
+`internal/execution/evidence.go` binds the declarations before the instructions: each identity
+once, each source and operation key path once (`malformed` at `program.evidence[i]`), a history arm
+the `HistoryEvent` attributes oneof carries (`unknown`), a Run Event kind that carries a payload
+(`unsupported`), a read method the catalog knows whose path ends in repeated messages
+(`type_mismatch`), every path typed against the recorded value; `ProgramView.Evidence()` exposes
+them. A by-name rule requires a history declaration and a history-event read (`unknown` at
+`...rules[i].evidence_id` for an undeclared kind, `unsupported` for a read or Run Event
+declaration, `malformed` for a rule that also spells) and takes the declaration's guard
+(`present(attributes<arm>)`), scope, key and fields. A `ReadEvidence` node binds its assignments
+like an RPC, its `until` in the evidence-lift context, and synthesizes one `EMIT_EACH` response read
+of the declared path whose lift is the declaration with `until` as its guard, so every element the
+condition selects is lifted; its poll interval must be positive and within the node's timeout. The
+scheduler dispatches it through a new `Session.PollRPC` (interval, predicate) and `readSatisfied`
+answers the predicate; a Run Event declaration is lifted by `scheduler.liftRunEvents` as the event
+is recorded, into the Program's one `CorrelatedEvidence` Observation, ordinals dense per source.
+Verification checks, when a Program declares anything, that every projection rule kind, every field
+it reads and every source is declared (`unknown`). `DeriveProfile` authorizes the declaration's
+method on the poll's role and the `ReadEvidence` Opcode.
+
+### The Drivers
+
+The server Session's `PollRPC` is one effect: it repeats the declaration's RPC on the endpoint at the
+interval until the predicate accepts a response, returning that response, the first failed poll's
+outcome, or `TIMED_OUT` when the instruction's timeout ends it; the instruction's attempt and
+identity are counted once (`TestPollRPCRepeatsTheReadUntilSatisfied`,
+`TestPollRPCRefusesWhatTheDeclarationDoesNotAdmit`, on a synthetic pending service since the
+server package may not name Nexus). The worker Session refuses polls, the composite routes them to
+the controller Session, and every test Session implements the method.
+
+### Lean
+
+`Testpilot.Authoring` gains `Program.historyEvidenceDeclaration`, `runEventEvidenceDeclaration`,
+`readEvidenceDeclaration`, `evidenceScope`, `evidenceField`, `declaredEvidenceRule` and the
+`readEvidence` instruction; `Program.make` takes `evidence`. The Producer's `EvidenceSource` carries
+a `RecordedSource` (`historyEvent`, `runEvent`, `read`) and `fields`, and `assembleProgram` emits one
+declaration per admitted kind the resolved rules read; `Temporal.Case.Evidence.target` lifts the
+history kinds among them by name. `Temporal.Case.ReadKind` is the third catalog answer beside
+`EventKind` and the Run Event kinds: `pendingAttempts` bound to `DescribeWorkflowExecution`,
+`pending_nexus_operations`, key `scheduled_event_id`, field `attempts` from `attempt`; the Nexus
+template's `pendingAttemptsSource` and `pendingAttemptsNode` are built from that binding, and the
+template's sources now carry it beside the two history kinds.
+
+### Conformance
+
+Five corpus entries: `satisfied/history-evidence` (a history read lifting by name),
+`satisfied/run-event-evidence` (an injected fault lifted as it is recorded; the facade now realizes
+faults) and `satisfied/read-evidence` (a `ReadEvidence` poll of `DescribeWorkflowExecution`'s
+`pending_nexus_operations` until an attempt is above one, the facade answering attempt 2), each
+satisfied by the event that carries the lifted evidence; `static-preparation-rejection/
+undeclared-evidence` (`unknown` at the rule's `evidence_id`) and `duplicate-evidence` (`malformed`
+at `program.evidence[1]`). The facade catalog carries the Testpilot protocol beside the service.
+
+**The regenerated fixtures.** `async-nexus-case.json` and `nexusSuccessTests-completion-case.json`
+change identically (120 lines each): the history read's two lift rules collapse to
+`evidenceId: evidence.started` and `evidenceId: evidence.completed`; the Program gains `evidence`
+with the two history declarations (`evidenceSource: history`, `historyEvent.attributesField`,
+`scope: [run = <fixture>]`, `operation: attributes<arm>.scheduled_event_id`); and the provenance
+`localNames` rows reorder because the declarations are visited first. Nothing else changes.
+
+**The `case` block's evidence lines** stay: they are what selects each Case's Actions and resolve
+through the realization's catalog into the declarations, so dropping them is the `fixture` form's
+job in `.11`, as the task's adjustment anticipated. `pendingAttempts` is declared by the template's
+catalog binding and emitted only when a Case's evidence line names it; the seven Queries' Cases
+that need it come with `.10`/`.11`.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7d80947
+- Tests: `go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/...`; `make umpire-check-testpilot-protocol`; `make umpire-check-testpilot-authoring`; `make umpire-check-case-runtime-conformance`; `make umpire-check-goldens`; `make umpire-check-inventory`; `make umpire-check-retired-vocabulary`; `LEAN_NUM_THREADS=1 make lint-model` (baseline warnings only); `GOLANGCI_LINT_BASE_REV=10c3da6 make lint-code-fast` (0 issues); `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression` (exit 0, 11 passing live identities)
 - PRs:

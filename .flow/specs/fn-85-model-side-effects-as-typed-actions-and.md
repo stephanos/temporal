@@ -629,6 +629,16 @@ narrows a requirement without changing its intent, and the task that owns it rec
   which `DeriveProfile` fills from the worker Driver's own list. A Model whose actions realize
   nothing (the success slice's waits) produces through the realization on the path the realization
   states (`Nexus.asyncPath`) until `.10`'s protocol machine makes the Query's path the side effects.
+- **One evidence declaration per kind, on the Program; a poll is a Driver effect (decided while
+  delivering `.9`).** `Program.evidence` declares each correlated evidence kind once with its
+  recorded source (a history event arm, a Run Event kind or a unary read), scope, key path and
+  fields; a history read's rule, a `ReadEvidence` instruction and a correlated projection rule name
+  it, and the Case compiler localizes those names with the Contract's. A read is polled by
+  `Session.PollRPC` rather than by repeated `InvokeRPC`, because the server Driver counts one effect
+  per instruction coordinate and attempt, so the Driver owns the loop and the runtime owns the
+  condition. A Run Event kind is lifted by the scheduler as it records the event, so a fault is
+  evidence without an instruction reading it back. The read catalog (`Temporal.Case.ReadKind`) is the
+  third answer an `evidence:` line resolves against, `pendingAttempts` its one binding.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
