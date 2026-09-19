@@ -87,6 +87,30 @@ it and to `declareModel` alike.
 `query` see it. Members resolve by the key the table carries; a machine over a one-field state keeps
 the bare spellings a `model` had, which is what makes the migration mechanical.
 
+**`model` is retired as a declaration, not as a word.** The vocabulary gate's rules are
+identifier-boundary patterns over tokens, and the word itself stays live everywhere: `model/` is the
+tree, `model:` is a key of `property` and `scenario`, `DeclaredModel` is what both resolve to, and a
+doc comment may wrap a line onto it. What is retired is the declaration, and a declaration is a
+column-0 keyword followed by the author's name and nothing else -- a shape no prose line and no key
+takes. So the rule is line-anchored (`^model <name>$`) rather than token-bounded, and SEM-20's
+compound-token question does not arise.
+
+**Three of the `model` command's rejections are gone rather than respelled.** A duplicate row is a
+second `match` arm, which Lean rejects at the arm. An unsorted Action catalog is the command's to
+emit. A state domain that takes arguments is one class per assignment of its fields, which is the
+granularity the whole surface is written at; what is rejected is a field with no finite member list.
+The unreachable-end-state rule is gone too, and that one is a change of rule rather than of
+spelling: `ends:` names the values of one state field, so every state carrying one is terminal
+whether or not a step reaches it, and `nexusProduct` deliberately ends in a `timedOut` nothing there
+reaches. A `starts:` list must still be sorted, because that one is the author's, and the machine now
+rejects it at the line rather than leaving it to admission.
+
+**A machine's state key does not name a constant.** `resolveDeclared` gave every member spelling the
+constructor it resolved to, so the editor could hover it; a state key names an assignment of the
+structure's fields, so for a structure of several fields there is nothing to point at. The hover is
+now given where there is one and skipped where there is not, and the declaring type is recorded
+either way.
+
 ### Carried forward, not resolved
 
 A `scenario` names its start state and its Actions with identifiers, and a structured machine's keys

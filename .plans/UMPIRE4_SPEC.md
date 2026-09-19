@@ -307,8 +307,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   `Umpire.CheckedModel` is their shared model representation, not an authoring language. Wrappers
   MUST NOT provide another way to define behavior.
 - **AUT-07a — The Model command surface.** *(drafted by fn-83; awaiting GOV-02 approval.)*
-  `Umpire.Command` MAY provide one command surface -- `model`, `property`, `scenario`, `limits`,
-  `query` -- over the AUT-07 languages, and it is the only such surface. Each command MUST elaborate
+  `Umpire.Command` MAY provide one command surface -- `machine`, `property`, `scenario`, `limits`,
+  `query`, and the `entity`, `enum`, `action` and `observation` declarations they are written over --
+  and it is the only such surface. Each command MUST elaborate
   to the ordinary `Umpire.Property`, `Umpire.Scenario` and `Umpire.Query` declarations AUT-07 names,
   MUST NOT admit anything those languages reject, and MUST NOT define behavior of its own. A
   command surface that is not `Umpire.Command` is the "another way to define behavior" AUT-07

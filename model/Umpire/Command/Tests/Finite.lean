@@ -4,7 +4,7 @@ import Umpire.Command.Finite
 # The prototype that decides the authoring form
 
 The user decided on 2026-09-12 that a machine's logic is an ordinary Lean step function, enumerated at
-elaboration into the finite table the `model` command has always produced — not a row grammar. That
+elaboration into the finite table a Model has always carried — not a row grammar. That
 decision rests on one claim, and this module is where the claim is checked:
 
 **A step function enumerates to the same table, and therefore the same Behavior Fingerprint, as the
@@ -79,7 +79,7 @@ where
     | .awaitStart => "awaitStart"
     | .awaitSuccess => "awaitSuccess"
 
-/-- The rows an author writes today, in the `model` command's order. -/
+/-- The rows the retired `model` command's grammar produced, in its order. -/
 private def writtenRows : List (FiniteTransitionRow State Action Outcome Fact) := [
   { key := rowKey { phase := .scheduled } .awaitStart
     source := { phase := .scheduled }
