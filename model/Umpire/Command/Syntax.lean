@@ -1171,6 +1171,9 @@ syntax "for:" ident : machineKey
 syntax "state:" ident : machineKey
 syntax "ends:" "[" ident,+ "]" : machineKey
 syntax "starts:" "[" ident,+ "]" : machineKey
+syntax "timers:" "[" ident,+ "]" : machineKey
+syntax "setup:" withPosition((colGe ident ":" ident)+) : machineKey
+syntax "evidence:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
 
 @[run_parser_attribute_hooks] private def machineKeyword := declarationKeyword "machine"
@@ -1182,6 +1185,14 @@ instances, so `for:` names one"
 private def undeclaredStepActionMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
 its function steps on"
+
+private def unnamedTimerMessage (spelling : String) : String :=
+  s!"no `steps:` line names the timer '{spelling}'; a timer is `system` behaviour written as a step \
+function, and one that never fires is a timer the machine does not have"
+
+private def unreturnedEvidenceMessage (spelling : String) (returned : String) : String :=
+  s!"no step of this machine returns the fact '{spelling}', so nothing it confirms ever happens; \
+the steps return {returned}"
 
 private def duplicateStepMessage (spelling : String) : String :=
   s!"the machine steps on '{spelling}' twice; one action has one step function, and two would not \
@@ -1256,6 +1267,9 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut stateRef : Option Ident := none
   let mut endRefs : Array Ident := #[]
   let mut startRefs : Array Ident := #[]
+  let mut timerRefs : Array Ident := #[]
+  let mut setupParameters : Array (String × Name) := #[]
+  let mut evidenceRefs : Array (Ident × Ident) := #[]
   let mut stepRefs : Array (Ident × Ident) := #[]
   for entry in keys do
     match entry with
@@ -1276,6 +1290,21 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         endRefs := members.getElems
     -- The antiquotation names avoid `actions`, because `actions:` is already a token and
     -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
+    | `(machineKey| timers: [$members,*]) => do
+        if !timerRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "timers:")
+        timerRefs := members.getElems
+    | `(machineKey| setup: $[$parameter:ident : $domain:ident]*) => do
+        if !setupParameters.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "setup:")
+        for named in parameter, ranged in domain do
+          let (declName, _, _) ← resolveDomain ranged
+          setupParameters := setupParameters.push (named.getId.toString, declName)
+    -- `recorded`, not `fact`: `fact:` is already a token of the `model` command's `require:` block,
+    -- so `$fact:ident` tokenizes as `$` and that token rather than as an antiquotation. The same
+    -- trap as `$actions:ident`, one category over.
+    | `(machineKey| evidence: $[$recorded:ident : $observed:ident]*) => do
+        if !evidenceRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "evidence:")
+        for named in recorded, seen in observed do
+          evidenceRefs := evidenceRefs.push (named, seen)
     | `(machineKey| starts: [$members,*]) => do
         if !startRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "starts:")
         startRefs := members.getElems
@@ -1298,20 +1327,39 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     throwErrorAt stateType (notAStateStructureMessage stateType.getId)
   let stateMembers ← domainMembers stateType stateDecl
   -- Every `steps:` line, resolved before anything is generated from any of them.
+  let timerNames := timerRefs.map fun timerRef => timerRef.getId.getString!
   let mut steps : Array ResolvedStep := #[]
+  let mut timersStepped : Array String := #[]
   for (actionRef, functionRef) in stepRefs do
-    let declName? ← try
-        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo actionRef)
-      catch failure =>
-        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
-    let some declared := declName?.bind (Registry.action? (← getEnv))
-      | throwErrorAt actionRef (undeclaredStepActionMessage actionRef.getId)
-    if steps.any fun seen => seen.action.declName == declared.declName then
-      throwErrorAt actionRef (duplicateStepMessage declared.name)
-    steps := steps.push {
-      action := declared
-      domains := declared.inputFields.map Prod.snd
-      function := functionRef }
+    let spelling := actionRef.getId.getString!
+    if timerNames.contains spelling then
+      -- A timer is `system` behaviour: it takes no input, so its step function takes only the state,
+      -- and it is an action of the machine's domain like any other. Nothing a realization can drive.
+      if timersStepped.contains spelling then
+        throwErrorAt actionRef (duplicateStepMessage spelling)
+      timersStepped := timersStepped.push spelling
+      steps := steps.push {
+        action := { declName := .anonymous, name := spelling, party := "system"
+                    subject := none, inputFields := #[], results := none }
+        domains := #[]
+        function := functionRef }
+    else
+      let declName? ← try
+          some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo actionRef)
+        catch failure =>
+          if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+      let some declared := declName?.bind (Registry.action? (← getEnv))
+        | throwErrorAt actionRef (undeclaredStepActionMessage actionRef.getId)
+      if steps.any fun seen => seen.action.name == declared.name then
+        throwErrorAt actionRef (duplicateStepMessage declared.name)
+      steps := steps.push {
+        action := declared
+        domains := declared.inputFields.map Prod.snd
+        function := functionRef }
+  -- A timer no step names never fires, so it is a timer the machine does not have.
+  for timerRef in timerRefs do
+    unless timersStepped.contains timerRef.getId.getString! do
+      throwErrorAt timerRef (unnamedTimerMessage timerRef.getId.getString!)
   -- The machine's Action domain is synthesized, one constructor per action it steps on, carrying
   -- that action's input fields. The author writes one function per action over that action's own
   -- inputs; the enumerator walks one `State -> Action -> List (Step ...)`, and this is what makes
@@ -1425,12 +1473,21 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         match held with
         | .atom declared => declared.getString! == spelling
         | .applied constructor _ => constructor.getString! == spelling
+  let factMembersEarly ← domainMembers name factType
   let mut startTerms : Array Term := #[]
   for startRef in startRefs do
     let spelling := startRef.getId.getString!
     let some member := memberNamed spelling
       | throwErrorAt startRef (noEndsFieldMessage spelling)
     startTerms := startTerms.push (← member.term)
+  -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
+  -- something that never happens, which is a mistake about the machine and not about the evidence.
+  let factNames := factMembersEarly.map fun member => member.key
+  for (recordedRef, _) in evidenceRefs do
+    let spelling := recordedRef.getId.getString!
+    unless factNames.contains spelling do
+      throwErrorAt recordedRef
+        (unreturnedEvidenceMessage spelling (", ".intercalate factNames))
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
   elabCommand (← `(command|
     def $terminalName : List $stateType := [$terminalTerms,*]))
