@@ -60,6 +60,15 @@ Closure analysis remains intentionally stricter than this guarded execution
 claim. AWS, GCP, Kubernetes control planes, credential discovery, and
 external-service emulation remain explicit non-goals.
 
+**Re-evaluated on 2026-09-19.** The status tables below describe the capabilities as built;
+[GOMAD_MILESTONES.md](GOMAD_MILESTONES.md#re-evaluation-on-2026-09-19) records what of it can
+run today. Two corrections apply to this baseline: the SIM-0 parity manifest was retired by
+fn-81 with the Gomad v2 tree it read, so the thirteen parity cases are recorded in
+`tools/gomad3sim` tests rather than checked against a manifest; and the exact
+`google.golang.org/grpc` and `golang.org/x/net` adapters pin versions the root module has moved
+past, so the `temporal-backoff-overflow` result and every other Temporal workload are
+unreproducible until the adapters are re-pinned.
+
 ## Recommended order
 
 ### Milestone 0: restore the contract — complete

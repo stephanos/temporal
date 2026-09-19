@@ -83,6 +83,93 @@ The assessment that produced this document verified the following on the working
   amendment retains Gomad v3 and the probe, and deletes gomad, gomad1, and gomad2 together with
   the Gomad v3 parity manifest that read gomad2 source paths.
 
+## Re-evaluation on 2026-09-19
+
+Verified on `claude/gomad-status-roadmap-9hbcy0` at `78d80b0` with stock go1.27.0 on
+`linux/amd64`, plus the fork's only Gomad v3 workflow run
+([run 34784315383](https://github.com/stephanos/temporal/actions/runs/34784315383), 2026-09-13,
+`macos-15`) for the gates that need the qualified host. The clone is shallow (99 commits, back to
+2026-09-12), so "unchanged" below means unchanged in that window.
+
+### Milestone status
+
+| Milestone | Status | What decides it |
+| --- | --- | --- |
+| F0 | Applied. fn-81 is `done`; gomad, gomad1, gomad2 and the parity manifest are gone, Gomad v3 and the probe stay. | The `planindex` acceptance criterion does not hold: `go run ./tools/planindex` fails on unregistered and missing Umpire documents and on flow-spec dependency records, none of them Gomad's. |
+| F1 | Not started. Two of its six items are already done or moot; two new blockers were found (below). No flow spec exists for it. | `make gomad3-integration-test` fails both tests; the fixture corpus, the `exec.sh` path, the schema mismatch and the `tagged` fixture are as the baseline recorded. |
+| F2–F7 | Not started. | No Gomad source under `tools/gomad3*` or `tests/gomadfunctional` changed since the baseline; the branch's engineering since 2026-09-08 went to Umpire and Testpilot (fn-85, fn-87). |
+
+### What still holds from the baseline
+
+- The root module is `go 1.27` / `toolchain go1.27.0`; `version.json` still pins `go1.26.4` and
+  `darwin/arm64` only. `.toolchain` and `.bin` are absent in a fresh checkout.
+- The conformance fixture corpus, `internal/compatibilitypack/testdata/v041`, and
+  `tools/gomad3integration/testdata/tagged` are still absent, and the root `.gitignore` still
+  has no allowance for any of the three directories.
+- The root Makefile still points at `tools/gomad3/exec.sh`; the script lives at
+  `internal/gomadtool/conformance/scripts/exec.sh`.
+- The set loader accepts `gomad3.qualification-set/v1`; `temporal.json` is `v3` and `core.json`
+  is `v1`. `TestQualificationManifestsUsePortableV3` fails on `core.json`, so the test already
+  pins the direction: the loader moves to `v3` and `core.json` follows.
+- The Temporal manifest still expects 5 of 16 qualified with the same eleven blocker paths, the
+  probe is unchanged at 16 lines and absent from the corpus, and the I/O transcript bound is
+  still a fixed 64 MiB.
+
+### What changed
+
+- **Generated outputs are current.** `make -C tools/gomad3 validate-toolchain` and
+  `validate-compatibility` both pass on this tree. The F1 item to commit the regenerated files
+  is done; whether the generator chain converges in one pass was not re-measured.
+- **The parity manifest item is moot.** fn-81 removed `simulation/parity`; `gomad3sim` declares
+  `gomad3.simulation-spec/v7` alone.
+- **The exact adapters no longer match the root module.** The root `go.mod` carries
+  `google.golang.org/grpc v1.83.2` and `golang.org/x/net v0.58.0`, while `version.json`,
+  `deterministicio/grpc_adapter.go` and `deterministicio/xnet_adapter.go` pin `v1.80.0` and
+  `v0.57.0`. The CI `core` job built the toolchain on `macos-15` in about two minutes and then
+  failed at `compatibility-pack-qualification` with `unsupported golang.org/x/net version
+  "v0.58.0"`, before core qualification ran. Every target whose closure holds gRPC or x/net,
+  which is every Temporal workload and the probe, is unpreparable until both adapters are
+  re-pinned and their boundary diffs re-approved. This is the "compatibility packs pin exact
+  module versions" risk realized, and it recurs on every upstream dependency bump.
+- **The Linux CI job is red on every trigger.** The `host-tools-linux` step lists nine
+  `internal/*` packages that no longer exist (`outputcapture`, `commandrun`, `sourcearchive`,
+  `patchset`, `toolchainbuild`, `testtier`, `testdriver`, `scriptpolicy`, `hosttool`); the tree
+  has `canonicaljson`, `compatibilitypack`, `gomadtool`, `hostexec` and `hostfs`. The step fails
+  at package setup. Because the workflow also triggers on `go.mod` and `Makefile`, it fails on
+  unrelated pull requests; the 2026-09-13 run was an Umpire pull request.
+- **What passes without the qualified host.** `test-harness`, `world-test`, `test-builder`,
+  `tools/gomad3sim`, and the `runner`, `qualification`, `record`, `artifact`, `choice`,
+  `simulation`, `toolchain/version` packages pass under stock Go on Linux. `target`,
+  `deterministicio` and `upgrade` fail only for the missing pinned toolchain or the unsupported
+  host, which is the documented platform limit, not a regression.
+- **A Linux measurement of the F4 inventory.** With stock Go, tags `test_dep`, on
+  `linux/amd64`, 41 non-standard packages in the `./tests` closure import `os/exec`, `os/signal`,
+  `syscall` or `golang.org/x/sys`; 29 of them import `os/exec`, `os/signal` or `x/sys`. The
+  number is not comparable to the baseline's 27 on `darwin/arm64` because Linux adds
+  `prometheus/procfs` and its build tags differ, but it confirms the four packages live in every
+  cluster and adds one the baseline did not name: `go.temporal.io/sdk/internal` imports
+  `os/signal` and `syscall`, and any functional test that starts an SDK worker keeps it live.
+
+### Amended F1 order
+
+The blockers above change what F1 starts with. Nothing in the original list can be verified
+end to end while the adapters reject the root module, so the order is now:
+
+1. Re-pin the `golang.org/x/net` and `google.golang.org/grpc` exact adapters to the root
+   module's versions and re-approve their boundary diffs by digest. Until this lands, the core
+   and Temporal qualification sets cannot run at all.
+2. Repair the `host-tools-linux` package list in `.github/workflows/gomad3.yml` so the Linux
+   job tests the packages that exist.
+3. Re-author and commit the fixture corpus with the `.gitignore` allowances.
+4. Point the root Makefile at the real `exec.sh`.
+5. Move the set loader to `v3` and `core.json` with it.
+6. Add or delete the `tagged` fixture.
+
+The F1 acceptance criteria are unchanged. A decision is owed alongside: the workflow's
+`go.mod` and `Makefile` triggers now fail on every unrelated pull request. Either F1 starts now,
+or the plan records Gomad v3 as dormant and narrows the workflow to `tools/gomad3/**` until it
+does. Leaving it as is turns every upstream bump into a red check nobody owns.
+
 ## Constraints that apply to every milestone
 
 - **No policy widening.** A milestone never grants `syscall`, `os/exec`, `os/signal`, or
@@ -143,11 +230,17 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
 
 **Details.**
 
-- Commit the regenerated files from `make -C tools/gomad3 generate` and verify
-  `make -C tools/gomad3 validate-toolchain` passes on a clean checkout. Make the generator chain
+- ~~Commit the regenerated files from `make -C tools/gomad3 generate` and verify
+  `make -C tools/gomad3 validate-toolchain` passes on a clean checkout.~~ Done; both validate
+  targets pass on 2026-09-19. Make the generator chain
   converge in one pass by ordering the gomadcap overlay generation before the livecap protocol
   digest, or by having `generate` loop until `-check` passes. Add that gate to the
   gomad3 workflow's `core` job so generated outputs cannot drift again without a red check.
+- Re-pin the `golang.org/x/net` and `google.golang.org/grpc` exact adapters to the root
+  module's `v0.58.0` and `v1.83.2`, regenerate `toolchain/version/generated.go`, and approve
+  the boundary diffs by digest. Added on 2026-09-19; see the re-evaluation above.
+- Replace the nine deleted package paths in the `host-tools-linux` step of
+  `.github/workflows/gomad3.yml` with the packages that exist. Added on 2026-09-19.
 - Re-author and commit the conformance fixture corpus. Add
   `!/tools/gomad3/internal/gomadtool/conformance/testdata/` and
   `!/tools/gomad3/internal/compatibilitypack/testdata/` to the root `.gitignore` next to the
@@ -159,11 +252,12 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
   assertion depend on. The rest follow in the order `make -C tools/gomad3 test-runtime` fails.
 - Point the root Makefile at the real `exec.sh` or move the script to the path the Makefile
   expects. Pick one; the compatibility-pack request records the path.
-- Bump `HarnessSpecSchema` in `tools/gomad3/simulation/parity/manifest.go` and the JSON manifest
+- ~~Bump `HarnessSpecSchema` in `tools/gomad3/simulation/parity/manifest.go` and the JSON manifest
   to `gomad3.simulation-spec/v7`, or explain in the spec changelog why gomad3sim moved without
-  the manifest.
-- Reconcile the qualification-set schema. Either the loader in `qualification/set/set.go`
-  accepts `v3` with `suites` and `run_timeout`, or the two manifests return to `v1`. The CI
+  the manifest.~~ Moot: fn-81 removed the parity manifest with the gomad2 tree.
+- Reconcile the qualification-set schema. The loader in `qualification/set/set.go` accepts
+  `v3` with `suites` and `run_timeout`, and `core.json` moves to `v3` as well:
+  `TestQualificationManifestsUsePortableV3` already asserts both manifests at `v3`, and the CI
   workflow asserts the `v6` report schema, so the loader change is the smaller diff.
 - Add the missing `tools/gomad3integration/testdata/tagged` fixture that `TestPublicWrappers`
   runs, or delete that test.
@@ -427,5 +521,9 @@ gate run in CI.
   is the first port; every later Go bump repeats it.
 - **Compatibility packs pin exact module versions.** Every dependency bump in the root go.mod
   that touches a packed module invalidates the pack and reopens milestone F4.
-- **Deletion pressure.** fn-81 is reviewed and ready. Until milestone F0 lands, every commit on
-  the branch can remove the code this plan depends on.
+- **Deletion pressure.** ~~fn-81 is reviewed and ready. Until milestone F0 lands, every commit on
+  the branch can remove the code this plan depends on.~~ Closed by F0 on 2026-09-08.
+- **Drift pressure.** Every merge of upstream `main` can move a module the adapters or packs
+  pin exactly. It happened once between the baseline and 2026-09-19 (gRPC and x/net) and
+  stopped every qualification set from running. Until F7 makes the Temporal set a required
+  check, nothing catches the next one before the weekly run.
