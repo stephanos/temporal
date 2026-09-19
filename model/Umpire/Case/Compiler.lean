@@ -75,6 +75,8 @@ structure Input where
   /-- The modeled input fields and requested clauses this Case must cover. A Case that requests
   none keeps its exact existing meaning. -/
   coverage : Coverage.Request := {}
+  /-- The abstraction claims this Case makes: one per class with an example its path realized. -/
+  abstractionClaims : List Provenance.AbstractionClaimRow := []
 
 private def lowerProperty : ContractLowering → Except Error (Option ContractRule)
   | .monitor sourceDefinition rule =>
@@ -135,6 +137,7 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
     correlatedRules
     localNames := localized.localNames
     modelValueFingerprints := localized.modelValueFingerprints
+    abstractionClaims := input.abstractionClaims
   }
   let provenance ← (Provenance.make metadata).mapError fun source =>
     Error.mk input.caseId source "provenance.source-position"

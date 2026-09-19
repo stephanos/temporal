@@ -8,6 +8,7 @@ import Umpire.Command.Registry
 import Umpire.Command.Predicate
 import Umpire.Command.Instances
 import Umpire.Command.Refinement
+import Umpire.Command.Claims
 
 /-!
 # The Model command grammar
@@ -679,7 +680,7 @@ several instances names a Property on the machine its Scenario runs over"
 
 /-- What a Query runs on: the Model, the number of instances its Scenario runs over, and -- when
 the Property is declared on the machine the Scenario's machine refines -- that refined Model. -/
-private structure QueryTarget where
+private structure QuerySubject where
   model : Name
   instances : Nat := 1
   lifted : Option Name := none
@@ -688,7 +689,7 @@ private structure QueryTarget where
 The two name one Model, or the Scenario's machine `refines:` the Property's: then the Property is
 read on the refining machine's paths through its `map:`, and every Action, outcome and fact the
 Property names has to be one the refining machine names too. -/
-private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM QueryTarget := do
+private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM QuerySubject := do
   let propertyName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo propertyRef)
   let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
   let environment ← getEnv
@@ -2079,6 +2080,15 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     `(term| [$pairs,*])
   let setupParameterTerms : Array Term := setupParameters.map fun (parameter, _) =>
     Lean.quote parameter
+  -- Each action member as its action's name and the class it assigns each input field, spelled
+  -- the way an `examples:` line spells a class, so a Case can tell which claims its path makes.
+  let actionClassTerms : Array Term ← actionMembers.toArray.mapM fun member => do
+    let (actionName, held) := match member with
+      | .atom spelling => (spelling.getString!, #[])
+      | .applied constructor fields => (constructor.getString!, fields)
+    let pairs ← held.mapM fun (field, value) =>
+      `(term| ($(Lean.quote field), $(Lean.quote value.render)))
+    `(term| ($(Lean.quote actionName), [$pairs,*]))
   let names ← `(term|
     { declaration := $(Lean.quote name.getId.toString)
       roleName := $(Lean.quote declaredEntity.name)
@@ -2088,7 +2098,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       actionKeys := [$(keyList actionMembers),*]
       outcomeKeys := [$(keyList outcomeMembers),*]
       factKeys := [$(keyList factMembers),*]
-      setupParameters := [$setupParameterTerms,*] })
+      setupParameters := [$setupParameterTerms,*]
+      actionClasses := [$actionClassTerms,*] })
   -- A state the Model reaches, does not end in, and can take no step from is where a Search stops
   -- without having finished. The table is what knows, so the check runs on the emitted table and is
   -- reported back at the `steps:` block that produced it.
@@ -2232,5 +2243,272 @@ elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : com
     name := name.getId.toString
     entity := declaredEntity.declName
     read := readRef.getId.toString })
+
+/-! ### The `set` command
+
+A set groups Queries by purpose and binds every party except `system`: `driven` when the Case's own
+Program performs the party's actions, `observed` when the world does and the verifier reads which
+class occurred. A functional set compiles each `find` Query to one Case; a canary set's Queries are
+admitted for a deployment to run; an exploratory set names a coverage goal and a budget. The set is
+Umpire's -- which Cases it produces, and through which realization, is the owning platform's
+command to say -- so what it checks here is what the Model alone decides. -/
+
+declare_syntax_cat setKey
+syntax "purpose:" ident : setKey
+syntax "bind:" withPosition((colGe ident ":" ident)+) : setKey
+syntax "repeat:" ident : setKey
+syntax "queries:" "[" ident,* "]" : setKey
+syntax "cover:" sepBy1(ident, "|") : setKey
+syntax "budget:" ident : setKey
+
+@[run_parser_attribute_hooks] private def setKeyword := declarationKeyword "set"
+
+private def unknownPurposeMessage (spelling : String) : String :=
+  s!"unknown purpose '{spelling}'; a set is functional, canary or exploratory"
+
+private def unboundPartyMessage (party : String) : String :=
+  s!"party '{party}' performs actions and this set does not bind it; a set binds every party \
+except `system` to `driven` or `observed`"
+
+private def systemBoundMessage : String :=
+  "`system` is the implementation under test and performs no declared action; a set binds every \
+other party and never `system`"
+
+private def unknownPartyMessage (party : String) : String :=
+  s!"no declared action is performed by party '{party}'; a set binds the parties the Model's \
+actions name"
+
+private def unknownBindingMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a binding; a party is `driven` (the Case performs its actions) or \
+`observed` (the world does, and the verifier reads which class occurred)"
+
+private def duplicateBindingMessage (party : String) : String :=
+  s!"party '{party}' is bound twice"
+
+private def repeatOutsideFunctionalMessage (purpose : String) : String :=
+  s!"`repeat:` runs a functional set's Cases once per switch value, and a {purpose} set produces \
+no Cases to repeat"
+
+private def unknownSwitchMessage (spelling : String) (known : List String) : String :=
+  if known.isEmpty then
+    s!"'{spelling}' is not a switch any realization declares"
+  else
+    s!"'{spelling}' is not a switch the realization declares; declared: {", ".intercalate known}"
+
+private def queriesOutsideMessage : String :=
+  "an exploratory set covers rather than lists Queries; `queries:` belongs to a functional or \
+canary set"
+
+private def missingQueriesMessage (purpose : String) : String :=
+  s!"a {purpose} set lists the Queries it runs under `queries:`"
+
+private def verifyQueryInSetMessage (spelling purpose : String) : String :=
+  s!"Query '{spelling}' verifies rather than finds; a {purpose} set's Queries each realize one \
+selected trace, so each is a `find` form"
+
+private def observedActionMessage (action party queryName : String) : String :=
+  s!"the Case for Query '{queryName}' cannot perform '{action}': its party '{party}' is \
+`observed`, so the world performs it and the Case only reads that it did; bind '{party}' `driven` \
+or leave the Query out"
+
+private def missingCoverMessage : String :=
+  "an exploratory set names what it covers under `cover:`: rows, results or classMembers"
+
+private def unknownCoverMessage (spelling : String) : String :=
+  s!"unknown coverage goal '{spelling}'; declared: rows, results, classMembers"
+
+private def coverOutsideMessage (purpose : String) : String :=
+  s!"`cover:` names an exploratory set's goal; a {purpose} set lists Queries"
+
+private def missingBudgetMessage : String :=
+  "an exploratory set names the `limits` it explores within under `budget:`"
+
+private def budgetOutsideMessage (purpose : String) : String :=
+  s!"`budget:` bounds an exploratory set; a {purpose} set's Queries carry their own limits"
+
+private def duplicateSwitchMessage (name : String) : String :=
+  s!"switch '{name}' is already registered"
+
+/-- The action a Scenario's action spelling names: the key's first segment, which is the
+constructor for a classed action and the whole key for a bare one. -/
+private def actionNameOf (spelling : String) : String :=
+  ((spelling.splitOn "-").head?).getD spelling
+
+elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
+  let mut purpose : Option (Ident × String) := none
+  let mut bindings : Array (Ident × String × Ident × String) := #[]
+  let mut bindEntry : Option Syntax := none
+  let mut repeat? : Option Ident := none
+  let mut queryRefs : Option (Syntax × Array Ident) := none
+  let mut coverRefs : Option (Syntax × Array Ident) := none
+  let mut budgetRef : Option Ident := none
+  for entry in keys do
+    match entry with
+    | `(setKey| purpose: $purposeRef:ident) => do
+        if purpose.isSome then throwErrorAt entry (duplicateKeyMessage "set" "purpose:")
+        purpose := some (purposeRef, purposeRef.getId.eraseMacroScopes.toString)
+    | `(setKey| bind: $[$parties:ident : $modes:ident]*) => do
+        if bindEntry.isSome then throwErrorAt entry (duplicateKeyMessage "set" "bind:")
+        bindEntry := some entry
+        for party in parties, mode in modes do
+          bindings := bindings.push (party, party.getId.eraseMacroScopes.toString, mode,
+            mode.getId.eraseMacroScopes.toString)
+    | `(setKey| repeat: $switchRef:ident) => do
+        if repeat?.isSome then throwErrorAt entry (duplicateKeyMessage "set" "repeat:")
+        repeat? := some switchRef
+    | `(setKey| queries: [$listed:ident,*]) => do
+        if queryRefs.isSome then throwErrorAt entry (duplicateKeyMessage "set" "queries:")
+        queryRefs := some (entry, listed.getElems)
+    | `(setKey| cover: $goals|*) => do
+        if coverRefs.isSome then throwErrorAt entry (duplicateKeyMessage "set" "cover:")
+        coverRefs := some (entry, goals.getElems)
+    | `(setKey| budget: $limitsRef:ident) => do
+        if budgetRef.isSome then throwErrorAt entry (duplicateKeyMessage "set" "budget:")
+        budgetRef := some limitsRef
+    | _ => throwErrorAt entry "unsupported set key"
+  let some (purposeRef, purposeSpelling) := purpose
+    | throwErrorAt name (missingKeyMessage "set" "purpose:")
+  let purposeTerm ← match purposeSpelling with
+    | "functional" => `(term| Umpire.Command.SetPurpose.functional)
+    | "canary" => `(term| Umpire.Command.SetPurpose.canary)
+    | "exploratory" => `(term| Umpire.Command.SetPurpose.exploratory)
+    | other => throwErrorAt purposeRef (unknownPurposeMessage other)
+  -- Every party the Model's actions name is bound, `system` is not, and nothing else is. The
+  -- actions are the ones the set's Queries' machines step on; a set that lists no Query -- an
+  -- exploratory one -- binds the parties of the actions declared beside it.
+  let environment ← getEnv
+  let currentNamespace ← getCurrNamespace
+  let steppedOn : Array String := ((queryRefs.map (·.2)).getD #[]).flatMap fun queryRef =>
+    match (Registry.queries environment).find? fun declared =>
+        declared.declName.getString! == queryRef.getId.eraseMacroScopes.getString! with
+    | some declared =>
+        match Registry.scenario? environment declared.scenario with
+        | some declaredScenario =>
+            match Registry.machine? environment declaredScenario.model with
+            | some declaredMachine => declaredMachine.steps.map (·.1)
+            | none => #[]
+        | none => #[]
+    | none => #[]
+  let declaredActions := (Registry.actions environment).filter fun declared =>
+    if steppedOn.isEmpty then currentNamespace.isPrefixOf declared.declName
+    else steppedOn.contains declared.name
+  let parties := (declaredActions.map (·.party)).toList.eraseDups
+  let mut seenParties : Array String := #[]
+  for (partyRef, party, modeRef, mode) in bindings do
+    if party == "system" then throwErrorAt partyRef systemBoundMessage
+    unless parties.contains party do throwErrorAt partyRef (unknownPartyMessage party)
+    if seenParties.contains party then throwErrorAt partyRef (duplicateBindingMessage party)
+    seenParties := seenParties.push party
+    unless mode == "driven" || mode == "observed" do
+      throwErrorAt modeRef (unknownBindingMessage mode)
+  for party in parties do
+    unless seenParties.contains party do
+      throwErrorAt (bindEntry.getD name) (unboundPartyMessage party)
+  let observedParties := bindings.filterMap fun (_, party, _, mode) =>
+    if mode == "observed" then some party else none
+  -- Which keys a purpose takes: Queries for functional and canary, a goal and a budget for
+  -- exploratory.
+  let exploratory := purposeSpelling == "exploratory"
+  if exploratory then
+    if let some (entry, _) := queryRefs then throwErrorAt entry queriesOutsideMessage
+    if coverRefs.isNone then throwErrorAt name missingCoverMessage
+    if budgetRef.isNone then throwErrorAt name missingBudgetMessage
+  else
+    if let some (entry, _) := coverRefs then throwErrorAt entry (coverOutsideMessage purposeSpelling)
+    if let some limitsRef := budgetRef then throwErrorAt limitsRef (budgetOutsideMessage purposeSpelling)
+    if queryRefs.isNone then throwErrorAt name (missingQueriesMessage purposeSpelling)
+  -- A switch is the realization's, registered by name: `repeat:` names one of them.
+  let repeatTerm ← match repeat? with
+    | none => `(term| none)
+    | some switchRef => do
+        unless purposeSpelling == "functional" do
+          throwErrorAt switchRef (repeatOutsideFunctionalMessage purposeSpelling)
+        let spelling := switchRef.getId.eraseMacroScopes.toString
+        unless (Registry.switch? environment spelling).isSome do
+          throwErrorAt switchRef (unknownSwitchMessage spelling
+            ((Registry.switches environment).map (·.name)).toList)
+        `(term| some $(Lean.quote spelling))
+  -- Each Query finds rather than verifies, and in a functional set its path performs no action of
+  -- an `observed` party, because the Case would have to perform it.
+  let origin ← originTerm
+  let mut queryNames : Array Name := #[]
+  let mut queryIdTerms : Array Term := #[]
+  for queryRef in (queryRefs.map (·.2)).getD #[] do
+    let queryName? ← try
+        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo queryRef)
+      catch failure =>
+        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    let some declared := queryName?.bind (Registry.query? environment)
+      | throwErrorAt queryRef (undeclaredMessage "query" queryRef.getId)
+    let queryName := queryName?.getD .anonymous
+    unless declared.selectsWitness do
+      throwErrorAt queryRef (verifyQueryInSetMessage queryName.toString purposeSpelling)
+    if purposeSpelling == "functional" then
+      let selected := ((Registry.scenario? environment declared.scenario).map (·.actions)).getD #[]
+      for spelling in selected do
+        if let some performer := declaredActions.find? (·.name == actionNameOf spelling) then
+          if observedParties.contains performer.party then
+            throwErrorAt queryRef
+              (observedActionMessage spelling performer.party queryName.toString)
+    queryNames := queryNames.push queryName
+    queryIdTerms := queryIdTerms.push
+      (← `(term| ($origin).family.id "query" $(Lean.quote queryName.getString!)))
+  let coverTerms ← ((coverRefs.map (·.2)).getD #[]).mapM fun goalRef => do
+    match goalRef.getId.eraseMacroScopes.toString with
+    | "rows" => `(term| Umpire.Command.CoverageGoal.rows)
+    | "results" => `(term| Umpire.Command.CoverageGoal.results)
+    | "classMembers" => `(term| Umpire.Command.CoverageGoal.classMembers)
+    | other => throwErrorAt goalRef (unknownCoverMessage other)
+  let budgetTerm ← match budgetRef with
+    | none => `(term| none)
+    | some limitsRef => do
+        let _ ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo limitsRef)
+        `(term| some $(Lean.quote limitsRef.getId.eraseMacroScopes.toString))
+  let bindingTerms ← bindings.mapM fun (_, party, _, mode) => do
+    let modeTerm ← if mode == "driven" then `(term| Umpire.Command.PartyBinding.driven)
+      else `(term| Umpire.Command.PartyBinding.observed)
+    `(term| ($(Lean.quote party), $modeTerm))
+  let nameKey := Lean.quote name.getId.toString
+  let declaration ← `(term|
+    { id := ($origin).family.id "set" $nameKey
+      name := $nameKey
+      purpose := $purposeTerm
+      bindings := [$bindingTerms,*]
+      «repeat» := $repeatTerm
+      queries := [$queryIdTerms,*]
+      cover := [$coverTerms,*]
+      budget := $budgetTerm
+      source := ($origin).source })
+  elabCommand (← `(command|
+    $[$doc?:docComment]? def $name : Umpire.Command.SetDeclaration := $declaration))
+  liftCoreM (Registry.recordSet {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    purpose := purposeSpelling
+    queries := queryNames
+    «repeat» := repeat?.map fun switchRef => switchRef.getId.eraseMacroScopes.toString })
+
+/-! ### Registering a switch
+
+A switch is declared by a realization, which is the owning platform's, so the Umpire set command
+learns of it by registration: the platform's module says once which switches exist, and a `repeat:`
+resolves against them. -/
+
+private unsafe def evalSwitchUnsafe (declName : Name) :
+    Elab.Term.TermElabM Umpire.Case.Producer.SwitchBinding :=
+  Meta.evalExpr Umpire.Case.Producer.SwitchBinding
+    (.const ``Umpire.Case.Producer.SwitchBinding []) (.const declName [])
+
+@[implemented_by evalSwitchUnsafe]
+private opaque evalSwitch (declName : Name) : Elab.Term.TermElabM Umpire.Case.Producer.SwitchBinding
+
+elab "register_switch" switchRef:ident : command => do
+  let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo switchRef)
+  let declared ← liftTermElabM (evalSwitch declName)
+  if (Registry.switch? (← getEnv) declared.name).isSome then
+    throwErrorAt switchRef (duplicateSwitchMessage declared.name)
+  liftCoreM (Registry.recordSwitch {
+    name := declared.name
+    values := (declared.values.map (·.name)).toArray })
 
 end Umpire.Command

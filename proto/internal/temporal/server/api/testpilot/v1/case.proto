@@ -28,6 +28,21 @@ message CaseProvenance {
   repeated CorrelatedRuleBinding correlated_rules = 6;
   repeated LocalName local_names = 7;
   repeated ModelValueFingerprint model_value_fingerprints = 8;
+  repeated AbstractionClaim abstraction_claims = 9;
+}
+
+// AbstractionClaim records that this Case realized one class of one action's input field through
+// the example its Model wrote for it. A class with an example stands for several concrete values the
+// Model does not count, so the Case's Verdict is a claim about the class made through one of them.
+message AbstractionClaim {
+  // The Definition ID of the action whose class the Case realized.
+  string action = 1;
+  // The input field the class belongs to.
+  string field = 2;
+  // The class, spelled as the Model spells it.
+  string class_name = 3;
+  // The concrete example the Case used, spelled as the Model's example line spells it.
+  string example = 4;
 }
 
 // DefinitionBinding names one source Model Definition a Case was produced from and the Behavior

@@ -583,17 +583,24 @@ def knownGap (kind : KnownGapKind) (code : String) (subject detail : Option Stri
   { kind, code, subject_presence := subject.map (.subject ·),
     detail_presence := detail.map (.detail ·) }
 
+/-- One abstraction claim row: the class of one action's input field the Case realized, and the
+example it used. -/
+def abstractionClaim (action field className exampleValue : String) : AbstractionClaim :=
+  { action, field, class_name := className, «example» := exampleValue }
+
 /-- Attach producer identity and the typed provenance rows Testpilot never reads to a generated Case,
 each list in the caller's order. -/
 def provenance (producerId producerVersion : String)
     (definitions : Array DefinitionBinding := #[]) (sources : Array SourceLocation := #[])
     (knownGaps : Array KnownGap := #[]) (correlatedRules : Array CorrelatedRuleBinding := #[])
     (localNames : Array LocalName := #[])
-    (modelValueFingerprints : Array ModelValueFingerprint := #[]) :
+    (modelValueFingerprints : Array ModelValueFingerprint := #[])
+    (abstractionClaims : Array AbstractionClaim := #[]) :
     CaseProvenance :=
   { producer_id := producerId, producer_version := producerVersion, definitions, sources,
     known_gaps := knownGaps, correlated_rules := correlatedRules, local_names := localNames,
-    model_value_fingerprints := modelValueFingerprints }
+    model_value_fingerprints := modelValueFingerprints,
+    abstraction_claims := abstractionClaims }
 
 /-- Assemble one generated Case from its version, identity, Program, Contract, and provenance. -/
 def case (major : Int32) (caseId : String)
