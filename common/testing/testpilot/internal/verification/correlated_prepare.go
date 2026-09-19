@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -218,6 +219,31 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 					ambiguous[f.FieldId] = true
 				}
 				retained[f.FieldId] = f.GetType().GetKind()
+			}
+		}
+	}
+	// A Program that declares its evidence names each kind once, so a projection rule names a
+	// declaration, reads only the fields it exposes and counts ordinals in a declared source.
+	declarations, declaredSources := map[string]execution.EvidenceDeclaration{}, map[string]bool{}
+	for _, declaration := range a.prepared.program.Evidence() {
+		declarations[declaration.ID] = declaration
+		declaredSources[declaration.Source] = true
+	}
+	if len(declarations) > 0 {
+		for _, r := range s.ProjectionRules {
+			declaration, ok := declarations[r.Kind]
+			if !ok {
+				return invalid(ir.Unknown, fmt.Sprintf("correlated evidence kind %s is not declared by the Program", r.Kind))
+			}
+			for _, f := range r.Fields {
+				if !slices.Contains(declaration.Fields, f.FieldId) {
+					return invalid(ir.Unknown, fmt.Sprintf("correlated evidence field %s is not declared by evidence %s", f.FieldId, r.Kind))
+				}
+			}
+		}
+		for _, source := range s.Sources {
+			if !declaredSources[source] {
+				return invalid(ir.Unknown, fmt.Sprintf("correlated evidence source %s is not declared by the Program", source))
 			}
 		}
 	}

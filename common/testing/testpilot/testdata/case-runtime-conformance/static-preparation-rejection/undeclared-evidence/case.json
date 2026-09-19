@@ -1,0 +1,148 @@
+{
+  "caseId": "temporal.case.conformance.static-rejection.undeclared-evidence",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.conformance.static-rejection.undeclared-evidence.property",
+        "behaviorFingerprint": "temporal.case.conformance.static-rejection.undeclared-evidence/property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.conformance.static-rejection.undeclared-evidence.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "evidence",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "history",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "responseReads": [
+                  {
+                    "path": "history.events[*]",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
+                    "targets": [
+                      {
+                        "correlatedEvidence": {
+                          "observationId": "evidence",
+                          "rules": [
+                            {
+                              "evidenceId": "completed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "evidence": [
+      {
+        "evidenceId": "started",
+        "evidenceSource": "history",
+        "historyEvent": {
+          "attributesField": "nexus_operation_started_event_attributes"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "conformance"
+            }
+          }
+        ],
+        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+      }
+    ]
+  },
+  "contract": {
+    "contractId": "temporal.case.conformance.static-rejection.undeclared-evidence.contract",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import Temporal.Case.Evidence
+import Temporal.Case.ReadKind
 import Temporal.Case.Support
 
 /-!
@@ -58,7 +59,7 @@ private def historySource (kind : String) (kindId : DefinitionId) :
     Umpire.Case.Producer.EvidenceSource :=
   let attributes := (EventKind.attributesField? kind).getD kind
   { eventKind := kind
-    attributesField := attributes
+    recorded := .historyEvent attributes
     operationKeyPath := historyAttribute attributes scheduledEventKey
     kindId
     sourceId := evidenceSourceId }
@@ -68,6 +69,36 @@ def startedSource : Umpire.Case.Producer.EvidenceSource :=
 
 def completedSource : Umpire.Case.Producer.EvidenceSource :=
   historySource "nexusOperationCompleted" completedEvidenceKindId
+
+/-! ### The read source
+
+A retryable attempt failure writes no history event; the pending operation's attempt count is read
+back through `DescribeWorkflowExecution`, keyed by the same scheduled event id the history events
+carry. The binding is the catalog's (`Temporal.Case.ReadKind`), so the name an `evidence` line
+writes and the declaration the Program carries come from one place. -/
+
+def pendingAttemptsEvidenceKindId : DefinitionId :=
+  .of "temporal.nexus.success.evidence.pendingAttempts"
+def describeSourceId : DefinitionId := .of "temporal.nexus.success.source.describe"
+
+def pendingAttemptsSource : Umpire.Case.Producer.EvidenceSource :=
+  let binding := ReadKind.pendingAttempts
+  { eventKind := binding.name
+    recorded := .read binding.method binding.path
+    operationKeyPath := binding.operationKey
+    kindId := pendingAttemptsEvidenceKindId
+    sourceId := describeSourceId
+    fields := binding.fields }
+
+/-- The controller's bounded poll of the pending operation, run until `condition` holds of one
+element -- `Expr.projectedValue` is one `PendingNexusOperationInfo` -- or the node times out. -/
+def pendingAttemptsNode (condition : Expression) (pollIntervalMilliseconds : Int64 := 250) :
+    InstructionNode :=
+  Program.node "pending-attempts"
+    (Program.readEvidence pendingAttemptsEvidenceKindId.value workflowServiceRole
+      #[Program.environmentAssignment (field "namespace") workerNamespaceBinding,
+        assign (nested ["execution", "workflow_id"]) runId]
+      condition pollIntervalMilliseconds)
 
 /-! ### The Program -/
 
@@ -98,12 +129,12 @@ def startWorkflowNode (workflowType : String) : InstructionNode :=
 
 /-- The full history read, run once the instruction before it succeeded. -/
 def historyNode
-    (identity : Umpire.Case.Producer.Identity)
+    (_identity : Umpire.Case.Producer.Identity)
     (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod historyAssignments #[
     Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
       #[Program.observationTarget historyObservation,
-        Evidence.target runFieldId correlatedObservation identity resolved]
+        Evidence.target correlatedObservation resolved]
   ]
 
 def workflowEntrypointWith
@@ -229,7 +260,8 @@ def nexusOperation (service operation : String) (responds : Response) :
     hooks := [
       { name := "start", instruction := Ref.instruction "controller" "start-workflow" },
       { name := "completion", instruction := Ref.instruction "controller" completionHook }]
-    sources := [NexusOperation.startedSource, NexusOperation.completedSource]
+    sources := [NexusOperation.startedSource, NexusOperation.completedSource,
+      NexusOperation.pendingAttemptsSource]
     projectionLimits := {
       events := 32, buffered := 16, keys := 8, support := 128
       work := 1000000000, eventSize := 512 }

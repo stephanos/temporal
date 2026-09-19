@@ -179,6 +179,10 @@ func (s *compositeSession) Reserve(ctx context.Context, request testpilot.Reserv
 	return handles, nil
 }
 
+func (s *compositeSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	return s.controller.PollRPC(ctx, coordinate, role, method, request, interval, satisfied)
+}
+
 func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
 	var plan testpilot.ReservationCarrierPlan
 	var carrierRequired bool

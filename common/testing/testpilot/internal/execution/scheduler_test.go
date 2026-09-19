@@ -26,6 +26,20 @@ type schedulerHost struct {
 func (h *schedulerHost) InvokeRPC(ctx context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, m proto.Message) (contract.EffectHandle, error) {
 	return h.invoke(ctx, c, m)
 }
+func (h *schedulerHost) PollRPC(ctx context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, m proto.Message, _ time.Duration, satisfied contract.PollPredicate) (contract.EffectHandle, error) {
+	handle, err := h.invoke(ctx, c, m)
+	if err != nil {
+		return nil, err
+	}
+	result, err := handle.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := satisfied(ctx, result.Response); err != nil {
+		return nil, err
+	}
+	return handle, nil
+}
 func (h *schedulerHost) Reserve(ctx context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
 	return h.reserve(ctx, r)
 }
