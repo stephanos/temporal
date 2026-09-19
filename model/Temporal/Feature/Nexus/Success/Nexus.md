@@ -4,6 +4,10 @@
 Proposed syntax for discussion; this file does not compile and is not imported by the model.
 The declarations below describe the desired authoring surface, not an implemented Umpire API.
 
+Superseded in part, 2026-09-19: the implemented surface declares a Model with `machine`, over step
+functions written as ordinary Lean rather than as rows. The keywords below are spelled the way that
+command spells them; the row bodies are the draft's own and were never implemented.
+
 Scope: one operation, asynchronous start, successful completion, and cancellation that can lose
 to completion. Cancellation requests are distinct from cancellation outcomes. This deliberately
 refines the old baseline's immediate cancellation into a request followed by resolution.
@@ -138,9 +142,9 @@ Reaching `started` requires an explicit `awaitStart` step, including in cancella
 them, rather than silently removing a contradictory row. This is a structural requirement on
 the transition relation, checked once during admission, not an extra trace Property or Query.
 -/
-model lifecycle
-  role operation
-  states State
+machine lifecycle
+  for operation
+  state State
   actions Action
   outcomes Outcome
   facts Fact
