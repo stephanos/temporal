@@ -24,7 +24,8 @@ open Temporal.Feature.Nexus.Tests.Commands
 /-! ### The product machine
 
 What an operation does, with no account of how. Every Property written against it is carried to the
-protocol machine by the refinement (`DESIGN.md` section 2.5, delivered by task `.6`). -/
+protocol machine by the refinement (`DESIGN.md` section 2.5), which is declared on the protocol
+machine below. -/
 
 enum ProductPhase
   | scheduled
@@ -93,22 +94,33 @@ def workerStopStep (state : ProductState) :
     List (Step ProductState ProductOutcome ProductFact) :=
   [{ outcome := .accepted, state, facts := [.faultInjected] }]
 
+/-- One of the operation's deadlines firing. Which deadline is the protocol's account of how, so the
+product machine has one timer, and it fires while the operation runs. -/
+def timeoutStep (state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if state.phase == .scheduled || state.phase == .started then
+    productStep .timedOut .nexusOperationTimedOut
+  else []
+
 machine nexusProduct
   for: operation
   state: ProductState
   starts: [scheduled]
   ends: [succeeded, failed, canceled, timedOut]
+  timers: [timeout]
   evidence:
     nexusOperationStarted: nexusOperationStarted
     nexusOperationCompleted: nexusOperationCompleted
     nexusOperationFailed: nexusOperationFailed
     nexusOperationCanceled: nexusOperationCanceled
+    nexusOperationTimedOut: nexusOperationTimedOut
     faultInjected: faultInjected
   steps:
     handlerReply: handlerReplyStep
     complete: completeStep
     transportFault: transportFaultStep
     workerStop: workerStopStep
+    timeout: timeoutStep
 
 /-! ### What the product machine says
 
@@ -119,8 +131,9 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 #guard nexusProduct.table.states.length == 6
 #guard nexusProduct.ends.length == 4
 
-/- Every action class the machine steps on: six replies, three resolutions, and the two faults. -/
-#guard nexusProduct.actionKeys.size == 11
+/- Every action class the machine steps on: six replies, three resolutions, the two faults, and the
+one timer. -/
+#guard nexusProduct.actionKeys.size == 12
 
 /- An async reply starts the operation and records that it started. -/
 #guard (handlerReplyStep { phase := .scheduled } .async).map (·.state.phase) == [.started]
@@ -134,12 +147,12 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.outcome) == [.notFound]
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.state.phase) == [.succeeded]
 
-/- What the Model actually reaches. `timedOut` is not among them: the product machine has no timer,
-because when an operation times out is the protocol's account of how and not what, so the state
-exists for the refinement to map onto and nothing here reaches it. -/
+/- What the Model actually reaches: every phase. `timedOut` is reached by the one timer, because a
+refinement carries every protocol step to a product step or a stutter, and a deadline firing is
+neither a stutter nor anything a product without a timer could take. -/
 #guard (Umpire.Command.reachableFrom nexusProduct.starts
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
-  ["scheduled", "canceled", "failed", "succeeded", "started"]
+  ["scheduled", "canceled", "failed", "succeeded", "started", "timedOut"]
 
 /- Nothing the command declares rests on an unchecked proof. The canonical-table law is what the
 Behavior Fingerprint, Search and Contract lowering all read, and `elabCommand` logs a failure rather
@@ -313,9 +326,25 @@ def startToCloseStep (state : ProtocolState) :
     moves state .timedOut [.nexusOperationTimedOut (timeoutType := .startToClose)]
   else []
 
+/-- How a protocol state reads as a product state: `DESIGN.md` section 3's `map:`, written as the
+function the user's 2026-09-12 decision makes of every row grammar. A phase of the same name is
+that phase; backing off is still scheduled, because the product machine cannot see a retry; and
+an operation not yet scheduled reads as scheduled, because the product machine begins there. Every
+other field is hidden, which is what a map that does not read it says. -/
+def productOf (state : ProtocolState) : ProductState :=
+  { phase := match state.phase with
+    | .unscheduled | .scheduled | .backingOff => .scheduled
+    | .started => .started
+    | .succeeded => .succeeded
+    | .failed => .failed
+    | .canceled => .canceled
+    | .timedOut => .timedOut }
+
 machine nexusProtocol
   for: operation
   state: ProtocolState
+  refines: nexusProduct
+  map: productOf
   starts: [unscheduled]
   ends: [succeeded, failed, canceled, timedOut]
   setup:
@@ -421,6 +450,134 @@ part of the Model's identity. -/
 /-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms nexusProtocol
+
+/-! ### The refinement
+
+`refines: nexusProduct` with `map: productOf` walked every protocol row through the map and derived
+the step mapping, which is what `DESIGN.md` section 2.5 asks for and what no author writes: a row
+whose mapped states are a product step is that step, a row whose mapped states are equal is a
+stutter, and the machine would have been refused at the `map:` line by any other row. The witness,
+`nexusProtocol.refines`, is the simulation's obligations over the two tables, decided by the kernel
+over the 1152 rows; deciding it costs about thirty seconds on top of the machine's own forty. -/
+
+/- Nothing rejected, and every row's result accounted for. -/
+#guard nexusProtocol.refinement.rejected == none
+#guard nexusProtocol.refinement.rows.length == nexusProtocol.transitions.length
+
+/- A reply the product machine sees is that reply's step. A retry it cannot see is a stutter, and so
+are the schedule command -- the product machine begins scheduled -- and the backoff timer. -/
+#guard nexusProtocol.refinement.rows.lookup "scheduled-0-unset-unset-unset-handlerReply-async" ==
+  some (some "handlerReply-async")
+#guard nexusProtocol.refinement.rows.lookup
+  "scheduled-0-unset-unset-unset-handlerReply-handlerError-true" == some none
+#guard nexusProtocol.refinement.rows.lookup
+  "unscheduled-0-unset-unset-unset-schedule-unset-unset-expires" == some none
+#guard nexusProtocol.refinement.rows.lookup "backingOff-1-unset-unset-unset-backoff" == some none
+
+/- A deadline firing is the product's one timer, whichever deadline it was: the protocol's
+`nexusOperationTimedOut (timeoutType := ...)` reads as the product's bare `nexusOperationTimedOut`,
+the way an `evidence:` line covers a constructor's members. -/
+#guard nexusProtocol.refinement.rows.lookup "started-0-unset-unset-expires-startToClose" ==
+  some (some "timeout")
+
+/- A completion before the start records the Started event first. The product machine's completion
+records the completion alone, and still carries the step: a product step may record less than the
+protocol step it carries, never more. -/
+#guard nexusProtocol.refinement.rows.lookup "backingOff-1-unset-unset-unset-complete-succeeded" ==
+  some (some "complete-succeeded")
+
+/- The rows the product machine does not see: every schedule command, every retry -- a retryable
+handler error or a transport fault out of `scheduled` -- and every backoff. -/
+#guard (nexusProtocol.refinement.rows.filter (·.2.isNone)).length == 24 * 8 + 24 + 24 + 24
+
+/- The product state a protocol state reads as is a field of the protocol state, named after the
+product machine, which is what a Property on the product machine reads here. -/
+#guard nexusProtocol.stateFieldIds.map (·.1) ==
+  ["phase", "attempts", "scheduleToClose", "scheduleToStart", "startToClose", "nexusProduct"]
+
+/- The witness is decided, not assumed: `Quot.sound` is what reading the decided `Bool` back as the
+obligations costs, and nothing here is `sorry` or a native evaluation taken on trust. -/
+/--
+info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol.refines' depends on axioms: [propext, Quot.sound]
+-/
+#guard_msgs in
+#print axioms nexusProtocol.refines
+
+/-! ### A product Property on protocol paths
+
+`DESIGN.md` section 3's `terminalIsFinal` is declared on the product machine, and a Query over a
+protocol Scenario finds it: the Property is read on the protocol machine through the map, with the
+product state it names looked up in the field the refinement added. -/
+
+/-- The four phases the product machine ends on. -/
+private def productTerminal (state : ProductState) : Bool :=
+  state.phase == .succeeded || state.phase == .failed || state.phase == .canceled ||
+    state.phase == .timedOut
+
+/- Once an operation is over, no step changes its phase. -/
+property terminalIsFinal
+  machine: nexusProduct
+  holds: fun before after =>
+    !(productTerminal before.state) || after.state.phase == before.state.phase
+
+/- One group per terminal phase, each fixing the phase it leaves from. -/
+#guard terminalIsFinal.names.groups.length == 4
+
+/- A protocol Scenario names its classed actions with their inputs, and its start by its phase. -/
+scenario asyncThenSucceeded
+  model: nexusProtocol
+  starts: unscheduled
+  actions: [schedule (unset, unset, unset), handlerReply (async), complete (succeeded), workerStop]
+
+#guard asyncThenSucceeded.names.setupState == "unscheduled-0-unset-unset-unset"
+#guard asyncThenSucceeded.names.occurrences.map (·.action) ==
+  ["schedule-unset-unset-unset", "handlerReply-async", "complete-succeeded", "workerStop"]
+
+/- The search budget is the protocol machine's: nine actions are enabled before the operation is
+scheduled and eleven once it is, so an exact sequence of four is found among thousands of candidates
+rather than the dozens a one-field machine has. -/
+limits short
+  steps: 4
+  actions: 4
+  search: 8192
+
+query asyncCompletion
+  find: terminalIsFinal
+  in: asyncThenSucceeded
+  limits: short
+
+/- Found: the worker stopping after the completion is a step out of a terminal state that keeps
+its phase. The Property keeps its own identity, because it is the product Property and no other. -/
+#guard (match asyncCompletion with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+#guard (asyncCompletion.toOption.map fun checked => checked.property.id.value) ==
+  some "temporal.nexus.tests.machines.property.terminalIsFinal"
+
+/- And verified over every trace the Scenario admits. -/
+query asyncCompletionHolds
+  verify: terminalIsFinal
+  in: asyncThenSucceeded
+  limits: short
+
+#guard (match asyncCompletionHolds with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "verified-within-limits"
+
+/- A product Property about an action the protocol machine does not have cannot be read there. -/
+property timesOut
+  machine: nexusProduct
+  when: timeout
+  holds: fun step => step.state.phase == .timedOut
+
+/--
+error: the Property names the action 'timeout' of 'Temporal.Feature.Nexus.Tests.Machines.nexusProduct', and 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol' has no action of that name; a Property on the refined machine is read on the refining one through the values of the same name, and a state through its `map:`
+-/
+#guard_msgs in
+query timesOutOnProtocol
+  find: timesOut
+  in: asyncThenSucceeded
+  limits: short
 
 /-! ### What a Search makes of a timer
 
@@ -555,6 +712,229 @@ claim readable: a count that rolled over would say the operation had never been 
   [false, false, true]
 #guard Umpire.Command.limitReached
   (Umpire.Command.saturatingSucc (Fin.last attemptBound)) == true
+
+/-! ### What a refinement is, and what it rejects
+
+The rejections are pinned on a small pair, because each is about the declaration rather than about
+the size of the machine. `retryLoop` refines `attemptLoop` exactly: the loop's phase is the
+attempt's phase, and whether it has retried is hidden. -/
+
+structure RetryState where
+  phase : AttemptPhase
+  retried : Bool
+  deriving BEq, DecidableEq, Repr, Finite
+
+def retryFaultStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .waiting }, facts := [.pendingAttempts] }]
+
+def retryRetryStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .waiting then [] else
+  [{ outcome := .accepted, state := { phase := .trying, retried := true }, facts := [] }]
+
+def retryStopStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .finished }, facts := [.faultInjected] }]
+
+/-- The attempt loop's phase is the retry loop's phase; whether it retried is hidden. -/
+def attemptOf (state : RetryState) : AttemptState := { phase := state.phase }
+
+machine retryLoop
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/- Every row is the attempt loop's step of the same name; nothing stutters. -/
+#guard retryLoop.refinement.rejected == none
+#guard retryLoop.refinement.rows.all (·.2.isSome)
+#guard retryLoop.refinement.rows.lookup "trying-false-transportFault" == some (some "transportFault")
+#guard retryLoop.refinement.rows.lookup "waiting-true-retry" == some (some "retry")
+
+/- The attempt loop's state is a field of the retry loop's, named after the attempt loop. -/
+#guard retryLoop.stateFieldIds.map (·.1) == ["phase", "retried", "attemptLoop"]
+
+/- A Property on the attempt loop is found on the retry loop's paths: `attemptEnds` is about
+`workerStop`, which the retry loop names too. -/
+scenario retryThenStop
+  model: retryLoop
+  starts: trying
+  actions: [transportFault, retry, workerStop]
+
+query retryCompletes
+  find: attemptEnds
+  in: retryThenStop
+  limits: threeOccurrences
+
+#guard (match retryCompletes with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+
+/- A map says how this machine's state reads as another's, so it names that machine. -/
+/--
+error: `map:` says how this machine's state reads as another machine's, so `refines:` names that machine; a `map:` without `refines:` maps to nothing
+-/
+#guard_msgs in
+machine mapAlone
+  for: operation
+  state: RetryState
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/--
+error: `refines:` names the machine this one refines, and `map:` names the function that reads this machine's state as its state; a refinement needs both
+-/
+#guard_msgs in
+machine refinesAlone
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/--
+error: 'notAMachine' is not a machine declared by a `machine` command; `refines:` names the product machine this one refines
+-/
+#guard_msgs in
+machine refinesNothing
+  for: operation
+  state: RetryState
+  refines: notAMachine
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/-- A map into the wrong machine's state: every value it produces is one the refined machine never
+declared. -/
+def productOfRetry (_state : RetryState) : ProductState := { phase := .scheduled }
+
+/--
+error: 'Temporal.Feature.Nexus.Tests.Machines.productOfRetry' is not a map from this machine's state to the refined machine's; `map:` names a function `Temporal.Feature.Nexus.Tests.Machines.RetryState → Temporal.Feature.Nexus.Tests.Machines.AttemptState`
+-/
+#guard_msgs in
+machine mappedElsewhere
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: productOfRetry
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/-- An outcome domain with a value the attempt loop has no name for. -/
+enum RetryOutcome
+  | accepted
+  | rejected
+
+def loudFaultStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .rejected, state := { state with phase := .waiting }, facts := [.pendingAttempts] }]
+
+def loudRetryStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .waiting then [] else
+  [{ outcome := .accepted, state := { phase := .trying, retried := true }, facts := [] }]
+
+def loudStopStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .finished }, facts := [.faultInjected] }]
+
+/- An outcome reads as the refined machine's outcome of the same name, and one with no such name
+reads as nothing. -/
+/--
+error: 'rejected' is an outcome of loudRetryLoop and no outcome of attemptLoop has that name; an outcome reads as the one of its name, so the refined machine declares it
+-/
+#guard_msgs in
+machine loudRetryLoop
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: loudFaultStep
+    workerStop: loudStopStep
+    retry: loudRetryStep
+
+/-- A map under which a dropped delivery finishes the attempt: the attempt loop finishes only by the
+worker stopping, which records a different fact. -/
+def finishedEarly (state : RetryState) : AttemptState :=
+  { phase := if state.phase == .waiting then .finished else state.phase }
+
+/- A row whose mapped states are neither a step of the refined machine nor equal is the refinement's
+own rejection, reported with the row, both readings and what the refined machine lacks. -/
+/--
+error: the row 'trying-false-transportFault' steps from 'trying-false' to 'waiting-false', which read as 'trying' and 'finished' in attemptLoop; attemptLoop has no step from 'trying' reaching 'finished' with outcome 'accepted' and the facts [pendingAttempts], and the two are not equal, so the row is neither a step of attemptLoop nor a stutter
+-/
+#guard_msgs in
+machine finishesEarly
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: finishedEarly
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
 
 /-! ### What the machine command rejects
 
