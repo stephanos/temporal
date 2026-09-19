@@ -27,18 +27,74 @@ Halving the retry bound does not help, so the cost is not the state count alone:
 actions proves in ten seconds and 112 over 23 does not prove at all. The work is in the law, not in
 the walk -- the enumeration itself is cheap.
 
-So this task's first job is the law, not the machine. Options, in the order I would try them:
+So this task's first job is the law, not the machine.
 
-1. Prove the law at reducible transparency, or restate `TableLawStatement` so the catalogs are not
-   forced: `table.transitions = transitions` holds by construction and should not need the `states`
-   and `actions` catalogs whnf'd to see it.
-2. Let `declareMachine` build the table with the catalogs already in the shape the law wants, so the
-   three components are `rfl` at a glance rather than after reduction.
-3. Fall back to `decide`/`native_decide` at the `checked` seam, which the repository's trust policy
-   already admits.
+### Resolved, 2026-09-19
 
-`.14` refuses such a machine rather than declaring a `sorryAx`-carrying Model, so nothing is unsound
-today -- the design's own specimen simply cannot be written yet.
+It was neither the law's statement nor its transparency: it was
+`Umpire.Command.satisfiesTransitionRequirement`, which searched every required row against every
+authored row with a structural comparison at each step. A Model enumerated from its own step
+functions passes its own transition list as the requirement, so the search concluded what a single
+list comparison already says -- quadratically. Short-circuiting on `rows == required` made the
+design's machine elaborate.
+
+Measured after the change, on the same box:
+
+| machine | states | action classes | rows | result |
+| --- | --- | --- | --- | --- |
+| `nexusProduct` | 6 | 11 | 34 | `[propext]`, about 10 s |
+| `nexusProtocol` | 192 | 23 | 1152 | `[propext]`, about 40 s |
+
+`nexusProtocol` is 192 rather than the 224 measured before because it is written with an
+`unscheduled` phase and a retry bound of two: the design's `none + schedule` row is a step from a
+phase, since a machine's state structure has no "no instance yet" member, and it is what makes the
+three deadline fields reachable at anything but their first value.
+
+### Decisions taken while delivering, 2026-09-19
+
+**An `evidence:` line may name a fact constructor.** A fact that carries fields has one member per
+assignment of them and each member's key spells that assignment out, but the mapping to a catalogued
+event is the constructor's: `DESIGN.md` section 3 records every `nexusOperationTimedOut` under one
+event name whichever of the three timers fired. It is also the only spelling an identifier admits.
+
+**A `setup:` parameter ranges over any finite domain.** It configures the implementation under test
+rather than being an input an action carries, so no class of it is written out and no example is
+stored against one; the design's own parameters are `Bool`.
+
+**A count's bound is reduced before it is read**, so a bound written as a name works -- which is what
+the bound will be once it comes from the Limits rather than from the field.
+
+**`ends:` is required**, the way `starts:` already was. Without it no state is terminal, a Search
+runs to its limit on every path and a Property that requires an instance to finish holds by never
+being reached. This is the step-function reading of the acceptance item's "`terminal` without
+`ends:`": the row grammar's `terminal` keyword is `terminalPhase` in ordinary Lean, and what it
+needs from the machine is the `ends:` line.
+
+**`unobservable:` names a timer, not a row.** `DESIGN.md` section 2.3 writes `unobservable` as an
+evidence value on one row; per-action is the granularity a step function has, and a timer is the
+only `system` step the command builds. A timer that fires and records nothing an `evidence:` line
+names is rejected unless it is declared `unobservable:`, and one that does record evidence is
+rejected if it is.
+
+**The Action catalog is emitted in canonical order.** A Search admits a Model whose action catalog is
+sorted by member Definition ID, and this cannot be left to the author: a classed action contributes
+one member per assignment of its inputs in its domain's member order, so no arrangement of `steps:`
+lines could sort `complete-succeeded`, `complete-failed` and `complete-canceled`. `enumerate` gained
+`enumerateOver`, which walks an explicit action order, and the machine passes the sorted catalog to
+it and to `declareModel` alike.
+
+**A machine records a `ModelEntry`, not only a `MachineEntry`,** so `property`, `scenario` and
+`query` see it. Members resolve by the key the table carries; a machine over a one-field state keeps
+the bare spellings a `model` had, which is what makes the migration mechanical.
+
+### Carried forward, not resolved
+
+A `scenario` names its start state and its Actions with identifiers, and a structured machine's keys
+are punctuated -- `schedule-unset-unset-expires`, and a state key naming all five fields. So
+`DESIGN.md` section 3's own `asyncThenSucceeded` scenario and `asyncCompletion` query cannot be
+written over `nexusProtocol` yet. Which surface a Scenario should use over a structured state is
+task `.5`'s question; item 4's claims are pinned on `attemptLoop`, a machine small enough to be named
+by identifiers.
 
 ### Accepted limitation, carried from `.14`'s review
 

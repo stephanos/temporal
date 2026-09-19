@@ -79,16 +79,29 @@ what the finite table calls disabled — so a step that rejects an action needs 
 `rowKey` names a row the way the authoring surface names it; the enumeration does not invent one,
 so a table built here and a table built from written rows carry the same keys and therefore the same
 fingerprint. -/
+def enumerateOver
+    [Finite State]
+    (actions : List Action)
+    (rowKey : State → Action → String)
+    (steps : State → Action → List (Step State Outcome Fact)) :
+    List (FiniteTransitionRow State Action Outcome Fact) :=
+  members (α := State) |>.flatMap fun source =>
+    actions.filterMap fun action =>
+      match steps source action with
+      | [] => none
+      | results => some { key := rowKey source action, source, action, results }
+
+/-- The rows over the Action domain's own member order.
+
+A Search admits a Model whose Action catalog is in canonical order, which is not the order a domain's
+constructors happen to be declared in. A machine passes the catalog it declares; this is the case
+where the two are the same. -/
 def enumerate
     [Finite State] [Finite Action]
     (rowKey : State → Action → String)
     (steps : State → Action → List (Step State Outcome Fact)) :
     List (FiniteTransitionRow State Action Outcome Fact) :=
-  members (α := State) |>.flatMap fun source =>
-    members (α := Action) |>.filterMap fun action =>
-      match steps source action with
-      | [] => none
-      | results => some { key := rowKey source action, source, action, results }
+  enumerateOver (members (α := Action)) rowKey steps
 
 /-- How many steps a Model may have before elaboration refuses it.
 

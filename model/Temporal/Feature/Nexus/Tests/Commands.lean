@@ -1,3 +1,4 @@
+import Temporal.Case.Catalog
 import Temporal.Case.Conventions
 import Temporal.Case.Schema
 
@@ -16,8 +17,9 @@ deferred scope, and declaring them here would deliver it early.
 
 The module imports what a Temporal Model file imports. `Temporal.Case.Conventions` is the Definition
 ID root and the scaffolding prefix every Temporal declaration shares, so the ids below are the ids a
-real Model carries; `Temporal.Case.Schema` is the resolver a `schema:` line asks, and importing it is
-what turns that check on.
+real Model carries; `Temporal.Case.Schema` is the resolver a `schema:` line asks and
+`Temporal.Case.Catalog` the one an `evidence:` line asks, and importing them is what turns those
+checks on.
 -/
 
 namespace Temporal.Feature.Nexus.Tests.Commands
