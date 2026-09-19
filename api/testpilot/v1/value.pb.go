@@ -567,6 +567,11 @@ func (x *ValueMapEntry) GetValue() *Value {
 }
 
 // ModelValue is one model value: the definition that declares it and the value's spelling.
+//
+// One field of a machine's structured state is a model value like any other: its definition is the
+// state field, and its spelling is the member of that field's domain the state holds. So `phase`
+// and `attempts` are two values under two definitions rather than characters of one spelling, and a
+// reference that names a state field reads it the way it reads any other part of a step.
 type ModelValue struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The Case-local name of the declaring definition; CaseProvenance.local_names maps it to its
