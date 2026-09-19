@@ -122,6 +122,10 @@ structure MachineEntry where
   steps : Array (String × Name)
   /-- The timers the machine declares, each of which a `steps:` line names. -/
   timers : Array String
+  /-- The timers whose firing the realization records nowhere. Every Case whose path uses one
+  carries a Known Gap, so which they are is part of what the machine says rather than something a
+  Case discovers. -/
+  unobservable : Array String
   /-- Each `evidence:` line as (the fact the steps return, the observation that confirms it). -/
   evidence : Array (String × String)
   deriving Inhabited, Repr, BEq
