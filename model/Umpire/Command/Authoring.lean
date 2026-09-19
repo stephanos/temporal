@@ -304,12 +304,18 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
   let relationIds := transitions.map fun row => origin.ownedId "relation" ownerKey row.key
   let table := declaredTable names setupValue states actions outcomes facts initial transitions
+  let fieldValuesOf : State → List ModelValue := fun state =>
+    match states.findIdx? (· == state) with
+    | some index => ((stateFieldValues[index]?).getD []).map fun (definitionId, spelling) =>
+        ModelValue.named definitionId spelling
+    | none => []
   let identity : FiniteModelIdentity Setup State Action Outcome Fact := {
     setupBindings := fun _ => initial.map fun value => { roleId := operationRoleId, state := value }
     stateId := catalogId states stateIds
     actionId := catalogId actions actionIds
     outcomeId := catalogId outcomes outcomeIds
     factId := catalogId facts factIds
+    stateFields := fieldValuesOf
   }
   let lawStatement := TableLawStatement lawId table transitions
   let law : Law := { id := lawId, body := lawId.value }
@@ -318,8 +324,12 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     behaviorVersion := capabilityId.value
     requiredLaws := [law]
   }
+  -- A field is provided beside the states that hold it: a Property admits a value only through a
+  -- meaning of the capability it requires, so a field a Property may name is meant here, the way a
+  -- state is.
   let meanings :=
     table.states.map (fun entry => meaning (identity.stateId entry.value) .state) ++
+    stateFieldIds.map (fun (_, fieldId) => meaning fieldId .state) ++
     table.actions.map (fun entry => meaning (identity.actionId entry.value) .action) ++
     table.outcomes.map (fun entry => meaning (identity.outcomeId entry.value) .outcome) ++
     table.facts.map (fun entry => meaning (identity.factId entry.value) .fact)
@@ -335,9 +345,6 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       origin.metadata capabilityId .capability,
       origin.metadata providerId .provider, origin.metadata lawId .law] ++
     (meanings.map fun provided => origin.metadata provided.definitionId provided.kind) ++
-    -- The fields are declared but not provided: a state field is a way of reading a state the
-    -- provider already means, not a second thing the capability supplies.
-    (stateFieldIds.map fun (_, fieldId) => origin.metadata fieldId .state) ++
     table.transitions.map fun row =>
       origin.metadata (origin.ownedId "relation" ownerKey row.key) .relation
   let modelSpec : TableModelSpec := {
@@ -396,12 +403,21 @@ structure PropertyNames where
   roleName : String
   groups : List PropertyGroup
 
-/-- The setup state and the ordered occurrence labels with the Action each one selects. -/
+/-- One occurrence of a Scenario: its label, the Action it selects, and the instance that takes
+it, numbered from one. A Scenario over one instance names instance one throughout. -/
+structure ScenarioOccurrence where
+  label : String
+  action : String
+  instanceNumber : Nat := 1
+  deriving BEq, Repr, Inhabited
+
+/-- The setup state and the ordered occurrences with the Action each one selects. -/
 structure ScenarioNames where
   declaration : String
   roleName : String
   setupState : String
-  occurrences : List (String × String)
+  occurrences : List ScenarioOccurrence
+  deriving BEq, Repr, Inhabited
 
 def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -456,8 +472,8 @@ def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
       (model.origin.ownedId "setup" names.declaration names.roleName)
       (model.namedRole names.roleName) (values.namedState names.setupState)])
     (occurrences := names.occurrences.map fun occurrence =>
-      { key := names.declaration ++ "." ++ occurrence.1,
-        action := (values.namedAction occurrence.2).definitionId })
+      { key := names.declaration ++ "." ++ occurrence.label,
+        action := (values.namedAction occurrence.action).definitionId })
 
 
 
@@ -476,6 +492,10 @@ inductive AdmissionError where
   -- so "nothing here satisfies the Property" is distinguishable from "the search was cut short",
   which are different mistakes with different fixes. -/
   | notSelected (outcome : PlanningOutcome) (explored : ExploredCounts) (limits : Limits)
+  /-- Several instances were asked for and the Query cannot be run over them as asked: an
+  instance the Scenario names lies outside the count, or the instances do not perform the same
+  sequence, so there is no one operation sequence for a Case to follow. -/
+  | instances (reason : String)
 
 /-- Which claim a Query makes: select one satisfying witness, or verify the requirement over every
 trace the Behavior admits within the declared limits. -/
@@ -483,6 +503,18 @@ inductive QueryFormKind where
   | selectWitness
   | verifyClaim
   deriving BEq, DecidableEq, Repr
+
+/-- What a Producer reads of a checked Model: one instance's checked Model, Property, Scenario and
+selected trace, plus the actions the Program performs when several instances interleave. For a
+Query over one instance these are the Query's own; for one over several they are the projection
+onto one instance, because a Contract follows each operation through the machine on its own. -/
+structure Realizable (LawStatement : Law → Prop) where
+  target : QueryModel LawStatement
+  vocabulary : ModelVocabulary
+  property : CheckedProperty
+  behavior : CheckedScenario
+  witness : Option Scenario.Trace
+  program : Option (List DefinitionId) := none
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : DeclaredModel Setup State Action Outcome Fact) where
@@ -495,6 +527,10 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
   over every admitted trace and selects none. -/
   witness : Option Scenario.Trace
+  /-- How many instances of the entity the Query ran over. -/
+  instances : Nat := 1
+  /-- The one-instance view a Producer lowers. -/
+  realizable : Realizable model.lawStatement
 
 def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -531,9 +567,11 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let query := admitted.query
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>
-      pure { target, vocabulary, property, behavior, query, run, witness := some witness }
+      pure { target, vocabulary, property, behavior, query, run, witness := some witness
+             realizable := { target, vocabulary, property, behavior, witness := some witness } }
   | .verifyClaim, .verified =>
-      pure { target, vocabulary, property, behavior, query, run, witness := none }
+      pure { target, vocabulary, property, behavior, query, run, witness := none
+             realizable := { target, vocabulary, property, behavior, witness := none } }
   | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
 
 
@@ -550,11 +588,12 @@ def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     {«model» : DeclaredModel Setup State Action Outcome Fact}
     (checked : CheckedModel «model») :
     Umpire.Case.Producer.Input «model».lawStatement := {
-  target := checked.target
-  vocabulary := checked.vocabulary
-  «property» := checked.property
-  «scenario» := checked.behavior
-  «witness» := checked.witness
+  target := checked.realizable.target
+  vocabulary := checked.realizable.vocabulary
+  «property» := checked.realizable.property
+  «scenario» := checked.realizable.behavior
+  «witness» := checked.realizable.witness
+  program := checked.realizable.program
   operationRole := «model».operationRoleId
   queryId := checked.query.id
   querySource := checked.query.source
@@ -678,5 +717,6 @@ def diagnose [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       some (Diagnostic.anchorModel, s!"the Model admits no finite search: {reprStr error}")
   | .error (.notSelected outcome explored limits) =>
       some (Diagnostic.anchorForm, notSelectedMessage outcome explored limits)
+  | .error (.instances reason) => some (Diagnostic.anchorScenario, reason)
 
 end Umpire.Command

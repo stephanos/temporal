@@ -161,9 +161,10 @@ the two out of `cancelRequested` rather than the last row written. -/
         "temporal.nexus.success.raceSyntax.property.cancellationSettles.state-canceled"])) == some true
 
 /- The predicate fixes what the keyed `require:` block used to spell out, so the Property's
-fingerprint is the one that block produced. -/
+fingerprint was the one that block produced when the form changed (pinned at fcbc068); the value
+here is the one after fn-85 `.4` gave a machine's state fields a meaning. -/
 #guard (cancellation.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
-  some "sha256:179a0a4ab359c176901c15ea3bd5916ac7ca0447df89233baded4f09b55578ad"
+  some "sha256:138d0348841c7843ee62b4c8fab67338878fc893cf5ca9662481b742cd128589"
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId
