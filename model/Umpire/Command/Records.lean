@@ -174,16 +174,6 @@ def CoverageGoal.name : CoverageGoal → String
   | .results => "results"
   | .classMembers => "classMembers"
 
-/-- A class with an example is an abstraction claim: the author claims several realized values
-behave alike in it, and a functional Case runs the example. The claim names the action, the field,
-the class as the Model spells it and the example as the `examples:` line spells it. -/
-structure AbstractionClaim where
-  action : DefinitionId
-  field : String
-  className : String
-  exampleValue : String
-  deriving BEq, Repr
-
 /-- One set of Queries grouped by purpose, with every party except `system` bound. `queries` are
 the Queries a functional or canary set runs, `cover` and `budget` an exploratory set's goal, and
 `repeat` the switch a functional set's Cases run once per value of. -/
@@ -197,17 +187,6 @@ structure SetDeclaration where
   cover : List CoverageGoal := []
   budget : Option String := none
   source : SourceLocation
-  deriving BEq, Repr
-
-/-- A switch is a rollout flag between two implementations of one behavior -- Nexus under the HSM
-implementation or under CHASM -- and it is not a Model parameter: no machine's table varies over
-it. The realization declares it with the configuration each value sets, a functional set's `repeat`
-names it, each Query's Case runs once per value under a Profile that sets it, and a verdict that
-differs between values is a divergence the live test reports. This record carries what a `set`
-resolves `repeat:` against: the switch's name and its values' names. -/
-structure Switch where
-  name : String
-  values : List String
   deriving BEq, Repr
 
 /-- How one outcome of one action class is confirmed: through a declared or catalogued observation,

@@ -87,10 +87,17 @@ agreement. `CaseBinding.DynamicConfig` carries the value into `bindCase`.
 
 ### What is not here
 
-No dynamic-config setting bounds pending Nexus operations, so `DESIGN.md`'s `atConcurrencyLimit`
-has no key to bind to; it stays a Known Gap in any Case over the protocol machine until one exists,
-which is what the mechanism is for. The `set` command and `repeat:` themselves are `.7`'s; this
-task delivers the records and the check it resolves against.
+`DESIGN.md`'s `atConcurrencyLimit` is not bound. This receipt first said no dynamic-config setting
+bounds pending Nexus operations; the research spike of 2026-09-19
+(`.plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md`) corrected that: there is one key per implementation
+(`component.nexusoperations.limit.operation.concurrency` for HSM,
+`nexusoperation.limit.operation.concurrencyPerWorkflow.max` for CHASM), both rejecting with
+`WORKFLOW_TASK_FAILED_CAUSE_PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writing no scheduled event.
+Binding it needs a table that varies with `setup:`, a value beside the key, a key per switch value
+and an evidence source not keyed by the scheduled event, none of which this task delivers, so the
+spike recommends `.10` drop the parameter from the protocol machine rather than carry a meaningless
+gap. The `set` command and `repeat:` themselves are `.7`'s; this task delivers the records and the
+check it resolves against.
 
 ### Gates
 
@@ -104,6 +111,15 @@ identities", `TestTestpilotAsyncNexusCase/hsm` and `/chasm` among them.
 
 Self-review: no second backend is installed in this cloud session, so this owes a cross-model
 re-review before the completion review, as the tasks before it do.
+
+### Re-review fix, 2026-09-19
+
+The cross-model re-review found two things. The rewritten live test had dropped the cross-Run
+isolation check the earlier test carried; it is restored per switch value: the Case is bound to
+two namespaces under each value's cluster, run twice concurrently against each, and every Run's
+workflow is described through its own namespace's client and `NotFound` through the other's. And
+`Umpire.Command.Switch` was a record nothing used beside `Registry.SwitchEntry` and
+`Producer.SwitchBinding`; it is deleted.
 
 ## Evidence
 - Commits: a6d98db

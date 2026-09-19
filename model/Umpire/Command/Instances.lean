@@ -272,6 +272,12 @@ private def projectStep (values : ModelVocabulary) (slot : Nat)
     state := values.namedState slotState.value
     facts := step.facts }
 
+/-- Why a transition claim is not read over several instances. -/
+def transitionOverInstancesMessage : String :=
+  "a transition claim is read on one instance: it is triggered by the state one instance was in, \
+and another instance's step would leave that instance where it was; a Scenario over several \
+instances names a same-step Property under `when:`"
+
 /-- Check a Query over `count` instances of one machine: the product is searched, and what a
 Producer reads is the first instance's projection of what the Search selected, with every
 instance's actions as the Program's path. -/
@@ -287,6 +293,14 @@ def checkInstances [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (knownGaps : List KnownGap := [])
     (form : QueryFormKind := .selectWitness) :
     Except AdmissionError (CheckedModel model) := do
+  -- A transition claim is triggered by the state one slot was in, and nothing in the clause
+  -- language says which instance then acts: another instance's step would leave the slot where it
+  -- was and violate a claim that its next state differs. Until a clause can name the acting
+  -- instance beside the slot's prior state, a Query over several instances names a same-step claim.
+  if propertyNames.groups.any (fun group => match group.trigger with
+      | .priorState _ => true
+      | .action _ => false) then
+    throw (.instances transitionOverInstancesMessage)
   if count == 0 then
     throw (.instances "an instance count of zero admits no instance to run the Scenario over")
   if let some stray := scenarioNames.occurrences.find? fun occurrence =>

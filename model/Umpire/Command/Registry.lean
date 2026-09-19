@@ -127,6 +127,10 @@ structure MachineEntry where
   name: it is `system` behaviour and has no `action` declaration to be named by, and recording them
   all as one name would make two timers indistinguishable to whoever reads this. -/
   steps : Array (String × Name)
+  /-- The `action` declarations the machine steps on, by their resolved constants, so a later
+  command reads the declaration the machine named rather than one of the same spelling. A timer
+  has no declaration and is not among them. -/
+  actionDecls : Array Name := #[]
   /-- The timers the machine declares, each of which a `steps:` line names. -/
   timers : Array String
   /-- The timers whose firing the realization records nowhere. Every Case whose path uses one

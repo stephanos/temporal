@@ -592,8 +592,12 @@ narrows a requirement without changing its intent, and the task that owns it rec
   realization declares `implementation` with `hsm` and `chasm`, the three settings the upstream
   suites set. The live harness runs a Case once per value, each under a dedicated environment
   constructed with the value's settings, and `CheckSwitchAgreement` fails naming the switch, both
-  values and both Verdicts rule by rule. No dynamic-config setting bounds pending Nexus operations
-  today, so the design's `atConcurrencyLimit` stays a Known Gap until one exists.
+  values and both Verdicts rule by rule. The design's `atConcurrencyLimit` is not bound: the limit
+  exists (one key per implementation, rejecting the workflow task with
+  `PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writing no scheduled event), but binding it needs a
+  table that varies with `setup:`, a value beside the key, a key per switch value and an evidence
+  source not keyed by the scheduled event; `.plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md` (2026-09-19)
+  recommends `.10` drop the parameter rather than carry a gap on every Case.
 - **A set is Umpire's; which Cases it produces is the platform's (decided while delivering `.7`).**
   The `set` command checks what the Model alone decides -- the purpose's keys, every party the
   set's machines' actions name bound and `system` not, each Query a `find` form, no `observed`

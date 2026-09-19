@@ -98,6 +98,16 @@ transition predicate.
 Self-review: no second backend is installed in this cloud session, so this owes a cross-model
 re-review before the completion review, as `.1`, `.2`, `.3`, `.14` and `.16` do.
 
+### Re-review fix, 2026-09-19
+
+The cross-model re-review found `enumerateTransition` closing a before-reading predicate over
+every arrival at the prior state, which strengthened a claim the author did not make (a predicate
+reading `before.outcome` on `forkedLifecycle` was reported violated on a trace it holds on) where
+the module said such a predicate is refused. It is refused now: a step after that the predicate
+accepts after some arrivals and not after others is `PredicateRefusal.readsBefore`, reported at
+the predicate with that step, and `readsTheOutcomeBefore` in the success tests pins it. Every
+migrated transition claim reads only `before.state`, so none moved.
+
 ## Evidence
 - Commits: fcbc068
 - Tests: cd model && lake build; make umpire-check-testpilot-authoring; make umpire-check-goldens; LEAN_NUM_THREADS=1 make lint-model

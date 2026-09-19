@@ -173,12 +173,12 @@ the set's name and the Query's: the Case ID is `<caseIdRoot>.<set>.<query>` and 
 one machine. Which claims each Case makes is its own path's: the Producer is handed every class
 claim the machine's actions declare and records the ones the path performs. -/
 
-/-- The declarations of the actions one machine steps on, for the claims their examples make. A
-timer is stepped on by name and has no `action` declaration, so it contributes nothing. -/
-private def machineActionDecls (environment : Environment)
-    (declaredMachine : Umpire.Command.Registry.MachineEntry) : Array Name :=
-  declaredMachine.steps.filterMap fun (spelling, _) =>
-    ((Umpire.Command.Registry.actions environment).find? (·.name == spelling)).map (·.declName)
+/-- The declarations of the actions one machine steps on, as the machine resolved them, for the
+claims their examples make. A timer is stepped on by name and has no `action` declaration, so it is
+not among them. -/
+private def machineActionDecls (declaredMachine : Umpire.Command.Registry.MachineEntry) :
+    Array Name :=
+  declaredMachine.actionDecls
 
 elab "case" name:ident
     &"realizes" setRef:ident
@@ -236,7 +236,7 @@ elab "case" name:ident
     -- The claims the machine's actions make, for the Producer to record the ones this path performs.
     let claims ← match Umpire.Command.Registry.machine? environment modelName with
       | some declaredMachine =>
-          let actionRefs := (machineActionDecls environment declaredMachine).map mkIdent
+          let actionRefs := (machineActionDecls declaredMachine).map mkIdent
           `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*])
       | none => `(term| [])
     let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
