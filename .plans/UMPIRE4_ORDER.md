@@ -392,6 +392,25 @@ read catalog's one binding (`Temporal.Case.ReadKind`: `DescribeWorkflowExecution
 The two Query 2 fixtures regenerate on by-name rules with their two declarations. The `case` block's
 evidence lines stay for `.11`. Its review is a self-review.
 
+**Task .10 is done, 2026-09-19.** The Caller Model (`Temporal.Feature.Nexus.Caller`, family
+`temporal.nexus.caller`) promotes the product and protocol machines out of the test specimens with
+six predicate Properties, four Scenarios, Queries 1 to 4 and the functional set `nexusCallerTests`
+over the HSM and CHASM switch; `nexusProtocol` takes no `setup:` parameter, because
+`atConcurrencyLimit` has no dynamic-config key. The set is realized by a `realized by asyncNexus`
+arm that writes no evidence lines: the mapping derives from the machine's `evidence:` catalog per
+Query path, the realization's bindings are keyed by the classed member a Scenario action resolves
+to, and `whenOnPath` places `await-completion-authority` on the completion paths only. A Contract
+now carries only the projection rows its rules can reach (the protocol machine's whole table made a
+2.6 MB fixture), and an instructed handler error completes the handler activation instead of
+stopping the Run. Four fixtures regenerate (`nexusCallerTests-{syncCompletion,asyncCompletion,
+asyncFailure,handlerError}-case.json`); `async-nexus-case.json` is gone, and Query 2's fixture
+differs from it by the controller's `await-close` read, the finish literal, one correlated rule for
+two, three declarations for two, five transitions for two and no known gaps. `COVERAGE.md` maps the
+four upstream tests; DESIGN.md section 3 is the cancel-free specimen with a `.10` amendment. `make
+umpire-check-regression` exit 0 with **20 passing live identities** (eleven before). `lint-model`
+adds two unused-binder warnings from the `enum` command's generated binders, the pattern
+`Tests/Commands.lean` carries. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
