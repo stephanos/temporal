@@ -32,16 +32,80 @@ Bind machine setup parameters through the Profile and let a functional set's `re
 - The Case bytes do not depend on switch values; the Profile does (spec API Contracts).
 
 ## Acceptance
-- [ ] a machine `setup:` parameter is bound by the Profile through the realization's dynamic config key; an unbindable one yields a Known Gap in the Case, pinned; an unknown switch in `repeat` rejects at the set
-- [ ] the async-Nexus live test runs once per switch value under two environments with identical Case bytes and reports both Verdicts; an injected divergence (a unit test over the harness) fails naming both values and Verdicts
-- [ ] `DeriveProfile` records the bound setup values and the switch value; `derive_profile_test.go` pins it
-- [ ] `make umpire-check-live-tests` green with the identity count recorded (CC=/usr/bin/cc, physical TMPDIR)
+- [x] a machine `setup:` parameter is bound by the Profile through the realization's dynamic config key; an unbindable one yields a Known Gap in the Case, pinned; an unknown switch in `repeat` rejects at the set
+- [x] the async-Nexus live test runs once per switch value under two environments with identical Case bytes and reports both Verdicts; an injected divergence (a unit test over the harness) fails naming both values and Verdicts
+- [x] `DeriveProfile` records the bound setup values and the switch value; `derive_profile_test.go` pins it
+- [x] `make umpire-check-live-tests` green with the identity count recorded (CC=/usr/bin/cc, physical TMPDIR)
 
 
 ## Done summary
-TBD
+
+A machine's `setup:` parameters now travel with the declared Model -- `DeclaredNames.setupParameters`
+by name, `DeclaredModel.setupParameters` with each parameter's definition (`<family>.setup.<machine>.<name>`),
+carried through the instances product and into the Producer's `Input` -- and the realization binds
+each one to a dynamic-config key (`Realization.setup : List SetupBinding`). A parameter the
+realization binds to no key is an `input` Known Gap of the Case, coded `<parameter>.unbound` with the
+parameter as its subject, because the Profile cannot set it and the Case would otherwise run under
+whatever value the environment has; a bound one adds nothing to the Case bytes, since its value is
+the Profile's to record. Pinned on the success slice with `configuredLifecycle` (`setup: probe: Bool`):
+the template's realization leaves it unbound and the Case carries the gap; a realization binding it
+to `history.enablechasm` carries none; and `lifecycle` itself declares no parameter, so the
+async-Nexus fixture did not move.
+
+### Switches
+
+A switch is declared by the realization, not the Model: `Umpire.Command.Switch` is the record a
+`set` resolves `repeat:` against, `Umpire.Case.Producer.SwitchBinding` carries each value with the
+configuration it sets, and `Realization.switch?` answers a name or `none`, which is what rejects
+the `set` `.7` builds. The Nexus realization declares `implementation` with `hsm` and `chasm`, each
+the three settings the upstream Nexus suites set at environment construction
+(`history.enablechasm`, `history.enablechasmcallbacks`,
+`nexusoperation.enablechasmworkflowoperations`), named through the generated catalog so a key that
+leaves the registry fails at elaboration; `switch? "rollout"` is `none`, pinned.
+
+### The Profile
+
+`temporal.Environment` gains `DynamicConfig`, and `DeriveProfile` records it as
+`ProfileSpec.Configuration`: lower-case keys (the catalog's spelling, so two spellings of one key are
+one Profile and two are a rejection), sorted, an empty key or value rejected. The configuration is
+part of `BindingFingerprint`, appended only when present so a Profile that sets none fingerprints as
+it did, and so the prepared Case's identity differs per switch value over the same bytes; a
+configuration with no environment bindings is an identity too. `derive_profile_test.go` and
+`prepare_test.go` pin all of it, including the preparation-error category of an invalid value.
+
+### The live harness
+
+`tests/testcore/testpilot/switch.go` is the harness: `SwitchValue` (a name and the settings it
+sets, `Configuration()` as the Profile records them), `NexusImplementationSwitch()`, and
+`CheckSwitchAgreement`, which fails naming the switch, both values and both Verdicts rule by rule,
+with a unit test injecting a divergence. `TestTestpilotAsyncNexusCase` runs the one Case once per
+value, each in a subtest with its own dedicated environment constructed with the value's settings
+-- the testpilot environment is a dedicated cluster over in-memory SQLite, so the settings apply
+cluster wide and reach the namespace the Case provisions -- with identical Case bytes, Program,
+Contract and provenance under both, two Profile identities, and both Verdicts checked for
+agreement. `CaseBinding.DynamicConfig` carries the value into `bindCase`.
+
+### What is not here
+
+No dynamic-config setting bounds pending Nexus operations, so `DESIGN.md`'s `atConcurrencyLimit`
+has no key to bind to; it stays a Known Gap in any Case over the protocol machine until one exists,
+which is what the mechanism is for. The `set` command and `repeat:` themselves are `.7`'s; this
+task delivers the records and the check it resolves against.
+
+### Gates
+
+`lake build` green (622 jobs); `make umpire-check-testpilot-authoring`,
+`umpire-check-case-runtime-conformance` and `umpire-check-goldens` exit 0 with the async-Nexus
+fixture byte-identical; `go test -tags test_dep ./common/testing/testpilot/...
+./tests/testcore/testpilot/...` green; `GOLANGCI_LINT_BASE_REV=fd1d4bd make lint-code-fast` 0
+issues; `LEAN_NUM_THREADS=1 make lint-model` at the baseline; `CC=/usr/bin/cc make
+umpire-check-live-tests` green: "failure identities match the empty expected set across 11 passing
+identities", `TestTestpilotAsyncNexusCase/hsm` and `/chasm` among them.
+
+Self-review: no second backend is installed in this cloud session, so this owes a cross-model
+re-review before the completion review, as the tasks before it do.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a6d98db
+- Tests: cd model && lake build; make umpire-check-testpilot-authoring; make umpire-check-case-runtime-conformance; make umpire-check-goldens; go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/...; GOLANGCI_LINT_BASE_REV=fd1d4bd make lint-code-fast; LEAN_NUM_THREADS=1 make lint-model; CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-live-tests
 - PRs:

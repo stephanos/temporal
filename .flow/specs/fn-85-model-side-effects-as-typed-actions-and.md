@@ -579,6 +579,21 @@ narrows a requirement without changing its intent, and the task that owns it rec
   the operation is over is `notFound`, a worker stopping afterwards records its fault -- which a
   Search takes like any row. The `model`-era refusal of such a step is retired; the Success test
   that pinned it now pins the table as noncanonical, which is the reason that remains.
+- **Setup parameters and switches are bound in the realization and recorded by the Profile
+  (decided while delivering `.5`).** A machine's `setup:` parameters travel with the declared Model
+  by name and definition; the realization binds each to a dynamic-config key of the generated
+  catalog, and one it binds to no key is an `input` Known Gap of the Case coded after the parameter
+  with the parameter as its subject, because the Profile cannot set it and the Case would otherwise
+  run under whatever value the environment has. The Case bytes carry no value: the Profile records
+  the configuration the environment ran under (`ProfileSpec.Configuration`, lower-case keys, sorted,
+  part of the binding fingerprint), so one Case under two values runs under two Profiles. A switch is
+  declared by the realization with the configuration each value sets (`SwitchBinding`, and the
+  `Switch` record `.7`'s `set` resolves `repeat:` against through `Realization.switch?`); the Nexus
+  realization declares `implementation` with `hsm` and `chasm`, the three settings the upstream
+  suites set. The live harness runs a Case once per value, each under a dedicated environment
+  constructed with the value's settings, and `CheckSwitchAgreement` fails naming the switch, both
+  values and both Verdicts rule by rule. No dynamic-config setting bounds pending Nexus operations
+  today, so the design's `atConcurrencyLimit` stays a Known Gap until one exists.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
