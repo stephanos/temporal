@@ -550,6 +550,235 @@ claim readable: a count that rolled over would say the operation had never been 
 #guard Umpire.Command.limitReached
   (Umpire.Command.saturatingSucc (Fin.last attemptBound)) == true
 
+/-! ### Two instances of one entity
+
+A Model holds several instances of the entity it tracks by keeping one state field per instance.
+That is what makes an interleaving an ordinary path rather than a second kind of search: each step
+moves one instance and leaves the other where it was, and the Search walks the product because the
+product is the machine's own state.
+
+The Contract sees the instances apart, because a state field is a model value under its own
+definition. Nothing downstream is told that two of these fields are instances of one entity; two
+fields over one domain is all an instance is here. -/
+
+enum Instance
+  | first
+  | second
+
+structure PairState where
+  first : AttemptPhase
+  second : AttemptPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+/-- Which instance an action acts on is one of its inputs, so it is a class of the action the way
+every other input is: `operationFault (which := first)` and `operationFault (which := second)` are
+two action classes, and an example is written at each. -/
+action operationFault
+  party: network
+  on: operation
+  input:
+    which: Instance
+
+action operationResume
+  party: caller
+  on: operation
+  input:
+    which: Instance
+
+action operationStop
+  party: worker
+  on: operation
+  input:
+    which: Instance
+
+private def phaseOf (state : PairState) : Instance → AttemptPhase
+  | .first => state.first
+  | .second => state.second
+
+private def moved (state : PairState) (which : Instance) (phase : AttemptPhase)
+    (recorded : List AttemptFact) : List (Step PairState AttemptOutcome AttemptFact) :=
+  [{ outcome := .accepted
+     state := match which with
+       | .first => { state with first := phase }
+       | .second => { state with second := phase }
+     facts := recorded }]
+
+def operationFaultStep (state : PairState) (which : Instance) :
+    List (Step PairState AttemptOutcome AttemptFact) :=
+  if phaseOf state which != .trying then [] else moved state which .waiting [.pendingAttempts]
+
+def operationResumeStep (state : PairState) (which : Instance) :
+    List (Step PairState AttemptOutcome AttemptFact) :=
+  if phaseOf state which != .waiting then [] else moved state which .trying []
+
+def operationStopStep (state : PairState) (which : Instance) :
+    List (Step PairState AttemptOutcome AttemptFact) :=
+  if phaseOf state which != .trying then [] else moved state which .finished [.faultInjected]
+
+machine pairedOperations
+  for: operation
+  state: PairState
+  starts: [first: trying, second: trying]
+  ends: [first: finished, second: finished]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    operationFault: operationFaultStep
+    operationResume: operationResumeStep
+    operationStop: operationStopStep
+
+/- Three phases each, so nine states; and the machine ends where both instances are finished, which
+is one of them. An `ends:` line naming two fields is a conjunction -- an instance pair is over when
+both are -- where one naming two values of one field is a disjunction. -/
+#guard pairedOperations.table.states.length == 9
+#guard pairedOperations.ends.length == 1
+#guard pairedOperations.ends.map pairedOperations.stateKeyFor == ["finished-finished"]
+
+/- One start state, not two: `starts:` entries naming different fields describe one state together,
+because two instances each beginning in their own value is one state of the machine.
+
+Its key is the setup's key too, and a catalog key admits only letters, digits, `-` and `_` -- which
+is why the setup is named from the state's key rather than from the constructor the command
+generates for it, a `Name` holding punctuation printing itself in guillemets. -/
+#guard pairedOperations.starts.map pairedOperations.stateKeyFor == ["trying-trying"]
+#guard pairedOperations.table.setups.map (·.key) == ["trying-trying"]
+#guard pairedOperations.table.validate.toOption.isSome
+
+/- Six action classes: each action carries which instance it acts on, and the catalog is in
+canonical order whatever order the `steps:` lines were written in. -/
+#guard pairedOperations.actionKeys.toList ==
+  ["operationFault-first", "operationFault-second", "operationResume-first",
+    "operationResume-second", "operationStop-first", "operationStop-second"]
+
+/- A step moves one instance and leaves the other where it was. That is the whole of an
+interleaving: the rows out of one state differ only in which instance moved. -/
+#guard (operationFaultStep { first := .trying, second := .trying } .first).map
+  (fun step => (step.state.first, step.state.second)) == [(.waiting, .trying)]
+#guard (operationFaultStep { first := .trying, second := .trying } .second).map
+  (fun step => (step.state.first, step.state.second)) == [(.trying, .waiting)]
+
+/- An instance that is not where the action needs it does not step, so a row exists only where the
+instance it names can move. -/
+#guard operationResumeStep { first := .trying, second := .trying } .first == []
+#guard operationStopStep { first := .waiting, second := .trying } .first == []
+
+/- Nothing is stuck, and the canonical-table law holds by a proof. -/
+#guard pairedOperations.stuck == none
+/-- info: 'Temporal.Feature.Nexus.Tests.Machines.pairedOperations' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms pairedOperations
+
+/- Every state is reachable: either instance may move at any point, so the product is walked. -/
+#guard (Umpire.Command.reachableFrom pairedOperations.starts
+  pairedOperations.transitions).length == 9
+
+/-! #### A Query over the pair
+
+The Property names one action class, the Scenario names its start state by the fields that pick it
+out, and the trace interleaves the two instances: the first is stopped, then the second is faulted,
+resumed and stopped. -/
+
+property secondInstanceStops
+  model: pairedOperations
+  when: operationStop (which := second)
+  require:
+    outcome: accepted
+    fact: faultInjected
+
+scenario interleavedPair
+  model: pairedOperations
+  starts: first: trying, second: trying
+  actions: [operationStop (which := first), operationFault (which := second),
+    operationResume (which := second), operationStop (which := second)]
+
+limits pairTrace
+  steps: 4
+  actions: 4
+  search: 512
+
+query pairCompletes
+  find: secondInstanceStops
+  in: interleavedPair
+  limits: pairTrace
+
+/- The Search finds the interleaved trace, and it ends where both instances are finished. -/
+#guard (match pairCompletes with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+#guard (match pairCompletes with
+  | .ok checked => (checked.witness.map fun selected =>
+      selected.trace.steps.map (·.state.value)).getD []
+  | .error _ => []) ==
+  ["finished-trying", "finished-waiting", "finished-trying", "finished-finished"]
+
+/- Interleavings are what the budget is spent on. Both instances are enabled at almost every state,
+so the paths out of one state multiply, and a budget that would have been ample for one instance
+stops at the bound. -/
+limits pairBudget
+  steps: 4
+  actions: 4
+  search: 64
+
+/--
+error: the search stopped at its declared bound after 64 traces; raise `limits` if the trace you mean is longer
+-/
+#guard_msgs (error) in
+query pairOutOfBudget
+  find: secondInstanceStops
+  in: interleavedPair
+  limits: pairBudget
+
+/-! #### What naming a state field rejects
+
+`starts:` and `ends:` name a field of the state structure and a value that field holds. Both halves
+are checked, because a machine that tracks two instances has two fields over one domain and a
+mistake in either reads as a state the machine does not have. -/
+
+/--
+error: 'third' is not a field of the machine's state structure; it declares first, second
+-/
+#guard_msgs (error) in
+machine noThirdInstance
+  for: operation
+  state: PairState
+  starts: [first: trying, third: trying]
+  ends: [first: finished, second: finished]
+  steps:
+    operationFault: operationFaultStep
+    operationResume: operationResumeStep
+    operationStop: operationStopStep
+
+/--
+error: 'succeeded' is not a value the state's 'second' field holds
+-/
+#guard_msgs (error) in
+machine wrongInstanceValue
+  for: operation
+  state: PairState
+  starts: [first: trying, second: trying]
+  ends: [first: finished, second: succeeded]
+  steps:
+    operationFault: operationFaultStep
+    operationResume: operationResumeStep
+    operationStop: operationStopStep
+
+/- A bare value still names one field, so a value two fields could hold says which machine is meant
+nowhere. That is the whole reason the `field: value` spelling exists. -/
+/--
+error: 'trying' is a value of more than one state field (first, second), so which field it names is undecided; a machine begins and ends on the values of one field, named unambiguously
+-/
+#guard_msgs (error) in
+machine ambiguousInstance
+  for: operation
+  state: PairState
+  starts: [trying]
+  ends: [first: finished, second: finished]
+  steps:
+    operationFault: operationFaultStep
+    operationResume: operationResumeStep
+    operationStop: operationStopStep
+
 /-! ### What the machine command rejects
 
 Each at the line that made it, because a Model file is read and corrected one line at a time. -/

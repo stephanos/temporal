@@ -35,6 +35,11 @@ structure ModelEntry where
   outcomeType : Name
   factType : Name
   states : Array String
+  /-- Each state's fields, parallel to `states`: the field's name and the value that state holds it
+  at. A `starts:` line names a state of a structured Model by its fields, because a state key is
+  several of them run together and is no identifier. Empty for a Model whose states carry no
+  fields. -/
+  stateFields : Array (Array (String × String)) := #[]
   actions : Array String
   outcomes : Array String
   facts : Array String

@@ -173,6 +173,141 @@ private def duplicateRequirementMessage (key : String) : String :=
 private def undeclaredModelMessage (spelling : Name) : String :=
   s!"'{spelling}' is not a Model declared by a `machine` command"
 
+/-- One class of an input domain, as the tree it is rather than as the text it renders to.
+
+A class is a constructor with its fields assigned, and a field's value is itself a class. Comparing
+the rendered text instead would let two classes whose names run together across a parenthesis --
+`ab (c := false)` and `a (bc := false)` -- compare equal, and an example would be stored against a
+class its author did not write. -/
+private inductive ClassValue where
+  /-- A constructor that carries nothing, `Bool`'s `false` and `true`, or a count's numeral. -/
+  | atom (spelling : Name)
+  /-- A constructor with every field it carries assigned. -/
+  | applied (constructor : Name) (fields : Array (String × ClassValue))
+  deriving Inhabited
+
+/-- A class as an author writes it, which is what `InputField.classes` carries and what an
+`examples:` line is quoted as. -/
+private partial def ClassValue.render : ClassValue → String
+  | .atom spelling => spelling.getString!
+  | .applied constructor fields =>
+      let written := fields.toList.map fun (field, value) => s!"{field} := {value.render}"
+      s!"{constructor.getString!} ({", ".intercalate written})"
+
+/-- A class as a Definition ID fragment: the same tree, joined by `-` rather than punctuated, so a
+state or action carries a key a reader recognises and an id admits. A structure's `mk` contributes
+nothing, because a reader reads its fields and not its constructor. -/
+private partial def ClassValue.key : ClassValue → String
+  | .atom spelling => spelling.getString!
+  | .applied constructor fields =>
+      let written := fields.toList.map fun (_, value) => value.key
+      let joined := "-".intercalate written
+      if constructor.getString! == "mk" then joined
+      else constructor.getString! ++ "-" ++ joined
+
+/-- A class as the Lean term that denotes it, which is also the pattern that matches it. The
+enumeration knows every class as a tree, so the generated code that names one -- a key function's
+match arm, a member list -- is written from the same tree rather than from a second rendering. -/
+private partial def ClassValue.term : ClassValue → CommandElabM Term
+  | .atom spelling =>
+      -- A count's member is a numeral, not a name: `Fin`'s members are spelled `0`, `1`, `2`, and
+      -- `mkIdent` would make each of them an identifier no scope declares.
+      let written := spelling.getString!
+      if !written.isEmpty && written.all Char.isDigit then
+        pure (Syntax.mkNumLit written)
+      else
+        `($(mkIdent spelling))
+  | .applied constructor fields => do
+      -- Positional, not by name: the fields are in declaration order here, and a pattern written
+      -- positionally is one Lean accepts everywhere a term is accepted.
+      let arguments ← fields.mapM fun (_, value) => value.term
+      `($(mkIdent constructor) $arguments*)
+
+/-- Whether a written class names a declared one.
+
+The fields are matched by name rather than by position, so an author who writes a constructor's
+fields in another order writes the same class. Everything else is structural, so nothing merges
+across a name boundary.
+
+A constructor a line qualifies is checked against the qualification, not stripped of it: a declared
+constructor's name is its whole one, and a written name has to be a suffix of it. Two domains may
+each declare `handlerError` -- `DESIGN.md` section 3 declares exactly that, on `Reply` and
+`CancelReply` -- so discarding the qualification would accept one domain's class on the other's
+field. -/
+private partial def ClassValue.matches : ClassValue → ClassValue → Bool
+  | .atom written, .atom declared => written.isSuffixOf declared
+  | .applied writtenName writtenFields, .applied declaredName declaredFields =>
+      writtenName.isSuffixOf declaredName && writtenFields.size == declaredFields.size &&
+        declaredFields.all fun (field, declared) =>
+          match writtenFields.find? fun (written, _) => written == field with
+          | some (_, written) => written.matches declared
+          | none => false
+  | _, _ => false
+
+/-- A written value as the class tree it denotes, or `none` when it is not one.
+
+A value is a constructor, optionally with its fields assigned by name; parentheses around the whole
+of it are the author's and mean nothing. Reading it into the same shape the walk produces is what
+makes the comparison about the class rather than about the text. -/
+private partial def classValueOf (written : Term) : Option ClassValue :=
+  match written with
+  | `(($inner)) => classValueOf inner
+  | `($constructor:ident) => some (.atom constructor.getId)
+  | `($literal:num) => some (.atom (Name.mkSimple (toString literal.getNat)))
+  | _ =>
+      match written.raw with
+      | .node _ ``Lean.Parser.Term.app #[function, arguments] => do
+          let .ident _ _ name _ := function | none
+          let mut fields := #[]
+          for argument in arguments.getArgs do
+            match argument with
+            | `(Lean.Parser.Term.namedArgument| ($field:ident := $value)) =>
+                fields := fields.push (field.getId.getString!, ← classValueOf value)
+            | _ => none
+          some (.applied name fields)
+      | _ => none
+
+/-- One state a `starts:` or `ends:` line names: a value of the state structure, or the field that
+holds it and the value. A machine whose state has two fields over one domain -- two instances of the
+entity it tracks, or two deadlines of the same kind -- can name neither value without saying which
+field it means. -/
+declare_syntax_cat machineStateRef
+syntax ident : machineStateRef
+syntax ident ":" ident : machineStateRef
+
+/-- One `starts:` or `ends:` entry: the field it names, where it names one, and the value. -/
+private def stateEntry (written : TSyntax `machineStateRef) :
+    CommandElabM (Option Ident × Ident) :=
+  match written with
+  | `(machineStateRef| $field:ident : $value:ident) => pure (some field, value)
+  | `(machineStateRef| $value:ident) => pure (none, value)
+  | _ => throwErrorAt written "unsupported state reference"
+
+/-- One Action a `when:` or `actions:` line names: the action, and the assignment of its inputs that
+picks out one class of it. An action carrying no input is named by itself, which is every action a
+Model whose actions take none can write. -/
+declare_syntax_cat actionRef
+syntax ident ("(" (ident " := " term),* ")")? : actionRef
+
+/-- The member key one written Action denotes, read as the class tree it is rather than rendered as
+text -- the same tree an `examples:` line is read into, so the two cannot drift. -/
+private def actionKeyOf (written : TSyntax `actionRef) : CommandElabM (Ident × String) :=
+  match written with
+  | `(actionRef| $constructor:ident $[($[$fields:ident := $values:term],*)]?) => do
+      let bindings := match fields, values with
+        | some fields, some values => fields.zip values
+        | _, _ => #[]
+      if bindings.isEmpty then
+        pure (constructor, (ClassValue.atom constructor.getId).key)
+      else
+        let mut assigned := #[]
+        for (field, value) in bindings do
+          let some class' := classValueOf value
+            | throwErrorAt value "not a class: a value is a constructor with its fields by name"
+          assigned := assigned.push (field.getId.getString!, class')
+        pure (constructor, (ClassValue.applied constructor.getId assigned).key)
+  | _ => throwErrorAt written "unsupported action reference"
+
 /-- Resolve one spelling against a Model's declared domain, reporting an unknown one in place. The
 message shape is every command's, so an author sees one vocabulary wherever they are. -/
 private def resolveDeclared (domain : String) (declared : Array String) (declaringType : Name)
@@ -190,6 +325,47 @@ private def resolveDeclared (domain : String) (declared : Array String) (declari
     liftTermElabM (Lean.Elab.addConstInfo member points)
   pure spelling
 
+/-- The start state one `starts:` line names: a state key written directly, or the field values that
+pick one out. A Model whose states carry no fields is named by its key, which is every Model whose
+states are atoms. -/
+private def resolveStartState (declaredModel : Registry.ModelEntry)
+    (written : Array (TSyntax `machineStateRef)) : CommandElabM String := do
+  let entries ← written.mapM stateEntry
+  match entries with
+  | #[(none, only)] =>
+      resolveDeclared "start state" declaredModel.starts declaredModel.stateType only
+  | _ =>
+      let mut assigned : Array (String × String) := #[]
+      for (fieldRef?, valueRef) in entries do
+        let some fieldRef := fieldRef?
+          | throwErrorAt valueRef "a start state of several fields names each of them: `field: value`"
+        assigned := assigned.push (fieldRef.getId.getString!, valueRef.getId.getString!)
+      let matching := declaredModel.states.zipIdx.filterMap fun (key, index) =>
+        let fields := declaredModel.stateFields[index]?.getD #[]
+        if assigned.all (fun (field, value) =>
+            fields.any fun (named, held) => named == field && held == value) then some key else none
+      let some key := matching[0]?
+        | throwErrorAt written[0]! (unknownMemberMessage "start state"
+            (", ".intercalate (assigned.toList.map fun (field, value) => s!"{field}: {value}"))
+            (declaredModel.starts.toList.map Name.mkSimple))
+      unless declaredModel.starts.contains key do
+        throwErrorAt written[0]! (unknownMemberMessage "start state" key
+          (declaredModel.starts.toList.map Name.mkSimple))
+      pure key
+
+/-- Resolve one written Action against a Model's declared Action catalog. An action that carries no
+input is its own key, so a line that names one reads exactly as it did before a class could be
+written. -/
+private def resolveDeclaredAction (declared : Array String) (declaringType : Name)
+    (written : TSyntax `actionRef) : CommandElabM String := do
+  let (constructor, key) ← actionKeyOf written
+  unless declared.contains key do
+    throwErrorAt written (unknownMemberMessage "action" key (declared.toList.map Name.mkSimple))
+  let points := declaringType ++ Name.mkSimple constructor.getId.getString!
+  if (← getEnv).contains points then
+    liftTermElabM (Lean.Elab.addConstInfo constructor points)
+  pure key
+
 /-- The Model a `model:` key names, resolved to what the `machine` command recorded about it. -/
 private def resolveDeclaredModel (modelRef : Ident) : CommandElabM Registry.ModelEntry := do
   let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
@@ -199,13 +375,13 @@ private def resolveDeclaredModel (modelRef : Ident) : CommandElabM Registry.Mode
 
 elab "property" name:ident
     "model:" modelRef:ident
-    "when:" actionRef:ident
+    "when:" taken:actionRef
     "require:" requirements:modelRequirement+ : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let actionKey := Lean.quote actionRef.getId.toString
     let declaredModel ← resolveDeclaredModel modelRef
+    let actionKey := Lean.quote
+      (← resolveDeclaredAction declaredModel.actions declaredModel.actionType taken)
     let roleKey := Lean.quote declaredModel.role
-    let _ ← resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
     let mut keys : Array String := #[]
     let mut clauses : Array Term := #[]
     for requirement in requirements do
@@ -253,16 +429,18 @@ that sequence, because that is what distinguishes two occurrences of the same Ac
 
 elab "scenario" name:ident
     "model:" modelRef:ident
-    "starts:" setupRef:ident
-    "actions:" "[" selected:ident,+ "]" : command => do
+    "starts:" setup:machineStateRef,+
+    "actions:" "[" selected:actionRef,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let setupKey := Lean.quote setupRef.getId.toString
     let declaredModel ← resolveDeclaredModel modelRef
     let roleKey := Lean.quote declaredModel.role
-    -- The setup state must be one the Model can start in, not merely one it declares.
-    let _ ← resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
+    -- The setup state must be one the Model can start in, not merely one it declares. A structured
+    -- Model's state key is several field values run together and is no identifier, so the line names
+    -- the fields instead and the key is the state holding all of them.
+    let setupKey := Lean.quote (← resolveStartState declaredModel setup.getElems)
+    let setupRef := setup.getElems[0]!
     let spellings ← selected.getElems.mapM
-      (resolveDeclared "action" declaredModel.actions declaredModel.actionType)
+      (resolveDeclaredAction declaredModel.actions declaredModel.actionType)
     let entries ← spellings.mapIdxM fun position spelling =>
       `(term| ($(Lean.quote (toString (position + 1))), $(Lean.quote spelling)))
     elabCommand (← `(command|
@@ -565,77 +743,6 @@ private def bothSubjectsMessage : String :=
   "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
 brings one into existence"
 
-/-- One class of an input domain, as the tree it is rather than as the text it renders to.
-
-A class is a constructor with its fields assigned, and a field's value is itself a class. Comparing
-the rendered text instead would let two classes whose names run together across a parenthesis --
-`ab (c := false)` and `a (bc := false)` -- compare equal, and an example would be stored against a
-class its author did not write. -/
-private inductive ClassValue where
-  /-- A constructor that carries nothing, `Bool`'s `false` and `true`, or a count's numeral. -/
-  | atom (spelling : Name)
-  /-- A constructor with every field it carries assigned. -/
-  | applied (constructor : Name) (fields : Array (String × ClassValue))
-  deriving Inhabited
-
-/-- A class as an author writes it, which is what `InputField.classes` carries and what an
-`examples:` line is quoted as. -/
-private partial def ClassValue.render : ClassValue → String
-  | .atom spelling => spelling.getString!
-  | .applied constructor fields =>
-      let written := fields.toList.map fun (field, value) => s!"{field} := {value.render}"
-      s!"{constructor.getString!} ({", ".intercalate written})"
-
-/-- A class as a Definition ID fragment: the same tree, joined by `-` rather than punctuated, so a
-state or action carries a key a reader recognises and an id admits. A structure's `mk` contributes
-nothing, because a reader reads its fields and not its constructor. -/
-private partial def ClassValue.key : ClassValue → String
-  | .atom spelling => spelling.getString!
-  | .applied constructor fields =>
-      let written := fields.toList.map fun (_, value) => value.key
-      let joined := "-".intercalate written
-      if constructor.getString! == "mk" then joined
-      else constructor.getString! ++ "-" ++ joined
-
-/-- A class as the Lean term that denotes it, which is also the pattern that matches it. The
-enumeration knows every class as a tree, so the generated code that names one -- a key function's
-match arm, a member list -- is written from the same tree rather than from a second rendering. -/
-private partial def ClassValue.term : ClassValue → CommandElabM Term
-  | .atom spelling =>
-      -- A count's member is a numeral, not a name: `Fin`'s members are spelled `0`, `1`, `2`, and
-      -- `mkIdent` would make each of them an identifier no scope declares.
-      let written := spelling.getString!
-      if !written.isEmpty && written.all Char.isDigit then
-        pure (Syntax.mkNumLit written)
-      else
-        `($(mkIdent spelling))
-  | .applied constructor fields => do
-      -- Positional, not by name: the fields are in declaration order here, and a pattern written
-      -- positionally is one Lean accepts everywhere a term is accepted.
-      let arguments ← fields.mapM fun (_, value) => value.term
-      `($(mkIdent constructor) $arguments*)
-
-/-- Whether a written class names a declared one.
-
-The fields are matched by name rather than by position, so an author who writes a constructor's
-fields in another order writes the same class. Everything else is structural, so nothing merges
-across a name boundary.
-
-A constructor a line qualifies is checked against the qualification, not stripped of it: a declared
-constructor's name is its whole one, and a written name has to be a suffix of it. Two domains may
-each declare `handlerError` -- `DESIGN.md` section 3 declares exactly that, on `Reply` and
-`CancelReply` -- so discarding the qualification would accept one domain's class on the other's
-field. -/
-private partial def ClassValue.matches : ClassValue → ClassValue → Bool
-  | .atom written, .atom declared => written.isSuffixOf declared
-  | .applied writtenName writtenFields, .applied declaredName declaredFields =>
-      writtenName.isSuffixOf declaredName && writtenFields.size == declaredFields.size &&
-        declaredFields.all fun (field, declared) =>
-          match writtenFields.find? fun (written, _) => written == field with
-          | some (_, written) => written.matches declared
-          | none => false
-  | _, _ => false
-
 private partial def domainMembers (domainRef : Ident) (declName : Name)
     (visiting : List Name := []) : CommandElabM (List ClassValue) := do
   -- A domain that carries itself has no finite spelling, and walking into it would not terminate.
@@ -803,29 +910,6 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
     id := entityId
     key := keySpelling
     refers := refers.map fun (field, _, declName) => (field, declName) })
-
-/-- A written value as the class tree it denotes, or `none` when it is not one.
-
-A value is a constructor, optionally with its fields assigned by name; parentheses around the whole
-of it are the author's and mean nothing. Reading it into the same shape the walk produces is what
-makes the comparison about the class rather than about the text. -/
-private partial def classValueOf (written : Term) : Option ClassValue :=
-  match written with
-  | `(($inner)) => classValueOf inner
-  | `($constructor:ident) => some (.atom constructor.getId)
-  | `($literal:num) => some (.atom (Name.mkSimple (toString literal.getNat)))
-  | _ =>
-      match written.raw with
-      | .node _ ``Lean.Parser.Term.app #[function, arguments] => do
-          let .ident _ _ name _ := function | none
-          let mut fields := #[]
-          for argument in arguments.getArgs do
-            match argument with
-            | `(Lean.Parser.Term.namedArgument| ($field:ident := $value)) =>
-                fields := fields.push (field.getId.getString!, ← classValueOf value)
-            | _ => none
-          some (.applied name fields)
-      | _ => none
 
 /-- How one `examples:` line reads back. -/
 private structure ExampleLine where
@@ -995,8 +1079,8 @@ into the table. It defines no behavior of its own. -/
 declare_syntax_cat machineKey
 syntax "for:" ident : machineKey
 syntax "state:" ident : machineKey
-syntax "ends:" "[" ident,+ "]" : machineKey
-syntax "starts:" "[" ident,+ "]" : machineKey
+syntax "ends:" "[" machineStateRef,+ "]" : machineKey
+syntax "starts:" "[" machineStateRef,+ "]" : machineKey
 syntax "timers:" "[" ident,+ "]" : machineKey
 syntax "unobservable:" "[" ident,+ "]" : machineKey
 syntax "setup:" withPosition((colGe ident ":" ident)+) : machineKey
@@ -1098,6 +1182,16 @@ undecided; a machine begins and ends on the values of one field, named unambiguo
 private def noEndsFieldMessage (spelling : String) : String :=
   s!"'{spelling}' is not a value of any field of the machine's state structure"
 
+private def noSuchStateFieldMessage (field : String) (declared : String) : String :=
+  s!"'{field}' is not a field of the machine's state structure; it declares {declared}"
+
+private def notAFieldValueMessage (field spelling : String) : String :=
+  s!"'{spelling}' is not a value the state's '{field}' field holds"
+
+private def duplicateStartFieldMessage (field : String) : String :=
+  s!"`starts:` sets the state's '{field}' field twice in one state; a machine begins in one value \
+of each field"
+
 
 /-- Elaborate one of a machine's generated declarations.
 
@@ -1184,8 +1278,8 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- the length is the machine's size rather than anything an author wrote.
   let mut entity : Option Registry.EntityEntry := none
   let mut stateRef : Option Ident := none
-  let mut endRefs : Array Ident := #[]
-  let mut startRefs : Array Ident := #[]
+  let mut endRefs : Array (Option Ident × Ident) := #[]
+  let mut startRefs : Array (Option Ident × Ident) := #[]
   let mut timerRefs : Array Ident := #[]
   let mut unobservableRefs : Array Ident := #[]
   let mut setupParameters : Array (String × Name) := #[]
@@ -1207,7 +1301,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         stateRef := some typeRef
     | `(machineKey| ends: [$members,*]) => do
         if !endRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "ends:")
-        endRefs := members.getElems
+        endRefs := ← members.getElems.mapM stateEntry
     -- The antiquotation names avoid `actions`, because `actions:` is already a token and
     -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
     | `(machineKey| timers: [$members,*]) => do
@@ -1232,7 +1326,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
           evidenceRefs := evidenceRefs.push (named, seen)
     | `(machineKey| starts: [$members,*]) => do
         if !startRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "starts:")
-        startRefs := members.getElems
+        startRefs := ← members.getElems.mapM stateEntry
     -- The antiquotation names avoid `actions`, because `actions:` is already a token and
     -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
     | `(machineKey| steps: $[$stepped:ident : $written:ident]*) => do
@@ -1391,38 +1485,63 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let orderedFields : List String := match stateMembers.head? with
     | some (.applied _ fields) => fields.toList.map Prod.fst
     | _ => []
-  let mut endField : Option String := none
-  for endRef in endRefs do
-    let spelling := endRef.getId.getString!
-    -- Every member is looked at, not the first: a field carries the value in the member that holds
-    -- it, and the member a machine ends in is rarely the one it starts in.
-    let carriers := (stateMembers.flatMap fun member =>
-      (memberFields member).toList.filterMap fun (field, value) =>
-        match value with
-        | .atom declared => if declared.getString! == spelling then some field else none
-        | .applied constructor _ =>
-            if constructor.getString! == spelling then some field else none).eraseDups
-    let some field := carriers.head?
-      | throwErrorAt endRef (noEndsFieldMessage spelling)
-    -- Two fields that can both hold this value leave the machine's end undecided, and picking the
-    -- first would decide it silently. The author writes which field they mean.
-    if carriers.length > 1 then
-      throwErrorAt endRef (ambiguousStateValueMessage spelling
-        (", ".intercalate (orderedFields.filter carriers.contains)))
-    match endField with
-    | none => endField := some field
-    | some seen =>
-        unless seen == field do throwErrorAt endRef (endsAcrossFieldsMessage seen field)
-  let endSpellings := endRefs.map fun endRef => endRef.getId.getString!
+  -- The value a member holds at one field, as the key spells it.
+  let heldValue : ClassValue → String → Option String := fun member field =>
+    (memberFields member).findSome? fun (named, held) =>
+      if named == field then
+        some (match held with
+          | .atom declared => declared.getString!
+          | .applied constructor _ => constructor.getString!)
+      else none
+  -- Resolve one `starts:` or `ends:` entry to the field it names and the value it sets there.
+  --
+  -- A bare value names its field by being one: the fields are searched for a member holding it, and
+  -- a value two fields could hold leaves the machine's end undecided, so the author writes which
+  -- one. That is the whole reason the `field: value` spelling exists -- a machine tracking two
+  -- instances of one entity has two fields over one domain, and neither value names a field.
+  let resolveStateRef : (Option Ident × Ident) → CommandElabM (String × String) :=
+    fun (fieldRef?, valueRef) => do
+      let spelling := valueRef.getId.getString!
+      match fieldRef? with
+      | some fieldRef =>
+          let field := fieldRef.getId.getString!
+          unless orderedFields.contains field do
+            throwErrorAt fieldRef
+              (noSuchStateFieldMessage field (", ".intercalate orderedFields))
+          unless stateMembers.any fun member => heldValue member field == some spelling do
+            throwErrorAt valueRef (notAFieldValueMessage field spelling)
+          pure (field, spelling)
+      | none =>
+          let carriers := (stateMembers.flatMap fun member =>
+            (memberFields member).toList.filterMap fun (field, value) =>
+              match value with
+              | .atom declared => if declared.getString! == spelling then some field else none
+              | .applied constructor _ =>
+                  if constructor.getString! == spelling then some field else none).eraseDups
+          let some field := carriers.head?
+            | throwErrorAt valueRef (noEndsFieldMessage spelling)
+          if carriers.length > 1 then
+            throwErrorAt valueRef (ambiguousStateValueMessage spelling
+              (", ".intercalate (orderedFields.filter carriers.contains)))
+          pure (field, spelling)
+  -- `ends:` is read by field: a state ends where every field the line names holds one of the values
+  -- named for it. Naming one field twice is the machine that ends on either value; naming two is
+  -- the machine that ends when both are where the line says, which is what two instances of one
+  -- entity finishing means.
+  let resolvedEnds ← endRefs.toList.mapM resolveStateRef
+  let endFields := (resolvedEnds.map Prod.fst).eraseDups
+  -- A bare `ends:` still names one field. Two bare values of two fields is the slip the message
+  -- reports, because nothing in that line says whether the machine ends on either or on both.
+  if endRefs.all (fun entry => entry.1.isNone) then
+    match endFields with
+    | earlier :: later :: _ => throwErrorAt endRefs[1]!.2 (endsAcrossFieldsMessage earlier later)
+    | _ => pure ()
   let isTerminal : ClassValue → Bool := fun value =>
-    match endField with
-    | none => false
-    | some field =>
-        (memberFields value).any fun (carried, held) =>
-          carried == field && endSpellings.any fun spelling =>
-            match held with
-            | .atom declared => declared.getString! == spelling
-            | .applied constructor _ => constructor.getString! == spelling
+    !endFields.isEmpty && endFields.all fun field =>
+      match heldValue value field with
+      | none => false
+      | some held => resolvedEnds.any fun (named, spelling) =>
+          named == field && spelling == held
   let terminalTerms ← (stateMembers.filter isTerminal).toArray.mapM ClassValue.term
   -- The walk is bounded. A step function is evaluated once per (state, action) pair whether or not
   -- the pair is enabled, so a machine whose state structure multiplies out past the bound is
@@ -1441,41 +1560,41 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- determined by one of them, so every other field takes its own first enumerated value: zero for a
   -- count, `false` for a flag, the first constructor for an enum. That is what a machine begins at,
   -- and saying it once here is why a `starts:` line names a phase rather than a whole structure.
-  let heldValue : ClassValue → String → Option String := fun member field =>
-    (memberFields member).findSome? fun (named, held) =>
-      if named == field then
-        some (match held with
-          | .atom declared => declared.getString!
-          | .applied constructor _ => constructor.getString!)
-      else none
   let factMembersEarly ← domainMembers name factType
+  -- `starts:` names the values a machine begins at. Entries that set different fields describe one
+  -- state together -- two instances of an entity each beginning in their own value is one state of
+  -- the machine, not two -- and an entry that sets a field an earlier one already set begins the
+  -- next state. Every field no entry names takes its own first enumerated value: zero for a count,
+  -- `false` for a flag, the first constructor for an enum.
+  let resolvedStarts ← startRefs.toList.mapM resolveStateRef
+  let mut startGroups : Array (Array (String × String)) := #[]
+  for (entry, resolved) in startRefs.toList.zip resolvedStarts do
+    let (field, spelling) := resolved
+    match startGroups.back? with
+    | some current =>
+        if current.any (fun (named, _) => named == field) then
+          if entry.1.isSome then
+            throwErrorAt entry.2 (duplicateStartFieldMessage field)
+          startGroups := startGroups.push #[(field, spelling)]
+        else
+          startGroups := startGroups.pop.push (current.push (field, spelling))
+    | none => startGroups := startGroups.push #[(field, spelling)]
   let mut startTerms : Array Term := #[]
   let mut startKeys : Array String := #[]
-  for startRef in startRefs do
-    let spelling := startRef.getId.getString!
-    let carriers := (stateMembers.flatMap fun member =>
-      (memberFields member).toList.filterMap fun (field, value) =>
-        match value with
-        | .atom declared => if declared.getString! == spelling then some field else none
-        | .applied constructor _ =>
-            if constructor.getString! == spelling then some field else none).eraseDups
-    let some field := carriers.head?
-      | throwErrorAt startRef (noEndsFieldMessage spelling)
-    if carriers.length > 1 then
-      throwErrorAt startRef (ambiguousStateValueMessage spelling
-        (", ".intercalate (orderedFields.filter carriers.contains)))
-    -- The one member holding this value with every other field at its first: the members are in
-    -- enumeration order and the first field varies slowest, so the first match is that member.
+  for (group, anchor) in startGroups.zip (startRefs.map (·.2)) do
+    -- The first member holding every named field at its named value: the members are in enumeration
+    -- order and the first field varies slowest, so the first match holds every other field at its
+    -- own first value.
     let some member := stateMembers.find? fun candidate =>
-        heldValue candidate field == some spelling
-      | throwErrorAt startRef (noEndsFieldMessage spelling)
+        group.all fun (field, spelling) => heldValue candidate field == some spelling
+      | throwErrorAt anchor (noEndsFieldMessage (group.map Prod.snd |>.toList |> ", ".intercalate))
     -- The start-state list is canonical or the planner refuses the Model, and the refusal comes
     -- from admission rather than from the line that wrote it. The Action catalog needs no such rule
     -- because the command sorts it; a `starts:` line is the author's, and its order is the order
     -- the states are emitted in.
     if let some earlier := startKeys.back? then
       unless earlier < member.key do
-        throwErrorAt startRef (unsortedInitialMessage member.key earlier)
+        throwErrorAt anchor (unsortedInitialMessage member.key earlier)
     startTerms := startTerms.push (← member.term)
     startKeys := startKeys.push member.key
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
@@ -1589,7 +1708,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let names ← `(term|
     { declaration := $(Lean.quote name.getId.toString)
       roleName := $(Lean.quote declaredEntity.name)
-      setup := $(Lean.quote setupConstructor.toString)
+      -- The key is the start state's own, not the constructor's name read back: a `Name` holding
+      -- punctuation prints itself in guillemets, and a catalog key admits only letters, digits,
+      -- `-` and `_`.
+      setup := $(Lean.quote startKeys[0]!)
       stateKeys := [$(keyList stateMembers),*]
       stateFields := [$stateFieldList,*]
       actionKeys := [$(keyList actionMembers),*]
@@ -1643,6 +1765,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     outcomeType
     factType
     «states» := (stateMembers.map (·.key)).toArray
+    stateFields := (stateMembers.map fun member =>
+      (match member with
+        | .applied _ fields => fields.map fun (field, held) => (field, held.key)
+        | .atom _ => #[])).toArray
     «actions» := (actionMembers.map (·.key)).toArray
     «outcomes» := (outcomeMembers.map (·.key)).toArray
     «facts» := (factMembers.map (·.key)).toArray
