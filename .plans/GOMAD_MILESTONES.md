@@ -150,6 +150,73 @@ Verified on `claude/gomad-status-roadmap-9hbcy0` at `78d80b0` with stock go1.27.
   cluster and adds one the baseline did not name: `go.temporal.io/sdk/internal` imports
   `os/signal` and `syscall`, and any functional test that starts an SDK worker keeps it live.
 
+### A linux/amd64 spike, and how far the bundle diverges
+
+The same session ran the darwin/arm64 bundle on this `linux/amd64` host, with the descriptor and
+boundary manifest retargeted in the working tree only. Nothing from it is committed; the
+measurements are what matter for F7.
+
+- **The toolchain builds.** The go1.26.4 patch applies with no rejects, and the patched toolchain
+  builds in 2m12s wall time and 770 MB. The bootstrap has to be go1.26.4 itself under
+  `GOTOOLCHAIN=local`; the cloud image's Go is 1.24.7 behind an auto-switching toolchain, so the
+  build only works with the module cache's go1.26.4 on `PATH`. `gomad doctor` then reports
+  `available=true`, host `linux/amd64`, and all four adapters present.
+- **The boundary ports almost verbatim.** `boundary-generate -refresh` against the linux Go tree
+  changes one declaration in 131 intercepts: `os.Pipe`, declared in `pipe2_unix.go` on Linux.
+  Every other row changes only its whole-package digest, because each row repeats the digest of
+  its package. The refreshed manifest qualifies, and the generator's compiler-side fingerprint
+  check then accepts the linux `os` package.
+- **What passes on the linux toolchain.** `test-toolchain`, `overlay-test`, `test-harness`,
+  `world-test`, `test-builder` and `test-live-capability`. The interception tier builds the
+  compiler-test compiler and passes the fingerprint qualification, then fails at its first
+  fixture for the F1 reason (the fixture corpus is absent). In the upstream tier, `time` and
+  `testing/synctest` pass and `runtime` fails only `TestAtomicAlignment`, whose type-checking
+  harness resolves `internal/abi` relative to the Gomad module rather than the built GOROOT;
+  that looks like the tier driver's working directory, not the patch, and is unconfirmed. The
+  host tier was still running when this was written.
+- **What could not be exercised.** The runtime, live-capability and interception fixture tiers
+  need the fixture corpus F1 restores. Compatibility packs are bound to `darwin/arm64` and, on
+  any host, to the x/net version the root module has moved past. The clock audit is DTrace.
+  The Temporal corpus was not run.
+
+The measured diff between the two bundles is small and almost entirely darwin-versus-linux, not
+arm64-versus-amd64. To keep it that way, F7 builds the Linux bundle as a second column of one
+bundle rather than as a copy:
+
+1. One manifest with per-platform fingerprints. The reviewed fields of an intercept (symbol,
+   signature, disposition, hook, adapters, fixtures) stay platform-neutral; `source`,
+   `declaration_sha256` and `package_sha256` move under a platform key. Review happens once.
+2. Package digests recorded once per package per platform, not on every row. That alone
+   collapses the 268-line manifest diff to a handful of lines.
+3. Generated identity per platform by build constraint. The generator refuses more than one
+   platform today because it emits single `generatedBoundaryGOOS` and `GOARCH` constants; emit
+   one generated file per platform instead. The compiler spec's generated `qualifiedPlatform`
+   already takes a list.
+4. The descriptor lists both platforms and the manifest version drops the platform from its
+   name. The toolchain build key already carries the host OS and arch, so artifact identity
+   stays per platform.
+5. Adapters share the model and differ only in the anchor layer. The darwin libc adapter
+   rewrites 27 hand-written function headers; the linux libc is ccgo-compiled musl that funnels
+   every kernel call through nine syscall trampolines in `syscall_musl.go` plus four direct
+   `Syscall6` sites, so its anchor is a syscall-number switch. The `gomadOpen`, `gomadRead`,
+   `gomadMmap` model functions and the evidence record stay shared. The x/net, gRPC and memory
+   adapters already anchor `_unix.go` files.
+6. Packs bound to both platforms through the `platforms` field they already have, with per-arch
+   facts only where an assembly file differs. The functional compute pack loses the platform
+   from its name.
+7. One clock-audit contract (marker function plus host clock symbols) with the probe backend
+   chosen by host OS: DTrace on darwin, a uprobe on the vDSO `clock_gettime` on Linux. Both need
+   privilege.
+8. The linker capability hook stops exiting unless the target is darwin/arm64 and consults the
+   generated platform list like the compiler does.
+9. CI becomes a matrix over `macos-15` and `ubuntu-latest` running the same targets, with the
+   host check reading the descriptor rather than a literal.
+
+Replay stays per bundle by design: an artifact replays only on the bundle that produced it, and
+cross-platform runs compare outcomes and support matrices. Two arch-only items for a later
+linux/arm64: the bootstrap uses `Dup2`, which linux/arm64 lacks, and the artifact rename path
+already carries per-arch syscall numbers for both.
+
 ### Amended F1 order
 
 The blockers above change what F1 starts with. Nothing in the original list can be verified
@@ -476,9 +543,14 @@ gate run in CI.
   test lands with a default expectation of `qualified` and fails the set if it is not.
 - Split the set into shards with `gomad plan` and `execute-shard` so a full run fits the
   90-minute CI budget. Merge with `gomad merge`.
-- Build the `linux/amd64` platform bundle per COMPAT-7 with its own boundary manifest,
-  adapters, and publication primitives. Artifacts replay only on the bundle that produced them,
-  so the Linux run is a second qualification, never a replay of the Mac one.
+- Build the `linux/amd64` platform bundle per COMPAT-7 as a second column of the one bundle,
+  following the nine points in the 2026-09-19 re-evaluation: per-platform fingerprints in one
+  manifest, per-platform generated identity by build constraint, shared adapter models with
+  per-OS anchors, a linux libc anchor at the musl syscall trampolines, a Linux clock-audit
+  backend, and the linker hook reading the platform list. The 2026-09-19 spike showed the
+  toolchain builds and the boundary refreshes with one changed declaration on this platform.
+  Artifacts replay only on the bundle that produced them, so the Linux run is a second
+  qualification, never a replay of the Mac one.
 - Move the Temporal qualification from weekly cron to a required check on changes under
   `tools/gomad3`, `tests`, `tests/testcore`, `go.mod`, and any server package the closure
   review names.
