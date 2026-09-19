@@ -47,6 +47,10 @@ structure Vocabulary where
   actions : List ModelValue
   outcomes : List ModelValue
   facts : List ModelValue
+  /-- Each state's fields as model values, parallel to `states`. A machine's state is a structure,
+  so the Contract compares its fields apart -- `attempts` as a number, `phase` as an enum -- rather
+  than reading one spelling back apart. Empty where a state carries no fields. -/
+  stateFields : List (List ModelValue) := []
   deriving BEq, Repr
 
 /-- The Model Value an out-of-catalog member resolves to; a declared member never reaches it. -/
@@ -56,6 +60,13 @@ namespace Vocabulary
 
 def stateAt (values : Vocabulary) (index : Nat) : ModelValue :=
   (values.states[index]?).getD unknownValue
+
+def stateFieldsAt (values : Vocabulary) (index : Nat) : List ModelValue :=
+  (values.stateFields[index]?).getD []
+
+/-- Each state paired with its own fields, which is what a lowering looks a state up in. -/
+def statesWithFields (values : Vocabulary) : List (ModelValue × List ModelValue) :=
+  values.states.zipIdx.map fun (value, index) => (value, values.stateFieldsAt index)
 
 def actionAt (values : Vocabulary) (index : Nat) : ModelValue :=
   (values.actions[index]?).getD unknownValue

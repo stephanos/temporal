@@ -26,6 +26,9 @@ message CorrelatedContract {
   // What evidence of each kind does to its operation.
   repeated CorrelatedProjectionRule projection_rules = 9;
   repeated CorrelatedRule rules = 10;
+  // The initial state's fields. A Model whose states are structured carries one entry per field;
+  // one whose states are atoms carries none, and every rule reads the atom as before.
+  repeated ModelValue initial_state_fields = 11;
 }
 
 // CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
@@ -36,6 +39,12 @@ message CorrelatedTransition {
   ModelValue state = 3;
   ModelValue outcome = 4;
   repeated ModelValue facts = 5;
+  // The fields the machine keeps, before and after the step. Both are empty for a Model whose
+  // states are atoms; a structured Model carries every field at both ends, so a rule compares
+  // `attempts` as a number and `phase` as an enum without reading one spelling apart. An output row
+  // omits prior_fields with prior_state.
+  repeated ModelValue prior_fields = 6;
+  repeated ModelValue state_fields = 7;
 }
 
 // CorrelatedProjectionRule says what evidence of one kind means for its operation.

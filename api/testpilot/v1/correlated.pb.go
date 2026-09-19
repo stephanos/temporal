@@ -295,8 +295,11 @@ type CorrelatedContract struct {
 	// What evidence of each kind does to its operation.
 	ProjectionRules []*CorrelatedProjectionRule `protobuf:"bytes,9,rep,name=projection_rules,json=projectionRules,proto3" json:"projection_rules,omitempty"`
 	Rules           []*CorrelatedRule           `protobuf:"bytes,10,rep,name=rules,proto3" json:"rules,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// The initial state's fields. A Model whose states are structured carries one entry per field;
+	// one whose states are atoms carries none, and every rule reads the atom as before.
+	InitialStateFields []*ModelValue `protobuf:"bytes,11,rep,name=initial_state_fields,json=initialStateFields,proto3" json:"initial_state_fields,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CorrelatedContract) Reset() {
@@ -399,15 +402,28 @@ func (x *CorrelatedContract) GetRules() []*CorrelatedRule {
 	return nil
 }
 
+func (x *CorrelatedContract) GetInitialStateFields() []*ModelValue {
+	if x != nil {
+		return x.InitialStateFields
+	}
+	return nil
+}
+
 // CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
 // with outcome and facts.
 type CorrelatedTransition struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PriorState    *ModelValue            `protobuf:"bytes,1,opt,name=prior_state,json=priorState,proto3" json:"prior_state,omitempty"`
-	Action        *ModelValue            `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
-	State         *ModelValue            `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
-	Outcome       *ModelValue            `protobuf:"bytes,4,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	Facts         []*ModelValue          `protobuf:"bytes,5,rep,name=facts,proto3" json:"facts,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	PriorState *ModelValue            `protobuf:"bytes,1,opt,name=prior_state,json=priorState,proto3" json:"prior_state,omitempty"`
+	Action     *ModelValue            `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	State      *ModelValue            `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	Outcome    *ModelValue            `protobuf:"bytes,4,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Facts      []*ModelValue          `protobuf:"bytes,5,rep,name=facts,proto3" json:"facts,omitempty"`
+	// The fields the machine keeps, before and after the step. Both are empty for a Model whose
+	// states are atoms; a structured Model carries every field at both ends, so a rule compares
+	// `attempts` as a number and `phase` as an enum without reading one spelling apart. An output row
+	// omits prior_fields with prior_state.
+	PriorFields   []*ModelValue `protobuf:"bytes,6,rep,name=prior_fields,json=priorFields,proto3" json:"prior_fields,omitempty"`
+	StateFields   []*ModelValue `protobuf:"bytes,7,rep,name=state_fields,json=stateFields,proto3" json:"state_fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -473,6 +489,20 @@ func (x *CorrelatedTransition) GetOutcome() *ModelValue {
 func (x *CorrelatedTransition) GetFacts() []*ModelValue {
 	if x != nil {
 		return x.Facts
+	}
+	return nil
+}
+
+func (x *CorrelatedTransition) GetPriorFields() []*ModelValue {
+	if x != nil {
+		return x.PriorFields
+	}
+	return nil
+}
+
+func (x *CorrelatedTransition) GetStateFields() []*ModelValue {
+	if x != nil {
+		return x.StateFields
 	}
 	return nil
 }
@@ -1347,7 +1377,7 @@ var File_temporal_server_api_testpilot_v1_correlated_proto protoreflect.FileDesc
 
 const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\n" +
-	"1temporal/server/api/testpilot/v1/correlated.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xea\x04\n" +
+	"1temporal/server/api/testpilot/v1/correlated.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xca\x05\n" +
 	"\x12CorrelatedContract\x12#\n" +
 	"\rprojection_id\x18\x01 \x01(\tR\fprojectionId\x125\n" +
 	"\x16projection_fingerprint\x18\x02 \x01(\tR\x15projectionFingerprint\x126\n" +
@@ -1359,14 +1389,17 @@ const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\vtransitions\x18\b \x03(\v26.temporal.server.api.testpilot.v1.CorrelatedTransitionR\vtransitions\x12e\n" +
 	"\x10projection_rules\x18\t \x03(\v2:.temporal.server.api.testpilot.v1.CorrelatedProjectionRuleR\x0fprojectionRules\x12F\n" +
 	"\x05rules\x18\n" +
-	" \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\x05rules\"\xfb\x02\n" +
+	" \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\x05rules\x12^\n" +
+	"\x14initial_state_fields\x18\v \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x12initialStateFields\"\x9d\x04\n" +
 	"\x14CorrelatedTransition\x12M\n" +
 	"\vprior_state\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\n" +
 	"priorState\x12D\n" +
 	"\x06action\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x06action\x12B\n" +
 	"\x05state\x18\x03 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x05state\x12F\n" +
 	"\aoutcome\x18\x04 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\aoutcome\x12B\n" +
-	"\x05facts\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x05facts\"\xf6\x02\n" +
+	"\x05facts\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x05facts\x12O\n" +
+	"\fprior_fields\x18\x06 \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\vpriorFields\x12O\n" +
+	"\fstate_fields\x18\a \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\vstateFields\"\xf6\x02\n" +
 	"\x18CorrelatedProjectionRule\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12U\n" +
 	"\ameaning\x18\x02 \x01(\x0e2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaningR\ameaning\x12L\n" +
@@ -1495,38 +1528,41 @@ var file_temporal_server_api_testpilot_v1_correlated_proto_depIdxs = []int32{
 	5,  // 1: temporal.server.api.testpilot.v1.CorrelatedContract.transitions:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
 	6,  // 2: temporal.server.api.testpilot.v1.CorrelatedContract.projection_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedProjectionRule
 	8,  // 3: temporal.server.api.testpilot.v1.CorrelatedContract.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRule
-	17, // 4: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 5: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 6: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 7: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 8: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	0,  // 9: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.meaning:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning
-	17, // 10: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	5,  // 11: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.outputs:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
-	7,  // 12: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldPolicy
-	18, // 13: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	1,  // 14: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.disposition:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldDisposition
-	19, // 15: temporal.server.api.testpilot.v1.CorrelatedRule.trigger:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 16: temporal.server.api.testpilot.v1.CorrelatedRule.response:type_name -> temporal.server.api.testpilot.v1.Expression
-	9,  // 17: temporal.server.api.testpilot.v1.CorrelatedRule.captures:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureDeclaration
-	19, // 18: temporal.server.api.testpilot.v1.CorrelatedRule.correlation:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 19: temporal.server.api.testpilot.v1.CorrelatedRule.clock:type_name -> temporal.server.api.testpilot.v1.CorrelatedClock
-	3,  // 20: temporal.server.api.testpilot.v1.CorrelatedRule.ending:type_name -> temporal.server.api.testpilot.v1.TraceEnding
-	12, // 21: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
-	13, // 22: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.NamedExpression
-	13, // 23: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.NamedExpression
-	19, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 25: temporal.server.api.testpilot.v1.NamedExpression.value:type_name -> temporal.server.api.testpilot.v1.Expression
-	15, // 26: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	15, // 27: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	16, // 28: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.NamedValue
-	16, // 29: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
-	20, // 30: temporal.server.api.testpilot.v1.NamedValue.value:type_name -> temporal.server.api.testpilot.v1.Value
-	31, // [31:31] is the sub-list for method output_type
-	31, // [31:31] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	17, // 4: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state_fields:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 5: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 6: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 7: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 8: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 9: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 10: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_fields:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 11: temporal.server.api.testpilot.v1.CorrelatedTransition.state_fields:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	0,  // 12: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.meaning:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning
+	17, // 13: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	5,  // 14: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.outputs:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
+	7,  // 15: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldPolicy
+	18, // 16: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	1,  // 17: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.disposition:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldDisposition
+	19, // 18: temporal.server.api.testpilot.v1.CorrelatedRule.trigger:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 19: temporal.server.api.testpilot.v1.CorrelatedRule.response:type_name -> temporal.server.api.testpilot.v1.Expression
+	9,  // 20: temporal.server.api.testpilot.v1.CorrelatedRule.captures:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureDeclaration
+	19, // 21: temporal.server.api.testpilot.v1.CorrelatedRule.correlation:type_name -> temporal.server.api.testpilot.v1.Expression
+	2,  // 22: temporal.server.api.testpilot.v1.CorrelatedRule.clock:type_name -> temporal.server.api.testpilot.v1.CorrelatedClock
+	3,  // 23: temporal.server.api.testpilot.v1.CorrelatedRule.ending:type_name -> temporal.server.api.testpilot.v1.TraceEnding
+	12, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
+	13, // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.NamedExpression
+	13, // 26: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.NamedExpression
+	19, // 27: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 28: temporal.server.api.testpilot.v1.NamedExpression.value:type_name -> temporal.server.api.testpilot.v1.Expression
+	15, // 29: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
+	15, // 30: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
+	16, // 31: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	16, // 32: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	20, // 33: temporal.server.api.testpilot.v1.NamedValue.value:type_name -> temporal.server.api.testpilot.v1.Value
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_correlated_proto_init() }

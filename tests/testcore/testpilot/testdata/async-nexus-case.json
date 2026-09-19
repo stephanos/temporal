@@ -9,7 +9,7 @@
     "definitions": [
       {
         "definitionId": "temporal.nexus.success.target.lifecycle",
-        "behaviorFingerprint": "sha256:dc16cd63b197612ac92c1e71028161193acc0c9773f86955207eeaef7221e201",
+        "behaviorFingerprint": "sha256:969c090cb98c99d33e06e548ecc07b502bf7d7f675d7701f95017c2c6c41730e",
         "kind": "DEFINITION_KIND_TARGET"
       },
       {
@@ -19,7 +19,7 @@
       },
       {
         "definitionId": "temporal.nexus.success.query.completion",
-        "behaviorFingerprint": "sha256:0458585e4257b598c19a8648e23fbf691e7f2eacd0b7f50c7777c0d3d158fcc7",
+        "behaviorFingerprint": "sha256:7c68ba7fc67e93ab3dc8c42b07a3980b1d9372c523380bc31ef9f1af3da0fbc0",
         "kind": "DEFINITION_KIND_QUERY"
       },
       {
@@ -74,7 +74,7 @@
         "propertyId": "temporal.nexus.success.property.successfulResult",
         "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
         "projectionId": "temporal.nexus.success.projection",
-        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
         "source": {
           "path": "Temporal/Feature/Nexus/Success/Model.lean",
           "line": 1,
@@ -87,7 +87,7 @@
         "propertyId": "temporal.nexus.success.property.successfulResult",
         "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
         "projectionId": "temporal.nexus.success.projection",
-        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
         "source": {
           "path": "Temporal/Feature/Nexus/Success/Model.lean",
           "line": 1,
@@ -508,7 +508,7 @@
     "contractId": "temporal.case.async-nexus.contract",
     "correlated": {
       "projectionId": "projection",
-      "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+      "projectionFingerprint": "sha256:3899a7dad3289615e6d2a79f2be217f928e784227ec066cd05bcee226c1ad387",
       "evidenceObservationId": "correlated-evidence",
       "scopeFields": [
         "run"
