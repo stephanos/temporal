@@ -153,6 +153,271 @@ and read as complete. -/
 machine could be stuck -- which is why the rejection is pinned below on a machine that can be. -/
 #guard nexusProduct.stuck == none
 
+/-! ### The protocol machine
+
+How the server gets there: the retry the product machine cannot see, the three timers the schedule
+command sets, and the attempt count a retryable failure raises. Written against the same actions, so
+a Property proved on the product machine is carried here by the refinement.
+
+Two parts of `DESIGN.md` section 3's machine are not here, for reasons recorded rather than silent.
+The `cancel` field and its two rows are fn-79's. The `atConcurrencyLimit: true + schedule → reject`
+row needs the table to vary with the setup, which is task `.5`; `setup:` is declared below because
+the machine has that parameter, and the one-setup table this command builds is the table without
+the rejection row.
+
+The design's `none + schedule` row is a step from a phase rather than from no instance: a machine's
+state structure has no "no instance yet" member, so `unscheduled` is that member. It is what makes
+the three timeout fields reachable at anything but their first value -- the schedule command is what
+sets them, so a machine that started already scheduled could never observe a timer firing. -/
+
+enum Phase
+  | unscheduled
+  | scheduled
+  | backingOff
+  | started
+  | succeeded
+  | failed
+  | canceled
+  | timedOut
+
+/-- Which timer fired. The history event records it, so a Contract that did not check it would pass
+a run that timed out on the wrong deadline. -/
+enum TimeoutType
+  | scheduleToClose
+  | scheduleToStart
+  | startToClose
+
+/-- The attempt count is `attempts: count` in the design, bounded by the Limits. Nothing wires the
+Limits into a machine's state yet (that is task `.4`'s Limits accounting), so the bound is written
+here and the saturating successor `Umpire.Command.saturatingSucc` is what keeps a retry inside it. -/
+abbrev attemptBound : Nat := 2
+
+structure ProtocolState where
+  phase : Phase
+  attempts : Fin (attemptBound + 1)
+  scheduleToClose : Timeout
+  scheduleToStart : Timeout
+  startToClose : Timeout
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum ProtocolOutcome
+  | accepted
+  | notFound
+
+enum ProtocolFact
+  | nexusOperationScheduled
+  | nexusOperationStarted
+  | nexusOperationCompleted
+  | nexusOperationFailed
+  | nexusOperationCanceled
+  | nexusOperationTimedOut (timeoutType : TimeoutType)
+  | pendingAttempts
+  | faultInjected
+
+/-- The four phases the design ends on. A completion that arrives after one of them is not found. -/
+private def terminalPhase (phase : Phase) : Bool :=
+  phase == .succeeded || phase == .failed || phase == .canceled || phase == .timedOut
+
+/-- Scheduled and not yet over: the phases a completion resolves and a timer can fire in. -/
+private def running (phase : Phase) : Bool :=
+  phase == .scheduled || phase == .backingOff || phase == .started
+
+private def moves (state : ProtocolState) (phase : Phase) (recorded : List ProtocolFact) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  [{ outcome := .accepted, state := { state with phase }, facts := recorded }]
+
+/-- The caller's schedule command. It names the operation's three deadlines, and every one of them
+is a state field because whether a timer fires is a question about the operation and not about the
+command that started it. -/
+def scheduleStep (state : ProtocolState)
+    (scheduleToClose scheduleToStart startToClose : Timeout) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .unscheduled then [] else
+  [{ outcome := .accepted
+     state := { phase := .scheduled, attempts := 0, scheduleToClose, scheduleToStart, startToClose }
+     facts := [.nexusOperationScheduled] }]
+
+/-- The handler's reply to the server's start request. What the product machine cannot see is the
+last arm: a retryable failure backs the operation off and raises its attempt count, and the count is
+read back through the `pendingAttempts` observation because no history event records it. -/
+def protocolHandlerReplyStep (state : ProtocolState) (reply : Reply) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .scheduled then [] else
+  match reply with
+  | .syncSuccess => moves state .succeeded [.nexusOperationCompleted]
+  | .async => moves state .started [.nexusOperationStarted]
+  | .operationFailed => moves state .failed [.nexusOperationFailed]
+  | .operationCanceled => moves state .canceled [.nexusOperationCanceled]
+  | .handlerError false => moves state .failed [.nexusOperationFailed]
+  | .handlerError true =>
+      [{ outcome := .accepted
+         state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
+         facts := [.pendingAttempts] }]
+
+/-- A transport fault is the same failure arriving as a dropped delivery rather than as a reply. -/
+def protocolTransportFaultStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .scheduled then [] else
+  [{ outcome := .accepted
+     state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
+     facts := [.pendingAttempts] }]
+
+/-- The handler's worker stopping is a fault the run records and the operation does not feel. -/
+def protocolWorkerStopStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  [{ outcome := .accepted, state, facts := [.faultInjected] }]
+
+/-- An asynchronous completion. Before a start, the server records a Started event first, which is
+why the evidence is two facts and not one -- and why the product machine, which has no `backingOff`
+phase to have skipped, could write the completion alone. -/
+def protocolCompleteStep (state : ProtocolState) (resolution : Resolution) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if terminalPhase state.phase then
+    [{ outcome := .notFound, state, facts := [] }]
+  else if state.phase == .unscheduled then []
+  else
+    let startedFirst : List ProtocolFact :=
+      if state.phase == .started then [] else [.nexusOperationStarted]
+    match resolution with
+    | .succeeded => moves state .succeeded (startedFirst ++ [.nexusOperationCompleted])
+    | .failed => moves state .failed (startedFirst ++ [.nexusOperationFailed])
+    | .canceled => moves state .canceled (startedFirst ++ [.nexusOperationCanceled])
+
+/-- The backoff timer. It is what makes `backingOff` a phase the operation leaves rather than a
+state it is stuck in, and it records nothing: a retry writes no history event. -/
+def backoffStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase != .backingOff then [] else moves state .scheduled []
+
+/-- The schedule-to-close deadline covers the whole operation, so it fires in every running phase --
+and only when the schedule command set it. -/
+def scheduleToCloseStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if running state.phase && state.scheduleToClose == .expires then
+    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .scheduleToClose)]
+  else []
+
+/-- The schedule-to-start deadline covers the wait for the handler to accept, so it stops at the
+start. -/
+def scheduleToStartStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if (state.phase == .scheduled || state.phase == .backingOff) &&
+      state.scheduleToStart == .expires then
+    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .scheduleToStart)]
+  else []
+
+/-- The start-to-close deadline covers the handler's own work, so it begins at the start. -/
+def startToCloseStep (state : ProtocolState) :
+    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
+  if state.phase == .started && state.startToClose == .expires then
+    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .startToClose)]
+  else []
+
+machine nexusProtocol
+  for: operation
+  state: ProtocolState
+  starts: [unscheduled]
+  ends: [succeeded, failed, canceled, timedOut]
+  setup:
+    atConcurrencyLimit: Bool
+  timers: [backoff, scheduleToClose, scheduleToStart, startToClose]
+  evidence:
+    nexusOperationScheduled: nexusOperationScheduled
+    nexusOperationStarted: nexusOperationStarted
+    nexusOperationCompleted: nexusOperationCompleted
+    nexusOperationFailed: nexusOperationFailed
+    nexusOperationCanceled: nexusOperationCanceled
+    nexusOperationTimedOut: nexusOperationTimedOut
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    schedule: scheduleStep
+    handlerReply: protocolHandlerReplyStep
+    complete: protocolCompleteStep
+    transportFault: protocolTransportFaultStep
+    workerStop: protocolWorkerStopStep
+    backoff: backoffStep
+    scheduleToClose: scheduleToCloseStep
+    scheduleToStart: scheduleToStartStep
+    startToClose: startToCloseStep
+
+/-! ### What the protocol machine says
+
+Elaborating this machine costs about forty seconds on a four-core box: 192 states over 23 action
+classes, enumerated into 1152 rows and checked against the canonical-table law. The cost is the law
+rather than the walk -- the short circuit in `Umpire.Command.satisfiesTransitionRequirement` is what
+made a machine this size provable at all. -/
+
+/-- A state written the way a reader names one: the phase, and whichever fields are not at the value
+the operation begins with. -/
+private def at' (phase : Phase) (attempts : Fin (attemptBound + 1) := 0)
+    (scheduleToClose : Timeout := .unset) (scheduleToStart : Timeout := .unset)
+    (startToClose : Timeout := .unset) : ProtocolState :=
+  { phase, attempts, scheduleToClose, scheduleToStart, startToClose }
+
+/- Eight phases, three attempt counts and three deadlines, and the four phases the design ends on. -/
+#guard nexusProtocol.table.states.length == 8 * (attemptBound + 1) * 2 * 2 * 2
+#guard nexusProtocol.ends.length == 4 * (attemptBound + 1) * 2 * 2 * 2
+
+/- Every action class the machine steps on. `schedule` contributes eight, one per assignment of the
+three deadlines, because which timers an operation has is settled by the command that scheduled it
+and an example is written at the class. -/
+#guard nexusProtocol.actionKeys.size == 8 + 6 + 3 + 1 + 1 + 4
+#guard nexusProtocol.actionKeys.toList.take 2 ==
+  ["schedule-unset-unset-unset", "schedule-unset-unset-expires"]
+
+/- The machine begins before the operation exists, with every deadline at its first value: the
+schedule command is what sets them, so a machine that began already scheduled could never reach a
+state a timer fires in. -/
+#guard nexusProtocol.starts == [at' .unscheduled]
+
+/- A retryable handler error backs the operation off and raises the attempt count. No history event
+records that, which is why its evidence is the derived `pendingAttempts` observation. -/
+#guard protocolHandlerReplyStep (at' .scheduled) (.handlerError (retryable := true)) ==
+  [{ outcome := .accepted, state := at' .backingOff 1, facts := [.pendingAttempts] }]
+
+/- The count saturates rather than wrapping: a machine whose attempt count rolled over to zero would
+claim the operation had never been retried. -/
+#guard (protocolHandlerReplyStep (at' .scheduled (attempts := Fin.last attemptBound))
+  (.handlerError (retryable := true))).map (·.state.attempts) == [Fin.last attemptBound]
+
+/- A completion that arrives before the start records the Started event first, and one that arrives
+after it does not. Both record the completion. -/
+#guard (protocolCompleteStep (at' .backingOff 1) .succeeded).flatMap (·.facts) ==
+  [.nexusOperationStarted, .nexusOperationCompleted]
+#guard (protocolCompleteStep (at' .started) .succeeded).flatMap (·.facts) ==
+  [.nexusOperationCompleted]
+
+/- A completion after the operation is over is not found and changes nothing. -/
+#guard protocolCompleteStep (at' .timedOut) .succeeded ==
+  [{ outcome := .notFound, state := at' .timedOut, facts := [] }]
+
+/- A timer fires only when the schedule command set it, and each covers its own span: the
+start-to-close deadline begins at the start, so it cannot fire before one. -/
+#guard startToCloseStep (at' .scheduled (startToClose := .expires)) == []
+#guard (startToCloseStep (at' .started (startToClose := .expires))).map (·.state.phase) == [.timedOut]
+#guard scheduleToCloseStep (at' .started) == []
+
+/- Which timer fired is recorded, because the history event records it and a Contract that did not
+check it would pass a run that timed out on the wrong deadline. -/
+#guard (scheduleToStartStep (at' .scheduled (scheduleToStart := .expires))).flatMap (·.facts) ==
+  [.nexusOperationTimedOut (timeoutType := .scheduleToStart)]
+
+/- Nothing is stuck. Unlike the product machine's, this claim can fail: `workerStop` steps from every
+state there, and here the operation's own phase decides which steps are enabled. -/
+#guard nexusProtocol.stuck == none
+
+/- Not every state is reachable, and that is what enumerating the structure rather than the walk
+costs: the count and the deadlines are fields of the state, so states that disagree about them exist
+in the type and no run produces them. The Behavior Fingerprint reads the table, so this number is
+part of the Model's identity. -/
+#guard (Umpire.Command.reachableFrom nexusProtocol.starts nexusProtocol.transitions).length == 158
+
+/- The canonical-table law holds, and holds by a proof rather than by a logged failure. -/
+/-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms nexusProtocol
+
 /-! ### What the machine command rejects
 
 Each at the line that made it, because a Model file is read and corrected one line at a time. -/
