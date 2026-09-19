@@ -338,6 +338,18 @@ Scenario grammar took classed actions and a phase for `starts:`, a setup constru
 the start phase rather than the punctuated key, and the `model`-era refusal of a step out of an end
 state is retired because the design writes such steps. Its review is a self-review.
 
+**Task .5 is done, 2026-09-19.** A machine's `setup:` parameters travel with the declared Model by
+name and definition, the realization binds each to a dynamic-config key of the generated catalog,
+and one it leaves unbound is an `input` Known Gap of the Case naming the parameter. The Profile
+records the configuration the environment ran under, in the catalog's spelling and as part of its
+binding fingerprint, so the same Case bytes run under two switch values under two Profiles. The
+Nexus realization declares the `implementation` switch (`hsm`, `chasm`) with the three settings the
+upstream suites set, resolved by name for `.7`'s `repeat:`; the live harness runs the async-Nexus
+Case once per value under a dedicated environment constructed with the value's settings and fails
+on a divergence naming the switch, both values and both Verdicts, with the divergence check pinned
+by a unit test. No dynamic-config setting bounds pending Nexus operations, so `atConcurrencyLimit`
+stays a Known Gap until one exists. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
