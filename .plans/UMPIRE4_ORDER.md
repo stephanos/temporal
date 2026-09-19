@@ -294,6 +294,23 @@ Its review is a self-review: no second backend is reachable in a cloud session, 
 `cursor-agent` and `grok` are not installed and all fall back to the session model. `.1`, `.2` and
 `.3` each owe a cross-model re-review before the completion review.
 
+**Tasks .14 and .16 are done, 2026-09-18 and 2026-09-19.** `machine` is a command over step
+functions, `model` is retired, every Model in the tree is a machine, and the design's protocol
+machine elaborates (192 states over 23 action classes, 1152 rows, about forty seconds, once the
+canonical-table law stopped comparing a table against itself quadratically). The receipts on the
+two tasks carry the decisions.
+
+**Task .15 is done, 2026-09-19.** A `property` names a machine and an ordinary Lean predicate --
+`Step → Bool` under `when:` for a same-step claim, `Step → Step → Bool` for a transition claim over
+the step before and the step after -- and the command enumerates it over the machine's table into
+the clause records a Property has always carried. The reading is the one the keyed `require:` block
+spelled out: the predicate fixes a state, an outcome or a fact when every accepted step carries it
+and changing it is rejected, probed on the predicate itself rather than read off the table's
+coincidences; the fixed values must carry the predicate exactly, and a disjunction across fields is
+refused with the step the clauses cannot tell apart. Every migrated Property carries the fingerprint
+its keyed block had, pinned. The keyed form is rejected at its key naming `holds:`, and `DESIGN.md`
+section 3 carries the amendment. Its review is a self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
