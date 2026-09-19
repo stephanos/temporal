@@ -27,12 +27,55 @@ private def number (value : Nat) : Except String Int64 :=
   if value ≤ 9223372036854775807 then .ok (Int64.ofInt value) else .error "protobuf signed overflow"
 private def atom (value : ModelValue) : temporal.server.api.testpilot.v1.ModelValue :=
   { definition_id := value.definitionId.value, value := value.value }
-private def output (action : ModelValue) (result : Step ModelValue ModelValue ModelValue) :
-    CorrelatedTransition := {
+/-- Each state paired with the fields the Model declares it holds. The Model's own plan carries a
+state as the value it tells states apart by; the Contract compares a machine's fields apart, so the
+fields are attached here, at the one boundary that has both. -/
+abbrev StateFields := List (ModelValue × List ModelValue)
+
+private def fieldsOf (stateFields : StateFields) (state : ModelValue) : List ModelValue :=
+  (stateFields.lookup state).getD []
+
+private def lifted (stateFields : StateFields) (state : ModelValue) :
+    Shared.SemanticData.StateValue :=
+  ⟨state, fieldsOf stateFields state⟩
+
+private def liftedStep (stateFields : StateFields) (step : Step ModelValue ModelValue ModelValue) :
+    Testpilot.Correlated.Result :=
+  ⟨step.outcome, lifted stateFields step.state, step.facts⟩
+
+private def liftedRule (stateFields : StateFields)
+    (rule : Shared.CorrelatedProjection.Rule DefinitionId ModelValue
+      (Step ModelValue ModelValue ModelValue)) :
+    Shared.CorrelatedProjection.Rule DefinitionId ModelValue Testpilot.Correlated.Result := {
+  kind := rule.kind
+  fieldCount := rule.fieldCount
+  meaning := match rule.meaning with
+    | .irrelevant => .irrelevant
+    | .submission action => .submission action
+    | .confirmed submission steps => .confirmed submission
+        (steps.map fun (action, step) => (action, liftedStep stateFields step)) }
+
+private def liftedRows (stateFields : StateFields)
+    (rows : List (ModelValue × ModelValue × Step ModelValue ModelValue ModelValue)) :
+    List Shared.CorrelatedObligation.Transition :=
+  rows.map fun (prior, action, step) =>
+    (lifted stateFields prior, action, liftedStep stateFields step)
+
+private def liftedPlan (stateFields : StateFields)
+    (plan : Shared.CorrelatedProjection.Plan DefinitionId ModelValue ModelValue
+      (Step ModelValue ModelValue ModelValue)) : Testpilot.Correlated.Plan := {
+  initial := lifted stateFields plan.initial
+  rules := plan.rules.map (liftedRule stateFields)
+  transitions := liftedRows stateFields plan.transitions
+  limits := plan.limits }
+
+private def output (stateFields : StateFields) (action : ModelValue)
+    (result : Step ModelValue ModelValue ModelValue) : CorrelatedTransition := {
   action := some (atom action)
   state := some (atom result.state)
   outcome := some (atom result.outcome)
-  facts := result.facts.toArray.map atom }
+  facts := result.facts.toArray.map atom
+  state_fields := (fieldsOf stateFields result.state).toArray.map atom }
 private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
     Except String CorrelatedFieldPolicy := do
   let disposition ← match field.2 with
@@ -72,9 +115,10 @@ private def pattern (value : PropertyPattern) : Except String Expression := do
 /-- The exact executable meaning the emitted capability must decode to. `keyed` is the keyed
 fragment this lowering produced from the checked coverage, so a Case that declares no captures
 carries the same empty fragment, the same unset capture ceiling and the same bytes as before. -/
-private def meaning (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target)
+private def meaning (stateFields : StateFields) (plan : Projection.Checked target)
+    (compiled : Property.Correlated.Compiled target)
     (keyed : List (String × Testpilot.Correlated.Keyed)) : Testpilot.Correlated.Compiled := {
-  plan := plan.executable
+  plan := liftedPlan stateFields plan.executable
   clauses := compiled.portableClauses
   keyed
   scopeFields := compiled.scopeFields
@@ -235,20 +279,23 @@ structure Lowered (plan : Projection.Checked target) (compiled : Property.Correl
   limits : CorrelatedLimits
   decoded : Testpilot.Correlated.Compiled
   keyed : List (String × Testpilot.Correlated.Keyed)
+  stateFields : StateFields
   decoding : Testpilot.Correlated.decode limits wire = .ok decoded
-  meaning : decoded = Correlated.meaning plan compiled keyed
+  meaning : decoded = Correlated.meaning stateFields plan compiled keyed
   maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
     target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
       (target.machine.steps row.1 row.2.1).length
   certificates : ∀ binding ∈ compiled.portableReferences,
-    CorrelatedProofs.Certificate binding plan.executable.transitions plan.initialState
+    CorrelatedProofs.Certificate binding (liftedRows stateFields plan.executable.transitions)
+      plan.initialState
 
 /-- Lower checked correlated declarations and projection together; failure rejects the entire fragment. -/
 def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target)
     (evidenceObservationId : String)
-    (coverage : Projection.Coverage plan := Projection.Coverage.empty plan) :
+    (coverage : Projection.Coverage plan := Projection.Coverage.empty plan)
+    (stateFields : StateFields := []) :
     Except Compiler.Error (Lowered plan compiled) := do
   let failed := fun reason => Compiler.Error.mk compiled.property.id.value
     compiled.property.source reason
@@ -262,7 +309,8 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
         | .irrelevant => (CorrelatedEvidenceMeaning.CORRELATED_EVIDENCE_MEANING_IRRELEVANT, none, [])
         | .submission action => (.CORRELATED_EVIDENCE_MEANING_SUBMISSION, some (atom action), [])
         | .confirmed required steps => (.CORRELATED_EVIDENCE_MEANING_CONFIRMED,
-            required.map atom, steps.map fun (action, result) => output action result)
+            required.map atom,
+            steps.map fun (action, result) => output stateFields action result)
       pure (CorrelatedProjectionRule.mk rule.kind.value meaning submission outputs.toArray fields.toArray default)
     -- A capability that declares neither captures nor a correlation leaves both ceilings unset, so
     -- its meaning is exactly the one it had before the keyed capability existed.
@@ -285,15 +333,18 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
       (declaration.sources.toArray.map DefinitionId.value)
       (atom plan.initialState)
       (plan.executable.transitions.toArray.map fun (prior, action, result) =>
-        { output action result with prior_state := some (atom prior) })
-      rules.toArray (lowered.map (·.wire)).toArray, limits)
+        { output stateFields action result with
+          prior_state := some (atom prior)
+          prior_fields := (fieldsOf stateFields prior).toArray.map atom })
+      rules.toArray (lowered.map (·.wire)).toArray
+      ((fieldsOf stateFields plan.initialState).toArray.map atom), limits)
   let (wire, limits) ← build.mapError failed
   match decoding : Testpilot.Correlated.decode limits wire with
   | .error reason => throw (failed reason)
   | .ok decoded =>
-      if agreement : decoded = meaning plan compiled keyed then
+      if agreement : decoded = meaning stateFields plan compiled keyed then
         let certificates ← (CorrelatedProofs.certifyAll compiled.portableReferences
-          plan.executable.transitions plan.initialState).mapError failed
+          (liftedRows stateFields plan.executable.transitions) plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
             (fun maximum row => max maximum row.2.2.facts.length) 0 =
             target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0 then
@@ -301,7 +352,8 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
               (plan.executable.transitions.filter (fun candidate =>
                 candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
                   (target.machine.steps row.1 row.2.1).length then
-            pure ⟨wire, limits, decoded, keyed, decoding, agreement, maximumFacts, candidateCounts, certificates.down⟩
+            pure ⟨wire, limits, decoded, keyed, stateFields, decoding, agreement, maximumFacts,
+              candidateCounts, certificates.down⟩
           else throw (failed "portable work candidate multiplicity differs from checked kernel")
         else throw (failed "portable work maximum fact count differs from checked description")
       else throw (failed "portable correlated meaning roundtrip mismatch")
@@ -320,9 +372,14 @@ def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Prop
 /-- Any row executable by the actual decoded Contract is authorized by the original Target. -/
 theorem Lowered.table_authorized {plan : Projection.Checked target} {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
     (row) (member : row ∈ lowered.decoded.plan.transitions) :
-    target.machine.authoritativeStep row.1 row.2.1 row.2.2 := by
+    target.machine.authoritativeStep row.1.atom row.2.1
+      ⟨row.2.2.outcome, row.2.2.state.atom, row.2.2.facts⟩ := by
   rw [lowered.meaning] at member
-  exact plan.table_authorized row member
+  -- A lifted row is its own row with its states' fields attached, so the Model step it stands for
+  -- is the one the checked plan authorized.
+  obtain ⟨original, original_member, same⟩ := List.mem_map.mp member
+  subst same
+  exact plan.table_authorized original original_member
 
 /-- Each actual decoded window selects its checked source clause through the lowering certificate.
 The witness is built from the exact retained rows, never from an independently supplied truth value. -/
@@ -340,7 +397,8 @@ theorem Lowered.window_property {plan : Projection.Checked target}
   have sourceMember := Eq.mp (congrArg (fun cs => window.clause.val ∈ cs) clauses) member
   obtain ⟨binding, member, same⟩ := List.mem_map.mp sourceMember
   have certificate := lowered.certificates binding member
-  have table : lowered.decoded.plan.transitions = plan.executable.transitions := by rw [lowered.meaning]; rfl
+  have table : lowered.decoded.plan.transitions =
+      liftedRows lowered.stateFields plan.executable.transitions := by rw [lowered.meaning]; rfl
   have checked : CorrelatedProofs.Certificate binding lowered.decoded.plan.transitions plan.initialState := by
     rw [table]; exact certificate
   obtain ⟨input, admitted, answer⟩ := checked.closed_property window same.symm
@@ -354,7 +412,7 @@ theorem Lowered.evidence_validation {plan : Projection.Checked target}
       (plan.validateEvent scope event).mapError (fun _ => "invalid evidence") := by
   rw [lowered.meaning]
   unfold Testpilot.Correlated.Compiled.validateEvent Projection.Checked.validateEvent
-  simp only [Correlated.meaning, plan.executable_limits]
+  simp only [Correlated.meaning, liftedPlan, plan.executable_limits]
   rfl
 
 /-- Every window returned by actual wire observation admission retains checked Property correspondence. -/
