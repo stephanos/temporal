@@ -31,6 +31,18 @@ during the stop window wait in matching and dispatch after the resume. A transit
 refuses outright, or cannot complete, is a failed instruction outcome plus a Driver invariant
 diagnostic: the Run records that the fault was requested and not realized, and the Verdict is left
 to the Contract.
+The typed worker instructions (fn-85 R10) reach the SDK through `typed.go`: a `WorkflowCommand`
+carrying `ScheduleNexusOperationCommandAttributes` becomes `workflow.ExecuteNexusOperation` with the
+carried payload as an unconverted `converter.RawValue`, the carried timeouts, and the carried Nexus
+header merged under the Run's routing header; a `NexusHandlerReply` becomes the handler's return, a
+synchronous payload unconverted, an asynchronous reply through the completion authority the Session
+publishes under its own token, a handler error with its type and retry behavior, or a failed start
+as an operation error; and a `NexusOperationCompletion` becomes the completion callback's body, a
+payload verbatim or a failure converted as the Nexus SDK converts a Temporal failure, canceled when
+its failure info says so. Which fields of each message reach the SDK is the Driver-reach table in
+`internal/execution/typed.go`; the interpreter reads only the fields that table names realized, and
+`CommandTypes` names the command types this Driver realizes for `DeriveProfile`. Every registered
+Nexus operation reads its input as a `RawValue`, since a schedule command carries any payload.
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
 then rejects workflow types outside that allowlist before reservation admission.
 

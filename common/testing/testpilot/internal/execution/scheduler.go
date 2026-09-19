@@ -697,10 +697,19 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	case contract.InjectFault:
 		fault := n.source.Instruction.GetInjectFault()
 		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
-	case contract.AwaitSlot, contract.CompleteNexusOperation:
+	case contract.AwaitSlot, contract.CompleteNexusOperation, contract.NexusOperationCompletion:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
-		if n.opcode == contract.CompleteNexusOperation {
+		// The untyped completion delivers its evaluated result; the typed one delivers the
+		// payload or failure it carries.
+		var delivered proto.Message = input
+		switch n.opcode {
+		case contract.CompleteNexusOperation:
 			slot = n.source.Instruction.GetCompleteNexusOperation().HandleSlotId
+		case contract.NexusOperationCompletion:
+			completion := n.source.Instruction.GetNexusOperationCompletion()
+			slot, delivered = completion.GetHandleSlotId(), carriedCompletion(completion)
+		default:
+			// An AwaitSlot consumes nothing.
 		}
 		if s.values.program.slots[slot].Opaque() {
 			bridge, err = s.session.Bridge(ctx)
@@ -708,14 +717,14 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 				err = invalid(ir.Malformed, "bridge", "nil bridge")
 			}
 		}
-		if err == nil && n.opcode == contract.CompleteNexusOperation {
+		if err == nil && n.opcode != contract.AwaitSlot {
 			var capability contract.OpaqueCapability
 			capability, err = bridge.Consume(ctx, slot)
 			if err == nil && isNil(capability) {
 				err = invalid(ir.Malformed, "bridge", "nil capability")
 			}
 			if err == nil {
-				effect, err = s.session.InvokeCapability(ctx, c, capability, input)
+				effect, err = s.session.InvokeCapability(ctx, c, capability, delivered)
 			}
 		}
 	default:

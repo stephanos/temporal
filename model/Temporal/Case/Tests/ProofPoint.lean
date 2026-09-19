@@ -16,7 +16,11 @@ decides the design -- the handler's *completion* runs as a controller instructio
 `Temporal.Case.Realization.asyncNexus` writes none: it declares the same scaffolding, binds the three
 side effects to action classes, and lets `Umpire.Case.Producer.assembleProgram` order them from the
 path `[schedule, handlerReply, complete]`. The guards below require the two to be equal -- the same
-roles, slots, observations, entrypoints, instruction ids, guards, limits and dependency edges.
+roles, slots, observations, entrypoints, instruction ids, guards, limits and dependency edges --
+everywhere but in the three bound instructions themselves: since fn-85 .8 the realization binds each
+class to the typed worker instruction that carries its API message, where the template keeps the
+untyped ones until fn-86 removes them, so the comparison erases those three instructions' messages
+on both sides and pins the typed shapes separately.
 
 What this does not yet compare is the whole Case. A Case's Contract is derived from the checked
 Property's clauses and the Scenario's action order, so re-authoring the Model's two waits
@@ -72,10 +76,63 @@ private def wire (program : Except Umpire.Case.Compiler.Error Program) : Option 
 #guard (wire templateProgram).isSome
 #guard (wire assembledProgram).isSome
 
-/- **The proof point.** The assembled Program is byte-identical to the template's, so the path and the
-class bindings carry everything the template wrote by hand: the same roles, slots, observations,
-entrypoints, instruction ids, guards, limits and dependency edges. -/
-#guard (wire templateProgram).map (·.toList) == (wire assembledProgram).map (·.toList)
+/-- The instruction ids the three bound classes land on, whose messages the two sides spell
+differently: untyped in the template, typed in the realization. -/
+private def boundIds : List String :=
+  ["start-nexus-operation", "respond-async", "complete-nexus-operation"]
+
+/-- A Program with the bound instructions' messages erased, so what remains is the scaffolding, the
+placement and every coordinate a Contract reads back through. -/
+private def scaffolding (program : Except Umpire.Case.Compiler.Error Program) :
+    Except Umpire.Case.Compiler.Error Program :=
+  program.map fun program =>
+    { program with entrypoints := program.entrypoints.map fun entrypoint =>
+        { entrypoint with instructions := entrypoint.instructions.map fun node =>
+            if boundIds.contains node.instruction_id then { node with instruction := none }
+            else node } }
+
+/- **The proof point.** Outside the three bound instructions, the assembled Program is byte-identical
+to the template's, so the path and the class bindings carry everything the template wrote by hand:
+the same roles, slots, observations, entrypoints, instruction ids, guards, limits and dependency
+edges. The bound instructions differ only in spelling: the realization's carry the typed messages. -/
+#guard (wire (scaffolding templateProgram)).map (·.toList) ==
+  (wire (scaffolding assembledProgram)).map (·.toList)
+#guard (wire templateProgram).map (·.toList) != (wire assembledProgram).map (·.toList)
+
+/-- The typed message a bound instruction of the assembled Program carries, named by its arm. -/
+private def carriedArm (entrypointId instructionId : String) : String :=
+  match assembledProgram with
+  | .ok program =>
+      match program.entrypoints.find? (·.entrypoint_id == entrypointId) with
+      | some entrypoint =>
+          match entrypoint.instructions.find? (·.instruction_id == instructionId) with
+          | some node =>
+              match node.instruction.bind (·.instruction) with
+              | some (.workflow_command carried) =>
+                  match carried.command.bind (·.attributes) with
+                  | some (.schedule_nexus_operation_command_attributes attributes) =>
+                      s!"schedule {attributes.endpoint} {attributes.service} {attributes.operation}"
+                  | _ => "command?"
+              | some (.nexus_handler_reply reply) =>
+                  match reply.reply with
+                  | some (.response { variant := some (.async_success _), .. }) =>
+                      s!"async-reply {reply.handle_slot_id}"
+                  | _ => "reply?"
+              | some (.nexus_operation_completion completion) =>
+                  match completion.result with
+                  | some (.payload _) => s!"complete-payload {completion.handle_slot_id}"
+                  | _ => "completion?"
+              | _ => "untyped"
+          | none => "missing"
+      | none => "missing"
+  | .error _ => "rejected"
+
+/- The three bound instructions carry the typed messages of their classes, on the template's own
+endpoint role, service, operation and handle slot. -/
+#guard carriedArm "workflow" "start-nexus-operation" ==
+  "schedule temporal.nexus-endpoint umpire.case.service complete"
+#guard carriedArm "handler" "respond-async" == "async-reply completion-authority"
+#guard carriedArm "controller" "complete-nexus-operation" == "complete-payload completion-authority"
 
 /-! ### What the equality covers
 

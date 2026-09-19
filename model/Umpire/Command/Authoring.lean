@@ -633,9 +633,13 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
     (required : List DefinitionId := [])
-    (claims : List Umpire.Case.Producer.ClassClaim := []) :
+    (claims : List Umpire.Case.Producer.ClassClaim := [])
+    (program : Option (List DefinitionId) := none) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  let input := { producerInput checked with claims }
+  -- A realization may state the path its Program performs where the Model's own actions realize
+  -- nothing: the success slice's actions are waits, and its side effects are the realization's
+  -- classes until the protocol machine's actions are the path.
+  let input := { producerInput checked with claims, program := program <|> checked.realizable.program }
   Umpire.Case.Producer.produce input identity realization (evidence input.vocabulary) required
 
 /-- The same, starting from the Query's own admission result. A Model the Query did not admit
@@ -648,13 +652,14 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
     (required : List DefinitionId := [])
-    (claims : List Umpire.Case.Producer.ClassClaim := []) :
+    (claims : List Umpire.Case.Producer.ClassClaim := [])
+    (program : Option (List DefinitionId) := none) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← admitted.mapError fun _ => {
     sourceDefinitionId := identity.caseId
     source := «model».origin.source
     construct := "checked-model" }
-  produce checked identity realization evidence required claims
+  produce checked identity realization evidence required claims program
 
 
 /-! ### What went wrong, where the author wrote it

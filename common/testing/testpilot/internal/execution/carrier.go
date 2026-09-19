@@ -153,14 +153,14 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]contra
 func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow *graph, count int64, handlers map[nexusOperation]reservedHandler, ordinals map[string]int64, plan *contract.ReservationCarrierPlan) error {
 	for _, index := range workflow.order {
 		source := workflow.nodes[index]
-		if source.opcode != contract.StartNexusOperation {
+		if !startsNexusOperation(source.source.Instruction) {
 			continue
 		}
 		if err := a.charge(1); err != nil {
 			return err
 		}
-		start := source.source.Instruction.GetStartNexusOperation()
-		handler, ok := handlers[nexusOperation{service: start.Service, operation: start.Operation}]
+		started := nexusOperationOf(source.source.Instruction)
+		handler, ok := handlers[started]
 		if !ok {
 			return invalid(ir.Unavailable, nodePath(controller, node), "missing or crossed reserved Nexus handler mapping")
 		}
