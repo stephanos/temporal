@@ -169,10 +169,11 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	require.Contains(t, stderr.String(), "driver is unavailable")
 }
 
-// A typed fixture carries a Profile `DeriveProfile` cannot derive, so it rejects before any server
-// call, with the admission category that says why.
-func TestRunRejectsATypedFixtureWithItsPreparationCategory(t *testing.T) {
-	encoded, err := os.ReadFile(fixturePath(t, "typed-nexus-case.json"))
+// A Nexus fixture run against an environment that binds no Nexus endpoint carries a Profile
+// `DeriveProfile` cannot derive, so it rejects before any server call, with the admission category
+// that says why.
+func TestRunRejectsAFixtureWithItsPreparationCategory(t *testing.T) {
+	encoded, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
@@ -185,7 +186,7 @@ func TestRunRejectsATypedFixtureWithItsPreparationCategory(t *testing.T) {
 	require.Error(t, deriveErr)
 
 	var stdout, stderr bytes.Buffer
-	code := Run(requiredFlags(t, "typed-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		func(_ context.Context, _ config, source *testpilotspb.Case) (*session, error) {
 			_, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 				Identity: "umpire-run.probe", Namespace: "probe", TaskQueue: "probe-queue",

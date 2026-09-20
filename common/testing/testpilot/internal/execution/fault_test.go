@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.InstructionNode {
@@ -36,21 +37,26 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 // The Opcode list, the instruction-to-Opcode switch and the Instruction oneof are three
 // hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
 // in only one of them; the facade re-exports the contract leaf's Opcode by alias, so it adds no
-// fourth list to pin.
+// fourth list to pin. A removed arm's successors move up, so an arm's Opcode is its field number
+// and the numbers stay dense from 1.
 func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 	oneof := (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 	require.NotNil(t, oneof)
 	require.Equal(t, int(contract.MaxOpcode), oneof.Fields().Len())
 
 	seen := map[contract.Opcode]bool{}
+	var previous protoreflect.FieldNumber
 	for i := range oneof.Fields().Len() {
 		field := oneof.Fields().Get(i)
 		t.Run(string(field.Name()), func(t *testing.T) {
 			instruction := &testpilotspb.Instruction{}
 			instruction.ProtoReflect().Mutable(field)
 			opcode := InstructionOpcode(instruction)
-			// The oneof field number is the opcode: the two lists cannot be reordered apart.
+			// The arm's field number is its opcode, and the numbers are dense from 1: the two
+			// lists cannot be reordered apart, and a removed arm's successors move up.
+			require.Equal(t, previous+1, field.Number())
 			require.Equal(t, contract.Opcode(field.Number()), opcode)
+			previous = field.Number()
 			require.False(t, seen[opcode])
 			seen[opcode] = true
 			require.NotZero(t, opcodeContext(opcode))

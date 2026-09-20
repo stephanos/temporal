@@ -65,42 +65,16 @@ func payloadCompletion(slot string) *testpilotspb.NexusOperationCompletion {
 	return &testpilotspb.NexusOperationCompletion{HandleSlotId: slot, Result: &testpilotspb.NexusOperationCompletion_Payload{Payload: &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte(`"done"`)}}}
 }
 
-// typedFixture is the handle fixture with every Nexus side effect carried typed: the workflow
-// schedules the operation through a command, the handler answers asynchronously with a typed
-// reply, and the controller completes it with a carried payload.
-func typedFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
-	t.Helper()
-	c, catalog, p := handleFixture(t)
-	p.Opcodes = append(p.Opcodes, contract.WorkflowCommand, contract.NexusHandlerReply, contract.NexusOperationCompletion)
-	p.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
-	controller := c.Program.Entrypoints[0]
-	complete := completionNode("complete", payloadCompletion("handle"))
-	complete.Guard = succeeded("controller", "ready")
-	controller.Instructions[2] = complete
-	workflow := c.Program.Entrypoints[1]
-	workflow.Instructions[0] = scheduleNode("start")
-	handler := c.Program.Entrypoints[2]
-	handler.Instructions[0] = replyNode("respond", asyncReply("handle"))
-	return c, catalog, p
-}
-
 func TestPrepareAdmitsTypedInstructions(t *testing.T) {
-	c, catalog, p := typedFixture(t)
+	c, catalog, p := handleFixture(t)
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
-	// The Await of a scheduled command yields the handler's payload whole, as an Any; the Await of
-	// the untyped start keeps its text result.
+	// The Await of a scheduled command yields the handler's payload whole, as an Any.
 	await := prepared.Entrypoints()[1].Instructions()[1]
 	value, ok := await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 	require.True(t, ok)
 	require.NotNil(t, value.GetSingular().GetAny())
-	untyped, _, _ := handleFixture(t)
-	preparedUntyped, err := Prepare(untyped, catalog, p)
-	require.NoError(t, err)
-	value, ok = preparedUntyped.Entrypoints()[1].Instructions()[1].OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
-	require.True(t, ok)
-	require.Equal(t, testpilotspb.SCALAR_KIND_TEXT, value.GetSingular().GetScalar().GetKind())
-	// A typed completion produces a protocol code like the untyped one.
+	// A typed completion is a controller protocol effect, so it produces a protocol code.
 	_, ok = prepared.Entrypoints()[0].Instructions()[2].OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
 	require.True(t, ok)
 }
@@ -191,7 +165,7 @@ func TestPrepareRejectsTypedInstructions(t *testing.T) {
 		}, ir.Malformed, "policy.command_types"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, p := typedFixture(t)
+			c, catalog, p := handleFixture(t)
 			tc.mutate(c, &p)
 			_, err := Prepare(c, catalog, p)
 			var diagnostic *ir.Error
@@ -266,8 +240,6 @@ func TestPrepareTypedInstructionsKeepTheirContexts(t *testing.T) {
 			t.Run(fmt.Sprintf("%s in kind %d", tc.name, context), func(t *testing.T) {
 				c, catalog, p := fixture(t)
 				addWorker(c, &p)
-				p.Opcodes = append(p.Opcodes, contract.WorkflowCommand, contract.NexusHandlerReply, contract.NexusOperationCompletion)
-				p.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
 				c.Program.Slots = []*testpilotspb.Slot{handleSlot("handle")}
 				g := c.Program.Entrypoints[0]
 				g.Instructions[0].Instruction = tc.instruction

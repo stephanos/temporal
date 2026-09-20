@@ -32,13 +32,12 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	secondStart.InstructionId = "start_second"
 	secondStart.Guard = nil
 	secondStart.After = runsAfter("workflow")
-	secondStart.Instruction.GetStartNexusOperation().Operation = "operation_second"
+	secondStart.Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().Operation = "operation_second"
 	workflow.Instructions = append(workflow.Instructions, secondStart)
 	secondHandler := proto.CloneOf(source.Program.Entrypoints[2])
 	secondHandler.EntrypointId = "handler_second"
 	secondHandler.GetNexusHandler().Operation = "operation_second"
-	secondHandler.Instructions[0].Instruction.GetRespondNexus().Kind = testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS
-	secondHandler.Instructions[0].Instruction.GetRespondNexus().HandleSlotId = ""
+	secondHandler.Instructions[0].Instruction = replyNode("respond", syncReply()).Instruction
 	source.Program.Entrypoints = append(source.Program.Entrypoints, secondHandler)
 
 	prepared, err := Prepare(source, catalog, policy)
@@ -68,7 +67,7 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	plan.Routes[0].HandlerOrdinal = 99
 	plan.Reservations[0].Count = 99
 	policy.Roles[0].ReservationCarriers[0].Shapes[0].MaximumCount = 1
-	source.Program.Entrypoints[1].Instructions[0].Instruction.GetStartNexusOperation().Operation = "changed"
+	source.Program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().Operation = "changed"
 	again, ok := prepared.ReservationCarrier("controller", "call")
 	require.True(t, ok)
 	require.Equal(t, want, again)

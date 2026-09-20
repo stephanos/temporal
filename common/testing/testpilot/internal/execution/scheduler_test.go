@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
@@ -556,7 +557,7 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 			completed := false
 			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
 				require.Equal(t, capability, got)
-				require.Equal(t, "done", input.(*testpilotspb.Value).GetTextValue())
+				require.Equal(t, []byte(`"done"`), input.(*commonpb.Payload).GetData())
 				require.Equal(t, "complete", c.InstructionID)
 				completed = true
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
@@ -585,7 +586,7 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 func TestSchedulerDeliversTheCarriedCompletion(t *testing.T) {
 	for _, mode := range []string{"payload", "failure"} {
 		t.Run(mode, func(t *testing.T) {
-			c, catalog, policy := typedFixture(t)
+			c, catalog, policy := handleFixture(t)
 			if mode == "failure" {
 				c.Program.Entrypoints[0].Instructions[2].Instruction.GetNexusOperationCompletion().Result = &testpilotspb.NexusOperationCompletion_Failure{Failure: &failurepb.Failure{Message: "failed"}}
 			}

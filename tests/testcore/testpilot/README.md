@@ -22,9 +22,10 @@ reject missing or inconsistent references before dispatch. The tagged live tests
 per value of the implementation switch, under two isolated namespaces, queues and named Nexus routes
 each, and verify every Run satisfies the same Contract with correlated history evidence.
 
-`derive_profile_test.go` holds the derivation oracle: the hand-written `NexusCallerProfile`,
-`TypedNexusProfile` and `TypedUnaryProfile` are compared field for field against
-`temporal.DeriveProfile` over the same fixture bytes, including the identity the binding supplies.
+`derive_profile_test.go` holds the derivation oracle: the hand-written `NexusCallerProfile` and
+`WorkflowStartProfile` are compared field for field against `temporal.DeriveProfile` over the same
+fixture bytes, including the identity the binding supplies; `NexusPairProfile` prepares the pair
+Case offline with two handler reservations.
 Live tests no longer hand-write a Profile at all. `bindCase` under `tests/` takes a decoded Case and
 an explicit `CaseBinding` (identity, namespace, task queue, Nexus endpoint, and whether this test
 creates the endpoint), derives the Profile, provisions, prepares, and returns the bound Case;

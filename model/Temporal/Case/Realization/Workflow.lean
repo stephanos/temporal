@@ -100,8 +100,9 @@ def startBinding : Umpire.Case.Producer.ActionBinding := {
   action := startAction
   key := "startWorkflow"
   instructionId := "start-workflow"
-  node := fun identity instructionId => startWorkflowNode instructionId (workflowTypeOf identity)
-  literals := fun identity => [(workflowTypeField, .text (workflowTypeOf identity))] }
+  node := fun placement instructionId =>
+    startWorkflowNode instructionId (workflowTypeOf placement.identity)
+  literals := fun placement => [(workflowTypeField, .text (workflowTypeOf placement.identity))] }
 
 def plan : Umpire.Case.Producer.ProgramPlan := {
   roles := sharedRoles
@@ -112,8 +113,9 @@ def plan : Umpire.Case.Producer.ProgramPlan := {
         .actions [startAction],
         .fixed fun _ _ => awaitCloseNode,
         .fixed fun _ resolved => historyNode resolved] },
-    { activate := fun identity nodes =>
-        Program.workflow "workflow" (workflowTypeOf identity) workerRole taskQueueRole nodes
+    { activate := fun placement nodes =>
+        Program.workflow "workflow" (workflowTypeOf placement.identity) workerRole taskQueueRole
+          nodes
       items := [
         .fixed fun _ _ =>
           Program.node "finish-workflow" (Program.finish (text "started"))
@@ -149,7 +151,7 @@ def workflowStart : Umpire.Case.Producer.Realization := {
 type. -/
 #guard (workflowStart.actions.map (·.key)) == ["startWorkflow"]
 #guard (workflowStart.actions.map fun binding =>
-    binding.literals (Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x")) ==
+    binding.literals { identity := Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x" }) ==
   [[("workflow_type.name", .text "umpire-x-workflow")]]
 
 end Temporal.Case.Realization

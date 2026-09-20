@@ -36,11 +36,11 @@ func jsonPayload(t *testing.T, value any) *commonpb.Payload {
 	return payload
 }
 
-// typedProfile admits the typed instructions beside the untyped ones the runtime fixture uses, and
-// binds the worker's namespace to the one the SDK test environment runs under.
+// typedProfile admits the controller's typed completion beside the typed instructions the runtime
+// fixture already uses, and binds the worker's namespace to the one the SDK test environment runs
+// under.
 func typedProfile(profile *testpilot.ProfileSpec) {
-	profile.Opcodes = append(profile.Opcodes, testpilot.WorkflowCommand, testpilot.NexusHandlerReply, testpilot.NexusOperationCompletion)
-	profile.CommandTypes = CommandTypes()
+	profile.Opcodes = append(profile.Opcodes, testpilot.NexusOperationCompletion)
 	for index := range profile.EnvironmentBindings {
 		if profile.EnvironmentBindings[index].ID == "namespace" {
 			profile.EnvironmentBindings[index].Value = "default-test-namespace"
@@ -48,8 +48,8 @@ func typedProfile(profile *testpilot.ProfileSpec) {
 	}
 }
 
-// scheduleCommandProgram replaces the workflow's untyped start with a schedule command carrying
-// the given attributes.
+// scheduleCommandProgram replaces the workflow's schedule command with one carrying the given
+// attributes.
 func scheduleCommandProgram(t *testing.T, attributes *commandpb.ScheduleNexusOperationCommandAttributes) func(*testpilotspb.Program) {
 	t.Helper()
 	return func(program *testpilotspb.Program) {
@@ -66,7 +66,7 @@ func scheduleCommandProgram(t *testing.T, attributes *commandpb.ScheduleNexusOpe
 func TestSDKWorkflowIssuesTheCarriedScheduleCommand(t *testing.T) {
 	request := jsonPayload(t, "request")
 	done := jsonPayload(t, "done")
-	prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
+	prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
 		Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", Input: request,
 		ScheduleToCloseTimeout: durationpb.New(7 * time.Second), ScheduleToStartTimeout: durationpb.New(3 * time.Second), StartToCloseTimeout: durationpb.New(5 * time.Second),
 		NexusHeader: map[string]string{"x-case": "carried"},
@@ -109,7 +109,7 @@ func TestSDKWorkflowIssuesTheCarriedScheduleCommand(t *testing.T) {
 // A schedule command's Nexus header travels beside the Driver's routing header, and a Case header
 // that spells the routing header's own name is rejected rather than overwritten.
 func TestPreparedNexusHeaderCarriesTheCaseHeader(t *testing.T) {
-	prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
+	prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
 		Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", NexusHeader: map[string]string{"x-case": "carried"},
 	}))
 	host, definition := runtimeTestDriver(t, prepared)
@@ -127,7 +127,7 @@ func TestPreparedNexusHeaderCarriesTheCaseHeader(t *testing.T) {
 // The carried schedule-to-close timeout bounds the operation, not the instruction's own timeout:
 // a completion that arrives after it times the Await out although the Await's limit is longer.
 func TestSDKScheduleCommandCarriesItsOwnTimeouts(t *testing.T) {
-	prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
+	prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
 		Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", ScheduleToCloseTimeout: durationpb.New(time.Second),
 	}), func(program *testpilotspb.Program) {
 		program.Entrypoints[1].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000}
@@ -200,7 +200,7 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 			}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, func(program *testpilotspb.Program) {
+			prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, func(program *testpilotspb.Program) {
 				program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
 				program.Entrypoints[2].Instructions[0].Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: tc.reply}}
 			})
@@ -241,7 +241,7 @@ func TestSessionAnswersTheRetriedStartWithTheNextReply(t *testing.T) {
 	retryable := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Error{Error: &nexuspb.HandlerError{ErrorType: "INTERNAL", Failure: &nexuspb.Failure{Message: "try again"}, RetryBehavior: enumspb.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE}}}
 	answer := jsonPayload(t, "answered")
 	sync := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: answer}}}}}
-	prepared := preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, typedProfile, func(program *testpilotspb.Program) {
+	prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, func(program *testpilotspb.Program) {
 		first := program.Entrypoints[2].Instructions[0]
 		first.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: retryable}}
 		second := &testpilotspb.InstructionNode{
@@ -350,12 +350,12 @@ func TestCompletionEffectAcceptsTypedCompletions(t *testing.T) {
 	require.NoError(t, err)
 	payload := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusOperationCompletion{NexusOperationCompletion: &testpilotspb.NexusOperationCompletion{Result: &testpilotspb.NexusOperationCompletion_Payload{Payload: &commonpb.Payload{}}}}}
 	failure := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusOperationCompletion{NexusOperationCompletion: &testpilotspb.NexusOperationCompletion{Result: &testpilotspb.NexusOperationCompletion_Failure{Failure: &failurepb.Failure{}}}}}
-	untyped := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{}}}
+	other := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}
 	require.True(t, effect.Accepts(t.Context(), payload, &commonpb.Payload{}))
 	require.True(t, effect.Accepts(t.Context(), failure, &failurepb.Failure{}))
 	require.False(t, effect.Accepts(t.Context(), payload, &failurepb.Failure{}))
 	require.False(t, effect.Accepts(t.Context(), failure, &commonpb.Payload{}))
-	require.False(t, effect.Accepts(t.Context(), untyped, &commonpb.Payload{}))
+	require.False(t, effect.Accepts(t.Context(), other, &commonpb.Payload{}))
 	require.False(t, effect.Accepts(t.Context(), payload, callbackValue()))
 	require.Equal(t, "invalid_argument", effect.Invoke(t.Context(), &testpilotspb.InstructionOutcome{}, 4096).Outcome.ProtocolCode)
 }

@@ -717,6 +717,19 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Producer" + "Data",
 		"Get" + "ProducerData",
 		"producer" + "_data",
+		// fn-86 .3 removes the superseded Testpilot instruction shapes: the untyped Nexus start, the
+		// untyped completion whose result is an Expression, the untyped handler response and the enum
+		// that named its kind. `RespondNexus` and `NexusResponseKind` are held bare: the identifier
+		// boundary on both sides keeps the WorkflowService method `RespondNexusTaskCompleted` and the
+		// typed `NexusOperationCompletion` live. The other two names are HistoryService methods the
+		// generated `Temporal.API` spells in both cases, so only their protocol-qualified Go
+		// spellings -- the oneof arm type and its accessor -- are held.
+		"Respond" + "Nexus",
+		"NexusResponse" + "Kind",
+		"Instruction_StartNexus" + "Operation",
+		"Instruction_CompleteNexus" + "Operation",
+		"GetStartNexus" + "Operation",
+		"GetCompleteNexus" + "Operation",
 		// fn-87 spells a field path as a string in its grammar, so the structured path segment and its
 		// selector messages retire; FieldPath stays the concept's name.
 		"FieldPath" + "Segment",

@@ -245,12 +245,12 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	b, err := store.activate("workflow", "b")
 	require.NoError(t, err)
 	coord := contract.Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "await", Attempt: 1}
-	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
+	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue("owned")}}
 	batch, _, err := a.stage(context.Background(), coord, raw, a.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, a.commit(context.Background(), batch))
 	raw.Outcome.Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
-	require.Equal(t, "owned", a.latest["await"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetTextValue())
+	require.True(t, proto.Equal(carriedValue("owned"), a.latest["await"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE]))
 	require.Empty(t, b.latest)
 	for _, value := range []*testpilotspb.Value{nil, {Value: &testpilotspb.Value_BoolValue{BoolValue: true}}} {
 		coord.ActivationID = "b"

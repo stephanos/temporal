@@ -1,4 +1,5 @@
 import Temporal.Case.Evidence
+import Temporal.Case.FieldPath
 import Temporal.Case.ReadKind
 import Temporal.Case.Support
 import Temporal.DynamicConfig
@@ -105,13 +106,33 @@ private def historySource (kind : String) (kindId : DefinitionId) :
     kindId
     sourceId := evidenceSourceId }
 
+/-- The field of the scheduled event that names which instance's operation it records: the
+operation name the schedule command addressed, resolved against the generated schema the way a
+relation's operand is. A relation that captures the scheduled event of an earlier step selects
+the instance's own by it. -/
+def scheduledSelector : Option Umpire.Case.Producer.FieldOperand :=
+  match Temporal.Case.FieldPath.resolve
+      { kind := .observation, schema := ["nexusOperationScheduled"], segments := ["operation"] } with
+  | .ok resolved => some {
+      root := .event
+      member := ""
+      spelling := "operation"
+      observed := "nexusOperationScheduled"
+      schema := Temporal.Case.FieldPath.getWorkflowExecutionHistorySchema
+      side := resolved.side
+      steps := resolved.steps
+      type := resolved.type
+      presence := resolved.presence }
+  | .error _ => none
+
 def scheduledSource : Umpire.Case.Producer.EvidenceSource :=
   let binding := ReadKind.scheduledEvent
   { eventKind := binding.name
     recorded := .read binding.method binding.path
     operationKeyPath := binding.operationKey
     kindId := scheduledEvidenceKindId
-    sourceId := scheduledSourceId }
+    sourceId := scheduledSourceId
+    selector := scheduledSelector }
 
 def startedSource : Umpire.Case.Producer.EvidenceSource :=
   historySource "nexusOperationStarted" startedEvidenceKindId
@@ -247,9 +268,16 @@ def completeAction : DefinitionId := .of "temporal.nexus.caller.action.complete"
 def completeFailedAction : DefinitionId := .of "temporal.nexus.caller.action.complete.failed"
 def workerStopAction : DefinitionId := .of "temporal.nexus.caller.action.workerStop"
 
-/-- The handle slot the handler's asynchronous reply publishes and the completion consumes. Naming it
-once is what keeps the two bindings agreeing about which authority they mean. -/
-private def completionAuthority : String := "completion-authority"
+/-- The handle slot the handler's asynchronous reply publishes and the completion consumes, one
+per instance of the operation. Naming it once is what keeps the two bindings agreeing about which
+authority they mean. -/
+private def completionAuthority (placement : Umpire.Case.Producer.Placement) : String :=
+  "completion-authority" ++ placement.suffix
+
+/-- The operation one instance addresses: the realization's on a Case over one instance, and one
+name per instance on a Case over several, so each instance's handler registers its own. -/
+def operationOf (operation : String) (placement : Umpire.Case.Producer.Placement) : String :=
+  operation ++ placement.suffix
 
 /-- The failure a failed reply or completion carries: an application failure the handler names. -/
 private def handlerFailure : temporal.api.failure.v1.Failure :=
@@ -287,18 +315,21 @@ private def scheduleBinding (action : DefinitionId) (key service operation : Str
   action
   key
   instructionId := "start-nexus-operation"
-  node := fun _ instructionId =>
+  node := fun placement instructionId =>
     Program.node instructionId
-      (Program.scheduleNexusOperation Support.nexusEndpointRole service operation
-        (Payload.text "request") (scheduleToStart := scheduleToStart)
-        (startToClose := startToClose)) }
+      (Program.scheduleNexusOperation Support.nexusEndpointRole service
+        (operationOf operation placement) (Payload.text "request")
+        (scheduleToStart := scheduleToStart) (startToClose := startToClose))
+  -- The operation name the command assigns, which the scheduled event records: what selects the
+  -- instance's own scheduled event where a relation captures it.
+  literals := fun placement => [("operation", .text (operationOf operation placement))] }
 
 private def handlerReplyBinding : Umpire.Case.Producer.ActionBinding := {
   action := handlerReplyAction
   key := "handlerReply-async"
   instructionId := "respond-async"
-  node := fun _ instructionId =>
-    Program.node instructionId (Program.nexusAsyncReply completionAuthority)
+  node := fun placement instructionId =>
+    Program.node instructionId (Program.nexusAsyncReply (completionAuthority placement))
       (Program.instructionLimits (timeoutMilliseconds := some 5000)) }
 
 private def handlerReplySyncBinding : Umpire.Case.Producer.ActionBinding := {
@@ -331,16 +362,18 @@ private def completeBinding : Umpire.Case.Producer.ActionBinding := {
   action := completeAction
   key := "complete-succeeded"
   instructionId := "complete-nexus-operation"
-  node := fun _ instructionId =>
+  node := fun placement instructionId =>
     Program.node instructionId
-      (Program.nexusOperationCompletion completionAuthority (Payload.text "completed")) }
+      (Program.nexusOperationCompletion (completionAuthority placement)
+        (Payload.text "completed")) }
 
 private def completeFailedBinding : Umpire.Case.Producer.ActionBinding := {
   action := completeFailedAction
   key := "complete-failed"
   instructionId := "fail-nexus-operation"
-  node := fun _ instructionId =>
-    Program.node instructionId (Program.nexusOperationFailure completionAuthority handlerFailure) }
+  node := fun placement instructionId =>
+    Program.node instructionId
+      (Program.nexusOperationFailure (completionAuthority placement) handlerFailure) }
 
 /-- The handler's worker stops polling its queue: a deliberate outage of the handler's task queue
 and no other, so the caller workflow keeps running. -/
@@ -374,6 +407,10 @@ the start request would sometimes lose.
 /-- The classes whose instruction consumes the completion authority. -/
 private def completionKeys : List String := ["complete-succeeded", "complete-failed"]
 
+/-- The classes that schedule the operation, one per assignment of its deadlines. -/
+private def scheduleKeys : List String :=
+  ["schedule-unset-unset-unset", "schedule-unset-expires-unset", "schedule-unset-unset-expires"]
+
 /-- The class whose reply backs the operation off, after which the attempt count is read. -/
 private def retryKeys : List String := ["handlerReply-handlerError-true"]
 
@@ -385,29 +422,36 @@ private def firstAttemptFailed : Expression :=
 /-- The plan every caller-side Case is assembled from. -/
 def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
   roles := sharedRoles
-  slots := #[Program.handleSlot completionAuthority]
+  -- One completion authority per instance of the operation.
+  instanceSlots := fun placement => #[Program.handleSlot (completionAuthority placement)]
   observations := sharedObservations
   entrypoints := [
     { activate := fun _ nodes => Program.controller "controller" nodes
       items := [
         .actions [workerStopAction],
-        .fixed fun identity _ => startWorkflowNode (workflowTypeOf identity),
+        .fixed fun placement _ => startWorkflowNode (workflowTypeOf placement.identity),
         .fixed fun _ _ => awaitScheduledNode,
         .whenOnPath retryKeys fun _ _ => pendingAttemptsNode firstAttemptFailed,
-        .whenOnPath completionKeys fun _ _ =>
-          Program.node "await-completion-authority" (Program.awaitSlot completionAuthority),
-        .actions [completeAction, completeFailedAction],
+        -- Each instance's completion follows its own wait for the authority its handler
+        -- publishes.
+        .perInstance [
+          .whenOnPath completionKeys fun placement _ =>
+            Program.node ("await-completion-authority" ++ placement.suffix)
+              (Program.awaitSlot (completionAuthority placement)),
+          .actions [completeAction, completeFailedAction]],
         .fixed fun _ _ => awaitCloseNode,
         .fixed fun _ resolved => historyNode resolved] },
-    { activate := fun identity nodes =>
-        Program.workflow "workflow" (workflowTypeOf identity) workerRole taskQueueRole nodes
+    { activate := fun placement nodes =>
+        Program.workflow "workflow" (workflowTypeOf placement.identity) workerRole taskQueueRole
+          nodes
       items := [
         -- The schedule is the Model's; the await and the finish are scaffolding, because no Model
-        -- declares them.
+        -- declares them. Each instance's schedule is awaited by its own node.
         .actions [scheduleAction, scheduleToStartAction, startToCloseAction],
-        .fixed fun _ _ =>
-          Program.node "await-nexus-operation"
-            (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
+        .whenOnPath scheduleKeys fun placement _ =>
+          Program.node ("await-nexus-operation" ++ placement.suffix)
+            (Program.awaitInstruction
+              (Ref.instruction "workflow" ("start-nexus-operation" ++ placement.suffix)))
             (guard := some (boolean true)),
         -- The workflow closes on every path: a failed or timed-out operation is the await's
         -- recorded outcome, not a reason to leave the workflow open, so the finish runs regardless
@@ -416,11 +460,14 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
           Program.node "finish-workflow" (Program.finish (text "done"))
             (Program.instructionLimits (timeoutMilliseconds := some 5000))
             (guard := some (boolean true))] },
-    { activate := fun _ nodes =>
-        Program.nexusHandler "handler" service operation
-          Support.workerRole Support.handlerTaskQueueRole nodes
+    -- One handler per instance: each answers the operation its instance addresses, and a handler
+    -- entrypoint ends at its first reply.
+    { activate := fun placement nodes =>
+        Program.nexusHandler ("handler" ++ placement.suffix) service
+          (operationOf operation placement) Support.workerRole Support.handlerTaskQueueRole nodes
       items := [.actions [handlerReplyAction, handlerReplySyncAction, handlerReplyFailedAction,
-        handlerErrorRetryableAction, handlerErrorNonRetryableAction]] }]
+        handlerErrorRetryableAction, handlerErrorNonRetryableAction]]
+      perInstance := true }]
   cleanup := Program.cleanup "cleanup" #[] }
 
 /-! ### The switch
@@ -517,7 +564,8 @@ completions, the worker stop to a fault. -/
   "temporal.nexus.caller.action.complete.failed",
   "temporal.nexus.caller.action.workerStop"]
 #guard ((asyncNexus "service" "operation").actions.map fun binding =>
-    match (binding.node (Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x") "n").instruction.bind (·.instruction) with
+    match (binding.node { identity := Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x" }
+        "n").instruction.bind (·.instruction) with
     | some (.workflow_command _) => "command"
     | some (.nexus_handler_reply _) => "reply"
     | some (.nexus_operation_completion _) => "completion"
@@ -561,6 +609,21 @@ which are the catalog's. The scheduled event is read out of history by a poll of
         path == Temporal.Testpilot.CaseSupport.historyEvents
   | _ => false)
 #guard Nexus.scheduledSource.operationKeyPath == "event_id"
+
+/- The scheduled event is selected, where a relation captures it, by the operation name it records,
+read off the generated schema: the arm's `operation` field, a string. -/
+#guard (Nexus.scheduledSource.selector.map fun selector =>
+    (selector.spelling, selector.type, selector.steps.getLast?, selector.presence.length)) ==
+  some ("operation", .text,
+    some (.field "temporal.api.history.v1.NexusOperationScheduledEventAttributes" 3), 2)
+
+/- On a Case over one instance every name is the realization's own; over several, each instance's
+operation, handler, slot and await carry the instance. -/
+#guard Nexus.operationOf "complete" { identity := Umpire.Case.Producer.Identity.ofFixture "t" "x" }
+  == "complete"
+#guard Nexus.operationOf "complete"
+    { identity := Umpire.Case.Producer.Identity.ofFixture "t" "x", number := 2, count := 2 }
+  == "complete-2"
 #guard (match Nexus.pendingAttemptsSource.recorded with
   | .read method path =>
       method == ReadKind.describeWorkflowExecutionMethod && path == "pending_nexus_operations"

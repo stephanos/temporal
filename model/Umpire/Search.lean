@@ -883,10 +883,18 @@ private partial def pullCandidate
             match kernel.actionAt index with
             | none => pullCandidate query kernel next
             | some action =>
-                pullCandidate query kernel {
-                  next with
-                  activePath := { advanced with currentAction := some action } :: parents
-                }
+                -- A prefix the Scenario admits no extension of -- an action out of an exact
+                -- sequence's order, one past its occurrence maximum -- is not extended: the
+                -- admitted traces are the same, and the candidates that could never be one are
+                -- neither generated nor counted against the search bound.
+                let prefixActions := cursor.trace.trace.steps.map (·.selectedAction.definitionId)
+                if query.behavior.admitsPrefix (prefixActions ++ [action.definitionId]) then
+                  pullCandidate query kernel {
+                    next with
+                    activePath := { advanced with currentAction := some action } :: parents
+                  }
+                else
+                  pullCandidate query kernel next
           else
             pullCandidate query kernel { state with activePath := parents }
       | some action =>

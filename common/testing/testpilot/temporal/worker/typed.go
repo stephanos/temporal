@@ -43,9 +43,9 @@ func scheduleNexusOperation(instruction *testpilotspb.Instruction) *commandpb.Sc
 }
 
 // startsNexusOperation reports whether an instruction starts a Nexus operation the Driver must
-// prepare a dispatch route for: the untyped start, or a schedule command.
+// prepare a dispatch route for: a schedule command.
 func startsNexusOperation(instruction testpilot.InstructionPlan) bool {
-	return instruction.Opcode() == testpilot.StartNexusOperation || scheduleNexusOperation(instruction.Source().GetInstruction()) != nil
+	return scheduleNexusOperation(instruction.Source().GetInstruction()) != nil
 }
 
 // caseNexusHeaderKey carries a schedule command's Nexus header to the outbound interceptor, which
@@ -114,24 +114,24 @@ func (s *Session) replyTyped(ctx context.Context, delivered delivery.Activation,
 	case *testpilotspb.NexusHandlerReply_Response:
 		switch variant := typed.Response.GetVariant().(type) {
 		case *nexuspb.StartOperationResponse_SyncSuccess:
-			return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, raw: variant.SyncSuccess.GetPayload()}, nil
+			return nexusResult{kind: replySynchronous, raw: variant.SyncSuccess.GetPayload()}, nil
 		case *nexuspb.StartOperationResponse_AsyncSuccess:
 			token, err := s.publishCompletionAuthority(ctx, delivered, reply.GetHandleSlotId(), options)
 			if err != nil {
 				return nexusResult{}, err
 			}
-			return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS, token: token}, nil
+			return nexusResult{kind: replyAsynchronous, token: token}, nil
 		case *nexuspb.StartOperationResponse_Failure:
 			failure, err := operationError(variant.Failure)
 			if err != nil {
 				return nexusResult{}, err
 			}
-			return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR, replied: true}, failure
+			return nexusResult{kind: replyError, replied: true}, failure
 		default:
 			return nexusResult{}, ErrInvalid
 		}
 	case *testpilotspb.NexusHandlerReply_Error:
-		return nexusResult{kind: testpilotspb.NEXUS_RESPONSE_KIND_ERROR, replied: true}, handlerError(typed.Error)
+		return nexusResult{kind: replyError, replied: true}, handlerError(typed.Error)
 	default:
 		return nexusResult{}, ErrInvalid
 	}

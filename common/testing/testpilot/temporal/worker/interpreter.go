@@ -18,9 +18,21 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// replyKind names how a Nexus handler entrypoint answered its activation: with a result, through a
+// completion handle the caller polls, or with an error. It is the Driver's own classification of a
+// NexusHandlerReply, not a protocol value.
+type replyKind uint8
+
+const (
+	replyUnspecified replyKind = iota
+	replySynchronous
+	replyAsynchronous
+	replyError
+)
+
 type nexusResult struct {
 	done  chan struct{}
-	kind  testpilotspb.NexusResponseKind
+	kind  replyKind
 	value *testpilotspb.Value
 	// raw is a typed synchronous reply's payload, returned unconverted.
 	raw   *commonpb.Payload
@@ -80,8 +92,6 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 
 func (i *workflowInterpreter) execute(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) (*testpilotspb.Value, bool, error) {
 	switch instruction.Opcode() {
-	case testpilot.StartNexusOperation:
-		return nil, false, i.startNexus(index, instruction, input)
 	case testpilot.WorkflowCommand:
 		return nil, false, i.scheduleNexus(index, instruction)
 	case testpilot.Await:
@@ -94,29 +104,6 @@ func (i *workflowInterpreter) execute(index int, instruction testpilot.Instructi
 	default:
 		return nil, false, ErrInvalid
 	}
-}
-
-func (i *workflowInterpreter) startNexus(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) error {
-	source := instruction.Source()
-	start := source.GetInstruction().GetStartNexusOperation()
-	endpoint := i.session.definition.endpoints[start.GetEndpointRoleId()]
-	if endpoint == "" || input == nil {
-		return ErrInvalid
-	}
-	operationCtx := workflow.WithValue(i.ctx, workflowSourceKey{}, source.GetInstructionId())
-	future := workflow.NewNexusClient(endpoint, start.GetService()).ExecuteOperation(
-		operationCtx,
-		start.GetOperation(),
-		input,
-		workflow.NexusOperationOptions{
-			ScheduleToCloseTimeout: time.Duration(instruction.TimeoutMilliseconds()) * time.Millisecond,
-			CancellationType:       workflow.NexusOperationCancellationTypeWaitRequested,
-		},
-	)
-	i.futures[source.GetInstructionId()] = future
-	var execution workflow.NexusOperationExecution
-	err := future.GetNexusOperationExecution().Get(i.ctx, &execution)
-	return i.state.Admit(context.Background(), index, outcomeForError(err))
 }
 
 func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.InstructionPlan) error {
@@ -150,7 +137,7 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 	return i.state.Admit(context.Background(), index, outcome)
 }
 
-// terminalOutcome is the outcome of a Finish or RespondNexus that ended its activation. Its result is
+// terminalOutcome is the outcome of a Finish or a NexusHandlerReply that ended its activation. Its result is
 // the activation's result, not an outcome value.
 func terminalOutcome() *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
@@ -240,7 +227,9 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 	order := entry.plan.Order()
 	for position := resume.next; position < len(order); position++ {
 		index := order[position]
-		input, enabled, err := state.Evaluate(ctx, index)
+		// A typed reply carries its own message, so the evaluated input is unused; the evaluation
+		// still resolves the instruction's guard.
+		_, enabled, err := state.Evaluate(ctx, index)
 		if err != nil {
 			return nexusResult{}, err
 		}
@@ -249,14 +238,6 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 		}
 		instruction := instructions[index]
 		switch instruction.Opcode() {
-		case testpilot.RespondNexus:
-			response := instruction.Source().GetInstruction().GetRespondNexus()
-			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
-				return nexusResult{}, err
-			}
-			resume.next = position + 1
-			kind, value, token, err := s.respondNexus(ctx, delivered, response, input, options)
-			return nexusResult{kind: kind, value: value, token: token, replied: kind == testpilotspb.NEXUS_RESPONSE_KIND_ERROR && err != nil}, err
 		case testpilot.NexusHandlerReply:
 			reply := instruction.Source().GetInstruction().GetNexusHandlerReply()
 			if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
@@ -291,37 +272,6 @@ func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr
 		}
 	}
 	return sdkFailureOutcome(startErr), false, startErr
-}
-
-func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
-	switch response.GetKind() {
-	case testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS:
-		if input == nil {
-			return 0, nil, "", ErrInvalid
-		}
-		return response.GetKind(), proto.CloneOf(input), "", nil
-	case testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS:
-		return s.respondNexusAsync(ctx, delivered, response, input, options)
-	case testpilotspb.NEXUS_RESPONSE_KIND_ERROR:
-		detail := "Nexus handler returned an error"
-		if input != nil && input.GetTextValue() != "" {
-			detail = input.GetTextValue()
-		}
-		return response.GetKind(), nil, "", &nexus.HandlerError{Type: nexus.HandlerErrorTypeInternal, Message: boundedText(detail), RetryBehavior: nexus.HandlerErrorRetryBehaviorNonRetryable}
-	default:
-		return 0, nil, "", ErrInvalid
-	}
-}
-
-func (s *Session) respondNexusAsync(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
-	if input == nil {
-		return 0, nil, "", ErrInvalid
-	}
-	token, err := s.publishCompletionAuthority(ctx, delivered, response.GetHandleSlotId(), options)
-	if err != nil {
-		return 0, nil, "", err
-	}
-	return response.GetKind(), nil, token, nil
 }
 
 // publishCompletionAuthority builds the completion effect for the operation the activation answers
@@ -380,12 +330,12 @@ func (r *nexusResult) response() (nexus.HandlerStartOperationResult[any], error)
 		return nil, r.err
 	}
 	switch r.kind {
-	case testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS:
+	case replySynchronous:
 		if r.raw != nil {
 			return &nexus.HandlerStartOperationResultSync[any]{Value: converter.NewRawValue(proto.CloneOf(r.raw))}, nil
 		}
 		return &nexus.HandlerStartOperationResultSync[any]{Value: proto.CloneOf(r.value)}, nil
-	case testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS:
+	case replyAsynchronous:
 		return &nexus.HandlerStartOperationResultAsync{OperationToken: r.token}, nil
 	default:
 		return nil, ErrInvalid

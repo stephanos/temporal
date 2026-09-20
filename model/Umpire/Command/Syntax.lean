@@ -462,202 +462,6 @@ elab "property" name:ident
         | .factClause _ spelling => some spelling
         | _ => none).toArray })
 
-/-! ### Field relations
-
-A `property` may relate two typed fields of one step instead of holding a predicate over it:
-`relates: startWorkflow.input.workflow_type.name = workflowExecutionStarted.workflow_type.name`.
-An operand is an action's input or result field (`<action>.input.<field>…`,
-`<action>.result.<field>…`, the action being the one the claim is `when:` about) or a field of the
-recorded event one of the machine's `evidence:` lines names (`<kind>.<field>…`). The platform
-resolves each path against the generated schema while the file compiles -- a segment that is not a
-field, a path through a repeated field and an event that carries no schema reject at the operand --
-and the two sides must be typed alike. The relation is not searched: it lowers, at production, to
-a monitor rule over exactly the fields it compares. -/
-
-syntax fieldRelationOperator := "=" <|> "≠"
-
-/-- The action a Scenario or `when:` key names: its first segment, the constructor of a classed
-action and the whole key of a bare one. -/
-private def relationActionName (key : String) : String :=
-  ((key.splitOn "-").head?).getD key
-
-private def relationUndeclaredMessage (action : String) : String :=
-  s!"'{action}' is not an action declared by an `action` command"
-
-private def relationActionMessage (member key : String) : String :=
-  s!"an input or result field belongs to the action the claim is about ('{key}'), not '{member}'"
-
-private def relationSegmentsMessage (spelling : String) : String :=
-  s!"'{spelling}' names no field; write the action or event kind, then the field path"
-
-private def relationKindMessage (kind : String) (kinds : Array String) : String :=
-  s!"'{kind}' is not a recorded event kind this machine's `evidence:` lines name; named: \
-{", ".intercalate kinds.toList}"
-
-private def relationSchemaMessage (action : String) : String :=
-  s!"action '{action}' declares no `schema:`, so it has no fields to relate"
-
-private def relationTypeMessage (left right : String) : String :=
-  s!"the compared fields differ in type: {left} and {right}; a relation compares fields of one \
-scalar type"
-
-private def relationPresenceMessage (spelling : String) : String :=
-  s!"'{spelling}' is always present; `present` relates an optional field or a oneof member"
-
-private def singularName : Operation.Singular → String
-  | .boolean => "bool"
-  | .text => "string"
-  | .bytes => "bytes"
-  | .integer kind => reprStr kind |>.drop "Umpire.Operation.IntegerKind.".length |>.toString
-  | .enumeration name => "enum " ++ name
-  | .message name => "message " ++ name
-  | .floating double => if double then "double" else "float"
-  | .unsupported reason => reason
-
-private def integerKindTerm : Operation.IntegerKind → CommandElabM Term
-  | .int32 => `(Umpire.Operation.IntegerKind.int32)
-  | .int64 => `(Umpire.Operation.IntegerKind.int64)
-  | .uint32 => `(Umpire.Operation.IntegerKind.uint32)
-  | .uint64 => `(Umpire.Operation.IntegerKind.uint64)
-  | .sint32 => `(Umpire.Operation.IntegerKind.sint32)
-  | .sint64 => `(Umpire.Operation.IntegerKind.sint64)
-  | .fixed32 => `(Umpire.Operation.IntegerKind.fixed32)
-  | .fixed64 => `(Umpire.Operation.IntegerKind.fixed64)
-  | .sfixed32 => `(Umpire.Operation.IntegerKind.sfixed32)
-  | .sfixed64 => `(Umpire.Operation.IntegerKind.sfixed64)
-
-private def singularTerm : Operation.Singular → CommandElabM Term
-  | .boolean => `(Umpire.Operation.Singular.boolean)
-  | .text => `(Umpire.Operation.Singular.text)
-  | .bytes => `(Umpire.Operation.Singular.bytes)
-  | .integer kind => do `(Umpire.Operation.Singular.integer $(← integerKindTerm kind))
-  | .enumeration name => `(Umpire.Operation.Singular.enumeration $(Lean.quote name))
-  | .message name => `(Umpire.Operation.Singular.message $(Lean.quote name))
-  | .floating double => `(Umpire.Operation.Singular.floating $(Lean.quote double))
-  | .unsupported reason => `(Umpire.Operation.Singular.unsupported $(Lean.quote reason))
-
-private def stepTerm : Value.Field.Step → CommandElabM Term
-  | .field containing number =>
-      `(Umpire.Value.Field.Step.field $(Lean.quote containing) $(Lean.quote number))
-  | .establish => `(Umpire.Value.Field.Step.establish)
-  | .select group => `(Umpire.Value.Field.Step.select $(Lean.quote group))
-  | .index index => `(Umpire.Value.Field.Step.index $(Lean.quote index))
-  | .cardinality => `(Umpire.Value.Field.Step.cardinality)
-  | .key _ => throwError "a resolved field path carries no map lookup"
-  | .present => `(Umpire.Value.Field.Step.present)
-
-private def sideTerm : Value.Side → CommandElabM Term
-  | .request => `(Umpire.Value.Side.request)
-  | .response => `(Umpire.Value.Side.response)
-
-/-- One operand as the command resolved it: the member spelling, the dotted path, the root, and
-what the platform said. -/
-private structure ResolvedOperand where
-  member : String
-  spelling : String
-  root : Term
-  resolved : ResolvedField
-
-/-- Resolve one operand against the machine the claim is about and the platform's schema. -/
-private def resolveOperand (declaredMachine : Registry.MachineEntry) (key : String)
-    (operandRef : Ident) : CommandElabM ResolvedOperand := do
-  let segments := operandRef.getId.eraseMacroScopes.components.map (·.toString)
-  let environment ← getEnv
-  let kinds := declaredMachine.evidence.map (·.2)
-  match segments with
-  | member :: "input" :: rest | member :: "result" :: rest => do
-      let actionName := relationActionName key
-      unless member == actionName do
-        throwErrorAt operandRef (relationActionMessage member key)
-      if rest.isEmpty then throwErrorAt operandRef (relationSegmentsMessage operandRef.getId.toString)
-      let some entry := (Registry.actions environment).find? fun entry =>
-          declaredMachine.actionDecls.contains entry.declName && entry.name == actionName
-        | throwErrorAt operandRef (relationUndeclaredMessage actionName)
-      if entry.schema.isEmpty then throwErrorAt operandRef (relationSchemaMessage actionName)
-      let kind := if segments[1]! == "input" then FieldOperandKind.input else .result
-      let root ← if kind == .input then `(Umpire.PropertyFieldRoot.request)
-        else `(Umpire.PropertyFieldRoot.outcome)
-      match ← (Umpire.Command.resolveField { kind, schema := entry.schema.toList, segments := rest }
-          : IO _) with
-      | .error reason => throwErrorAt operandRef reason
-      | .ok resolved =>
-          pure { member, spelling := ".".intercalate rest, root, resolved }
-  | kind :: rest => do
-      let some (fact, _) := declaredMachine.evidence.find? (·.2 == kind)
-        | throwErrorAt operandRef (relationKindMessage kind kinds)
-      if rest.isEmpty then throwErrorAt operandRef (relationSegmentsMessage operandRef.getId.toString)
-      let root ← `(Umpire.PropertyFieldRoot.event)
-      match ← (Umpire.Command.resolveField
-          { kind := .observation, schema := [kind], segments := rest } : IO _) with
-      | .error reason => throwErrorAt operandRef reason
-      | .ok resolved => pure { member := fact, spelling := ".".intercalate rest, root, resolved }
-  | [] => throwErrorAt operandRef (relationSegmentsMessage "")
-
-private def operandTerm (operand : ResolvedOperand) : CommandElabM Term := do
-  let steps ← operand.resolved.steps.toArray.mapM stepTerm
-  let presence ← operand.resolved.presence.toArray.mapM fun path => do
-    let steps ← path.toArray.mapM stepTerm
-    `(term| [$steps,*])
-  `(term| ({ root := $(operand.root)
-             member := $(Lean.quote operand.member)
-             spelling := $(Lean.quote operand.spelling)
-             schema := $(mkIdent operand.resolved.schemaName)
-             side := $(← sideTerm operand.resolved.side)
-             steps := [$steps,*]
-             type := $(← singularTerm operand.resolved.type)
-             presence := [$presence,*] } : Umpire.Case.Producer.FieldOperand))
-
-private def elabFieldRelation (name modelRef : Ident) (actionRef : Term) (leftRef : Ident)
-    (right? : Option (Bool × Ident)) : CommandElabM Unit := do
-  let declaredModel ← resolveDeclaredModel modelRef
-  let key := actionKeyOf actionRef
-  unless declaredModel.actions.contains key do
-    throwErrorAt actionRef (unknownMemberMessage "action" key
-      (declaredModel.actions.toList.map Name.mkSimple))
-  let some declaredMachine := Registry.machine? (← getEnv) declaredModel.declName
-    | throwErrorAt modelRef (undeclaredModelMessage modelRef.getId)
-  let left ← resolveOperand declaredMachine key leftRef
-  let (operatorTerm, rightTerm) ← match right? with
-    | some (negated, rightRef) => do
-        let right ← resolveOperand declaredMachine key rightRef
-        unless left.resolved.type == right.resolved.type do
-          throwErrorAt rightRef (relationTypeMessage (singularName left.resolved.type)
-            (singularName right.resolved.type))
-        pure (← (if negated then `(Umpire.Case.Producer.FieldRelationOperator.notEqual)
-          else `(Umpire.Case.Producer.FieldRelationOperator.equal)),
-          ← `(term| some $(← operandTerm right)))
-    | none => do
-        match left.resolved.steps.getLast? with
-        | some .establish | some (.select _) => pure ()
-        | _ => throwErrorAt leftRef (relationPresenceMessage leftRef.getId.toString)
-        pure (← `(Umpire.Case.Producer.FieldRelationOperator.present), ← `(term| none))
-  let origin ← originTerm
-  let nameKey := Lean.quote name.getId.toString
-  elabCommand (← `(command|
-    def $name : Umpire.Case.Producer.FieldRelation := {
-      id := ($origin).family.id "property" $nameKey
-      name := $nameKey
-      action := $(Lean.quote key)
-      operator := $operatorTerm
-      left := $(← operandTerm left)
-      right := $rightTerm
-      source := ($origin).source }))
-  liftCoreM (Registry.recordRelation {
-    declName := (← getCurrNamespace) ++ name.getId
-    «model» := declaredModel.declName
-    action := key })
-
-elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
-    "relates:" leftRef:ident operatorRef:fieldRelationOperator rightRef:ident : command => do
-  let negated := match operatorRef with
-    | `(fieldRelationOperator| ≠) => true
-    | _ => false
-  elabFieldRelation name modelRef actionRef leftRef (some (negated, rightRef))
-
-elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
-    "relates:" leftRef:ident &"present" : command => do
-  elabFieldRelation name modelRef actionRef leftRef none
-
 /- The keyed form is retired. It is rejected here, at the key that used to introduce it, rather
 than gated by the vocabulary check: `require` is a bare word, and SEM-20 keeps bare words out of
 the gate. -/
@@ -976,6 +780,247 @@ private opaque evalStringList (diagnosticName : Name) : Elab.Term.TermElabM (Lis
 /-- A machine's stuck-state witness, read off the table the command just emitted. -/
 @[implemented_by evalStuckStateUnsafe]
 private opaque evalStuckState (diagnosticName : Name) : Elab.Term.TermElabM (Option String)
+
+/-! ### Field relations
+
+A `property` may relate two typed fields of one step instead of holding a predicate over it:
+`relates: startWorkflow.input.workflow_type.name = workflowExecutionStarted.workflow_type.name`.
+An operand is an action's input or result field (`<action>.input.<field>…`,
+`<action>.result.<field>…`, the action being the one the claim is `when:` about) or a field of the
+recorded event one of the machine's `evidence:` lines names (`<kind>.<field>…`): the step's own
+event where the action's rows record the fact the kind confirms, or an earlier step's event
+otherwise, which the rule captures at the state the step starts from. The platform
+resolves each path against the generated schema while the file compiles -- a segment that is not a
+field, a path through a repeated field and an event that carries no schema reject at the operand --
+and the two sides must be typed alike. The relation is not searched: it lowers, at production, to
+a monitor rule over exactly the fields it compares. -/
+
+syntax fieldRelationOperator := "=" <|> "≠"
+
+/-- The action a Scenario or `when:` key names: its first segment, the constructor of a classed
+action and the whole key of a bare one. -/
+private def relationActionName (key : String) : String :=
+  ((key.splitOn "-").head?).getD key
+
+private def relationUndeclaredMessage (action : String) : String :=
+  s!"'{action}' is not an action declared by an `action` command"
+
+private def relationActionMessage (member key : String) : String :=
+  s!"an input or result field belongs to the action the claim is about ('{key}'), not '{member}'"
+
+private def relationSegmentsMessage (spelling : String) : String :=
+  s!"'{spelling}' names no field; write the action or event kind, then the field path"
+
+private def relationKindMessage (kind : String) (kinds : Array String) : String :=
+  s!"'{kind}' is not a recorded event kind this machine's `evidence:` lines name; named: \
+{", ".intercalate kinds.toList}"
+
+private def relationSchemaMessage (action : String) : String :=
+  s!"action '{action}' declares no `schema:`, so it has no fields to relate"
+
+private def relationTypeMessage (left right : String) : String :=
+  s!"the compared fields differ in type: {left} and {right}; a relation compares fields of one \
+scalar type"
+
+private def relationPresenceMessage (spelling : String) : String :=
+  s!"'{spelling}' is always present; `present` relates an optional field or a oneof member"
+
+private def singularName : Operation.Singular → String
+  | .boolean => "bool"
+  | .text => "string"
+  | .bytes => "bytes"
+  | .integer kind => reprStr kind |>.drop "Umpire.Operation.IntegerKind.".length |>.toString
+  | .enumeration name => "enum " ++ name
+  | .message name => "message " ++ name
+  | .floating double => if double then "double" else "float"
+  | .unsupported reason => reason
+
+private def integerKindTerm : Operation.IntegerKind → CommandElabM Term
+  | .int32 => `(Umpire.Operation.IntegerKind.int32)
+  | .int64 => `(Umpire.Operation.IntegerKind.int64)
+  | .uint32 => `(Umpire.Operation.IntegerKind.uint32)
+  | .uint64 => `(Umpire.Operation.IntegerKind.uint64)
+  | .sint32 => `(Umpire.Operation.IntegerKind.sint32)
+  | .sint64 => `(Umpire.Operation.IntegerKind.sint64)
+  | .fixed32 => `(Umpire.Operation.IntegerKind.fixed32)
+  | .fixed64 => `(Umpire.Operation.IntegerKind.fixed64)
+  | .sfixed32 => `(Umpire.Operation.IntegerKind.sfixed32)
+  | .sfixed64 => `(Umpire.Operation.IntegerKind.sfixed64)
+
+private def singularTerm : Operation.Singular → CommandElabM Term
+  | .boolean => `(Umpire.Operation.Singular.boolean)
+  | .text => `(Umpire.Operation.Singular.text)
+  | .bytes => `(Umpire.Operation.Singular.bytes)
+  | .integer kind => do `(Umpire.Operation.Singular.integer $(← integerKindTerm kind))
+  | .enumeration name => `(Umpire.Operation.Singular.enumeration $(Lean.quote name))
+  | .message name => `(Umpire.Operation.Singular.message $(Lean.quote name))
+  | .floating double => `(Umpire.Operation.Singular.floating $(Lean.quote double))
+  | .unsupported reason => `(Umpire.Operation.Singular.unsupported $(Lean.quote reason))
+
+private def stepTerm : Value.Field.Step → CommandElabM Term
+  | .field containing number =>
+      `(Umpire.Value.Field.Step.field $(Lean.quote containing) $(Lean.quote number))
+  | .establish => `(Umpire.Value.Field.Step.establish)
+  | .select group => `(Umpire.Value.Field.Step.select $(Lean.quote group))
+  | .index index => `(Umpire.Value.Field.Step.index $(Lean.quote index))
+  | .cardinality => `(Umpire.Value.Field.Step.cardinality)
+  | .key _ => throwError "a resolved field path carries no map lookup"
+  | .present => `(Umpire.Value.Field.Step.present)
+
+private def sideTerm : Value.Side → CommandElabM Term
+  | .request => `(Umpire.Value.Side.request)
+  | .response => `(Umpire.Value.Side.response)
+
+/-- One operand as the command resolved it: the member spelling, the dotted path, the root, and
+what the platform said. -/
+private structure ResolvedOperand where
+  member : String
+  spelling : String
+  observed : String := ""
+  root : Term
+  resolved : ResolvedField
+
+/-- What the rows of the action the claim is about say, read off the machine's table while the
+file compiles: the facts they record, the states they start from and the outcomes they produce. An
+observation of a fact the rows record is the step's own event; one of any other kind the machine
+names is an earlier step's, read at the state the step starts from. -/
+private structure StepContext where
+  recorded : List String
+  sources : List String
+  outcomes : List String
+
+private def relationNoSourceMessage (kind action : String) : String :=
+  s!"'{kind}' is an earlier step's event, read at the state '{action}' starts from, and no row of \
+'{action}' starts anywhere"
+
+private def relationNoOutcomeMessage (action : String) : String :=
+  s!"a result is read under the step's outcome, and no row of '{action}' produces one"
+
+/-- Resolve one operand against the machine the claim is about and the platform's schema. -/
+private def resolveOperand (declaredMachine : Registry.MachineEntry) (key : String)
+    (context : StepContext) (operandRef : Ident) : CommandElabM ResolvedOperand := do
+  let segments := operandRef.getId.eraseMacroScopes.components.map (·.toString)
+  let environment ← getEnv
+  let kinds := declaredMachine.evidence.map (·.2)
+  match segments with
+  | member :: "input" :: rest | member :: "result" :: rest => do
+      let actionName := relationActionName key
+      unless member == actionName do
+        throwErrorAt operandRef (relationActionMessage member key)
+      if rest.isEmpty then throwErrorAt operandRef (relationSegmentsMessage operandRef.getId.toString)
+      let some entry := (Registry.actions environment).find? fun entry =>
+          declaredMachine.actionDecls.contains entry.declName && entry.name == actionName
+        | throwErrorAt operandRef (relationUndeclaredMessage actionName)
+      if entry.schema.isEmpty then throwErrorAt operandRef (relationSchemaMessage actionName)
+      let kind := if segments[1]! == "input" then FieldOperandKind.input else .result
+      -- An input is the action's own; a result is read under the outcome its rows produce.
+      let (root, member) ← if kind == .input then
+          pure (← `(Umpire.PropertyFieldRoot.request), member)
+        else do
+          let some outcome := context.outcomes.head?
+            | throwErrorAt operandRef (relationNoOutcomeMessage actionName)
+          pure (← `(Umpire.PropertyFieldRoot.outcome), outcome)
+      match ← (Umpire.Command.resolveField { kind, schema := entry.schema.toList, segments := rest }
+          : IO _) with
+      | .error reason => throwErrorAt operandRef reason
+      | .ok resolved =>
+          pure { member, spelling := ".".intercalate rest, root, resolved }
+  | kind :: rest => do
+      let some (fact, _) := declaredMachine.evidence.find? (·.2 == kind)
+        | throwErrorAt operandRef (relationKindMessage kind kinds)
+      if rest.isEmpty then throwErrorAt operandRef (relationSegmentsMessage operandRef.getId.toString)
+      -- The step's own event is read under the fact it confirms; an earlier step's event is read
+      -- at the state this step starts from, and the rule captures it.
+      let (root, member) ← if context.recorded.contains fact then
+          pure (← `(Umpire.PropertyFieldRoot.event), fact)
+        else do
+          let some source := context.sources.head?
+            | throwErrorAt operandRef (relationNoSourceMessage kind (relationActionName key))
+          pure (← `(Umpire.PropertyFieldRoot.priorState), source)
+      match ← (Umpire.Command.resolveField
+          { kind := .observation, schema := [kind], segments := rest } : IO _) with
+      | .error reason => throwErrorAt operandRef reason
+      | .ok resolved =>
+          pure { member, spelling := ".".intercalate rest, observed := kind, root, resolved }
+  | [] => throwErrorAt operandRef (relationSegmentsMessage "")
+
+private def operandTerm (operand : ResolvedOperand) : CommandElabM Term := do
+  let steps ← operand.resolved.steps.toArray.mapM stepTerm
+  let presence ← operand.resolved.presence.toArray.mapM fun path => do
+    let steps ← path.toArray.mapM stepTerm
+    `(term| [$steps,*])
+  `(term| ({ root := $(operand.root)
+             member := $(Lean.quote operand.member)
+             spelling := $(Lean.quote operand.spelling)
+             observed := $(Lean.quote operand.observed)
+             schema := $(mkIdent operand.resolved.schemaName)
+             side := $(← sideTerm operand.resolved.side)
+             steps := [$steps,*]
+             type := $(← singularTerm operand.resolved.type)
+             presence := [$presence,*] } : Umpire.Case.Producer.FieldOperand))
+
+private def elabFieldRelation (name modelRef : Ident) (actionRef : Term) (leftRef : Ident)
+    (right? : Option (Bool × Ident)) : CommandElabM Unit := do
+  let declaredModel ← resolveDeclaredModel modelRef
+  let key := actionKeyOf actionRef
+  unless declaredModel.actions.contains key do
+    throwErrorAt actionRef (unknownMemberMessage "action" key
+      (declaredModel.actions.toList.map Name.mkSimple))
+  let some declaredMachine := Registry.machine? (← getEnv) declaredModel.declName
+    | throwErrorAt modelRef (undeclaredModelMessage modelRef.getId)
+  -- What the action's rows record, start from and produce, read off the table the machine
+  -- command emitted, so an operand is read under the member the step actually has.
+  let contextOf (suffix : Name) (reader : Name) : CommandElabM (List String) := do
+    let contextName := mkIdentFrom name (name.getId ++ suffix)
+    elabCommand (← `(command|
+      def $contextName : List String := $(mkIdent reader) ($modelRef) $(Lean.quote key)))
+    liftTermElabM (evalStringList ((← getCurrNamespace) ++ contextName.getId))
+  let context : StepContext := {
+    recorded := ← contextOf `recordedFacts ``Umpire.Command.DeclaredModel.recordedFacts
+    sources := ← contextOf `sourceStates ``Umpire.Command.DeclaredModel.sourceStates
+    outcomes := ← contextOf `rowOutcomes ``Umpire.Command.DeclaredModel.rowOutcomes }
+  let left ← resolveOperand declaredMachine key context leftRef
+  let (operatorTerm, rightTerm) ← match right? with
+    | some (negated, rightRef) => do
+        let right ← resolveOperand declaredMachine key context rightRef
+        unless left.resolved.type == right.resolved.type do
+          throwErrorAt rightRef (relationTypeMessage (singularName left.resolved.type)
+            (singularName right.resolved.type))
+        pure (← (if negated then `(Umpire.Case.Producer.FieldRelationOperator.notEqual)
+          else `(Umpire.Case.Producer.FieldRelationOperator.equal)),
+          ← `(term| some $(← operandTerm right)))
+    | none => do
+        match left.resolved.steps.getLast? with
+        | some .establish | some (.select _) => pure ()
+        | _ => throwErrorAt leftRef (relationPresenceMessage leftRef.getId.toString)
+        pure (← `(Umpire.Case.Producer.FieldRelationOperator.present), ← `(term| none))
+  let origin ← originTerm
+  let nameKey := Lean.quote name.getId.toString
+  elabCommand (← `(command|
+    def $name : Umpire.Case.Producer.FieldRelation := {
+      id := ($origin).family.id "property" $nameKey
+      name := $nameKey
+      action := $(Lean.quote key)
+      operator := $operatorTerm
+      left := $(← operandTerm left)
+      right := $rightTerm
+      source := ($origin).source }))
+  liftCoreM (Registry.recordRelation {
+    declName := (← getCurrNamespace) ++ name.getId
+    «model» := declaredModel.declName
+    action := key })
+
+elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
+    "relates:" leftRef:ident operatorRef:fieldRelationOperator rightRef:ident : command => do
+  let negated := match operatorRef with
+    | `(fieldRelationOperator| ≠) => true
+    | _ => false
+  elabFieldRelation name modelRef actionRef leftRef (some (negated, rightRef))
+
+elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
+    "relates:" leftRef:ident &"present" : command => do
+  elabFieldRelation name modelRef actionRef leftRef none
+
 
 /-- Report whatever admission said, on the part of the `query` block it belongs to. -/
 private def reportAdmission

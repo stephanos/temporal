@@ -6,7 +6,7 @@ import Temporal.Feature.Nexus.OperationsTests
 import Temporal.Feature.Nexus.Race.Tests
 import Temporal.Feature.Nexus.Success.RaceSyntaxTests
 import Temporal.Feature.Nexus.Success.Tests
-import Temporal.Feature.Nexus.Success.Tests.TypedNexus
+import Temporal.Feature.Nexus.Pair.Tests
 import Temporal.Feature.Workflow.Start.Tests
 import Temporal.Feature.Nexus.Race.AuthoringTests
 import Temporal.Feature.Nexus.Caller.Tests

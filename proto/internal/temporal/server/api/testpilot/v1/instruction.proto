@@ -35,16 +35,13 @@ message Instruction {
   oneof instruction {
     InvokeRpc invoke_rpc = 1;
     AwaitSlot await_slot = 2;
-    CompleteNexusOperation complete_nexus_operation = 3;
-    StartNexusOperation start_nexus_operation = 4;
-    AwaitInstruction await_instruction = 5;
-    Finish finish = 6;
-    RespondNexus respond_nexus = 7;
-    InjectFault inject_fault = 8;
-    WorkflowCommand workflow_command = 9;
-    NexusHandlerReply nexus_handler_reply = 10;
-    NexusOperationCompletion nexus_operation_completion = 11;
-    ReadEvidence read_evidence = 12;
+    AwaitInstruction await_instruction = 3;
+    Finish finish = 4;
+    InjectFault inject_fault = 5;
+    WorkflowCommand workflow_command = 6;
+    NexusHandlerReply nexus_handler_reply = 7;
+    NexusOperationCompletion nexus_operation_completion = 8;
+    ReadEvidence read_evidence = 9;
   }
 }
 
@@ -97,39 +94,9 @@ message ReadTarget {
 // AwaitSlot waits, in a controller, until a Slot is written.
 message AwaitSlot { string slot_id = 1; }
 
-// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier StartNexusOperation of the
-// same entrypoint started; its outcome value is the operation's result.
+// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier schedule command
+// (`WorkflowCommand`) of the same entrypoint started; its outcome value is the operation's result.
 message AwaitInstruction { InstructionReference instruction = 1; }
-
-// StartNexusOperation starts a Nexus operation from a workflow and succeeds once it has started. The
-// instruction timeout is the operation's schedule-to-close timeout.
-message StartNexusOperation {
-  string endpoint_role_id = 1;
-  string service = 2;
-  string operation = 3;
-  Expression input = 4;
-}
-
-// CompleteNexusOperation completes, from a controller, the asynchronous Nexus operation whose handle a
-// Slot holds.
-message CompleteNexusOperation { string handle_slot_id = 1; Expression result = 2; }
-
-// RespondNexus answers the Nexus operation that activated a Nexus handler entrypoint.
-message RespondNexus {
-  NexusResponseKind kind = 1;
-  Expression result = 2;
-  // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
-  string handle_slot_id = 3;
-}
-
-// NexusResponseKind names how a Nexus handler answers: with result, asynchronously through a
-// completion handle, or with a non-retryable handler error whose message is result.
-enum NexusResponseKind {
-  NEXUS_RESPONSE_KIND_UNSPECIFIED = 0;
-  NEXUS_RESPONSE_KIND_SYNCHRONOUS = 1;
-  NEXUS_RESPONSE_KIND_ASYNCHRONOUS = 2;
-  NEXUS_RESPONSE_KIND_ERROR = 3;
-}
 
 // Finish completes the workflow of a workflow entrypoint with result.
 message Finish { Expression result = 1; }

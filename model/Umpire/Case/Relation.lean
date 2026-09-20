@@ -22,13 +22,18 @@ namespace Umpire.Case.Producer
 open Umpire
 
 /-- One operand of a relation: which payload it reads and where. `member` is the spelling of the
-Model member the operand belongs to (the action for an input or result, the fact the recorded
-event confirms for an observation), `spelling` the dotted path as the author wrote it, and
-`presence` the presence reads the path traverses, each as the steps of a presence path. -/
+Model member the operand is read under (the action for an input, the step's outcome for a result,
+the fact the recorded event confirms for an observation of the step, the state the step starts
+from for an observation of an earlier step), `spelling` the dotted path as the author wrote it,
+and `presence` the presence reads the path traverses, each as the steps of a presence path. -/
 structure FieldOperand where
   root : PropertyFieldRoot
   member : String
   spelling : String
+  /-- The recorded event kind an observation operand reads, empty for an action's field. An
+  operand read at the state before the step is an earlier event of this kind, which the rule
+  captures by the kind's selector. -/
+  observed : String := ""
   schema : Operation.RpcSchema
   side : Value.Side
   steps : List Value.Field.Step

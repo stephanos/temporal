@@ -718,14 +718,11 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	case contract.InjectFault:
 		fault := n.source.Instruction.GetInjectFault()
 		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
-	case contract.AwaitSlot, contract.CompleteNexusOperation, contract.NexusOperationCompletion:
+	case contract.AwaitSlot, contract.NexusOperationCompletion:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
-		// The untyped completion delivers its evaluated result; the typed one delivers the
-		// payload or failure it carries.
+		// A typed completion delivers the payload or failure it carries.
 		var delivered proto.Message = input
 		switch n.opcode {
-		case contract.CompleteNexusOperation:
-			slot = n.source.Instruction.GetCompleteNexusOperation().HandleSlotId
 		case contract.NexusOperationCompletion:
 			completion := n.source.Instruction.GetNexusOperationCompletion()
 			slot, delivered = completion.GetHandleSlotId(), carriedCompletion(completion)

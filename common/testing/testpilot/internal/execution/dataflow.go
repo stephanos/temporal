@@ -23,16 +23,10 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 		return contract.InvokeRPC
 	case *testpilotspb.Instruction_AwaitSlot:
 		return contract.AwaitSlot
-	case *testpilotspb.Instruction_CompleteNexusOperation:
-		return contract.CompleteNexusOperation
-	case *testpilotspb.Instruction_StartNexusOperation:
-		return contract.StartNexusOperation
 	case *testpilotspb.Instruction_AwaitInstruction:
 		return contract.Await
 	case *testpilotspb.Instruction_Finish:
 		return contract.Finish
-	case *testpilotspb.Instruction_RespondNexus:
-		return contract.RespondNexus
 	case *testpilotspb.Instruction_InjectFault:
 		return contract.InjectFault
 	case *testpilotspb.Instruction_WorkflowCommand:
@@ -49,11 +43,11 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 }
 func opcodeContext(opcode contract.Opcode) contract.EntrypointKind {
 	switch opcode {
-	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault, contract.NexusOperationCompletion, contract.ReadEvidence:
+	case contract.InvokeRPC, contract.AwaitSlot, contract.InjectFault, contract.NexusOperationCompletion, contract.ReadEvidence:
 		return contract.ControllerEntrypoint
-	case contract.StartNexusOperation, contract.Await, contract.Finish, contract.WorkflowCommand:
+	case contract.Await, contract.Finish, contract.WorkflowCommand:
 		return contract.WorkflowEntrypoint
-	case contract.RespondNexus, contract.NexusHandlerReply:
+	case contract.NexusHandlerReply:
 		return contract.NexusHandlerEntrypoint
 	default:
 		return 0
@@ -100,27 +94,12 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
 			return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 		}
-	case contract.CompleteNexusOperation:
-		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetHandleSlotId()]
-		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a handle Slot")
-		}
-	case contract.StartNexusOperation:
-		start := n.source.Instruction.GetStartNexusOperation()
-		if start == nil || !validID(start.Service) || !validID(start.Operation) {
-			return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus start")
-		}
-		if err := a.role(start.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
-			return err
-		}
 	case contract.Await:
 		return a.bindAwait(g, n)
 	case contract.Finish:
 		if n.source.Instruction.GetFinish() == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 		}
-	case contract.RespondNexus:
-		return a.bindNexusResponse(g, i, n)
 	case contract.InjectFault:
 		return a.bindFault(g, n)
 	case contract.WorkflowCommand:
@@ -137,9 +116,8 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	return nil
 }
 
-// bindAwait admits an Await of an earlier Nexus start of the same entrypoint. The untyped start's
-// result is the text the handler answered, so its VALUE is text; a scheduled command's result is
-// whatever payload the handler answered, so its VALUE is that payload, whole.
+// bindAwait admits an Await of an earlier Nexus start of the same entrypoint. A scheduled command's
+// result is whatever payload the handler answered, so its VALUE is that payload, whole.
 func (a *admission) bindAwait(g *graph, n *node) error {
 	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
@@ -148,12 +126,9 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 	}
 	started := g.nodes[dependency].source.Instruction
 	if !startsNexusOperation(started) {
-		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires StartNexusOperation or a Nexus schedule command")
+		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus schedule command")
 	}
-	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.text
-	if InstructionOpcode(started) == contract.WorkflowCommand {
-		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.any
-	}
+	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.any
 	return nil
 }
 
@@ -193,25 +168,6 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	n.method = method
 	return a.bindResponseReads(g, i, n)
 }
-func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
-	response := n.source.Instruction.GetRespondNexus()
-	if response == nil || response.Kind < testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS || response.Kind > testpilotspb.NEXUS_RESPONSE_KIND_ERROR {
-		return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus response")
-	}
-	if response.Kind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
-		typ, exists := a.prepared.slots[response.HandleSlotId]
-		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a handle Slot")
-		}
-		if err := a.addWriter(response.HandleSlotId, slotWriter{graph: g, node: i}); err != nil {
-			return err
-		}
-	} else if response.HandleSlotId != "" {
-		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish handles")
-	}
-
-	return nil
-}
 
 // A fault names the task-queue role whose worker the Driver stops or resumes; the role's own
 // resource binding identifies the queue, so the instruction carries no queue of its own.
@@ -231,12 +187,12 @@ func (a *admission) bindFault(g *graph, n *node) error {
 // bindOutcomes gives a node the outcome fields its instruction produces: every instruction a status and
 // a detail; a controller protocol effect its protocol code; a workflow or Nexus-handler instruction its
 // SDK failure code; and an awaited Nexus operation its result as the value. A Case declares none of
-// them. An RPC response is read only through response reads, and a Finish or RespondNexus result
-// ends its activation, so neither is an outcome value.
+// them. An RPC response is read only through response reads, and a Finish result or a
+// NexusHandlerReply ends its activation, so neither is an outcome value.
 func (a *admission) bindOutcomes(g *graph, n *node) error {
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS] = a.outcomeTypes.status
 	switch {
-	case n.opcode == contract.InvokeRPC || n.opcode == contract.CompleteNexusOperation || n.opcode == contract.NexusOperationCompletion || n.opcode == contract.ReadEvidence:
+	case n.opcode == contract.InvokeRPC || n.opcode == contract.NexusOperationCompletion || n.opcode == contract.ReadEvidence:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
 	case g.context != contract.ControllerEntrypoint:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
@@ -638,22 +594,12 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
 			return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
 		}
-	case contract.CompleteNexusOperation:
-		instruction := n.source.Instruction.GetCompleteNexusOperation()
-		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.HandleSlotId}].Available {
-			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
-		}
-		n.input, err = bind(instruction.Result, "instruction.complete_nexus_operation.result", nil)
 	case contract.NexusOperationCompletion:
 		if !scope[ir.Reference{Kind: ir.SlotReference, ID: n.source.Instruction.GetNexusOperationCompletion().GetHandleSlotId()}].Available {
 			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 		}
-	case contract.StartNexusOperation:
-		n.input, err = bind(n.source.Instruction.GetStartNexusOperation().Input, "instruction.start_nexus_operation.input", nil)
 	case contract.Finish:
 		n.input, err = bind(n.source.Instruction.GetFinish().Result, "instruction.finish.result", nil)
-	case contract.RespondNexus:
-		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, "instruction.respond_nexus.result", nil)
 	case contract.Await, contract.InjectFault, contract.WorkflowCommand, contract.NexusHandlerReply:
 		// A fault names its target role statically and a typed instruction carries its message
 		// whole; neither binds a Program expression.

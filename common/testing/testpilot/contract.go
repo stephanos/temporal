@@ -44,11 +44,8 @@ const (
 const (
 	InvokeRPC                = contract.InvokeRPC
 	AwaitSlot                = contract.AwaitSlot
-	CompleteNexusOperation   = contract.CompleteNexusOperation
-	StartNexusOperation      = contract.StartNexusOperation
 	Await                    = contract.Await
 	Finish                   = contract.Finish
-	RespondNexus             = contract.RespondNexus
 	InjectFault              = contract.InjectFault
 	WorkflowCommand          = contract.WorkflowCommand
 	NexusHandlerReply        = contract.NexusHandlerReply

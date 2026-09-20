@@ -153,7 +153,7 @@ first planned use.
 ### A new instruction
 
 1. A message in `instruction.proto` and an arm appended to `Instruction.instruction`. The arm's field
-   number is its Opcode.
+   number is its Opcode; a removed arm's successors move up, so the numbers stay dense from 1.
 2. `make proto`.
 3. A `Testpilot.Authoring.Program` constructor beside `Program.injectFault`.
 4. `execution.InstructionOpcode` and `opcodeContext` (which entrypoint kind may declare it), a binder in
@@ -173,7 +173,7 @@ first planned use.
    name every field of every carried message, and the Driver's interpreter reads only the fields
    the row names realized.
 5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
-   oneof arm to map to the Opcode of its field number.
+   oneof arm to map to the Opcode of its field number, the numbers dense from 1.
 6. Append the Opcode to `contract.Opcode`, move `contract.MaxOpcode` and alias it in the facade's
    `contract.go`; `temporal.DeriveProfile` authorizes it through `testpilot.InstructionOpcode`, and
    a workflow command's type through `worker.CommandTypes`. A new Driver effect adds a

@@ -1222,7 +1222,7 @@ scenario forkedStart
 completed, and raising a bound would not help. The claim is one the machine does make -- from
 `started`, `awaitStart` records `succeeded` -- and the Scenario never takes that step. -/
 /--
-error: no trace the Scenario admits satisfies the Property; the search explored 5 traces within the declared limits and no bound stopped it
+error: no trace the Scenario admits satisfies the Property; the search explored 2 traces within the declared limits and no bound stopped it
 -/
 #guard_msgs (error) in
 query forkedCompletion
@@ -1364,15 +1364,16 @@ query secondCompletesFirst
   some true
 
 /- What a Producer reads is one instance: the machine as declared, the first instance's sequence,
-and its projection of the selected path -- with every instance's actions as the Program's path. -/
+and its projection of the selected path -- with every instance's actions as the Program's path,
+each with the instance that performs it. -/
 #guard (do
   let checked ← twoCompletions.toOption
   let selected ← checked.realizable.witness
   let program ← checked.realizable.program
   pure (selected.trace.steps.map (·.selectedAction.value) == ["awaitStart", "awaitSuccess"] &&
     selected.trace.steps.map (·.state.value) == ["started", "succeeded"] &&
-    program == [lifecycle.actionIdAt 0, lifecycle.actionIdAt 0, lifecycle.actionIdAt 1,
-      lifecycle.actionIdAt 1] &&
+    program == [(lifecycle.actionIdAt 0, 1), (lifecycle.actionIdAt 0, 2),
+      (lifecycle.actionIdAt 1, 1), (lifecycle.actionIdAt 1, 2)] &&
     checked.realizable.property.clauses.length == 2)) == some true
 
 /- And a Case is produced from it. The success Model's actions are waits that no instruction

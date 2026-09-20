@@ -210,8 +210,8 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 		"Nexus route uses RPC transport": func(program *testpilotspb.Program) {
 			for _, entrypoint := range program.Entrypoints {
 				for _, instruction := range entrypoint.Instructions {
-					if start := instruction.GetInstruction().GetStartNexusOperation(); start != nil {
-						start.EndpointRoleId = "endpoint"
+					if schedule := instruction.GetInstruction().GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes(); schedule != nil {
+						schedule.Endpoint = "endpoint"
 					}
 				}
 			}
@@ -228,7 +228,7 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 func TestNewFreezesSymbolicProfile(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
-	limits := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Limits()
+	limits := preparedRuntimeFixture(t, replySynchronous).Limits()
 	base := Options{Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}}}, Client: &recordingClient{}, WorkerRoleID: "worker"}
 	host, err := New(base)
 	require.NoError(t, err)
@@ -265,7 +265,7 @@ func preparedSymbolicRuntimeCase(t *testing.T, modifiers ...any) *testpilot.Prep
 			modify(profile)
 		}
 	}
-	return preparedRuntimeCase(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, configureProfile, configureProgram)
+	return preparedRuntimeCase(t, replySynchronous, configureProfile, configureProgram)
 }
 
 func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Driver {
@@ -444,25 +444,25 @@ func TestReservationCancelBeforeAdmissionRetiresWithoutTargetCall(t *testing.T) 
 }
 
 func TestActivationValuesOwnValidatedOutcome(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	state, err := activation.New(prepared.Entrypoints()[1])
 	require.NoError(t, err)
 	input, enabled, err := state.Evaluate(t.Context(), 1)
 	require.NoError(t, err)
 	require.True(t, enabled)
 	require.Nil(t, input)
-	original := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
+	original := carriedValue(t, "result")
 	require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}))
 	original.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
 	result, enabled, err := state.Evaluate(t.Context(), 2)
 	require.NoError(t, err)
 	require.True(t, enabled)
-	require.Equal(t, "result", result.GetTextValue())
+	require.Equal(t, "result", carriedText(t, result))
 	i := workflowInterpreter{state: state}
 	result, finished, err := i.execute(2, prepared.Entrypoints()[1].Instructions()[2], result)
 	require.NoError(t, err)
 	require.True(t, finished)
-	require.Equal(t, "result", result.GetTextValue())
+	require.Equal(t, "result", carriedText(t, result))
 }
 
 func TestReservationBindingRejectsCrossedIdentity(t *testing.T) {
@@ -511,7 +511,7 @@ func TestReservationCancelWaitsForExactBinding(t *testing.T) {
 }
 
 func TestSessionCloseRetriesCancellationBeforeRelease(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	session, err := newSession(host, "run", "session", definition, SessionOptions{Bridge: newTestBridge()})
 	require.NoError(t, err)

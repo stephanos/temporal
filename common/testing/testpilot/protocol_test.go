@@ -133,6 +133,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Scoped" + "FieldPolicy", "Scoped" + "Identity", "Scoped" + "Limits", "Scoped" + "Operand",
 		"Scoped" + "Predicate", "Scoped" + "PredicateField", "Scoped" + "ProjectionRule", "Scoped" + "Transition",
 		"Scoped" + "Value",
+		"StartNexus" + "Operation", "CompleteNexus" + "Operation", "Respond" + "Nexus", "NexusResponse" + "Kind",
 	} {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)
