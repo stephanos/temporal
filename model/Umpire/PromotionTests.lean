@@ -63,7 +63,7 @@ private def sourceExpectation : PromotionSourceExpectation :=
   let bytes := include_str "Promotion/Tests/Fixtures/CompiledSource.lean"
   {
     bytes
-    sha256 := "sha256:b86c039f088fbc928dba853861d5e33454d61b7a07e205d4334390ba0c78e6d9"
+    sha256 := "sha256:e71b02892efd5be46f9840c123a5b6ffe2a9e1fb2e53a490382a6657d438d786"
   }
 
 private def errorKindOf

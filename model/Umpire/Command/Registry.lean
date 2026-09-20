@@ -374,6 +374,21 @@ a project that declares them once gets them everywhere. -/
 def conventions (env : Environment) : Conventions :=
   ((conventionsExtension.getState env).back?).getD {}
 
+/-- The conventions a declaration under `enclosing` reads: of the declared conventions whose
+namespace prefix `enclosing` starts with, the one with the longest prefix. Two projects in one import
+closure -- Temporal's Models and Umpire's own examples -- each read their own that way, whichever was
+imported last. A namespace no declaration covers reads `conventions`. -/
+def conventionsFor (env : Environment) (enclosing : Name) : Conventions :=
+  let covering := (conventionsExtension.getState env).filter fun entry =>
+    entry.namespacePrefix.isPrefixOf enclosing
+  let longest := covering.foldl (init := none) fun chosen entry =>
+    match chosen with
+    | none => some entry
+    | some (best : Conventions) =>
+        if entry.namespacePrefix.getNumParts ≥ best.namespacePrefix.getNumParts then some entry
+        else some best
+  longest.getD (conventions env)
+
 /-- Declare a project's conventions once. -/
 elab "model_conventions" &"root" root:str &"under" namespacePrefix:ident : command =>
   Elab.Command.liftCoreM (modifyEnv fun env =>

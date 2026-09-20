@@ -11,14 +11,15 @@ func TestGeneratedViewLoaderAcceptsCanonicalV2Artifact(t *testing.T) {
 	repositoryRoot := filepath.Clean(filepath.Join("..", "..", ".."))
 	reference := Reference{
 		FormatVersion: "umpire-experiment/v2",
-		Identity:      "switch.query.exact-action",
+		Identity:      "umpire.switch.query.exactAction",
 		FixturePath:   "model/Umpire/Examples/testdata/switch-experiment-spec.json",
 		Sources:       []string{"Umpire/Examples/Switch.lean"},
-		Properties:    []string{"switch.property.flip-turns-on"},
+		Properties:    []string{"umpire.switch.property.flipTurnsOn"},
 		ObservationRequirements: []string{
-			"switch.observation.power",
+			"umpire.switch.fact.twoState.off",
+			"umpire.switch.fact.twoState.on",
 		},
-		ArtifactChecksum: "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
+		ArtifactChecksum: "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a",
 	}
 
 	view, err := loadGeneratedView(repositoryRoot, reference)

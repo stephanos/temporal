@@ -11,7 +11,7 @@ import (
 func TestGeneratedViewExtractorAcceptsCanonicalV2Artifact(t *testing.T) {
 	repositoryRoot := testRepositoryRoot(t)
 	entry := manifestEntry{
-		Identity:           "switch.query.exact-action",
+		Identity:           "umpire.switch.query.exactAction",
 		FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
 		GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
 		MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
@@ -22,6 +22,6 @@ func TestGeneratedViewExtractorAcceptsCanonicalV2Artifact(t *testing.T) {
 	view, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
 	require.NoError(t, err)
 	require.Equal(t, "umpire-experiment/v2", view.Format)
-	require.Equal(t, "switch.query.exact-action", view.Identity)
-	require.Equal(t, "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a", view.ArtifactChecksum)
+	require.Equal(t, "umpire.switch.query.exactAction", view.Identity)
+	require.Equal(t, "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a", view.ArtifactChecksum)
 }
