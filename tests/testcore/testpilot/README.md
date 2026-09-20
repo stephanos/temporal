@@ -34,14 +34,18 @@ the test on a Run error. Tests that vary bindings, run concurrently, or delibera
 resource call `bindCase` directly. Both are test helpers outside the public facade, so MOD-12's
 `Prepare` then `Run` sequence is unchanged.
 
-The worker-outage fixture is the fault Case: its controller stops the SDK worker of its own
-activation queue before starting the workflow, resumes it after, and reads the closing history event
-back. Its Contract carries the checked-in `rule_events` deadline -- the outage window is counted in
-what the Run recorded, never on the host's clock -- and a safety rule over the completed workflow,
-so the Run proves the queued task survived the outage. `worker_outage_artifact_test.go` prepares its
-unchanged bytes and pins that bound offline; the tagged live tests run it, and run it beside a plain
-Nexus Case on a *different* queue, because a pooled peer worker on the same physical queue would
-keep polling through the outage.
+The worker-outage fixture (`workerOutageTests-survived`) is the fault Case, produced from the
+worker-outage Model: its controller stops the SDK worker of its own activation queue before starting
+the workflow, resumes it after, and waits for the workflow the resumed worker completes. Its
+Contract carries the outage-order rule the Producer derives from the Model's two fault actions --
+bounded liveness with a `rule_events` deadline, so the outage window is counted in what the Run
+recorded, never on the host's clock -- beside the correlated capability confirming the Model's
+steps from the completed event, so the Run proves the queued task survived the outage.
+`worker_outage_artifact_test.go` prepares its unchanged bytes and pins that bound offline; the
+tagged live tests run it, and run it beside a plain Nexus Case on a *different* queue, because a
+pooled peer worker on the same physical queue would keep polling through the outage. The
+system-info fixture (`systemInfoTests-answered`) is the unary Case, produced from the system-info
+Model: one `GetSystemInfo` call, no workflow, and the instruction's completion as its evidence.
 
 A functional set's Cases are named by what they are: a Model file's `set` lists its `find` Queries
 and a `case` block over the set realizes each of them, with the Case ID `temporal.case.<set>.<query>`

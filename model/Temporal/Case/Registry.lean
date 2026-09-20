@@ -45,15 +45,6 @@ structure Materialized where
   value : Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case
 
 
-/-- Register a Case value no `case` block declares. The two typed examples and the two
-realization-only Cases carry their identities in Lean rather than in a Model, so they say so here
-and `--list` still covers every checked-in functional fixture. -/
-elab "register_case" declRef:ident &"id" caseId:str &"fixture" fixture:str : command => do
-  let declName ← Elab.Command.liftTermElabM
-    (Lean.Elab.realizeGlobalConstNoOverloadWithInfo declRef)
-  Elab.Command.liftCoreM (recordCase {
-    declName, caseId := caseId.getString, fixture := fixture.getString })
-
 private def duplicateFixtureMessage (fixture first second : String) : String :=
   s!"fixture '{fixture}' is registered twice: by '{first}' and by '{second}'"
 

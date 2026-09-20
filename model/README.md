@@ -39,8 +39,9 @@ produces the seven caller Cases through `Temporal.Case.Realization.asyncNexus`: 
 no monitor Rule, only the Correlated capability the checked Property lowered into.
 [AUTHORING.md](AUTHORING.md) walks that Model file from an empty file to a green live test, one
 command at a time; its canary set is admitted through the same block and its exploratory set's
-coverage targets are pinned by a golden. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
-worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
+coverage targets are pinned by a golden. The system-info and
+worker-outage Models (`Temporal/Feature/System/Info`, `Temporal/Feature/Workflow/Outage`) produce the
+unary and the fault Cases; `Temporal.Testpilot` supplies the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.

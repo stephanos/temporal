@@ -19,7 +19,7 @@ import (
 // publishes that Contract to the functional fixture tree, and `PreparedContract.Evaluate` is
 // internal to this package, so no test outside it can call the offline path. The read crosses once,
 // here, rather than a second copy of the fixture being checked in to avoid it.
-const workerOutageFixture = "../../../../../tests/testcore/testpilot/testdata/worker-outage-case.json"
+const workerOutageFixture = "../../../../../tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json"
 
 // TestWorkerOutageContractAgreesOnlineAndOffline replays one recorded outage Run through the
 // shipped Contract twice: once event by event as the runtime does, and once offline over the whole
@@ -33,10 +33,9 @@ func TestWorkerOutageContractAgreesOnlineAndOffline(t *testing.T) {
 	live, offline := nexusEvaluateLiveAndOffline(t, contract, view, satisfied)
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, live.GetStatus())
 	require.True(t, proto.Equal(live, offline))
-	require.Len(t, live.GetRules(), 2)
-	for _, rule := range live.GetRules() {
-		require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-	}
+	require.Len(t, live.GetRules(), 1)
+	require.Equal(t, "worker-outage-order", live.GetRules()[0].GetRuleId())
+	require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, live.GetRules()[0].GetStatus())
 
 	// A resume that never arrives leaves the rule counting, and the count is what ends it.
 	expired := workerOutageRun(t, false)
@@ -46,9 +45,11 @@ func TestWorkerOutageContractAgreesOnlineAndOffline(t *testing.T) {
 	require.Equal(t, "expired", live.GetRules()[0].GetTerminalStateId())
 }
 
-// workerOutageFixtureContract prepares the shipped Contract against the one Observation it reads.
-// The Program the fixture carries is realization the Contract never names, so a minimal Program
-// declaring that Observation is the whole coupling.
+// workerOutageFixtureContract prepares the shipped Contract's monitor rules against a minimal
+// Program. The Case's Contract also carries the correlated capability the Model's completion clause
+// lowered into, which reads the correlated-evidence Observation the live Program lifts; what is
+// under test here is the derived outage-order rule's event-count deadline, so the rules are prepared
+// alone and the capability stays with the live Run.
 func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.ProgramView) {
 	t.Helper()
 	encoded, err := os.ReadFile(workerOutageFixture)
@@ -56,7 +57,9 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	artifact := &testpilotspb.Case{}
 	require.NoError(t, protojson.Unmarshal(encoded, artifact))
 	// A moved or renamed fixture fails here rather than silently evaluating a different Contract.
-	require.Equal(t, "temporal.case.worker-outage", artifact.GetCaseId())
+	require.Equal(t, "temporal.case.workerOutageTests.survived", artifact.GetCaseId())
+	contract := &testpilotspb.Contract{ContractId: artifact.GetContract().GetContractId(), Rules: artifact.GetContract().GetRules()}
+	require.Len(t, contract.GetRules(), 1)
 
 	catalog, err := ir.NewCatalog(nexusDescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
@@ -75,7 +78,7 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
 	require.NoError(t, err)
 	ceiling := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
-	prepared, err := Prepare(artifact.GetContract(), catalog, program.View(), ceiling, nil)
+	prepared, err := Prepare(contract, catalog, program.View(), ceiling, nil)
 	require.NoError(t, err)
 	return prepared, program.View()
 }
@@ -125,5 +128,5 @@ func workerOutageRun(t testing.TB, resumed bool) *testpilotspb.Run {
 	if !resumed {
 		status = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	}
-	return &testpilotspb.Run{RunId: "run", CaseId: "temporal.case.worker-outage", ProgramId: "program", Disposition: status, Events: events}
+	return &testpilotspb.Run{RunId: "run", CaseId: "temporal.case.workerOutageTests.survived", ProgramId: "program", Disposition: status, Events: events}
 }
