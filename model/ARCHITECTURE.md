@@ -45,8 +45,12 @@ Temporal.Testpilot ────────────────────�
 
 `Umpire.*` never imports `Temporal.*`. `Temporal.Feature.*` and `Temporal.System.*` remain separate
 except for the exact checked Implementation Link leaf. `Temporal.Tool.*` owns developer commands and
-is not imported by the production aggregate. `make lint-model` checks these edges against the full
-source inventory and compiled module metadata.
+is not imported by the production aggregate. A production module under `Temporal.Feature` or
+`Umpire.Examples` reaches Umpire's authoring owners (`Umpire.Model`, `Umpire.Property`,
+`Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation`, `Umpire.Case`) only through
+`Umpire.Command`; `Temporal.Case` and the Implementation Link are outside that rule. `make
+lint-model` checks these edges against the full source inventory and compiled module metadata, the
+authoring-path rule as a direct-import rule and the rest as reachability.
 
 `Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
@@ -108,10 +112,11 @@ success Case remains the live Driver integration. Cancellation Models, evidence 
 capabilities, and authored Cases are deferred to fn-79, independently of Run-context cancellation
 and bounded cleanup.
 
-Typed operation authoring adds parameterized Actions over generated RPC and SDK-command
-declarations, exact field operands over the declared schema, and separately declared finite and
-runtime claims. The generator and `Temporal.API` own structural declarations and supported exact
-value representations; `Umpire` owns admission, canonical meaning and Property semantics;
+Typed operation authoring is written on the commands: an `action`'s `schema:` line binds it to the
+generated RPC or SDK-command declaration, a `property`'s `relates:` line compares exact field
+operands over the declared schemas, and an action's `input:` and `examples:` lines declare its
+finite domains and abstraction claims. The generator and `Temporal.API` own structural declarations
+and supported exact value representations; `Umpire` owns admission, canonical meaning and Property semantics;
 `Temporal.Feature` owns the product requirements. `Umpire.Case.Coverage` owns the request direction
 of the checked lowering, and `Umpire.Case.Projection.lower` derives the evidence direction, the
 monitor rule itself, from the checked field Property. The
@@ -148,8 +153,9 @@ Profile, and `testpilot.Prepare` checks the Case's behavior bounds and structure
 
 `Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
 Gaps and lowers them into the Case's typed provenance rows. It does not own a parallel Program, Contract,
-Run, or field serializer. Producers validate their semantic inputs and use `Testpilot.Authoring`.
-Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, Case-local
+Run, or field serializer. The Producer is `Umpire.Case.Producer`, reached through the platform's `case … realizes` block: it
+assembles a Case's Program and Contract from a checked Query's witness and a realization through
+`Testpilot.Authoring`, and uses `Umpire.Case.Compiler` for source-bound rule validation, Case-local
 names and model value spellings, exact provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 

@@ -51,7 +51,7 @@ The ordering facts, closures, and per-link support of one offline Evidence bundl
 _Avoid_: Findings, structural analysis, Observation structure
 
 **Derived rule**:
-One monitor Rule a Case carries whose read paths, comparison and literal are derived from a checked field Property, together with the certificate that every field it reads is one the Property compares and every literal is one the Case's realization assigns. It is a single Rule of a Contract, not the Contract itself, and it lives on the model side of the seam: Testpilot evaluates it like any other Rule and never sees the Property it came from.
+One monitor Rule a Case carries whose read paths, comparison and literal are derived from a checked field Property (a `property`'s `relates:` line), together with the certificate that every field it reads is one the Property compares and every literal is one the Case's realization assigns. It is a single Rule of a Contract, not the Contract itself, and it lives on the model side of the seam: Testpilot evaluates it like any other Rule and never sees the Property it came from.
 _Avoid_: Authored rule, Contract (that is the set of Rules), monitor Property
 
 **Entity**:
