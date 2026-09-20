@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	commandpb "go.temporal.io/api/command/v1"
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -18,7 +20,7 @@ func fixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
-	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 32}, {Kind: contract.NexusHandlerEntrypoint, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.StartNexusOperation, contract.Await, contract.Finish, contract.RespondNexus}, Limits: proto.CloneOf(limits)}
+	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 32}, {Kind: contract.NexusHandlerEntrypoint, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.Await, contract.Finish, contract.WorkflowCommand, contract.NexusHandlerReply, contract.NexusOperationCompletion}, CommandTypes: []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}, Limits: proto.CloneOf(limits)}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{rpcNode("call")}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
 }
@@ -657,11 +659,11 @@ func TestInstructionContextMatrix(t *testing.T) {
 		}{
 			{"rpc", rpcNode("call").Instruction, contract.ControllerEntrypoint},
 			{"await slot", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "value"}}}, contract.ControllerEntrypoint},
-			{"complete", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "handle", Result: textLiteral("done")}}}, contract.ControllerEntrypoint},
-			{"start", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}, contract.WorkflowEntrypoint},
+			{"complete", completionNode("complete", payloadCompletion("handle")).Instruction, contract.ControllerEntrypoint},
+			{"start", scheduleNode("start").Instruction, contract.WorkflowEntrypoint},
 			{"await", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "prior"}}}}, contract.WorkflowEntrypoint},
 			{"finish", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}, contract.WorkflowEntrypoint},
-			{"respond", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, Result: textLiteral("done")}}}, contract.NexusHandlerEntrypoint},
+			{"respond", replyNode("respond", syncReply()).Instruction, contract.NexusHandlerEntrypoint},
 		} {
 			t.Run(fmt.Sprintf("kind %d/%s", context, test.name), func(t *testing.T) {
 				if context == test.expected {
@@ -695,15 +697,12 @@ func handleFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	wait := rpcNode("ready")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "handle"}}}
 	wait.After = runsAfter("controller")
-	complete := rpcNode("complete")
+	complete := completionNode("complete", payloadCompletion("handle"))
 	complete.Guard = succeeded("controller", "ready")
-	complete.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "handle", Result: textLiteral("done")}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait, complete)
-	handler := rpcNode("respond")
-	handler.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS, HandleSlotId: "handle", Result: textLiteral("accepted")}}}
+	handler := replyNode("respond", asyncReply("handle"))
 	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "handler", Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{handler}})
-	start := rpcNode("start")
-	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}
+	start := scheduleNode("start")
 	await := rpcNode("await")
 	await.Guard = alwaysRuns()
 	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}}
@@ -743,13 +742,16 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 	worker := prepared.Entrypoints()[1]
 	require.Equal(t, []int{0, 1, 2}, worker.Order())
 	instructions := worker.Instructions()
-	require.Equal(t, "input", instructions[0].Input().Literal().GetTextValue())
+	scheduled := func(plan InstructionPlan) *commandpb.ScheduleNexusOperationCommandAttributes {
+		return plan.Source().GetInstruction().GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes()
+	}
+	require.Equal(t, "operation", scheduled(instructions[0]).GetOperation())
 	require.Equal(t, []int{0}, instructions[1].Dependencies())
-	instructions[0].Input().Literal().Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+	scheduled(instructions[0]).Operation = "changed"
 	instructions[0].Source().Instruction = nil
 	worker.Activation().GetWorkflow().WorkflowType = "changed"
 	worker.Order()[0] = 99
-	require.Equal(t, "input", worker.Instructions()[0].Input().Literal().GetTextValue())
+	require.Equal(t, "operation", scheduled(worker.Instructions()[0]).GetOperation())
 	require.Equal(t, "flow", worker.Activation().GetWorkflow().WorkflowType)
 	require.Equal(t, []int{0, 1, 2}, worker.Order())
 }
@@ -898,7 +900,7 @@ func TestAwaitRequiresNexusStart(t *testing.T) {
 			if target == "start" {
 				require.NoError(t, err)
 			} else {
-				require.ErrorContains(t, err, "StartNexusOperation")
+				require.ErrorContains(t, err, "Nexus schedule command")
 			}
 		})
 	}

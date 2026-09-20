@@ -142,7 +142,7 @@ contexts. A Case declares no reservations: an ordinary controller instruction in
 on that endpoint reserves one activation of each workflow and Nexus-handler entrypoint whose kind the
 carrier's shapes admit, in entrypoint declaration order, and two instructions that could carry the
 same entrypoint reject `unsupported` naming both. Admission checks those reservations against the
-carrier's maximum counts and compiles their order once. Every potential StartNexusOperation source, including guarded sources, maps to
+carrier's maximum counts and compiles their order once. Every potential Nexus schedule command, including guarded sources, maps to
 one explicitly reserved handler by service and operation. Route order follows the prepared workflow
 node order, then workflow ordinal; handler ordinals count within the declared handler reservation.
 Missing, ambiguous, crossed or count-mismatched routes reject before Driver I/O.
@@ -166,15 +166,15 @@ without a consumer, while uncooperative Driver waits require quarantine and cann
 Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionPlan` methods
 `OutcomeType`, `EvaluateInput`, `ValidateOutcome`, `TimeoutMilliseconds`, `MaxAttempts` and
 `Reservations`. An instruction's outcome fields are derived from it: every instruction has a status and
-a detail, `InvokeRpc`, `CompleteNexusOperation` and `NexusOperationCompletion` a protocol code, a
+a detail, `InvokeRpc` and `NexusOperationCompletion` a protocol code, a
 workflow or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its operation's
-result as VALUE: text after a `StartNexusOperation`, the handler's payload as an `Any` after a
-`WorkflowCommand` that schedules one.
+result as VALUE: the handler's payload as an `Any`, carried back from the `WorkflowCommand` that
+scheduled the operation.
 `OutcomeType` returns a cloned derived schema; `ValidateOutcome` returns an activation-owned
 `contract.OutcomeSnapshot` with independently copied outcome and derived fields. Mutating those results
 cannot mutate the plan or a subsequent validation result. An RPC response is read only through
-response reads, StartNexusOperation's SDK future is an opaque runtime handle, and a Finish or
-RespondNexus result ends its activation, so none of them has a VALUE.
+response reads, the SDK future a schedule command starts is an opaque runtime handle, and a Finish
+result or a `NexusHandlerReply` ends its activation, so none of them has a VALUE.
 
 A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard is true builds the evidence value

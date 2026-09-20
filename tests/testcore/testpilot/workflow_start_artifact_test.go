@@ -23,6 +23,18 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// localNameDefinition returns the Definition ID the Case's provenance maps a Case-local name to; a
+// name no row maps is its own Definition ID.
+func localNameDefinition(t testing.TB, source *testpilotspb.Case, localName string) string {
+	t.Helper()
+	for _, row := range source.GetProvenance().GetLocalNames() {
+		if row.GetLocalName() == localName {
+			return row.GetDefinitionId()
+		}
+	}
+	return localName
+}
+
 // workflowStartArtifactPrepared prepares the unchanged workflow-start Case bytes against the
 // Profile the live test uses, with the physical environment values this package owns. The Case
 // names its monitor rule by its Case-local name; its provenance maps it to the relation's

@@ -125,6 +125,19 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		// The unsigned integer arm and kind, the Go entrypoint classification and the model's natural
 		// evidence scalar stay.
 		{line: "pb.Value_UnsignedIntegerValue{}, pb.SCALAR_KIND_UINT64, contract.EntrypointKind, testpilot.WorkflowEntrypoint, EvidenceValue.natural"},
+		{line: "(kind : NexusResponse" + "Kind)", want: []string{"NexusResponse" + "Kind"}},
+		{line: "Program.respond" + "Nexus kind result", want: []string{"Respond" + "Nexus"}},
+		{line: "&pb.Instruction_StartNexus" + "Operation{}", want: []string{"Instruction_StartNexus" + "Operation"}},
+		{line: "case *pb.Instruction_CompleteNexus" + "Operation:", want: []string{"Instruction_CompleteNexus" + "Operation"}},
+		{line: "source.GetStartNexus" + "Operation()", want: []string{"GetStartNexus" + "Operation"}},
+		{line: "n.source.Instruction.GetCompleteNexus" + "Operation()", want: []string{"GetCompleteNexus" + "Operation"}},
+		// Each rule requires a non-identifier boundary on both sides, so the typed successors and the
+		// live WorkflowService method stay; the two HistoryService methods the generated Temporal.API
+		// spells are why the bare start and completion names are not held at all.
+		{line: "pb.NexusOperationCompletion{}, nexusOperationCompletion, pb.NexusHandlerReply{}, pb.WorkflowCommand{}"},
+		{line: "workflowservice.RespondNexusTaskCompletedRequest{}, respondNexusTaskCompleted, historyservice.CompleteNexusOperationRequest{}"},
+		{line: "def startNexusOperation : Method StartNexusOperationRequest StartNexusOperationResponse"},
+		{line: "HistoryService.CompleteNexusOperation, completeNexusOperation, CompleteNexusOperationChasmRequest"},
 		{line: "mo" + "del lifecycle", want: []string{"mo" + "del <name>"}},
 		{line: "mo" + "del raceLifecycle", want: []string{"mo" + "del <name>"}},
 		// The word stays live: `model/` is the tree, `model:` is a key of `property` and `scenario`,

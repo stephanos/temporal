@@ -40,23 +40,11 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 	require.True(t, proto.Equal(oracle.ContractLimits, derived.ContractLimits))
 }
 
-// The typed Cases pin the parts the caller set's shape cannot: two reserved Nexus handler
-// activations on one carrier, and a Case with no Nexus handler at all.
-func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
+// The workflow-start Case pins the part the caller set's shape cannot: a Case with no Nexus
+// handler at all.
+func TestDeriveProfileEqualsTheHandWrittenWorkflowStartProfile(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	nexus := loadLeanCase(t, "typed-nexus")
-	derived, err := temporaldriver.DeriveProfile(nexus, catalog, temporaldriver.Environment{
-		Identity: "typed-nexus-profile", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
-	})
-	require.NoError(t, err)
-	oracle := TypedNexusProfile(catalog, TypedNexusEnvironment{
-		Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
-	})
-	require.Equal(t, oracle.Roles, derived.Roles)
-	require.Equal(t, oracle.Opcodes, derived.Opcodes)
-	require.Equal(t, oracle.EnvironmentBindings, derived.EnvironmentBindings)
-
 	start := loadLeanCase(t, WorkflowStartFixture)
 	derivedStart, err := temporaldriver.DeriveProfile(start, catalog, temporaldriver.Environment{
 		Identity: "workflow-start-profile", Namespace: "namespace", TaskQueue: "task-queue",

@@ -98,12 +98,9 @@ func (t *completionTransport) newEffect(info completionInfo) (testpilot.Capabili
 	return completionEffect{transport: t, info: info}, nil
 }
 
-// Accepts admits the untyped completion with an interpreter value, and the typed completion with
-// the payload or failure it carries.
+// Accepts admits the typed completion with the payload or failure it carries.
 func (completionEffect) Accepts(_ context.Context, instruction *testpilotspb.Instruction, input proto.Message) bool {
-	switch typed := input.(type) {
-	case *testpilotspb.Value:
-		return instruction.GetCompleteNexusOperation() != nil && typed.GetValue() != nil
+	switch input.(type) {
 	case *commonpb.Payload:
 		return instruction.GetNexusOperationCompletion().GetPayload() != nil
 	case *failurepb.Failure:

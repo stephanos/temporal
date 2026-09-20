@@ -436,26 +436,11 @@ def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestA
 def awaitSlot (slotId : String) : Instruction :=
   { instruction := some (.await_slot { slot_id := slotId }) }
 
-def completeNexusOperation (handleSlotId : String) (result : Expression) : Instruction :=
-  { instruction := some (.complete_nexus_operation {
-      handle_slot_id := handleSlotId, result := some result }) }
-
-def startNexusOperation (endpointRoleId serviceName operationName : String)
-    (input : Expression) :
-    Instruction :=
-  { instruction := some (.start_nexus_operation
-      (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
-
 def awaitInstruction (instruction : InstructionReference) : Instruction :=
   { instruction := some (.await_instruction { instruction := some instruction }) }
 
 def finish (result : Expression) : Instruction :=
   { instruction := some (.finish { result := some result }) }
-
-def respondNexus (kind : NexusResponseKind) (result : Expression)
-    (handleSlotId : String := "") : Instruction :=
-  { instruction := some (.respond_nexus {
-      kind, result := some result, handle_slot_id := handleSlotId }) }
 
 /-- Request one deliberate outage. `roleId` names the task-queue role whose worker the Driver
 stops or resumes; the role's own resource binding identifies the queue. -/

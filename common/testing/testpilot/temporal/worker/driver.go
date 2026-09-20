@@ -364,7 +364,7 @@ func (d *programDefinition) addEntry(entry entryDefinition, queueNexus map[strin
 func (h *Driver) addInstructionBindings(definition *programDefinition, plan testpilot.EntrypointPlan, roles map[string]testpilot.PreparedRole, program *testpilotspb.Program) error {
 	for _, instruction := range plan.Instructions() {
 		source := instruction.Source().GetInstruction()
-		endpointRole := source.GetStartNexusOperation().GetEndpointRoleId()
+		var endpointRole string
 		if schedule := scheduleNexusOperation(source); schedule != nil {
 			endpointRole = schedule.GetEndpoint()
 		}
@@ -377,9 +377,6 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 		}
 		if err := h.validateRPCBindings(instruction, roles, program); err != nil {
 			return err
-		}
-		if response := source.GetRespondNexus(); response != nil && response.GetKind() == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
-			definition.hasAsync = true
 		}
 		if source.GetNexusHandlerReply().GetResponse().GetAsyncSuccess() != nil {
 			definition.hasAsync = true
