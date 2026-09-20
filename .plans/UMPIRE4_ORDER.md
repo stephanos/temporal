@@ -641,6 +641,24 @@ keywords in the importing module, so the link's constructor `FeaturePropertyLaye
 `featureProperty`. Gates: `lake build` green; `lint-model` at the `.1` baseline; no Go changed. Its
 review is a self-review.
 
+**Task .5 is done, 2026-09-20.** The first-generation Nexus models are gone: `Race` (eight modules,
+three docs), `Lifecycle`, `Operations`, `Observation`, `Experimental`, the six Operations goldens,
+`Nexus/COVERAGE.md`, the `NexusDiscovery` tool and the `TemporalExperimentalTests` root, in the
+order Experimental, Observation, Race, Operations, Lifecycle; the build after the sweep (586
+targets) is the proof that no import remains. The race Model's rows, outcomes, facts, terminal
+slice, three Properties and four Scenarios, and what each becomes on the Caller Model, are fn-79's
+spec text; the variation Space's axes, faults, goals and pinned points and the Exploration's
+policies, limits and session behavior are fn-33's, with `nexusCallerExploration` named as their
+successor. The facade `Temporal.Feature.Nexus` is the Caller and Pair Models; the inspector was
+re-pointed as the plan review decided: its registry is the Caller Model's eight Queries in
+declaration order beside Switch, `inspect` prints a found Query's Artifact (the verify Query reports
+`planning-failure`), `list` prints the registry, `explain` prints one Query's checked lineage, and
+the three Make targets stay. `Temporal.SharedTests` keeps the identity, source and metadata pins
+over `Temporal.Shared` alone; no Temporal-side compatibility family remains and `switch` is pinned
+by `UmpireTests` until .7. Gates: `lake build` green; `lint-model` at the `.1` baseline; no golden
+changed; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
+self-review.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own

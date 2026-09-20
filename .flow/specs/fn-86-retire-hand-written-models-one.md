@@ -244,6 +244,14 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   as the product's completion classes and treats the cancellation request as irrelevant (no
   product row; fn-79), and the evidence tests pin the Caller Model's Queries. The Target is
   irreducible so a goal over its machine is never unfolded into the admission.
+- **The retired models are gone and their behavior is spec text** (task .5, 2026-09-20): Race,
+  Lifecycle, Operations, Observation and Experimental are deleted with their goldens, tests, docs,
+  the `NexusDiscovery` tool and the `TemporalExperimentalTests` root; the race Model's rows,
+  Properties and Scenarios are recorded in fn-79's spec and the variation Space and Exploration
+  inputs in fn-33's; the facade `Temporal.Feature.Nexus` is the Caller and Pair Models; the
+  inspector's registry is the Caller Model's Queries beside Switch, `list` prints it and `explain`
+  prints one Query's checked lineage; no Temporal-side compatibility family remains, `switch` is
+  pinned by `UmpireTests` until .7.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
