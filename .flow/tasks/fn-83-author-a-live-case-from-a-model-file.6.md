@@ -31,36 +31,11 @@ Re-author `TestNexusOperationSyncCompletion` as a Model file using only the six 
 - [ ] `COVERAGE.md` maps all four upstream assertions plus the handler-placement row; the mutable-state row is a white-box Known Gap present in the fixture's Provenance
 - [ ] The measurement commit touches exactly the Model file and the live test as authored files (fixture generated)
 - [ ] The live test passes under `make umpire-check-live-tests`
+
 ## Done summary
-Blocked:
-Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions and run query sets").
+Closed as superseded 2026-09-20 by fn-85 .13. The synchronous Nexus completion test is Query 1 (`syncCompletion`) of the Caller Model's functional set, with `COVERAGE.md` mapping every upstream assertion (fn-85 .10); the `nexusOperation ... responds sync` template it was to be written on is gone (fn-85 .11).
 
-The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
-
-- **Side effects in the Model.** Entities with identity; actions a party performs, with input classes, examples, an optional schema and results; machines that keep each entity's state and rows; observations that confirm rows. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal realization** in `Temporal.Case` that binds actions, results, observations, timers, setup parameters, switches and parties to RPCs, Testpilot instructions, history events and dynamic config. The Producer assembles Program and Contract from a Query's path; whole-Program templates and the `case` command are removed.
-- **Query sets per purpose.** A set binds each party to `driven` or `observed`; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
-
-fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
-## The white-box Known Gap representation (decided by .11)
-
-**No new kind.** `UMPIRE4_SPEC.md` enumerates the four Known Gap kinds normatively ("A missing or
-unsupported Capability, input, interpretation, or claim"), so a `whiteBox` kind would need a GOV-02
-amendment for something the existing vocabulary already carries.
-
-The admin-service mutable-state assertion is `interpretation`: the Run records what the Case can
-observe, and nothing in it interprets the server's internal mutable state. Write it as
-
-```
-gap interpretation "white-box-mutable-state"
-  detail "The upstream assertion reads mutable state through the admin service; a Case observes only
-    what its Program records, so no black-box Run can establish it."
-```
-
-which produces the code `<family>.known-gap.white-box-mutable-state`. The detail is the place that
-says "white-box", and `COVERAGE.md` names the same code in its row.

@@ -38,17 +38,10 @@ Paths are pre-fn-82; `Umpire.Space` is `Umpire.Variations` afterwards.
 - [ ] Both live outage tests pass with the outage-order rule (same ID, terminal state `resumed`) and both clause rules satisfied; the artifact test pins the `rule_events` Deadline
 - [ ] `#guard_msgs` pins unknown hook and duplicate fault line
 - [ ] `make umpire-check-regression` passes
+
 ## Done summary
-Blocked:
-Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions and run query sets").
+Closed as superseded 2026-09-20 by fn-85 .13. The `fault:` grammar against template hooks is not built: fn-85 models a fault as an ordinary action of a declared party (`transportFault`, `workerStop` in the Caller Model), realized as an `ActionBinding` whose node injects the fault (`.11`); the worker-outage Model and the outage-order rule go to fn-86 R4 (fn-86 .6 derives the rule from fault actions on the path).
 
-The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
-
-- **Side effects in the Model.** Entities with identity; actions a party performs, with input classes, examples, an optional schema and results; machines that keep each entity's state and rows; observations that confirm rows. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal realization** in `Temporal.Case` that binds actions, results, observations, timers, setup parameters, switches and parties to RPCs, Testpilot instructions, history events and dynamic config. The Producer assembles Program and Contract from a Query's path; whole-Program templates and the `case` command are removed.
-- **Query sets per purpose.** A set binds each party to `driven` or `observed`; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
-
-fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
 - Commits:
 - Tests:

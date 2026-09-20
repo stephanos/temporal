@@ -693,6 +693,18 @@ narrows a requirement without changing its intent, and the task that owns it rec
   golden under `Caller/Fixtures` pins the Caller Model's exploration over `nexusProtocol` (885 of
   1152 rows, two results, two class members). Running canary and exploratory sets stays with
   fn-70, fn-29 and fn-33.
+- **The walkthrough quotes the Model, and the spec names what landed (task .13, 2026-09-20).**
+  `model/AUTHORING.md` is generated from the Caller Model's marked regions and a Go drift test
+  (`tools/umpire/authoring`) fails on any way the two part, so the tutorial documents only
+  keywords that compile. The spec's concept entries -- Entity, Party, Refinement, Set, Realization,
+  Abstraction Claim, and the amended Action, Observation and Machine -- describe the landed meaning
+  (a class is a domain member, a claim is an `examples:` line, a switch is the realization's, a
+  refinement is a stuttering forward simulation and not an Implementation Link), and three rule
+  amendments are drafted under GOV-02: AUT-07a carries `set` and `register_switch` and leaves Case
+  production to the platform's block; MOD-02 admits the realization in `Temporal.Case`; AUT-09
+  covers what the commands derive. fn-83's six blocked tasks are closed as superseded with their
+  destinations, by editing the records, since a fresh clone cannot change task status. fn-85 is
+  complete; its `spec close` and fn-83's follow in a clone with runtime task state.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command

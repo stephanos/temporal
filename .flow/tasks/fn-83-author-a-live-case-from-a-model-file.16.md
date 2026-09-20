@@ -35,18 +35,9 @@ Derive a Case's fixture name from its `case` name and remove the `fixture:` slot
 - [ ] `.5` and `.6` wording uses `case workerOutage` and `case syncNexus`
 - [ ] `cd model && lake build`, `make umpire-check-case-runtime-conformance` pass
 
-
 ## Done summary
-Blocked:
-Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions and run query sets").
+Closed as superseded 2026-09-20 by fn-85 .13. A Case's identity derives from the set's and the Query's names (fn-85 .7): Case ID `temporal.case.<set>.<query>`, fixture `<set>-<query>`, and the `fixture:` slot and the `fixture`-named `case` form are gone (fn-85 .11).
 
-The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
-
-- **Side effects in the Model.** Entities with identity; actions a party performs, with input classes, examples, an optional schema and results; machines that keep each entity's state and rows; observations that confirm rows. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal realization** in `Temporal.Case` that binds actions, results, observations, timers, setup parameters, switches and parties to RPCs, Testpilot instructions, history events and dynamic config. The Producer assembles Program and Contract from a Query's path; whole-Program templates and the `case` command are removed.
-- **Query sets per purpose.** A set binds each party to `driven` or `observed`; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
-
-fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
 - Commits:
 - Tests:
