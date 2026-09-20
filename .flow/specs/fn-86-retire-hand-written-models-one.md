@@ -234,6 +234,16 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   not enumerated (`CheckedScenario.admitsPrefix`), so the admitted traces and their order are the
   same and the candidates counted against `limits.search` are the ones that could be admitted. The
   Operations compatibility artifacts, which record explored counts, were regenerated.
+- **The Implementation Link's destination is a Target derived from the product machine's rows**
+  (task .4, 2026-09-20): `nexusProduct`'s own table is not admissible as a Target (two classes
+  without a row, one start), so the link derives `productTarget` from its rows -- the same rows,
+  `scheduled` and `started` as starts, `ends:` as the terminal condition, its own Target and kernel
+  identity -- and names every element from the checked Target's vocabulary. The forward simulation
+  is decided over that Target (the System's authoritative cases, the Target's soundness laws, a
+  `native_decide` membership each), the cancellation projection confirms `canceled` and `completed`
+  as the product's completion classes and treats the cancellation request as irrelevant (no
+  product row; fn-79), and the evidence tests pin the Caller Model's Queries. The Target is
+  irreducible so a goal over its machine is never unfolded into the admission.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
