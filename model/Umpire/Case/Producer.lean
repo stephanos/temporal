@@ -357,6 +357,11 @@ structure Realization where
   projectionLimits : Case.Projection.Limits
   /-- Evaluation ceilings for the correlated consumer, separate from the semantic window. -/
   runLimits : Property.Correlated.Limits
+  /-- The window an outage may stay open, counted in the Run Events the outage-order rule
+  evaluates after the stop rather than on the host's clock: what lies between a stop and its resume
+  on the traced path, with slack, so that a slow runner cannot turn a healthy outage into a
+  violated one. -/
+  outageDeadline : Int64 := 16
 
 /-- The switch a `repeat:` names, or `none` for one this realization does not declare, which is
 what rejects the `set`. -/
@@ -878,6 +883,75 @@ private def lowerRelation {LawStatement : Law → Prop}
     inputs := lowered.coverage.inputs
     source := relation.source }
 
+/-! ### The outage-order rule
+
+A path that stops a worker and resumes it carries one requirement the machine cannot state: the two
+faults happen in that order and the resume is not long in coming. The Program says which
+instructions inject which fault on which role, so the rule is derived from the assembled Program:
+for each role whose faults stop then resume, one bounded-liveness rule over the recorded
+`FAULT_INJECTED` events, satisfied by the resume and expired by the realization's deadline. -/
+
+/-- The name one fault kind carries on the wire. The generated enum is a bare inductive with no
+name accessor, so the constructor and its name are paired here; the match names every declared
+kind, so a vocabulary addition is a Lean error here rather than a predicate silently comparing
+against an unnamed kind. -/
+def faultKindName : FaultKind → String
+  | .FAULT_KIND_WORKER_STOP => "FAULT_KIND_WORKER_STOP"
+  | .FAULT_KIND_WORKER_RESUME => "FAULT_KIND_WORKER_RESUME"
+  | .FAULT_KIND_UNSPECIFIED => "FAULT_KIND_UNSPECIFIED"
+  | .«Unknown.Value» number => toString number
+
+/-- The faults a Program injects, in Program order: the role each is injected on and its kind. -/
+def injectedFaults (program : Program) : List (String × FaultKind) :=
+  program.entrypoints.toList.flatMap fun entrypoint =>
+    entrypoint.instructions.toList.filterMap fun node =>
+      match node.instruction.bind (·.instruction) with
+      | some (.inject_fault fault) => some (fault.role_id, fault.kind)
+      | _ => none
+
+/-- The outage-order rule for one role: satisfied once a stop on the role is followed by a resume
+on it, expired when the resume is not among the next `deadline` Run Events the rule evaluates. -/
+def outageOrderRule (ruleId roleId : String) (deadline : Int64) : ContractRule :=
+  let faultField (name : String) : Expression :=
+    Testpilot.Authoring.Expr.path Testpilot.Authoring.Expr.runEventPayload
+      (Testpilot.Authoring.Path.make #[Testpilot.Authoring.Path.field "fault_injected",
+        Testpilot.Authoring.Path.field name])
+  let roleIs : Expression :=
+    Testpilot.Authoring.Expr.equal (faultField "role_id")
+      (Testpilot.Authoring.Expr.literal (Testpilot.Authoring.Value.text roleId))
+  let kindIs (kind : FaultKind) : Expression :=
+    Testpilot.Authoring.Expr.equal (faultField "kind")
+      (Testpilot.Authoring.Expr.literal (Testpilot.Authoring.Value.enumeration (faultKindName kind)))
+  Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "awaiting-stop"
+    #[Testpilot.Authoring.Contract.state "awaiting-stop" .CONTRACT_STATE_STATUS_PENDING,
+      Testpilot.Authoring.Contract.state "stopped" .CONTRACT_STATE_STATUS_PENDING,
+      Testpilot.Authoring.Contract.state "resumed" .CONTRACT_STATE_STATUS_SATISFIED,
+      Testpilot.Authoring.Contract.state "expired" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[Testpilot.Authoring.Contract.transition "observe-stop" "awaiting-stop" "stopped"
+        #[.RUN_EVENT_KIND_FAULT_INJECTED]
+        (Testpilot.Authoring.Expr.all #[roleIs, kindIs .FAULT_KIND_WORKER_STOP])
+        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
+      Testpilot.Authoring.Contract.transition "observe-resume" "stopped" "resumed"
+        #[.RUN_EVENT_KIND_FAULT_INJECTED]
+        (Testpilot.Authoring.Expr.all #[roleIs, kindIs .FAULT_KIND_WORKER_RESUME])
+        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
+    (deadline := some (Testpilot.Authoring.Contract.deadline (.rule_events deadline) "expired"))
+
+/-- The outage-order rules a Program's faults call for: one per role whose faults stop the worker
+and later resume it, in the order the roles are first stopped. The first is `worker-outage-order`;
+a second role's carries its ordinal. A stop with no resume, or a resume before any stop, is no
+rule: the Contract answers it at Run time rather than the Producer refusing the path. -/
+def outageOrderRules (program : Program) (deadline : Int64) : List ContractRule :=
+  let faults := injectedFaults program
+  let roles := (faults.filter (·.2 == .FAULT_KIND_WORKER_STOP)).map (·.1) |>.eraseDups
+  let ordered := roles.filter fun roleId =>
+    match faults.idxOf? (roleId, .FAULT_KIND_WORKER_STOP) with
+    | some stop => (faults.drop (stop + 1)).contains (roleId, .FAULT_KIND_WORKER_RESUME)
+    | none => false
+  ordered.zipIdx.map fun (roleId, index) =>
+    outageOrderRule ("worker-outage-order" ++ (if index == 0 then "" else "-" ++ toString (index + 1)))
+      roleId deadline
+
 /-! ### Production -/
 
 /-- Lower one checked Model into a Case through a named realization. The checked values are
@@ -962,6 +1036,8 @@ def produce {LawStatement : Law → Prop}
     performed.contains (input.vocabulary.namedAction relation.action).definitionId).flatMapM
     fun relation => placements.mapM fun placement =>
       lowerRelation input placement realization (evidenceRules.map (·.1)) relation
+  let assembled ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
+    program (some input.vocabulary) input.instances
   compile {
     version := { major := 1 }
     caseId := identity.caseId
@@ -980,14 +1056,19 @@ def produce {LawStatement : Law → Prop}
     sources := [input.target.source, input.scenario.source, input.querySource,
       input.property.source] ++ (relations.map (·.source)).eraseDups
     knownGaps := knownGaps.toProvenanceGaps
-    program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
-      program (some input.vocabulary) input.instances
+    program := assembled
     -- A claim is recorded for each class the Program performs: every instance's actions, not only
     -- the operation the Contract follows, because each of them ran the class's example.
     abstractionClaims := (input.claims.filter fun claim =>
       performed.contains claim.member).map (·.row)
     contractId := identity.contractId
-    properties := [lowered.contractLowering] ++ relations.map (·.lowering)
+    -- The outage-order rule a fault-bearing path calls for is the correlated Property's: what the
+    -- path requires of the faults it injects, beside what it requires of the operation.
+    properties := [lowered.contractLowering] ++ relations.map (·.lowering) ++
+      (outageOrderRules assembled realization.outageDeadline).map fun rule =>
+        .monitor { definitionId := correlatedProperty.id.value
+                   behaviorFingerprint := correlatedProperty.behaviorFingerprint.render
+                   kind := .«property» } rule
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
     -- between the checked Property and the Contract rejects here, before any Driver I/O. A caller
     -- may name further clauses it requires; one this Case does not carry rejects the same way.
