@@ -678,6 +678,21 @@ narrows a requirement without changing its intent, and the task that owns it rec
   while `Success/Model.lean` stays as the command specimen its tests pin until fn-86 R3. Correlated
   field policies type text, boolean and unsigned only, so the reads declare no fields and the
   attempt count is Known Gap `attempts-field`.
+- **A canary is admitted where Cases are produced, and an exploratory set names its machine
+  (task .12, 2026-09-19).** The Temporal `case … realizes <set>` block admits a canary set by
+  producing each Query's Case under the realization, registering nothing, and reading the Case for
+  a white-box Known Gap -- the `capability` and `interpretation` kinds, a step of the path no
+  observation confirms -- which rejects naming the Query and the gap; an `input` gap is a parameter
+  the deployment binds and keeps no canary out. The check lives there and not in the `set` command
+  because the question is answered only by the produced Case, which is the platform's. An
+  exploratory set names the machine it covers under `machine:` (required there, rejected
+  elsewhere), its `budget:` must be a `limits` declaration, and its `targets` are enumerated at
+  declaration from the declared Model: the rows an exploration within the budget's steps of a
+  start can take in table order, the result values those rows reach in catalog order, the claims
+  their actions make in claim order, cut at the search count; `coverageJson` renders them and a
+  golden under `Caller/Fixtures` pins the Caller Model's exploration over `nexusProtocol` (885 of
+  1152 rows, two results, two class members). Running canary and exploratory sets stays with
+  fn-70, fn-29 and fn-33.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command
