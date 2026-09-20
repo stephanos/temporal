@@ -421,12 +421,25 @@ rule and carries it as a capability Known Gap (`backoff.unobserved`, `workerStop
 every controller path first reads the scheduled event (`await-scheduled`), the runtime chains one
 operation's evidence across sources by a parent, admits a canceled reservation of an entrypoint
 that performs nothing, and the worker keeps a retryable handler activation open for the retried
-start. The whole-Program templates, the `fixture`-named `case` form, the `caseTemplate` grammar,
+start. The whole-Program templates, the `fixture`-named `case` form, the template grammar of the `as` clause,
 `ProofPoint` and the `Success` set are gone and retired; `case … realizes <set> as <Realization>`
 is the one Case-producing command. Seven fixtures, `COVERAGE.md` mapping all seven upstream
 tests, timer stability three runs under both values (4.2 to 4.8 s per Query), `make
 umpire-check-regression` exit 0 with **29 passing live identities** (20 before). `lint-model` at
 the `.10` baseline. Its review is a self-review.
+
+**Task .12 is done, 2026-09-19.** The `case … realizes <set>` block admits a canary set: each
+Query's Case is produced under the realization, registered nowhere, and read for a white-box Known
+Gap (`capability`, `interpretation`), which rejects naming the Query and the gap;
+`nexusCallerCanary` over Queries 1 and 2 with `handler: observed` admits, and a canary over the
+retry Query rejects on `backoff.unobserved`, pinned by `#guard_msgs`. An exploratory set names
+`machine:`, and its `budget:` must be a `limits` declaration; `Umpire.Command.Coverage` enumerates
+its targets from the declared Model (rows within the budget's steps of a start, the results they
+reach, the claims their actions make, cut at the search count) and `nexusCallerExploration` over
+`nexusProtocol` under `four` lists 885 of 1152 rows, two results and two class members in
+`Caller/Fixtures/CallerExploratoryCoverage.json`, rendered byte-identically twice and checked by
+`umpire-check-goldens`. `make umpire-check-regression` exit 0 with **29 passing live
+identities** (29 before). Its review is a self-review.
 
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
