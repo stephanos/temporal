@@ -252,6 +252,18 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   inspector's registry is the Caller Model's Queries beside Switch, `list` prints it and `explain`
   prints one Query's checked lineage; no Temporal-side compatibility family remains, `switch` is
   pinned by `UmpireTests` until .7.
+- **The two Model-less Cases are command Models and the outage-order rule is Producer-derived**
+  (task .6, 2026-09-20): the worker outage is `Temporal/Feature/Workflow/Outage/Model.lean` --
+  `workerStop` and `workerResume` as actions of the `worker` party, bound by the workflow
+  realization to fault instructions on the Case's task-queue role -- and the system-info call is
+  `Temporal/Feature/System/Info/Model.lean` through a unary realization whose evidence is the
+  instruction-completed Run Event. `Umpire.Case.Producer.outageOrderRules` derives the
+  bounded-liveness rule from the assembled Program (one per role whose faults stop then resume,
+  `rule_events` deadline from `Realization.outageDeadline`), so any fault-bearing path carries it
+  without a line of its own. A workflow's history events carry no one key across the started and
+  completed events, so the outage Model's one evidence kind is the completed event keyed by the
+  workflow task that completed it, and the three steps before it are Known Gaps. `register_case`
+  is gone: every checked-in Case is a `case` block's.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
