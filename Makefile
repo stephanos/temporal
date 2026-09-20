@@ -85,6 +85,7 @@ UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire
 UMPIRE_GOLDEN_DIRECTORIES := \
 	Umpire/Model/Tests/Compatibility/Fixtures \
 	Temporal/Feature/Nexus/Fixtures \
+	Temporal/Feature/Nexus/Caller/Fixtures \
 	Umpire/Examples/Fixtures \
 	Umpire/Artifact/Tests/Fixtures
 UMPIRE_GEN_REGRESSION_VIEWS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regression-views

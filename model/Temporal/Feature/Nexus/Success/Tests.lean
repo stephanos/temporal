@@ -1697,15 +1697,63 @@ set listedExploration
   cover: rows
   queries: [completion]
 
+/--
+error: an exploratory set names the machine it covers under `machine:`
+-/
+#guard_msgs in
+set machineless
+  purpose: exploratory
+  bind:
+    caller: driven
+  cover: rows
+  budget: shortTrace
+
+/--
+error: 'completion' is not a machine declared by a `machine` command
+-/
+#guard_msgs in
+set coversAQuery
+  purpose: exploratory
+  bind:
+    caller: driven
+  machine: completion
+  cover: rows
+  budget: shortTrace
+
+/--
+error: 'completion' is not a `limits` declaration; `budget:` names the limits an exploratory set explores within
+-/
+#guard_msgs in
+set budgetedByAQuery
+  purpose: exploratory
+  bind:
+    caller: driven
+  machine: lifecycle
+  cover: rows
+  budget: completion
+
+/--
+error: `machine:` names the machine an exploratory set covers; a functional set's Queries name theirs
+-/
+#guard_msgs in
+set machinedFunctional
+  purpose: functional
+  bind:
+    caller: driven
+  machine: lifecycle
+  queries: [completion]
+
 set exploration
   purpose: exploratory
   bind:
     caller: driven
+  machine: lifecycle
   cover: rows | classMembers
   budget: shortTrace
 
 #guard exploration.cover == [.rows, .classMembers]
 #guard exploration.budget == some "shortTrace"
+#guard (exploration.machine.map (·.value.endsWith ".machine.lifecycle")) == some true
 
 /--
 error: unknown purpose 'smoke'; a set is functional, canary or exploratory
@@ -1719,7 +1767,7 @@ set unknownPurpose
 
 /- Only a functional set compiles to Cases. -/
 /--
-error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; only a functional set compiles to Cases, one per Query
+error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; a functional set compiles to Cases and a canary set is admitted through them, one per Query, while an exploratory set covers rather than lists Queries
 -/
 #guard_msgs in
 case exploredCases
