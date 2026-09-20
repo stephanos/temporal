@@ -620,6 +620,27 @@ line and design sketches are gone. `make proto`'s api-linter step fails on a pre
 proto-codegen`. Gates: `lint-model` at the `.1` baseline; `make umpire-check-regression` exit 0
 with 29 passing live identities. Its review is a self-review.
 
+**Task .4 is done, 2026-09-20.** The Implementation Link imports the Caller Model in place of
+`Lifecycle` and `Race.Terminal`. Its destination is a Target the link derives from
+`nexusProduct`'s rows (`productTarget`: the rows with a class, `scheduled` and `started` as starts,
+`ends:` as the terminal condition, its own identity), because the product machine's own table is
+not admissible as a Target and starts only at `scheduled`; every element is taken from the checked
+Target's vocabulary, the two classes the product machine cannot see are simply outside the link, and
+no Known Gap was needed. The forward simulation is decided: the System's authoritative cases, the
+Target's soundness laws, a `native_decide` membership each; `checkImplementationLink` is
+`.complete`. The cancellation projection runs over the product Target from `started`, confirms the
+canceled and completed events as `complete-canceled` and `complete-succeeded`, treats the
+cancellation request as irrelevant (the product machine has no such row; fn-79), and closes on
+`ends:`. The evidence tests pin the product Target's identity and fingerprint, the six authority
+seams, and the Caller Model's Queries (`asyncCompletion`'s and `syncCompletion`'s witness facts
+against the link's translated facts). Two findings for later tasks: `productTarget` is
+`@[irreducible]` because the elaborator's implicit-lambda check `whnf`s an expected type that is a
+projection of an admitted Target, which evaluates the whole admission (46 s and a raised heartbeat
+budget, against 6 s); and importing the Caller Model makes `property`, `limits` and `machine`
+keywords in the importing module, so the link's constructor `FeaturePropertyLayer.property` is now
+`featureProperty`. Gates: `lake build` green; `lint-model` at the `.1` baseline; no Go changed. Its
+review is a self-review.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
