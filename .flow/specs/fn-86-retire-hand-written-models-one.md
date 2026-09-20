@@ -270,6 +270,12 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   byte-identical and each regenerated file is listed in the task receipt with its reason. The
   exported names stayed, defined as views over the command's declarations, and the commands'
   leading words became non-reserved so the importers keep binding `query`, `property` and `limits`.
+- **The authoring-path rule is a direct-import rule beside the inventory check (.8, 2026-09-20)**:
+  `checkAuthoringPath` reads each module's direct imports under `Temporal.Feature` and
+  `Umpire.Examples`, names `Temporal.Case` and the Implementation Link as exceptions, and is
+  composed into `check`, so the executable, the synthetic suite and the Makefile's controlled
+  violation all reach it through one entry point; `Temporal.Testpilot` stays under the inventory
+  check alone until its two rows are migrated.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.

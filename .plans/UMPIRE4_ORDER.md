@@ -691,6 +691,13 @@ build; `Registry.conventionsFor` picks the conventions by namespace prefix. Gate
 goldens, regression views, inventory, retired vocabulary, Testpilot checks, `lint-model` at the .1
 baseline, `lint-code-fast`, the Go and live regressions.
 
+**Task .8 is done, 2026-09-20.** `lint-model` enforces R7: `Rule.authoringPathIsolation`, a
+direct-import rule over production modules under `Temporal.Feature` and `Umpire.Examples`, with
+`Temporal.Case` and `Temporal.System.Nexus.ImplementationLink` named outside it, rendered as
+`forbidden direct import: <module> -> <owner>`; a planted `Temporal.Feature.Planted -> Umpire.Model`
+violation is asserted byte for byte by the Makefile, the synthetic suite covers the carve-outs, and
+the tree is clean under the rule. Gates: `lint-model` at the .1 baseline.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own

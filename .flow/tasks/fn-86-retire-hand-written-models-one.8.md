@@ -37,14 +37,56 @@ Add the `lint-model` rule (R7): a production module under `Temporal.Feature` or 
 - The rule is enforced under MOD-11; task .9 adds it to MOD-11's list.
 
 ## Acceptance
-- [ ] `lake exe umpire-lint` passes on the tree; a planted direct import from a `Temporal.Feature` production module to `Umpire.Model` exits 1 with the exact diagnostic, asserted by the Makefile; `Temporal.Case` realizations and the Implementation Link do not trigger it
-- [ ] `make lint-model` green (LEAN_NUM_THREADS=1)
+- [x] `lake exe umpire-lint` passes on the tree; a planted direct import from a `Temporal.Feature` production module to `Umpire.Model` exits 1 with the exact diagnostic, asserted by the Makefile; `Temporal.Case` realizations and the Implementation Link do not trigger it
+- [x] `make lint-model` green (LEAN_NUM_THREADS=1)
 
 
 ## Done summary
-TBD
+
+Done 2026-09-20; self-review. Commit e4c3db4.
+
+### The rule
+
+`ModelLint/ImportGraph.lean`: `Rule.authoringPathIsolation`, label `authoring-path-isolation`, a
+direct-import rule. `Policy` gains `authoringPathRoots` (`Temporal.Feature`, `Umpire.Examples`)
+and `authoringPathExceptions` (`Temporal.Case`, `Temporal.System.Nexus.ImplementationLink`; neither
+is under a root today, and naming them keeps a move under a root from silently putting one inside
+the rule). `Policy.isAuthoringPathModule` is production (`isProductionModule`, so the test-consumer
+and test-support predicates exclude what they already exclude), under a root and not an exception;
+`checkAuthoringPath` reports every direct import of an `authoringOwners` module (`Umpire.Model`,
+`Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation`, `Umpire.Case`) by such a
+module, sorted by module then import, and `check` returns those before the reachability results, so
+the lint executable, the synthetic suite and the controlled-violation mode all see the rule through
+the one entry point. `Violation.render` gives the rule its own form,
+`[model-import-graph/authoring-path-isolation] forbidden direct import: <module> -> <owner>`, and
+keeps the path form for every reachability rule. The hand-written inventory reconciliation stays as
+it was (its roots also cover `Temporal.Testpilot`, whose `CaseSupport` and `Conformance` remain
+ledger-listed); under the two authoring-path roots the rule makes a direct owner import a violation
+whether or not the ledger lists it.
+
+### The proof it fails closed
+
+`ModelLint/ImportGraphTests.lean`: `testAuthoringPathIsolation` plants a `Temporal.Feature`
+module importing `Umpire.Model.Table` and an `Umpire.Examples` module importing `Umpire.Query`
+beside `Umpire.Command` (each one violation with its path), checks that a `Tests` module, a
+`Temporal.Case` realization importing `Umpire.Case.Producer`, the Implementation Link importing
+`Umpire.Property.Elab` and a module importing only `Umpire.Command` are outside the rule, pins the
+order of two owner imports from one module and the rendered diagnostics.
+`umpire-lint-tests --controlled-authoring-violation` prints the planted
+`Temporal.Feature.Planted -> Umpire.Model` diagnostic and exits 1; `Makefile` `lint-model` asserts
+that stderr byte for byte beside the existing `shared-independence` assertion. The tree is clean
+under the rule: after .7 no production module under either root imports an owner directly
+(`Temporal/Feature/Workflow/Start/Tests.lean` imports `Umpire.Operation.Parameterized` and is a
+test module).
+
+### Gates
+
+`lake build umpire-lint-tests umpire-lint`; `lake exe umpire-lint-tests` passes; both controlled
+violations exit 1 with their exact diagnostics; `LEAN_NUM_THREADS=1 make lint-model` at the .1
+baseline (the import graph passes; the declaration linters' 40 warnings and the two generated
+`Temporal/API/Proto.lean` findings are the baseline).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e4c3db4
+- Tests: `cd model && lake build umpire-lint-tests umpire-lint && lake exe umpire-lint-tests && lake exe umpire-lint-tests --controlled-authoring-violation`; `LEAN_NUM_THREADS=1 make lint-model`
 - PRs:
