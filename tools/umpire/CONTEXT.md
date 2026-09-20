@@ -54,6 +54,38 @@ _Avoid_: Findings, structural analysis, Observation structure
 One monitor Rule a Case carries whose read paths, comparison and literal are derived from a checked field Property, together with the certificate that every field it reads is one the Property compares and every literal is one the Case's realization assigns. It is a single Rule of a Contract, not the Contract itself, and it lives on the model side of the seam: Testpilot evaluates it like any other Rule and never sees the Property it came from.
 _Avoid_: Authored rule, Contract (that is the set of Rules), monitor Property
 
+**Entity**:
+Something with identity that a machine keeps state for, declared with the entities it refers to and the key recorded data names an instance by. State belongs to the machines that track it, not to the entity.
+_Avoid_: Role (that is the runtime's symbolic resource), object, resource
+
+**Party**:
+Who performs an action, declared by naming it on the action. `system` is the implementation under test, performs no declared action and owns the timers; a set binds every other party.
+_Avoid_: Actor, client, environment (that was a party name, and a binding, and collided with both)
+
+**Action**:
+What a party does to an entity, with typed inputs over finite domains and an optional protobuf schema. Each member of an input domain is a class; a fault is an action of the party that causes it, and a timer is not an action but `system` behavior a machine owns.
+_Avoid_: Interface (rejected as a method-set contract duplicating Action), operation (that is the entity), command, RPC (those are what a realization binds an action to)
+
+**Machine**:
+One entity's state and what each action does to it, written as a step function over a structure of finite fields and enumerated into the checked table. It names its starts, ends, timers, setup parameters and the observation that confirms each Fact.
+_Avoid_: Model (that is the checked behavior as a whole), statemachine, state machine, mechanism machine (MOD-02 gives mechanisms to `Temporal.System`)
+
+**Refinement**:
+A machine that refines another through a state map, checked as a stuttering forward simulation over the two tables, so a Property declared on the abstract machine is read on the refining one's paths.
+_Avoid_: Link, Implementation Link (SEM-08 reserves that for the Feature-to-System connection), abstraction (that is the map's direction, not the relation)
+
+**Set**:
+Queries grouped by purpose -- functional, canary or exploratory -- with every party but `system` bound `driven` (the Case performs its actions) or `observed` (the world does, and the verifier reads which class occurred).
+_Avoid_: Suite, test binding, environment binding (the earlier names of `driven` and `observed`), campaign
+
+**Realization**:
+The platform-owned binding of a Model to a runtime: each action class to an instruction, each observation to where it is recorded, each timer to a duration, each switch to its values. The Producer assembles a Case's Program and Contract from a Query's witness and it.
+_Avoid_: Template, Program template, adapter, driver (that is the runtime side)
+
+**Abstraction Claim**:
+An `examples:` line on an action: the claim that every realized value of a class behaves alike, with the example a functional Case runs and records in its provenance. An exploration tries the other members.
+_Avoid_: Representative (the earlier word for the example), equivalence class (a class is a member of a domain), coverage
+
 ## Testpilot execution
 
 **Driver**:
