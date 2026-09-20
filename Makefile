@@ -108,7 +108,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 _UMPIRE_INVENTORY_DOCUMENT ?= model/INVENTORY.md
 _UMPIRE_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe umpire-inventory
 UMPIRE_REGRESSION_FIXTURES := \
-	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
+	umpire.switch.query.exactAction:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_LEAN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
 	--descriptor $(API_BINPB) \

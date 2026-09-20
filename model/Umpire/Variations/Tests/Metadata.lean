@@ -35,7 +35,7 @@ def choiceReferenceIsExact : Bool :=
 
 def faultReferenceIsExact : Bool :=
   (metadata.faults.find? fun row => row.id == delayFaultId).any fun row =>
-    row.occurrence.id == id "switch.occurrence.flip" &&
+    row.occurrence.id == Umpire.Examples.Switch.flipOccurrenceId &&
       row.occurrence.action == Umpire.Examples.Switch.flipActionId &&
       row.capability.id == Umpire.Examples.Switch.switchCapabilityId
 

@@ -3,11 +3,11 @@
 
 > This is a model generated view only. It does not represent Temporal runtime execution, execution evidence, or conformance.
 
-## `switch.query.exact-action`
+## `umpire.switch.query.exactAction`
 
 - Format: `umpire-experiment/v2`
 - Canonical fixture: `model/Umpire/Examples/testdata/switch-experiment-spec.json`
-- Artifact checksum: `sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a`
+- Artifact checksum: `sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a`
 
 ### Lean sources
 
@@ -15,8 +15,9 @@
 
 ### Properties
 
-- `switch.property.flip-turns-on`
+- `umpire.switch.property.flipTurnsOn`
 
 ### Observation requirements
 
-- `switch.observation.power`
+- `umpire.switch.fact.twoState.off`
+- `umpire.switch.fact.twoState.on`
