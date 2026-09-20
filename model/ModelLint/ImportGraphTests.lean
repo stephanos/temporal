@@ -621,6 +621,47 @@ private def testHandwrittenInventory : IO Unit := do
       Temporal.Feature.Nexus.Planted imports Umpire.Model.Table directly and is missing from \
       HANDWRITTEN_INVENTORY.md"
 
+/-- A production module under `Temporal.Feature` or `Umpire.Examples` that imports an authoring owner
+directly is reported by the direct-import rule, with the import named; a test module, a
+realization under `Temporal.Case`, the Implementation Link, and a module that reaches the owners
+through `Umpire.Command` are not. -/
+private def testAuthoringPathIsolation : IO Unit := do
+  let owners := #[moduleRecord `Umpire.Model.Table, moduleRecord `Umpire.Query,
+    moduleRecord `Umpire.Case.Producer, moduleRecord `Umpire.Property.Elab,
+    moduleRecord `Umpire.Command #[`Umpire.Model.Table, `Umpire.Query]]
+  requireViolation "planted feature module"
+    (owners.push (moduleRecord `Temporal.Feature.Nexus.Planted #[`Umpire.Model.Table]))
+    .authoringPathIsolation #[`Temporal.Feature.Nexus.Planted, `Umpire.Model.Table]
+  requireViolation "planted example module"
+    (owners.push (moduleRecord `Umpire.Examples.Planted #[`Umpire.Command, `Umpire.Query]))
+    .authoringPathIsolation #[`Umpire.Examples.Planted, `Umpire.Query]
+  let clean := owners ++ #[
+    moduleRecord `Temporal.Feature.Nexus.PlantedTests #[`Umpire.Model.Table],
+    moduleRecord `Temporal.Case.Realization.Planted #[`Umpire.Case.Producer],
+    moduleRecord `Temporal.System.Nexus.ImplementationLink #[`Umpire.Property.Elab],
+    moduleRecord `Temporal.Feature.Nexus.Authored #[`Umpire.Command]]
+  requireEqual "tests, realizations, the link and a command-authored module are outside the rule"
+    (check defaultPolicy clean) #[]
+  let planted := moduleRecord `Temporal.Feature.Nexus.Planted #[`Umpire.Model.Table, `Umpire.Query]
+  requireEqual "every direct owner import is reported, in order"
+    ((check defaultPolicy (owners.push planted)).map fun violation =>
+      (violation.source, violation.destination))
+    #[(`Temporal.Feature.Nexus.Planted, `Umpire.Model.Table),
+      (`Temporal.Feature.Nexus.Planted, `Umpire.Query)]
+  requireEqual "the diagnostic names the module and the import"
+    ((check defaultPolicy (owners.push planted)).map Violation.render)
+    #["[model-import-graph/authoring-path-isolation] forbidden direct import: \
+        Temporal.Feature.Nexus.Planted -> Umpire.Model.Table",
+      "[model-import-graph/authoring-path-isolation] forbidden direct import: \
+        Temporal.Feature.Nexus.Planted -> Umpire.Query"]
+
+/-- The planted authoring-path violation the Makefile asserts byte for byte. -/
+private def controlledAuthoringViolations : Array Violation :=
+  check defaultPolicy #[
+    moduleRecord `Temporal.Feature.Planted #[`Umpire.Model],
+    moduleRecord `Umpire.Model
+  ]
+
 private unsafe def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
@@ -641,6 +682,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testExactImplementationLinkExceptions
   testModelInventoryPolicy
   testHandwrittenInventory
+  testAuthoringPathIsolation
   testExternalLeaves
   testStableShortestPath
   testMultipleFindings
@@ -648,15 +690,17 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   IO.println "-- Model import-graph synthetic tests passed."
   pure 0
 
-private def runControlledViolation : IO UInt32 := do
-  for violation in controlledViolations do
+private def runControlledViolation (violations : Array Violation) : IO UInt32 := do
+  for violation in violations do
     IO.eprintln violation.render
-  pure <| exitCode controlledViolations.isEmpty true
+  pure <| exitCode violations.isEmpty true
 
 unsafe def main (args : List String) : IO UInt32 :=
   match args with
   | [] => runSyntheticSuite
-  | ["--controlled-violation"] => runControlledViolation
+  | ["--controlled-violation"] => runControlledViolation controlledViolations
+  | ["--controlled-authoring-violation"] => runControlledViolation controlledAuthoringViolations
   | _ => do
-      IO.eprintln "usage: umpire-lint-tests [--controlled-violation]"
+      IO.eprintln "usage: umpire-lint-tests [--controlled-violation | \
+        --controlled-authoring-violation]"
       pure 2
