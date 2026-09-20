@@ -110,6 +110,16 @@ structure ActionEntry where
   inputFields : Array (String × Name)
   /-- The enum a `results:` line names, if any. -/
   results : Option Name
+  /-- The protobuf messages a `schema:` line names, in the order it names them. -/
+  schema : Array String := #[]
+  deriving Inhabited, Repr, BEq
+
+/-- One field relation a `property … relates:` line declared: the machine it is about and the
+action its step is about. The Case-producing block reads the machine's relations from here. -/
+structure RelationEntry where
+  declName : Name
+  model : Name
+  action : String
   deriving Inhabited, Repr, BEq
 
 /-- One declared machine: the entity it tracks, the state structure it keeps, and the action each of
@@ -212,6 +222,12 @@ initialize domainExtension : SimplePersistentEnvExtension DomainEntry (Array Dom
     addImportedFn := collect
   }
 
+initialize relationExtension : SimplePersistentEnvExtension RelationEntry (Array RelationEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize machineExtension : SimplePersistentEnvExtension MachineEntry (Array MachineEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
@@ -279,6 +295,15 @@ def recordMachine (entry : MachineEntry) : CoreM Unit :=
 
 def recordAction (entry : ActionEntry) : CoreM Unit :=
   modifyEnv fun env => actionExtension.addEntry env entry
+
+def recordRelation (entry : RelationEntry) : CoreM Unit :=
+  modifyEnv fun env => relationExtension.addEntry env entry
+
+def relations (env : Environment) : Array RelationEntry := relationExtension.getState env
+
+/-- The relations declared on one machine, in declaration order. -/
+def relationsOf (env : Environment) (model : Name) : Array RelationEntry :=
+  (relations env).filter (·.model == model)
 
 def recordObservation (entry : ObservationEntry) : CoreM Unit :=
   modifyEnv fun env => observationExtension.addEntry env entry
