@@ -2,6 +2,7 @@ import Umpire.Case.Compiler
 import Umpire.Case.Correlated
 import Umpire.Case.Projection.Coverage
 import Umpire.Query
+import Umpire.Case.Relation
 
 /-!
 # The generic Case Producer
@@ -130,6 +131,9 @@ structure Input (LawStatement : Law → Prop) where
   /-- The abstraction claims the Model's actions make, by the member that realizes each. The Case
   records the ones its path performs. -/
   claims : List ClassClaim := []
+  /-- The field relations the machine's Properties declare. The Case lowers the ones whose action
+  its path performs into monitor rules over the fields they compare. -/
+  relations : List FieldRelation := []
 
 /-! ### Identity
 
@@ -252,6 +256,10 @@ structure ActionBinding where
   instructionId : String
   node : Identity → String → InstructionNode
   key : String := ""
+  /-- The literals the node assigns to fields of the action's own schema, by the dotted path the
+  field is written at (`workflow_type.name`). A field relation over an input field reads the
+  literal here, so the rule the Contract carries compares the value the Program constructs. -/
+  literals : Identity → List (String × Operation.Scalar) := fun _ => []
 
 /-- The Definition ID a binding's class has in this Model: the vocabulary's action member of the
 binding's key, or the id the binding states where the vocabulary has no such member. -/
@@ -664,6 +672,82 @@ def Realization.program
     (source : SourceLocation := { path := "" }) : Except Error Program :=
   assembleProgram source identity resolved realization path none
 
+/-! ### Field relations
+
+A relation whose action the path performs becomes one monitor rule: the declaration it denotes is
+admitted against the Model with the operands' schemas as field bindings, and
+`Umpire.Case.Projection.lower` derives the rule from it, reading the observation the realization
+records history into and the literal the action's binding assigns to the input field. -/
+
+/-- One relation lowered for a Case: the checked Property's definition binding, the monitor
+lowering and the request literals the rule's coverage requires. -/
+structure LoweredRelation where
+  definition : Provenance.DefinitionBinding
+  lowering : Compiler.ContractLowering
+  inputs : List Coverage.InputMapping
+  source : SourceLocation
+
+private def operandReference (vocabulary : Vocabulary) (action : ModelValue)
+    (operand : FieldOperand) : DefinitionId :=
+  match operand.root with
+  | .request => action.definitionId
+  | .event => (vocabulary.namedFact operand.member).definitionId
+  | .outcome => (vocabulary.namedOutcome operand.member).definitionId
+  | .priorState | .resultingState => (vocabulary.namedState operand.member).definitionId
+
+/-- The entrypoint a stated action class is placed on, by its plan's activation. -/
+private def entrypointOf (identity : Identity) (realization : Realization)
+    (stated : DefinitionId) : Option String :=
+  (realization.plan.entrypoints.find? fun plan => plan.items.any fun item =>
+    match item with
+    | .actions classes => classes.contains stated
+    | _ => false).map fun plan => (plan.activate identity #[]).entrypoint_id
+
+private def lowerRelation {LawStatement : Law → Prop}
+    (input : Input LawStatement)
+    (identity : Identity)
+    (realization : Realization)
+    (relation : FieldRelation) : Except Error LoweredRelation := do
+  let rejects := productionError input.source relation.id.value
+  let action := input.vocabulary.namedAction relation.action
+  let leftReference := operandReference input.vocabulary action relation.left
+  let rightReference := match relation.right with
+    | some right => operandReference input.vocabulary action right
+    | none => leftReference
+  let checked ← (relation.check (.ofTarget input.target) input.property.requires leftReference
+    rightReference).mapError rejects
+  let some observation := realization.plan.observations.find?
+      (·.observation_id == realization.historyObservation)
+    | throw (rejects "relation.observation-undeclared")
+  -- The literal the Program assigns to each input operand: the action's binding states it by the
+  -- field's dotted path, and the node it builds is where the rule's coverage looks for it.
+  let requestOperands := ([relation.left] ++ relation.right.toList).filter (·.root == .request)
+  let literals ← requestOperands.mapM fun operand => do
+    let some (stated, binding) := (realization.actions.map fun binding =>
+        (binding.action, { binding with action := binding.resolve (some input.vocabulary) })).find?
+        (·.2.action == action.definitionId)
+      | throw (rejects "relation.action-unbound")
+    let some (_, value) := (binding.literals identity).find? (·.1 == operand.spelling)
+      | throw (rejects "relation.literal-unassigned")
+    let some entrypointId := entrypointOf identity realization stated
+      | throw (rejects "relation.action-unplaced")
+    pure ({ path := operand.path (operandReference input.vocabulary action operand)
+            value
+            entrypointId
+            instructionId := binding.instructionId } : Coverage.InputMapping)
+  let lowered ← Case.Projection.lower checked observation
+    { literals, ruleSuffix := FieldRelation.ruleSuffix }
+  let some lowering := lowered.contractLowering
+    | throw (rejects "relation.no-rule")
+  pure {
+    definition := {
+      definitionId := checked.property.id.value
+      behaviorFingerprint := checked.property.behaviorFingerprint.render
+      kind := .«property» }
+    lowering
+    inputs := lowered.coverage.inputs
+    source := relation.source }
+
 /-! ### Production -/
 
 /-- Lower one checked Model into a Case through a named realization. The checked values are
@@ -736,6 +820,12 @@ def produce {LawStatement : Law → Prop}
       (input.knownGaps.toList ++ unboundSetupGaps realization input.setupParameters ++
         silentGaps)).mapError
     fun _ => rejects input.queryId.value "known-gaps.setup"
+  -- The relations whose action the path performs, each one monitor rule over the fields it
+  -- compares.
+  let performed := input.program.getD occurrences
+  let relations ← (input.relations.filter fun relation =>
+    performed.contains (input.vocabulary.namedAction relation.action).definitionId).mapM
+    (lowerRelation input identity realization)
   compile {
     version := { major := 1 }
     caseId := identity.caseId
@@ -750,8 +840,9 @@ def produce {LawStatement : Law → Prop}
         behaviorFingerprint := input.queryFingerprint, kind := .«query» },
       { definitionId := correlatedProperty.id.value
         behaviorFingerprint := correlatedProperty.behaviorFingerprint.render, kind := .«property» }]
+      ++ relations.map (·.definition)
     sources := [input.target.source, input.scenario.source, input.querySource,
-      input.property.source]
+      input.property.source] ++ relations.map (·.source)
     knownGaps := knownGaps.toProvenanceGaps
     program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
       (input.program.getD occurrences) (some input.vocabulary)
@@ -760,11 +851,13 @@ def produce {LawStatement : Law → Prop}
     abstractionClaims := (input.claims.filter fun claim =>
       (input.program.getD occurrences).contains claim.member).map (·.row)
     contractId := identity.contractId
-    properties := [lowered.contractLowering]
+    properties := [lowered.contractLowering] ++ relations.map (·.lowering)
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
     -- between the checked Property and the Contract rejects here, before any Driver I/O. A caller
     -- may name further clauses it requires; one this Case does not carry rejects the same way.
-    coverage := { clauses := (correlatedRules.map (·.id) ++ required).eraseDups }
+    -- A relation's rule requires the Program to construct the literal it compares against.
+    coverage := { clauses := (correlatedRules.map (·.id) ++ required).eraseDups
+                  inputs := relations.flatMap (·.inputs) }
   }
 
 end Umpire.Case.Producer
