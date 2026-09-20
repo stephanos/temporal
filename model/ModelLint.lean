@@ -20,6 +20,10 @@ implementation of it. -/
 private def replay (transcript : PackageModules.BuildTranscript) : IO Unit :=
   (PackageModules.replayed transcript).write
 
+/-- The committed ledger of modules that build authoring records without the commands, read from
+the model root the lint runs in. -/
+private def handwrittenInventoryPath : System.FilePath := "HANDWRITTEN_INVENTORY.md"
+
 private unsafe def lintImportGraph : IO Bool := do
   match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
   | .error (.discovery message) =>
@@ -39,7 +43,11 @@ private unsafe def lintImportGraph : IO Bool := do
       pure false
   | .ok loaded =>
       replay loaded.transcript
-      let inventoryIssues := reconcile defaultPolicy loaded.sources loaded.modules
+      -- The hand-written ledger is an input of the lint: a module that builds authoring records
+      -- without the commands is listed there with a destination, or reported here.
+      let ledger ← IO.FS.readFile handwrittenInventoryPath
+      let inventoryIssues := reconcile defaultPolicy loaded.sources loaded.modules ++
+        reconcileHandwritten defaultPolicy (inventoriedModules ledger) loaded.modules
       for issue in inventoryIssues do
         IO.eprintln (ImportGraph.InventoryIssue.render issue)
       let violations := check defaultPolicy loaded.modules
