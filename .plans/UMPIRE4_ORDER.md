@@ -659,6 +659,28 @@ by `UmpireTests` until .7. Gates: `lake build` green; `lint-model` at the `.1` b
 changed; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
 self-review.
 
+**Task .6 is done, 2026-09-20.** The worker-outage and system-info Cases are produced from command
+Models. The outage Model (`Temporal/Feature/Workflow/Outage/Model.lean`) declares `workerStop` and
+`workerResume` as actions of the `worker` party beside the caller's `startWorkflow` and
+`awaitCompletion`, its machine keeps the state and records nothing at the faults, and its one path
+is stop, start, resume, wait; the workflow realization binds the faults to fault instructions on
+the Case's task-queue role and the wait to the close-event read, and the Case is
+`workerOutageTests-survived`. The outage-order rule (same id `worker-outage-order`, terminal
+`resumed`, `rule_events` deadline 16) is now derived by the Producer from the assembled Program --
+one bounded-liveness rule per role whose injected faults stop then resume, attached to the Query's
+Property -- in its own commit, pinned by a Producer unit test. The system-info Model
+(`Temporal/Feature/System/Info/Model.lean`) makes the one unary call through a new realization
+whose evidence is the instruction-completed Run Event keyed by its protocol code, and the Case is
+`systemInfoTests-answered`. Two findings: a workflow's started and completed history events carry
+no one key (the started event names the run, the completed event names the task that completed
+it), so the outage Model's evidence is the completed event alone and the three steps before it are
+capability Known Gaps -- the same conclusion the hand-written Case reached by reading only the
+completed event; and the old `server-version-present` rule has no Model form, because a `present`
+relation admits only optional fields and oneof members and `server_version` is always present. The
+hand-written modules, `register_case` and the two fixtures are gone; `lint-model` at the `.1`
+baseline; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
+self-review.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
