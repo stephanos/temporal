@@ -5,8 +5,8 @@ import Umpire.Command
 
 One declaration, read by the Model commands: Umpire's own examples hang their Definition IDs off the
 `umpire` root and treat `Umpire.Examples` as scaffolding rather than semantic family, so the switch
-example's ids read `umpire.switch.<kind>.<owner>.<member>`. It is Temporal's declaration
-(`Temporal.Case.Conventions`) for a tree that names no platform, and the two never meet: a
+example's ids read `umpire.switch.<kind>.<owner>.<member>`. It is the declaration a platform makes
+for its own tree, made here for a tree that names no platform, and the two never meet: a
 declaration reads the conventions whose namespace prefix covers it.
 -/
 
