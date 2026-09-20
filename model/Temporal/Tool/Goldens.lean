@@ -4,13 +4,15 @@ import Umpire.Examples.Switch
 import Temporal.Feature.Nexus.Operations.AsyncStart
 import Temporal.Feature.Nexus.Operations.Cancellation
 import Temporal.Feature.Nexus.Operations.SuccessfulCompletion
+import Temporal.Feature.Nexus.Caller.Model
 import Umpire.Json
 
 /-!
 Writer for the golden families whose only other reader is an `include_str` inside a
-`native_decide` test. A `Temporal.Tool` module may import both the Umpire test fixtures and the
-Nexus operation modules; a module under `Umpire/` may not import `Temporal`, so this is the one
-place from which all four families can be rendered together.
+`native_decide` test, and for the coverage targets an exploratory set enumerates. A `Temporal.Tool`
+module may import both the Umpire test fixtures and the Nexus modules; a module under `Umpire/` may
+not import `Temporal`, so this is the one place from which all five families can be rendered
+together.
 -/
 
 namespace Temporal.Tool.Goldens
@@ -41,7 +43,8 @@ private def compatibilityGoldens : IO (List Golden) := do
 
 private def nexusOperationGoldens : IO (List Golden) := do
   let mut goldens := #[]
-  for (name, query, run) in [
+  -- `query` is a command keyword once a Model is imported, so the binder is spelled out.
+  for (name, selectedQuery, run) in [
     ("AsyncStart", Temporal.Feature.Nexus.Operations.AsyncStart.query,
       Temporal.Feature.Nexus.Operations.AsyncStart.run),
     ("Cancellation", Temporal.Feature.Nexus.Operations.Cancellation.query,
@@ -52,7 +55,7 @@ private def nexusOperationGoldens : IO (List Golden) := do
     let queryPath := s!"Temporal/Feature/Nexus/Fixtures/Operations{name}Query.json"
     let artifactPath := s!"Temporal/Feature/Nexus/Fixtures/Operations{name}Artifact.json"
     goldens := goldens.push
-      { path := queryPath, contents := Json.prettyBytes (canonicalQueryJson query) }
+      { path := queryPath, contents := Json.prettyBytes (canonicalQueryJson selectedQuery) }
     goldens := goldens.push
       { path := artifactPath,
         contents := ← required artifactPath
@@ -86,10 +89,19 @@ private def artifactCodecGoldens : IO (List Golden) := do
       (Umpire.Artifact.Tests.Set.evaluationSet.manifest?.map canonicalArtifactSetManifestBytes) }
 ]
 
+/-- The coverage targets the Caller Model's exploratory set enumerates over the protocol machine:
+what fn-33's exploration sets out to reach, pinned so that a change to the machine or to the
+enumeration is a change to a checked-in file. -/
+private def callerCoverageGoldens : List Golden := [
+  { path := "Temporal/Feature/Nexus/Caller/Fixtures/CallerExploratoryCoverage.json",
+    contents := CanonicalJson.prettyBytes
+      (Umpire.Command.coverageJson Temporal.Feature.Nexus.Caller.nexusCallerExploration) }
+]
+
 /-- Every golden this writer owns, in a stable order. -/
 def goldens : IO (List Golden) := do
   pure ((← compatibilityGoldens) ++ (← nexusOperationGoldens) ++ switchExampleGoldens ++
-    (← artifactCodecGoldens))
+    (← artifactCodecGoldens) ++ callerCoverageGoldens)
 
 /-- Render every golden under `outputRoot`, creating the directories it needs. -/
 def write (outputRoot : System.FilePath) : IO Unit := do

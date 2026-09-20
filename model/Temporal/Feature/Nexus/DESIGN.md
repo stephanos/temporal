@@ -686,6 +686,21 @@ handler error then success, the two timeouts) are `.11`'s; the canary set of sec
 > Driver keeps an activation open across a retryable reply and answers the retry with the
 > entrypoint's next reply instruction.
 
+> Amended during fn-85 `.12`, 2026-09-19. The canary and exploratory sets of section 2.6 are
+> built. A canary set is admitted through the same `case … realizes` block as a functional set:
+> each Query's Case is produced under the realization, registered nowhere, and read for a
+> white-box Known Gap -- the `capability` and `interpretation` kinds, a step of the path no
+> observation confirms -- which rejects naming the Query and the gap; an `input` gap is a
+> parameter the deployment binds and keeps no canary out. `nexusCallerCanary` admits Queries 1
+> and 2 with `handler: observed`; a canary over the retry Query rejects on
+> `backoff.unobserved`. An exploratory set names the machine it covers (`machine:`), its goals
+> (`cover:`) and a `limits` budget (`budget:`), and its `targets` are enumerated from the declared
+> Model: the rows an exploration within the budget's steps of a start can take, in table order,
+> the result values those rows reach and the claims their actions make, cut at the search count;
+> `nexusCallerExploration` over `nexusProtocol` under `four` lists 885 rows of 1152, two results
+> and two class members, pinned by `Caller/Fixtures/CallerExploratoryCoverage.json`. Running
+> either stays with fn-70, fn-29 and fn-33.
+
 The realization, in sketch syntax (`Temporal.Case.Realization.asyncNexus` is the Lean value). A
 worker instruction carries the Temporal API message the action's `schema:` names, so a class example
 fills that message and the Driver maps it to the SDK call that produces it. Each binding names its

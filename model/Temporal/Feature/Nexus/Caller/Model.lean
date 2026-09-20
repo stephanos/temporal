@@ -651,12 +651,48 @@ set nexusCallerTests
   queries: [syncCompletion, asyncCompletion, asyncFailure, handlerError, retry,
     scheduleToStartTimeout, startToCloseTimeout]
 
+/-! ### The canary set
+
+A canary runs a Query against a deployment that performs the handler's part itself: the handler is
+`observed`, so the verifier reads which reply occurred and checks the machine allows it. What
+admits a canary is that a deployment can close every gap its Case carries, and every step of the
+sync and async completion paths records evidence; a path with a silent step -- the backoff, the
+worker stop -- is a capability gap no deployment closes, so a canary naming it is rejected. -/
+
+set nexusCallerCanary
+  purpose: canary
+  bind:
+    caller: driven
+    handler: observed
+    network: observed
+    worker: driven
+  queries: [syncCompletion, asyncCompletion]
+
+/-! ### The exploratory set
+
+An exploration covers the protocol machine rather than listing Queries. Its targets are the rows
+an exploration within the budget's steps of a start can take, the results those rows reach and the
+members of the classes their actions claim, each in the machine's catalog order and cut at the
+budget's search count, so the enumeration is the same on every reading;
+`Fixtures/CallerExploratoryCoverage.json` pins it. -/
+
+set nexusCallerExploration
+  purpose: exploratory
+  bind:
+    caller: driven
+    handler: driven
+    network: observed
+    worker: driven
+  machine: nexusProtocol
+  cover: rows | results | classMembers
+  budget: four
+
 -- authoring: case
 
 /-! ### The Cases
 
-One realization serves every Query: the Producer places each class the path performs where the
-realization binds it. The evidence each Case lifts is read off the machine's own `evidence:` lines
+One realization serves every Query of the functional set: the Producer places each class the path
+performs where the realization binds it. The evidence each Case lifts is read off the machine's own `evidence:` lines
 along the witness, so nothing is written twice; a step that records nothing -- the backoff timer,
 the worker stop -- is confirmed by the evidence of the step after it, and the Case carries a Known
 Gap naming it. Each Case is `temporal.case.nexusCallerTests.<query>` and the fixture
@@ -664,6 +700,12 @@ Gap naming it. Each Case is `temporal.case.nexusCallerTests.<query>` and the fix
 
 case nexusCallerCases
   realizes nexusCallerTests
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+
+/- The canary's Cases are produced under the same realization and registered nowhere: the block
+reads each for a white-box gap and admits the set when there is none. -/
+case nexusCallerCanaryCases
+  realizes nexusCallerCanary
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
 -- authoring: end
