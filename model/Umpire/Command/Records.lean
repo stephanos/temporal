@@ -174,9 +174,24 @@ def CoverageGoal.name : CoverageGoal → String
   | .results => "results"
   | .classMembers => "classMembers"
 
+/-- One thing an exploratory set sets out to reach, as an exploration reads it: a row of the
+machine's table, a result value, or a member of a claimed class. Each carries the Definition IDs a
+Run's evidence is compared against, so an exploration needs no second reading of the Model. -/
+inductive CoverageTarget where
+  | row (key : String) (state action : DefinitionId) (results : List DefinitionId)
+  | result (outcome : DefinitionId)
+  | classMember (member : DefinitionId) (action field className exampleValue : String)
+  deriving BEq, Repr
+
+def CoverageTarget.kind : CoverageTarget → String
+  | .row .. => "row"
+  | .result .. => "result"
+  | .classMember .. => "classMember"
+
 /-- One set of Queries grouped by purpose, with every party except `system` bound. `queries` are
-the Queries a functional or canary set runs, `cover` and `budget` an exploratory set's goal, and
-`repeat` the switch a functional set's Cases run once per value of. -/
+the Queries a functional or canary set runs, `machine`, `cover` and `budget` an exploratory set's
+machine, goal and limits, `targets` what that set enumerates under them, and `repeat` the switch a
+functional set's Cases run once per value of. -/
 structure SetDeclaration where
   id : DefinitionId
   name : String
@@ -184,8 +199,10 @@ structure SetDeclaration where
   bindings : List (String × PartyBinding) := []
   «repeat» : Option String := none
   queries : List DefinitionId := []
+  machine : Option DefinitionId := none
   cover : List CoverageGoal := []
   budget : Option String := none
+  targets : List CoverageTarget := []
   source : SourceLocation
   deriving BEq, Repr
 
