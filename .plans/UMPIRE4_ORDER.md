@@ -40,6 +40,18 @@ dependency; .15 is done, so those notes are satisfied.
 AUT-07a (.10) and the AUT-09 amendment .8 would have drafted are the GOV-02 items fn-83 leaves; the
 amendment moves to fn-85's rule drafts.
 
+**Closed 2026-09-20 with fn-85 .13.** The six blocked tasks are closed as superseded, each record
+naming where its concern went: .4 to fn-85 .7 (the generator reads `umpire-case --list`, the
+artifact test is table-driven, `bindCase`/`runCase` derive the binding, the live helpers are
+shared); .5's fault grammar to fn-85's actions (a fault is an action of a declared party, realized
+by an `ActionBinding` that injects it) and the outage Model with its outage-order rule to fn-86 R4;
+.6 to fn-85 .10's Query 1 with its `COVERAGE.md`; .8 to fn-85 .13 (`model/AUTHORING.md`, the drift
+test, the concept entries and rule drafts); .16 to fn-85 .7's derived identities; .17 to the
+realization's keyed bindings and production-time evidence rejections (fn-85 .10, .11). The AUT-09
+amendment is drafted in fn-85 .13. The spec's own `spec close`, like fn-85's and fn-87's, needs
+runtime task state a fresh clone does not carry, so the records carry the closure and Flow's status
+follows in a clone that has it.
+
 ### 2. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
 
 [fn-84 — Deepen five shallow module clusters in Umpire and Testpilot](../.flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md),
@@ -209,7 +221,9 @@ Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**In delivery. Task .1 is done, 2026-09-14, and the early proof point holds.** The Program the
+**Done 2026-09-20: all sixteen tasks landed and the receipts below record each.** The spec's
+`spec close` waits on a clone with runtime task state, as fn-87's does. **Task .1 is done,
+2026-09-14, and the early proof point holds.** The Program the
 Producer assembles from the path `[schedule, handlerReply, complete]` is byte-identical to the one the
 `nexusOperation` template writes by hand, so the party-to-entrypoint design carries what the template
 stated; the spec's stop condition did not fire. What landed: the protocol-migration oracle retired;
@@ -441,6 +455,23 @@ reach, the claims their actions make, cut at the search count) and `nexusCallerE
 `umpire-check-goldens`. `make umpire-check-regression` exit 0 with **29 passing live
 identities** (29 before). Its review is a self-review.
 
+**Task .13 is done, 2026-09-20, and fn-85 is complete.** `model/AUTHORING.md` walks the Caller
+Model from an empty file to a green live test in thirteen steps, quoting every marked region of
+`Caller/Model.lean` (a `header` marker joined the twelve .10 placed); `tools/umpire/authoring`
+checks each quoted block against its region byte for byte and fails on a block naming a missing
+marker, a marker the Model carries twice, a drifted region, an unquoted region and an unfenced or
+repeated block, each pinned by a planted test; the file is in the vocabulary gate's required
+files. `UMPIRE4_SPEC.md` gains Entity, Party, Refinement, Set, Realization and Abstraction Claim
+and amends Action, Observation and Machine, with the AUT-07a (`set`, `register_switch`, the
+platform's Case-producing block), MOD-02 (the realization in `Temporal.Case`) and AUT-09 (what
+the commands derive) amendments drafted under GOV-02; the MOD-15 name gate is green. DESIGN.md
+points at the spec and the Model and its needs table records what each need received; the two
+architecture documents, the model README, the testcore README and `tools/umpire/CONTEXT.md`
+(eight glossary entries with their `_Avoid_` lists) follow. fn-83's six blocked tasks are closed
+as superseded above. Gates: `make umpire-check-regression` exit 0 with **29 passing
+live identities**; `lint-model` the `.11` baseline: two errors in generated `Temporal/API/Proto.lean` and 41 warnings (generated binders, deprecations, the two `enum` binders in `Caller/Model.lean`), none new; `lint-code` 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records. Its review is a
+self-review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
@@ -550,6 +581,14 @@ These remain open in Flow and are outside the first-canary critical path.
 | [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; .2 and .3 start after fn-86 R6, because their root list pins `TemporalExperimentalTests`, which fn-86 deletes; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
 
 ## Gate baselines
+
+Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-85 closeout:
+
+| Gate | This session |
+| ---- | ------------ |
+| `make umpire-check-regression` | exit 0 — 614 Lean jobs, the offline checks, **29 passing live identities** (nine at the fn-87 closeout: the Caller Model's seven Queries under two switch values replaced the async-Nexus Case) |
+| `make lint-model` | the `.11` baseline: two errors in generated `Temporal/API/Proto.lean` and 41 warnings (generated binders, deprecations, the two `enum` binders in `Caller/Model.lean`), none new |
+| `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records |
 
 Re-measured 2026-09-13 on a four-core, 16 GB cloud session at the fn-87 closeout, with the
 pre-installed toolchain (`/opt/temporal-toolchain`) on `PATH`:
