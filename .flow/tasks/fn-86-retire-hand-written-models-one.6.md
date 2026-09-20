@@ -32,6 +32,17 @@ Produce the worker-outage and get-system-info Cases from command Models (R4): a 
   name and `fixture_table_test.go` picks the new fixtures up without a table entry. `register_case`
   is used only by `model/Temporal/Tool/Testpilot.lean:20-27` (four lines), so it goes with the last
   of them.
+- Adjusted 2026-09-20 by fn-86 .1 after fn-85 closed. **Faults are keyed action bindings** (fn-85
+  .11): `Hook`, `FaultLine`, `taskQueueRole` and `faultRuleId` are gone from `Realization`; the
+  Caller Model's `workerStop` is an `ActionBinding` whose node is `Program.injectFault` on the
+  handler task-queue role, and a silent step is folded into the next confirmed rule with a
+  capability Known Gap, so the outage-order rule has to be derived by the Producer from two fault
+  actions of one role on the path (nothing carries `faultRuleId` any more). `Template/Workflow.lean`
+  is gone; the workflow realization's plan is written as `Realization.plan` entrypoint items, as
+  `Realization/Nexus.lean` does. The `case` block takes a `Realization` value in its `as` clause.
+  `register_case` has four lines in `model/Temporal/Tool/Testpilot.lean`; `Registry.register_case`
+  goes with the last. The `HANDWRITTEN_INVENTORY.md` rows for `WorkerOutage`, `GetSystemInfo` and
+  `CaseSupport` list every reader.
 
 ### Investigation targets
 **Required:**

@@ -30,6 +30,16 @@ Re-author the typed Nexus example (two workflow-owned Nexus operations correlate
   `internal/execution/dataflow.go` (opcode dispatch and slot typing) besides the worker package, and
   the two README lines are `common/testing/testpilot/internal/execution/README.md:164-170`, not
   `:119,144-146`.
+- Adjusted 2026-09-20 by fn-86 .1 after fn-85 closed. `Temporal.Case.Realization.Nexus` is the
+  realization to extend (bindings keyed by classed member, timer bindings, the `await-scheduled`
+  read and the handler task-queue role, fn-85 .10 to .12); `NexusHandlerReply` and the schedule
+  command's attributes are the typed instructions (fn-85 .8), and the four shapes this task removes
+  are still emitted only by `Success/TypedNexus.lean` (`Testpilot.Authoring`'s
+  `Program.startNexusOperation`, `Program.respondNexus`, `Program.completeNexusOperation`).
+  `register_case` has four lines in `model/Temporal/Tool/Testpilot.lean`; `typed-nexus-case.json`
+  is read by name in `tests/testcore/testpilot/typed_nexus_{fixture,artifact_test}.go`,
+  `derive_profile_test.go` and `tools/umpire/cmd/umpire-run/run_test.go`. The `HANDWRITTEN_INVENTORY.md`
+  row lists every reader.
 
 ### Investigation targets
 **Required:**
