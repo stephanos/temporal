@@ -1,8 +1,9 @@
 # Temporal Testpilot functional fixtures
 
 This package owns the retained generated functional fixtures in `testdata`, plus their fixture
-admission and prepared-Case reuse tests. The fixtures remain canonical ProtoJSON generated from
-`Temporal.Testpilot`, stored indented for review -- two spaces and one trailing newline -- so a Case
+admission and prepared-Case reuse tests. Every fixture is canonical ProtoJSON produced from a Model
+file's `case … realizes` block under `model/Temporal/Feature` and rendered by `umpire-case`; none is
+written by hand. It is stored indented for review -- two spaces and one trailing newline -- so a Case
 change reads as a line diff; `umpire-gen-case-runtime-conformance` continues to write its functional
 output to this package and is the only writer of that form.
 

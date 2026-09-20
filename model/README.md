@@ -102,14 +102,18 @@ execute a Case or determine a Verdict.
 
 ### Ordinary Nexus authoring
 
-`Temporal.Feature.Nexus` is the compiled established walkthrough. Read
-`Lifecycle.Semantics`, `Lifecycle.Model`, the three `Operations` modules, and `Observation` in that
-order. The finite `Lifecycle.finiteMachine` is the ordinary Model seam: authors still provide the
-ordered domains, encoders, enumerators, closure proofs, and Action-executability proof, while
-`modelSpec` and `draftModel` remove repeated record and planning transport. Authors who
-need an independently specified authoritative relation can use the expert `Machine` path.
+`Temporal.Feature.Nexus.Caller` is the walkthrough, and [AUTHORING.md](AUTHORING.md) quotes it
+region by region. A feature Model has one authoring path: the commands. `entity`, `enum` and
+`action` declare its vocabulary, `machine` enumerates its step functions into the finite table,
+`property`, `scenario`, `limits` and `query` say what it promises and what a Query asks, and `set`
+with the platform's `case … realizes` block produces its Cases. A production module under
+`Temporal.Feature` or `Umpire.Examples` imports `Umpire.Command` and reaches Umpire's authoring
+owners only through it; `make lint-model` rejects a direct import (`authoring-path-isolation`,
+MOD-16), and building a `Machine` by hand is no path for a feature Model (AUT-08 as fn-86 amends
+it). The raw records below are what a command elaborates to, and what the Implementation Link and
+Umpire's own tests build directly because they exercise those records.
 
-Property, Scenario, Query, and Evidence inputs remain ordinary values. Call each language's
+Beneath the commands, Property, Scenario, Query, and Evidence inputs are ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error. Property, Scenario, and Query `checked`
 operations take checker-success evidence that defaults to `native_decide`, so a closed valid
 declaration names no proof and an invalid one fails where it is written; Evidence's `checked` still
@@ -149,25 +153,21 @@ Models, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 ### Typed operation authoring
 
-An author who needs to name a concrete API operation and relate its fields references the generated
-declaration rather than a method string. `Temporal.API.bindUnary` admits a candidate schema only
-against the generator's own selection for that method, so a wrong-method pairing, a forged request
-or response closure, and an unsupported streaming shape each reject with their own diagnostic.
-`Umpire.Operation.ActionTemplate` carries the admitted binding, and `ParameterDomain.check` admits
-an explicit list of exact request values as parameterized Action instances. Selecting an Action
-never selects its outcome: the authoritative Model still owns which result each instance admits.
+An author who needs to name a concrete API operation and relate its fields writes it on the
+commands. An `action`'s `schema:` line names the generated request declaration, admitted only
+against the generator's own selection for that method (`Temporal.API.bindUnary`), so a
+wrong-method pairing, a forged request or response closure, and an unsupported streaming shape each
+reject with their own diagnostic while the file compiles. A `property`'s `relates:` line compares
+the selected action's input, the modeled result and a recorded event's fields through their
+schemas. Selecting an Action never selects its outcome: the authoritative Model still owns which
+result each instance admits.
 
-Two claims are declared separately and reported separately.
-
-- The **finite domain** is exactly the authored list, under a `ParameterCoverage` of `.sampled`
-  (representative cases) or `.fixed` (one exact value). An `.abstracted` claim rejects, because no
-  transition and Property preservation evidence exists for it. Ten samples are still ten samples;
-  enlarging the list never turns a sample into an exhaustive claim.
-- The **runtime admission scope** is a separate `RuntimeScope`. `.samplesOnly` admits nothing the
-  finite domain did not list; `.schema bounds` admits any value inside its own declared depth, byte
-  and collection bounds. A value past those bounds is reported `outOfScope`, which is a different
-  answer from the checker exhausting its own resource ceiling — that one is owned by the value
-  layer. Neither answer enlarges the finite claim.
+What an action claims about its inputs is declared on the action and reported per Case. An `input:`
+field ranges over a finite domain the author declared, and an `examples:` line is the abstraction
+claim that every realized value of a class behaves alike, with the example the functional Case
+runs; a Case records the claims of the classes its path performs, an exploration tries the other
+members, and a divergent member is a counterexample that splits the class. A single-member class
+carries no claim, and no list of examples turns a sample into an exhaustive claim.
 
 Field operands read the exact schema-defined value, not a summary of it. Supported forms are nested
 message access, implicit- and explicit-presence reads, oneof selection, enum values, repeated index
@@ -180,9 +180,9 @@ discoverable, a recursive value past its declared depth is incomplete rather tha
 an integer outside its declared range rejects before protobuf lowering, and a closed enum value the
 descriptor does not name rejects while an open enum retains its unknown number.
 
-A Property relates those operands. Same-step clauses compare the selected Action's own immutable
-request against the modeled result and resulting state; cross-step clauses bind a named earlier
-occurrence under an explicit operation key and compare the captured value. Unmentioned fields are
+A `relates:` line relates those operands. Same-step relations compare the selected Action's own
+immutable request against the modeled result and resulting state; a relation over an earlier
+step's event binds that occurrence under the operation key and compares the captured value. Unmentioned fields are
 unconstrained: a partial conjunction is not an exhaustive field contract. Missing evidence never
 satisfies a comparison — it is rejected or left unresolved.
 

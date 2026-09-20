@@ -201,6 +201,8 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.ImplementationLink`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-09, and
   MOD-10 across the complete first-party Lean import graph, and MOD-05 once its modules exist.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
+  MOD-16, as a direct-import rule beside the reachability rules.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
@@ -225,6 +227,14 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   delivering it is open. A Go test under `tools/umpire` MUST enforce this against an index built by
   scanning the model tree. Whether each term is defined once and used consistently remains a review
   judgment; the test covers only the mechanical half.
+- **MOD-16 — Authoring-path isolation.** *(drafted by fn-86; awaiting GOV-02 approval.)* A
+  production module under `Temporal.Feature` or `Umpire.Examples` MUST NOT directly import
+  `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` or
+  `Umpire.Case`; it reaches them only through `Umpire.Command`. `Temporal.Case` and
+  `Temporal.System.Nexus.ImplementationLink` are outside the rule, and a test module is not a
+  production module. It is a direct-import rule, because every command-authored module reaches the
+  owners transitively; `make lint-model` enforces it as `authoring-path-isolation`, whose
+  diagnostic names the module and the import.
 
 ### Module design
 
@@ -373,15 +383,31 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   declares `case … realizes <set> as <realization>`), which names a set and a realization and
   defines no behavior, so `Umpire.Command` names no feature and the platform's block is where a
   feature is named.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* The command surface is the only
+  authoring path for a feature Model. A production module under `Temporal.Feature` or
+  `Umpire.Examples` declares its entities, domains, actions, machines, Properties, Scenarios,
+  Limits, Queries and sets through the commands and reaches `Umpire.Model`, `Umpire.Property`,
+  `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` and `Umpire.Case` only through
+  `Umpire.Command`: a concrete API operation is an `action`'s `schema:` line, a field relation is
+  a `property`'s `relates:` line, and a Case is the platform's `case … realizes` block over a
+  realization. MOD-16 enforces the import boundary.
 - **AUT-08 — Finite Model adapter.** Authors SHOULD use the proof-carrying
   `Umpire.FiniteMachine` adapter when a complete finite Model has enumerators that define its
   authoritative behavior. The adapter derives membership relations, completeness support, and
   exact finite Search. Authors MUST still provide ordered semantic domains, encoders, enumerators,
   evidence that enumerated values stay within those domains, and evidence that every enumerated
-  Action is executable. As an expert alternative, authors MAY construct `Umpire.Machine`
-  directly for Models whose authority is specified independently. Both paths MUST produce an
-  `Umpire.DraftModel` and pass it to `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT
-  introduce another Property, Query, Scenario, or macro language.
+  Action is executable. The path MUST produce an `Umpire.DraftModel` and pass it to
+  `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT introduce another Property, Query, Scenario,
+  or macro language.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* The expert alternative this rule offered
+  -- constructing `Umpire.Machine` directly for a Model whose authority is specified independently --
+  is withdrawn for feature Models. A Model under `Temporal.Feature` or `Umpire.Examples` is declared
+  through the commands (AUT-07a): `machine` enumerates the author's step functions into the finite
+  table (`Umpire.FiniteTable`) whose kernel is this adapter's, and discharges the adapter's
+  obligations from the table. Direct `Umpire.Machine` and `Umpire.DraftModel` construction remains
+  what `Temporal.System.Nexus.ImplementationLink` and Umpire's own tests do, because they exercise
+  those records; it is not an authoring path for a feature Model, and MOD-16 enforces that at the
+  import.
 - **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
   AUT-08's "author-provided" includes a domain a command macro derives from the author's
   own declarations: the ordered domains, encoders and enumerators an authoring macro elaborates from

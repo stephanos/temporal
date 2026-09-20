@@ -17,7 +17,7 @@ Focused public imports are available by responsibility:
 | Import | Public responsibility |
 | --- | --- |
 | `Umpire.Core` | Stable definitions, traces, capabilities, laws, and finite kernels. |
-| `Umpire.Model` | Finite-machine and expert Model authoring plus checked composition. |
+| `Umpire.Model` | Finite-machine Model records and checked composition: what the `machine` command elaborates to, built directly only by the Implementation Link and by tests. |
 | `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | The authored Property language: fields, clauses, and their ordinary-Lean constructors. |
 | `Umpire.Property.Check` | Property admission, canonicalization, and the checked trace view. |
@@ -105,9 +105,12 @@ DraftModel ── checkModel ──▶ CheckedModel
                                                     Planning / Space / Exploration / Promotion
 ```
 
-The finite-machine adapter is the ordinary route for fully enumerable Models. Direct
-`Machine` construction remains the expert route when authoritative propositions are
-specified independently. Both routes converge before Property, Scenario, or Query checking.
+A feature Model reaches this diagram through the commands: `machine` enumerates the author's step
+functions into a `FiniteTable` whose kernel is the finite-machine adapter's, and `query` admits the
+checked Model through `Search.admit`. Direct `Machine` construction is not an authoring path for a
+feature Model (AUT-08 as fn-86 amends it; MOD-16 rejects the import); it remains what the
+Implementation Link and Umpire's own tests do, and it converges with the adapter before Property,
+Scenario, or Query checking.
 
 `FiniteMachine.modelSpec` and `FiniteMachine.draftModel` assemble the ordinary finite
 Model without deriving its evidence. The author still owns every ordered domain, encoder,
@@ -245,11 +248,14 @@ operational and cleanup failures.
 
 ## Case production
 
-Each Lean Producer owns its checked semantic lowering into generated protocol values through
-`Testpilot.Authoring`. The Contract rules come from the checked Properties rather than from the
-Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
+`Umpire.Case.Producer` is the Producer. The platform's `case … realizes <set> as <realization>`
+block hands it each checked Query of a set (`Umpire.Command.produceCase`) and a realization, and it
+assembles the Case's Program from the Query's witness and lowers its checked semantics into generated
+protocol values through `Testpilot.Authoring`. The Contract rules come from the checked Properties
+rather than from the Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
 `Umpire.Case.Projection.lower` derives the monitor rule of a field Property, and each returns its
-correspondence certificate beside the lowering. Umpire-backed Producers pass those values to
+correspondence certificate beside the lowering, and the Producer derives the outage-order rule
+from the faults a Program injects. It passes those values to
 `Umpire.Case.Compiler`, which admits both lowerings side by side and
 validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
 Gaps in order, renames the Program and Contract to Case-local names and model value spellings
