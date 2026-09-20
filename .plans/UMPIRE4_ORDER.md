@@ -567,6 +567,22 @@ findings, applied:
 - `.1` re-reads the tree as fn-85 left it and corrects the file lists of `.2`, `.3` and `.6` first;
   every fn-86 task was written against the pre-fn-85 tree.
 
+**Task .1 is done, 2026-09-20.** `model/HANDWRITTEN_INVENTORY.md` freezes the tree before anything
+moves: the eleven production modules under `Temporal.Feature`, `Temporal.Testpilot` and
+`Umpire.Examples` that import an authoring owner directly (the two typed examples, the two
+Model-less Cases, `CaseSupport`, `Lifecycle.Model`, the four `Operations` modules and
+`Race.Authoring`), the modules the spec's table names beside them (`Observation`, `Experimental`,
+the `Success` specimen, `Umpire.Examples.Switch`), what is kept with the reason (the Implementation
+Link with its two Feature imports, the realization, `Conformance`) and every tool, target,
+compatibility family and document that reads them, each with a destination. `lint-model` reads
+the ledger and reports `hand-written module not inventoried` for a production module under those
+roots that imports an owner and is missing from it, pinned by a planted module in
+`ImportGraphTests`; the typed-unary Contract baseline is a scaffold under `tests/testcore/testpilot/baseline/`
+(beside `testdata/`, which the conformance gate keeps generator-owned) that `.2` compares against
+and deletes. `.2`, `.3` and `.6` were re-read against the fn-85 tree.
+Gates: `lint-model` at the fn-85 baseline: the import-graph and Batteries steps pass with the ledger read, and the `lake lint` step reports the same two generated `Proto.lean` errors and 41 pre-existing warnings, none new; `make umpire-check-regression` exit 0 with 29 passing live
+identities. Its review is a self-review.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
