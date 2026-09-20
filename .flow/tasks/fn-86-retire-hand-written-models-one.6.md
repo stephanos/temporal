@@ -59,16 +59,125 @@ Produce the worker-outage and get-system-info Cases from command Models (R4): a 
 - fn-85 Query 6 already drives `workerStop`; reuse its fault binding shape and the handler task-queue role lesson (name the role explicitly).
 
 ## Acceptance
-- [ ] both Cases are produced from command Models through the workflow and RPC realizations; the hand-written modules and their `register_case` lines are gone; `register_case` itself is gone if nothing uses it
-- [ ] the outage-order rule is Producer-derived for fault-bearing paths, pinned by a Producer unit test and the artifact test's rule ID, terminal state and `rule_events` deadline
-- [ ] both live tests pass with the same Verdict shapes; fixture diffs listed in the receipt; the inventory rows are marked migrated
-- [ ] `make umpire-check-regression` exit 0; `make lint-model` green
+- [x] both Cases are produced from command Models through the workflow and RPC realizations; the hand-written modules and their `register_case` lines are gone; `register_case` itself is gone if nothing uses it
+- [x] the outage-order rule is Producer-derived for fault-bearing paths, pinned by a Producer unit test and the artifact test's rule ID, terminal state and `rule_events` deadline
+- [x] both live tests pass with the same Verdict shapes; fixture diffs listed in the receipt; the inventory rows are marked migrated
+- [x] `make umpire-check-regression` exit 0; `make lint-model` green
 
 
 ## Done summary
-TBD
+
+Done 2026-09-20; self-review. Commits 8183773 (the outage-order rule) and e18b520 (the migration).
+
+### The outage-order rule (first commit)
+
+`Umpire.Case.Producer.outageOrderRules` derives, from the assembled Program alone, one
+bounded-liveness rule per role whose injected faults stop the worker and later resume it: the
+rule `worker-outage-order` (a second role's carries its ordinal), from `awaiting-stop` through
+`stopped` to `resumed`, its two transitions reading the recorded fault's `role_id` and `kind` off
+the `FAULT_INJECTED` Run Event payload, expired by the `rule_events` deadline the realization
+states (`Realization.outageDeadline`, default 16: what lies between the stop and its resume on the
+traced path, with slack, and never elapsed time). A stop with no resume, or a resume before any
+stop, derives no rule: the Contract answers it at Run time rather than the Producer refusing the
+path. `produce` attaches the rules to the correlated Property's definition beside the lowered
+relations. `injectedFaults` and `faultKindName` (the exhaustive name table the hand-written Case
+carried) live beside it. `Umpire/Case/Tests/Producer.lean` pins the rule's id, states,
+transitions, filters and deadline, the two no-rule shapes, and the ordinal on a second role.
+
+### The Models (second commit)
+
+**Worker outage.** `Temporal/Feature/Workflow/Outage/Model.lean`: entity `workflow` (keyed by the
+workflow task that completed it), actions `startWorkflow` (caller, creates, the start request's
+schema), `workerStop` and `workerResume` (worker, naming no entity) and `awaitCompletion` (caller,
+on the workflow); machine `workflowOutage` over `pending`, `started`, `completed`, where the two
+faults keep the state and record nothing, the start records nothing either, and the wait records
+`workflowExecutionCompleted`; `property completes` on `awaitCompletion`; `scenario outage` is
+exactly stop, start, resume, wait; `limits four`; `query survived`; `set workerOutageTests`
+(caller and worker `driven`); `case workerOutageCases … as Temporal.Case.Realization.workflowOutage`.
+The Case is `temporal.case.workerOutageTests.survived`, fixture `workerOutageTests-survived-case.json`.
+
+Why the start is silent: every history event of one operation must carry the same key, the
+started event names the workflow by a run id (`first_execution_run_id`) that no later event
+carries, and the completed event names it by the workflow task that completed it -- the one task
+that can only have been dispatched once the worker was back, which is what the outage being
+survived leaves behind. So the completed event is the one evidence kind, keyed by
+`workflow_task_completed_event_id`, and it confirms the four steps at once (`projection
+[("evidence.workflowExecutionCompleted", 4)]`); the three steps before it are capability Known
+Gaps (`…startWorkflow.unobserved`, `…workerResume.unobserved`, `…workerStop.unobserved`). The
+faults are not correlated evidence for the same reason: a `FAULT_INJECTED` payload names a role,
+not the workflow, so keying it would split the operation. The outage-order rule reads them
+instead.
+
+**System info.** `Temporal/Feature/System/Info/Model.lean`: entity `server` (named by itself),
+action `getSystemInfo` (caller, on the server, the `GetSystemInfoRequest` schema; the request's
+message is admitted by a new `GetSystemInfo` root in `Temporal.Case.Schema`); machine `systemInfo`
+over `unqueried`, `queried`, recording `systemInfoReturned`, whose evidence is the
+`instructionCompleted` Run Event; `property infoReturned`; `scenario once`; `limits one`; `query
+answered`; `set systemInfoTests`; `case systemInfoCases … as Temporal.Case.Realization.unaryRpc`.
+The Case is `temporal.case.systemInfoTests.answered`, fixture `systemInfoTests-answered-case.json`.
+A unary call leaves no history, so what confirms the step is the completion the runtime records
+for the instruction that made it, keyed by its `protocol_code` (a Run makes the one call, so the
+one call is the operation). The old `server-version-present` safety rule has no Model form: a
+`present` relation admits only an optional field or a oneof member, and `server_version` is a
+proto3 string, always present; the realization still reads it into the `server-version`
+observation, and the Contract is the correlated capability alone.
+
+### The realizations
+
+`Temporal.Case.Realization.Workflow.plan` now takes the controller's items and the finish literal;
+`workflowStart` is unchanged in what it emits (its fixture is byte-identical). `workflowOutage`
+orders the controller stop, start, resume, wait, history -- whatever order the path performs the
+classes in -- with `workerStopBinding`/`workerResumeBinding` (fault instructions on the Case's
+task-queue role, `stop-worker`/`resume-worker`) and `awaitCompletionBinding` (the close-event read
+as `await-close`), and `completedSource` as its one evidence kind. `Temporal.Case.Realization.Rpc`
+is new: one endpoint role, the `server-version` and correlated observations, one controller item,
+`getSystemInfoBinding` (`get-system-info`, timeout 5 s) and `completedSource` (the run-event
+kind). `Temporal.Case.Support` gained `getSystemInfoMethod`; `Conformance.lean` reads it from there.
+
+### Removed
+
+`Temporal/Testpilot/WorkerOutage.lean` and `GetSystemInfo.lean`; the two `register_case` lines and
+`register_case` itself (`Temporal.Case.Registry`; every checked-in Case is a `case` block's);
+`Temporal.TestpilotTests` is a facade smoke check; `worker-outage-case.json` and
+`get-system-info-case.json`.
+
+### Go
+
+`tests/testcore/testpilot/worker_outage_fixture.go` names the two fixtures, the rule id and the
+task-queue role. `worker_outage_artifact_test.go` pins the rule id, the `rule_events` deadline and
+the `expired` state on the new fixture, that the Contract is that rule beside the correlated
+capability, and the two injected faults. `artifact_test.go`'s two-shapes test is over the
+system-info Case (capability alone, derived Profile with the one `InvokeRPC` opcode, snapshotted
+once, two mutations rejected) and the outage Case (rule beside capability).
+`common/testing/testpilot/internal/verification/worker_outage_test.go` prepares the shipped
+Contract's rule alone for its online/offline agreement (the capability needs the correlated
+observation the live Program lifts). `tests/testpilot_worker_outage_case_test.go` runs
+`workerOutageTests-survived`: the outage-order rule satisfied at `resumed` on the two fault events,
+every correlated clause rule satisfied at `correlated.satisfied` on the history read's event, whose
+correlated evidence is the completed kind keyed by the completing task's event id. The conformance
+generator's fake registry names the new Cases.
+
+### Fixture diff
+
+`worker-outage-case.json` and `get-system-info-case.json` deleted; `workerOutageTests-survived-case.json`
+and `systemInfoTests-answered-case.json` added; the seven `nexusCallerTests-*`, the pair and the
+workflow-start fixtures byte-identical.
+
+### Gates
+
+`lake build` green (588 targets); `make umpire-gen-case-runtime-conformance` (the fixture diff
+above) then `make umpire-check-case-runtime-conformance` exit 0; `make umpire-gen-goldens &&
+make umpire-check-goldens` exit 0 with no golden changed; regression views, inventory, retired
+vocabulary, protocol and authoring checks exit 0; `LEAN_NUM_THREADS=1 make lint-model` at the `.1`
+baseline (40 warnings, none new; the same two generated `Proto.lean` errors);
+`GOLANGCI_LINT_BASE_REV=f4bbd4b make lint-code-fast` clean; `go vet` and `go test` over
+`tools/umpire`, `common/testing/testpilot` and `tests/testcore/testpilot` ok;
+`TestTestpilotWorkerOutageCase` and `TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone` pass
+live; `make umpire-check-regression` exit 0 with 29 passing live identities (29 before: the
+worker-outage identities are the same two tests over the new fixture, and no live test names the
+unary Case, as none named the old one).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8183773, e18b520
+- Tests: `lake build`; `make umpire-gen-case-runtime-conformance && make umpire-check-case-runtime-conformance`; `make umpire-gen-goldens && make umpire-check-goldens`; `make umpire-gen-regression-views && make umpire-check-regression-views`; `make umpire-gen-inventory && make umpire-check-inventory`; `make umpire-check-retired-vocabulary`; `make umpire-check-testpilot-protocol`; `make umpire-check-testpilot-authoring`; `LEAN_NUM_THREADS=1 make lint-model`; `make lint-code-fast`; `go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/...`; `go test -count=1 -tags test_dep,integration ./tests -run TestTestpilotWorkerOutageCase`; `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression`
 - PRs:
