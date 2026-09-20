@@ -4,31 +4,31 @@
   "behaviorFingerprint": "sha256:f6fbf2847d73f198dd50a9c466e6f1834f67042db0df0a54965c2bcb6b4f7a41",
   "experiment": {
     "formatVersion": "umpire-experiment/v2",
-    "artifactChecksum": "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
-    "behaviorFingerprint": "sha256:4081061e25d59938effa0d03799036aa08a8548949df4ab8c7283dda2c5bd8ad",
-    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+    "artifactChecksum": "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a",
+    "behaviorFingerprint": "sha256:7f35dfc05a8d53192b7b61bbf75486c1777e79bef2aa7108649fa8c986494d73",
+    "provenanceChecksum": "sha256:e2a5248657e38b17a6a3557a75846c2c4cdb2d957d2d989fc2eadde736a7290b"
   },
   "runtimeConfiguration": {
     "formatVersion": "umpire-runtime-configuration/v2",
-    "artifactChecksum": "sha256:e476606b3bfddbadc6203c5e236fcf297dddc9a3a62f439e52b8b1eba07621e4",
+    "artifactChecksum": "sha256:e531d909234037d9fbd89ac0887ac5a1543c39222711aa2597c2dcc76416c9f3",
     "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
     "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e"
   },
   "run": {
     "formatVersion": "umpire-experiment-run/v2",
-    "artifactChecksum": "sha256:a7b8e197b8d310959ff41d3fbb64b0c4f69ff974ceec9da93862404705d58758",
+    "artifactChecksum": "sha256:76d99b2d5b57caa20214ff434cfa1258eeed9f46e8378b5e5aabf8f466c23ce6",
     "behaviorFingerprint": "sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
     "provenanceChecksum": "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9"
   },
   "rawEvidence": {
     "formatVersion": "umpire-raw-evidence/v2",
-    "artifactChecksum": "sha256:fd1ff90bffd3aeae24290130ac4046cf85b1a66ca1f960360df236add735d7c1",
+    "artifactChecksum": "sha256:69b8105658c8a78b9331cf194af560d8ff91fe7fa113593c21d0fb54455fd503",
     "behaviorFingerprint": "sha256:2a0e83ab40ee0bb739827351e4fca37e29095333c469b975278f882ed3581e8c",
     "provenanceChecksum": "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7"
   },
   "evidence": {
     "formatVersion": "umpire-evidence/v2",
-    "artifactChecksum": "sha256:0c1f82751d6db350dc2cc05a9467f14e015b1280e0dd4bfac9ce0b38eb4a0253",
+    "artifactChecksum": "sha256:d2319c8c34e5b2b2ddab1d816b2637abaf41d9d9549b7b7ed8d8714cb758b90c",
     "behaviorFingerprint": "sha256:0aa42f873839132836c028886c9be5ad63e5dc66dbc967182ae139159501c8ab",
     "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310"
   },
@@ -38,9 +38,9 @@
     "definitionId": "switch.implementation-link.system-to-feature",
     "behaviorFingerprint": "sha256:0ec0f5e52dc5ed18516f1ffb9ae2973a98c5c7469a5482e2f0ef53f522f37d69",
     "sourceTarget": {
-      "definitionId": "switch.target.two-state",
+      "definitionId": "umpire.switch.target.twoState",
       "kind": "target",
-      "behaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c"
+      "behaviorFingerprint": "sha256:4bd4815c4faf255165b36a5c2e82e8a2148e45d85d646e545f1e66b3b5a2ef4b"
     },
     "destinationTarget": {
       "definitionId": "switch.target.feature",
@@ -52,9 +52,9 @@
   "implementationLinkStatus": "applied",
   "propertyVerdicts": [
     {
-      "queryDefinitionId": "switch.query.exact-action",
-      "propertyDefinitionId": "switch.property.flip-turns-on",
-      "propertyBehaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e",
+      "queryDefinitionId": "umpire.switch.query.exactAction",
+      "propertyDefinitionId": "umpire.switch.property.flipTurnsOn",
+      "propertyBehaviorFingerprint": "sha256:26a72f17d00fec3851f9cf0ef3180c0a854e00b64be195dc16c164fd979b5a37",
       "traceId": "switch.trace.accepted",
       "status": "satisfied",
       "queryLimits": {
@@ -76,13 +76,13 @@
         "unit": "evidence-records"
       },
       "provenanceDefinitionIds": [
-        "switch.property.flip-turns-on",
-        "switch.query.exact-action"
+        "umpire.switch.property.flipTurnsOn",
+        "umpire.switch.query.exactAction"
       ],
       "clauses": [
         {
-          "propertyDefinitionId": "switch.property.flip-turns-on",
-          "clauseDefinitionId": "switch.property.flip-turns-on.clause",
+          "propertyDefinitionId": "umpire.switch.property.flipTurnsOn",
+          "clauseDefinitionId": "umpire.switch.property.flipTurnsOn.clause",
           "status": "satisfied",
           "coordinates": [
             {
@@ -114,7 +114,7 @@
             "unit": "evidence-records"
           },
           "provenanceDefinitionIds": [
-            "switch.property.flip-turns-on"
+            "umpire.switch.property.flipTurnsOn"
           ],
           "evidenceSupports": [
             {
@@ -172,7 +172,7 @@
     }
   ],
   "querySummary": {
-    "queryDefinitionId": "switch.query.exact-action",
+    "queryDefinitionId": "umpire.switch.query.exactAction",
     "status": "satisfied",
     "queryLimits": {
       "steps": {
@@ -189,13 +189,13 @@
       }
     },
     "requiredPropertyDefinitionIds": [
-      "switch.property.flip-turns-on"
+      "umpire.switch.property.flipTurnsOn"
     ],
     "propertyVerdicts": [
       {
-        "queryDefinitionId": "switch.query.exact-action",
-        "propertyDefinitionId": "switch.property.flip-turns-on",
-        "propertyBehaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e",
+        "queryDefinitionId": "umpire.switch.query.exactAction",
+        "propertyDefinitionId": "umpire.switch.property.flipTurnsOn",
+        "propertyBehaviorFingerprint": "sha256:26a72f17d00fec3851f9cf0ef3180c0a854e00b64be195dc16c164fd979b5a37",
         "traceId": "switch.trace.accepted",
         "status": "satisfied",
         "queryLimits": {
@@ -217,13 +217,13 @@
           "unit": "evidence-records"
         },
         "provenanceDefinitionIds": [
-          "switch.property.flip-turns-on",
-          "switch.query.exact-action"
+          "umpire.switch.property.flipTurnsOn",
+          "umpire.switch.query.exactAction"
         ],
         "clauses": [
           {
-            "propertyDefinitionId": "switch.property.flip-turns-on",
-            "clauseDefinitionId": "switch.property.flip-turns-on.clause",
+            "propertyDefinitionId": "umpire.switch.property.flipTurnsOn",
+            "clauseDefinitionId": "umpire.switch.property.flipTurnsOn.clause",
             "status": "satisfied",
             "coordinates": [
               {
@@ -255,7 +255,7 @@
               "unit": "evidence-records"
             },
             "provenanceDefinitionIds": [
-              "switch.property.flip-turns-on"
+              "umpire.switch.property.flipTurnsOn"
             ],
             "evidenceSupports": [
               {
@@ -340,7 +340,7 @@
   ],
   "knownGaps": [],
   "cleanupStatus": "complete",
-  "evaluationOutcomeChecksum": "sha256:e0a78b48db1e1c3e8bac21dabd3325723655ab42c3bdc2027f51a942c404b9b0",
+  "evaluationOutcomeChecksum": "sha256:7453b6fc8b20e69824be414a63803dc55a328d6cc0143cbeade5da80a28c93bc",
   "provenance": {
     "sourceDefinitionIds": [
       "switch.result.interpreted"
@@ -355,5 +355,5 @@
     ]
   },
   "provenanceChecksum": "sha256:45dc784e74ecf8f34b9acd5e050da1943b882f782030211bb3f9a3bceef6f795",
-  "artifactChecksum": "sha256:a1f1eb0f0e79e24a4d7efbdb1dd8a2295730867b79baf3db3e83a64244bb6378"
+  "artifactChecksum": "sha256:7df512e6df7f62c4a80d5b91ac90f0b237813d326f6969c977977d3e38a11ccb"
 }

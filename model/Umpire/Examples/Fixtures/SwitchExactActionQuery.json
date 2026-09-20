@@ -1,16 +1,16 @@
 {
-  "id": "switch.query.exact-action",
+  "id": "umpire.switch.query.exactAction",
   "version": 1,
   "form": "find",
   "properties": [
     {
-      "id": "switch.property.flip-turns-on",
-      "behaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e"
+      "id": "umpire.switch.property.flipTurnsOn",
+      "behaviorFingerprint": "sha256:26a72f17d00fec3851f9cf0ef3180c0a854e00b64be195dc16c164fd979b5a37"
     }
   ],
   "behavior": {
-    "id": "switch.behavior.exact-action",
-    "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6"
+    "id": "umpire.switch.behavior.oneFlip",
+    "behaviorFingerprint": "sha256:a22850094877401bfe7c6cc53ffd10d788a8ce162cfad3e76653a718c0738b05"
   },
   "limits": {
     "steps": {
@@ -31,18 +31,18 @@
     "seed": 17
   },
   "target": {
-    "id": "switch.target.two-state",
-    "behaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
+    "id": "umpire.switch.target.twoState",
+    "behaviorFingerprint": "sha256:4bd4815c4faf255165b36a5c2e82e8a2148e45d85d646e545f1e66b3b5a2ef4b",
     "composition": [
-      "switch.capability.state",
-      "switch.provider.state"
+      "umpire.switch.capability.twoState.transitions",
+      "umpire.switch.provider.twoState.finite-table"
     ],
     "kernel": {
-      "id": "switch.kernel.two-state"
+      "id": "umpire.switch.kernel.twoState.planner"
     }
   },
   "finiteCompleteness": {
-    "roleDomainFingerprint": "sha256:50b34071704bd037316acfc402ce0b7ebd03a01aec5479c3a2d576e5dfbb4196",
-    "actionDomainFingerprint": "sha256:e2e705648099d8cd0001b0d0b9b296714a639b92f61b023237150b41989c07c8"
+    "roleDomainFingerprint": "sha256:d212c776c372f7bef6c468c60f91cd62bead38454f6d73a7f779676dc51751c4",
+    "actionDomainFingerprint": "sha256:8db29390a3156880c28ef642213cf2d3c979a4374b67f9d1df4b620bc8be2a0d"
   }
 }

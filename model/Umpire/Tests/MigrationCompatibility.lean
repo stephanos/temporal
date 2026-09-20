@@ -11,7 +11,10 @@ import Umpire.Model.Tests.Fixtures
 Executable compatibility matrix for the domain-neutral Switch migration.
 
 This cross-layer fixture intentionally lives outside `Umpire.Model.*`: it exercises the checked
-Target through Query, Planning, and Artifact while the focused Target suite stays import-pure.
+Target through Query, Planning, and Artifact while the focused Target suite stays import-pure. The
+switch is declared by the Model commands; what is exercised here is the expert route beside them --
+the same kernel composed again through `DraftModel.make`, relocated, varied and broken on purpose --
+so that the two routes keep answering alike.
 -/
 
 namespace Umpire.Tests.MigrationCompatibility
@@ -190,131 +193,24 @@ example : [
   ] = [some (canonicalQueryJson exactActionQuery), some (canonicalQueryJson exactActionQuery)] := by
   native_decide
 
-private def earlyQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  Query.check (.ofTarget earlyTarget) exactActionDeclaration
-
-private theorem earlyQueryResult_isSome : earlyQueryResult.toOption.isSome = true := by
-  native_decide
-
-private def materializeEarlyQuery
-    (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
-  checked with
-  target := earlyTarget
-  completeness := (ModelCompleteness.ofTarget earlyTarget).completeness
+/-- The exact-action Query's shape, admitted against each relocated target the way the switch admits
+it against its own: the search view is the target's finite planning, read at admission. -/
+private def exactActionShape : Query.Shape := {
+  id := exactActionQueryId
+  source
+  target := targetId
+  form := .find
+  limits
+  policy := shortestPolicy
 }
 
-private def earlyQuery : CheckedQuery LawStatement :=
-  materializeEarlyQuery (earlyQueryResult.toOption.get earlyQueryResult_isSome)
+private def earlyRun : Except KnownGapError PlanResult :=
+  ((Search.admit earlyTarget authoredProperty (some exactActionBehaviorDeclaration)
+    exactActionShape).toOption.get (by native_decide)).search
 
-private def earlyKernel? : Option (SearchView earlyQuery.target) :=
-  SearchView.ofCheckedQuery? earlyQuery
-    (by
-      intro evidence evidenceEq
-      simp [earlyQuery, materializeEarlyQuery, ModelCompleteness.ofTarget, earlyTarget,
-        model, authoringAt, DraftModel.withOccurrences, targetAuthoring,
-        DraftModel.make, modelSpec] at evidenceEq
-      cases Option.some.inj evidenceEq
-      simp [finitePlanning])
-    (by
-      intro _ _ setup
-      simp only [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
-        DraftModel.withOccurrences, targetAuthoring, DraftModel.make, modelSpec,
-        machine, initialStates]
-      split <;> simp)
-    (by
-      intro _ _ state action
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          simpa [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
-            DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-            modelSpec, machine, stepResults] using appliedResult_ordered
-        · by_cases selectedOn : state = onState
-          · subst state
-            simpa [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
-              DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-              modelSpec, machine, stepResults, onState_ne_offState] using
-                appliedFromOnResult_ordered
-          · simp [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
-              DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-              modelSpec, machine, stepResults, selectedOff, selectedOn]
-      · simp [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
-          DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-          modelSpec, machine, stepResults, selectedAction])
-
-private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
-  rfl
-
-private def earlyKernel : SearchView earlyQuery.target :=
-  earlyKernel?.get earlyKernel?_isSome
-
-private def earlyRun : Except KnownGapError PlanResult := search earlyQuery earlyKernel
-
-private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  Query.check (.ofTarget relocatedTarget) exactActionDeclaration
-
-private theorem relocatedQueryResult_isSome :
-    relocatedQueryResult.toOption.isSome = true := by
-  native_decide
-
-private def materializeRelocatedQuery
-    (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
-  checked with
-  target := relocatedTarget
-  completeness := (ModelCompleteness.ofTarget relocatedTarget).completeness
-}
-
-private def relocatedQuery : CheckedQuery LawStatement :=
-  materializeRelocatedQuery
-    (relocatedQueryResult.toOption.get relocatedQueryResult_isSome)
-
-private def relocatedKernel? : Option (SearchView relocatedQuery.target) :=
-  SearchView.ofCheckedQuery? relocatedQuery
-    (by
-      intro evidence evidenceEq
-      simp [relocatedQuery, materializeRelocatedQuery, ModelCompleteness.ofTarget,
-        relocatedTarget, model, authoringAt, DraftModel.withOccurrences,
-        targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
-      cases Option.some.inj evidenceEq
-      simp [finitePlanning])
-    (by
-      intro _ _ setup
-      simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
-        authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-        modelSpec, machine, initialStates]
-      split <;> simp)
-    (by
-      intro _ _ state action
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
-            authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-            modelSpec, machine, stepResults] using
-              appliedResult_ordered
-        · by_cases selectedOn : state = onState
-          · subst state
-            simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
-              authoringAt, DraftModel.withOccurrences, targetAuthoring,
-              DraftModel.make, modelSpec, machine, stepResults,
-              onState_ne_offState] using appliedFromOnResult_ordered
-          · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
-              authoringAt, DraftModel.withOccurrences, targetAuthoring,
-              DraftModel.make, modelSpec, machine, stepResults,
-              selectedOff, selectedOn]
-      · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
-          authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
-          modelSpec, machine, stepResults, selectedAction])
-
-private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
-  rfl
-
-private def relocatedKernel : SearchView relocatedQuery.target :=
-  relocatedKernel?.get relocatedKernel?_isSome
-
-private def relocatedRun : Except KnownGapError PlanResult := search relocatedQuery relocatedKernel
+private def relocatedRun : Except KnownGapError PlanResult :=
+  ((Search.admit relocatedTarget authoredProperty (some exactActionBehaviorDeclaration)
+    exactActionShape).toOption.get (by native_decide)).search
 
 private def expectedSwitchArtifactJson : String :=
   include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
@@ -364,7 +260,7 @@ example : [
   native_decide
 
 example : wrongKindDefinition.source = source := by
-  rfl
+  native_decide
 
 private def expertModelSpec : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {

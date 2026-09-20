@@ -1,74 +1,172 @@
-import Umpire.Search
-import Umpire.Search.Branches
-import Umpire.Search.Admission
-import Umpire.Shared
+import Umpire.Command
+import Umpire.Examples.Conventions
+
+/-!
+# The switch: Umpire's worked example
+
+A two-position switch, declared through the Model commands and nothing else: an `entity`, three
+`enum` domains, one step function, a `machine`, a `property`, two `scenario`s, `limits` and a
+`query`. It names no feature and no platform. It is the Model every Umpire test that needs one
+reads, so what this module exports is the vocabulary those tests were written against -- the
+switch's values, Definition IDs, checked Property, Scenarios, Queries, planner runs and compiled
+artifact -- each defined from what the commands declared rather than beside it.
+
+Two of its three Queries are not commands. The exploratory Query picks among Properties and the
+exact-trace Query pins one trace, and the `query` command declares neither form; both are checked
+here over the command's own Model, Property and Scenarios, which is what an authored Query is.
+-/
 
 namespace Umpire.Examples.Switch
 
-private def id (value : String) : DefinitionId := Shared.definitionId value
+open Umpire
+open Umpire.Command
 
-def source : SourceLocation :=
-  Shared.sourceLocation "Umpire/Examples/Switch.lean" 1 1 "lean-model"
+/-! ### The Model -/
 
-def targetId : DefinitionId := id "switch.target.two-state"
-def kernelId : DefinitionId := id "switch.kernel.two-state"
-def switchCapabilityId : DefinitionId := id "switch.capability.state"
-def switchProviderId : DefinitionId := id "switch.provider.state"
-def flipLawId : DefinitionId := id "switch.law.flip-preserves-domain"
-def powerStateId : DefinitionId := id "switch.state.power"
-def flipActionId : DefinitionId := id "switch.action.flip"
-def appliedOutcomeId : DefinitionId := id "switch.outcome.applied"
-def deferredOutcomeId : DefinitionId := id "switch.outcome.deferred"
-def powerObservationId : DefinitionId := id "switch.observation.power"
-def switchRoleId : DefinitionId := id "switch.role.subject"
-def flipPropertyId : DefinitionId := id "switch.property.flip-turns-on"
-def exploratoryBehaviorId : DefinitionId := id "switch.behavior.exploratory"
-def exactActionBehaviorId : DefinitionId := id "switch.behavior.exact-action"
-def exactTraceBehaviorId : DefinitionId := id "switch.behavior.exact-trace"
-def exploratoryQueryId : DefinitionId := id "switch.query.explore"
-def exactActionQueryId : DefinitionId := id "switch.query.exact-action"
-def exactTraceQueryId : DefinitionId := id "switch.query.exact-trace"
+/-- The switch. There is one, and a flip acts on it. -/
+entity subject
 
-inductive Position where
+/-- Where the switch stands. -/
+enum Position
   | off
   | on
-  deriving BEq, DecidableEq, Repr
+
+/-- One switch's state: where it stands. -/
+structure SwitchState where
+  power : Position
+  deriving BEq, DecidableEq, Repr, Finite
+
+/-- What a flip did: it moved the switch, or it was deferred and the switch stayed. -/
+enum FlipOutcome
+  | applied
+  | deferred
+
+/-- What a flip records: the position the switch shows once the flip is done. -/
+enum Power
+  | off
+  | on
+
+/-- The one action: flip the switch. -/
+action flip
+  party: operator
+  on: subject
 
 def Position.flip : Position → Position
   | .off => .on
   | .on => .off
 
-def LawStatement (law : Law) : Prop :=
-  law.id = flipLawId ∧ law.body = "switch-flip-preserves-domain-law/v1" ∧
-    Position.flip (Position.flip .off) = .off
+/-- The position a step shows. -/
+def Power.showing : Position → Power
+  | .off => .off
+  | .on => .on
 
-def flipLaw : Law := {
-  id := flipLawId
-  body := "switch-flip-preserves-domain-law/v1"
-}
+/-- A flip moves the switch and shows its new position, or is deferred and shows the old one. The
+applied result comes first, so the shortest witness of a flip is the flip that took. -/
+def flipStep (state : SwitchState) : List (Step SwitchState FlipOutcome Power) :=
+  let moved : SwitchState := { power := state.power.flip }
+  [{ outcome := .applied, state := moved, facts := [.showing moved.power] },
+   { outcome := .deferred, state, facts := [.showing state.power] }]
 
-theorem flipLawProof : LawStatement flipLaw := by
-  exact ⟨rfl, rfl, rfl⟩
+machine twoState
+  for: subject
+  state: SwitchState
+  starts: [off]
+  ends: [on]
+  steps:
+    flip: flipStep
 
-private def metadata
-    (definitionId : DefinitionId)
-    (kind : DefinitionKind)
-    (behaviorVersion : String) : DefinitionMetadata :=
-  Shared.definitionMetadata definitionId kind source 1 behaviorVersion ""
+/- A selected flip turns the switch on. -/
+property flipTurnsOn
+  machine: twoState
+  when: flip
+  holds: fun step => step.state.power == .on
 
-def offState : ModelValue := ModelValue.named powerStateId "off"
-def onState : ModelValue := ModelValue.named powerStateId "on"
-def flipAction : ModelValue := ModelValue.named flipActionId "flip"
-def appliedOutcome : ModelValue := ModelValue.named appliedOutcomeId "applied"
-def deferredOutcome : ModelValue := ModelValue.named deferredOutcomeId "deferred"
-def powerOffObservation : ModelValue := ModelValue.named powerObservationId "off"
-def powerOnObservation : ModelValue := ModelValue.named powerObservationId "on"
+/- One flip from off, its outcome left to the Model. -/
+scenario oneFlip
+  model: twoState
+  starts: off
+  actions: [flip]
 
-theorem offState_ne_onState : offState ≠ onState := by
-  decide
+/- The same one flip, explored: the Scenario the exploratory Query picks over. -/
+scenario explore
+  model: twoState
+  starts: off
+  actions: [flip]
 
-theorem onState_ne_offState : onState ≠ offState := by
-  decide
+limits one
+  steps: 1
+  actions: 1
+  search: 8
+
+query exactAction
+  find: flipTurnsOn
+  in: oneFlip
+  limits: one
+
+/-! ### What the commands declared, under the names the tests read
+
+Everything below is a view: a value the commands computed, or a record assembled from such values.
+The checked exact-action Query is the one the `query` command admitted while this file elaborated;
+its Model is `target`, and the other Queries, the planner runs and the artifact are read through
+it. -/
+
+/-- The admitted exact-action Query. The `query` command evaluated the admission and reported any
+refusal at its own lines, so the proof only re-reads what it found. -/
+@[irreducible] private def checked : Umpire.Command.CheckedModel twoState :=
+  exactAction.toOption.get (by native_decide)
+
+def LawStatement : Law → Prop := twoState.lawStatement
+
+def source : SourceLocation := twoState.origin.source
+
+def target : QueryModel LawStatement := checked.target
+
+/-- The switch's members as model values, resolved by spelling the way a Case reads them. -/
+def vocabulary : ModelVocabulary := checked.vocabulary
+
+def offState : ModelValue := vocabulary.namedState "off"
+def onState : ModelValue := vocabulary.namedState "on"
+def flipAction : ModelValue := vocabulary.namedAction "flip"
+def appliedOutcome : ModelValue := vocabulary.namedOutcome "applied"
+def deferredOutcome : ModelValue := vocabulary.namedOutcome "deferred"
+def powerOffObservation : ModelValue := vocabulary.namedFact "off"
+def powerOnObservation : ModelValue := vocabulary.namedFact "on"
+
+def targetId : DefinitionId := twoState.targetId
+def kernelId : DefinitionId := twoState.kernelId
+def switchCapabilityId : DefinitionId := twoState.capabilityId
+def switchProviderId : DefinitionId := twoState.providerId
+def flipLawId : DefinitionId := twoState.lawId
+def switchRoleId : DefinitionId := twoState.operationRoleId
+/-- The `power` field's own definition. A state is one value under its own definition, and it
+holds its position under this one, so a Property that names `power` reads the position apart from
+the state -- which is what the one state definition named while a state was one value. -/
+def powerStateId : DefinitionId := (twoState.stateFieldIds.lookup "power").getD unknownId
+def flipActionId : DefinitionId := flipAction.definitionId
+def appliedOutcomeId : DefinitionId := appliedOutcome.definitionId
+def deferredOutcomeId : DefinitionId := deferredOutcome.definitionId
+/-- Each recorded position is its own fact definition under the commands; the tests that read the
+switch's observation through one definition record the switch off, so this is that fact's. -/
+def powerObservationId : DefinitionId := powerOffObservation.definitionId
+/-- The two enumerated rows, each its own relation definition: the flip from off and the flip from
+on. -/
+def relationIds : List DefinitionId := twoState.relationIds
+def offFlipRelationId : DefinitionId := (relationIds[0]?).getD unknownId
+def onFlipRelationId : DefinitionId := (relationIds[1]?).getD unknownId
+def flipPropertyId : DefinitionId := twoState.origin.family.id "property" "flipTurnsOn"
+/-- The one occurrence the exact-action Scenario selects: its first, which is its flip. -/
+def flipOccurrenceId : DefinitionId :=
+  twoState.origin.family.id "occurrence" (oneFlip.names.declaration ++ ".1")
+def exploratoryBehaviorId : DefinitionId := twoState.origin.family.id "behavior" "explore"
+def exactActionBehaviorId : DefinitionId := twoState.origin.family.id "behavior" "oneFlip"
+def exactTraceBehaviorId : DefinitionId := twoState.origin.family.id "behavior" "exactTrace"
+def exploratoryQueryId : DefinitionId := twoState.origin.family.id "query" "explore"
+def exactActionQueryId : DefinitionId := twoState.origin.family.id "query" "exactAction"
+def exactTraceQueryId : DefinitionId := twoState.origin.family.id "query" "exactTrace"
+
+def flipLaw : Law := twoState.law
+
+theorem flipLawProof : LawStatement flipLaw := twoState.lawProof
 
 def switchSetup : List RoleBinding := [{ role := switchRoleId, value := offState }]
 
@@ -96,303 +194,161 @@ def deferredFromOnResult : Step ModelValue ModelValue ModelValue := {
   facts := [powerOnObservation]
 }
 
+theorem offState_ne_onState : offState ≠ onState := by
+  native_decide
+
+theorem onState_ne_offState : onState ≠ offState := by
+  native_decide
+
 theorem appliedResult_ordered :
     stepOrderKey appliedResult ≤ stepOrderKey deferredResult := by
-  decide
+  native_decide
 
 theorem appliedFromOnResult_ordered :
-    stepOrderKey appliedFromOnResult ≤
-      stepOrderKey deferredFromOnResult := by
-  decide
+    stepOrderKey appliedFromOnResult ≤ stepOrderKey deferredFromOnResult := by
+  native_decide
+
+/-! ### The Model as `Umpire.Search` reads it
+
+The target's machine is the finite table's kernel. The records the ordinary Target authoring
+boundary takes -- the machine, its spec, its providers and its finite planning -- are read off the
+checked target, so a test that composes a variant of the switch through `DraftModel.make` composes
+the same kernel the commands checked. -/
+
+def machine : Machine (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  target.machine
 
 def initialStates (setup : List RoleBinding) : List ModelValue :=
-  if setup = switchSetup then [offState] else []
+  machine.initialStates setup
 
 def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop :=
-  setup = switchSetup ∧ state = offState
+  machine.authoritativeInitial setup state
 
 def stepResults
     (state action : ModelValue) :
     List (Step ModelValue ModelValue ModelValue) :=
-  if action = flipAction then
-    if state = offState then
-      [appliedResult, deferredResult]
-    else if state = onState then
-      [appliedFromOnResult, deferredFromOnResult]
-    else
-      []
-  else
-    []
+  machine.steps state action
 
 def authoritativeStep
     (state action : ModelValue)
     (result : Step ModelValue ModelValue ModelValue) : Prop :=
-  action = flipAction ∧
-    ((state = offState ∧ (result = appliedResult ∨ result = deferredResult)) ∨
-      (state = onState ∧
-        (result = appliedFromOnResult ∨ result = deferredFromOnResult)))
+  machine.authoritativeStep state action result
 
-theorem initialStates_sound
-    (setup : List RoleBinding)
-    (state : ModelValue)
-    (member : state ∈ initialStates setup) :
-    authoritativeInitial setup state := by
-  by_cases selected : setup = switchSetup
-  · subst setup
-    simp [initialStates, authoritativeInitial] at member ⊢
-    exact member
-  · simp [initialStates, selected] at member
+def definitions : List DefinitionMetadata := twoState.modelSpec.definitions
 
-theorem initialStates_complete
-    (setup : List RoleBinding)
-    (state : ModelValue)
-    (admitted : authoritativeInitial setup state) :
-    state ∈ initialStates setup := by
-  rcases admitted with ⟨rfl, rfl⟩
-  simp [initialStates]
+def modelProviders : Providers LawStatement := twoState.composition
 
-theorem stepResults_sound
-    (state action : ModelValue)
-    (result : Step ModelValue ModelValue ModelValue)
-    (member : result ∈ stepResults state action) :
-    authoritativeStep state action result := by
-  by_cases selectedAction : action = flipAction
-  · subst action
-    by_cases selectedOff : state = offState
-    · subst state
-      simp [stepResults, authoritativeStep, offState, onState, ModelValue.named] at member ⊢
-      exact member
-    · by_cases selectedOn : state = onState
-      · subst state
-        simp [stepResults, authoritativeStep, offState, onState, ModelValue.named] at member ⊢
-        exact member
-      · simp [stepResults, selectedOff, selectedOn] at member
-  · simp [stepResults, selectedAction] at member
+private theorem providers_present : target.providers.head?.isSome = true := by
+  native_decide
 
-theorem stepResults_complete
-    (state action : ModelValue)
-    (result : Step ModelValue ModelValue ModelValue)
-    (admitted : authoritativeStep state action result) :
-    result ∈ stepResults state action := by
-  rcases admitted with ⟨rfl, admitted⟩
-  rcases admitted with ⟨rfl, admitted⟩ | ⟨rfl, admitted⟩
-  · rcases admitted with rfl | rfl <;> simp [stepResults, offState, ModelValue.named]
-  · rcases admitted with rfl | rfl <;> simp [stepResults, offState, onState, ModelValue.named]
-
-def machine : Machine
-    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  metadata := {
-    id := kernelId
-    source
-  }
-  setupDomain := fun candidate => candidate = switchSetup
-  stateDomain := fun candidate => candidate = offState ∨ candidate = onState
-  actionDomain := fun candidate => candidate = flipAction
-  outcomeDomain := fun candidate => candidate = appliedOutcome ∨ candidate = deferredOutcome
-  observationDomain := fun candidate =>
-    candidate = powerOffObservation ∨ candidate = powerOnObservation
-  initialStates
-  authoritativeInitial
-  initialSound := initialStates_sound
-  initialComplete := initialStates_complete
-  steps := stepResults
-  authoritativeStep
-  stepSound := stepResults_sound
-  stepComplete := stepResults_complete
-  vocabulary := .complete {
-    setups := [switchSetup]
-    states := [offState, onState]
-    actions := [flipAction]
-    outcomes := [appliedOutcome, deferredOutcome]
-    observations := [powerOffObservation, powerOnObservation]
-    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
-      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
-    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    setupSound := by intro candidate member; simpa using member
-    setupComplete := by intro candidate admitted; simpa using admitted
-    stateSound := by intro candidate member; simpa using member
-    stateComplete := by intro candidate admitted; simpa using admitted
-    actionSound := by intro candidate member; simpa using member
-    actionComplete := by intro candidate admitted; simpa using admitted
-    outcomeSound := by intro candidate member; simpa using member
-    outcomeComplete := by intro candidate admitted; simpa using admitted
-    observationSound := by intro candidate member; simpa using member
-    observationComplete := by intro candidate admitted; simpa using admitted
-    setupCoverage := by
-      intro setup state member
-      by_cases selected : setup = switchSetup
-      · simp [selected]
-      · simp [initialStates, selected] at member
-    initialStateCoverage := by
-      intro setup state member
-      by_cases selected : setup = switchSetup
-      · rw [initialStates, if_pos selected] at member
-        simp [List.mem_singleton.mp member]
-      · simp [initialStates, selected] at member
-    transitionSourceCoverage := by
-      intro state action result member
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · simp [selectedOff]
-        · by_cases selectedOn : state = onState
-          · simp [selectedOn]
-          · simp [stepResults, selectedOff, selectedOn] at member
-      · simp [stepResults, selectedAction] at member
-    actionCoverage := by
-      intro state action result member
-      by_cases selectedAction : action = flipAction
-      · simp [selectedAction]
-      · simp [stepResults, selectedAction] at member
-    resultingStateCoverage := by
-      intro state action result member
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          change result ∈ [appliedResult, deferredResult] at member
-          rcases List.mem_cons.mp member with resultEq | tail
-          · subst result
-            simp [appliedResult]
-          · have resultEq := List.mem_singleton.mp tail
-            subst result
-            simp [deferredResult]
-        · by_cases selectedOn : state = onState
-          · subst state
-            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
-            rcases List.mem_cons.mp member with resultEq | tail
-            · subst result
-              simp [appliedFromOnResult]
-            · have resultEq := List.mem_singleton.mp tail
-              subst result
-              simp [deferredFromOnResult]
-          · simp [stepResults, selectedOff, selectedOn] at member
-      · simp [stepResults, selectedAction] at member
-    outcomeCoverage := by
-      intro state action result member
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          change result ∈ [appliedResult, deferredResult] at member
-          rcases List.mem_cons.mp member with resultEq | tail
-          · subst result
-            simp [appliedResult]
-          · have resultEq := List.mem_singleton.mp tail
-            subst result
-            simp [deferredResult]
-        · by_cases selectedOn : state = onState
-          · subst state
-            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
-            rcases List.mem_cons.mp member with resultEq | tail
-            · subst result
-              simp [appliedFromOnResult]
-            · have resultEq := List.mem_singleton.mp tail
-              subst result
-              simp [deferredFromOnResult]
-          · simp [stepResults, selectedOff, selectedOn] at member
-      · simp [stepResults, selectedAction] at member
-    observationCoverage := by
-      intro state action result observation member observationMember
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          change result ∈ [appliedResult, deferredResult] at member
-          rcases List.mem_cons.mp member with resultEq | tail
-          · subst result
-            exact List.mem_cons.mpr (.inr <| List.mem_singleton.mpr <|
-              by simpa [appliedResult] using observationMember)
-          · have resultEq := List.mem_singleton.mp tail
-            subst result
-            exact List.mem_cons.mpr (.inl <| by simpa [deferredResult] using observationMember)
-        · by_cases selectedOn : state = onState
-          · subst state
-            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
-            rcases List.mem_cons.mp member with resultEq | tail
-            · subst result
-              exact List.mem_cons.mpr (.inl <|
-                by simpa [appliedFromOnResult] using observationMember)
-            · have resultEq := List.mem_singleton.mp tail
-              subst result
-              exact List.mem_cons.mpr (.inr <| List.mem_singleton.mpr <|
-                by simpa [deferredFromOnResult] using observationMember)
-          · simp [stepResults, selectedOff, selectedOn] at member
-      · simp [stepResults, selectedAction] at member
-  }
-}
-
-def switchProvider : Provider LawStatement := {
-  id := switchProviderId
-  source
-  contract := {
-    id := switchCapabilityId
-    behaviorVersion := "switch-state/v1"
-    requiredLaws := [flipLaw]
-  }
-  meanings := [
-    { definitionId := powerStateId, kind := .state, behaviorVersion := "switch-power-state/v1" },
-    { definitionId := flipActionId, kind := .action, behaviorVersion := "switch-flip-action/v1" },
-    { definitionId := appliedOutcomeId, kind := .outcome,
-      behaviorVersion := "switch-applied-outcome/v1" },
-    { definitionId := deferredOutcomeId, kind := .outcome,
-      behaviorVersion := "switch-deferred-outcome/v1" },
-    { definitionId := powerObservationId, kind := .fact,
-      behaviorVersion := "switch-power-observation/v1" }
-  ]
-  lawProofs := [{ definition := flipLaw, proof := flipLawProof }]
-}
-
-def definitions : List DefinitionMetadata := [
-  metadata targetId .target "switch-two-state-target/v1",
-  metadata kernelId .machine "switch-two-state-kernel/v1",
-  metadata switchCapabilityId .capability "switch-state/v1",
-  metadata switchProviderId .provider "switch-state-provider/v1",
-  metadata flipLawId .law flipLaw.body,
-  metadata powerStateId .state "switch-power-state/v1",
-  metadata flipActionId .action "switch-flip-action/v1",
-  metadata appliedOutcomeId .outcome "switch-applied-outcome/v1",
-  metadata deferredOutcomeId .outcome "switch-deferred-outcome/v1",
-  metadata powerObservationId .fact "switch-power-observation/v1"
-]
-
-def finitePlanning : FinitePlanningCapability machine.authoritativeStep := {
-  actions := [flipAction]
-  actionSound := by
-    intro action member
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
-    subst action
-    exact ⟨offState, appliedResult, ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩⟩
-  actionComplete := by
-    intro state action result admitted
-    simp [admitted.1]
-}
+/-- The one provider the machine composes: the finite table, meaning every member. -/
+def switchProvider : Provider LawStatement := target.providers.head?.get providers_present
 
 def modelSpec : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  id := targetId
-  source
+  id := target.id
+  source := target.source
   definitions
-  requiredCapabilities := [switchCapabilityId]
-  resolvedSetups := [switchSetup]
-  machine := .checked machine
+  requiredCapabilities := target.requiredCapabilities
+  resolvedSetups := target.resolvedSetups
+  terminalConditions := target.terminalConditions
+  machine := .checked target.machine
 }
 
-def modelProviders : Providers LawStatement :=
-  Providers.empty |>.provide switchProvider
+private theorem planning_available :
+    (match target.planning with
+      | .available _ => true
+      | .unavailable => false) = true := by
+  native_decide
+
+def finitePlanning : FinitePlanningCapability machine.authoritativeStep :=
+  match available : target.planning with
+  | .available capability => capability
+  | .unavailable => by
+      have complete := planning_available
+      simp [available] at complete
 
 def targetAuthoring : DraftModel LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  DraftModel.make modelSpec modelProviders
-    (.available machine rfl finitePlanning)
-
-/-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
-def target : QueryModel LawStatement := model targetAuthoring
+  DraftModel.make modelSpec modelProviders (.available machine rfl finitePlanning)
 
 theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
+  native_decide
+
+/-! ### What the target admits
+
+The kernel's domains are membership in the table's catalogs, and the catalogs are read off the
+machine's complete vocabulary; each lemma says what the switch admits, which is what a proof over
+the target's domains needs. -/
+
+private def catalogs : Option (List (List RoleBinding) × List ModelValue × List ModelValue ×
+    List ModelValue × List ModelValue) :=
+  match target.machine.vocabulary with
+  | .complete domain =>
+      some (domain.setups, domain.states, domain.actions, domain.outcomes, domain.observations)
+  | _ => none
+
+private theorem catalogs_pinned : catalogs = some ([switchSetup], [offState, onState],
+    [flipAction], [appliedOutcome, deferredOutcome],
+    [powerOffObservation, powerOnObservation]) := by
+  native_decide
+
+private theorem catalogs_complete : ∃ domain, target.machine.vocabulary = .complete domain ∧
+    domain.setups = [switchSetup] ∧ domain.states = [offState, onState] ∧
+    domain.actions = [flipAction] ∧ domain.outcomes = [appliedOutcome, deferredOutcome] ∧
+    domain.observations = [powerOffObservation, powerOnObservation] := by
+  have pinned := catalogs_pinned
+  unfold catalogs at pinned
+  match vocabulary : target.machine.vocabulary with
+  | .complete domain =>
+      simp only [vocabulary, Option.some.injEq, Prod.mk.injEq] at pinned
+      exact ⟨domain, rfl, pinned.1, pinned.2.1, pinned.2.2.1, pinned.2.2.2.1, pinned.2.2.2.2⟩
+  | .missing => simp [vocabulary] at pinned
+  | .incomplete _ => simp [vocabulary] at pinned
+
+theorem target_setupDomain
+    (value : List RoleBinding)
+    (admitted : target.machine.setupDomain value) : value = switchSetup := by
+  obtain ⟨domain, _, setups, _, _, _, _⟩ := catalogs_complete
+  have member := domain.setupComplete value admitted
+  rw [setups] at member
+  simpa using member
+
+theorem target_stateDomain
+    (value : ModelValue)
+    (admitted : target.machine.stateDomain value) : value = offState ∨ value = onState := by
+  obtain ⟨domain, _, _, states, _, _, _⟩ := catalogs_complete
+  have member := domain.stateComplete value admitted
+  rw [states] at member
+  simpa using member
+
+theorem target_actionDomain
+    (value : ModelValue)
+    (admitted : target.machine.actionDomain value) : value = flipAction := by
+  obtain ⟨domain, _, _, _, actions, _, _⟩ := catalogs_complete
+  have member := domain.actionComplete value admitted
+  rw [actions] at member
+  simpa using member
+
+theorem target_outcomeDomain
+    (value : ModelValue)
+    (admitted : target.machine.outcomeDomain value) :
+    value = appliedOutcome ∨ value = deferredOutcome := by
+  obtain ⟨domain, _, _, _, _, outcomes, _⟩ := catalogs_complete
+  have member := domain.outcomeComplete value admitted
+  rw [outcomes] at member
+  simpa using member
+
+theorem target_observationDomain
+    (value : ModelValue)
+    (admitted : target.machine.observationDomain value) :
+    value = powerOffObservation ∨ value = powerOnObservation := by
+  obtain ⟨domain, _, _, _, _, _, observations⟩ := catalogs_complete
+  have member := domain.observationComplete value admitted
+  rw [observations] at member
+  simpa using member
+
+theorem target_initialStates : target.machine.initialStates switchSetup = [offState] := by
   native_decide
 
 theorem target_initial
@@ -400,62 +356,70 @@ theorem target_initial
     (state : ModelValue)
     (admitted : target.machine.authoritativeInitial setup state) :
     setup = switchSetup ∧ state = offState := by
-  exact admitted
+  obtain ⟨domain, _, setups, _, _, _, _⟩ := catalogs_complete
+  have member := target.machine.initialComplete setup state admitted
+  have setupEq : setup = switchSetup := by
+    have covered := domain.setupCoverage setup state member
+    rw [setups] at covered
+    simpa using covered
+  subst setupEq
+  rw [target_initialStates] at member
+  exact ⟨rfl, by simpa using member⟩
+
+theorem target_steps :
+    target.machine.steps offState flipAction = [appliedResult, deferredResult] ∧
+      target.machine.steps onState flipAction = [appliedFromOnResult, deferredFromOnResult] := by
+  native_decide
 
 theorem target_step
     (state action : ModelValue)
     (result : Step ModelValue ModelValue ModelValue)
     (admitted : target.machine.authoritativeStep state action result) :
-    authoritativeStep state action result := by
-  exact admitted
+    action = flipAction ∧
+      ((state = offState ∧ (result = appliedResult ∨ result = deferredResult)) ∨
+        (state = onState ∧
+          (result = appliedFromOnResult ∨ result = deferredFromOnResult))) := by
+  obtain ⟨domain, _, _, states, actions, _, _⟩ := catalogs_complete
+  have member := target.machine.stepComplete state action result admitted
+  have actionEq : action = flipAction := by
+    have covered := domain.actionCoverage state action result member
+    rw [actions] at covered
+    simpa using covered
+  subst actionEq
+  have sourceMember := domain.transitionSourceCoverage state flipAction result member
+  rw [states] at sourceMember
+  refine ⟨rfl, ?_⟩
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at sourceMember
+  rcases sourceMember with rfl | rfl
+  · rw [target_steps.1] at member
+    exact .inl ⟨rfl, by simpa using member⟩
+  · rw [target_steps.2] at member
+    exact .inr ⟨rfl, by simpa using member⟩
 
 theorem target_off_flip_applied_authoritative :
-    target.machine.authoritativeStep offState flipAction appliedResult := by
-  change authoritativeStep offState flipAction appliedResult
-  exact ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩
+    target.machine.authoritativeStep offState flipAction appliedResult :=
+  target.machine.stepSound offState flipAction appliedResult (by rw [target_steps.1]; simp)
 
-def authoredProperty : Property := {
-  id := flipPropertyId
-  source
-  requires := [switchCapabilityId]
-  clauses := [
-    .transitionContract (id "switch.property.clause.flip-turns-on")
-      (PropertyPattern.exact .selectedAction flipActionId flipAction.value)
-      (PropertyPattern.exact .resultingState powerStateId onState.value)
-  ]
-  documentation := "A selected flip has an outcome that turns the switch on."
-}
+/-! ### The Property, the Scenarios and the Queries -/
+
+def authoredProperty : Property := flipTurnsOn vocabulary
 
 def propertyResult : Except PropertyError CheckedProperty :=
-  Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
+  Property.check (PropertyCheckContext.ofTarget target) authoredProperty
 
-def flipProperty : CheckedProperty :=
-  Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty)
+def flipProperty : CheckedProperty := checked.property
 
 def switchRole : Scenario.Role := { id := switchRoleId, valueKind := .state }
 
+/-- The one setup constraint a Scenario of the switch carries: the subject starts off. -/
 def setupConstraint : SetupConstraint :=
-  SetupConstraint.roleEquals (id "switch.setup.subject-is-off") switchRoleId offState
+  SetupConstraint.roleEquals
+    (twoState.origin.ownedId "setup" oneFlip.names.declaration twoState.roleName)
+    switchRoleId offState
 
-def exploratoryBehaviorDeclaration : Scenario := {
-  id := exploratoryBehaviorId
-  source
-  requires := [switchCapabilityId]
-  roles := [switchRole]
-  setup := [setupConstraint]
-  allowedActions := [flipActionId]
-  requiredOccurrences := [{ id := id "switch.occurrence.flip", action := flipActionId }]
-  occurrenceBounds := [Scenario.Count.exactly flipActionId 1]
-  documentation := "Explore the finite switch outcomes for one selected flip."
-}
+def exploratoryBehaviorDeclaration : Scenario := explore vocabulary
 
-def exactActionBehaviorDeclaration : Scenario :=
-  Scenario.exactlyOneAction exactActionBehaviorId source
-    { id := id "switch.occurrence.flip", action := flipActionId }
-    (requires := [switchCapabilityId])
-    (roles := [switchRole])
-    (setup := [setupConstraint])
-    (documentation := "Select one flip while leaving its outcome to the switch model.")
+def exactActionBehaviorDeclaration : Scenario := oneFlip vocabulary
 
 def exactTrace : AuthoredExactTrace := {
   setup := switchSetup
@@ -468,11 +432,12 @@ def exactTrace : AuthoredExactTrace := {
   }]
 }
 
+/-- The exact-action Scenario pinned to the applied flip: the one form the `scenario` command does
+not declare. -/
 def exactTraceBehaviorDeclaration : Scenario := {
   exactActionBehaviorDeclaration with
   id := exactTraceBehaviorId
   traceExactly := some exactTrace
-  documentation := "Select the complete applied flip trace."
 }
 
 private def checkBehaviorDeclaration
@@ -489,8 +454,7 @@ def exactTraceBehaviorResult : Except ScenarioError CheckedScenario :=
 def exploratoryBehavior : CheckedScenario :=
   Scenario.checked (.ofTarget target) exploratoryBehaviorDeclaration
 
-def exactActionBehavior : CheckedScenario :=
-  Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration
+def exactActionBehavior : CheckedScenario := checked.behavior
 
 def exactTraceBehavior : CheckedScenario :=
   Scenario.checked (.ofTarget target) exactTraceBehaviorDeclaration
@@ -501,7 +465,7 @@ def appliedTrace : Scenario.Trace :=
 def deferredTrace : Scenario.Trace :=
   Scenario.Trace.singleStep switchSetup offState flipAction deferredResult
 
-def limits : Limits := Limits.bounded 1 1 8
+def limits : Limits := one
 
 def shortestPolicy : PlannerPolicy := PlannerPolicy.shortest
 
@@ -532,30 +496,23 @@ def exactTraceQueryResult : Except QueryError (CheckedQuery LawStatement) :=
   Query.check queryContext
     (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
 
+/-- The exploratory Query picks among its Properties over the explored flip; `pick` is a form the
+`query` command does not declare. -/
 def exploratoryQuery : CheckedQuery LawStatement :=
   Query.checked target
     (authoredQuery exploratoryQueryId (.pick [flipProperty]) exploratoryBehavior)
 
-def exactActionQuery : CheckedQuery LawStatement :=
-  Query.checked target
-    (authoredQuery exactActionQueryId (.find flipProperty) exactActionBehavior)
+/-- The command's own Query, re-addressed to `target` so that a proof that it searches `target`
+is `rfl`; its finite completeness is the same target's. -/
+def exactActionQuery : CheckedQuery LawStatement := {
+  checked.query with
+  target
+  completeness := (ModelCompleteness.ofTarget target).completeness
+}
 
 def exactTraceQuery : CheckedQuery LawStatement :=
   Query.checked target
     (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
-
-theorem stepResults_length_le_two (state action : ModelValue) :
-    (stepResults state action).length ≤ 2 := by
-  by_cases selectedAction : action = flipAction
-  · subst action
-    by_cases selectedOff : state = offState
-    · subst state
-      simp [stepResults]
-    · by_cases selectedOn : state = onState
-      · subst state
-        simp [stepResults, selectedOff]
-      · simp [stepResults, selectedOff, selectedOn]
-  · simp [stepResults, selectedAction]
 
 /-- The exact-action Query admitted against the switch Model, with its search view. The exploratory
 and exact-trace Queries search through the same view. -/
@@ -582,21 +539,13 @@ def exactActionRunResult : Except KnownGapError PlanResult :=
 def exactTraceRun : Except KnownGapError PlanResult :=
   (exactActionAdmitted.withQuery exactTraceQuery exactTraceQuery_target).search
 
-def artifact : Option Plan := exactActionRunResult.toOption.bind PlanResult.artifact
+/-- The command's own planner run: the one that found the applied flip. -/
+def exactActionRun : PlanResult := checked.run
+
+def artifact : Option Plan := exactActionRun.artifact
 
 private theorem artifact_isSome : artifact.isSome = true := by
   native_decide
-
-private theorem exactActionRunResult_isSome : exactActionRunResult.toOption.isSome = true := by
-  cases selected : exactActionRunResult with
-  | error error =>
-      have artifactExists := artifact_isSome
-      simp [artifact, selected] at artifactExists
-      contradiction
-  | ok run => rfl
-
-def exactActionRun : PlanResult :=
-  exactActionRunResult.toOption.get exactActionRunResult_isSome
 
 def compiledArtifact : Plan := artifact.get artifact_isSome
 

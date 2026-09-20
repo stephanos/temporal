@@ -15,7 +15,7 @@ example : productionRegistry.map (fun entry => (entry.id, entry.kind)) = [
     ("temporal.nexus.caller.query.scheduleToStartTimeout", "query"),
     ("temporal.nexus.caller.query.startToCloseTimeout", "query"),
     ("temporal.nexus.caller.query.terminalHolds", "query"),
-    ("switch.query.exact-action", "example")
+    ("umpire.switch.query.exactAction", "example")
   ] := by
   native_decide
 

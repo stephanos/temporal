@@ -47,18 +47,19 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 		FixturePath:        entry.FixturePath,
 		GoOutputPath:       entry.GoOutputPath,
 		MarkdownOutputPath: entry.MarkdownOutputPath,
-		TestName:           "TestSwitchQueryExactAction",
+		TestName:           "TestUmpireSwitchQueryExactAction",
 		Sources: []sourceView{{
 			CanonicalPath:  "Umpire/Examples/Switch.lean",
 			RepositoryPath: "model/Umpire/Examples/Switch.lean",
 		}},
 		Properties: []string{
-			"switch.property.flip-turns-on",
+			"umpire.switch.property.flipTurnsOn",
 		},
 		ObservationRequirements: []string{
-			"switch.observation.power",
+			"umpire.switch.fact.twoState.off",
+			"umpire.switch.fact.twoState.on",
 		},
-		ArtifactChecksum: "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
+		ArtifactChecksum: "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a",
 	}, view)
 }
 

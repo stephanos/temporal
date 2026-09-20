@@ -7,7 +7,7 @@ namespace Umpire.VariationsTests
 
 open Umpire
 
-private def occurrenceId : DefinitionId := id "switch.occurrence.flip"
+private def occurrenceId : DefinitionId := Umpire.Examples.Switch.flipOccurrenceId
 
 private def selectedChoices : List ModelValue := [
   { definitionId := stateAxisId, value := stateOffId.value },
