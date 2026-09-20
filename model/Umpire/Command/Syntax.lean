@@ -9,6 +9,7 @@ import Umpire.Command.Predicate
 import Umpire.Command.Instances
 import Umpire.Command.Refinement
 import Umpire.Command.Claims
+import Umpire.Command.Coverage
 
 /-!
 # The Model command grammar
@@ -2260,6 +2261,7 @@ syntax "purpose:" ident : setKey
 syntax "bind:" withPosition((colGe ident ":" ident)+) : setKey
 syntax "repeat:" ident : setKey
 syntax "queries:" "[" ident,* "]" : setKey
+syntax "machine:" ident : setKey
 syntax "cover:" sepBy1(ident, "|") : setKey
 syntax "budget:" ident : setKey
 
@@ -2328,6 +2330,19 @@ private def missingBudgetMessage : String :=
 private def budgetOutsideMessage (purpose : String) : String :=
   s!"`budget:` bounds an exploratory set; a {purpose} set's Queries carry their own limits"
 
+private def machineOutsideMessage (purpose : String) : String :=
+  s!"`machine:` names the machine an exploratory set covers; a {purpose} set's Queries name theirs"
+
+private def missingMachineMessage : String :=
+  "an exploratory set names the machine it covers under `machine:`"
+
+private def notAMachineMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a machine declared by a `machine` command"
+
+private def budgetNotLimitsMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a `limits` declaration; `budget:` names the limits an exploratory set \
+explores within"
+
 private def duplicateSwitchMessage (name : String) : String :=
   s!"switch '{name}' is already registered"
 
@@ -2342,6 +2357,7 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
   let mut bindEntry : Option Syntax := none
   let mut repeat? : Option Ident := none
   let mut queryRefs : Option (Syntax × Array Ident) := none
+  let mut machineRef : Option Ident := none
   let mut coverRefs : Option (Syntax × Array Ident) := none
   let mut budgetRef : Option Ident := none
   for entry in keys do
@@ -2361,6 +2377,9 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     | `(setKey| queries: [$listed:ident,*]) => do
         if queryRefs.isSome then throwErrorAt entry (duplicateKeyMessage "set" "queries:")
         queryRefs := some (entry, listed.getElems)
+    | `(setKey| machine: $covered:ident) => do
+        if machineRef.isSome then throwErrorAt entry (duplicateKeyMessage "set" "machine:")
+        machineRef := some covered
     | `(setKey| cover: $goals|*) => do
         if coverRefs.isSome then throwErrorAt entry (duplicateKeyMessage "set" "cover:")
         coverRefs := some (entry, goals.getElems)
@@ -2376,12 +2395,22 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     | "exploratory" => `(term| Umpire.Command.SetPurpose.exploratory)
     | other => throwErrorAt purposeRef (unknownPurposeMessage other)
   -- Every party the Model's actions name is bound, `system` is not, and nothing else is. The
-  -- actions are the ones the set's Queries' machines step on, by the declarations the machines
-  -- resolved; a set that lists no Query -- an exploratory one -- binds the parties of the actions
-  -- declared beside it. Each Query is resolved to its constant once, here, so the party check and
-  -- the checks below read the same declaration.
+  -- actions are the ones the set's Queries' machines step on, or the ones the machine an
+  -- exploratory set covers steps on, by the declarations the machines resolved; a set that names
+  -- neither binds the parties of the actions declared beside it. Each Query and the machine are
+  -- resolved to their constants once, here, so the party check and the checks below read the same
+  -- declaration.
   let environment ← getEnv
   let currentNamespace ← getCurrNamespace
+  let mut resolvedMachine : Option (Name × Registry.MachineEntry) := none
+  if let some covered := machineRef then
+    let machineName? ← try
+        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo covered)
+      catch failure =>
+        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    let some declared := machineName?.bind (Registry.machine? environment)
+      | throwErrorAt covered (notAMachineMessage covered.getId.toString)
+    resolvedMachine := some (machineName?.getD .anonymous, declared)
   let mut resolvedQueries : Array (Syntax × Name × Registry.QueryEntry) := #[]
   let listedQueries : Array Ident := (queryRefs.map (·.2)).getD #[]
   for queryRef in listedQueries do
@@ -2392,15 +2421,16 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     let some declared := queryName?.bind (Registry.query? environment)
       | throwErrorAt queryRef (undeclaredMessage "query" queryRef.getId)
     resolvedQueries := resolvedQueries.push (queryRef, queryName?.getD .anonymous, declared)
-  let steppedOn : Array Name := resolvedQueries.flatMap fun (_, _, declared) =>
+  let steppedOn : Array Name := (resolvedQueries.flatMap fun (_, _, declared) =>
     match Registry.scenario? environment declared.scenario with
     | some declaredScenario =>
         match Registry.machine? environment declaredScenario.model with
         | some declaredMachine => declaredMachine.actionDecls
         | none => #[]
-    | none => #[]
+    | none => #[]) ++ ((resolvedMachine.map (·.2.actionDecls)).getD #[])
   let declaredActions := (Registry.actions environment).filter fun declared =>
-    if resolvedQueries.isEmpty then currentNamespace.isPrefixOf declared.declName
+    if resolvedQueries.isEmpty && resolvedMachine.isNone then
+      currentNamespace.isPrefixOf declared.declName
     else steppedOn.contains declared.declName
   let parties := (declaredActions.map (·.party)).toList.eraseDups
   let mut seenParties : Array String := #[]
@@ -2423,9 +2453,11 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     if let some (entry, _) := queryRefs then throwErrorAt entry queriesOutsideMessage
     if coverRefs.isNone then throwErrorAt name missingCoverMessage
     if budgetRef.isNone then throwErrorAt name missingBudgetMessage
+    if machineRef.isNone then throwErrorAt name missingMachineMessage
   else
     if let some (entry, _) := coverRefs then throwErrorAt entry (coverOutsideMessage purposeSpelling)
     if let some limitsRef := budgetRef then throwErrorAt limitsRef (budgetOutsideMessage purposeSpelling)
+    if let some covered := machineRef then throwErrorAt covered (machineOutsideMessage purposeSpelling)
     if queryRefs.isNone then throwErrorAt name (missingQueriesMessage purposeSpelling)
   -- A switch is the realization's, registered by name: `repeat:` names one of them.
   let repeatTerm ← match repeat? with
@@ -2462,11 +2494,24 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     | "results" => `(term| Umpire.Command.CoverageGoal.results)
     | "classMembers" => `(term| Umpire.Command.CoverageGoal.classMembers)
     | other => throwErrorAt goalRef (unknownCoverMessage other)
+  -- The budget is a `limits` declaration, which is what an exploration is bounded by.
   let budgetTerm ← match budgetRef with
     | none => `(term| none)
     | some limitsRef => do
-        let _ ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo limitsRef)
+        let limitsName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo limitsRef)
+        unless (← getConstInfo limitsName).type.isConstOf ``Umpire.Limits do
+          throwErrorAt limitsRef (budgetNotLimitsMessage limitsRef.getId.toString)
         `(term| some $(Lean.quote limitsRef.getId.eraseMacroScopes.toString))
+  -- What an exploratory set enumerates: the targets its goals name on the machine it covers,
+  -- under its budget, with the claims the machine's actions make for the class members.
+  let (machineTerm, targetsTerm) ← match resolvedMachine, budgetRef with
+    | some (machineName, declared), some limitsRef => do
+        let actionRefs := declared.actionDecls.map mkIdent
+        pure (← `(term| some (Umpire.DefinitionId.of $(Lean.quote declared.id))),
+          ← `(term| Umpire.Command.coverageTargets ($(mkIdent machineName))
+            (Umpire.Command.classClaims ($(mkIdent machineName)) [$actionRefs,*])
+            [$coverTerms,*] ($limitsRef)))
+    | _, _ => do pure (← `(term| none), ← `(term| []))
   let bindingTerms ← bindings.mapM fun (_, party, _, mode) => do
     let modeTerm ← if mode == "driven" then `(term| Umpire.Command.PartyBinding.driven)
       else `(term| Umpire.Command.PartyBinding.observed)
@@ -2479,8 +2524,10 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
       bindings := [$bindingTerms,*]
       «repeat» := $repeatTerm
       queries := [$queryIdTerms,*]
+      machine := $machineTerm
       cover := [$coverTerms,*]
       budget := $budgetTerm
+      targets := $targetsTerm
       source := ($origin).source })
   elabCommand (← `(command|
     $[$doc?:docComment]? def $name : Umpire.Command.SetDeclaration := $declaration))

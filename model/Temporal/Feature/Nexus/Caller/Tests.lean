@@ -231,6 +231,65 @@ query timesOutOnProtocol
   in: asyncThenSucceeded
   limits: three
 
+/-! ### The sets
+
+A canary is admitted when a deployment can close every gap its Cases carry: the handler is
+`observed`, and every step of the sync and async completion paths records evidence. The Cases are
+produced under the functional set's realization and registered nowhere. -/
+
+#guard nexusCallerCanary.purpose == .canary
+#guard nexusCallerCanary.bindings ==
+  [("caller", .driven), ("handler", .observed), ("network", .observed), ("worker", .driven)]
+#guard [nexusCallerCanaryCases.syncCompletion, nexusCallerCanaryCases.asyncCompletion].all
+  fun produced => Temporal.Case.whiteBoxGaps produced == []
+
+/- A Query whose path takes a silent step carries a capability gap no deployment closes, so a
+canary naming it is rejected at the block, naming the Query and the gap. -/
+set canaryRetry
+  purpose: canary
+  bind:
+    caller: driven
+    handler: observed
+    network: observed
+    worker: driven
+  queries: [retry]
+
+/--
+error: Query 'Temporal.Feature.Nexus.Caller.retry' cannot be a canary: its Case carries the white-box Known Gap 'temporal.nexus.caller.action.nexusProtocol.backoff.unobserved' (capability), a step of its path that no observation confirms; a canary runs against a deployment the Case does not drive, so leave the Query out or give the step evidence
+-/
+#guard_msgs in
+case canaryRetryCases
+  realizes canaryRetry
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+
+/- The exploration covers the protocol machine under `four`: the rows within three steps of a
+start, in table order, then the results those rows reach and the claims their actions make, well
+under the search count. The golden `Fixtures/CallerExploratoryCoverage.json` pins the list. -/
+#guard nexusCallerExploration.purpose == .exploratory
+#guard nexusCallerExploration.machine.map (·.value) ==
+  some "temporal.nexus.caller.machine.nexusProtocol"
+#guard nexusCallerExploration.cover == [.rows, .results, .classMembers]
+#guard nexusCallerExploration.budget == some "four"
+#guard nexusProtocol.table.transitions.length == 1152
+#guard nexusCallerExploration.targets.length == 885 + 2 + 2
+#guard (nexusCallerExploration.targets.map CoverageTarget.kind).eraseDups ==
+  ["row", "result", "classMember"]
+#guard (nexusCallerExploration.targets.filter (·.kind == "row")).length == 885
+#guard nexusCallerExploration.targets.length ≤ four.search.value
+#guard (nexusCallerExploration.targets.filterMap fun target => match target with
+    | .result outcome => some outcome.value
+    | _ => none) ==
+  ["temporal.nexus.caller.outcome.nexusProtocol.accepted",
+    "temporal.nexus.caller.outcome.nexusProtocol.notFound"]
+#guard (nexusCallerExploration.targets.filterMap fun target => match target with
+    | .classMember _ action field className exampleValue =>
+        some (action, field, className, exampleValue)
+    | _ => none) ==
+  [("temporal.nexus.caller.action.handlerReply", "reply", "handlerError (retryable := false)",
+      "BadRequest"),
+    ("temporal.nexus.caller.action.handlerReply", "reply", "handlerError (retryable := true)",
+      "Internal")]
+
 /-! ### The Cases
 
 One realization serves the seven Queries, and each Case's Program is the path's: the completion

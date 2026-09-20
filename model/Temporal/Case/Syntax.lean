@@ -9,7 +9,10 @@ import Temporal.Case.Realization.Nexus
 A Model file's last block, and the one part of the command surface Temporal owns: it names the set
 whose Queries it realizes and the realization that runs them, and, for a machine that declares no
 `evidence:` catalog, the recorded history event that confirms each Action the set's Queries select.
-The commands it sits beside are `Umpire.Command`'s.
+The commands it sits beside are `Umpire.Command`'s. A functional set's Cases are registered for the
+renderer; a canary set's are produced the same way and registered nowhere, because what admits a
+canary is that a deployment can close every gap its Cases carry, which only the produced Case
+says.
 
 The Case ID prefix is Temporal's too. Every identity derives from the set's name and each Query's:
 the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture `<set>-<query>`, so a Case is named by
@@ -65,7 +68,16 @@ private def notASetMessage (spelling : String) : String :=
 a functional set under identities derived from the set's and each Query's name"
 
 private def notFunctionalMessage (spelling purpose : String) : String :=
-  s!"set '{spelling}' is {purpose}; only a functional set compiles to Cases, one per Query"
+  s!"set '{spelling}' is {purpose}; a functional set compiles to Cases and a canary set is admitted \
+through them, one per Query, while an exploratory set covers rather than lists Queries"
+
+private def whiteBoxGapMessage (queryName kind code : String) : String :=
+  s!"Query '{queryName}' cannot be a canary: its Case carries the white-box Known Gap '{code}' \
+({kind}), a step of its path that no observation confirms; a canary runs against a deployment the \
+Case does not drive, so leave the Query out or give the step evidence"
+
+private def canaryProductionMessage (queryName construct : String) : String :=
+  s!"Query '{queryName}' cannot be a canary: its Case does not produce ({construct})"
 
 private def unselectedBySetMessage (spelling : String) (selected : Array String) : String :=
   s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
@@ -92,6 +104,34 @@ private def machineActionDecls (declaredMachine : Umpire.Command.Registry.Machin
     Array Name :=
   declaredMachine.actionDecls
 
+/-- The Known Gaps of a produced Case that a deployment cannot close, as (kind, code): the
+`capability` and `interpretation` kinds, each a step of the path that no observation confirms. An
+`input` gap is a parameter the deployment binds and a `claim` gap is the Model's own, so neither
+keeps a canary out. A Case that does not produce is one entry naming the construct that failed. -/
+def whiteBoxGaps
+    (produced : Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case) :
+    List (String × String) :=
+  match produced with
+  | .ok output =>
+      (output.provenance.map fun provenance =>
+        provenance.known_gaps.toList.filterMap fun gap =>
+          match gap.kind with
+          | .KNOWN_GAP_KIND_CAPABILITY => some ("capability", gap.code)
+          | .KNOWN_GAP_KIND_INTERPRETATION => some ("interpretation", gap.code)
+          | _ => none).getD []
+  | .error failure => [("production", failure.construct)]
+
+private unsafe def evalWhiteBoxGapsUnsafe (declName : Name) :
+    Elab.Term.TermElabM (List (String × String)) :=
+  Meta.evalExpr (List (String × String))
+    (.app (.const ``List [Level.zero])
+      (mkApp2 (.const ``Prod [Level.zero, Level.zero]) (.const ``String []) (.const ``String [])))
+    (.const declName [])
+
+/-- A canary Case's white-box gaps, read off the definition the block just emitted. -/
+@[implemented_by evalWhiteBoxGapsUnsafe]
+private opaque evalWhiteBoxGaps (declName : Name) : Elab.Term.TermElabM (List (String × String))
+
 elab "case" name:ident
     &"realizes" setRef:ident
     &"as" realization:term:max
@@ -103,8 +143,9 @@ elab "case" name:ident
   let environment ← getEnv
   let some declaredSet := Umpire.Command.Registry.set? environment setName
     | throwErrorAt setRef (notASetMessage setName.toString)
-  unless declaredSet.purpose == "functional" do
+  unless declaredSet.purpose == "functional" || declaredSet.purpose == "canary" do
     throwErrorAt setRef (notFunctionalMessage setName.toString declaredSet.purpose)
+  let canary := declaredSet.purpose == "canary"
   -- Every Query of the set, with the Actions its Scenario selects and the Model it runs on.
   let mut queries : Array (Name × Array String × Name) := #[]
   for queryName in declaredSet.queries do
@@ -147,8 +188,9 @@ elab "case" name:ident
         Umpire.Case.Producer.EvidenceMapping.mk
           (vocabulary.namedAction $(Lean.quote entry.1)) $(Lean.quote entry.2))
     let fixtureName := declaredSet.name ++ "-" ++ short
-    if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName) then
-      throwErrorAt setRef (duplicateFixtureMessage fixtureName prior.caseId)
+    if !canary then
+      if let some prior := (Registry.cases environment).find? (·.fixture == fixtureName) then
+        throwErrorAt setRef (duplicateFixtureMessage fixtureName prior.caseId)
     let caseId := caseIdRoot ++ "." ++ declaredSet.name ++ "." ++ short
     -- The claims the machine's actions make, for the Producer to record the ones this path performs,
     -- and the machine's own `evidence:` lines, which a Case with no lines of its own reads.
@@ -175,7 +217,20 @@ elab "case" name:ident
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
           $evidenceName (claims := $claims) (evidenceCatalog := $catalog)))
-    liftCoreM (Registry.recordCase {
-      declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
+    -- A canary's Case is produced to be read, not rendered: a white-box gap on it is a step a
+    -- deployment cannot close, and the block rejects naming the Query and the gap. A functional
+    -- set's Case is registered for the renderer instead.
+    if canary then
+      let gapsName := mkIdentFrom name (caseName.getId ++ `whiteBoxGaps)
+      elabCommand (← `(command|
+        def $gapsName : List (String × String) := Temporal.Case.whiteBoxGaps $caseName))
+      let gaps ← liftTermElabM (evalWhiteBoxGaps ((← getCurrNamespace) ++ gapsName.getId))
+      if let some (kind, code) := gaps.head? then
+        if kind == "production" then
+          throwErrorAt setRef (canaryProductionMessage queryName.toString code)
+        throwErrorAt setRef (whiteBoxGapMessage queryName.toString kind code)
+    else
+      liftCoreM (Registry.recordCase {
+        declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
 
 end Temporal.Case
