@@ -16,6 +16,15 @@ Case: no Program, no Contract, no Profile.
 Read the file from top to bottom. The order is the order the commands resolve each other in:
 vocabulary, then the machines, then what they promise, then what a set asks.
 
+This is the one authoring path for a feature Model. A production module under `Temporal.Feature`
+(or `Umpire.Examples`) imports the commands and nothing of `Umpire.Model`, `Umpire.Property`,
+`Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` or `Umpire.Case` directly: `make lint-model`
+rejects the import (`authoring-path-isolation`, MOD-16), and AUT-08's expert alternative of building
+a `Machine` by hand is withdrawn for feature Models (both drafted by fn-86 under GOV-02). What is
+not a command is not written per Model: a Case's Program and Contract come from the Producer, and
+the raw records a command elaborates to are built directly only by the Implementation Link and by
+Umpire's own tests.
+
 ## 0. An empty file
 
 A Model file imports the platform's command surface and opens one namespace. The namespace is
