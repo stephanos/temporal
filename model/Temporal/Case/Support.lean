@@ -34,6 +34,7 @@ def startWorkflowMethod :=
   "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
 def getHistoryMethod :=
   "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+def getSystemInfoMethod := "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
 
 /-! ### Observations a Case declares -/
 
