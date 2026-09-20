@@ -35,11 +35,11 @@ example : VariationAxisDeclaration.faultAxis faultAxisId source [faultDelay, fau
   rfl
 
 example : FaultIntentDeclaration.atOccurrence delayFaultId source
-    (id "switch.occurrence.flip") Umpire.Examples.Switch.flipActionId
+    Umpire.Examples.Switch.flipOccurrenceId Umpire.Examples.Switch.flipActionId
     Umpire.Examples.Switch.switchCapabilityId = ({
       id := delayFaultId
       source
-      occurrence := id "switch.occurrence.flip"
+      occurrence := Umpire.Examples.Switch.flipOccurrenceId
       action := Umpire.Examples.Switch.flipActionId
       capability := Umpire.Examples.Switch.switchCapabilityId
     } : FaultIntentDeclaration) := by

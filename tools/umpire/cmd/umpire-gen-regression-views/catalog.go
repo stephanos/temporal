@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	switchIdentity = "switch.query.exact-action"
+	switchIdentity = "umpire.switch.query.exactAction"
 )
 
 type manifestEntry struct {

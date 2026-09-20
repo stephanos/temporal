@@ -55,7 +55,7 @@ def faultAxis : VariationAxisDeclaration :=
 def delayFault : FaultIntentDeclaration := {
   id := delayFaultId
   source
-  occurrence := id "switch.occurrence.flip"
+  occurrence := Umpire.Examples.Switch.flipOccurrenceId
   action := Umpire.Examples.Switch.flipActionId
   capability := Umpire.Examples.Switch.switchCapabilityId
   incompatibleWith := [failureFaultId]
@@ -64,7 +64,7 @@ def delayFault : FaultIntentDeclaration := {
 def failureFault : FaultIntentDeclaration := {
   id := failureFaultId
   source
-  occurrence := id "switch.occurrence.flip"
+  occurrence := Umpire.Examples.Switch.flipOccurrenceId
   action := Umpire.Examples.Switch.flipActionId
   capability := Umpire.Examples.Switch.switchCapabilityId
   incompatibleWith := [delayFaultId]

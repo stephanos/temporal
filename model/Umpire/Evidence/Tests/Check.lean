@@ -18,6 +18,8 @@ def satisfiedObservationDeclaration : Evidence.Reading := {
   rules := observationDeclaration.rules.map fun rule =>
     if rule.id == outcomeRuleId then
       { rule with output := Umpire.Examples.Switch.appliedOutcomeId }
+    else if rule.id == observationRuleId then
+      { rule with output := Umpire.Examples.Switch.powerOnObservation.definitionId }
     else
       rule
 }
@@ -171,14 +173,14 @@ example :
         (clause.clauseId, if clause.satisfied then .satisfied else .violated))]) := by
   native_decide
 
-/-- Repeated equal Feature values retain their distinct positional Evidence Links. -/
+/-- Repeated equal Feature values retain their distinct positional Evidence Links. The clause
+names the `on` state, which is its own definition, so a step that leaves the switch off offers the
+clause no state coordinate: the two selected flips are what it examined. -/
 example :
     repeatedRunEvaluation.querySummary.verdicts.flatMap (fun verdict =>
       verdict.clauses.flatMap SemanticClauseVerdict.coordinates) = [
         .selectedAction 1,
-        .state 1,
-        .selectedAction 2,
-        .state 2
+        .selectedAction 2
       ] := by
   native_decide
 
@@ -401,8 +403,8 @@ example :
     let second := orderedRunEvaluation [Umpire.Examples.Switch.flipProperty, initialOffProperty]
     first.querySummary = second.querySummary ∧
       first.querySummary.verdicts.map SemanticPropertyVerdict.propertyId = [
-        Umpire.Examples.Switch.flipPropertyId,
-        initialOffProperty.id
+        initialOffProperty.id,
+        Umpire.Examples.Switch.flipPropertyId
       ] := by
   native_decide
 

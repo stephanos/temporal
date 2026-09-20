@@ -102,8 +102,9 @@ private def modulePath (declaring : Name) : String :=
   "/".intercalate (declaring.components.map (·.toString)) ++ ".lean"
 
 private def originTerm : CommandElabM Term := do
-  let conventions := Registry.conventions (← getEnv)
-  let family := semanticFamilyOf conventions.namespacePrefix (← getCurrNamespace)
+  let enclosing ← getCurrNamespace
+  let conventions := Registry.conventionsFor (← getEnv) enclosing
+  let family := semanticFamilyOf conventions.namespacePrefix enclosing
   let path := modulePath (← getMainModule)
   `(term| Origin.of $(Lean.quote conventions.root) $(Lean.quote family) $(Lean.quote path))
 
@@ -113,7 +114,7 @@ A reference computes the referenced declaration's id from the namespace that dec
 the referring file's own: the two agree only while both are in one file, and a Model that refers
 across files would otherwise point at a name in its own family that nothing declares. -/
 private def definitionIdIn (enclosing : Name) (kind key : String) : CommandElabM String := do
-  let conventions := Registry.conventions (← getEnv)
+  let conventions := Registry.conventionsFor (← getEnv) enclosing
   let family := semanticFamilyOf conventions.namespacePrefix enclosing
   pure ((Origin.of conventions.root family "").family.id kind key).value
 
@@ -357,6 +358,30 @@ private def groupTerm (group : PropertyGroup) : CommandElabM Term := do
   let requirements ← group.requirements.toArray.mapM requirementTerm
   `(({ trigger := $trigger, requirements := [$requirements,*] } : Umpire.Command.PropertyGroup))
 
+/-- The leading word of a declaration command, spelled so that it stays an ordinary identifier.
+
+`entity`, `action` and `observation` are the vocabulary a Model is written in, and they are also
+field names inside the records the commands build -- `EntityReference.entity`, `Observation.entity`,
+`FiniteTransitionRow.action`. So are `property`, `scenario`, `limits` and `query`: `Query.limits`,
+`AdmittedQuery.property`, and every test that binds a `query` or a `property`. Reserving any of them
+as a token would make every one of those fields and binders unwritable in every module that imports
+the commands. `&"entity"` alone does not work either: a non-reserved symbol is indexed under its own
+token, and a command that begins with a bare identifier is dispatched under `ident`, so the parser
+would only be reachable behind a doc comment.
+
+`includeIdent` indexes the parser under both, which is what makes a column-0 `entity` a command
+without taking the word away from the rest of the tree. -/
+private def declarationKeyword (word : String) : Lean.Parser.Parser :=
+  Lean.Parser.nonReservedSymbolNoAntiquot word (includeIdent := true)
+
+@[run_parser_attribute_hooks] private def propertyKeyword := declarationKeyword "property"
+@[run_parser_attribute_hooks] private def scenarioKeyword := declarationKeyword "scenario"
+@[run_parser_attribute_hooks] private def limitsKeyword := declarationKeyword "limits"
+@[run_parser_attribute_hooks] private def queryKeyword := declarationKeyword "query"
+@[run_parser_attribute_hooks] private def entityKeyword := declarationKeyword "entity"
+@[run_parser_attribute_hooks] private def actionKeyword := declarationKeyword "action"
+@[run_parser_attribute_hooks] private def observationKeyword := declarationKeyword "observation"
+
 /-- The `when:` line of a same-step claim: the Action, bare or with its class applied. -/
 syntax propertyWhen := "when:" term
 
@@ -400,7 +425,7 @@ private def transitionCommand (enumeratedName : Ident) (declaredModel : Registry
       ($transitions)
       ($predicateRef))
 
-elab "property" name:ident
+elab propertyKeyword name:ident
     "machine:" modelRef:ident
     trigger?:(propertyWhen)?
     "holds:" predicateRef:term : command => do
@@ -465,15 +490,15 @@ elab "property" name:ident
 /- The keyed form is retired. It is rejected here, at the key that used to introduce it, rather
 than gated by the vocabulary check: `require` is a bare word, and SEM-20 keeps bare words out of
 the gate. -/
-elab "property" ident "machine:" ident "when:" term
+elab propertyKeyword ident "machine:" ident "when:" term
     requireKeyword:"require:" modelRequirement+ : command => do
   throwErrorAt requireKeyword retiredRequireMessage
 
-elab "property" ident modelKeyword:"model:" ident "when:" term
+elab propertyKeyword ident modelKeyword:"model:" ident "when:" term
     "require:" modelRequirement+ : command => do
   throwErrorAt modelKeyword retiredModelKeyMessage
 
-elab "property" ident modelKeyword:"model:" ident (propertyWhen)? "holds:" term : command => do
+elab propertyKeyword ident modelKeyword:"model:" ident (propertyWhen)? "holds:" term : command => do
   throwErrorAt modelKeyword retiredModelKeyMessage
 
 /-! ### The `scenario` command
@@ -520,7 +545,7 @@ private def productTooLargeMessage (states actions count size bound : Nat) : Str
   s!"{count} instances of a machine with {states} states and {actions} action classes multiply out \
 to {size} steps to enumerate; the bound is {bound}, so declare fewer instances or a smaller machine"
 
-elab "scenario" name:ident
+elab scenarioKeyword name:ident
     "model:" modelRef:ident
     instances?:(scenarioInstances)?
     "starts:" setupRef:ident
@@ -605,12 +630,12 @@ elab "scenario" name:ident
       «actions» := spellings
       instances := count })
 
-macro "limits" name:ident
+elab limitsKeyword name:ident
     "steps:" stepCount:num
     "actions:" actionCount:num
-    "search:" searchCount:num : command =>
-    `(command| def $name : Limits :=
-        Limits.bounded $stepCount $actionCount $searchCount)
+    "search:" searchCount:num : command => do
+  elabCommand (← `(command| def $name : Limits :=
+    Limits.bounded $stepCount $actionCount $searchCount))
 
 private def unknownGapKindMessage (spelling : String) : String :=
   s!"unknown Known Gap kind '{spelling}'; declared: capability, input, interpretation, claim"
@@ -1010,14 +1035,14 @@ private def elabFieldRelation (name modelRef : Ident) (actionRef : Term) (leftRe
     «model» := declaredModel.declName
     action := key })
 
-elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
+elab propertyKeyword name:ident "machine:" modelRef:ident "when:" actionRef:term
     "relates:" leftRef:ident operatorRef:fieldRelationOperator rightRef:ident : command => do
   let negated := match operatorRef with
     | `(fieldRelationOperator| ≠) => true
     | _ => false
   elabFieldRelation name modelRef actionRef leftRef (some (negated, rightRef))
 
-elab "property" name:ident "machine:" modelRef:ident "when:" actionRef:term
+elab propertyKeyword name:ident "machine:" modelRef:ident "when:" actionRef:term
     "relates:" leftRef:ident &"present" : command => do
   elabFieldRelation name modelRef actionRef leftRef none
 
@@ -1048,7 +1073,7 @@ private def elabQueryAdmission
   reportAdmission name propertyRef scenarioRef limitsRef modelRef formKeyword
     ((← getCurrNamespace) ++ diagnosticName.getId)
 
-elab "query" name:ident
+elab queryKeyword name:ident
     findKeyword:"find:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
@@ -1063,7 +1088,7 @@ elab "query" name:ident
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef findKeyword name
 
-elab "query" name:ident
+elab queryKeyword name:ident
     verifyKeyword:"verify:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
@@ -1089,25 +1114,6 @@ file's `Origin`.
 The keys are parsed as a syntax category rather than a fixed signature, because most of them are
 optional and an optional group in a command signature does not bind. That also puts every key on its
 own line for a rejection to point at. -/
-
-/-- The leading word of a declaration command, spelled so that it stays an ordinary identifier.
-
-`entity`, `action` and `observation` are the vocabulary a Model is written in, and they are also
-field names inside the records the commands build -- `EntityReference.entity`, `Observation.entity`,
-`FiniteTransitionRow.action`. Reserving them as tokens, the way `property` and `scenario` are
-reserved,
-would make every one of those fields unwritable. `&"entity"` alone does not work either: a
-non-reserved symbol is indexed under its own token, and a command that begins with a bare identifier
-is dispatched under `ident`, so the parser would only be reachable behind a doc comment.
-
-`includeIdent` indexes the parser under both, which is what makes a column-0 `entity` a command
-without taking the word away from the rest of the tree. -/
-private def declarationKeyword (word : String) : Lean.Parser.Parser :=
-  Lean.Parser.nonReservedSymbolNoAntiquot word (includeIdent := true)
-
-@[run_parser_attribute_hooks] private def entityKeyword := declarationKeyword "entity"
-@[run_parser_attribute_hooks] private def actionKeyword := declarationKeyword "action"
-@[run_parser_attribute_hooks] private def observationKeyword := declarationKeyword "observation"
 
 /-- One indented key of an `entity` declaration. -/
 declare_syntax_cat entityKey

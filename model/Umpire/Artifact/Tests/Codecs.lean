@@ -81,17 +81,17 @@ example : Umpire.Json.prettyBytes escapingProbeJson =
 example : compiledArtifact.hasValidArtifactChecksum ∧
     compiledArtifact.plan.hasValidArtifactChecksum ∧
     compiledArtifact.artifactChecksum.render =
-      "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a" ∧
+      "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a" ∧
     compiledArtifact.plan.artifactChecksum.render =
-      "sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200" := by
+      "sha256:32183cb9e7306592b5dfbaacb7325be0bf2086fb7d50841c2dd5c36a7aa5cc15" := by
   native_decide
 
 private def guardedPropertyDeclaration : Property := {
   authoredProperty with
-  id := DefinitionId.of "switch.property.guarded-flip"
+  id := DefinitionId.of "umpire.switch.property.guardedFlip"
   version := 2
   clauses := [.branches {
-    id := DefinitionId.of "switch.property.guarded-flip.group"
+    id := DefinitionId.of "umpire.switch.property.guardedFlip.group"
     source
     guard := .atom {
       field := .selectedAction
@@ -99,7 +99,7 @@ private def guardedPropertyDeclaration : Property := {
       constraint := .equals (.text flipAction.value)
     }
     cases := [{
-      id := DefinitionId.of "switch.property.guarded-flip.off"
+      id := DefinitionId.of "umpire.switch.property.guardedFlip.off"
       source
       guard := .atom {
         field := .priorState
@@ -107,7 +107,7 @@ private def guardedPropertyDeclaration : Property := {
         constraint := .equals (.text offState.value)
       }
       clauses := [{
-        id := DefinitionId.of "switch.property.guarded-flip.off.result"
+        id := DefinitionId.of "umpire.switch.property.guardedFlip.off.result"
         source
         expectation := .atom {
           field := .resultingState
@@ -123,7 +123,7 @@ private def guardedArtifactPair? : Option (CheckedProperty × Plan × Plan) := d
   let property ← (Property.check (PropertyCheckContext.ofTarget target)
     (guardedPropertyDeclaration)).toOption
   let declaration (properties : List CheckedProperty) : Query := {
-    id := DefinitionId.of "switch.query.guarded-artifact"
+    id := DefinitionId.of "umpire.switch.query.guardedArtifact"
     source
     target := target.id
     form := .pick properties

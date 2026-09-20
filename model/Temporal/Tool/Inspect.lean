@@ -10,8 +10,6 @@ the registry, and `umpire-explain <id>` one registered Query's checked lineage. 
 caller Model's Queries beside Umpire's Switch example: what the Model file declares is what the
 inspector shows, and a Query whose form selects no Artifact (a verify Query) is listed with none.
 
-The caller Model is a command file, so `query`, `property` and their kin are keywords here; the
-binders below are spelled around them.
 -/
 
 namespace Temporal.Tool.Inspect
