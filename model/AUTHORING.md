@@ -1,4 +1,30 @@
--- authoring: header
+# Authoring a Model file
+
+This is the walk from an empty file to a green live test. It quotes
+[`Temporal/Feature/Nexus/Caller/Model.lean`](Temporal/Feature/Nexus/Caller/Model.lean), the Nexus
+caller-side Model, region by region: each Lean block below is a marked region of that file
+(`-- authoring: <name>`), and `go test ./tools/umpire/authoring/...` fails when a block and its
+region part, so what this page shows is what compiles. The commands themselves are
+`Umpire.Command`'s and are specified by [UMPIRE4_SPEC](../.plans/UMPIRE4_SPEC.md) under AUT-07a;
+the design the Model realizes is [DESIGN.md](Temporal/Feature/Nexus/DESIGN.md).
+
+What you end with: one Model file; one fixture per Query under
+`tests/testcore/testpilot/testdata/`, rendered by `umpire-case` and checked in; and one Go test
+function per Query that names the fixture and asserts the Verdict. Nothing else is written per
+Case: no Program, no Contract, no Profile.
+
+Read the file from top to bottom. The order is the order the commands resolve each other in:
+vocabulary, then the machines, then what they promise, then what a set asks.
+
+## 0. An empty file
+
+A Model file imports the platform's command surface and opens one namespace. The namespace is
+what every Definition ID in the file hangs off: `Temporal.Feature.Nexus.Caller` becomes the family
+`temporal.nexus.caller`, and every declaration below is `temporal.nexus.caller.<kind>.<name>`,
+which is how a fixture, a Verdict and a COVERAGE.md row name the same thing.
+
+<!-- authoring: header -->
+```lean
 import Temporal.Case.Syntax
 
 /-!
@@ -21,9 +47,17 @@ namespace Temporal.Feature.Nexus.Caller
 
 open Umpire
 open Umpire.Command
+```
 
--- authoring: entities
+## 1. Entities
 
+An entity is something with identity that a machine keeps state for. `workflow` has none of its
+own here; `operation` refers to the workflow that scheduled it and is keyed by its scheduled
+event, which is what every history event of the operation carries and what the runtime correlates
+evidence by.
+
+<!-- authoring: entities -->
+```lean
 /-! ### Entities
 
 An operation is scheduled by a caller workflow, and recorded data names one by its scheduled event:
@@ -35,9 +69,16 @@ entity operation
   refer:
     caller: workflow
   key: scheduledEvent
+```
 
--- authoring: domains
+## 2. Input domains
 
+An `enum` is a finite domain. A class is one member of it, and a constructor with finite fields
+contributes one class per assignment of them: `handlerError (retryable : Bool)` is two classes.
+That is the granularity an example is written at, a Scenario selects at, and a Case claims at.
+
+<!-- authoring: domains -->
+```lean
 /-! ### The input domains
 
 A class is one member of a domain, and a constructor that carries finite fields contributes one
@@ -63,9 +104,19 @@ enum Resolution
 enum Delivery
   | accepted
   | notFound
+```
 
--- authoring: actions
+## 3. Actions
 
+An action is what a party does to an entity, with typed inputs over the domains. Parties are
+declared by use; `system` is reserved for the server and performs no action. A `schema:` names
+the protobuf message the realization carries the action as. An `examples:` line is an abstraction
+claim: the author says every realized value of the class behaves alike, and the functional Case
+runs the example. A fault (`transportFault`, `workerStop`) is an ordinary action of the party
+that causes it.
+
+<!-- authoring: actions -->
+```lean
 /-! ### Actions
 
 Parties are names the feature declares by using them: `caller`, `handler`, `network`, `worker`.
@@ -109,9 +160,17 @@ records: the Run records the fault, but nothing recorded names the operation, so
 their state and record nothing at it. -/
 action workerStop
   party: worker
+```
 
--- authoring: observation
+## 4. A derived observation
 
+Evidence names resolve against the realization's catalog of recorded history events, so a Model
+declares only the observations that are read rather than recorded. The attempt count of a
+retrying operation is one: no history event records it, so it is read back through
+`DescribeWorkflowExecution`.
+
+<!-- authoring: observation -->
+```lean
 /-! ### The derived observation
 
 A retryable attempt failure writes no history event, so the attempt count is read back through
@@ -121,9 +180,18 @@ which is why only a derived observation is declared. -/
 observation pendingAttempts
   on: operation
   read: attempts
+```
 
--- authoring: product
+## 5. The product machine
 
+A machine keeps one entity's state and says what each action does to it, as an ordinary Lean step
+function over a structure of finite fields. It names the phases it starts and ends in, the timers
+it owns, and under `evidence:` which recorded observation confirms each fact a step records. The
+product machine says what an operation does and nothing about how: a retryable handler error is
+invisible to it, and so are the faults.
+
+<!-- authoring: product -->
+```lean
 /-! ### The product machine
 
 What an operation does, with no account of how. Every Property written against it is carried to
@@ -227,9 +295,19 @@ machine nexusProduct
     transportFault: transportFaultStep
     workerStop: workerStopStep
     timeout: timeoutStep
+```
 
--- authoring: protocol
+## 6. The protocol machine, which refines it
 
+The protocol machine says how the server gets there: the retry, the three deadlines the schedule
+command sets, the attempt count. It is written against the same actions and declares `refines:`
+and `map:`, so every Property proved on the product machine is carried here through the map, and
+the `machine` command checks the refinement over the two tables. A timer under `unobservable:`
+records nothing the realization can see; every Case whose path fires it carries a Known Gap
+saying so.
+
+<!-- authoring: protocol -->
+```lean
 /-! ### The protocol machine
 
 How the server gets there: the retry the product machine cannot see, the three timers the schedule
@@ -430,9 +508,18 @@ machine nexusProtocol
     scheduleToClose: scheduleToCloseStep
     scheduleToStart: scheduleToStartStep
     startToClose: startToCloseStep
+```
 
--- authoring: properties
+## 7. What the machines promise
 
+A `property` is an ordinary Lean predicate the command enumerates over the machine's table. A
+same-step claim names its action under `when:` and holds of the step that action produces; a
+transition claim holds of the step before and the step after. A same-step claim fixes one state
+or none, which is what lets a functional Case lower it to a Contract clause triggered by the
+action the Case performs.
+
+<!-- authoring: properties -->
+```lean
 /-! ### What the machines promise
 
 A same-step claim names the action it is about under `when:` and holds of the step that action
@@ -511,9 +598,15 @@ property startToCloseFires
   holds: fun step =>
     step.state.phase == .timedOut &&
       step.facts.contains (.nexusOperationTimedOut (timeoutType := .startToClose))
+```
 
--- authoring: scenarios
+## 8. The paths and their limits
 
+A `scenario` is one path: the classed actions in order from a starting phase. Each path below is
+one upstream functional test's shape. `limits` bound the search that finds the path's witness.
+
+<!-- authoring: scenarios -->
+```lean
 /-! ### The paths the Queries run
 
 A protocol Scenario names its classed actions with their inputs and its start by its phase. Each
@@ -581,9 +674,16 @@ limits four
   steps: 4
   actions: 4
   search: 32768
+```
 
--- authoring: queries
+## 9. The Queries
 
+A `find` Query looks for its Property's claim on its Scenario's path within its limits; a `verify`
+Query establishes a claim over every trace and realizes nothing. Each functional Query is one
+upstream test.
+
+<!-- authoring: queries -->
+```lean
 /-! ### The Queries
 
 The design's seven: sync success, async reply then succeeded callback, async reply then failed
@@ -632,9 +732,19 @@ query terminalHolds
   verify: terminalIsFinal
   in: asyncThenSucceeded
   limits: three
+```
 
--- authoring: set
+## 10. The sets
 
+A `set` groups Queries by purpose and binds every party but `system` to `driven` (the Case
+performs its actions) or `observed` (the world does, and the verifier reads which class occurred).
+A functional set compiles to one Case per Query, once per value of its `repeat:` switch. A canary
+set is admitted when a deployment can close every gap its Cases carry. An exploratory set names
+the machine it covers, its goals and a `limits` budget, and its coverage targets are enumerated
+and pinned by a golden.
+
+<!-- authoring: set -->
+```lean
 /-! ### The functional set
 
 Every party but `system` is bound: the Case drives the caller, the handler and the worker, and
@@ -687,9 +797,19 @@ set nexusCallerExploration
   machine: nexusProtocol
   cover: rows | results | classMembers
   budget: four
+```
 
--- authoring: case
+## 11. The case block
 
+The one platform-owned command. It names a set and a realization -- the Temporal-owned value that
+binds each action to an RPC or a worker instruction, each observation to where it is recorded and
+each timer to a duration -- and produces one Case per Query of the set, identified by the set's
+and the Query's names: `temporal.case.nexusCallerTests.retry`, fixture
+`nexusCallerTests-retry-case.json`. The evidence each Case lifts is read off the machine's
+`evidence:` lines along the Query's witness, so it is written once, on the machine.
+
+<!-- authoring: case -->
+```lean
 /-! ### The Cases
 
 One realization serves every Query of the functional set: the Producer places each class the path
@@ -708,7 +828,28 @@ reads each for a white-box gap and admits the set when there is none. -/
 case nexusCallerCanaryCases
   realizes nexusCallerCanary
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+```
 
--- authoring: end
+## 12. From the file to a green live test
 
-end Temporal.Feature.Nexus.Caller
+```sh
+cd model && lake build                               # the file compiles, or says where it does not
+make umpire-gen-case-runtime-conformance             # renders one fixture per functional Query
+make umpire-check-case-runtime-conformance           # the checked-in fixtures are the rendered ones
+```
+
+`umpire-case --list` prints the seven Cases the functional set produces beside the explicitly
+registered ones. The live test names the fixture and asserts the Verdict; in
+`tests/testpilot_nexus_caller_case_test.go` each Query is one entry of `nexusCallerQueries` (the
+history events its Contract's supporting evidence must name) and one function that runs it under
+both values of the implementation switch:
+
+```sh
+CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) \
+  go test -count=1 -tags test_dep,integration ./tests -run TestTestpilotNexusCallerRetry
+```
+
+`make umpire-check-regression` runs every gate: the Lean build, the goldens, the fixtures, the
+inventory, the retired vocabulary and the live suite. A change to a block above is a change to the
+Model file, and the drift test (`go test ./tools/umpire/authoring/...`) says so before the gate
+does.

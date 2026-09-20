@@ -59,6 +59,7 @@ var requiredFiles = []string{
 	"model/Shared.lean",
 	"model/Testpilot.lean",
 	"model/README.md",
+	"model/AUTHORING.md",
 	"model/ARCHITECTURE.md",
 	"model/Umpire/ARCHITECTURE.md",
 }

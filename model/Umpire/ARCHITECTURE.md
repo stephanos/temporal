@@ -40,8 +40,13 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
 | `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the monitor rule derived from a checked field Property. |
 | `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
-| `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
+| `Umpire.Command` | The Model command surface: `entity`, `enum`, `action`, `observation`, `machine`, `property`, `scenario`, `limits`, `query`, `set`, and `register_switch` for a realization's switches. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
+| `Umpire.Command.Records` | What the declarations say: entities, actions, observations, timers, setup parameters, evidence lines, machines, sets and coverage targets. |
+| `Umpire.Command.Finite` | The finite domains a `structure` of finite fields derives, and the enumeration of a step function into the table. |
+| `Umpire.Command.Refinement` | The stuttering forward simulation a `refines:` machine is checked against. |
+| `Umpire.Command.Claims` | The abstraction claims a machine's actions make, for the Producer to record per path. |
+| `Umpire.Command.Coverage` | What an exploratory set sets out to reach: rows, results and class members under its budget. |
 | `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
 | `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, Correlated Rule bindings, and local name and model value fingerprint rows, lowered into typed Case provenance rows. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
@@ -385,12 +390,21 @@ not compatibility surfaces of `Umpire.Case`.
 
 ## The Model command surface
 
-`Umpire.Command` owns the five commands a Model file is written in, and the construction and
-admission layer behind them. Nothing in it names a feature: the semantic family of a declaration is
-its enclosing namespace with the project's scaffolding prefix removed, and its Provenance source is
-the module being elaborated. A project declares those conventions once, with `model_conventions`,
-and every declaration in it inherits them.
+`Umpire.Command` owns the commands a Model file is written in, and the construction and admission
+layer behind them: `entity`, `enum`, `action` and `observation` declare the vocabulary; `machine`
+enumerates a step function over a structure of finite fields into the checked table, checks a
+`refines:` machine against the one it refines, and reads which observation confirms each Fact;
+`property`, `scenario`, `limits` and `query` are the authoring languages AUT-07 names, written
+over that vocabulary; `set` groups Queries by purpose and binds parties; `register_switch` is how a
+realization tells the surface which switches a set may repeat over. Nothing in it names a feature:
+the semantic family of a declaration is its enclosing namespace with the project's scaffolding
+prefix removed, and its Provenance source is the module being elaborated. A project declares those
+conventions once, with `model_conventions`, and every declaration in it inherits them.
+`model/AUTHORING.md` walks a Model file through every command in order.
 
 What stays outside is everything about turning a checked Model into something a runtime executes:
-the realizations, which recorded event confirms which Action, and what a Case ID is rooted
-at. Those belong to whoever owns the runtime, which declares its own `case` command beside them.
+the realizations, the catalog of recorded events an `evidence:` line resolves against, and what a
+Case ID is rooted at. Those belong to whoever owns the runtime, which declares its own
+Case-producing block beside them (`case … realizes <set> as <realization>`), producing a
+functional set's Cases for the renderer and reading a canary set's for the gaps a deployment
+cannot close.

@@ -1,8 +1,12 @@
 # Nexus: side effects in the behavioral model
 
-Design specimen. Nothing here compiles, and no module imports it. The spec that implements it is
-fn-85 ("Model side effects as typed actions and run query sets"). Server citations were read at
-commit `7c42dec82c`; no test was run to produce them.
+Design specimen, delivered by fn-85 ("Model side effects as typed actions and run query sets",
+closed 2026-09-20). Nothing here compiles, and no module imports it: the Model it describes is
+[`Caller/Model.lean`](Caller/Model.lean), walked through region by region in
+[`AUTHORING.md`](../../../AUTHORING.md), and the rules it needed are drafted in
+[UMPIRE4_SPEC](../../../../.plans/UMPIRE4_SPEC.md) (AUT-07a, AUT-09 and MOD-02 amendments under
+GOV-02). Where delivery departed from a section, a dated `.N` amendment under it says how. Server
+citations were read at commit `7c42dec82c`; no test was run to produce them.
 
 ## 1. The idea
 
@@ -753,23 +757,24 @@ Appendix B maps each functional test file to these rows.
 
 ## 5. What Umpire needs
 
-| # | Need | Today |
-| --- | --- | --- |
-| 1 | Entities with references and a key, several instances bounded by Limits | one role, one instance |
-| 2 | Actions with a party, input fields over finite enums whose constructors may carry finite fields, optional schema, results and examples | `Umpire.Operation.Declaration` with kinds `unaryRpc`, `sdkCommand`, `event` and exact request lists; abstraction rejected |
-| 3 | Machines with per-instance state fields, setup parameters, timers, and ordered rows with guards, class patterns, alternatives, bound names, `system` rows without an action, and guarded evidence | one flat state enum, one row per state and action pair |
-| 4 | Observations from a catalog, declared read observations, and observations on another entity | event projection only, keys inside templates |
-| 5 | Refinement with a name-default state map and derived steps | the forward simulation inside `Umpire.ImplementationLink`, expert Lean only |
-| 6 | Sets with a purpose, `driven`/`observed` bindings, `repeat` switches, and class claims with their examples recorded in Provenance | one `case` block per Query |
-| 7 | A realization binding actions, observations, timers, setup parameters, switches and references | whole-Program templates |
-| 8 | Worker instructions that carry Temporal API messages, and one observation declaration per Case read by Program and Contract | bespoke instruction fields (`StartNexusOperation`, `RespondNexus` kinds); observations named separately by Program and Contract |
+| # | Need | Before fn-85 | Delivered (fn-85 task) |
+| --- | --- | --- | --- |
+| 1 | Entities with references and a key, several instances bounded by Limits | one role, one instance | `entity` with `refer:` and `key:`; a Scenario's `instances:` (.2, .4) |
+| 2 | Actions with a party, input fields over finite enums whose constructors may carry finite fields, optional schema, results and examples | `Umpire.Operation.Declaration` with kinds `unaryRpc`, `sdkCommand`, `event` and exact request lists; abstraction rejected | `action` with `party:`, `creates:`/`on:`, `input:` over `enum` domains, `schema:`, `results:`, `examples:`; a class is one member of a domain (.2) |
+| 3 | Machines with per-instance state fields, setup parameters, timers, and ordered rows with guards, class patterns, alternatives, bound names, `system` rows without an action, and guarded evidence | one flat state enum, one row per state and action pair | `machine` over a `structure` of finite fields with one step function per action; guards, patterns and alternatives are the function's Lean; `setup:`, `timers:`, `unobservable:`, `evidence:` (.3, .5, .16) |
+| 4 | Observations from a catalog, declared read observations, and observations on another entity | event projection only, keys inside templates | evidence names resolve against the realization's catalog; `observation … read:` declares a read (.9); the read catalog (`Temporal.Case.ReadKind`) binds it; no observation on another entity was needed |
+| 5 | Refinement with a name-default state map and derived steps | the forward simulation inside `Umpire.ImplementationLink`, expert Lean only | `refines:` and `map:` decided by the kernel over the two tables (.6) |
+| 6 | Sets with a purpose, `driven`/`observed` bindings, `repeat` switches, and class claims with their examples recorded in Provenance | one `case` block per Query | `set` with the three purposes, bindings, `repeat:`, and claims recorded per path (.7, .12); one `case … realizes <set>` block per set |
+| 7 | A realization binding actions, observations, timers, setup parameters, switches and references | whole-Program templates | `Umpire.Case.Producer.Realization`: keyed action bindings, timer bindings, switches, sources; the templates are gone (.10, .11) |
+| 8 | Worker instructions that carry Temporal API messages, and one observation declaration per Case read by Program and Contract | bespoke instruction fields (`StartNexusOperation`, `RespondNexus` kinds); observations named separately by Program and Contract | `NexusHandlerReply` and the schedule command's attributes (.8); one evidence declaration per Case read by both (.9) |
 
 Needs 1 to 8 cover the specimen; need 8 is Testpilot's, on top of fn-87's protocol. Section 4's three "yes" rows are later additions.
 
 ## 6. Decisions
 
-Recorded 2026-09-10 with the user; items marked *revised* changed in the simplification pass and are
-not yet reflected in fn-85.
+Recorded 2026-09-10 with the user; items marked *revised* changed in the simplification pass, and
+fn-85 delivered them as revised. Where delivery departed from a decision, the dated `.N` amendment
+under the section it concerns says how.
 
 1. **A party is fixed on the action; a set binds it.** *Revised:* the bindings are `driven` and
    `observed` (previously `test` and `environment`, which collided with a party named

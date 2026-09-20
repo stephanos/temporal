@@ -88,6 +88,12 @@ The retained semantic APIs keep these responsibilities separate:
 Plans and Generated Views remain useful model outputs. They are not inputs to Testpilot and do not
 establish that a runtime Action occurred.
 
+A Model file is written in `Umpire.Command`'s commands -- entities, domains, actions, observations,
+machines with a step function per action, properties as predicates, scenarios, limits, queries and
+sets -- and a platform-owned `case … realizes <set>` block produces one Case per Query of a
+functional set through a realization in `Temporal.Case`. [AUTHORING.md](AUTHORING.md) walks the
+Nexus caller-side Model through them, quoting its marked regions under a drift test.
+
 Operation-correlated bounded response authoring lowers through the existing Property checker.
 `correlated_response%` and typed `PropertyCorrelatedClause` values share canonical meaning and fingerprints;
 key, scope, bound, and ending remain explicit semantic choices.
