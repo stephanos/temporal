@@ -200,6 +200,16 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   machine and re-pins its evidence on the Caller Model's Queries, then task .5 deletes.
 - **Field relations lower onto the existing field-Property structure.** `PropertyFieldPath` already
   has index, select, cardinality, establish and capture steps; R2 adds a clause form, not a clause kind.
+- **A field relation is a `relates:` line of `property`** (task .2, 2026-09-20): `property <name>
+  machine: <m> when: <action> relates: <operand> = <operand>`, `≠`, or `<operand> present`, beside
+  `holds:` rather than under the retired `require:` key. An operand is `<action>.input.<path>`,
+  `<action>.result.<path>` (the action the claim is about, through its `schema:` request or the
+  method's response) or `<kind>.<path>` (a recorded event kind the machine's `evidence:` lines
+  name, read through the history response), and the platform resolves the dotted path to
+  `PropertyFieldPath` steps, presence reads and a scalar type through an installed resolver
+  (`Umpire.Command.installFieldResolver`, answered by `Temporal.Case.FieldPath`). The Producer
+  lowers the relations whose action a path performs to one monitor rule `<property>.relation`
+  through `Umpire.Case.Projection.lower`; a `present` relation admits but lowers to no rule.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
