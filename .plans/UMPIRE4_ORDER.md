@@ -681,6 +681,16 @@ hand-written modules, `register_case` and the two fixtures are gone; `lint-model
 baseline; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
 self-review.
 
+**Task .7 is done, 2026-09-20.** `Umpire.Examples.Switch` is declared through the commands under
+`Umpire.Examples.Conventions` (root `umpire`), every exported name a view over `twoState`, its
+admitted Query and its target; the ids moved to `umpire.switch.<kind>.twoState.<member>` with each
+state and fact its own definition, so the two goldens, `SwitchPlanV2.json`, the run-record goldens,
+the experiment fixture, the generated view and the promotion source were regenerated with the diff
+listed on the receipt. The commands' leading words are non-reserved now, so the eleven importers
+build; `Registry.conventionsFor` picks the conventions by namespace prefix. Gates: `lake build`,
+goldens, regression views, inventory, retired vocabulary, Testpilot checks, `lint-model` at the .1
+baseline, `lint-code-fast`, the Go and live regressions.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
