@@ -276,6 +276,12 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   composed into `check`, so the executable, the synthetic suite and the Makefile's controlled
   violation all reach it through one entry point; `Temporal.Testpilot` stays under the inventory
   check alone until its two rows are migrated.
+- **AUT-08's expert alternative is withdrawn by amendment, not deleted (.9, 2026-09-20)**: the
+  rule keeps the adapter's obligations and says the path produces a `DraftModel`; the amendment
+  records that direct `Machine` construction is withdrawn for feature Models and remains the
+  Implementation Link's and the tests' business, so the history of the rule stays readable under
+  GOV-02. The `Success` specimen is kept as the command-surface specimen rather than folded into the
+  Caller Model's tests.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.

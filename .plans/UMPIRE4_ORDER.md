@@ -698,6 +698,14 @@ direct-import rule over production modules under `Temporal.Feature` and `Umpire.
 violation is asserted byte for byte by the Makefile, the synthetic suite covers the carve-outs, and
 the tree is clean under the rule. Gates: `lint-model` at the .1 baseline.
 
+**Task .9 is done, 2026-09-20, and fn-86 closes.** `UMPIRE4_SPEC.md` carries four drafts under
+GOV-02: AUT-08 without the expert alternative (withdrawn for feature Models by amendment), AUT-07a
+naming the commands as the only authoring path for a feature Model, MOD-16
+(`authoring-path-isolation`) and MOD-11 listing it. `model/README.md`, both architecture
+documents, `model/AUTHORING.md`, `tools/umpire/CONTEXT.md` and `tests/testcore/testpilot/README.md`
+describe one authoring path, and `model/HANDWRITTEN_INVENTORY.md` records its final state with
+every row resolved. Gates: the fn-86 closeout row of the baseline table below.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
@@ -712,6 +720,14 @@ These remain open in Flow and are outside the first-canary critical path.
 | [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; .2 and .3 start after fn-86 R6, because their root list pins `TemporalExperimentalTests`, which fn-86 deletes; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
 
 ## Gate baselines
+
+Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-86 closeout:
+
+| Gate | This session |
+| ---- | ------------ |
+| `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** (the Caller Model's seven Queries under two switch values, the pair, the workflow-start, worker-outage and system-info Cases) |
+| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report the two generated `Temporal/API/Proto.lean` findings and 40 warnings, none new |
+| `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=9484405 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records |
 
 Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-85 closeout:
 
@@ -780,7 +796,7 @@ block replanning or execution.
 
 | Spec                                                                                              | Dependencies                       | Next action                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md)    | fn-40, fn-64, fn-69, fn-84, and **fn-85** | Re-plan on fn-85: an exploratory set's coverage goal (rows, result classes, members of claimed input classes) is the candidate space, and a divergent class member is the counterexample Promotion keeps. Then review whole-Case candidates, serial coordination through Testpilot, lost iterations, semantic coverage, and bounded 10x behavior. |
+| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md)    | fn-40, fn-64, fn-69, fn-84, and **fn-85** | Re-plan on fn-85: an exploratory set's coverage goal (rows, result classes, members of claimed input classes) is the candidate space, and a divergent class member is the counterexample Promotion keeps; fn-86 .5 (2026-09-20) recorded the Experimental exploration inputs in its spec when it deleted them. Then review whole-Case candidates, serial coordination through Testpilot, lost iterations, semantic coverage, and bounded 10x behavior. |
 | [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md)             | fn-5, fn-64, fn-69, **fn-85** and **fn-87** | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
 | [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, fn-69 and **fn-87**  | Review offline Testpilot Case/Profile/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run.                                                                                  |
 | [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md)      | **fn-26**; fn-48, fn-64, fn-69, fn-83 .7, and fn-85 | After fn-26 ships, review external policy and credentials, serial Testpilot Runs, leases, lost Runs, reconciliation without redispatch, and publication. It runs an fn-85 canary set and consumes fn-83's provisioning package. |
@@ -797,7 +813,8 @@ on an explicit user request; autonomous delivery approval does not override this
 fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
 and bounded cleanup cancellation behavior stays in scope. On resume it re-plans on fn-85
 (entities, actions, sets) and takes the cancel Query and the Testpilot cancel instructions that
-fn-85 left out; its re-planning note in Flow lists them.
+fn-85 left out; its re-planning note in Flow lists them, and its `## Scope` records the
+cancellation-race behavior fn-86 .5 deleted with the Race prototype (2026-09-20).
 
 
 **fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously
