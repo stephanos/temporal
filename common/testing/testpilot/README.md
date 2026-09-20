@@ -247,15 +247,17 @@ first planned use.
    added.
 3. **`Testpilot.Authoring`.** `Program.injectFault "queue" .FAULT_KIND_WORKER_STOP`, guarded by
    `injectFaultNamesRoleAndKind`. Producers reach it two ways: `Umpire.faultKindOf`
-   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, and
-   `faultKindName` (`model/Temporal/Testpilot/WorkerOutage.lean`) names it in an exhaustive match, so a
-   new kind is a Lean error there until it is named.
+   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, the
+   worker-outage Model's realization (`model/Temporal/Case/Realization/Workflow.lean`) binds the
+   `workerStop` and `workerResume` classes to it, and `Umpire.Case.Producer.faultKindName` names it
+   in an exhaustive match, so a new kind is a Lean error there until it is named.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
    kinds from `FAULT_KIND_WORKER_STOP` to `FAULT_KIND_WORKER_RESUME` on a task-queue role.
    `scheduler.acceptEffect` calls `Session.InjectFault` with the kind, and `scheduler.publishCompletion`
    records `RUN_EVENT_KIND_FAULT_INJECTED` with the `fault_injected` payload after a successful outcome.
-   The worker-outage Contract compares `path(run_event.payload, fault_injected.kind)` with
-   `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`, which preparation resolves against that field's enum.
+   The outage-order rule the Producer derives for a fault-bearing path compares
+   `path(run_event.payload, fault_injected.kind)` with `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`,
+   which preparation resolves against that field's enum.
 5. **Table.** `ir.RunEventPayloadOf(RUN_EVENT_KIND_FAULT_INJECTED)` is the required `fault_injected`
    arm; unchanged.
 6. **Opcode and Driver.** `contract.InjectFault` and `contract.Session.InjectFault`, unchanged. The
@@ -270,9 +272,9 @@ first planned use.
    covers faults.
 8. **Retired vocabulary.** Nothing to retire for an added kind.
 9. **Equivalence mapping.** An added enum value changes no baseline fixture, so no step; a Producer
-   that starts writing it into `worker-outage-case.json` needs one.
-10. **Fixtures.** `worker-outage-case.json` is rendered from `Temporal.Testpilot.WorkerOutage` (listed
-    as `worker-outage` in `model/Temporal/Tool/Testpilot.lean`) by
+   that starts writing it into `workerOutageTests-survived-case.json` needs one.
+10. **Fixtures.** `workerOutageTests-survived-case.json` is rendered from the worker-outage Model
+    (`model/Temporal/Feature/Workflow/Outage/Model.lean`, whose `case` block registers it) by
     `make umpire-gen-case-runtime-conformance`.
 
 ## Preparation diagnostics

@@ -83,11 +83,13 @@ def startWorkflowNode (instructionId workflowType : String) : InstructionNode :=
     assign (field "request_id") runId] #[]
 
 /-- The close-event read, which resolves once the workflow closed. -/
-def awaitCloseNode : InstructionNode :=
-  rpc "await-close" getHistoryMethod
+def awaitCloseNodeWith (instructionId : String) : InstructionNode :=
+  rpc instructionId getHistoryMethod
     (historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)) #[]
 
-/-- The full history read, run once the workflow closed, lifting the started event. -/
+def awaitCloseNode : InstructionNode := awaitCloseNodeWith "await-close"
+
+/-- The full history read, run once the workflow closed, lifting the declared events. -/
 def historyNode (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod historyAssignments #[
     Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
@@ -104,23 +106,79 @@ def startBinding : Umpire.Case.Producer.ActionBinding := {
     startWorkflowNode instructionId (workflowTypeOf placement.identity)
   literals := fun placement => [(workflowTypeField, .text (workflowTypeOf placement.identity))] }
 
-def plan : Umpire.Case.Producer.ProgramPlan := {
+/-- The plan every workflow Case is assembled from: a controller whose items the realization
+orders around the start, and a workflow that does nothing but finish with `finished`. -/
+def plan (controller : List Umpire.Case.Producer.EntrypointItem) (finished : String) :
+    Umpire.Case.Producer.ProgramPlan := {
   roles := sharedRoles
   observations := sharedObservations
   entrypoints := [
     { activate := fun _ nodes => Program.controller "controller" nodes
-      items := [
-        .actions [startAction],
-        .fixed fun _ _ => awaitCloseNode,
-        .fixed fun _ resolved => historyNode resolved] },
+      items := controller },
     { activate := fun placement nodes =>
         Program.workflow "workflow" (workflowTypeOf placement.identity) workerRole taskQueueRole
           nodes
       items := [
         .fixed fun _ _ =>
-          Program.node "finish-workflow" (Program.finish (text "started"))
+          Program.node "finish-workflow" (Program.finish (text finished))
             (Program.instructionLimits (timeoutMilliseconds := some 5000))] }]
   cleanup := Program.cleanup "cleanup" #[] }
+
+/-! ### The outage
+
+The same scaffolding, disturbed: the worker of the Case's own task queue is stopped before the
+start and resumed after it, and the close read waits for the workflow the resumed worker then
+completes. The two faults are the `worker` party's action classes, each bound to a fault
+instruction on the task-queue role; the wait for completion is the caller's, bound to the
+close-event read. Whether the two faults happen in order and the resume is not long in coming is
+the outage-order rule the Producer derives from the assembled Program. -/
+
+def outageProjectionId : DefinitionId := .of "temporal.workflow.outage.projection"
+def outageEvidenceSourceId : DefinitionId := .of "temporal.workflow.outage.source.history"
+def outageRunFieldId : DefinitionId := .of "temporal.workflow.outage.scope.run"
+def outageWorkflowFieldId : DefinitionId := .of "temporal.workflow.outage.scope.workflow"
+def completedEvidenceKindId : DefinitionId :=
+  .of "temporal.workflow.outage.evidence.workflowExecutionCompleted"
+
+def workerStopAction : DefinitionId := .of "temporal.workflow.outage.action.workerStop"
+def workerResumeAction : DefinitionId := .of "temporal.workflow.outage.action.workerResume"
+def awaitCompletionAction : DefinitionId := .of "temporal.workflow.outage.action.awaitCompletion"
+
+/-- The completed event names its workflow by the workflow task that completed it: the one task
+that can only have been dispatched once the worker was back, which is what an outage the work
+survived leaves behind. -/
+private def completedAttributes : String := "workflow_execution_completed_event_attributes"
+
+def completedSource : Umpire.Case.Producer.EvidenceSource := {
+  eventKind := "workflowExecutionCompleted"
+  recorded := .historyEvent completedAttributes
+  operationKeyPath := historyAttribute completedAttributes "workflow_task_completed_event_id"
+  kindId := completedEvidenceKindId
+  sourceId := outageEvidenceSourceId }
+
+private def faultBinding (action : DefinitionId) (key instructionId : String) (kind : FaultKind) :
+    Umpire.Case.Producer.ActionBinding := {
+  action
+  key
+  instructionId
+  node := fun _ instructionId =>
+    Program.node instructionId (Program.injectFault taskQueueRole kind) }
+
+/-- The worker of the Case's task queue stops polling. -/
+def workerStopBinding : Umpire.Case.Producer.ActionBinding :=
+  faultBinding workerStopAction "workerStop" "stop-worker" .FAULT_KIND_WORKER_STOP
+
+/-- The worker of the Case's task queue polls again. -/
+def workerResumeBinding : Umpire.Case.Producer.ActionBinding :=
+  faultBinding workerResumeAction "workerResume" "resume-worker" .FAULT_KIND_WORKER_RESUME
+
+/-- The caller waits for the workflow to close: the close-event read, which resolves only once the
+resumed worker completed it. -/
+def awaitCompletionBinding : Umpire.Case.Producer.ActionBinding := {
+  action := awaitCompletionAction
+  key := "awaitCompletion"
+  instructionId := "await-close"
+  node := fun _ instructionId => awaitCloseNodeWith instructionId }
 
 end Temporal.Case.Realization.Workflow
 
@@ -131,7 +189,10 @@ open Umpire
 /-- One workflow started by a controller and read back once it closed, realized from a Model's
 `startWorkflow` class. -/
 def workflowStart : Umpire.Case.Producer.Realization := {
-  plan := Workflow.plan
+  plan := Workflow.plan [
+    .actions [Workflow.startAction],
+    .fixed fun _ _ => Workflow.awaitCloseNode,
+    .fixed fun _ resolved => Workflow.historyNode resolved] "started"
   actions := [Workflow.startBinding]
   producerId := "temporal.workflow.start.testpilot"
   producerVersion := "1"
@@ -153,5 +214,45 @@ type. -/
 #guard (workflowStart.actions.map fun binding =>
     binding.literals { identity := Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x" }) ==
   [[("workflow_type.name", .text "umpire-x-workflow")]]
+
+/-- One workflow started while the worker of its own task queue is stopped, the worker resumed,
+and the workflow read back once the resumed worker completed it: realized from a Model's
+`workerStop`, `startWorkflow`, `workerResume` and `awaitCompletion` classes, in the controller
+order the classes are named here, whatever order the path performs them in. -/
+def workflowOutage : Umpire.Case.Producer.Realization := {
+  plan := Workflow.plan [
+    .actions [Workflow.workerStopAction],
+    .actions [Workflow.startAction],
+    .actions [Workflow.workerResumeAction],
+    .actions [Workflow.awaitCompletionAction],
+    .fixed fun _ resolved => Workflow.historyNode resolved] "completed"
+  actions := [Workflow.workerStopBinding, Workflow.startBinding, Workflow.workerResumeBinding,
+    Workflow.awaitCompletionBinding]
+  producerId := "temporal.workflow.outage.testpilot"
+  producerVersion := "1"
+  projectionId := Workflow.outageProjectionId
+  scopeField := Workflow.outageRunFieldId
+  operationKey := Workflow.outageWorkflowFieldId
+  historyObservation := Support.historyObservation
+  correlatedObservation := Support.correlatedObservation
+  sources := [Workflow.completedSource]
+  projectionLimits := {
+    events := 32, buffered := 16, keys := 8, support := 128
+    work := 1000000000, eventSize := 512 }
+  runLimits := {
+    «transitions» := 16, obligations := 16, work := 100000000, captures := 0 } }
+
+/- The two faults are bound to fault instructions on the Case's task-queue role, the wait to the
+close-event read. -/
+#guard (workflowOutage.actions.map (·.key)) ==
+  ["workerStop", "startWorkflow", "workerResume", "awaitCompletion"]
+#guard (workflowOutage.actions.map (·.instructionId)) ==
+  ["stop-worker", "start-workflow", "resume-worker", "await-close"]
+#guard (Umpire.Case.Producer.injectedFaults
+    ((workflowOutage.program (Umpire.Case.Producer.Identity.ofFixture "temporal.case" "x")
+      (path := [Workflow.workerStopAction, Workflow.startAction, Workflow.workerResumeAction,
+        Workflow.awaitCompletionAction])).toOption.getD (Testpilot.Authoring.Program.make "" #[] #[] #[] #[]
+      (Testpilot.Authoring.Program.cleanup "" #[])))) ==
+  [(Support.taskQueueRole, .FAULT_KIND_WORKER_STOP), (Support.taskQueueRole, .FAULT_KIND_WORKER_RESUME)]
 
 end Temporal.Case.Realization

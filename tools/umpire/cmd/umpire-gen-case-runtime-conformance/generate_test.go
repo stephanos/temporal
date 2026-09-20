@@ -93,9 +93,9 @@ func (r registeredCases) render(_ string, arguments ...string) (rendererOutput, 
 func fakeRegistry() registeredCases {
 	return registeredCases{
 		"temporal.case.async-nexus":                 "async-nexus",
-		"temporal.case.get-system-info":             "get-system-info",
 		"temporal.case.nexusPairTests.bothComplete": "nexusPairTests-bothComplete",
-		"temporal.case.worker-outage":               "worker-outage",
+		"temporal.case.systemInfoTests.answered":    "systemInfoTests-answered",
+		"temporal.case.workerOutageTests.survived":  "workerOutageTests-survived",
 		"temporal.case.workflowStartTests.started":  "workflowStartTests-started",
 	}
 }

@@ -167,34 +167,28 @@ func syntheticResult(source *testpilotspb.Case) *testpilotspb.Value {
 // Case can carry, that a Profile is snapshotted exactly once, and that a Case mutated away from the
 // Profile it was derived from is rejected before any Driver I/O.
 func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) {
-	getSystemInfo := loadLeanCase(t, "get-system-info")
-	asyncNexus := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
-	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
-	// The async Nexus Case's Contract is its correlated capability; the system-info Case's is a rule.
-	require.Len(t, getSystemInfo.GetContract().GetRules(), 1)
-	require.Empty(t, asyncNexus.GetContract().GetRules())
-	require.NotNil(t, asyncNexus.GetContract().GetCorrelated())
+	systemInfo := loadLeanCase(t, SystemInfoFixture)
+	outage := loadLeanCase(t, WorkerOutageFixture)
+	require.NotEqual(t, systemInfo.GetProgram().GetProgramId(), outage.GetProgram().GetProgramId())
+	// The system-info Case's Contract is its correlated capability alone; the outage Case's carries
+	// the derived outage-order rule beside its capability.
+	require.Empty(t, systemInfo.GetContract().GetRules())
+	require.NotNil(t, systemInfo.GetContract().GetCorrelated())
+	require.Len(t, outage.GetContract().GetRules(), 1)
+	require.NotNil(t, outage.GetContract().GetCorrelated())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	programLimits, contractLimits, _ := temporal.DefaultCeilings()
-	profile := &countingProfile{spec: testpilot.ProfileSpec{
-		Identity: "get-system-info-profile",
-		Catalog:  catalog,
-		Roles: []testpilot.RolePolicy{{
-			ID:      getSystemInfo.GetProgram().GetRoles()[0].GetRoleId(),
-			Kind:    testpilotspb.ROLE_KIND_ENDPOINT,
-			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
-		}},
-		Opcodes:             []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits:       programLimits,
-		ContractLimits:      contractLimits,
-		InstructionDefaults: temporal.DefaultInstructionLimits(),
-	}}
-	prepared, err := testpilot.Prepare(getSystemInfo, profile)
+	derived, err := temporal.DeriveProfile(systemInfo, catalog, temporal.Environment{
+		Identity: "system-info-profile", Namespace: "namespace", TaskQueue: "task-queue",
+	})
+	require.NoError(t, err)
+	require.Equal(t, []testpilot.Opcode{testpilot.InvokeRPC}, derived.Opcodes)
+	profile := &countingProfile{spec: derived}
+	prepared, err := testpilot.Prepare(systemInfo, profile)
 	require.NoError(t, err)
 	require.Equal(t, 1, profile.snapshots)
-	require.True(t, proto.Equal(getSystemInfo, prepared.Snapshot()))
+	require.True(t, proto.Equal(systemInfo, prepared.Snapshot()))
 
 	for _, mutate := range []func(*testpilotspb.Case){
 		func(candidate *testpilotspb.Case) {
@@ -205,7 +199,7 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 				"/temporal.api.workflowservice.v1.WorkflowService/Missing"
 		},
 	} {
-		candidate := proto.CloneOf(getSystemInfo)
+		candidate := proto.CloneOf(systemInfo)
 		mutate(candidate)
 		_, err := testpilot.Prepare(candidate, profile)
 		require.Error(t, err)

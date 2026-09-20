@@ -1,25 +1,20 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus.Caller.Model
 import Temporal.Feature.Nexus.Pair.Model
+import Temporal.Feature.System.Info.Model
+import Temporal.Feature.Workflow.Outage.Model
 import Temporal.Feature.Workflow.Start.Model
 import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
 /-!
-Render the checked-in Cases. Every Case a `case` block declares, and every Case that registers its
-value explicitly, is enumerated from the Lean environment rather than from a table maintained here:
-`--list` prints what exists, `--render <case-id>` prints its canonical bytes.
+Render the checked-in Cases. Every Case a `case` block declares is enumerated from the Lean
+environment rather than from a table maintained here: `--list` prints what exists,
+`--render <case-id>` prints its canonical bytes.
 
 The synthetic and conformance Cases stay reachable by their own argument. They carry no Model and
 the Go conformance builder names them by expected Verdict, which the registry does not model.
 -/
-
-/-! The two realization-only Cases carry their identities in Lean rather than in a Model, so they
-register their existing values. Their Programs, Profiles and Contracts do not change. -/
-register_case Temporal.Testpilot.getSystemInfoCase
-  id "temporal.case.get-system-info" fixture "get-system-info"
-register_case Temporal.Testpilot.workerOutageCase
-  id "temporal.case.worker-outage" fixture "worker-outage"
 
 /-- Every registered Case, sorted by Case ID. -/
 def registered : List Temporal.Case.Registry.Materialized := registeredCases%

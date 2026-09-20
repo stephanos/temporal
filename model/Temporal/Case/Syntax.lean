@@ -3,6 +3,7 @@ import Temporal.Case.EventKind
 import Temporal.Case.Registry
 import Temporal.Case.FieldPath
 import Temporal.Case.Realization.Nexus
+import Temporal.Case.Realization.Rpc
 import Temporal.Case.Realization.Workflow
 
 /-!

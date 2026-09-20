@@ -3,6 +3,7 @@
 package tests
 
 import (
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -11,6 +12,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 const workerOutageCleanupTimeout = 10 * time.Second
@@ -26,11 +28,13 @@ func workerOutageBinding() CaseBinding {
 
 // TestTestpilotWorkerOutageCase drives one deliberate outage end to end. The controller stops the
 // SDK worker of its own activation queue before starting the workflow, resumes it after, and reads
-// the history back; the Contract requires the two recorded outages in order and a workflow that
-// completed anyway, so the queued task surviving the outage is what the Run proves.
+// the history back; the Contract requires the two recorded outages in order (the outage-order rule
+// the Producer derived from the Model's two fault actions) and a workflow that completed anyway
+// (the Model's own clause, confirmed by the completed event), so the queued task surviving the
+// outage is what the Run proves.
 func TestTestpilotWorkerOutageCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	run, verdict := runCaseWithBinding(t, env, "worker-outage", workerOutageBinding())
+	run, verdict := runCaseWithBinding(t, env, testpilotcore.WorkerOutageFixture, workerOutageBinding())
 
 	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
@@ -43,7 +47,7 @@ func TestTestpilotWorkerOutageCase(t *testing.T) {
 // peer worker on the same physical queue would keep polling it, which is why the queues differ.
 func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	outage := bindCase(t, env, loadTestpilotCase(t, "worker-outage"), workerOutageBinding())
+	outage := bindCase(t, env, loadTestpilotCase(t, testpilotcore.WorkerOutageFixture), workerOutageBinding())
 	plain := bindCase(t, env, loadTestpilotCase(t, nexusCallerQueries[1].fixture()), CaseBinding{
 		Identity: "nexus-caller-profile", Namespace: "umpire-worker-outage-peer",
 		TaskQueue: "umpire-worker-outage-peer-queue", NexusEndpoint: "umpire-worker-outage-peer-endpoint",
@@ -85,16 +89,30 @@ func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 
 // requireWorkerOutageEvidence reads both rules' supporting Observations back out of the Run: the
 // ordered stop and resume on this Case's own task-queue role, and the completed workflow the
-// history recorded.
+// history recorded, lifted as the evidence that confirms the Model's four steps at once.
 func requireWorkerOutageEvidence(t testing.TB, run *testpilotpb.Run, verdict *testpilotpb.Verdict) {
 	t.Helper()
-	require.Len(t, verdict.GetRules(), 2)
-	order, completed := verdict.GetRules()[0], verdict.GetRules()[1]
-	require.Equal(t, "worker-outage-order", order.GetRuleId())
+	// The derived outage-order rule, and one rule per scoped clause the Model's completion Property
+	// lowered into (the completed phase, the completed fact), each satisfied.
+	require.GreaterOrEqual(t, len(verdict.GetRules()), 2)
+	var order *testpilotpb.RuleVerdict
+	var clauses []*testpilotpb.RuleVerdict
+	for _, rule := range verdict.GetRules() {
+		if rule.GetRuleId() == testpilotcore.WorkerOutageRuleID {
+			order = rule
+		} else {
+			clauses = append(clauses, rule)
+		}
+	}
+	require.NotNil(t, order, "the derived outage-order rule")
+	require.NotEmpty(t, clauses, "the Model's completion clauses")
 	require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, order.GetStatus())
 	require.Equal(t, "resumed", order.GetTerminalStateId())
-	require.Equal(t, "worker-outage-workflow-completed", completed.GetRuleId())
-	require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, completed.GetStatus())
+	for _, clause := range clauses {
+		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, clause.GetStatus(), clause.GetRuleId())
+		require.Equal(t, "correlated.satisfied", clause.GetTerminalStateId(), clause.GetRuleId())
+	}
+	completed := clauses[0]
 
 	require.Len(t, order.GetSupportingEventSequences(), 2)
 	kinds := make([]testpilotpb.FaultKind, 0, 2)
@@ -113,10 +131,15 @@ func requireWorkerOutageEvidence(t testing.TB, run *testpilotpb.Run, verdict *te
 	require.Len(t, completed.GetSupportingEventSequences(), 1)
 	event := runEventAt(t, run, completed.GetSupportingEventSequences()[0])
 	require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
+	var evidence testpilotpb.CorrelatedEvidence
+	require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
+	require.Equal(t, "evidence.workflowExecutionCompleted", evidence.GetKind())
 	var historyEvent historypb.HistoryEvent
 	require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
 	require.Equal(t, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED, historyEvent.GetEventType())
 	require.Positive(t, historyEvent.GetWorkflowExecutionCompletedEventAttributes().GetWorkflowTaskCompletedEventId())
+	// The workflow is named by the task that completed it, which is the key the evidence carries.
+	require.Equal(t, strconv.FormatInt(historyEvent.GetWorkflowExecutionCompletedEventAttributes().GetWorkflowTaskCompletedEventId(), 10), evidence.GetOperation())
 }
 
 func faultEvents(run *testpilotpb.Run) []int64 {
