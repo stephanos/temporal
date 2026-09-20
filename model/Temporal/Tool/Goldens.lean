@@ -1,17 +1,14 @@
 import Umpire.Model.Tests.Fixtures
 import Umpire.Artifact.Tests.Set
 import Umpire.Examples.Switch
-import Temporal.Feature.Nexus.Operations.AsyncStart
-import Temporal.Feature.Nexus.Operations.Cancellation
-import Temporal.Feature.Nexus.Operations.SuccessfulCompletion
 import Temporal.Feature.Nexus.Caller.Model
 import Umpire.Json
 
 /-!
 Writer for the golden families whose only other reader is an `include_str` inside a
 `native_decide` test, and for the coverage targets an exploratory set enumerates. A `Temporal.Tool`
-module may import both the Umpire test fixtures and the Nexus modules; a module under `Umpire/` may
-not import `Temporal`, so this is the one place from which all five families can be rendered
+module may import both the Umpire test fixtures and the Nexus Model; a module under `Umpire/` may
+not import `Temporal`, so this is the one place from which all four families can be rendered
 together.
 -/
 
@@ -40,27 +37,6 @@ private def compatibilityGoldens : IO (List Golden) := do
       contents := ← required metadataPath
         (composed.map (Json.prettyBytes ∘ CheckedModel.canonicalMetadata)) }
   ]
-
-private def nexusOperationGoldens : IO (List Golden) := do
-  let mut goldens := #[]
-  -- `query` is a command keyword once a Model is imported, so the binder is spelled out.
-  for (name, selectedQuery, run) in [
-    ("AsyncStart", Temporal.Feature.Nexus.Operations.AsyncStart.query,
-      Temporal.Feature.Nexus.Operations.AsyncStart.run),
-    ("Cancellation", Temporal.Feature.Nexus.Operations.Cancellation.query,
-      Temporal.Feature.Nexus.Operations.Cancellation.run),
-    ("SuccessfulCompletion", Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query,
-      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run)
-  ] do
-    let queryPath := s!"Temporal/Feature/Nexus/Fixtures/Operations{name}Query.json"
-    let artifactPath := s!"Temporal/Feature/Nexus/Fixtures/Operations{name}Artifact.json"
-    goldens := goldens.push
-      { path := queryPath, contents := Json.prettyBytes (canonicalQueryJson selectedQuery) }
-    goldens := goldens.push
-      { path := artifactPath,
-        contents := ← required artifactPath
-          (run.toOption.bind fun planned => planned.artifact.map canonicalPlanBytes) }
-  pure goldens.toList
 
 private def switchExampleGoldens : List Golden := [
   { path := "Umpire/Examples/Fixtures/SwitchExactActionQuery.json",
@@ -100,8 +76,8 @@ private def callerCoverageGoldens : List Golden := [
 
 /-- Every golden this writer owns, in a stable order. -/
 def goldens : IO (List Golden) := do
-  pure ((← compatibilityGoldens) ++ (← nexusOperationGoldens) ++ switchExampleGoldens ++
-    (← artifactCodecGoldens) ++ callerCoverageGoldens)
+  pure ((← compatibilityGoldens) ++ switchExampleGoldens ++ (← artifactCodecGoldens) ++
+    callerCoverageGoldens)
 
 /-- Render every golden under `outputRoot`, creating the directories it needs. -/
 def write (outputRoot : System.FilePath) : IO Unit := do

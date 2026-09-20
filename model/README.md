@@ -95,8 +95,8 @@ admission and serialization support both paths.
 the complete Plan anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
 
-The `umpire-inspect` executable exposes the retained checked catalog and emits deterministic Plan
-Artifacts. Generated Views remain navigation and test wrappers around that Plan data; they do not
+The `umpire-inspect` executable exposes the caller Model's Queries and the Switch example
+(`make umpire-list`, `make umpire-explain QUERY=<id>`) and emits deterministic Plan Artifacts. Generated Views remain navigation and test wrappers around that Plan data; they do not
 execute a Case or determine a Verdict.
 
 ### Ordinary Nexus authoring
@@ -231,17 +231,12 @@ Lean syntax used by the walkthrough:
   seam.
 - `#guard_msgs` compiles an expected elaboration failure; `#print axioms` reports transitive trust.
 
-`Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
-real selected artifact, Observation evaluation, malformed identity/reference, missing proof,
-incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
-trust, and cost inventory is in [the established coverage record](Temporal/Feature/Nexus/COVERAGE.md).
-
-The experimental [Nexus race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
-ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
-measurements under its narrow prototype exceptions. It is a separate `temporal.nexus.race.*` model,
-not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
-elaboration, human readability, product-owner usability, and broader syntax approval remain
-unmeasured. Its [coverage inventory](Temporal/Feature/Nexus/Race/COVERAGE.md) records those boundaries.
+`Temporal.Feature.NexusTests` compiles the facade-only path: the caller Model's machines, a
+Property, a Scenario, a Query, a set and a Case, reached through `Temporal.Feature.Nexus` alone.
+The coverage record is [the caller Model's](Temporal/Feature/Nexus/Caller/COVERAGE.md). The
+first-generation lifecycle, Operations, Observation, Experimental and race-prototype modules were
+retired by fn-86 .5; the race behavior is recorded in fn-79's spec and the exploration inputs in
+fn-33's.
 
 ## Runtime ownership
 
