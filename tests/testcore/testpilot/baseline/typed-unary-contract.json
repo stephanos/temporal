@@ -1,0 +1,136 @@
+{
+  "contractId": "temporal.case.typed-unary.contract",
+  "rules": [
+    {
+      "ruleId": "recorded-workflow-type",
+      "kind": "CONTRACT_RULE_KIND_SAFETY",
+      "initialStateId": "pending",
+      "states": [
+        {
+          "stateId": "pending",
+          "status": "CONTRACT_STATE_STATUS_PENDING"
+        },
+        {
+          "stateId": "satisfied",
+          "status": "CONTRACT_STATE_STATUS_SATISFIED"
+        },
+        {
+          "stateId": "violated",
+          "status": "CONTRACT_STATE_STATUS_VIOLATED"
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": "match-recorded-workflow-type",
+          "sourceStateId": "pending",
+          "targetStateId": "satisfied",
+          "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+          "eventFilter": {
+            "kinds": [
+              "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+            ]
+          },
+          "predicate": {
+            "all": {
+              "operands": [
+                {
+                  "present": {
+                    "operand": {
+                      "reference": {
+                        "observationId": "history-event"
+                      }
+                    }
+                  }
+                },
+                {
+                  "compare": {
+                    "operator": "COMPARISON_OPERATOR_EQUAL",
+                    "left": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "observationId": "history-event"
+                          }
+                        },
+                        "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                      }
+                    },
+                    "right": {
+                      "literal": {
+                        "textValue": "umpire-typed-unary-workflow"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "transitionId": "reject-recorded-workflow-type",
+          "sourceStateId": "pending",
+          "targetStateId": "violated",
+          "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+          "eventFilter": {
+            "kinds": [
+              "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+            ]
+          },
+          "predicate": {
+            "all": {
+              "operands": [
+                {
+                  "present": {
+                    "operand": {
+                      "reference": {
+                        "observationId": "history-event"
+                      }
+                    }
+                  }
+                },
+                {
+                  "present": {
+                    "operand": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "observationId": "history-event"
+                          }
+                        },
+                        "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                      }
+                    }
+                  }
+                },
+                {
+                  "not": {
+                    "operand": {
+                      "compare": {
+                        "operator": "COMPARISON_OPERATOR_EQUAL",
+                        "left": {
+                          "path": {
+                            "operand": {
+                              "reference": {
+                                "observationId": "history-event"
+                              }
+                            },
+                            "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                          }
+                        },
+                        "right": {
+                          "literal": {
+                            "textValue": "umpire-typed-unary-workflow"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

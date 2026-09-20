@@ -48,6 +48,12 @@ structure Policy where
   testConsumerModules : Array Lean.Name
   /-- Exact production entry points whose full closure must remain free of Target elaboration. -/
   semanticRoots : Array Lean.Name
+  /-- The roots under which a production module that builds authoring records directly is
+  hand-written, and must be listed in the committed hand-written inventory. -/
+  handwrittenRoots : Array Lean.Name := #[]
+  /-- The authoring owners a hand-written module imports directly; a command-authored module
+  reaches them only through `Umpire.Command`. -/
+  authoringOwners : Array Lean.Name := #[]
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -118,6 +124,15 @@ def defaultPolicy : Policy := {
     { modulePrefix := `UmpireTests, moduleClass := .modelTests }
   ],
   implementationLinkConsumers := #[`Temporal.System.Nexus.ImplementationLink],
+  handwrittenRoots := #[`Temporal.Feature, `Temporal.Testpilot, `Umpire.Examples],
+  authoringOwners := #[
+    `Umpire.Model,
+    `Umpire.Property,
+    `Umpire.Scenario,
+    `Umpire.Query,
+    `Umpire.Operation,
+    `Umpire.Case
+  ],
   testSupportNamespaces := #[
     `Shared.Test,
     `Temporal.Shared.Test,
@@ -185,6 +200,9 @@ def InventoryIssue.render : InventoryIssue → String
       s!"[model-import-graph/inventory] unclassified first-party module: {module}"
   | .unknownFirstPartyImport source imported =>
       s!"[model-import-graph/metadata] {source} imports unknown first-party module {imported}"
+  | .handwrittenNotInventoried module imported =>
+      s!"[model-import-graph/inventory] hand-written module not inventoried: {module} imports \
+        {imported} directly and is missing from HANDWRITTEN_INVENTORY.md"
 
 private def isTemporalClass : ModuleClass → Bool
   | .temporalShared | .temporalFeature | .temporalSystem
@@ -318,6 +336,65 @@ def reconcile
       (!policy.isFirstParty name && !sources.any (·.module == name))
   }
   Tools.LeanSourceInventory.reconcile inventoryPolicy sources modules
+
+/-! ### The hand-written inventory
+
+A production module under a hand-written root that imports an authoring owner directly builds
+Umpire records or Testpilot Cases without the commands. `HANDWRITTEN_INVENTORY.md` lists every such
+module with its readers and a destination, so one that is missing from it is a module whose
+coverage has no destination: the lint reports it rather than letting the second authoring path
+grow unlisted. -/
+
+/-- The module names a hand-written inventory ledger lists: the first cell of each table row,
+written as a backticked qualified name. Rows whose first cell is not a name -- headers, separators,
+paths -- contribute nothing. -/
+private def trimSpaces (text : String) : String :=
+  String.ofList ((text.toList.dropWhile Char.isWhitespace).reverse.dropWhile Char.isWhitespace
+    |>.reverse)
+
+private def isNameCharacter (character : Char) : Bool :=
+  character.isAlphanum || character == '.' || character == '_'
+
+def inventoriedModules (ledger : String) : Array Lean.Name := Id.run do
+  let mut names : Array Lean.Name := #[]
+  for line in ledger.splitOn "\n" do
+    let trimmed := trimSpaces line
+    unless trimmed.startsWith "|" do continue
+    let cells := (String.ofList (trimmed.toList.drop 1)).splitOn "|"
+    let some first := cells.head? | continue
+    let cell := trimSpaces first
+    unless cell.startsWith "`" && cell.endsWith "`" && cell.length > 2 do continue
+    let spelling := String.ofList ((cell.toList.drop 1).dropLast)
+    unless spelling.toList.all isNameCharacter && spelling.toList.contains '.' do continue
+    names := names.push ((spelling.splitOn ".").foldl (init := Lean.Name.anonymous) Lean.Name.str)
+  return names
+
+/-- Whether a module is hand-written by the policy's definition: production, under a hand-written
+root, and importing an authoring owner directly. Returns the first such owner. -/
+def Policy.handwrittenImport? (policy : Policy) (record : ModuleRecord) : Option Lean.Name :=
+  match policy.classify? record.name with
+  | some moduleClass =>
+      if policy.handwrittenRoots.any (matchesPrefix · record.name) &&
+          policy.isProductionModule record.name moduleClass then
+        record.imports.find? fun imported => policy.authoringOwners.any (matchesPrefix · imported)
+      else none
+  | none => none
+
+/-- Every hand-written module the inventory does not list, in deterministic order. -/
+def reconcileHandwritten
+    (policy : Policy)
+    (inventoried : Array Lean.Name)
+    (modules : Array ModuleRecord) : Array InventoryIssue :=
+  let issues := modules.filterMap fun record =>
+    match policy.handwrittenImport? record with
+    | some imported =>
+        if inventoried.contains record.name then none
+        else some (InventoryIssue.handwrittenNotInventoried record.name imported)
+    | none => none
+  issues.qsort fun left right =>
+    match left, right with
+    | .handwrittenNotInventoried l _, .handwrittenNotInventoried r _ => l.toString < r.toString
+    | _, _ => false
 
 /-- Compose graph and declaration-linter success without allowing either result to mask the other. -/
 def exitCode (graphPassed declarationLintersPassed : Bool) : UInt32 :=

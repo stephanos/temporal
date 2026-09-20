@@ -590,6 +590,37 @@ private unsafe def testExternalMetadataClosure : IO Unit := do
   requireEqual "a module that could not be read contributes no record" missingRecords.size 0
   let _loadedRegionCount := regions.size + incompleteRegions.size
 
+/-- A production module under a hand-written root that imports an authoring owner directly is
+reported unless the ledger lists it; a listed one, a test module, a module outside the roots (a
+realization) and a module that reaches the owners only through the commands are not. -/
+private def testHandwrittenInventory : IO Unit := do
+  let planted := moduleRecord `Temporal.Feature.Nexus.Planted #[`Umpire.Model.Table]
+  let listed := moduleRecord `Temporal.Feature.Nexus.Listed #[`Umpire.Property.Elab]
+  let testModule := moduleRecord `Temporal.Feature.Nexus.PlantedTests #[`Umpire.Model.Table]
+  let realization := moduleRecord `Temporal.Case.Realization.Planted #[`Umpire.Case.Producer]
+  let commandAuthored := moduleRecord `Temporal.Feature.Nexus.Authored #[`Umpire.Command]
+  let modules := #[planted, listed, testModule, realization, commandAuthored,
+    moduleRecord `Umpire.Model.Table, moduleRecord `Umpire.Property.Elab,
+    moduleRecord `Umpire.Case.Producer, moduleRecord `Umpire.Command]
+  let ledger := "| Module | Builds | Readers | Destination |\n| --- | --- | --- | --- |\n\
+    | `Temporal.Feature.Nexus.Listed` | records | tests | migrate |\n\
+    | `model/Some/Path.lean` | not a module | - | - |\n"
+  requireEqual "ledger rows name modules" (inventoriedModules ledger)
+    #[`Temporal.Feature.Nexus.Listed]
+  requireEqual "planted hand-written module is reported"
+    (reconcileHandwritten defaultPolicy (inventoriedModules ledger) modules)
+    #[.handwrittenNotInventoried `Temporal.Feature.Nexus.Planted `Umpire.Model.Table]
+  requireEqual "inventoried tree is clean"
+    (reconcileHandwritten defaultPolicy
+      #[`Temporal.Feature.Nexus.Planted, `Temporal.Feature.Nexus.Listed] modules)
+    #[]
+  requireEqual "planted issue renders its module and import"
+    (InventoryIssue.render
+      (.handwrittenNotInventoried `Temporal.Feature.Nexus.Planted `Umpire.Model.Table))
+    "[model-import-graph/inventory] hand-written module not inventoried: \
+      Temporal.Feature.Nexus.Planted imports Umpire.Model.Table directly and is missing from \
+      HANDWRITTEN_INVENTORY.md"
+
 private unsafe def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
@@ -609,6 +640,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testDirectAndTransitiveRejections
   testExactImplementationLinkExceptions
   testModelInventoryPolicy
+  testHandwrittenInventory
   testExternalLeaves
   testStableShortestPath
   testMultipleFindings

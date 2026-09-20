@@ -875,6 +875,7 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 .PHONY: lint-model
 lint-model: umpire-check-inventory
 	@printf $(COLOR) "Linting Lean model..."
+	@test -f model/HANDWRITTEN_INVENTORY.md || { echo "model/HANDWRITTEN_INVENTORY.md is an input of lint-model" >&2; exit 1; }
 	@cd model && $(LEAN_LAKE) build umpire-lint-tests umpire-lint
 	@cd model && $(LEAN_LAKE) exe umpire-lint-tests
 	@diagnostics=$$(mktemp); \
