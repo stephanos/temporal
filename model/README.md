@@ -36,7 +36,10 @@ runtime never reads.
 
 `Temporal.Feature.Nexus.Caller` authors the Nexus caller-side operation, and its functional set
 produces the seven caller Cases through `Temporal.Case.Realization.asyncNexus`: each Contract carries
-no monitor Rule, only the Correlated capability the checked Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
+no monitor Rule, only the Correlated capability the checked Property lowered into.
+[AUTHORING.md](AUTHORING.md) walks that Model file from an empty file to a green live test, one
+command at a time; its canary set is admitted through the same block and its exploratory set's
+coverage targets are pinned by a golden. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of

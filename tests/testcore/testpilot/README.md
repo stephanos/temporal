@@ -12,8 +12,11 @@ Driver and its implementation-focused tests live in `common/testing/testpilot/te
 
 The caller Model's functional set (`model/Temporal/Feature/Nexus/Caller/Model.lean`) produces one
 fixture per Query, `nexusCallerTests-<query>-case.json`: sync success, async reply then succeeded
-callback, async reply then failed callback, and a non-retryable handler error. Each is one canonical
-Case 1.0 artifact with symbolic resource references. Fixture tests prepare the async-completion
+callback, async reply then failed callback, a non-retryable handler error, a retryable handler error
+then success after one backoff, a schedule-to-start timeout with the handler's worker stopped, and a
+start-to-close timeout after an asynchronous reply. Each is one canonical Case 1.0 artifact with
+symbolic resource references; the Model's canary set produces no fixture, and its exploratory set's
+coverage targets are a golden under `model/`. Fixture tests prepare the async-completion
 fixture's unchanged bytes against two physical Profiles, confirm distinct binding identities, and
 reject missing or inconsistent references before dispatch. The tagged live tests run each Query once
 per value of the implementation switch, under two isolated namespaces, queues and named Nexus routes
