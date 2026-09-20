@@ -1,10 +1,13 @@
-import Temporal.Feature.Nexus.Operations
 import Temporal.System.Nexus.ImplementationLink
 
 /-!
 Composed checks for the ordinary Nexus lifecycle. Synthetic Evidence exists only to establish the
 already-accepted System trace at the test boundary; the production operation consumes the typed
 Observation result and never interprets raw Evidence.
+
+The destination is the Target the link derives from the Caller Model's product machine, so the
+Feature meaning every check lands on is the product machine's own: its states, its recorded facts,
+and the routes its Queries find.
 -/
 
 namespace TemporalModelTests.Nexus.ImplementationLink
@@ -16,71 +19,90 @@ example : checkedResult.isOk = true ∧ checked.hasCanonicalIdentity = true := b
   native_decide
 
 example : checked.sourceTarget.id = Temporal.System.Nexus.targetId ∧
-    checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.targetId ∧
+    checked.destinationTarget.id = productTargetId ∧
     checked.declaration.capabilityMappings = [lifecycleCapabilityMapping] ∧
     checked.declaration.relationMappings = [] := by
   native_decide
 
-theorem checked_link_retains_migrated_target_identity_and_fingerprints :
+theorem checked_link_retains_target_identity_and_fingerprints :
     checked.sourceTarget.id = Temporal.System.Nexus.target.id ∧
     checked.sourceTarget.source = Temporal.System.Nexus.target.source ∧
     checked.sourceTarget.behaviorFingerprint =
       Temporal.System.Nexus.target.behaviorFingerprint ∧
     checked.sourceTarget.behaviorFingerprint.render =
       "sha256:9a131c48af0f15669b5f414754389046129da313f07774abbab76eaab25372b4" ∧
-    checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.target.id ∧
-    checked.destinationTarget.source = Temporal.Feature.Nexus.Lifecycle.target.source ∧
-    checked.destinationTarget.behaviorFingerprint =
-      Temporal.Feature.Nexus.Lifecycle.target.behaviorFingerprint ∧
+    checked.destinationTarget.id = productTarget.id ∧
+    checked.destinationTarget.source = productTarget.source ∧
+    checked.destinationTarget.behaviorFingerprint = productTarget.behaviorFingerprint ∧
     checked.destinationTarget.behaviorFingerprint.render =
-      "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6" := by
+      "sha256:663970a8c4be23dcfb9b622ddaff325f835ff2d5c1a7ba5031754b225978f30d" := by
   native_decide
 
-theorem migrated_targets_keep_their_named_authority_seams :
+/-- The product Target is the product machine's rows: its terminal closure is the machine's
+`ends:`, its starts are `scheduled` and `started`, and its rows are the machine's own. -/
+example : productTable.terminalConditions = [Temporal.Feature.Nexus.Caller.nexusProduct.ends] ∧
+    productTarget.terminalConditions.map List.length =
+      [Temporal.Feature.Nexus.Caller.nexusProduct.ends.length] ∧
+    productTable.initial.flatMap (·.states) = [{ phase := .scheduled }, { phase := .started }] ∧
+    productTarget.isTerminal succeededState = true ∧
+    productTarget.isTerminal canceledState = true ∧
+    productTarget.isTerminal startedState = false ∧
+    productTarget.machine.initialStates productSetup = [scheduledState, startedState] := by
+  native_decide
+
+theorem targets_keep_their_named_authority_seams :
     Temporal.System.Nexus.target.machine.authoritativeInitial
       Temporal.System.Nexus.queuedSetup Temporal.System.Nexus.queuedState ∧
     Temporal.System.Nexus.target.machine.authoritativeStep
       Temporal.System.Nexus.queuedState Temporal.System.Nexus.dispatchAction
       Temporal.System.Nexus.dispatchedResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeInitial
-      Temporal.Feature.Nexus.Lifecycle.scheduledSetup
-      Temporal.Feature.Nexus.Lifecycle.scheduledState ∧
-    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
-      Temporal.Feature.Nexus.Lifecycle.scheduledState
-      Temporal.Feature.Nexus.Lifecycle.startAction
-      Temporal.Feature.Nexus.Lifecycle.startedResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
-      Temporal.Feature.Nexus.Lifecycle.startedState
-      Temporal.Feature.Nexus.Lifecycle.cancelAction
-      Temporal.Feature.Nexus.Lifecycle.canceledResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
-      Temporal.Feature.Nexus.Lifecycle.startedState
-      Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
-      Temporal.Feature.Nexus.Lifecycle.succeededResult := by
-  exact ⟨Temporal.System.Nexus.target_queued_initial_authoritative,
-    Temporal.System.Nexus.target_queued_dispatch_authoritative,
-    Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative,
-    Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative,
-    Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative,
-    Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative⟩
+    productTarget.machine.authoritativeInitial productSetup scheduledState ∧
+    productTarget.machine.authoritativeStep scheduledState asyncReplyAction startedResult ∧
+    productTarget.machine.authoritativeStep startedState cancelCompletionAction canceledResult ∧
+    productTarget.machine.authoritativeStep startedState successCompletionAction
+      succeededResult := by
+  refine ⟨Temporal.System.Nexus.target_queued_initial_authoritative,
+    Temporal.System.Nexus.target_queued_dispatch_authoritative, ?_, ?_, ?_, ?_⟩
+  · simpa [morphism] using initialForward Temporal.System.Nexus.queuedSetup
+      Temporal.System.Nexus.queuedState Temporal.System.Nexus.target_queued_initial_authoritative
+  · simpa [morphism, ValueTranslation.mapStep, Step.map, Temporal.System.Nexus.dispatchedResult,
+      startedResult] using stepForward Temporal.System.Nexus.queuedState
+      Temporal.System.Nexus.dispatchAction Temporal.System.Nexus.dispatchedResult
+      Temporal.System.Nexus.target_queued_dispatch_authoritative
+  · simpa [morphism, ValueTranslation.mapStep, Step.map,
+      Temporal.System.Nexus.cancellationRecordedResult, canceledResult] using
+      stepForward Temporal.System.Nexus.runningState
+      Temporal.System.Nexus.recordCancellationAction
+      Temporal.System.Nexus.cancellationRecordedResult
+      Temporal.System.Nexus.target_running_cancellation_authoritative
+  · simpa [morphism, ValueTranslation.mapStep, Step.map,
+      Temporal.System.Nexus.completionRecordedResult, succeededResult] using
+      stepForward Temporal.System.Nexus.runningState
+      Temporal.System.Nexus.recordCompletionAction
+      Temporal.System.Nexus.completionRecordedResult
+      Temporal.System.Nexus.target_running_completion_authoritative
 
-example : Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeInitial
-    Temporal.Feature.Nexus.Lifecycle.scheduledSetup
-    Temporal.Feature.Nexus.Lifecycle.scheduledState := by
-  simpa [witness] using witness.initialForward Temporal.System.Nexus.queuedSetup
-    Temporal.System.Nexus.queuedState
-    Temporal.System.Nexus.target_queued_initial_authoritative
+/-- The facts a Query's witness records, step by step. -/
+private def witnessFacts (witness : Option Scenario.Trace) : List String :=
+  (witness.map fun witness => witness.trace.steps.flatMap fun step =>
+    step.facts.map ModelValue.value).getD []
 
-example : Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
-    Temporal.Feature.Nexus.Lifecycle.startedState
-    Temporal.Feature.Nexus.Lifecycle.cancelAction
-    Temporal.Feature.Nexus.Lifecycle.canceledResult := by
-  simpa [witness, Temporal.System.Nexus.cancellationRecordedResult,
-    Temporal.Feature.Nexus.Lifecycle.canceledResult] using
-    witness.stepForward Temporal.System.Nexus.runningState
-    Temporal.System.Nexus.recordCancellationAction
-    Temporal.System.Nexus.cancellationRecordedResult
-    Temporal.System.Nexus.target_running_cancellation_authoritative
+/-- The Caller Model's Queries find the routes the link translates onto: the asynchronous completion
+route records the scheduled, started and completed facts, and the link's translated start and
+completion are that route after the schedule the System's `queued` start already stands for. -/
+example : (match Temporal.Feature.Nexus.Caller.asyncCompletion with
+    | .ok checked => witnessFacts checked.witness
+    | .error _ => []) =
+      ["nexusOperationScheduled", "nexusOperationStarted", "nexusOperationCompleted"] ∧
+    (match Temporal.Feature.Nexus.Caller.syncCompletion with
+    | .ok checked => witnessFacts checked.witness
+    | .error _ => []) = ["nexusOperationScheduled", "nexusOperationCompleted"] ∧
+    [mapObservation Temporal.System.Nexus.runningObservation,
+      mapObservation Temporal.System.Nexus.completionRecordedObservation].map ModelValue.value =
+      ["nexusOperationStarted", "nexusOperationCompleted"] ∧
+    [mapObservation Temporal.System.Nexus.cancellationRecordedObservation].map ModelValue.value =
+      ["nexusOperationCanceled"] := by
+  native_decide
 
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
@@ -291,6 +313,58 @@ def successfulCompletionEvidence : SyntheticEvidence := oneStepEvidence
   Temporal.System.Nexus.completionRecordedState
   Temporal.System.Nexus.completionRecordedObservation
 
+/-! ### Properties over the product Target
+
+Each Property is one transition contract, from the class a System step maps to onto the phase it
+lands in, checked against the product Target. -/
+
+private def transitionProperty (propertyId : DefinitionId) (action state : ModelValue) :
+    Property := {
+  id := propertyId
+  source
+  requires := [Temporal.Feature.Nexus.Caller.nexusProduct.capabilityId]
+  clauses := [
+    .transitionContract (id (propertyId.value ++ ".contract"))
+      { field := .selectedAction, reference := action.definitionId,
+        constraint := .equals action.value }
+      { field := .resultingState, reference := state.definitionId,
+        constraint := .equals state.value }
+  ]
+}
+
+private def checkedProperty (declaration : Property) : Except PropertyError CheckedProperty :=
+  Property.check (PropertyCheckContext.ofTarget productTarget) declaration
+
+def asyncStartProperty : CheckedProperty :=
+  (checkedProperty (transitionProperty (id "temporal.test.nexus.feature.property.async-start")
+    asyncReplyAction startedState)).toOption.get (by native_decide)
+
+def cancellationProperty : CheckedProperty :=
+  (checkedProperty (transitionProperty (id "temporal.test.nexus.feature.property.cancellation")
+    cancelCompletionAction canceledState)).toOption.get (by native_decide)
+
+def successfulCompletionProperty : CheckedProperty :=
+  (checkedProperty (transitionProperty
+    (id "temporal.test.nexus.feature.property.successful-completion")
+    successCompletionAction succeededState)).toOption.get (by native_decide)
+
+/-- The product trace one System step translates onto. -/
+private def productTrace (initialState action : ModelValue)
+    (result : Step ModelValue ModelValue ModelValue) :
+    ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState
+  steps := [{
+    selectedAction := action
+    outcome := result.outcome
+    state := result.state
+    facts := result.facts
+  }]
+}
+
+def asyncStartTrace := productTrace scheduledState asyncReplyAction startedResult
+def cancellationTrace := productTrace startedState cancelCompletionAction canceledResult
+def successfulCompletionTrace := productTrace startedState successCompletionAction succeededResult
+
 def startObservation : ObservationResult := evaluateEvidence startPlan startEvidence
 def cancellationObservation : ObservationResult :=
   evaluateEvidence cancellationPlan cancellationEvidence
@@ -298,19 +372,13 @@ def successfulCompletionObservation : ObservationResult :=
   evaluateEvidence successfulCompletionPlan successfulCompletionEvidence
 
 def startResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.queuedSetup
-  Temporal.Feature.Nexus.Operations.AsyncStart.property
-  startObservation
+  Temporal.System.Nexus.queuedSetup asyncStartProperty startObservation
 
 def cancellationResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.runningSetup
-  Temporal.Feature.Nexus.Operations.Cancellation.property
-  cancellationObservation
+  Temporal.System.Nexus.runningSetup cancellationProperty cancellationObservation
 
 def successfulCompletionResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.runningSetup
-  Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
-  successfulCompletionObservation
+  Temporal.System.Nexus.runningSetup successfulCompletionProperty successfulCompletionObservation
 
 private def applicationShape
     (result : FeaturePropertyResult) : Option
@@ -327,8 +395,7 @@ private def applicationShape
         evidenceSupport.implementationLinkId == implementationLinkId &&
           evidenceSupport.implementationLinkBehaviorFingerprint == checked.behaviorFingerprint &&
           evidenceSupport.sourceTarget == .ofTarget Temporal.System.Nexus.target &&
-          evidenceSupport.destinationTarget ==
-            .ofTarget Temporal.Feature.Nexus.Lifecycle.target &&
+          evidenceSupport.destinationTarget == .ofTarget productTarget &&
           evidenceSupport.identity != behaviorFingerprintOf "")
 
 private def expectedCoordinates : List ModelCoordinate := [
@@ -345,17 +412,11 @@ example : ([
     applicationShape cancellationResult,
     applicationShape successfulCompletionResult
   ] == [
-    some (Temporal.System.Nexus.queuedSetup,
-      Temporal.Feature.Nexus.Lifecycle.scheduledSetup,
-      Temporal.Feature.Nexus.Operations.AsyncStart.intendedTrace.trace,
+    some (Temporal.System.Nexus.queuedSetup, productSetup, asyncStartTrace,
       expectedCoordinates, true),
-    some (Temporal.System.Nexus.runningSetup,
-      Temporal.Feature.Nexus.Lifecycle.startedSetup,
-      Temporal.Feature.Nexus.Operations.Cancellation.intendedTrace.trace,
+    some (Temporal.System.Nexus.runningSetup, productSetup, cancellationTrace,
       expectedCoordinates, true),
-    some (Temporal.System.Nexus.runningSetup,
-      Temporal.Feature.Nexus.Lifecycle.startedSetup,
-      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.intendedTrace.trace,
+    some (Temporal.System.Nexus.runningSetup, productSetup, successfulCompletionTrace,
       expectedCoordinates, true)
   ]) = true := by
   native_decide
@@ -366,12 +427,9 @@ example : [
     cancellationResult.evaluated?.map EvaluatedFeatureProperty.evaluation,
     successfulCompletionResult.evaluated?.map EvaluatedFeatureProperty.evaluation
   ] = [
-    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.AsyncStart.property
-      Temporal.Feature.Nexus.Operations.AsyncStart.intendedTrace.trace).toOption,
-    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.Cancellation.property
-      Temporal.Feature.Nexus.Operations.Cancellation.intendedTrace.trace).toOption,
-    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
-      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.intendedTrace.trace).toOption
+    (evaluatePropertyOnTrace asyncStartProperty asyncStartTrace).toOption,
+    (evaluatePropertyOnTrace cancellationProperty cancellationTrace).toOption,
+    (evaluatePropertyOnTrace successfulCompletionProperty successfulCompletionTrace).toOption
   ] ∧ [
     startResult.evaluated?.map (fun result => result.evaluation.satisfied),
     cancellationResult.evaluated?.map (fun result => result.evaluation.satisfied),
@@ -383,14 +441,10 @@ def missingClosureObservation : ObservationResult :=
   evaluateEvidence startPlan { startEvidence with closures := [] }
 
 def observationFailureResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.queuedSetup
-  Temporal.Feature.Nexus.Operations.AsyncStart.property
-  missingClosureObservation
+  Temporal.System.Nexus.queuedSetup asyncStartProperty missingClosureObservation
 
 def wrongSetupResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.runningSetup
-  Temporal.Feature.Nexus.Operations.AsyncStart.property
-  startObservation
+  Temporal.System.Nexus.runningSetup asyncStartProperty startObservation
 
 def impossibleTransitionEvidence : SyntheticEvidence := oneStepEvidence
   (id "temporal.test.nexus.system.impossible.initial")
@@ -402,8 +456,7 @@ def impossibleTransitionEvidence : SyntheticEvidence := oneStepEvidence
   Temporal.System.Nexus.completionRecordedObservation
 
 def impossibleStep : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.queuedSetup
-  Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
+  Temporal.System.Nexus.queuedSetup successfulCompletionProperty
   (evaluateEvidence successfulCompletionPlan impossibleTransitionEvidence)
 
 private def acceptedTrace? : ObservationResult → Option EvidenceBackedTrace
@@ -450,9 +503,7 @@ def missingCoordinateObservation : ObservationResult :=
   }
 
 def missingCoordinateResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.queuedSetup
-  Temporal.Feature.Nexus.Operations.AsyncStart.property
-  missingCoordinateObservation
+  Temporal.System.Nexus.queuedSetup asyncStartProperty missingCoordinateObservation
 
 private def driftMeaning (meaning : Meaning) : Meaning :=
   if meaning.definitionId == Temporal.System.Nexus.operationStateId then
@@ -475,31 +526,18 @@ def driftPlan : Evidence.CheckedReading :=
   driftPlanResult.toOption.get driftPlanResult_isSome
 
 def behaviorFingerprintDriftResult : FeaturePropertyResult := evaluateFeatureProperty
-  Temporal.System.Nexus.queuedSetup
-  Temporal.Feature.Nexus.Operations.AsyncStart.property
-  (evaluateEvidence driftPlan startEvidence)
+  Temporal.System.Nexus.queuedSetup asyncStartProperty (evaluateEvidence driftPlan startEvidence)
 
 def mutatedPropertyId : DefinitionId :=
   id "temporal.test.nexus.feature.property.mutated-start"
 
-def mutatedPropertyDeclaration : Property := {
-  id := mutatedPropertyId
-  source := Temporal.Feature.Nexus.Operations.source
-  requires := [Temporal.Feature.Nexus.Lifecycle.lifecycleCapabilityId]
-  clauses := [
-    .transitionContract (id "temporal.test.nexus.feature.property.mutated-start.state")
-      { field := .selectedAction,
-        reference := Temporal.Feature.Nexus.Lifecycle.startActionId,
-        constraint := .equals Temporal.Feature.Nexus.Lifecycle.startAction.value }
-      { field := .resultingState,
-        reference := Temporal.Feature.Nexus.Lifecycle.operationStateId,
-        constraint := .equals Temporal.Feature.Nexus.Lifecycle.succeededState.value }
-  ]
-}
+/-- The start contract with the wrong landing phase: an asynchronous reply lands in `started`,
+never `succeeded`. -/
+def mutatedPropertyDeclaration : Property :=
+  transitionProperty mutatedPropertyId asyncReplyAction succeededState
 
 def mutatedPropertyResult : Except PropertyError CheckedProperty :=
-  Property.check (PropertyCheckContext.ofTarget Temporal.Feature.Nexus.Lifecycle.target)
-    (mutatedPropertyDeclaration)
+  checkedProperty mutatedPropertyDeclaration
 
 private theorem mutatedPropertyResult_isSome : mutatedPropertyResult.toOption.isSome = true := by
   native_decide
@@ -524,7 +562,7 @@ example : [
     .implementationLink,
     .observation,
     .implementationLink,
-    .property
+    .featureProperty
   ] ∧
   observationFailureResult.observationDiagnostic?.map ObservationDiagnostic.kind =
     some .missingClosure ∧
@@ -552,8 +590,7 @@ example :
       diagnostic.hasCanonicalIdentity &&
         diagnostic.implementationLinkId == implementationLinkId &&
         diagnostic.sourceTarget == .ofTarget Temporal.System.Nexus.target &&
-        diagnostic.destinationTarget ==
-          .ofTarget Temporal.Feature.Nexus.Lifecycle.target) = some true ∧
+        diagnostic.destinationTarget == .ofTarget productTarget) = some true ∧
     propertyFailureResult.evaluated?.map (fun result => result.evaluation.propertyId) =
       some mutatedPropertyId ∧
     startPlan.id != implementationLinkId ∧

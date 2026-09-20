@@ -1,5 +1,4 @@
-import Temporal.Feature.Nexus.Lifecycle
-import Temporal.Feature.Nexus.Race.Terminal
+import Temporal.Feature.Nexus.Caller.Model
 import Temporal.System.Nexus.Evidence
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
@@ -13,11 +12,20 @@ import Umpire.Property.Correlated
 This is the sole production leaf that imports both the independently authored Nexus System
 mechanism and Feature product meaning. It declares and proves the bounded forward correspondence;
 neither base module imports or redefines the other.
+
+The Feature side is the caller Model's product machine, `nexusProduct`: what an operation does,
+with no account of how. Its own table is a Search view rather than a Target -- the two classes the
+product machine cannot see, the transport fault and the worker stop, have no row, and it starts
+only at `scheduled` -- so the destination here is a Target over the product machine's own rows: the
+same states, outcomes and recorded facts, every class with a row, `started` admitted as a start
+beside `scheduled` (the System's running setup begins with an operation already started), and the
+machine's `ends:` as the terminal closure the cancellation projection closes on.
 -/
 
 namespace Temporal.System.Nexus.ImplementationLink
 
 open Umpire
+open Temporal.Feature.Nexus.Caller
 
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
@@ -31,111 +39,169 @@ def source : SourceLocation := {
 def implementationLinkId : DefinitionId :=
   id "temporal.system.nexus.lifecycle.implementation-link"
 
+/-! ### The product machine as a Target -/
+
+/-- The product machine's rows as a Target's table: the classes with a row, `started` a start
+beside `scheduled`, and `ends:` the terminal closure. -/
+def productTable : FiniteTable nexusProduct.Setup ProductState nexusProduct.Action ProductOutcome
+    ProductFact := {
+  nexusProduct.table with
+  actions := nexusProduct.table.actions.filter fun entry =>
+    nexusProduct.table.transitions.any (·.action == entry.value)
+  initial := [⟨nexusProduct.setupValue, [{ phase := .scheduled }, { phase := .started }]⟩]
+  terminalConditions := [nexusProduct.ends] }
+
+/-- The rows are the product machine's own, none added and none dropped. -/
+theorem productTable_transitions : productTable.transitions = nexusProduct.table.transitions := rfl
+
+def productTargetId : DefinitionId := id "temporal.system.nexus.lifecycle.product-target"
+def productKernelId : DefinitionId := id "temporal.system.nexus.lifecycle.product-kernel"
+
+/-- The Target's own identity over the product machine's definitions: a Target over more starts
+than the machine declares is a new identity, and the machine's own is left to its Queries. -/
+def productSpec : TableModelSpec := {
+  nexusProduct.modelSpec with
+  id := productTargetId
+  source
+  metadata := { id := productKernelId, source }
+  definitions := nexusProduct.modelSpec.definitions.map fun definition =>
+    if definition.id == nexusProduct.targetId then
+      { definition with
+        id := productTargetId
+        source
+        behaviorVersion := "temporal-system-nexus-lifecycle-product-target/v1" }
+    else if definition.id == nexusProduct.kernelId then
+      { definition with
+        id := productKernelId
+        source
+        behaviorVersion := "temporal-system-nexus-lifecycle-product-kernel/v1" }
+    else definition }
+
+def productTargetResult : Except TableAdmissionError (QueryModel nexusProduct.lawStatement) :=
+  productTable.checkModel nexusProduct.identity productSpec nexusProduct.composition
+
+private theorem productTargetResult_isSome : productTargetResult.toOption.isSome = true := by
+  native_decide
+
+/-- The destination of the link: the product machine's rows, checked. Irreducible so that a goal
+over its machine is never unfolded into the admission itself; every fact about it is decided over
+the compiled admission. -/
+@[irreducible] def productTarget : QueryModel nexusProduct.lawStatement :=
+  productTargetResult.toOption.get productTargetResult_isSome
+
+private def productDomainOption := match productTarget.machine.vocabulary with
+  | .complete domain => some domain
+  | _ => none
+
+private theorem productDomainOption_isSome : productDomainOption.isSome = true := by native_decide
+
+/-- The checked Target's own values, which is what every mapping below names. -/
+def productDomain := productDomainOption.get productDomainOption_isSome
+
+private def named (values : List ModelValue) (spelling : String)
+    (present : (values.find? (·.value == spelling)).isSome = true := by native_decide) :
+    ModelValue :=
+  (values.find? (·.value == spelling)).get present
+
+def scheduledState : ModelValue := named productDomain.states "scheduled"
+def startedState : ModelValue := named productDomain.states "started"
+def succeededState : ModelValue := named productDomain.states "succeeded"
+def canceledState : ModelValue := named productDomain.states "canceled"
+
+/-- The handler's asynchronous reply, which starts the operation. -/
+def asyncReplyAction : ModelValue := named productDomain.actions "handlerReply-async"
+/-- The caller's completion recording a cancellation. -/
+def cancelCompletionAction : ModelValue := named productDomain.actions "complete-canceled"
+/-- The caller's completion recording a success. -/
+def successCompletionAction : ModelValue := named productDomain.actions "complete-succeeded"
+
+def acceptedOutcome : ModelValue := named productDomain.outcomes "accepted"
+
+def startedFact : ModelValue := named productDomain.observations "nexusOperationStarted"
+def canceledFact : ModelValue := named productDomain.observations "nexusOperationCanceled"
+def completedFact : ModelValue := named productDomain.observations "nexusOperationCompleted"
+
+/-- The one setup the Target has: the operation role bound to the first start. Both System setups
+map to it; which start an operation begins at is the state, not the setup. -/
+def productSetup : List RoleBinding := [{ «role» := nexusProduct.operationRoleId, value := scheduledState }]
+
+def startedResult : Step ModelValue ModelValue ModelValue :=
+  { outcome := acceptedOutcome, state := startedState, facts := [startedFact] }
+def canceledResult : Step ModelValue ModelValue ModelValue :=
+  { outcome := acceptedOutcome, state := canceledState, facts := [canceledFact] }
+def succeededResult : Step ModelValue ModelValue ModelValue :=
+  { outcome := acceptedOutcome, state := succeededState, facts := [completedFact] }
+
+/-! ### The maps -/
+
 def mapSetup : Temporal.System.Nexus.ExecutionSetup → List RoleBinding
-  | .queued => Temporal.Feature.Nexus.Lifecycle.scheduledSetup
-  | .running => Temporal.Feature.Nexus.Lifecycle.startedSetup
+  | .queued => productSetup
+  | .running => productSetup
 
 def mapState (state : ModelValue) : ModelValue :=
-  if state = Temporal.System.Nexus.queuedState then
-    Temporal.Feature.Nexus.Lifecycle.scheduledState
-  else if state = Temporal.System.Nexus.runningState then
-    Temporal.Feature.Nexus.Lifecycle.startedState
-  else if state = Temporal.System.Nexus.cancellationRecordedState then
-    Temporal.Feature.Nexus.Lifecycle.canceledState
-  else
-    Temporal.Feature.Nexus.Lifecycle.succeededState
+  if state = Temporal.System.Nexus.queuedState then scheduledState
+  else if state = Temporal.System.Nexus.runningState then startedState
+  else if state = Temporal.System.Nexus.cancellationRecordedState then canceledState
+  else succeededState
 
 def mapAction (action : ModelValue) : ModelValue :=
-  if action = Temporal.System.Nexus.dispatchAction then
-    Temporal.Feature.Nexus.Lifecycle.startAction
-  else if action = Temporal.System.Nexus.recordCancellationAction then
-    Temporal.Feature.Nexus.Lifecycle.cancelAction
-  else
-    Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
+  if action = Temporal.System.Nexus.dispatchAction then asyncReplyAction
+  else if action = Temporal.System.Nexus.recordCancellationAction then cancelCompletionAction
+  else successCompletionAction
 
-def mapOutcome (outcome : ModelValue) : ModelValue :=
-  if outcome = Temporal.System.Nexus.dispatchedOutcome then
-    Temporal.Feature.Nexus.Lifecycle.startedOutcome
-  else if outcome = Temporal.System.Nexus.cancellationRecordedOutcome then
-    Temporal.Feature.Nexus.Lifecycle.canceledOutcome
-  else
-    Temporal.Feature.Nexus.Lifecycle.succeededOutcome
+/-- Every System transition is accepted by the product machine: the three transition outcomes map
+to its one accepting outcome. -/
+def mapOutcome (_outcome : ModelValue) : ModelValue := acceptedOutcome
 
 def mapObservation (observation : ModelValue) : ModelValue :=
-  if observation = Temporal.System.Nexus.runningObservation then
-    Temporal.Feature.Nexus.Lifecycle.startedObservation
-  else if observation = Temporal.System.Nexus.cancellationRecordedObservation then
-    Temporal.Feature.Nexus.Lifecycle.canceledObservation
-  else
-    Temporal.Feature.Nexus.Lifecycle.succeededObservation
+  if observation = Temporal.System.Nexus.runningObservation then startedFact
+  else if observation = Temporal.System.Nexus.cancellationRecordedObservation then canceledFact
+  else completedFact
 
-@[simp] theorem mapSetup_queued :
-    mapSetup Temporal.System.Nexus.queuedSetup =
-      Temporal.Feature.Nexus.Lifecycle.scheduledSetup := by native_decide
-
-@[simp] theorem mapSetup_running :
-    mapSetup Temporal.System.Nexus.runningSetup =
-      Temporal.Feature.Nexus.Lifecycle.startedSetup := by native_decide
+@[simp] theorem mapSetup_queued : mapSetup Temporal.System.Nexus.queuedSetup = productSetup := rfl
+@[simp] theorem mapSetup_running : mapSetup Temporal.System.Nexus.runningSetup = productSetup := rfl
 
 @[simp] theorem mapState_queued :
-    mapState Temporal.System.Nexus.queuedState =
-      Temporal.Feature.Nexus.Lifecycle.scheduledState := by native_decide
-
+    mapState Temporal.System.Nexus.queuedState = scheduledState := by native_decide
 @[simp] theorem mapState_running :
-    mapState Temporal.System.Nexus.runningState =
-      Temporal.Feature.Nexus.Lifecycle.startedState := by native_decide
-
+    mapState Temporal.System.Nexus.runningState = startedState := by native_decide
 @[simp] theorem mapState_cancellationRecorded :
-    mapState Temporal.System.Nexus.cancellationRecordedState =
-      Temporal.Feature.Nexus.Lifecycle.canceledState := by native_decide
-
+    mapState Temporal.System.Nexus.cancellationRecordedState = canceledState := by native_decide
 @[simp] theorem mapState_completionRecorded :
-    mapState Temporal.System.Nexus.completionRecordedState =
-      Temporal.Feature.Nexus.Lifecycle.succeededState := by native_decide
+    mapState Temporal.System.Nexus.completionRecordedState = succeededState := by native_decide
 
 @[simp] theorem mapAction_dispatch :
-    mapAction Temporal.System.Nexus.dispatchAction =
-      Temporal.Feature.Nexus.Lifecycle.startAction := by native_decide
-
+    mapAction Temporal.System.Nexus.dispatchAction = asyncReplyAction := by native_decide
 @[simp] theorem mapAction_recordCancellation :
-    mapAction Temporal.System.Nexus.recordCancellationAction =
-      Temporal.Feature.Nexus.Lifecycle.cancelAction := by native_decide
-
+    mapAction Temporal.System.Nexus.recordCancellationAction = cancelCompletionAction := by
+  native_decide
 @[simp] theorem mapAction_recordCompletion :
-    mapAction Temporal.System.Nexus.recordCompletionAction =
-      Temporal.Feature.Nexus.Lifecycle.reportSuccessAction := by native_decide
+    mapAction Temporal.System.Nexus.recordCompletionAction = successCompletionAction := by
+  native_decide
 
 @[simp] theorem mapOutcome_dispatched :
-    mapOutcome Temporal.System.Nexus.dispatchedOutcome =
-      Temporal.Feature.Nexus.Lifecycle.startedOutcome := by native_decide
-
+    mapOutcome Temporal.System.Nexus.dispatchedOutcome = acceptedOutcome := rfl
 @[simp] theorem mapOutcome_cancellationRecorded :
-    mapOutcome Temporal.System.Nexus.cancellationRecordedOutcome =
-      Temporal.Feature.Nexus.Lifecycle.canceledOutcome := by native_decide
-
+    mapOutcome Temporal.System.Nexus.cancellationRecordedOutcome = acceptedOutcome := rfl
 @[simp] theorem mapOutcome_completionRecorded :
-    mapOutcome Temporal.System.Nexus.completionRecordedOutcome =
-      Temporal.Feature.Nexus.Lifecycle.succeededOutcome := by native_decide
+    mapOutcome Temporal.System.Nexus.completionRecordedOutcome = acceptedOutcome := rfl
 
 @[simp] theorem mapObservation_running :
-    mapObservation Temporal.System.Nexus.runningObservation =
-      Temporal.Feature.Nexus.Lifecycle.startedObservation := by native_decide
-
+    mapObservation Temporal.System.Nexus.runningObservation = startedFact := by native_decide
 @[simp] theorem mapObservation_cancellationRecorded :
-    mapObservation Temporal.System.Nexus.cancellationRecordedObservation =
-      Temporal.Feature.Nexus.Lifecycle.canceledObservation := by native_decide
-
+    mapObservation Temporal.System.Nexus.cancellationRecordedObservation = canceledFact := by
+  native_decide
 @[simp] theorem mapObservation_completionRecorded :
-    mapObservation Temporal.System.Nexus.completionRecordedObservation =
-      Temporal.Feature.Nexus.Lifecycle.succeededObservation := by native_decide
+    mapObservation Temporal.System.Nexus.completionRecordedObservation = completedFact := by
+  native_decide
 
 def sourceCapabilityReference : ImplementationSemanticReference :=
   (implementationSemanticReference? Temporal.System.Nexus.target
     Temporal.System.Nexus.lifecycleCapabilityId .capability).get (by native_decide)
 
 def destinationCapabilityReference : ImplementationSemanticReference :=
-  (implementationSemanticReference? Temporal.Feature.Nexus.Lifecycle.target
-    Temporal.Feature.Nexus.Lifecycle.lifecycleCapabilityId .capability).get (by native_decide)
+  (implementationSemanticReference? productTarget nexusProduct.capabilityId .capability).get
+    (by native_decide)
 
 def lifecycleCapabilityMapping : ImplementationSemanticMapping :=
   .forward sourceCapabilityReference destinationCapabilityReference
@@ -146,51 +212,36 @@ def declaration : ImplementationLinkDeclaration
   id := implementationLinkId
   source
   sourceTarget := .ofTarget Temporal.System.Nexus.target
-  destinationTarget := .ofTarget Temporal.Feature.Nexus.Lifecycle.target
+  destinationTarget := .ofTarget productTarget
   setupMappings := [
-    .forward Temporal.System.Nexus.queuedSetup
-      Temporal.Feature.Nexus.Lifecycle.scheduledSetup,
-    .forward Temporal.System.Nexus.runningSetup
-      Temporal.Feature.Nexus.Lifecycle.startedSetup
+    .forward Temporal.System.Nexus.queuedSetup productSetup,
+    .forward Temporal.System.Nexus.runningSetup productSetup
   ]
   stateMappings := [
-    .forward Temporal.System.Nexus.queuedState
-      Temporal.Feature.Nexus.Lifecycle.scheduledState,
-    .forward Temporal.System.Nexus.runningState
-      Temporal.Feature.Nexus.Lifecycle.startedState,
-    .forward Temporal.System.Nexus.cancellationRecordedState
-      Temporal.Feature.Nexus.Lifecycle.canceledState,
-    .forward Temporal.System.Nexus.completionRecordedState
-      Temporal.Feature.Nexus.Lifecycle.succeededState
+    .forward Temporal.System.Nexus.queuedState scheduledState,
+    .forward Temporal.System.Nexus.runningState startedState,
+    .forward Temporal.System.Nexus.cancellationRecordedState canceledState,
+    .forward Temporal.System.Nexus.completionRecordedState succeededState
   ]
   actionMappings := [
-    .forward Temporal.System.Nexus.dispatchAction
-      Temporal.Feature.Nexus.Lifecycle.startAction,
-    .forward Temporal.System.Nexus.recordCancellationAction
-      Temporal.Feature.Nexus.Lifecycle.cancelAction,
-    .forward Temporal.System.Nexus.recordCompletionAction
-      Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
+    .forward Temporal.System.Nexus.dispatchAction asyncReplyAction,
+    .forward Temporal.System.Nexus.recordCancellationAction cancelCompletionAction,
+    .forward Temporal.System.Nexus.recordCompletionAction successCompletionAction
   ]
   outcomeMappings := [
-    .forward Temporal.System.Nexus.dispatchedOutcome
-      Temporal.Feature.Nexus.Lifecycle.startedOutcome,
-    .forward Temporal.System.Nexus.cancellationRecordedOutcome
-      Temporal.Feature.Nexus.Lifecycle.canceledOutcome,
-    .forward Temporal.System.Nexus.completionRecordedOutcome
-      Temporal.Feature.Nexus.Lifecycle.succeededOutcome
+    .forward Temporal.System.Nexus.dispatchedOutcome acceptedOutcome,
+    .forward Temporal.System.Nexus.cancellationRecordedOutcome acceptedOutcome,
+    .forward Temporal.System.Nexus.completionRecordedOutcome acceptedOutcome
   ]
   observationMappings := [
-    .forward Temporal.System.Nexus.runningObservation
-      Temporal.Feature.Nexus.Lifecycle.startedObservation,
-    .forward Temporal.System.Nexus.cancellationRecordedObservation
-      Temporal.Feature.Nexus.Lifecycle.canceledObservation,
-    .forward Temporal.System.Nexus.completionRecordedObservation
-      Temporal.Feature.Nexus.Lifecycle.succeededObservation
+    .forward Temporal.System.Nexus.runningObservation startedFact,
+    .forward Temporal.System.Nexus.cancellationRecordedObservation canceledFact,
+    .forward Temporal.System.Nexus.completionRecordedObservation completedFact
   ]
   relationMappings := []
   capabilityMappings := [lifecycleCapabilityMapping]
   applicationLimit := { value := 3, unit := .steps }
-  documentation := "The pure Nexus System lifecycle forward-simulates Feature lifecycle meaning."
+  documentation := "The pure Nexus System lifecycle forward-simulates the caller Model's product machine."
 }
 
 theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
@@ -311,49 +362,54 @@ theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
   capability := by native_decide
 }
 
-def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
-    Temporal.Feature.Nexus.Lifecycle.target := {
-  index := implementationLinkWitnessIndex declaration Temporal.System.Nexus.target
-    Temporal.Feature.Nexus.Lifecycle.target
-  stepPreservation := {
-    morphism := { mapSetup, mapState, mapAction, mapOutcome, mapObservation }
-    initialForward := by
-      intro setup state admitted
-      change Temporal.System.Nexus.authoritativeInitial setup state at admitted
-      rcases Temporal.System.Nexus.authoritativeInitial_cases setup state admitted with
-        ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-      · simpa only [mapSetup_queued, mapState_queued] using
-          Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative
-      · simpa only [mapSetup_running, mapState_running] using
-          Temporal.Feature.Nexus.Lifecycle.target_started_initial_authoritative
-    stepForward := by
-      intro state action result admitted
-      change Temporal.System.Nexus.authoritativeStep state action result at admitted
-      rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
-      · simpa only [ValueTranslation.mapStep, Step.map,
-          mapState_queued, mapAction_dispatch, Temporal.System.Nexus.dispatchedResult,
-          mapOutcome_dispatched, mapState_running, List.map_cons, mapObservation_running,
-          List.map_nil, Temporal.Feature.Nexus.Lifecycle.startedResult] using
-          Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative
-      · simpa only [ValueTranslation.mapStep, Step.map,
-          mapState_running, mapAction_recordCancellation,
-          Temporal.System.Nexus.cancellationRecordedResult, mapOutcome_cancellationRecorded,
-          mapState_cancellationRecorded, List.map_cons, mapObservation_cancellationRecorded,
-          List.map_nil, Temporal.Feature.Nexus.Lifecycle.canceledResult] using
-          Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative
-      · simpa only [ValueTranslation.mapStep, Step.map,
-          mapState_running, mapAction_recordCompletion,
-          Temporal.System.Nexus.completionRecordedResult, mapOutcome_completionRecorded,
-          mapState_completionRecorded, List.map_cons, mapObservation_completionRecorded,
-          List.map_nil, Temporal.Feature.Nexus.Lifecycle.succeededResult] using
-          Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative
-  }
+/-- Membership in a checked list, decided by its own search rather than a lawful `BEq`. -/
+private theorem mem_of_found {α : Type} [BEq α] {value : α} {values : List α}
+    (found : values.find? (· == value) = some value) : value ∈ values :=
+  List.mem_of_find?_eq_some found
+
+/-- The value translation of the link, from the System's kernel values to the product Target's. -/
+def morphism : ValueTranslation Temporal.System.Nexus.ExecutionSetup ModelValue ModelValue
+    ModelValue ModelValue (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  { mapSetup, mapState, mapAction, mapOutcome, mapObservation }
+
+/-- Each System start lands on a start of the checked product Target, whose own soundness law turns
+the found start into the authoritative relation: decided over the Target, not proved start by start. -/
+theorem initialForward (setup : Temporal.System.Nexus.ExecutionSetup) (state : ModelValue)
+    (admitted : Temporal.System.Nexus.target.machine.authoritativeInitial setup state) :
+    productTarget.machine.authoritativeInitial (morphism.mapSetup setup)
+      (morphism.mapState state) := by
+  change Temporal.System.Nexus.authoritativeInitial setup state at admitted
+  rcases Temporal.System.Nexus.authoritativeInitial_cases setup state admitted with
+    ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+  · refine productTarget.machine.initialSound _ _ ?_
+    exact mem_of_found (by native_decide)
+  · refine productTarget.machine.initialSound _ _ ?_
+    exact mem_of_found (by native_decide)
+
+/-- Each System step lands on a row of the checked product Target, the same way. -/
+theorem stepForward (state action : ModelValue) (result : Step ModelValue ModelValue ModelValue)
+    (admitted : Temporal.System.Nexus.target.machine.authoritativeStep state action result) :
+    productTarget.machine.authoritativeStep (morphism.mapState state) (morphism.mapAction action)
+      (morphism.mapStep result) := by
+  change Temporal.System.Nexus.authoritativeStep state action result at admitted
+  rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
+    ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+  · refine productTarget.machine.stepSound _ _ _ ?_
+    exact mem_of_found (by native_decide)
+  · refine productTarget.machine.stepSound _ _ _ ?_
+    exact mem_of_found (by native_decide)
+  · refine productTarget.machine.stepSound _ _ _ ?_
+    exact mem_of_found (by native_decide)
+
+/-- The forward simulation: the value translation with its two decided laws. -/
+def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target productTarget := {
+  index := implementationLinkWitnessIndex declaration Temporal.System.Nexus.target productTarget
+  stepPreservation := { morphism, initialForward, stepForward }
   requiredCoverage
 }
 
-def checkedResult := checkImplementationLink declaration Temporal.System.Nexus.target
-  Temporal.Feature.Nexus.Lifecycle.target witness
+def checkedResult := checkImplementationLink declaration Temporal.System.Nexus.target productTarget
+  witness
 
 private theorem checkedResult_isSome : checkedResult.toOption.isSome = true := by
   native_decide
@@ -365,7 +421,7 @@ def checked := checkedResult.toOption.get checkedResult_isSome
 inductive FeaturePropertyLayer where
   | observation
   | implementationLink
-  | property
+  | featureProperty
   deriving BEq, DecidableEq, Repr
 
 /-- Successful composition retains both the complete Implementation Link Evidence Links and the
@@ -384,8 +440,8 @@ inductive FeaturePropertyResult where
 def FeaturePropertyResult.layer : FeaturePropertyResult → FeaturePropertyLayer
   | .observationFailure _ => .observation
   | .implementationLinkFailure _ => .implementationLink
-  | .propertyFailure _ => .property
-  | .evaluated _ => .property
+  | .propertyFailure _ => .featureProperty
+  | .evaluated _ => .featureProperty
 
 def FeaturePropertyResult.observationDiagnostic? :
     FeaturePropertyResult → Option ObservationDiagnostic
@@ -411,7 +467,7 @@ def FeaturePropertyResult.propertyDiagnostic? :
 evaluation runs only after the source trace is re-admitted and translated successfully. -/
 def evaluateFeatureProperty
     (sourceSetup : Temporal.System.Nexus.ExecutionSetup)
-    (property : CheckedProperty)
+    (checkedProperty : CheckedProperty)
     (observation : ObservationResult) : FeaturePropertyResult :=
   match observation with
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
@@ -419,7 +475,7 @@ def evaluateFeatureProperty
   | .accepted trace =>
       match applyImplementationLink checked sourceSetup trace with
       | .applied application =>
-          match evaluatePropertyOnTrace property application.trace with
+          match evaluatePropertyOnTrace checkedProperty application.trace with
           | .ok evaluation => .evaluated { application, evaluation }
           | .error diagnostic => .propertyFailure diagnostic
       | .invalid diagnostic
@@ -433,23 +489,24 @@ end Temporal.System.Nexus.ImplementationLink
 namespace Temporal.System.Nexus.ImplementationLink.Cancellation
 
 open Umpire Case.Projection
+open Temporal.Feature.Nexus.Caller
 
 /-- Cancellation admission preserves which owner rejected the declaration or source evidence. -/
 inductive Error where
-  | target (error : TableAdmissionError)
-  | vocabulary (error : FiniteTableError)
   | correlation (error : Evidence.Error)
   | projection (error : Case.Projection.Error)
 
 /-- Target-bound cancellation mapping. Only `check` constructs this checked declaration. -/
 structure Checked where
   private mk ::
-  target : QueryModel Temporal.Feature.Nexus.Race.Race.LawStatement
+  target : QueryModel nexusProduct.lawStatement
   private plan : Case.Projection.Checked target
   private maxOperations : Nat
 
-private def declaration (model : Temporal.Feature.Nexus.Race.Race.ModelVocabulary)
-    (limits : Case.Projection.Limits) :
+/-- The product machine records no cancellation request: `nexusProduct` resolves a started operation
+straight to `canceled` on the handler's completion, so the request and its confirmation carry no
+step of their own (fn-79 keeps the request row deferred). -/
+private def declaration (bounds : Case.Projection.Limits) :
     Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := Evidence.field "cancellation-projection"
   scopeFields := [Evidence.field "execution", Evidence.field "namespace",
@@ -457,35 +514,23 @@ private def declaration (model : Temporal.Feature.Nexus.Race.Race.ModelVocabular
   operationField := Evidence.field "scheduled-operation-request"
   sources := [Evidence.Source.sdk.id, Evidence.Source.history.id]
   rules := [
-    { kind := Evidence.Kind.cancellationSubmitted.id,
-      meaning := .submission model.requestCancelAction },
-    { kind := Evidence.Kind.cancellationConfirmed.id,
-      meaning := .confirmed (some model.requestCancelAction) [(model.requestCancelAction, {
-        outcome := model.cancellationRequestedOutcome,
-        state := model.cancelRequestedState, facts := [model.cancelRequestedFact] })] },
+    { kind := Evidence.Kind.cancellationSubmitted.id, meaning := .irrelevant },
+    { kind := Evidence.Kind.cancellationConfirmed.id, meaning := .irrelevant },
     { kind := Evidence.Kind.canceled.id,
-      meaning := .confirmed none [(model.resolveAction, {
-        outcome := model.canceledOutcome,
-        state := model.canceledState,
-        facts := [model.lifecycleCanceledFact, model.terminalFact] })] },
+      meaning := .confirmed none [(cancelCompletionAction, canceledResult)] },
     { kind := Evidence.Kind.completed.id,
-      meaning := .confirmed none [(model.resolveAction, {
-        outcome := model.succeededOutcome,
-        state := model.succeededState,
-        facts := [model.lifecycleSucceededFact, model.terminalFact] })] },
+      meaning := .confirmed none [(successCompletionAction, succeededResult)] },
     { kind := Evidence.Kind.unrelated.id, meaning := .irrelevant },
     { kind := Evidence.Kind.workflowCancellation.id, meaning := .irrelevant },
     { kind := Evidence.Kind.activationShutdown.id, meaning := .irrelevant }]
-  limits
+  «limits» := bounds
 }
 
-/-- Check the evidence mapping against the reused Feature authority; no Query witness is an input. -/
-def check (limits : Case.Projection.Limits) : Except Error Checked := do
-  let target ← Temporal.Feature.Nexus.Race.Terminal.targetResult.mapError .target
-  let model ← Temporal.Feature.Nexus.Race.Race.modelVocabulary.mapError .vocabulary
-  let plan ← Case.Projection.check target (declaration model limits)
-    model.startedSetup model.startedState |>.mapError .projection
-  pure ⟨target, plan, limits.keys⟩
+/-- Check the evidence mapping against the product Target; no Query witness is an input. -/
+def check (bounds : Case.Projection.Limits) : Except Error Checked := do
+  let plan ← Case.Projection.check productTarget (declaration bounds) productSetup startedState
+    |>.mapError .projection
+  pure ⟨productTarget, plan, bounds.keys⟩
 
 /-- Canonical mapping provenance includes Target terminal semantics and independent evidence limits. -/
 def Checked.behaviorFingerprint (checked : Checked) : BehaviorFingerprint :=
@@ -505,7 +550,7 @@ def Checked.start (checked : Checked) (binding : Evidence.Binding) : Except Erro
 
 variable {checked : Checked}
 
-/-- Confirmed steps retain checked Feature authority and exact source/Run support. -/
+/-- Confirmed steps retain checked product authority and exact source/Run support. -/
 def Run.steps (run : Run checked) : List (Step checked.target) := run.projection.steps
 
 /-- Accepted closed evidence is immutable even when a later append fails. -/
@@ -521,7 +566,7 @@ def Run.admit (run : Run checked) (record : Evidence.Record) :
   let (projection, progress) ← run.projection.admit event |>.mapError .projection
   pure (⟨run.binding, projection⟩, progress)
 
-/-- Close only when every bound operation has reached either declared terminal resolution. -/
+/-- Close only when every bound operation has reached one of the product machine's `ends:`. -/
 def Run.close (run : Run checked) : Except Error (Run checked) := do
   let projection ← run.projection.close |>.mapError .projection
   let unresolved := run.binding.operations.filter fun operation =>
