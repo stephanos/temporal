@@ -33,47 +33,11 @@ Delete the Go generator's functional Case table and its fixed-count guard and dr
 - [ ] One table-driven artifact test covers decode, prepare, and identity for every fixture; per-Case semantic tests remain and pass
 - [ ] `runCase(t, env, "async-nexus")` runs with no explicit binding; the async-Nexus live test uses lifted helpers
 - [ ] `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` and `make umpire-check-live-tests` pass
+
 ## Done summary
-Blocked:
-Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions and run query sets").
+Closed as superseded 2026-09-20 by fn-85 .13. Its concerns went to fn-85 .7: the generator reads `umpire-case --list`, which enumerates every registered Case (each functional set's Queries and the explicitly registered values); the shared artifact test is table-driven over `testdata` (`fixture_table_test.go`); `bindCase`/`runCase` derive the binding from the Case's own bytes; and the async-Nexus evidence helpers live in `tests/testpilot_live_case_test.go`, where a new live test is one function of Verdict assertions (`tests/testpilot_nexus_caller_case_test.go`).
 
-The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
-
-- **Side effects in the Model.** Entities with identity; actions a party performs, with input classes, examples, an optional schema and results; machines that keep each entity's state and rows; observations that confirm rows. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal realization** in `Temporal.Case` that binds actions, results, observations, timers, setup parameters, switches and parties to RPCs, Testpilot instructions, history events and dynamic config. The Producer assembles Program and Contract from a Query's path; whole-Program templates and the `case` command are removed.
-- **Query sets per purpose.** A set binds each party to `driven` or `observed`; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
-
-fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
-## Work that landed before the block
-
-This task was claimed and implemented before the `case`-abstraction block was recorded, and its
-Go-side half is committed in `dda17feda8`. It is left `blocked` rather than `done`, because the
-block is a human decision and the redesign may still change what `--list` enumerates.
-
-What is already in the tree, and what the redesign has to reckon with:
-
-- `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go` no longer carries a functional
-  Case table or a fixed entry count. It calls the renderer's `--list`, reads it twice and compares
-  (the same determinism discipline it already applied per fixture), and renders each entry by Case
-  ID. **This depends only on `--list` printing `<case-id> <fixture-name>` -- not on the `case`
-  block, the templates, or per-Case evidence.** A set-per-purpose design that still enumerates the
-  Cases it compiles keeps this half unchanged.
-- The one functional fixture the registry does not model (`synthetic`) stays named by its own
-  renderer argument, in `syntheticEntry()`.
-- `tests/testcore/testpilot/fixture_table_test.go` (new) enumerates `testdata/*-case.json` and
-  checks decode, identity, Case-ID uniqueness, preparation over unchanged bytes where
-  `DeriveProfile` reads the Profile, and rejection of a mutated role. It names no Case, so it
-  survives any change to how Cases are authored. The per-Case semantic tests are untouched.
-- `runCase(t, env, "async-nexus")` derives its binding from the fixture name and creates a Nexus
-  endpoint only when the Case declares one; `runCaseWithBinding` keeps the explicit form. The
-  async-Nexus evidence helpers moved to `tests/testpilot_live_case_test.go`.
-
-Verified at that commit: `make umpire-check-case-runtime-conformance` reproduces every checked-in
-fixture, `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` is green, and
-`make umpire-check-live-tests` passes across 9 identities. An impl-review of the same diff on
-`claude:claude-sonnet-4-5:high` returned SHIP with no introduced findings.

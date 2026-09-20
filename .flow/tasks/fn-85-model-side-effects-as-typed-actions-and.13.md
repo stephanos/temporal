@@ -59,14 +59,85 @@ Close the spec (R13): write `model/AUTHORING.md` as a walk from an empty file to
 
 - The AUT-09 amendment (a `structure` of finite fields and a step function enumerated into the finite table are author-provided) is drafted here beside AUT-07a and MOD-02, marked `drafted by fn-85; awaiting GOV-02 approval`.
 ## Acceptance
-- [ ] `model/AUTHORING.md` walks from an empty file to a green live test; the drift test passes and fails on a planted missing and a planted duplicate marker; the file is in the vocabulary gate's required files
-- [ ] `UMPIRE4_SPEC.md` has the six concept entries and the three amended ones; AUT-07a and MOD-02 amendments are drafted under GOV-02; MOD-15 gate green
-- [ ] fn-83 tasks .4, .5, .6, .8, .16 and .17 are closed as superseded with destinations; the order document records fn-83 and fn-85 as done with new gate baselines
-- [ ] `make umpire-check-regression` exit 0; `make lint-model` at or below 163; `make lint-code` at 161 after `go clean -cache`; live identity count recorded
+- [x] `model/AUTHORING.md` walks from an empty file to a green live test; the drift test passes and fails on a planted missing and a planted duplicate marker; the file is in the vocabulary gate's required files
+- [x] `UMPIRE4_SPEC.md` has the six concept entries and the three amended ones; AUT-07a and MOD-02 amendments are drafted under GOV-02; MOD-15 gate green
+- [x] fn-83 tasks .4, .5, .6, .8, .16 and .17 are closed as superseded with destinations; the order document records fn-83 and fn-85 as done with new gate baselines
+- [x] `make umpire-check-regression` exit 0; `make lint-model` at or below 163; `make lint-code` at 161 after `go clean -cache`; live identity count recorded (`lint-code` is measured as the gate baselines table says a shallow clone can: `lint-code-fast` over the changed packages at the pre-change commit; see the Done summary)
 ## Done summary
-TBD
+
+Done 2026-09-20; self-review. Commit b7d74c6.
+
+### The walkthrough and its drift test
+
+`model/AUTHORING.md` walks from an empty file to a green live test in thirteen steps (0 to 12):
+the file header, entities, domains, actions, the derived observation, the product machine, the
+protocol machine and its refinement, the Properties, the Scenarios and limits, the Queries, the
+three sets, the `case` block, and the commands that render the fixtures, run the live test and
+run the gate. Every Lean block is one marked region of `Caller/Model.lean`, quoted under
+`<!-- authoring: <name> -->` and a fenced `lean` block, generated from the file so the bytes agree;
+a `header` marker was added at the top of the Model file so the imports, the module doc and the
+namespace are a quoted region too (twelve markers from `.10`, thirteen now). `tools/umpire/authoring`
+(`authoring.go`, `Regions`, `Blocks`, `Check`) reads both files: a block naming a marker the Model
+lacks, a marker the Model carries twice, a block whose bytes differ from its region, a region the
+walkthrough does not quote (the `end` terminator excepted), an unfenced marker and a block quoted
+twice are each an error naming the block or marker; `drift_test.go` runs the check on the
+checked-in files and plants each fault (a renamed marker, a repeated marker, a one-byte edit, an
+extra region, an unfenced and a repeated block) to pin its message. `model/AUTHORING.md` is in
+`retiredvocabulary.requiredFiles`, so the vocabulary gate scans it.
+
+### The spec, the design and the documents
+
+`UMPIRE4_SPEC.md`: six concept entries -- Entity (`Umpire.Command.Entity`), Party, Refinement
+(`Umpire.Command.Refinement`, not an Implementation Link), Set (`Umpire.Command.SetDeclaration`,
+`Umpire.Command.CoverageTarget`), Realization (`Umpire.Case.Producer.Realization`,
+`Temporal.Case.Realization.asyncNexus`, the platform's block in `Temporal.Case.Syntax`) and
+Abstraction Claim (`Umpire.Case.Producer.ClassClaim`, `Umpire.Provenance.AbstractionClaimRow`) --
+and three amended ones: Action (the `action` command, classes as domain members), Observation
+(`evidence:` lines, declared reads, `unobservable:` as a Known Gap) and Machine (the `machine`
+command, `Umpire.Command.MachineDeclaration`). Three amendments are drafted, each marked
+`drafted by fn-85; awaiting GOV-02 approval`: AUT-07a (the surface carries `set` and
+`register_switch`; producing Cases is the platform's block, which names the feature); MOD-02 (a
+realization lives in `Temporal.Case` because MOD-10 forbids `Temporal.System` importing the Feature
+machines); AUT-09 (what `machine`, `property`, `scenario` and `enum` derive is author-provided:
+finite-field structures, enumerated step functions, probed predicates, kernel-decided refinement,
+the instances product, refused past `Umpire.Command.elaborationBound`). The MOD-15 gate
+(`tools/umpire/vocabulary`) is green over every cited name. DESIGN.md's header points at the spec,
+the Model and `AUTHORING.md`; section 5's table gains a "Delivered (fn-85 task)" column beside the
+"Before fn-85" one; section 6's note says the revised decisions were delivered as revised. Swept:
+`model/README.md` (an `AUTHORING.md` pointer, the canary and exploratory sets; the
+`Temporal.Feature.Nexus.Success.Producer` name the plan cited was already gone), `model/ARCHITECTURE.md`
+(a command-surface paragraph under Semantic model), `model/Umpire/ARCHITECTURE.md` (the
+`Umpire.Command` row names the eleven commands; rows for `Records`, `Finite`, `Refinement`,
+`Claims`, `Coverage`; the command-surface section rewritten for the landed surface and the
+platform's block), `tools/umpire/CONTEXT.md` (Entity, Party, Action, Machine, Refinement, Set,
+Realization, Abstraction Claim with `_Avoid_` lists naming `interface`, `statemachine`, `link`,
+the `test`/`environment` bindings, `representative`), `tests/testcore/testpilot/README.md` (seven
+Queries, the canary and exploratory sets).
+
+### fn-83 and the order document
+
+fn-83's .4, .5, .6, .8, .16 and .17 are closed as superseded in their records: each `Done summary`
+names the destination (.4 → fn-85 .7; .5 → fn-85's fault actions and fn-86 R4; .6 → fn-85 .10
+Query 1; .8 → fn-85 .13; .16 → fn-85 .7; .17 → fn-85 .10/.11) and each `.json` carries a
+2026-09-20 `updated_at`. Route taken: the records were edited in place, because a fresh clone
+carries no runtime task state and `flowctl done` and `spec close` refuse there (the plugin was
+not installed in this session); the status snapshot stays `todo` for every task, as it does for
+every done task of fn-85, and Flow's status follows in a clone that has the state. `.plans/UMPIRE4_ORDER.md`
+records fn-83 as closed with the destinations, fn-85 as done with a `.13` receipt, and a
+2026-09-20 gate-baselines table.
+
+### Gates
+
+`make umpire-check-regression` exit 0: 614 Lean jobs, every offline check (goldens, conformance,
+inventory, retired vocabulary with `AUTHORING.md` scanned, protocol, authoring, regression views),
+the Go tests under `tools/umpire` (the new `authoring` package included), `common/testing/testpilot`
+and `tests/testcore/testpilot`, and **29 passing live identities**.
+`LEAN_NUM_THREADS=1 make lint-model`: the `.11` baseline: two errors in generated `Temporal/API/Proto.lean` and 41 warnings (generated binders, deprecations, the two `enum` binders in `Caller/Model.lean`), none new. `make lint-code` at 161 after `go clean -cache`
+is not measurable in this clone (shallow, no `main` merge base, as the 2026-09-13 baseline row
+records); `GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast` over the changed packages: 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records.
+`go vet -tags test_dep ./tools/umpire/...` clean.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b7d74c6
+- Tests: `go test -count=1 ./tools/umpire/authoring/... ./tools/umpire/vocabulary/...`; `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression`; `LEAN_NUM_THREADS=1 make lint-model`; `GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`; `go vet -tags test_dep ./tools/umpire/...`
 - PRs:
