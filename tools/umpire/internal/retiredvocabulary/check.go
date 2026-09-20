@@ -55,7 +55,6 @@ var requiredFiles = []string{
 	"model/UmpireTests.lean",
 	"model/Temporal.lean",
 	"model/TemporalModelTests.lean",
-	"model/TemporalExperimentalTests.lean",
 	"model/Shared.lean",
 	"model/Testpilot.lean",
 	"model/README.md",

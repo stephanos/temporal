@@ -12,14 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecodePlanAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
+func TestDecodePlanAcceptsCanonicalSwitchV2(t *testing.T) {
 	for _, relative := range []string{
 		"model/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
 		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsAsyncStartArtifact.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsCancellationArtifact.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsSuccessfulCompletionArtifact.json",
 	} {
 		t.Run(filepath.Base(relative), func(t *testing.T) {
 			document, err := DecodePlan(readRepositoryFile(t, relative))

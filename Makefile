@@ -84,7 +84,6 @@ endif
 UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 UMPIRE_GOLDEN_DIRECTORIES := \
 	Umpire/Model/Tests/Compatibility/Fixtures \
-	Temporal/Feature/Nexus/Fixtures \
 	Temporal/Feature/Nexus/Caller/Fixtures \
 	Umpire/Examples/Fixtures \
 	Umpire/Artifact/Tests/Fixtures
@@ -93,6 +92,8 @@ UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_de
 UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_REGRESSION_INSPECTOR := umpire-inspect
+# The inspector's stderr is its diagnostic channel: lake's replayed build logs stay out of it.
+UMPIRE_INSPECT := $(LEAN_LAKE) --log-level=error exe $(UMPIRE_REGRESSION_INSPECTOR)
 UMPIRE_TESTPILOT_RENDERER := umpire-case
 TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/case.proto \
@@ -520,14 +521,14 @@ umpire-check-plan-index:
 
 umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
-	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
+	@cd model && $(UMPIRE_INSPECT) "$(SCENARIO)"
 
 umpire-list:
-	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) list
+	@cd model && $(UMPIRE_INSPECT) list
 
 umpire-explain:
 	@test -n "$(QUERY)" || (echo "QUERY is required" >&2; exit 1)
-	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain "$(QUERY)"
+	@cd model && $(UMPIRE_INSPECT) explain "$(QUERY)"
 
 umpire-gen-lean-api: PROTOC = mise exec -- protoc
 umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
@@ -583,7 +584,7 @@ umpire-gen-goldens:
 	@set -eu; cd model; for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
 		scenario=$${scenario_fixture%%:*}; \
 		fixture=$${scenario_fixture#*:}; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$fixture"; \
+		$(UMPIRE_INSPECT) "$$scenario" > "$$fixture"; \
 	done
 
 umpire-check-goldens:
@@ -788,27 +789,27 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			echo "Umpire Search package does not build on its engine module" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
+	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) list > "$$temporary/list-first.json"; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) list > "$$temporary/list-second.json"; \
+		$(UMPIRE_INSPECT) list > "$$temporary/list-first.json"; \
+		$(UMPIRE_INSPECT) list > "$$temporary/list-second.json"; \
 		cmp -s "$$temporary/list-first.json" "$$temporary/list-second.json"; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain \
-			temporal.nexus.basic-lifecycle.query.async-start > "$$temporary/explain-first.json"; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain \
-			temporal.nexus.basic-lifecycle.query.async-start > "$$temporary/explain-second.json"; \
+		$(UMPIRE_INSPECT) explain \
+			temporal.nexus.caller.query.asyncCompletion > "$$temporary/explain-first.json"; \
+		$(UMPIRE_INSPECT) explain \
+			temporal.nexus.caller.query.asyncCompletion > "$$temporary/explain-second.json"; \
 		cmp -s "$$temporary/explain-first.json" "$$temporary/explain-second.json"; \
 		for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
 			scenario=$${scenario_fixture%%:*}; \
 			fixture=$${scenario_fixture#*:}; \
-			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/first.json"; \
-			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/second.json"; \
+			$(UMPIRE_INSPECT) "$$scenario" > "$$temporary/first.json"; \
+			$(UMPIRE_INSPECT) "$$scenario" > "$$temporary/second.json"; \
 			cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
 			cmp -s "$$fixture" "$$temporary/first.json"; \
 		done; \
-		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-scenario \
+		if $(UMPIRE_INSPECT) missing-scenario \
 			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
 			echo "expected the inspector to reject an unknown scenario" >&2; \
 			exit 1; \
@@ -817,7 +818,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 		printf '%s\n' '{"kind":"unknown-scenario","subject":"missing-scenario","context":"scenario registry"}' \
 			> "$$temporary/expected-negative.stderr"; \
 		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"; \
-		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) \
+		if $(UMPIRE_INSPECT) \
 			> "$$temporary/invalid.stdout" 2> "$$temporary/invalid.stderr"; then \
 			echo "expected the inspector to reject invalid arguments" >&2; \
 			exit 1; \
