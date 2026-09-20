@@ -12,7 +12,7 @@ Add the field-relation clause to `property` (R2): `require:` compares an action'
 
 ### Approach
 - Plan review round 1 (F1): the last step deletes `.1`'s
-  `tests/testcore/testpilot/testdata/baseline/typed-unary-contract.json`. It is a scaffold for this
+  `tests/testcore/testpilot/baseline/typed-unary-contract.json`. It is a scaffold for this
   comparison; leaving it in the tree would be a generated Contract no generator writes.
 - No new clause kind: `PropertyFieldPath` already has `.index`, `.select`, `.cardinality`, `.establish` steps and a `capture` key; the command elaborates the grammar in the spec's API Contracts to that structure and reuses `PropertyFieldComparison.check` for type mismatch and ordering rejections.
 - Rejections to pin: a path segment not in the schema; a type mismatch between compared fields; an observation without a schema; a repeated-field path with no correlation key.
@@ -41,6 +41,16 @@ Add the field-relation clause to `property` (R2): `require:` compares an action'
   up without a Go table entry. **Schema:** `Temporal.Case.Schema` resolves `schema:` by message
   name only (fn-85 .2); fn-85 .8 adds the first member-against-descriptor check, which field-path
   resolution should build on rather than duplicate.
+- Adjusted 2026-09-20 by fn-86 .1 after fn-85 closed. **The `as` clause takes a `Realization`
+  value** (fn-85 .11): `case <name> realizes <set> as (<term>)` with an optional `evidence` block,
+  so an RPC-only realization is a `Umpire.Case.Producer.Realization` value named in parentheses,
+  no third arm. `Temporal.Case.Syntax` also admits a canary set (fn-85 .12). `Realization` carries
+  `plan`, `actions` (keyed `ActionBinding`s), `timers`, `switches`, `sources` and `limits`; the
+  template-era `hooks`, `taskQueueRole` and `faultRuleId` are gone. `Temporal.Case.Schema`
+  resolves `schema:` by message name and fn-85 .8 checks members against the descriptor. The
+  baseline to compare against is `tests/testcore/testpilot/baseline/typed-unary-contract.json`
+  (fn-86 .1), the fixture's `contract` block dedented; delete the directory once the comparison
+  passes. `register_case` still has four lines in `model/Temporal/Tool/Testpilot.lean`.
 
 ### Investigation targets
 **Required:**
