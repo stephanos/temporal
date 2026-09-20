@@ -43,15 +43,89 @@ satisfies: [R6]
 - The spec's decision: `Temporal.System.Nexus` stays; deleting it would amend SEM-08 and MOD-04. Re-anchoring keeps that decision and unblocks the deletions.
 
 ## Acceptance
-- [ ] the Implementation Link imports no module on the deletion list; `checkImplementationLink` reports `.complete` with the same obligations discharged; the terminal-closure check still runs over the product machine's `ends:`
-- [ ] the link's evidence tests pin the Caller Model's Queries and pass; any element with no product counterpart is a listed Known Gap in required coverage
-- [ ] `lake build TemporalModelTests Temporal.System.Nexus.Tests` green; `make lint-model` green with the single MOD-10 exception unchanged
+- [x] the Implementation Link imports no module on the deletion list; `checkImplementationLink` reports `.complete` with the same obligations discharged; the terminal-closure check still runs over the product machine's `ends:`
+- [x] the link's evidence tests pin the Caller Model's Queries and pass; any element with no product counterpart is a listed Known Gap in required coverage
+- [x] `lake build TemporalModelTests Temporal.System.Nexus.Tests` green; `make lint-model` green with the single MOD-10 exception unchanged
 
 
 ## Done summary
-TBD
+
+Done 2026-09-20; self-review. Commit 1335a87.
+
+### The destination
+
+`Temporal.System.Nexus.ImplementationLink` imports `Temporal.Feature.Nexus.Caller.Model` in place
+of `Lifecycle` and `Race.Terminal`. The product machine's own table is not admissible as a Target:
+two of its classes (the transport fault and the worker stop) have no row, and it starts only at
+`scheduled`, while the System's running setup begins with an operation already started. So the
+destination is a Target the link derives from the machine's rows, `productTarget`: `productTable`
+is `nexusProduct.table` restricted to the classes with a row, with `scheduled` and `started` as
+starts and `nexusProduct.ends` as the one terminal condition (`productTable_transitions` pins that
+the rows are the machine's own, none added, none dropped); `productSpec` re-identifies the Target
+and kernel (`temporal.system.nexus.lifecycle.product-{target,kernel}`) because a Target over more
+starts than the machine declares is a new identity; `productTable.checkModel nexusProduct.identity
+productSpec nexusProduct.composition` admits it. Every element the link names is taken from the
+checked Target's own vocabulary (`productDomain`): `scheduled`, `started`, `succeeded`, `canceled`;
+`handlerReply-async`, `complete-canceled`, `complete-succeeded`; `accepted`;
+`nexusOperation{Started,Canceled,Completed}`. The four maps: both System setups to the one product
+setup (the operation role bound to `scheduled`), `queued → scheduled`, `running → started`,
+`cancellationRecorded → canceled`, `completionRecorded → succeeded`; `dispatch → handlerReply-async`,
+`recordCancellation → complete-canceled`, `recordCompletion → complete-succeeded`; every System
+outcome to `accepted` (the product machine accepts all three); the three observations to the
+three facts. No element is without a product counterpart, so the required coverage lists no new
+Known Gap.
+
+### The witness
+
+The forward simulation is decided over the Target rather than proved lemma by lemma:
+`initialForward` and `stepForward` case-split the System's authoritative relations
+(`authoritativeInitial_cases`, `authoritativeStep_cases`) and discharge each case with the
+Target's own soundness laws (`initialSound`, `stepSound`) applied to a membership `native_decide`
+finds (`mem_of_found`, over `List.find?`, because the derived `BEq` on kernel values is not
+`LawfulBEq`). `checkImplementationLink declaration Temporal.System.Nexus.target productTarget
+witness` is `.complete`; `checked.hasCanonicalIdentity` holds. `productTarget` is `@[irreducible]`:
+a goal over its machine (`productTarget.machine.authoritativeStep …`) is a stuck projection of an
+`Option.get` over the admission, and the elaborator's implicit-lambda check `whnf`s every such
+expected type, which evaluated the whole admission symbolically (about 7.5 s per goal, 200k
+heartbeats exceeded three bullets in). Irreducible, the module elaborates in about 6 s; before,
+46 s with the budget raised. Elaboration time of the module: 6.4 s; the two test modules 36 s.
+
+### The terminal closure
+
+The `Cancellation` projection is over `productTarget` from `productSetup` at `started`.
+`cancellationSubmitted` and `cancellationConfirmed` are `.irrelevant`: the product machine records
+no cancellation request (fn-79 keeps that row deferred), an operation resolves to `canceled` on the
+handler's completion, so `canceled` confirms `complete-canceled` and `completed` confirms
+`complete-succeeded`. `Run.close` still refuses while any bound operation is outside
+`checked.target.isTerminal`, which is now membership in `nexusProduct.ends`. `Error.target` and
+`Error.vocabulary` are gone: nothing is re-admitted at check time.
+
+### The evidence tests
+
+`TemporalModelTests/Nexus/ImplementationLink.lean` imports only the link. It pins the destination's
+identity and fingerprint (`sha256:663970a8…`), that `productTable`'s terminal condition is
+`nexusProduct.ends` and its starts `scheduled`/`started`, the six authority seams (two System, four
+product, the product ones through `initialForward`/`stepForward`), and the Caller Model's Queries:
+`asyncCompletion`'s witness records `nexusOperationScheduled, nexusOperationStarted,
+nexusOperationCompleted` and `syncCompletion`'s `nexusOperationScheduled, nexusOperationCompleted`,
+and the link's translated start and completion facts are that route after the schedule the
+System's `queued` start already stands for. The three Properties are test-local transition
+contracts over the product Target (`Property.check (PropertyCheckContext.ofTarget productTarget)`)
+and the expected traces are the product steps; the mutated Property lands the asynchronous reply
+in `succeeded` and evaluates false. `FeaturePropertyLayer.property` is renamed `featureProperty`
+because `property` is now a command keyword in any module that imports the Caller Model; two binders
+(`property`, `limits`) were renamed for the same reason.
+
+### Gates
+
+`lake build` green (633 targets); `make umpire-gen-inventory && make umpire-check-inventory`,
+`umpire-check-retired-vocabulary`, `umpire-gen-goldens && umpire-check-goldens` (no golden
+changed), conformance, protocol, authoring and regression-view checks exit 0; `LEAN_NUM_THREADS=1
+make lint-model` at the `.1` baseline (41 warnings, none new; the MOD-10 exception unchanged);
+no Go changed. `HANDWRITTEN_INVENTORY.md` rows for `Lifecycle.Model`, `Operations.Internal`,
+`Race.Authoring` and the link record that the link no longer reads them.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1335a87
+- Tests: `lake build`; `lake build TemporalModelTests.Nexus.ImplementationLink Temporal.System.Nexus.Tests`; `make umpire-gen-inventory && make umpire-check-inventory`; `make umpire-check-retired-vocabulary`; `make umpire-gen-goldens && make umpire-check-goldens`; `make umpire-gen-case-runtime-conformance && make umpire-check-case-runtime-conformance`; `make umpire-check-testpilot-protocol`; `make umpire-check-testpilot-authoring`; `make umpire-check-regression-views`; `LEAN_NUM_THREADS=1 make lint-model`
 - PRs:
