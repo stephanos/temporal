@@ -886,6 +886,13 @@ lint-model: umpire-check-inventory
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
+	@diagnostics=$$(mktemp); \
+		trap 'rm -f "$$diagnostics"' EXIT; \
+		status=0; \
+		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-authoring-violation 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -eq 1; \
+		expected='[model-import-graph/authoring-path-isolation] forbidden direct import: Temporal.Feature.Planted -> Umpire.Model'; \
+		test "$$(cat "$$diagnostics")" = "$$expected"
 	@cd model && $(LEAN_LAKE) exe umpire-lint
 	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
 
