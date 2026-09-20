@@ -202,10 +202,13 @@ Two authored examples carry this end to end:
   read through the generated `GetWorkflowExecutionHistory` response schema. Its derived rule
   reports all three answers: an agreeing recorded type is satisfied, a disagreeing one is violated,
   and an event that never establishes the field leaves the rule pending.
-- [`Temporal/Feature/Nexus/Success/TypedNexus.lean`](Temporal/Feature/Nexus/Success/TypedNexus.lean) runs two
-  workflow-owned Nexus SDK operations in one Case, each retaining its own scheduled evidence under
-  its own operation key, and requires a completion to reference the scheduled event its own
-  operation was scheduled at.
+- [`Temporal/Feature/Nexus/Pair/Model.lean`](Temporal/Feature/Nexus/Pair/Model.lean) (the typed
+  Nexus example, re-authored with the commands by fn-86 .3) runs two instances of the caller
+  Model's operation in one workflow, `instances: 2` on its Scenario, and writes
+  `relates: nexusOperationCompleted.scheduled_event_id = nexusOperationScheduled.event_id`: the
+  scheduled event is an earlier step's, so each instance's rule captures its own -- selected by
+  the operation name its schedule command assigned -- and matches the completion's reference
+  against the retained event's id.
 
 Environment binding stays outside the model. Namespaces, task queues and named Nexus endpoints are
 symbolic in the Program and supplied by the Profile; a semantic relationship that involves one is
@@ -213,11 +216,11 @@ declared in the model and preserved under binding. Nexus operation cancellation 
 confirmation, and resolution are not modeled here and remain deferred to fn-79.
 
 Known Gaps disclose what a Case does not check; they never waive a requested clause. The
-two-operation Nexus Case records two: its bounded-response window is evaluated in the model only,
-because no instruction of that Program emits the `CorrelatedEvidence` Observation a runtime correlated
-capability would read; and a completion referencing another scheduled event leaves its rule pending
-rather than violated, because a completed history event carries no operation identity and
-separating the two would need a correlation condition the model never declared.
+two-operation Nexus Query declares two: a completed history event carries no operation identity,
+so the operation key of the lifted evidence is the scheduled event a completion references; and a
+completion referencing another scheduled event leaves its rule pending rather than violated, because
+separating the two would need a correlation condition the model never declared, while the model
+Property still distinguishes them.
 
 Lean syntax used by the walkthrough:
 

@@ -3,10 +3,15 @@ package worker
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	commandpb "go.temporal.io/api/command/v1"
+	commonpb "go.temporal.io/api/common/v1"
+	enumspb "go.temporal.io/api/enums/v1"
+	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -14,13 +19,14 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func preparedRuntimeFixture(t *testing.T, responseKind testpilotspb.NexusResponseKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+func preparedRuntimeFixture(t *testing.T, responseKind replyKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	return preparedRuntimeFixtureWithProfile(t, responseKind, nil, modify...)
 }
 
-func preparedRuntimeFixtureForNamespace(t *testing.T, namespace string, responseKind testpilotspb.NexusResponseKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+func preparedRuntimeFixtureForNamespace(t *testing.T, namespace string, responseKind replyKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	return preparedRuntimeFixtureWithProfile(t, responseKind, func(profile *testpilot.ProfileSpec) {
 		for index := range profile.EnvironmentBindings {
 			if profile.EnvironmentBindings[index].ID == "namespace" {
@@ -30,12 +36,12 @@ func preparedRuntimeFixtureForNamespace(t *testing.T, namespace string, response
 	}, modify...)
 }
 
-func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind replyKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	t.Helper()
 	return capturePreparedProgram(t, preparedRuntimeCase(t, responseKind, modifyProfile, modify...))
 }
 
-func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) *testpilot.PreparedCase {
+func preparedRuntimeCase(t *testing.T, responseKind replyKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) *testpilot.PreparedCase {
 	t.Helper()
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
 	catalog, err := testpilot.NewCatalog(descriptorClosure(file))
@@ -51,7 +57,8 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 			{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 		},
-		Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
+		Opcodes:      []testpilot.Opcode{testpilot.InvokeRPC, testpilot.WorkflowCommand, testpilot.Await, testpilot.Finish, testpilot.NexusHandlerReply},
+		CommandTypes: CommandTypes(),
 		EnvironmentBindings: []testpilot.EnvironmentBinding{
 			{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "endpoint"},
 		},
@@ -65,7 +72,12 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 		Limits: runtimeBounds(),
 	}
 	start := &testpilotspb.InstructionNode{
-		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
+		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: &commandpb.Command{
+			CommandType: enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION,
+			Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+				Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimePayload("request"),
+			}},
+		}}}},
 		Limits: runtimeBounds(),
 	}
 	await := &testpilotspb.InstructionNode{
@@ -79,8 +91,16 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}},
 		Limits:        runtimeBounds(),
 	}
+	reply := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+		Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: runtimePayload("accepted")}},
+	}}}
+	if responseKind == replyAsynchronous {
+		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "capability", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+			Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}},
+		}}}
+	}
 	respond := &testpilotspb.InstructionNode{
-		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: responseKind, Result: runtimeText("accepted")}}},
+		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: reply}},
 		Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
@@ -98,9 +118,8 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 		},
 		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}
-	if responseKind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
+	if responseKind == replyAsynchronous {
 		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
-		respond.Instruction.GetRespondNexus().HandleSlotId = "capability"
 	}
 	for _, apply := range modify {
 		apply(program)
@@ -180,6 +199,31 @@ func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescr
 
 func runtimeBounds() *testpilotspb.InstructionLimits {
 	return &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+}
+
+// carriedValue is what an awaited Nexus operation answers with: the handler's payload, carried
+// whole rather than converted, so the Await's VALUE is that message.
+func carriedValue(t *testing.T, value string) *testpilotspb.Value {
+	t.Helper()
+	carried, err := anypb.New(runtimePayload(value))
+	require.NoError(t, err)
+	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}
+}
+
+// carriedText reads the text back out of the payload carriedValue wrapped.
+func carriedText(t *testing.T, value *testpilotspb.Value) string {
+	t.Helper()
+	var payload commonpb.Payload
+	require.NoError(t, value.GetMessageValue().UnmarshalTo(&payload))
+	text, err := strconv.Unquote(string(payload.GetData()))
+	require.NoError(t, err)
+	return text
+}
+
+// runtimePayload is the carried payload a typed instruction of the fixture holds, encoded as the
+// SDK's default data converter encodes a string.
+func runtimePayload(value string) *commonpb.Payload {
+	return &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte(strconv.Quote(value))}
 }
 
 func runtimeText(value string) *testpilotspb.Expression {

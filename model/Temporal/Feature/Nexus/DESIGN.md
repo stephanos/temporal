@@ -766,7 +766,7 @@ Appendix B maps each functional test file to these rows.
 | 5 | Refinement with a name-default state map and derived steps | the forward simulation inside `Umpire.ImplementationLink`, expert Lean only | `refines:` and `map:` decided by the kernel over the two tables (.6) |
 | 6 | Sets with a purpose, `driven`/`observed` bindings, `repeat` switches, and class claims with their examples recorded in Provenance | one `case` block per Query | `set` with the three purposes, bindings, `repeat:`, and claims recorded per path (.7, .12); one `case … realizes <set>` block per set |
 | 7 | A realization binding actions, observations, timers, setup parameters, switches and references | whole-Program templates | `Umpire.Case.Producer.Realization`: keyed action bindings, timer bindings, switches, sources; the templates are gone (.10, .11) |
-| 8 | Worker instructions that carry Temporal API messages, and one observation declaration per Case read by Program and Contract | bespoke instruction fields (`StartNexusOperation`, `RespondNexus` kinds); observations named separately by Program and Contract | `NexusHandlerReply` and the schedule command's attributes (.8); one evidence declaration per Case read by both (.9) |
+| 8 | Worker instructions that carry Temporal API messages, and one observation declaration per Case read by Program and Contract | bespoke instruction fields (the untyped Nexus start and reply shapes, removed by fn-86 .3); observations named separately by Program and Contract | `NexusHandlerReply` and the schedule command's attributes (.8); one evidence declaration per Case read by both (.9) |
 
 Needs 1 to 8 cover the specimen; need 8 is Testpilot's, on top of fn-87's protocol. Section 4's three "yes" rows are later additions.
 

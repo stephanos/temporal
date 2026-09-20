@@ -17,7 +17,8 @@ oneof member is a presence the read establishes, and the path ends at a scalar. 
 kind is one arm of the generated `HistoryEvent`'s `attributes` oneof, read back through
 `GetWorkflowExecutionHistory`: the walk begins at the response, through `history` and the event it
 records, into the arm the kind names, and continues with the author's segments -- the same
-coordinates a hand-written field Property spelled out step by step.
+coordinates a hand-written field Property spelled out step by step. A segment that names a field of
+the event itself rather than of the arm (`event_id`) is read off the event.
 
 The answer names the constant that holds the method's schema rather than carrying the schema, so
 a Model stores no descriptor.
@@ -123,11 +124,24 @@ field of"
   let state := { state with
     steps := state.steps ++
       [Value.Field.Step.field historyMessage events.number, Value.Field.Step.index 0] }
-  let arm ← fieldOf schema EventKind.historyEventMessage attributes
-  let state := state.field EventKind.historyEventMessage arm
-  let some armMessage := (match arm.type with | .message name => some name | _ => none)
-    | throw s!"'{kind}' carries no message"
-  let (state, type) ← walk schema armMessage segments state
+  -- A field of the event itself -- its id, its time -- is read off the event before the arm is
+  -- selected; every other segment is a field of the arm the kind names.
+  let envelope := match segments with
+    | segment :: _ =>
+        segment != EventKind.attributesOneof &&
+          (fieldOf schema EventKind.historyEventMessage segment).toOption.any fun field =>
+            match Value.Field.availability field with
+            | .oneof _ => false
+            | _ => true
+    | [] => false
+  let (state, type) ← if envelope then
+      walk schema EventKind.historyEventMessage segments state
+    else do
+      let arm ← fieldOf schema EventKind.historyEventMessage attributes
+      let state := state.field EventKind.historyEventMessage arm
+      let some armMessage := (match arm.type with | .message name => some name | _ => none)
+        | throw s!"'{kind}' carries no message"
+      walk schema armMessage segments state
   pure { steps := state.steps
          type
          side := .response

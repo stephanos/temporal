@@ -7,11 +7,8 @@ type Opcode uint8
 const (
 	InvokeRPC Opcode = iota + 1
 	AwaitSlot
-	CompleteNexusOperation
-	StartNexusOperation
 	Await
 	Finish
-	RespondNexus
 	InjectFault
 	WorkflowCommand
 	NexusHandlerReply

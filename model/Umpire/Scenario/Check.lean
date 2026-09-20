@@ -726,6 +726,21 @@ def CheckedScenario.admits (behavior : CheckedScenario) (candidate : Scenario.Tr
       behavior.actionsExactly.all (fun exact => actions == exact) &&
       behavior.traceExactly.all (fun exact => normalizedTrace candidate == exact)
 
+/-- Whether a trace that begins with `actions` can still be admitted: every action must be allowed
+and none forbidden, no occurrence maximum may be exceeded, and an exact sequence must begin this
+way. A prefix this rejects has no admitted extension, so a Search need not enumerate one; a prefix
+it admits is not thereby admitted as a trace, which `admits` alone decides. -/
+def CheckedScenario.admitsPrefix (behavior : CheckedScenario) (actions : List DefinitionId) :
+    Bool :=
+  behavior.spaceStatus != .unsatisfiable &&
+    (behavior.allowedActions == [] ||
+      actions.all fun action => behavior.allowedActions.contains action) &&
+    actions.all (fun action => !behavior.forbiddenActions.contains action) &&
+    behavior.occurrenceBounds.all (fun bound =>
+      bound.maximum.all fun maximum => countAction bound.action actions ≤ maximum) &&
+    behavior.actionsExactly.all (fun exact => actions.isPrefixOf exact) &&
+    behavior.traceExactly.all (fun exact => actions.isPrefixOf (traceActions exact))
+
 def CheckedScenario.isUnsatisfiable (behavior : CheckedScenario) : Bool :=
   behavior.spaceStatus == .unsatisfiable
 
