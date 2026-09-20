@@ -345,7 +345,7 @@ portable caller-closure contracts.**
 verified, selected, absent, budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a
 canonical `umpire-experiment/v2`. `Umpire.Variations.compileBatch` canonically lowers every point through
 that same target-indexed kernel and returns the complete batch or one typed error with no partial
-list. `Temporal.Tool.Inspect` still exposes only the checked-in Switch and caller-closure scenarios
+list. `Temporal.Tool.Inspect` exposes the caller Model's Queries and the checked-in Switch example
 and emits deterministic JSON with structured diagnostics.
 
 ```text
@@ -355,7 +355,7 @@ checked spec + model target + Limits -> Plan[]
 Current interface:
 
 ```text
-make umpire-inspect SCENARIO=workflow-nexus.query.exact-action-caller-closure
+make umpire-inspect SCENARIO=temporal.nexus.caller.query.asyncCompletion
 make umpire-inspect SCENARIO=switch.query.exact-action
 ```
 
