@@ -53,15 +53,79 @@ Admit the two remaining set purposes over the Nexus Model (R12, the rest of R7):
 - Single-value classes carry no claim and produce no class-member target.
 
 ## Acceptance
-- [ ] the canary set over Queries 1 and 2 with `handler: observed` admits; a canary set naming a Query with a white-box Known Gap rejects in place naming both, pinned by `#guard_msgs`
-- [ ] the exploratory set enumerates its coverage targets deterministically; the golden is checked by `make umpire-check-goldens` and rendering twice is byte-identical
-- [ ] `lake build TemporalModelTests` green; `make umpire-check-goldens` exit 0
+- [x] the canary set over Queries 1 and 2 with `handler: observed` admits; a canary set naming a Query with a white-box Known Gap rejects in place naming both, pinned by `#guard_msgs`
+- [x] the exploratory set enumerates its coverage targets deterministically; the golden is checked by `make umpire-check-goldens` and rendering twice is byte-identical
+- [x] `lake build TemporalModelTests` green; `make umpire-check-goldens` exit 0
 
 
 ## Done summary
-TBD
+
+Done 2026-09-19; self-review. Commit 4f47809.
+
+### Where the canary check runs
+
+Decided: the Temporal `case … realizes <set>` block admits a canary set, not a sibling block and
+not the Umpire `set` command. A set is Umpire's and the Cases it produces are the platform's, and
+the white-box question -- can a deployment close every gap this Case carries -- is answered only
+by the produced Case, so the block that produces Cases is where it is asked. For a canary set the
+block emits the same realization, identity, evidence and Case definitions a functional set gets,
+registers nothing (no fixture, no `Registry.recordCase`, so `umpire-case --list` still prints the
+seven functional Queries), and reads each Case's white-box gaps through
+`Temporal.Case.whiteBoxGaps` (the `capability` and `interpretation` kinds of the produced
+provenance; an `input` gap is a parameter the deployment binds, a `claim` gap the Model's own) with
+an elaboration-time evaluator in the pattern of the machine command's stuck-state check. A gap
+rejects at the set reference naming the Query and the gap: "Query
+'Temporal.Feature.Nexus.Caller.retry' cannot be a canary: its Case carries the white-box Known Gap
+'temporal.nexus.caller.action.nexusProtocol.backoff.unobserved' (capability), a step of its path
+that no observation confirms; …". A Case that does not produce rejects naming the construct. An
+exploratory set is still refused by the block, with the message reworded to say what each purpose
+does. `nexusCallerCanary` (caller and worker `driven`, handler and network `observed`, Queries 1
+and 2) is admitted by `case nexusCallerCanaryCases`; both its Cases carry no gap, and the Approach's
+`…atConcurrencyLimit.unbound` concern is moot since `.10` removed the setup parameter.
+
+### Coverage targets
+
+`Umpire.Command.CoverageTarget` (`Records.lean`): `row key state action results`, `result outcome`
+and `classMember member action field className exampleValue`, each by Definition ID;
+`SetDeclaration` gains `machine : Option DefinitionId` and `targets : List CoverageTarget`. The
+`set` command takes `machine:` for an exploratory set (rejected on a functional or canary set,
+required on an exploratory one, and it must resolve to a `machine` declaration), checks `budget:`
+resolves to a `Umpire.Limits` constant, binds the parties of the machine's actions, and emits
+`targets := coverageTargets <machine> (classClaims <machine> [actions]) [goals] <limits>`.
+`Umpire.Command.Coverage` (new, imported by `Syntax` and the `Umpire.Command` facade) enumerates:
+the rows an exploration within the budget's `steps` of a start can take (a row taken at step k
+needs its source within k − 1 steps, walked by the table's own rows as `reachableFrom` does), in
+table order; the result values those rows reach, in catalog order; the claims of the classes
+those rows' actions make, in claim order; per goal in the set's order, the whole list cut at the
+budget's `search` count. `coverageJson` renders a set's coverage as ordered `CanonicalJson` (set,
+purpose, machine, cover, budget, targets). `nexusCallerExploration` over `nexusProtocol` with
+`cover: rows | results | classMembers` and `budget: four` enumerates 885 rows of the table's 1152,
+two results (`accepted`, `notFound`) and the two claimed handler-error classes (889 targets);
+`Temporal.Tool.Goldens` writes it to `Temporal/Feature/Nexus/Caller/Fixtures/CallerExploratoryCoverage.json`
+(322 KB), the directory is in `UMPIRE_GOLDEN_DIRECTORIES`, and two renderings are byte-identical
+(`cmp` of two `--output-root`s and of the checked-in file). Importing the Caller Model into the
+writer made `query` a keyword there, so its binder is respelled.
+
+### Pins and specimens
+
+`Caller/Tests.lean` "The sets": the canary's purpose, bindings and gap-free Cases; a `set
+canaryRetry` and the `#guard_msgs` rejection of `case canaryRetryCases`; the exploration's
+purpose, machine id, goals, budget, 1152 table rows, 889 targets, kinds in order, 885 rows, the
+search bound, the two results and the two class members. `Success/Tests.lean`: `exploration` names
+`machine: lifecycle`, and four new rejections (no `machine:`, a Query as machine, a Query as budget,
+`machine:` on a functional set) plus the reworded block message. DESIGN.md carries a `.12`
+amendment after `.11`'s.
+
+### Gates
+
+`lake build` (all 626 jobs, `TemporalModelTests` included) green; `make umpire-gen-goldens` then
+`make umpire-check-goldens` exit 0 with every other golden unchanged; `umpire-case --list`
+unchanged; conformance fixtures regenerated unchanged; inventory, retired vocabulary, protocol,
+authoring and regression-view checks exit 0; `LEAN_NUM_THREADS=1 make lint-model` at the `.11` baseline (41 warnings, none new);
+`go test ./tools/umpire/... ./tests/testcore/testpilot/...` ok; `make umpire-check-regression`
+exit 0 with 29 passing live identities (29 before; no live test changed).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4f47809
+- Tests: `lake build`; `make umpire-gen-goldens && make umpire-check-goldens`; `cd model && lake exe umpire-case --list`; `make umpire-gen-case-runtime-conformance && make umpire-check-case-runtime-conformance`; `make umpire-gen-inventory && make umpire-check-inventory`; `make umpire-check-retired-vocabulary`; `make umpire-check-testpilot-protocol`; `make umpire-check-testpilot-authoring`; `make umpire-check-regression-views`; `LEAN_NUM_THREADS=1 make lint-model`; `go test -count=1 -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...`; `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression`
 - PRs:
