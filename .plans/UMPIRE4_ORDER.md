@@ -583,6 +583,23 @@ and deletes. `.2`, `.3` and `.6` were re-read against the fn-85 tree.
 Gates: `lint-model` at the fn-85 baseline: the import-graph and Batteries steps pass with the ledger read, and the `lake lint` step reports the same two generated `Proto.lean` errors and 41 pre-existing warnings, none new; `make umpire-check-regression` exit 0 with 29 passing live
 identities. Its review is a self-review.
 
+**Task .2 is done, 2026-09-20.** A field relation is a `relates:` line of `property` beside
+`holds:` (`<action>.input.<path>` or `<action>.result.<path>` of the `when:` action, or
+`<kind>.<path>` of a recorded event kind the machine's `evidence:` names; `=`, `≠`, `present`),
+resolved while the file compiles through a new platform hook
+(`Umpire.Command.installFieldResolver`, answered by `Temporal.Case.FieldPath` off the generated
+descriptors) into `PropertyFieldPath` steps, presence reads and a scalar type, and lowered by the
+Producer through `Umpire.Case.Projection.lower` to the monitor rule `<property>.relation`, with
+the literal read from the realization's action binding. The typed unary example is
+`Temporal/Feature/Workflow/Start/Model.lean` with one such line, produced through
+`Temporal.Case.Realization.workflowStart` as `workflowStartTests-started-case.json`; its rule's
+reads equal the `.1` baseline's up to the rule name and the identity-derived literal, pinned by a
+Go test that names the first differing read, and the hand-written module, its tests, fixture and
+the baseline scaffold are gone. Nine rejections and the crossed-pairing pins (`some false`,
+missing evidence `none`) are in the Model's Tests. Gates: `lint-model` at the `.1` baseline;
+`make umpire-check-regression` exit 0 with 29 passing live identities. Its review is
+a self-review.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
