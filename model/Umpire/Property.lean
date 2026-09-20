@@ -211,6 +211,13 @@ def PropertyFieldBinding.ofAction (template : ActionTemplate owner Request Respo
     PropertyFieldBinding :=
   ofWitness owner template.declaration.reference template.identity
 
+/-- Bind a model payload definition to an operation schema a resolved field path already carries:
+the command-authored form, where the platform resolved the path against the schema and the Model
+supplies the definition. -/
+def PropertyFieldBinding.ofSchema (reference : DefinitionId) (schema : RpcSchema) :
+    PropertyFieldBinding :=
+  ⟨reference, schema⟩
+
 /-- Construct structural operand coordinates from the selected checked cursor. -/
 def PropertyFieldPath.ofCursor (root : PropertyFieldRoot) (reference : DefinitionId)
     (cursor : Field.Cursor owner witness payloadSide limits valueType card readiness) : PropertyFieldPath :=

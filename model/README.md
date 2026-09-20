@@ -194,12 +194,14 @@ Observation's own message, the comparison and the literal the Program assigns
 
 Two authored examples carry this end to end:
 
-- [`Temporal/Feature/Nexus/Success/TypedUnary.lean`](Temporal/Feature/Nexus/Success/TypedUnary.lean) references the
-  generated `StartWorkflowExecution` and requires the submitted nested `workflow_type.name` to equal
-  the workflow type the `WorkflowExecutionStarted` event records, read through the generated
-  `GetWorkflowExecutionHistory` response schema. Its derived rule reports all three answers: an
-  agreeing recorded type is satisfied, a disagreeing one is violated, and an event that never
-  establishes the field leaves the rule pending.
+- [`Temporal/Feature/Workflow/Start/Model.lean`](Temporal/Feature/Workflow/Start/Model.lean) (the
+  typed unary example, re-authored with the commands by fn-86 .2) binds `startWorkflow` to the
+  generated `StartWorkflowExecution` request through `schema:` and writes one
+  `relates: startWorkflow.input.workflow_type.name = workflowExecutionStarted.workflow_type.name`
+  line, resolved against the generated descriptors while the file compiles; the recorded field is
+  read through the generated `GetWorkflowExecutionHistory` response schema. Its derived rule
+  reports all three answers: an agreeing recorded type is satisfied, a disagreeing one is violated,
+  and an event that never establishes the field leaves the rule pending.
 - [`Temporal/Feature/Nexus/Success/TypedNexus.lean`](Temporal/Feature/Nexus/Success/TypedNexus.lean) runs two
   workflow-owned Nexus SDK operations in one Case, each retaining its own scheduled evidence under
   its own operation key, and requires a completion to reference the scheduled event its own

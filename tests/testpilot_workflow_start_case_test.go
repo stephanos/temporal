@@ -13,27 +13,27 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// TestTestpilotTypedUnaryCase drives the generated StartWorkflowExecution example on the shared
-// Driver. The modeled requirement is that the workflow type the request submitted is the workflow
+// TestTestpilotWorkflowStartCase drives the workflow-start Model's Case on the shared Driver. The
+// modeled requirement is a field relation: the workflow type the request submitted is the workflow
 // type the WorkflowExecutionStarted event records, so the Run's evidence is read back here from the
 // declared Observation rather than restated by the test.
-func TestTestpilotTypedUnaryCase(t *testing.T) {
+func TestTestpilotWorkflowStartCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	caseSnapshot := proto.CloneOf(loadTestpilotCase(t, "typed-unary"))
+	caseSnapshot := proto.CloneOf(loadTestpilotCase(t, testpilotfixture.WorkflowStartFixture))
 
 	binding := CaseBinding{
-		Identity: "typed-unary-profile", Namespace: "umpire-typed-unary", TaskQueue: "umpire-typed-unary-queue",
+		Identity: "workflow-start-profile", Namespace: "umpire-workflow-start", TaskQueue: "umpire-workflow-start-queue",
 	}
 	// The single-shot happy path: runCase loads the fixture, derives the Profile, provisions,
 	// prepares and runs once.
-	run, verdict := runCaseWithBinding(t, env, "typed-unary", binding)
+	run, verdict := runCaseWithBinding(t, env, testpilotfixture.WorkflowStartFixture, binding)
 	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	requireSubmittedWorkflowTypeEvidence(t, run, verdict.GetSupportingEventSequences(), binding.TaskQueue)
+	requireSubmittedWorkflowTypeEvidence(t, run, verdict, binding.TaskQueue)
 
-	caseSource := loadTestpilotCase(t, "typed-unary")
+	caseSource := loadTestpilotCase(t, testpilotfixture.WorkflowStartFixture)
 	repeat := CaseBinding{
-		Identity: "typed-unary-profile", Namespace: "umpire-typed-unary-repeat", TaskQueue: "umpire-typed-unary-queue-repeat",
+		Identity: "workflow-start-profile", Namespace: "umpire-workflow-start-repeat", TaskQueue: "umpire-workflow-start-queue-repeat",
 	}
 	live := bindCase(t, env, caseSource, repeat)
 
@@ -45,10 +45,7 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))
-		require.Len(t, verdict.GetRules(), 1)
-		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, verdict.GetRules()[0].GetStatus())
-		require.Len(t, verdict.GetRules()[0].GetSupportingEventSequences(), 1)
-		requireSubmittedWorkflowTypeEvidence(t, run, verdict.GetSupportingEventSequences(), repeat.TaskQueue)
+		requireSubmittedWorkflowTypeEvidence(t, run, verdict, repeat.TaskQueue)
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}
@@ -61,24 +58,28 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 	require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
 }
 
-// requireSubmittedWorkflowTypeEvidence reads the supporting Observation back out of the Run and
-// checks it is the started event whose recorded workflow type the clause compared.
-func requireSubmittedWorkflowTypeEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, taskQueue string) {
+// requireSubmittedWorkflowTypeEvidence reads the relation's supporting Observation back out of the
+// Run and checks it is the started event whose recorded workflow type the rule compared. The
+// Verdict carries the relation's monitor rule beside the correlated rules the Query's Property
+// lowered into; the monitor rule's one supporting event is the one read here.
+func requireSubmittedWorkflowTypeEvidence(t testing.TB, run *testpilotpb.Run, verdict *testpilotpb.Verdict, taskQueue string) {
 	t.Helper()
+	var sequences []int64
+	for _, rule := range verdict.GetRules() {
+		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus(), rule.GetRuleId())
+		if rule.GetRuleId() == testpilotfixture.WorkflowStartRuleID {
+			sequences = rule.GetSupportingEventSequences()
+		}
+	}
 	require.Len(t, sequences, 1)
-	sequence := sequences[0]
-	require.Positive(t, sequence)
-	require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
-	event := run.GetEvents()[sequence-1]
+	event := runEventAt(t, run, sequences[0])
 	require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 	require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
-	require.Len(t, event.GetObservations(), 1)
-	require.Equal(t, "history-event", event.GetObservations()[0].GetObservationId())
 
 	var historyEvent historypb.HistoryEvent
-	require.NoError(t, event.GetObservations()[0].GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+	require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
 	require.Equal(t, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED, historyEvent.GetEventType())
 	started := historyEvent.GetWorkflowExecutionStartedEventAttributes()
-	require.Equal(t, testpilotfixture.TypedUnaryWorkflowType, started.GetWorkflowType().GetName())
+	require.Equal(t, testpilotfixture.WorkflowStartWorkflowType, started.GetWorkflowType().GetName())
 	require.Equal(t, taskQueue, started.GetTaskQueue().GetName())
 }

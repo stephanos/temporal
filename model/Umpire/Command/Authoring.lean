@@ -635,12 +635,16 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (required : List DefinitionId := [])
     (claims : List Umpire.Case.Producer.ClassClaim := [])
     (program : Option (List DefinitionId) := none)
-    (evidenceCatalog : List (String × String) := []) :
+    (evidenceCatalog : List (String × String) := [])
+    (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
   -- A realization may state the path its Program performs where the Model's own actions realize
   -- nothing: the success slice's actions are waits, and its side effects are the realization's
   -- classes until the protocol machine's actions are the path.
-  let input := { producerInput checked with claims, program := program <|> checked.realizable.program }
+  let input := { producerInput checked with
+    claims
+    program := program <|> checked.realizable.program
+    relations }
   Umpire.Case.Producer.produce input identity realization (evidence input.vocabulary) required
     evidenceCatalog
 
@@ -656,13 +660,33 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (required : List DefinitionId := [])
     (claims : List Umpire.Case.Producer.ClassClaim := [])
     (program : Option (List DefinitionId) := none)
-    (evidenceCatalog : List (String × String) := []) :
+    (evidenceCatalog : List (String × String) := [])
+    (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← admitted.mapError fun _ => {
     sourceDefinitionId := identity.caseId
     source := «model».origin.source
     construct := "checked-model" }
-  produce checked identity realization evidence required claims program evidenceCatalog
+  produce checked identity realization evidence required claims program evidenceCatalog relations
+
+/-- One relation admitted against a Model, as a test evaluates it with field evidence: the
+declaration the relation denotes, checked against the Query's admitted Model under the references
+the vocabulary resolves its members to. -/
+def checkedRelation [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
+    (admitted : Except AdmissionError (CheckedModel «model»))
+    (relation : Umpire.Case.Producer.FieldRelation) : Except String CheckedFieldProperty := do
+  let checked ← admitted.mapError fun _ => "checked-model"
+  let input := producerInput checked
+  let action := input.vocabulary.namedAction relation.action
+  let reference := fun (operand : Umpire.Case.Producer.FieldOperand) =>
+    match operand.root with
+    | .request => action.definitionId
+    | .event => (input.vocabulary.namedFact operand.member).definitionId
+    | .outcome => (input.vocabulary.namedOutcome operand.member).definitionId
+    | .priorState | .resultingState => (input.vocabulary.namedState operand.member).definitionId
+  relation.check (.ofTarget input.target) input.property.requires (reference relation.left)
+    ((relation.right.map reference).getD (reference relation.left))
 
 
 /-! ### What went wrong, where the author wrote it

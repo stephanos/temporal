@@ -1,7 +1,9 @@
 import Temporal.Case.Conventions
 import Temporal.Case.EventKind
 import Temporal.Case.Registry
+import Temporal.Case.FieldPath
 import Temporal.Case.Realization.Nexus
+import Temporal.Case.Realization.Workflow
 
 /-!
 # The `case` block
@@ -202,6 +204,10 @@ elab "case" name:ident
           pure (← `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*]),
             ← `(term| ([$pairs,*] : List (String × String))))
       | none => do pure (← `(term| []), ← `(term| ([] : List (String × String))))
+    -- The field relations the machine's Properties declare: the Producer lowers the ones whose
+    -- action the path performs.
+    let relationRefs := (Umpire.Command.Registry.relationsOf environment modelName).map fun entry =>
+      mkIdent entry.declName
     let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
     let identityName := mkIdentFrom name (caseName.getId ++ `identity)
     let evidenceName := mkIdentFrom name (caseName.getId ++ `evidence)
@@ -216,7 +222,8 @@ elab "case" name:ident
       def $caseName : Except Umpire.Case.Compiler.Error
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
-          $evidenceName (claims := $claims) (evidenceCatalog := $catalog)))
+          $evidenceName (claims := $claims) (evidenceCatalog := $catalog)
+          (relations := [$relationRefs,*])))
     -- A canary's Case is produced to be read, not rendered: a white-box gap on it is a step a
     -- deployment cannot close, and the block rejects naming the Query and the gap. A functional
     -- set's Case is registered for the renderer instead.

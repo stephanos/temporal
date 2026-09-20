@@ -57,17 +57,17 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 	require.Equal(t, oracle.Opcodes, derived.Opcodes)
 	require.Equal(t, oracle.EnvironmentBindings, derived.EnvironmentBindings)
 
-	unary := loadLeanCase(t, "typed-unary")
-	derivedUnary, err := temporaldriver.DeriveProfile(unary, catalog, temporaldriver.Environment{
-		Identity: "typed-unary-profile", Namespace: "namespace", TaskQueue: "task-queue",
+	start := loadLeanCase(t, WorkflowStartFixture)
+	derivedStart, err := temporaldriver.DeriveProfile(start, catalog, temporaldriver.Environment{
+		Identity: "workflow-start-profile", Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.NoError(t, err)
-	unaryOracle := TypedUnaryProfile(catalog, TypedUnaryEnvironment{
+	startOracle := WorkflowStartProfile(catalog, WorkflowStartEnvironment{
 		Namespace: "namespace", TaskQueue: "task-queue",
 	})
-	require.Equal(t, unaryOracle.Roles, derivedUnary.Roles)
-	require.Equal(t, unaryOracle.Opcodes, derivedUnary.Opcodes)
-	require.Equal(t, unaryOracle.EnvironmentBindings, derivedUnary.EnvironmentBindings)
+	require.Equal(t, startOracle.Roles, derivedStart.Roles)
+	require.Equal(t, startOracle.Opcodes, derivedStart.Opcodes)
+	require.Equal(t, startOracle.EnvironmentBindings, derivedStart.EnvironmentBindings)
 }
 
 // The environment's dynamic configuration -- a switch value, a bound setup parameter -- is recorded

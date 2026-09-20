@@ -92,11 +92,11 @@ func (r registeredCases) render(_ string, arguments ...string) (rendererOutput, 
 
 func fakeRegistry() registeredCases {
 	return registeredCases{
-		"temporal.case.async-nexus":     "async-nexus",
-		"temporal.case.get-system-info": "get-system-info",
-		"temporal.case.typed-nexus":     "typed-nexus",
-		"temporal.case.typed-unary":     "typed-unary",
-		"temporal.case.worker-outage":   "worker-outage",
+		"temporal.case.async-nexus":                "async-nexus",
+		"temporal.case.get-system-info":            "get-system-info",
+		"temporal.case.typed-nexus":                "typed-nexus",
+		"temporal.case.worker-outage":              "worker-outage",
+		"temporal.case.workflowStartTests.started": "workflowStartTests-started",
 	}
 }
 
