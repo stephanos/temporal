@@ -210,6 +210,30 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   (`Umpire.Command.installFieldResolver`, answered by `Temporal.Case.FieldPath`). The Producer
   lowers the relations whose action a path performs to one monitor rule `<property>.relation`
   through `Umpire.Case.Projection.lower`; a `present` relation admits but lowers to no rule.
+- **An observation of an earlier step is captured** (task .3, 2026-09-20): a `relates:` operand
+  `<kind>.<path>` whose fact the `when:` action's rows do not record is an earlier step's event,
+  read at the state the step starts from (the first state a row of the action starts from, in
+  table order) and lowered through `Umpire.Case.Projection.lower`'s cross-event capture: the rule
+  retains the instance's own event, selected by the field the realization's evidence source names
+  (`EvidenceSource.selector`, resolved against the schema at definition time) against the literal
+  the confirming action's binding assigns under that spelling, and matches the later event's read
+  against the retained one. A field of the history event itself (`event_id`) is read off the
+  event whichever arm the kind names. A result operand is read under the step's outcome.
+- **Several instances are placed, not flattened** (task .3): the Program path carries the instance
+  performing each action, an `ActionBinding` builds its node from a `Placement` (the Case, the
+  instance, the count), every id of an instance's node, slot and entrypoint carries `-<n>` on a
+  Case over several instances and nothing on one over one, an entrypoint may be emitted per
+  instance (`EntrypointPlan.perInstance`, the Nexus handler), a `whenOnPath` item emits once per
+  instance that performs the class, slots may be declared per instance, and a relation lowers to
+  one rule per instance (`relation-<n>`). The typed Nexus example is
+  `Temporal/Feature/Nexus/Pair/Model.lean`: two instances of the caller Model's operation on a
+  machine that keeps the asynchronous success path, produced through the caller realization, whose
+  instances address `<operation>-<n>` on their own handlers.
+- **The Search does not extend a prefix the Scenario admits no extension of** (task .3): an action
+  out of an exact sequence's order, one past an occurrence maximum, or one the Scenario forbids is
+  not enumerated (`CheckedScenario.admitsPrefix`), so the admitted traces and their order are the
+  same and the candidates counted against `limits.search` are the ones that could be admitted. The
+  Operations compatibility artifacts, which record explored counts, were regenerated.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.

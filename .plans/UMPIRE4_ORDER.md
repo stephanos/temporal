@@ -213,9 +213,9 @@ The early proof point rebuilds today's async-Nexus Case from the new abstraction
 its fixture with identities masked before any Testpilot protocol change. Worker instructions then
 carry the Temporal API messages the actions' schemas name (the Nexus schedule command's attributes
 with its three timeouts, a `StartOperationResponse` or `HandlerError` reply, a completion payload or
-failure) instead of a Testpilot field per server option (the old `StartNexusOperation`,
-`RespondNexus` and `NexusResponseKind` stay until fn-86 .3 migrates the last Producer that emits
-them), and a Case declares each observation once
+failure) instead of a Testpilot field per server option (the three untyped Nexus instruction
+shapes stayed until fn-86 .3 migrated the last Producer that emitted them and removed them), and a
+Case declares each observation once
 for both its Program and its Contract, which gives the retry Query's attempt count its read source.
 Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
@@ -599,6 +599,26 @@ the baseline scaffold are gone. Nine rejections and the crossed-pairing pins (`s
 missing evidence `none`) are in the Model's Tests. Gates: `lint-model` at the `.1` baseline;
 `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is
 a self-review.
+
+**Task .3 is done, 2026-09-20.** The typed Nexus example is `Temporal/Feature/Nexus/Pair/Model.lean`:
+two instances (`instances: 2`) of the caller Model's operation on a machine that keeps the
+asynchronous success path, one `relates:` line over the completed event's `scheduled_event_id` and
+the scheduled event's `event_id`, produced through the caller realization as
+`nexusPairTests-bothComplete-case.json` with one capture rule per instance. Getting there took
+three Umpire changes: a `relates:` operand of an earlier step's event is captured (read at the
+state the step starts from, selected by the evidence source's selector against the literal the
+confirming binding assigns), the Producer places every instance's actions through a `Placement`
+(per-instance ids, slots and entrypoints; the handler is emitted per instance), and the Search no
+longer extends a prefix the Scenario admits no extension of, which is what lets a six-step exact
+sequence over two instances be found within a small bound (the Operations compatibility artifacts
+record explored counts and were regenerated). The four untyped Nexus instruction shapes left the
+protocol, the Go runtime, the Lean authoring surface and the docs, their names are held by the
+retired-vocabulary gate (the two that are also HistoryService method names by their
+protocol-qualified Go spellings), and the hand-written module, its tests, fixture, `register_case`
+line and design sketches are gone. `make proto`'s api-linter step fails on a pre-existing
+`case.proto` field name unrelated to this task; the generated code was produced with `make protoc
+proto-codegen`. Gates: `lint-model` at the `.1` baseline; `make umpire-check-regression` exit 0
+with 29 passing live identities. Its review is a self-review.
 
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
