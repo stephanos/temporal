@@ -240,22 +240,16 @@ func carriedCompletion(completion *testpilotspb.NexusOperationCompletion) proto.
 	}
 }
 
-// nexusOperationOf is the service and operation an instruction starts: the untyped start's, or
-// the schedule command's.
+// nexusOperationOf is the service and operation an instruction starts: the schedule command's.
 func nexusOperationOf(instruction *testpilotspb.Instruction) nexusOperation {
-	if start := instruction.GetStartNexusOperation(); start != nil {
-		return nexusOperation{service: start.GetService(), operation: start.GetOperation()}
-	}
 	attributes := instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes()
 	return nexusOperation{service: attributes.GetService(), operation: attributes.GetOperation()}
 }
 
 // startsNexusOperation reports whether an instruction starts a Nexus operation an AwaitInstruction
-// of the same entrypoint may await: the untyped start, or a workflow command scheduling one.
+// of the same entrypoint may await: a workflow command scheduling one.
 func startsNexusOperation(instruction *testpilotspb.Instruction) bool {
 	switch InstructionOpcode(instruction) {
-	case contract.StartNexusOperation:
-		return true
 	case contract.WorkflowCommand:
 		return commandTypeOf(instruction.GetWorkflowCommand().GetCommand()) == enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
 	default:

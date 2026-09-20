@@ -63,15 +63,16 @@ func TestCompletionTransportPreservesPayloadAndCredentials(t *testing.T) {
 	require.NotContains(t, fmt.Sprint(result), "secret")
 }
 
-func TestCompletionEffectAcceptsOnlyCompletionInstructionsAndValues(t *testing.T) {
+func TestCompletionEffectAcceptsOnlyCompletionInstructionsAndPayloads(t *testing.T) {
 	transport, err := newCompletionTransport(nil, "", callbackLimits())
 	require.NoError(t, err)
 	effect, err := transport.newEffect(completionInfo{URL: "http://localhost", OperationToken: "token"})
 	require.NoError(t, err)
-	completion := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{}}}
+	completion := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusOperationCompletion{NexusOperationCompletion: &testpilotspb.NexusOperationCompletion{Result: &testpilotspb.NexusOperationCompletion_Payload{Payload: &commonpb.Payload{}}}}}
 	other := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}
-	require.True(t, effect.Accepts(t.Context(), completion, callbackValue()))
-	require.False(t, effect.Accepts(t.Context(), other, callbackValue()))
+	carried := &commonpb.Payload{Data: []byte("result")}
+	require.True(t, effect.Accepts(t.Context(), completion, carried))
+	require.False(t, effect.Accepts(t.Context(), other, carried))
 	require.False(t, effect.Accepts(t.Context(), completion, &testpilotspb.InstructionOutcome{}))
 }
 

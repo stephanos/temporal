@@ -92,11 +92,11 @@ func (r registeredCases) render(_ string, arguments ...string) (rendererOutput, 
 
 func fakeRegistry() registeredCases {
 	return registeredCases{
-		"temporal.case.async-nexus":                "async-nexus",
-		"temporal.case.get-system-info":            "get-system-info",
-		"temporal.case.typed-nexus":                "typed-nexus",
-		"temporal.case.worker-outage":              "worker-outage",
-		"temporal.case.workflowStartTests.started": "workflowStartTests-started",
+		"temporal.case.async-nexus":                 "async-nexus",
+		"temporal.case.get-system-info":             "get-system-info",
+		"temporal.case.nexusPairTests.bothComplete": "nexusPairTests-bothComplete",
+		"temporal.case.worker-outage":               "worker-outage",
+		"temporal.case.workflowStartTests.started":  "workflowStartTests-started",
 	}
 }
 
@@ -415,7 +415,7 @@ func TestRequirePersistedFormRejectsCompactButValidJSONNamingTheFile(t *testing.
 // A fixture lists every message object's fields in declaration order, so a reordered object fails
 // naming the file and the object's JSON path.
 func TestRequireDeclarationOrderRejectsReorderedObjectsNamingFileAndPath(t *testing.T) {
-	const fixture = "tests/testcore/testpilot/testdata/typed-nexus-case.json"
+	const fixture = "tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json"
 	for _, tt := range []struct {
 		name, encoded, wantErrorSubstr string
 	}{

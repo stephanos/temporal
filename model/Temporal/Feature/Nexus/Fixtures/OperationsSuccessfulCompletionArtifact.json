@@ -102,8 +102,8 @@
     "selectionReason": "satisfying-witness",
     "explored": {
       "setups": 2,
-      "traces": 5,
-      "transitions": 3,
+      "traces": 3,
+      "transitions": 1,
       "propertyEvaluations": 1
     },
     "knownGaps": [
@@ -179,7 +179,7 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:18d8447be07e75b72916c61cf30f1e462be556b5666959805c7e4b42714c1e3a"
+    "artifactChecksum": "sha256:cfb3cdbc769d2d01e9c9de5adf7a664b8741974db06eec5534dc56e76ad8bc54"
   },
   "properties": [
     {
@@ -216,5 +216,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:2d439eb648cdaa9107bce3ac87139073defc7cf3eb39474e83d5194fb4ad4938"
+  "artifactChecksum": "sha256:8e5532811d9e0fdf85da2a5c898aec9541339c1bccce4ef5c7de041c189f0420"
 }

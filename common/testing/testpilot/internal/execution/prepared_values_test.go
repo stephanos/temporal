@@ -6,15 +6,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // An instruction's outcome fields follow from its instruction: every one has a status and a detail, a
 // controller protocol effect a protocol code, a workflow or Nexus-handler instruction an SDK failure
-// code, and only an awaited Nexus operation a value, its text result.
+// code, and only an awaited Nexus operation a value, the payload its operation answered with.
 func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
 	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
@@ -29,7 +31,7 @@ func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
 		{0, 1, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text}},
 		{0, 2, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text}},
 		{1, 0, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text}},
-		{1, 1, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE: text}},
+		{1, 1, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE: carriedType()}},
 		{1, 2, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text}},
 		{2, 0, map[testpilotspb.InstructionOutcomeField]*testpilotspb.ValueType{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: status, testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE: text, testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL: text}},
 	} {
@@ -41,6 +43,21 @@ func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
 			require.True(t, proto.Equal(want, typ), "%s %s", plan.Source().GetInstructionId(), field)
 		}
 	}
+}
+
+// carriedType is the Await's VALUE type: the payload a schedule command's operation answers with,
+// carried whole.
+func carriedType() *testpilotspb.ValueType {
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}
+}
+
+// carriedValue is a value of that type: an Any wrapping the handler's payload.
+func carriedValue(text string) *testpilotspb.Value {
+	carried, err := anypb.New(&commonpb.Payload{Data: []byte(text)})
+	if err != nil {
+		panic(err)
+	}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}
 }
 
 func TestPreparedOutcomeParity(t *testing.T) {
@@ -58,10 +75,10 @@ func TestPreparedOutcomeParity(t *testing.T) {
 		coord := contract.Coordinate{RunID: "run", EntrypointID: entry.ID(), ActivationID: "activation", InstructionID: plan.Source().InstructionId, Attempt: 1}
 		for name, raw := range map[string]*testpilotspb.InstructionOutcome{
 			"success":    {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Detail: "detail"},
-			"value":      {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")},
+			"value":      {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue("owned")},
 			"wrong type": {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
 			"malformed":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{}},
-			"oversized":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue(strings.Repeat("x", 5000))},
+			"oversized":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue(strings.Repeat("x", 5000))},
 			"protocol":   {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "denied"},
 			"sdk":        {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, SdkFailureCode: "failed"},
 			"unknown":    {Status: 999}, "missing": nil,
@@ -123,13 +140,13 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Name = "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.Error(t, err)
-			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = textValue(text)
+			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = carriedValue(text)
 			value, enabled, work, err := plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.NoError(t, err)
 			require.True(t, enabled)
-			require.Equal(t, text, value.GetTextValue())
+			require.True(t, proto.Equal(carriedValue(text), value))
 			value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
-			require.Equal(t, text, fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)].GetTextValue())
+			require.True(t, proto.Equal(carriedValue(text), fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)]))
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work)
 			require.NoError(t, err)
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work-1)
@@ -139,8 +156,8 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 	}
 }
 
-// A Finish or RespondNexus result ends its activation rather than becoming an outcome value, so its
-// outcome carries none; an awaited operation's value type is read through a copy.
+// A Finish result or a NexusHandlerReply ends its activation rather than becoming an outcome value,
+// so its outcome carries none; an awaited operation's value type is read through a copy.
 func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
@@ -148,7 +165,7 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	await := p.Entrypoints()[1].Instructions()[1]
 	typ, ok := await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 	require.True(t, ok)
-	require.True(t, proto.Equal(scalar(testpilotspb.SCALAR_KIND_TEXT), typ))
+	require.True(t, proto.Equal(carriedType(), typ))
 	typ.Shape = nil
 	typ, ok = await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 	require.True(t, ok)
@@ -156,10 +173,12 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	typ, ok = await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
 	require.False(t, ok)
 	require.Nil(t, typ)
+	// A Finish evaluates its result; a NexusHandlerReply carries its own message and evaluates
+	// none. Neither declares an outcome value, so neither may report one.
 	for _, pair := range []struct {
 		entry, node int
 		want        string
-	}{{1, 2, "done"}, {2, 0, "accepted"}} {
+	}{{1, 2, "done"}, {2, 0, ""}} {
 		entry := p.Entrypoints()[pair.entry]
 		n := entry.Instructions()[pair.node]
 		_, ok := n.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
@@ -173,7 +192,7 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, enabled)
 		require.Equal(t, pair.want, value.GetTextValue())
-		_, _, err = n.ValidateOutcome(context.Background(), &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: value}, entry.RuntimeWorkLimit())
+		_, _, err = n.ValidateOutcome(context.Background(), &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("done")}, entry.RuntimeWorkLimit())
 		require.ErrorContains(t, err, "undeclared payload")
 		snapshot, _, err := n.ValidateOutcome(context.Background(), &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, entry.RuntimeWorkLimit())
 		require.NoError(t, err)

@@ -349,10 +349,12 @@ Case follows each operation through one sequence, so every instance performs the
          initialState := initial.getD (vocabulary.stateAt 0)
          steps := selected.trace.steps.filterMap (projectStep vocabulary 0 fields) } } :
       Scenario.Trace)
+  -- Every instance's actions in path order, each with the instance that performs it, numbered
+  -- from one the way the Scenario numbers them.
   let program := checked.witness.map fun selected =>
     selected.trace.steps.filterMap fun step =>
-      (unslotKey step.selectedAction.value).map fun (_, actionKey) =>
-        (vocabulary.namedAction actionKey).definitionId
+      (unslotKey step.selectedAction.value).map fun (slot, actionKey) =>
+        ((vocabulary.namedAction actionKey).definitionId, slot)
   pure {
     target := model.instances_lawStatement count ▸ checked.target
     vocabulary := checked.vocabulary

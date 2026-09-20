@@ -98,12 +98,8 @@ private def projection := Program.responseRead responsePath .READ_CARDINALITY_ON
 private def instructions : Array Instruction := #[
   Program.invokeRpc "endpoint" "/example.Service/Call" #[assignment] #[projection],
   Program.awaitSlot "slot",
-  Program.completeNexusOperation "capability" (Expr.literal (Value.text "done")),
-  Program.startNexusOperation "endpoint" "service" "operation" (Expr.literal (Value.text "input")),
   Program.awaitInstruction instructionReference,
   Program.finish (Expr.literal (Value.text "result")),
-  Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-    (Expr.literal (Value.text "token")) "capability",
   Program.injectFault "queue" .FAULT_KIND_WORKER_STOP,
   Program.scheduleNexusOperation "endpoint" "service" "operation" (Payload.text "request")
     (scheduleToClose := some (Duration.seconds 5)) (header := [("x-case", "1")]),
@@ -143,7 +139,7 @@ private def evidenceDeclarationsCarryTheirSources : Bool :=
 
 /-- A read instruction names its declaration, its role, its condition and its interval. -/
 private def readEvidenceNamesItsDeclaration : Bool :=
-  match instructions[11]!.instruction with
+  match instructions[8]!.instruction with
   | some (.read_evidence read) =>
     read.evidence_id == "attempts" && read.endpoint_role_id == "endpoint"
       && read.request_assignments.size == 1 && read.until.isSome
@@ -151,14 +147,14 @@ private def readEvidenceNamesItsDeclaration : Bool :=
   | _ => false
 
 private def injectFaultNamesRoleAndKind : Bool :=
-  match instructions[7]!.instruction with
+  match instructions[4]!.instruction with
   | some (.inject_fault fault) =>
     fault.role_id == "queue" && fault.kind == .FAULT_KIND_WORKER_STOP
   | _ => false
 
 /-- The schedule command carries its type, its attributes and the payload as the SDK spells it. -/
 private def scheduleCommandCarriesItsAttributes : Bool :=
-  match instructions[8]!.instruction with
+  match instructions[5]!.instruction with
   | some (.workflow_command carried) =>
     match carried.command.bind (·.attributes) with
     | some (.schedule_nexus_operation_command_attributes attributes) =>
@@ -199,8 +195,8 @@ private def typedRepliesCarryTheirArms : Bool :=
   let sync := Program.nexusSyncReply (Payload.text "answer")
   let failed := Program.nexusHandlerError "BAD_REQUEST" "malformed"
     .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
-  [replyArm instructions[9]!, replyArm sync, replyArm failed] == ["async", "sync", "error"]
-    && [replySlot instructions[9]!, replySlot sync, replySlot failed] == ["capability", "", ""]
+  [replyArm instructions[6]!, replyArm sync, replyArm failed] == ["async", "sync", "error"]
+    && [replySlot instructions[6]!, replySlot sync, replySlot failed] == ["capability", "", ""]
 
 private def completionResult (instruction : Instruction) : String :=
   match instruction.instruction with
@@ -214,9 +210,9 @@ private def completionResult (instruction : Instruction) : String :=
 /-- A typed completion carries a payload or a failure over the handle Slot it consumes. -/
 private def typedCompletionsCarryTheirResults : Bool :=
   let failed := Program.nexusOperationFailure "capability" { «message» := "failed" }
-  [completionResult instructions[10]!, completionResult failed] ==
+  [completionResult instructions[7]!, completionResult failed] ==
       ["payload:\"done\"", "failure:failed"]
-    && (match instructions[10]!.instruction, failed.instruction with
+    && (match instructions[7]!.instruction, failed.instruction with
       | some (.nexus_operation_completion a), some (.nexus_operation_completion b) =>
           a.handle_slot_id == "capability" && b.handle_slot_id == "capability"
       | _, _ => false)
@@ -230,9 +226,9 @@ private def node := Program.node "start" instructions[0]!
   (guard := some programExpressions[10]!)
 
 /-- A node that writes only the bounds differing from the Profile's defaults. -/
-private def timeoutOnly := Program.node "timeout" instructions[5]!
+private def timeoutOnly := Program.node "timeout" instructions[3]!
   (Program.instructionLimits (timeoutMilliseconds := some 5000))
-private def defaulted := Program.node "defaulted" instructions[5]!
+private def defaulted := Program.node "defaulted" instructions[3]!
 
 private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
   #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
@@ -310,7 +306,7 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 12
-#guard instructions.size == 12
+#guard instructions.size == 9
 #guard evidence.size == 3
 #guard evidenceDeclarationsCarryTheirSources
 #guard readEvidenceNamesItsDeclaration

@@ -532,7 +532,9 @@ structure Realizable (LawStatement : Law → Prop) where
   property : CheckedProperty
   behavior : CheckedScenario
   witness : Option Scenario.Trace
-  program : Option (List DefinitionId) := none
+  /-- Every instance's actions in path order, each with the instance that performs it, where
+  several instances interleave; `none` where the operation's own sequence is the Program's. -/
+  program : Option (List (DefinitionId × Nat)) := none
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : DeclaredModel Setup State Action Outcome Fact) where
@@ -593,6 +595,36 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
 
 
+/-! ### What one action's rows say
+
+A relation's operands are read under the members of the step the claim is about: an observation
+of the step under the fact the event confirms, one of an earlier step under the state the step
+starts from, a result under the step's outcome. The `property` command reads those members off
+the machine's own rows while the file compiles. -/
+
+/-- The keys of the facts the rows of `actionKey` record, in table order, without repeats. -/
+def DeclaredModel.recordedFacts [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).flatMap
+    (fun row => row.results.flatMap fun step => step.facts.filterMap fun fact =>
+      (model.table.facts.find? (·.value == fact)).map (·.key)) |>.eraseDups
+
+/-- The keys of the states the rows of `actionKey` start from, in table order, without repeats. -/
+def DeclaredModel.sourceStates [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).filterMap
+    (fun row => (model.table.states.find? (·.value == row.source)).map (·.key)) |>.eraseDups
+
+/-- The keys of the outcomes the rows of `actionKey` produce, in table order, without repeats. -/
+def DeclaredModel.rowOutcomes [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).flatMap
+    (fun row => row.results.filterMap fun step =>
+      (model.table.outcomes.find? (·.value == step.outcome)).map (·.key)) |>.eraseDups
+
 /-! ### Producing a Case
 
 `producerInput` is what the checked declaration cannot be: the Producer needs the operation role and
@@ -612,6 +644,7 @@ def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   «scenario» := checked.realizable.behavior
   «witness» := checked.realizable.witness
   program := checked.realizable.program
+  instances := checked.instances
   setupParameters := «model».setupParameters
   operationRole := «model».operationRoleId
   queryId := checked.query.id
@@ -634,7 +667,7 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
     (required : List DefinitionId := [])
     (claims : List Umpire.Case.Producer.ClassClaim := [])
-    (program : Option (List DefinitionId) := none)
+    (program : Option (List (DefinitionId × Nat)) := none)
     (evidenceCatalog : List (String × String) := [])
     (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
@@ -659,7 +692,7 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
     (required : List DefinitionId := [])
     (claims : List Umpire.Case.Producer.ClassClaim := [])
-    (program : Option (List DefinitionId) := none)
+    (program : Option (List (DefinitionId × Nat)) := none)
     (evidenceCatalog : List (String × String) := [])
     (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
