@@ -1,0 +1,404 @@
+{
+  "caseId": "temporal.case.systemInfoTests.answered",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.system.info.testpilot",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.system.info.target.systemInfo",
+        "behaviorFingerprint": "sha256:4e928ebdd026baba31917167f1516706ecacd82ea0aec9c0ca325b609ba3e020",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.system.info.behavior.once",
+        "behaviorFingerprint": "sha256:311337c08a07b78c40fc92a8a23b7dcb1a3d9dd5d4951e4efadb4e213e4cb11b",
+        "kind": "DEFINITION_KIND_SCENARIO"
+      },
+      {
+        "definitionId": "temporal.system.info.query.answered",
+        "behaviorFingerprint": "sha256:4b684cd7d518796e276fa47bf30d3d8cab1dc3cc5f78864e47816627511f42a0",
+        "kind": "DEFINITION_KIND_QUERY"
+      },
+      {
+        "definitionId": "temporal.system.info.property.infoReturned",
+        "behaviorFingerprint": "sha256:91e4f59e06488c9836946342f20c0f44e33e75deb6628e360ac5237516957313",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Feature/System/Info/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/System/Info/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/System/Info/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/System/Info/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ],
+    "correlatedRules": [
+      {
+        "ruleId": "temporal.system.info.property.infoReturned.fact-systemInfoReturned",
+        "propertyId": "temporal.system.info.property.infoReturned",
+        "propertyFingerprint": "sha256:91e4f59e06488c9836946342f20c0f44e33e75deb6628e360ac5237516957313",
+        "projectionId": "temporal.system.info.projection",
+        "projectionFingerprint": "sha256:95b28259c06e689ac51a0fb18c51d514991f9307c2de2dea35100127a5bb8726",
+        "source": {
+          "path": "Temporal/Feature/System/Info/Model.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      },
+      {
+        "ruleId": "temporal.system.info.property.infoReturned.state-queried",
+        "propertyId": "temporal.system.info.property.infoReturned",
+        "propertyFingerprint": "sha256:91e4f59e06488c9836946342f20c0f44e33e75deb6628e360ac5237516957313",
+        "projectionId": "temporal.system.info.projection",
+        "projectionFingerprint": "sha256:95b28259c06e689ac51a0fb18c51d514991f9307c2de2dea35100127a5bb8726",
+        "source": {
+          "path": "Temporal/Feature/System/Info/Model.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      }
+    ],
+    "localNames": [
+      {
+        "localName": "instructionCompleted",
+        "definitionId": "temporal.system.info.evidence.instructionCompleted"
+      },
+      {
+        "localName": "source.run",
+        "definitionId": "temporal.system.info.source.run"
+      },
+      {
+        "localName": "scope.run",
+        "definitionId": "temporal.system.info.scope.run"
+      },
+      {
+        "localName": "projection",
+        "definitionId": "temporal.system.info.projection"
+      },
+      {
+        "localName": "call",
+        "definitionId": "temporal.system.info.scope.call"
+      },
+      {
+        "localName": "unqueried",
+        "definitionId": "temporal.system.info.state.systemInfo.unqueried"
+      },
+      {
+        "localName": "phase",
+        "definitionId": "temporal.system.info.state-field.systemInfo.phase"
+      },
+      {
+        "localName": "getSystemInfo",
+        "definitionId": "temporal.system.info.action.systemInfo.getSystemInfo"
+      },
+      {
+        "localName": "queried",
+        "definitionId": "temporal.system.info.state.systemInfo.queried"
+      },
+      {
+        "localName": "accepted",
+        "definitionId": "temporal.system.info.outcome.systemInfo.accepted"
+      },
+      {
+        "localName": "systemInfoReturned",
+        "definitionId": "temporal.system.info.fact.systemInfo.systemInfoReturned"
+      },
+      {
+        "localName": "fact-systemInfoReturned",
+        "definitionId": "temporal.system.info.property.infoReturned.fact-systemInfoReturned"
+      },
+      {
+        "localName": "state-queried",
+        "definitionId": "temporal.system.info.property.infoReturned.state-queried"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.systemInfoTests.answered.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "server-version",
+        "type": {
+          "singular": {
+            "scalar": {
+              "kind": "SCALAR_KIND_TEXT"
+            }
+          }
+        }
+      },
+      {
+        "observationId": "correlated-evidence",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "get-system-info",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
+                "responseReads": [
+                  {
+                    "path": "server_version",
+                    "cardinality": "READ_CARDINALITY_ONE",
+                    "targets": [
+                      {
+                        "observationId": "server-version"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "evidence": [
+      {
+        "evidenceId": "instructionCompleted",
+        "evidenceSource": "source.run",
+        "runEvent": {
+          "kind": "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+        },
+        "scope": [
+          {
+            "fieldId": "scope.run",
+            "value": {
+              "textValue": "systemInfoTests-answered"
+            }
+          }
+        ],
+        "operation": "protocol_code"
+      }
+    ]
+  },
+  "contract": {
+    "contractId": "temporal.case.systemInfoTests.answered.contract",
+    "correlated": {
+      "projectionId": "projection",
+      "projectionFingerprint": "sha256:95b28259c06e689ac51a0fb18c51d514991f9307c2de2dea35100127a5bb8726",
+      "evidenceObservationId": "correlated-evidence",
+      "scopeFields": [
+        "scope.run"
+      ],
+      "operationField": "call",
+      "sources": [
+        "source.run"
+      ],
+      "initialState": {
+        "definitionId": "unqueried",
+        "value": "unqueried"
+      },
+      "transitions": [
+        {
+          "priorState": {
+            "definitionId": "unqueried",
+            "value": "unqueried"
+          },
+          "action": {
+            "definitionId": "getSystemInfo",
+            "value": "getSystemInfo"
+          },
+          "state": {
+            "definitionId": "queried",
+            "value": "queried"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "facts": [
+            {
+              "definitionId": "systemInfoReturned",
+              "value": "systemInfoReturned"
+            }
+          ],
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "unqueried"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "queried"
+            }
+          ]
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "instructionCompleted",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "getSystemInfo",
+                "value": "getSystemInfo"
+              },
+              "state": {
+                "definitionId": "queried",
+                "value": "queried"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "facts": [
+                {
+                  "definitionId": "systemInfoReturned",
+                  "value": "systemInfoReturned"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "queried"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-systemInfoReturned",
+          "trigger": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "getSystemInfo"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "getSystemInfo"
+                }
+              }
+            }
+          },
+          "response": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "systemInfoReturned"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "systemInfoReturned"
+                }
+              }
+            }
+          },
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-queried",
+          "trigger": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "getSystemInfo"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "getSystemInfo"
+                }
+              }
+            }
+          },
+          "response": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "queried"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "queried"
+                }
+              }
+            }
+          },
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "initialStateFields": [
+        {
+          "definitionId": "phase",
+          "value": "unqueried"
+        }
+      ]
+    }
+  }
+}

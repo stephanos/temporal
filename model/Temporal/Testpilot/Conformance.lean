@@ -1,11 +1,12 @@
 import Temporal.Case.ReadKind
 import Temporal.Case.Support
-import Temporal.Testpilot.GetSystemInfo
+import Umpire.Case.Compiler
 
 namespace Temporal.Testpilot
 
 open CaseSupport
 open Testpilot.Authoring
+open Temporal.Case.Support (workflowServiceRole getSystemInfoMethod)
 open temporal.server.api.testpilot.v1
 
 private def conformanceProperty (caseId : String) :=

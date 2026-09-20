@@ -153,10 +153,13 @@ Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validat
 names and model value spellings, exact provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 
-`Temporal.Testpilot` is the first Producer. Its `GetSystemInfo` Case proves that the IR is not tied
-to Nexus. Its async Nexus Case uses controller RPCs plus SDK workflow and Nexus-handler entrypoints
-without adding a scenario opcode. The six conformance Cases cover the root Go facade's satisfied,
-violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes.
+`Umpire.Case.Producer` is the one Producer: every checked-in functional Case is produced from a
+command Model through a realization (`Temporal.Case.Realization.{asyncNexus,workflowStart,
+workflowOutage,unaryRpc}`). The system-info Model's Case proves that the IR is not tied to Nexus;
+the caller Model's Cases use controller RPCs plus SDK workflow and Nexus-handler entrypoints without
+adding a scenario opcode. `Temporal.Testpilot` supplies the six conformance Cases, which cover the
+root Go facade's satisfied, violated, inconclusive, static-rejection, cleanup-failure, and cross-Run
+classes.
 
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
