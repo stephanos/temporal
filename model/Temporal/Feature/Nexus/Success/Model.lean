@@ -1,5 +1,4 @@
 import Temporal.Case.Syntax
-import Temporal.Feature.Nexus.Race.Terminal
 
 /-!
 # The compact Nexus success lifecycle, as a command specimen
@@ -8,8 +7,8 @@ This slice models only `scheduled → started → succeeded`. `awaitStart` and `
 recorded Temporal outcomes; they do not manufacture those outcomes. It records no Fact: every step
 here reaches a state named after what happened, so a Fact would only restate it. A Model declares
 Facts where one carries a claim its state does not -- two paths into the same state, something that
-happened without a state change, or several claims in one step. Cancellation remains deferred to fn-79;
-the imported `Terminal` module is the historical already-started Target, not this slice's.
+happened without a state change, or several claims in one step. Cancellation remains deferred to
+fn-79.
 
 Since fn-85 .11 this is a specimen and not a Model of the feature: the caller Model
 (`Temporal.Feature.Nexus.Caller`) is where the Nexus operation is authored and where the Cases come
