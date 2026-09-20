@@ -85,8 +85,6 @@ lean_exe «umpire-protojson-fixture» where
 
 @[default_target] lean_lib TemporalModelTests
 
-@[default_target] lean_lib TemporalExperimentalTests
-
 lean_lib ModelLintSupport where
   roots := #[
     `Tools.LeanImportGraph,
