@@ -264,6 +264,12 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   completed events, so the outage Model's one evidence kind is the completed event keyed by the
   workflow task that completed it, and the three steps before it are Known Gaps. `register_case`
   is gone: every checked-in Case is a `case` block's.
+- **The Switch example's ids moved with it (.7, 2026-09-20)**: the commands derive
+  `umpire.switch.<kind>.twoState.<member>` under a new `Umpire.Examples.Conventions` root, each
+  state and fact is its own definition, and the `power` field is one more; no golden is
+  byte-identical and each regenerated file is listed in the task receipt with its reason. The
+  exported names stayed, defined as views over the command's declarations, and the commands'
+  leading words became non-reserved so the importers keep binding `query`, `property` and `limits`.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
