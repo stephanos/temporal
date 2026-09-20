@@ -49,16 +49,83 @@ Remove every module the inventory marks for deletion (R6) with the goldens and f
 - Memory: full integration gates must select the complete migrated suite; after deletion, `make umpire-check-goldens` and `umpire-check-regression-views` must still check a non-empty set, and the live-test gate still needs at least one passing identity.
 
 ## Acceptance
-- [ ] every deletion-row module, golden, fixture, doc and tool is gone; no import of a deleted module remains (the build proves it); the facade `Temporal.Feature.Nexus` re-exports the Caller Model
-- [ ] fn-79's spec carries the dated race-behavior record and fn-33's the exploration inputs; the inventory rows name them
-- [ ] the compatibility-family pins compile with the remaining families; `TemporalExperimentalTests` is removed from the lakefile
-- [ ] `make umpire-check-goldens`, `make umpire-check-regression-views`, `make lint-model`, `make umpire-check-regression` exit 0; `make umpire-inspect` either removed from the Makefile or shows the Caller Model
+- [x] every deletion-row module, golden, fixture, doc and tool is gone; no import of a deleted module remains (the build proves it); the facade `Temporal.Feature.Nexus` re-exports the Caller Model
+- [x] fn-79's spec carries the dated race-behavior record and fn-33's the exploration inputs; the inventory rows name them
+- [x] the compatibility-family pins compile with the remaining families; `TemporalExperimentalTests` is removed from the lakefile
+- [x] `make umpire-check-goldens`, `make umpire-check-regression-views`, `make lint-model`, `make umpire-check-regression` exit 0; `make umpire-inspect` either removed from the Makefile or shows the Caller Model
 
 
 ## Done summary
-TBD
+
+Done 2026-09-20; self-review. Commit 7766383.
+
+### Deleted
+
+`Temporal/Feature/Nexus/Race/**` (eight modules, three docs), `Nexus/Lifecycle/**` with
+`Lifecycle.lean` and `LifecycleTests.lean`, `Nexus/Operations/**` with `Operations.lean` and
+`OperationsTests.lean`, `Nexus/Observation.lean` and `ObservationTests.lean`, `Nexus/Experimental/**`
+(`VariationSpace`, `Exploration`, `AutoClose` and the two tests), the six `Nexus/Fixtures/Operations*`
+goldens (the directory with them, and its entry in `UMPIRE_GOLDEN_DIRECTORIES`),
+`Nexus/COVERAGE.md`, `Temporal/Tool/NexusDiscovery.lean` and its tests, and
+`TemporalExperimentalTests.lean` with its `lean_lib` and its place in the regression build line.
+Order: Experimental, Observation, Race, Operations, Lifecycle; the build after the sweep is the
+proof that no import of any of them remains (`lake build`, 586 targets).
+
+### Rewritten around the Caller Model
+
+- `Temporal.Feature.Nexus` imports the Caller and Pair Models and documents the reader order
+  (Caller, Pair, `System.Nexus.Core`, the Implementation Link); `Temporal.Feature.NexusTests`
+  checks the facade names and that the functional Queries find their claims through the facade.
+- `Temporal.Tool.Inspect`: the registry is the Caller Model's eight Queries in declaration order
+  (`temporal.nexus.caller.query.{syncCompletion,asyncCompletion,asyncFailure,handlerError,retry,
+  scheduleToStartTimeout,startToCloseTimeout,terminalHolds}`) beside `switch.query.exact-action`;
+  `inspect <id>` prints a found Query's planned Artifact and reports `planning-failure` for the
+  verify Query, which selects none; `list` prints the registry as canonical JSON; `explain <id>`
+  prints one Query's checked lineage (source, form, fingerprints of Query, Property, Scenario and
+  Target, the outcome, the witness's actions, the Artifact checksum). The three Make targets stay;
+  `umpire-check-regression` explains `asyncCompletion`. `InspectTests` pins the registry, both
+  commands' determinism and their diagnostics.
+- `Temporal.Tool.Goldens` renders four families (the Operations loop is gone); no golden changed.
+- `Temporal.SharedTests` keeps the Temporal identity, source and metadata pins over
+  `Temporal.Shared` alone; the Query-checker pins it carried over the Operations declarations
+  duplicated `Umpire.Query`'s own tests and went with them.
+- `TemporalModelTests` imports the roots that remain plus `Temporal.Tool.InspectTests` (which
+  `TemporalExperimentalTests` used to carry) and pins no compatibility family: the four Nexus
+  families are retired, `switch` stays pinned by `UmpireTests` until .7.
+- `Temporal.Feature.Nexus.Success.Model` no longer imports `Race.Terminal`.
+- `tools/umpire/internal/artifactv2/artifact_test.go` decodes the three Switch Plans only.
+
+### Records
+
+fn-79 (`## Scope`, 2026-09-20): the race Model's rows, outcomes and facts, the terminal slice, the
+three Properties, the four Scenarios and their planner statuses, the baseline's match against the
+first-generation lifecycle, and what each becomes on the Caller Model. fn-33 (`## Contracts`,
+2026-09-20): the Space's base Query, Scenario and Limits, the two fault axes with their choices,
+faults and coverage goals, the four pinned points and the reordering invariance, the Exploration's
+policies, limits, pinned-candidate and session behavior, and the successor inputs
+(`nexusCallerExploration` and its coverage golden). `HANDWRITTEN_INVENTORY.md` marks each row
+deleted, dropped, re-pointed or kept with the date and the record that carries its behavior.
+`model/README.md` and `.plans/UMPIRE4_COMPONENTS.md` no longer link the deleted docs or name the
+old inspector scenarios.
+
+### Gates
+
+`lake build` green (586 targets, 633 before); `make umpire-gen-goldens && make umpire-check-goldens`
+exit 0 with no golden changed; `make umpire-gen-regression-views && make umpire-check-regression-views`
+exit 0 (the inspector's Switch view unchanged); inventory, retired vocabulary (its required-file
+list no longer names the deleted root), conformance, protocol and authoring checks exit 0;
+`make umpire-list` prints the nine-entry registry and `make umpire-explain
+QUERY=temporal.nexus.caller.query.asyncCompletion` the Query's lineage; `LEAN_NUM_THREADS=1 make
+lint-model` at the `.1` baseline (40 warnings, one fewer with the deleted modules, none new; the
+same two generated `Proto.lean` errors; the MOD-10 exception unchanged);
+`GOLANGCI_LINT_BASE_REV=8555116 make lint-code-fast` clean; `go test` over `tools/umpire` ok;
+`make umpire-check-regression` exit 0 with 29 passing live identities. One finding: the inspector
+now imports the caller Model, whose closure carries pre-existing warnings that `lake exe` replays
+on stderr at every run, and the regression-view generator reads the inspector's stderr as its
+diagnostic channel; the generator and the Makefile's inspector invocations run lake with
+`--log-level=error` so only the inspector's own output reaches that channel.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7766383
+- Tests: `lake build`; `make umpire-gen-goldens && make umpire-check-goldens`; `make umpire-gen-regression-views && make umpire-check-regression-views`; `make umpire-gen-inventory && make umpire-check-inventory`; `make umpire-check-retired-vocabulary`; `make umpire-gen-case-runtime-conformance && make umpire-check-case-runtime-conformance`; `make umpire-check-testpilot-protocol`; `make umpire-check-testpilot-authoring`; `LEAN_NUM_THREADS=1 make lint-model`; `make lint-code-fast`; `go test -count=1 -tags test_dep ./tools/umpire/...`; `make umpire-list`; `make umpire-explain QUERY=temporal.nexus.caller.query.asyncCompletion`; `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression`
 - PRs:
