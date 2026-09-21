@@ -1,19 +1,35 @@
 ---
 satisfies: [R5]
 ---
+# fn-33-run-serial-bounded-semantic-exploration.5 Prove determinism, regression independence and counterexample promotion
 
-# fn-33-run-serial-bounded-semantic-exploration.5 Prove deterministic exploration and regression independence
 ## Description
-Run identical checked inputs, seed, limits, decisive observations, and terminal reason twice and compare candidate order plus canonical semantic summary. Prove wall-clock timing can change only the completed prefix and that pinned regressions consume no campaign limit.
+Run identical checked inputs, caps and decisive observations twice and compare candidate order, per-target credit and the canonical summary. Prove that wall-clock timing can change only the completed prefix, that pinned regressions consume no campaign limit, and that a counterexample compiles to the same promotion source every time and installs nothing.
 
 **Size:** M
-**Touches:** `tools/umpire/campaign/integration_test.go`, `model/Temporal/Tool/ExplorationBridgeTests.lean`
+**Files:** `tools/umpire/campaign/integration_test.go`, `model/Umpire/Exploration/Tests/**`, `model/Temporal/Tool/ExplorationBridgeTests.lean`, `model/Umpire/Promotion.lean`
+**Touches:** [tools/umpire/campaign/integration_test.go, model/Umpire/Exploration/Tests/**, model/Temporal/Tool/ExplorationBridgeTests.lean, model/Umpire/Promotion.lean]
 
+### Approach
+- A scripted observation stream (decisive verdicts by candidate identity) drives the campaign in Lean and the coordinator in Go; both are replayed twice and compared byte for byte.
+- A stream that ends early (stopped) yields a prefix of the full run's summary with the same identities.
+- The Switch example's functional set Cases are shown outside the campaign's caps.
+- `compilePromotionSource` over the divergent member's target Query produces the proposal bytes and SHA-256 the summary names; the file is written only under a caller-named scratch root and never under `model/`.
+
+### Investigation targets
+**Required** (read before coding):
+- `model/Umpire/Promotion.lean:216,300` — `checkPromotedQuery`, `compilePromotionSource`.
+- Task .1's ledger and task .4's summary.
+
+### Quick commands
+`cd model && lake exe umpire-explore-tests && cd .. && go test -count=1 -tags test_dep ./tools/umpire/campaign/...`
+
+### Re-plan note (2026-09-21)
+Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Deterministic campaigns produce identical candidate identities, coverage, and semantic summaries.
-- [ ] A 10x candidate input is bounded by admission/campaign limits and retained state stays constant-size per active candidate.
-- [ ] Focused Lean and Go tests pass using `-tags test_dep` where applicable.
-
+- [ ] Two runs over identical inputs and observations produce identical candidate order, credit and summary bytes; an early stop produces a prefix.
+- [ ] Pinned regressions are not selected, prepared or counted against any campaign cap.
+- [ ] A counterexample compiles to fixed promotion source bytes and SHA-256, written only where the caller names, never installed.
 ## Done summary
 TBD
 
