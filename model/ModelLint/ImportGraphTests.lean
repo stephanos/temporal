@@ -1,4 +1,5 @@
 import ModelLint.ImportGraph
+import ModelLint.ModuleIndexTests
 import ModelLint.PackageModulesTests
 import Tools.LeanImportGraphTests
 import Tools.LeanSourceInventoryTests
@@ -666,6 +667,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   ModelLint.PackageModulesTests.run
+  ModelLint.ModuleIndexTests.run
   testAllowedOrdinaryImports
   testTestpilotIsolation
   testOrdinaryNexusFacadeIsolation
