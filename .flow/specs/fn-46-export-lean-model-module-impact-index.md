@@ -42,31 +42,38 @@ The root JSON object has exactly `format` and `modules`. `format` is
 All nested arrays are de-duplicated and lexically ordered.
 
 `classification` exhaustively maps the existing constructors to these v1 strings:
-`shared`, `testpilot`, `umpire`, `umpire-veil`, `temporal-shared`, `temporal-feature`, `temporal-system`,
-`temporal-implementation-link-test`, `temporal-verify`, `temporal-tool`, `temporal`, `model-tests`,
-`opt-in-verify`, and `lint-infrastructure`. All 14 constructors are covered, including reserved
-classes that currently have no source rows; existing classification precedence is unchanged.
+`shared`, `testpilot`, `umpire`, `temporal-shared`, `temporal-feature`, `temporal-system`,
+`temporal-tool`, `temporal`, `model-tests`, and `lint-infrastructure`. All 10 constructors of
+`ModuleClass` are covered by an exhaustive match, so a constructor added to the policy without a
+spelling does not compile; existing classification precedence is unchanged. (The plan of 2026-09-12
+counted 14 constructors, four of them reserved Veil and verify classes; fn-86 R6 and the Testpilot
+cutover removed those before task .2 froze the list, and every remaining class has source rows.)
 
 Direct and reverse dependencies contain first-party modules only. V1 `publicFacades` are exactly
-`Shared`, `Temporal`, `Temporal.API`, `Temporal.DynamicConfig`, `Temporal.Feature`,
-`Temporal.Feature.Nexus`, `Temporal.System`, `Temporal.System.Configuration`,
+`Shared`, `Temporal`, `Temporal.API`, `Temporal.Case.Syntax`, `Temporal.DynamicConfig`,
+`Temporal.Feature`, `Temporal.Feature.Nexus`, `Temporal.System`, `Temporal.System.Configuration`,
 `Temporal.Testpilot`, `Testpilot`, `Testpilot.Authoring`, `Testpilot.ProtoJSON`, `Testpilot.Protocol`,
-`Umpire`, `Umpire.Artifact`, `Umpire.Scenario`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
-`Umpire.the deleted execution handoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
-`Umpire.KnownGap`, `Umpire.Evidence`, `Umpire.OutcomeClassification`, `Umpire.Search`,
-`Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.Inventory`, `Umpire.Variations`,
-`Umpire.Model`, and `Umpire.Model.Check`.
+`Umpire`, `Umpire.Artifact`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Command`, `Umpire.Core`,
+`Umpire.Evidence`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Inventory`,
+`Umpire.Json`, `Umpire.KnownGap`, `Umpire.Model`, `Umpire.Model.Check`,
+`Umpire.OutcomeClassification`, `Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`,
+`Umpire.Scenario`, `Umpire.Search`, and `Umpire.Variations`.
 
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.InventoryMainTests`, `Temporal.Tool.InventoryMakeTestsMain`,
-`Temporal.Tool.InventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
-`Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.CorrelatedTests`,
-`Umpire.Evidence.Tests`, `Umpire.OutcomeClassification.ImportTests`,
-`Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Correlated`,
-`Umpire.Model.CheckImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
+`Temporal.Tool.InventoryTests`, `TemporalModelTests`, `Testpilot.Tests`,
+`Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.CorrelatedTests`, `Umpire.Evidence.Tests`,
+`Umpire.Model.CheckImportTests`, `Umpire.Property.Tests.Correlated`,
+`Umpire.Search.SemanticsImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never
-filename heuristics. The 34 facade roots and 15 test roots are module names, not Lake target names;
-compilation impact does not itself prove an executable test suite ran.
+filename heuristics. The 35 facade roots and 13 test roots are module names, not Lake target names;
+compilation impact does not itself prove an executable test suite ran. Task .2 froze these lists on
+2026-09-21 against the tree after fn-86 R6: the 2026-09-12 plan's corrupted facade entry
+`Umpire.the deleted execution handoff` (a vocabulary-sweep artifact, never a module) is gone,
+`Temporal.Case.Syntax` (the `case … realizes … as` command) and `Umpire.Command` are added, and the
+test roots `TemporalExperimentalTests` (deleted by fn-86 R6) and
+`Umpire.OutcomeClassification.ImportTests` (never present) are removed. The synthetic suite checks
+that every configured root exists as a source and classifies, so the list moves only by review.
 
 Full reachable external metadata remains available through reconciliation, import-policy validation
 and configured-root reachability. Only emitted rows and direct/reverse adjacency omit external
@@ -92,9 +99,13 @@ root impact still follows the complete validated graph. Configured roots must ex
   dependency resolution, toolchain updates or ambient CLI renaming; capture configuration diagnostics.
   This identifies the project shape, not a security principal. Keep it outside shared lint loading
   so current `umpire-lint` discovery behavior is unchanged; relocated valid checkouts remain supported.
-- Harmless permutations and equivalent valid platform path spellings normalize. Duplicate source,
-  metadata or edge identities, unsafe paths and malformed closed values reject; graph utilities must
-  not silently deduplicate invalid index inputs. Empty arrays remain present in the closed v1 JSON.
+- Harmless permutations and equivalent valid platform path spellings normalize. Duplicate source
+  or metadata identities, unsafe paths and malformed closed values reject; graph utilities must not
+  silently deduplicate invalid index inputs. A module name repeated in one record's compiled import
+  list is not a duplicate edge: a compiled header lists a module once per import modifier (`public
+  import` and `meta import` of `Testpilot.Carried` in `Testpilot.Protocol` are two entries, and every
+  module lists `Init` twice), so the index normalizes it to one edge. Empty arrays remain present in
+  the closed v1 JSON.
 - `cd model && mise exec -- lake -q exe temporal-model-module-index` emits exactly one compact JSON
   document plus LF on stdout, with empty stderr and status 0.
 - Inventory, build, OLean, policy, graph, or serialization failure returns non-zero, emits no stdout,
@@ -168,10 +179,16 @@ can filter it downstream. Rejected a checked snapshot because it would create hi
 state with no semantic authority.
 
 The refresh consumes delivered Testpilot, semantic-only Target, scoped monitoring and neutral outcome
-owners. It retains every originally configured facade that still exists, including
-`Umpire.the deleted execution handoff`; only absent historical roots are removed. Reserved Veil classification
-cases remain even though their former executable roots are absent. Unfinished fn-77 owners are not
-silently added by filename discovery. Root policy changes require explicit reviewed choices.
+owners. It retains every originally configured facade that still exists; only absent historical roots
+are removed. Unfinished fn-77 owners are not silently added by filename discovery. Root policy changes
+require explicit reviewed choices.
+
+Task .2 (2026-09-21) made three such choices. The facade and test lists are the 35 and 13 modules
+named above, after the sequencing note's corrections. The duplicate-edge rejection the plan asked for
+became normalization, because Lean's compiled headers legitimately repeat an import per modifier and
+a rule that rejected the real tree would never run. And the loader's canonical absolute source paths
+are made `model/`-relative by a pure `relativizeSources` step before `build`, so the builder stays
+pure and a path outside the root is refused as unsafe instead of guessed at.
 
 ## Acceptance Criteria
 
@@ -184,8 +201,9 @@ silently added by filename discovery. Root policy changes require explicit revie
 - **R2:** The pure module-index builder emits one row per reconciled first-party source with the exact
   v1 classification strings and enumerated facade/test policies above, reflexive root reachability,
   and correct direct/reverse dependencies.
-  Errors: duplicate rows/edges, missing endpoints, cycles, unknown roots, unclassified modules, and
-  malformed/noncanonical values reject the whole result; equivalent input ordering normalizes.
+  Errors: duplicate rows, missing endpoints, cycles, unknown roots, unclassified modules, and
+  malformed/noncanonical values reject the whole result; equivalent input ordering and an import
+  repeated under two modifiers normalize.
 - **R3:** `temporal-model-module-index/v1` JSON is byte-identical across repeated and reordered
   equivalent inputs, has the exact closed field set and terminal LF, uses model-relative normalized
   paths, and is produced only after complete validation. Errors: unsupported/internal serialization
