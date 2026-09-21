@@ -4,7 +4,7 @@ satisfies: [R2, R6]
 # fn-33-run-serial-bounded-semantic-exploration.6 Enforce the serial process-local coordinator boundary
 
 ## Description
-Model process-local idle, planning, preparing, running, observing, and finished states with one transition at a time. Bound candidate count, aggregate Case bytes/static work, Run time/work, event references, and report bytes; define stop/crash handling without durable recovery.
+Model process-local idle, planning, preparing, running, observing, and finished states with one transition at a time. Runs before `.4`: the command's exit codes and `.3`'s one-outstanding guarantee rest on this state machine. Bound candidate count, aggregate Case bytes/static work, Run time/work, event references, and report bytes; define stop/crash handling without durable recovery.
 
 **Size:** M
 **Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`

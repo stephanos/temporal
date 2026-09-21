@@ -12,9 +12,9 @@ Implement the serial path from an outstanding canonical Case through `testpilot.
 
 ### Approach
 - `bridge.go`: the Go side of the frames (spawn `umpire-explore`, one request outstanding, exact identity echo, byte caps on frames).
-- Lift `umpire-run`'s deployment binding (`openSession`: dial, namespace, task queue, handler queue, Nexus endpoint, release) into a package both commands use, without changing `umpire-run`'s behavior or exit codes.
-- `run.go`: prepare the Case with the Profile it implies; `prepare-rejected` creates no Run and is observed as such; one Run; cleanup observed before `observe`; a Run that is not closed is reported as such and credits nothing.
-- Tests use the facade's external-driver test doubles for Prepare/Run/cleanup outcomes; no test cluster in unit tests; one integration test under `-tags 'test_dep integration'` runs the early proof point end to end.
+- Split `umpire-run`'s `openSession` (today one closure that dials, provisions, derives the Profile, prepares and opens the Driver) into campaign-scoped binding (dial, provision, catalog, release once) and candidate-scoped work (Profile, `Prepare`, Driver open, worker, release per candidate), in a package both commands use, without changing `umpire-run`'s behavior or exit codes.
+- `run.go`: `prepare-rejected` is decided before the Driver opens and creates no Run; one Run; cleanup observed before `observe`; a Run that is not closed is reported as such and credits nothing.
+- Tests use the facade's external-driver test doubles for Prepare/Run/cleanup outcomes; no test cluster in unit tests. One integration test under `-tags 'test_dep integration'` runs the proof point end to end against the development cluster; it is non-gating for this task's receipt and reported as run or not run.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -31,7 +31,7 @@ Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space
 - [ ] Exactly one Prepare or Run is outstanding at any time; a second `next` before `observe` is impossible by construction and pinned by a test.
 - [ ] `prepare-rejected`, Run failure, cleanup failure and a decisive Verdict are distinguishable observations with the exact candidate identity.
 - [ ] `umpire-run` keeps its behavior and exit codes; the shared binding has no flag that widens a declared Limit.
-- [ ] The integration proof point runs one candidate against the development cluster and credits its targets.
+- [ ] The integration proof point, when a cluster is available, runs one candidate and credits its planned path; the receipt says whether it ran.
 ## Done summary
 TBD
 
