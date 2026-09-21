@@ -367,6 +367,35 @@ gate compares the entire inherited failure-identity set, so both additions and d
 The regression boundary intentionally adds no broad generated-Lean API drift check and no new
 GitHub Actions surface.
 
+### Module impact index
+
+```sh
+make umpire-export-model-module-index > module-index.json
+make umpire-check-model-module-index
+```
+
+The export writes one `temporal-model-module-index/v1` JSON document to stdout: one row per
+first-party module with `name`, `sourcePath` (relative to `model/`, forward slashes),
+`classification` (`shared`, `testpilot`, `umpire`, `temporal-shared`, `temporal-feature`,
+`temporal-system`, `temporal-tool`, `temporal`, `model-tests` or `lint-infrastructure`, as
+`make lint-model`'s policy assigns it), its direct and reverse first-party imports, and the
+configured public facades and focused test roots whose compilation the module affects. Rows and
+every array are sorted; empty arrays are present; the document is compact, one line, and ends with
+one LF. It is a navigation aid for a reader about to change a module and carries no Definition ID,
+Artifact Checksum or other semantic claim; a test root on a row says the root imports the module,
+not that its suite ran.
+
+The exporter is opt-in and unversioned: neither Lake's default targets nor version control carry it
+or its output. It refuses to run outside the model package root (it loads the current directory as
+a Lake root and requires the `temporal-model` package owning `umpire-lint`, `umpire-lint-tests` and
+itself; a relocated checkout passes). Success is exactly the document on stdout, status 0 and an
+empty stderr; any inventory, build, metadata, index or root failure is status 1, an empty stdout and
+diagnostics on stderr. The document is complete in memory before the final write, so a failure
+before it leaves nothing on stdout; if the final write itself fails, the status is non-zero and
+whatever the stream had already accepted is not a document. The check target runs the process
+suite (warm, stale and cold Lake paths, a relocated checkout, wrong roots, injected failures) and
+the Make path with each stream captured separately.
+
 ## Superseded runtime history
 
 The pre-fn-64 portable-plan, resident-executor, caller-specific adapter, and separate Run Evaluation

@@ -95,7 +95,8 @@ lean_lib ModelLintSupport where
     `ModelLint.PackageModules,
     `ModelLint.PackageModulesTests,
     `ModelLint.ModuleIndex,
-    `ModelLint.ModuleIndexTests
+    `ModelLint.ModuleIndexTests,
+    `ModelLint.ModuleIndexExporter
   ]
 
 @[default_target] lean_exe «umpire-inspect» where
@@ -125,4 +126,12 @@ lean_exe «umpire-lint» where
 
 lean_exe «umpire-lint-tests» where
   root := `ModelLint.ImportGraphTests
+  supportInterpreter := true
+
+lean_exe «temporal-model-module-index» where
+  root := `ModelLint.ModuleIndexMain
+  supportInterpreter := true
+
+lean_exe «temporal-model-module-index-tests» where
+  root := `ModelLint.ModuleIndexMainTests
   supportInterpreter := true
