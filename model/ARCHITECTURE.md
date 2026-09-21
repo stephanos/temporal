@@ -52,6 +52,14 @@ is not imported by the production aggregate. A production module under `Temporal
 lint-model` checks these edges against the full source inventory and compiled module metadata, the
 authoring-path rule as a direct-import rule and the rest as reachability.
 
+`make umpire-export-model-module-index` projects the same source inventory and compiled metadata
+into a `temporal-model-module-index/v1` document (`ModelLint.ModuleIndex`, exported by
+`temporal-model-module-index`): per module, its classification under the lint policy, its direct
+and reverse first-party imports, and which of the reviewed public facades and focused test roots
+reach it. The roots are explicit policy in `ModelLint.ModuleIndex.defaultIndexPolicy`, never file
+names. The index is a navigation aid over this graph, produced on demand and never checked in; it
+makes no semantic claim and is not an input of any check.
+
 `Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
 owns syntax capture and located elaboration. Property, Scenario, Query, and Search semantic

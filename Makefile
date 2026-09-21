@@ -682,6 +682,27 @@ umpire-run:
 	@mise exec -- go build -o ./.build/umpire-run ./tools/umpire/cmd/umpire-run
 	@printf 'Built ./.build/umpire-run\n'
 
+umpire-export-model-module-index:
+	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index
+
+umpire-check-model-module-index:
+	@printf $(COLOR) "Check the model module impact index exporter..."
+	@cd model && $(LEAN_LAKE) -q build temporal-model-module-index temporal-model-module-index-tests
+	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index-tests
+	@set -eu; \
+		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		stdout=$$(TMPDIR="$$physical_tmpdir" mktemp); \
+		stderr=$$(TMPDIR="$$physical_tmpdir" mktemp); \
+		trap 'rm -f "$$stdout" "$$stderr"' EXIT HUP INT TERM; \
+		status=0; \
+		$(MAKE) --no-print-directory umpire-export-model-module-index >"$$stdout" 2>"$$stderr" || status=$$?; \
+		if [ "$$status" -ne 0 ]; then cat "$$stderr" >&2; printf 'The Make export path exited %s.\n' "$$status"; exit 1; fi; \
+		if [ -s "$$stderr" ]; then cat "$$stderr" >&2; printf 'The Make export path wrote to stderr on success.\n'; exit 1; fi; \
+		head -c 43 "$$stdout" | grep -q '^{"format":"temporal-model-module-index/v1",' || { printf 'The Make export path did not start with the v1 document.\n'; exit 1; }; \
+		test "$$(tail -c 1 "$$stdout" | od -An -c | tr -d ' ')" = '\n' || { printf 'The Make export path did not end with one LF.\n'; exit 1; }; \
+		test "$$(wc -l < "$$stdout")" -eq 1 || { printf 'The Make export path wrote more than one line.\n'; exit 1; }; \
+		printf 'The Make export path wrote one %s-byte document and nothing else.\n' "$$(wc -c < "$$stdout" | tr -d ' ')"
+
 umpire-check-live-tests:
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
@@ -828,7 +849,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
