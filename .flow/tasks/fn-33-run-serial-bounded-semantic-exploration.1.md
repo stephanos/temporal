@@ -8,15 +8,15 @@ Replace the Space-based exploration core with a campaign over one exploratory se
 
 **Size:** L
 **Files:** `model/Umpire/Exploration.lean`, `model/Umpire/Exploration/{Campaign,Target,Ledger,Session}.lean`, `model/Umpire/Exploration/Tests/**`, `model/Umpire/Examples/Switch.lean`
-**Touches:** [model/Umpire/Exploration.lean, model/Umpire/Exploration/**, model/Umpire/Examples/Switch.lean, model/UmpireTests.lean, model/lakefile.lean]
+**Touches:** [model/Umpire/Exploration.lean, model/Umpire/Exploration/**, model/Umpire/Examples/Switch.lean, model/Umpire.lean, model/UmpireTests.lean, model/Umpire/ARCHITECTURE.md, model/README.md, model/lakefile.lean, .plans/UMPIRE4_SPEC.md]
 
 ### Approach
-- `Campaign.check`: one `SetDeclaration` with `purpose: exploratory`, its `DeclaredModel`, its enumerated `targets` and its `budget` (`Limits`); rejects a non-exploratory set, a target whose Definition IDs the Model does not declare, and a budget the Model's Search rejects.
-- `Target.query`: the target Query for one `CoverageTarget`: a `find` goal that takes the row (source state, action, one of its results), reaches the result value, or performs the class member's action, planned by `Umpire.Search` within the budget. `unreachable` when Search reports no path or `limitReached`.
-- `Campaign.next`: the first target in enumeration order that is neither covered, unreachable nor missed; returns the candidate (`Plan`, identity `ArtifactChecksum`, the targets its selected trace reaches) or `exhausted`. No scoring, no seed.
-- `Ledger`: per-target status (`pending`, `covered`, `unreachable`, `missed`), the class-member ledger (member → decisive verdict), counterexample detection (two members of one class, different verdicts), and credit from a decisive reading: the rows, results and members a Run's Model Trace reaches, matched by Definition ID.
-- Keep `Session`'s one-outstanding cursor and exact-binding `observe`; retire `Engine`, `Candidate`, `Selection`, `Guided`, `Coverage`, `Language`, `Core` over `VariationSpace` and their tests, and `Umpire.Variations` consumers that only they had. `UmpireTests` and the compatibility family pins move to the new surface.
-- Tests: the Switch example gains an exploratory set; pin selection order, credit for a trace that reaches several targets, unreachable and missed classification, counterexample detection, exact-binding rejection of crossed and stale observations, byte-identical results under reordered targets, and a synthetic 10x Model (rows x10) explored within the same budget with one Search per candidate.
+- `Campaign.check`: one `SetDeclaration` with `purpose: exploratory`, its `DeclaredModel`, its enumerated `targets`, and the `Limits` value its `budget:` names (the declaration holds only the name); rejects a non-exploratory set, a target whose Definition IDs the Model does not declare, and limits the Model's Search rejects.
+- `Target.query`: the target Query for one `CoverageTarget`, formed as every command Query is: `Scenario.exactly` over a table-walked prefix from a start state to the target's source (the walk `coverageTargets` performs) plus the target's action, and a Property `.action A` with an `outcomeClause` naming the row's result or the result value, or the action alone for a class member; admitted and searched through `Umpire.Command.check` within the limits, keeping the `AdmittedQuery`. `unreachable` when no prefix reaches the source within `steps` or the outcome is not `.found _ .satisfyingWitness`.
+- `Campaign.next`: the first target in enumeration order that is neither covered, unreachable nor violated; returns the candidate (`CheckedModel`, identity = its artifact checksum, the row, result and class-member targets on its planned witness path) or `exhausted`. No scoring, no seed.
+- `Ledger`: per-target status (`pending`, `covered`, `unreachable`, `violated`), the class ledger (class → decisive verdict of its member target's candidate), counterexample = a class-member target whose candidate's Verdict is `violated`, and credit: a `satisfied` decisive observation credits every target on the candidate's planned path; `violated` marks them; anything else credits nothing.
+- Keep `Session.next`/`observe` (one outstanding, exact binding) over the new candidate; retire `beginSession`, `Core`, `Language`, `Engine`, `Candidate`, `Selection`, `Guided`, `Coverage` over `VariationSpace` and their tests. `Umpire.Variations` stays. Update the importers: `Umpire.lean`, `UmpireTests.lean`, `Umpire/ARCHITECTURE.md`, `README.md`; keep the module name `Umpire.Exploration` (a facade root of fn-46's module index); amend the UMPIRE4 spec's Exploration concept to the set-based definition as a GOV-02 draft.
+- Tests: the Switch example gains an exploratory set; pin its selection order, credit for a path that covers several targets, unreachable and violated classification, counterexample detection, exact-binding rejection of crossed and stale observations, byte-identical results for identical inputs, and a synthetic 10x Model (rows x10) explored within the same limits with one Search per candidate.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -32,11 +32,11 @@ Replace the Space-based exploration core with a campaign over one exploratory se
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] `Campaign.next` walks `nexusCallerExploration`'s target order deterministically, one bounded Search per candidate, and classifies unreachable targets without a Run.
-- [ ] A decisive reading credits every row, result and class member its trace reaches; inconclusive, crossed and stale observations credit nothing and reject at the cursor.
-- [ ] Two members of one class with different decisive verdicts are one counterexample naming class, members and verdicts.
-- [ ] The Space-based Engine, Candidate, Selection, Guided and Coverage modules are gone with their tests; the cursor's exact-binding semantics are pinned on the new surface.
-- [ ] A 10x synthetic Model explores within the same budget; reordered targets and Model declarations give byte-identical results.
+- [ ] `Campaign.next` walks the Switch exploratory set's target order deterministically, one bounded Search per candidate, and classifies unreachable targets without a Run.
+- [ ] A `satisfied` observation credits every row, result and class member on the candidate's planned path; `violated` marks them; inconclusive, crossed and stale observations credit nothing and reject at the cursor.
+- [ ] A violated class-member target is one counterexample naming class, target and candidate identity.
+- [ ] The Space-based Core, Language, Engine, Candidate, Selection, Guided and Coverage modules and `beginSession` are gone with their tests; `Umpire.Variations` and its users are untouched; the cursor's exact-binding semantics are pinned on the new surface; the UMPIRE4 Exploration concept carries the GOV-02 draft.
+- [ ] A 10x synthetic Model explores within the same limits; identical inputs give byte-identical results.
 ## Done summary
 TBD
 
