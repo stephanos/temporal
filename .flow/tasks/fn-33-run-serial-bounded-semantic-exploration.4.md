@@ -4,7 +4,7 @@ satisfies: [R4]
 # fn-33-run-serial-bounded-semantic-exploration.4 Expose the closed serial umpire-fuzz command
 
 ## Description
-Add the bounded `umpire-fuzz run` command over the completed serial coordinator. Emit canonical summary/error output that separates selection, preparation, Run start, decisive result, per-target coverage, unreachable and missed targets, counterexamples, exhaustion, limits, stop/lost iteration, and tooling failure.
+Add the bounded `umpire-fuzz run` command over the completed serial coordinator. Emit canonical summary/error output that separates selection, preparation, Run start, decisive result, per-target coverage, unreachable, violated and pending targets, counterexamples, exhaustion, limits, stop/lost iteration, and tooling failure. Starts after `.6`, whose state machine its exit codes rest on.
 
 **Size:** M
 **Files:** `tools/umpire/cmd/umpire-fuzz/**`, `Makefile`, `model/README.md`
@@ -26,7 +26,7 @@ Add the bounded `umpire-fuzz run` command over the completed serial coordinator.
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] The summary reports selected, prepared, started, decisive, covered, unreachable, missed and counterexample counts without collapsing them, and lists each counterexample.
+- [ ] The summary reports selected, prepared, started, decisive, covered, unreachable, violated, pending and counterexample counts without collapsing them, and lists each counterexample.
 - [ ] Terminal status is exactly one of exhausted, limit-reached, stopped, tooling-failure, with its exit code.
 - [ ] Unexecuted, inconclusive and cleanup-uncertain work is never reported as coverage.
 ## Done summary
