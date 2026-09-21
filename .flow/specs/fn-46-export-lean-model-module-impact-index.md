@@ -183,6 +183,12 @@ owners. It retains every originally configured facade that still exists; only ab
 are removed. Unfinished fn-77 owners are not silently added by filename discovery. Root policy changes
 require explicit reviewed choices.
 
+Task .3 (2026-09-21) split the exporter into `ModelLint.ModuleIndexExporter` (preflight, `run`,
+the streams injected) and a one-line `ModuleIndexMain`, because a Lake executable root must define
+a top-level `main` and the process tests are a second executable over the same logic; and it
+learned that a relocated checkout is `model/` and `proto/` together, since the lakefile declares the
+repository's protocol files as inputs.
+
 Task .2 (2026-09-21) made three such choices. The facade and test lists are the 35 and 13 modules
 named above, after the sequencing note's corrections. The duplicate-edge rejection the plan asked for
 became normalization, because Lean's compiled headers legitimately repeat an import per modifier and
