@@ -38,15 +38,79 @@ Preserve all parent R1–R5 and the exact reviewed root arrays; no filename disc
 ### Sequencing note (2026-09-12)
 Start only after fn-86 R6 has deleted the hand-written Nexus models: `TemporalExperimentalTests` is a configured `focusedTests` root whose imports and `compatibilityFamilies` pin fn-86 deletes, and fn-85 adds `Umpire.Command`-adjacent modules and a `Temporal.Case` realization that belong in the facade list. Before freezing `IndexPolicy`, correct the spec's corrupted facade entry `Umpire.the deleted execution handoff` (a vocabulary-sweep artifact; it is not a module) and add `Umpire.Command` and `Temporal.Case` to the facade roots. Task .1 has no such dependency and may run now.
 ## Acceptance
-- [ ] Every reconciled first-party source produces one exact closed row with correct direct/reverse edges, exact classification spelling, and explicit reflexive facade/test reachability.
-- [ ] Serializer tests cover all 14 ModuleClass constructors; all 34 configured facade and 15 test roots exist/classify without heuristics.
-- [ ] Root-self, descendant, disconnected, and multi-root projections are pinned.
-- [ ] Duplicate/missing endpoints, cycles, unknown roots, unclassified modules and malformed noncanonical values reject atomically; harmless input permutations normalize.
-- [ ] Reordered/path-normalized inputs are byte-identical; 10x fixtures avoid all-pairs traversal; no semantic/external row is emitted.
+- [x] Every reconciled first-party source produces one exact closed row with correct direct/reverse edges, exact classification spelling, and explicit reflexive facade/test reachability.
+- [x] Serializer tests cover all 14 ModuleClass constructors; all 34 configured facade and 15 test roots exist/classify without heuristics. (The tree now has 10 constructors, 35 facades and 13 test roots; see the summary.)
+- [x] Root-self, descendant, disconnected, and multi-root projections are pinned.
+- [x] Duplicate/missing endpoints, cycles, unknown roots, unclassified modules and malformed noncanonical values reject atomically; harmless input permutations normalize.
+- [x] Reordered/path-normalized inputs are byte-identical; 10x fixtures avoid all-pairs traversal; no semantic/external row is emitted.
 ## Done summary
-TBD
+Done 2026-09-21; self-review. Commit 7f68e73.
+
+`ModelLint.ModuleIndex` is the pure half of the exporter: `build policy roots sources modules`
+validates the loader's inputs and either returns every issue, sorted, or an `Index` whose rows are
+sorted by name and whose every array is sorted, repeat-free and present even when empty; `render`
+writes the closed `temporal-model-module-index/v1` document by hand in the declared field order, one
+compact object and one LF, because a generic JSON object would order keys its own way. Reachability
+is one depth-first walk per configured root over the whole validated graph (external modules walked
+through, never emitted), credited to the rows it reaches; reverse adjacency is built once from the
+first-party edges. A 3,600-module layered DAG with fan-out and fan-in indexes and renders in about
+0.7 s in the compiled suite.
+
+`ModelLint.ModuleIndexTests` runs inside `umpire-lint-tests` and pins: the ten classification
+spellings and that rows carry them; that every configured root is first-party, classifies and exists
+as a source in the checkout, and reaches itself alone under a roots-only tree; the diamond,
+multi-root, descendant, test-root and disconnected shapes on one graph; the external bridge (counts
+for reachability, no row, no edge, name absent from the bytes); each rejection alone and several
+together, sorted; every rendering; path normalization and `relativizeSources`; byte-identical
+permuted and respelled inputs; the exact bytes of a four-row document, the empty document and an
+escaped path; and the tenfold fixture.
+
+### What moved from the plan
+
+**The lists.** The task's sequencing note asked for this before freezing `IndexPolicy`: the
+2026-09-12 plan's corrupted facade entry `Umpire.the deleted execution handoff` is gone,
+`Temporal.Case.Syntax` and `Umpire.Command` are in (35 facades), and the test roots
+`TemporalExperimentalTests` (deleted by fn-86 R6) and `Umpire.OutcomeClassification.ImportTests`
+(never present) are out (13). `ModuleClass` has 10 constructors, not the 14 the plan counted; the
+reserved Veil and verify classes were removed before this task, and every remaining class has rows.
+The spec's Architecture, Edge Cases, Decision Context and R2 text now say what the code says.
+
+**Duplicate edges normalize instead of rejecting.** The plan wanted a repeated import rejected. A
+probe of the real tree through the shared loader rejected 427 records: Lean's compiled header lists
+a module once per import modifier, so every module lists `Init` twice and `Testpilot.Protocol`
+lists `Testpilot.Carried` twice (`public import` and `meta import`). That is the toolchain's
+spelling of one edge, so `build` folds it to one edge; source, metadata and root identities are
+still held to one each, and the suite pins both halves.
+
+**Paths.** The loader reports canonical absolute paths; the document wants `model/`-relative ones.
+`relativizeSources root sources` strips the root prefix and leaves any other path alone, so `build`
+refuses it as `unsafe-path` rather than anything guessing where a stray source belongs. The exporter
+(task .3) calls it with the canonical current directory.
+
+### Real-tree probe
+
+Through `PackageModules.load liveEffects`, `relativizeSources`, `build defaultPolicy
+defaultIndexPolicy` and `render`: 356 rows, 157,220 bytes, no issue. Eleven rows are reached by no
+configured root (`ModelLint`, `Temporal.Lint`, `Umpire.Lint`, the inventory and goldens tool mains,
+and four `Umpire.Inventory.Tests.*` and `Umpire.CoreImportTests` modules that no listed root
+imports); that is a true statement about the roots, not a gap in the index, and adding roots is a
+reviewed policy change.
+
+### Gates
+
+`cd model && lake build` (590 jobs), `lake exe umpire-lint-tests` (the module-index suite reports its
+tenfold timing), `LEAN_NUM_THREADS=1 make lint-model` at the fn-86 closeout baseline (exit 2 from the
+two generated `Temporal/API/Proto.lean` errors; the import graph, inventory and both controlled
+violations pass). No Go file changed, so the inherited-set Go lint comparison has nothing to
+compare; `make lint-code-fast` was not run.
+
+### Note on the task's execution constraints
+
+The task text says "no staging, commits or pushes". This session's git requirements say to commit
+and push to the designated branch, as .1 recorded. Implementer and reviewer are the same session, so
+this owes the same cross-model re-review before fn-46's completion review.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7f68e73
+- Tests: cd model && lake build, cd model && lake exe umpire-lint-tests, LEAN_NUM_THREADS=1 make lint-model
 - PRs:
