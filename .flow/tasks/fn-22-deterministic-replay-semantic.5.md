@@ -1,27 +1,27 @@
 ---
-satisfies: [R5]
+satisfies: [R4]
 ---
-# fn-22-deterministic-replay-semantic.5 Implement the bounded monotonic minimizer over the bridge
+# fn-22-deterministic-replay-semantic.5 Compile ordered typed edits into whole candidate Cases through a Lean replay bridge
 
 ## Description
-Implement the Go client of the replay bridge (one request outstanding, exact echo, byte caps) over `tools/umpire/campaign.Bridge`'s transport, generalized where fn-33 left it specific to the exploration frames, and the reducer: for each candidate the bridge hands out, two fresh reruns through task .3, retained only when both reproduce the subject's key, then reported to the bridge; fixed limits (eight edits enumerated, twelve Runs in all, one active Run, 25 minutes, Case, event and report bytes) checked before preparation or dispatch; cancellation stops new work, the active Run follows fn-64 semantics and a lost Run is named. Completion is the bridge's: `minimized`, `irreducible` or `incomplete` with the limit that ended it. Determinism: the same scripted classes twice give the same decisions and the same report bytes.
+Add `Umpire.Replay`: over an `AdmittedQuery` with its checked Model, the finite ordered edit `dropPrefixStep i` (last prefix step first), each re-admitted through `Umpire.Command.checkAdmitted` and reported `inapplicable` when the Model does not admit it, and a monotonic `Reduction` value that retains a candidate, never retries a rejected edit and never reintroduces a dropped step. Lift the exploration bridge's frame parsing, rejection rules, profile echo and `Effects` into `Temporal.Tool.Bridge`, imported by both executables, with `umpire-check-exploration-bridge` kept green. Add `Temporal.Tool.ReplayBridge` (`umpire-replay-bridge`, non-default): `admit` names the set and the Query or the exploration target key, recovers the admitted Query (registry, or the fn-33 campaign replanned to that target), re-produces the Case under the set's realization and admits only when the bytes are the subject's; `next` hands out the next candidate as one whole Case with its identity and the edit applied; `observe` takes the candidate's classification (task .4's class, by Go) and advances the reduction; `finish` reports minimized, irreducible or incomplete with every edit's fate. Determinism as fn-33 .5 pins it: the same frames twice give the same frames.
 
 ### Approach
-- The reducer is a consumed-value state machine like `campaign.Session`; `campaign`'s tests stay green over the generalized transport.
+- The lamp Model of `Umpire.Exploration.Tests.Classed` and the switch pin the edits; the caller Model's exploratory candidate pins `irreducible` at once; a functional caller Query with a prefix pins one admitted edit.
 
 ### Quick commands
-`go test -count=1 -tags test_dep ./tools/umpire/replay/ ./tools/umpire/campaign/`
+`cd model && lake build umpire-replay-bridge umpire-replay-bridge-tests umpire-explore umpire-explore-tests UmpireTests && lake exe umpire-replay-bridge-tests && cd .. && make umpire-check-exploration-bridge`
 
 **Size:** L
-**Files:** `tools/umpire/replay/minimize.go`, `tools/umpire/replay/minimize_test.go`, `tools/umpire/replay/bridge.go`, `tools/umpire/replay/bridge_test.go`, `tools/umpire/campaign/bridge.go`, `tools/umpire/campaign/run_test.go`
-**Touches:** `tools/umpire/replay/**`, `tools/umpire/campaign/bridge.go`, `tools/umpire/campaign/*_test.go`
+**Files:** `model/Umpire/Replay.lean`, `model/Umpire/Replay/Edits.lean`, `model/Umpire/Replay/Tests.lean`, `model/Temporal/Tool/Bridge.lean`, `model/Temporal/Tool/ExplorationBridge.lean`, `model/Temporal/Tool/ExplorationBridgeTests.lean`, `model/Temporal/Tool/ReplayBridge.lean`, `model/Temporal/Tool/ReplayBridgeMain.lean`, `model/Temporal/Tool/ReplayBridgeTests.lean`, `model/lakefile.lean`, `Makefile`
+**Touches:** `model/Umpire/Replay*`, `model/Temporal/Tool/**`, `model/lakefile.lean`, `Makefile`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review round one; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Edit, Run, wall-time, Case-byte, event and report limits are enforced before the work they bound, and `incomplete` names the limit.
-- [ ] Compile or preparation rejection, not-reproduced, indeterminate, cancellation and limit exhaustion stay distinct in the report.
-- [ ] The same inputs and classes give the same reduction decisions and report bytes; a retained candidate never reintroduces a dropped step.
+- [ ] Lean owns applicability, order, candidate identity and Case compilation; an edit the Model does not admit is `inapplicable`, recorded, and produces no Case; no edit is listed twice.
+- [ ] A subject whose bytes no set of the Model produces is `crossed` at `admit`; duplicate, stale, out-of-order and oversized frames are rejected before any campaign call; the exploration bridge's tests and gate stay green over the shared module.
+- [ ] Go receives whole Cases and returns classes; it has no Case mutation or coordinate-editing API.
 ## Done summary
 TBD
 

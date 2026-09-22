@@ -28,9 +28,15 @@ The three points of the rethink, resolved:
   platform's real row authorized and adds one row the platform never takes, which the control
   Query selects and its Property names, produced through the caller Realization and proved
   violated twice against the test cluster, with its Verdict reproduced offline, before the reducer
-  exists. If that Case cannot be produced without scenario-specific Go, or its Runs come back
-  inconclusive rather than violated, the task stops and the boundary is revised, as the first plan
-  already required.
+  exists. A produced Case observes only what its witness lifts today, so a platform that takes
+  the real row would record an event the Case never reads and the Run would end inconclusive;
+  the Producer is therefore changed first (task .2) so that every witnessed row declares the
+  evidence of every result of its (state, action) pair, each kind projected to the result whose
+  fact records it. That is a Producer boundary change, named here with its golden and fixture
+  regeneration, and it is what makes a violated Verdict reachable for any produced Case, the
+  exploration's counterexamples included. If the control still cannot be produced without
+  scenario-specific Go, or its Runs come back inconclusive rather than violated, the proof task
+  stops and the boundary is revised, as the first plan already required.
 - **Offline semantic replay and checked promotion stay explicit.** Semantic replay is the
   recorded Run re-evaluated through the same prepared Contract with no deployment, exposed on the
   Case Runtime facade; it is a type and a report field of its own beside the concrete reruns, and
@@ -83,18 +89,21 @@ every semantic edit and compiles every candidate Case (`Temporal.Tool.ReplayBrid
 Case, Contract, Run or event stream.
 
 **The subject** is one canonical Case (the bytes a `case` block registered as a fixture or the
-exploration bridge handed out), the Profile identity it was prepared under (`DriverIdentity`:
-Profile, catalog and environment-binding fingerprints, none secret), and one closed Run with its
-Verdict. It is a value the command reads from two files and the deployment flags; no artifact
-family, bundle, digest or trust store.
+exploration bridge handed out) and one *recorded Run*: a local JSON file holding the closed Run
+with its Verdict and the `DriverIdentity` it was prepared under (Profile, catalog and
+environment-binding fingerprints, none secret), written by `umpire-run --record <path>` and by
+the live suite's helper beside every Run they close. It is a value the command reads from two
+files and the deployment flags; the recorded Run is a file shape of `tools/umpire/replay`, not an
+artifact family, bundle, digest or trust store.
 
-**Preparation without a deployment.** `binding.Campaign` gains `Prepare(ctx, identity, source)`:
-the catalog, `DeriveProfile` and `testpilot.Prepare`, no SDK client and no Driver (`Open` creates
-its gRPC client lazily and `Prepare` never uses it), returning the `PreparedCase` and its
-`DriverIdentity`; `Bind` is built on it and `Bound` exposes the prepared Case. Admission prepares
-the subject this way under the Profile the deployment flags derive: a `DriverIdentity` other than
-the subject's is `stale`, decided before any Driver opens, and the prepared Case is what the
-offline semantic replay evaluates.
+**Preparation without a deployment.** `binding` gains a free `Prepare(deployment, handlerQueue,
+identity, source)`: it builds the method catalog itself, derives the Profile and calls
+`testpilot.Prepare`; it opens no connection, provisions nothing and needs no `Campaign`, and
+returns the `PreparedCase` with its `DriverIdentity`. `Campaign.Bind` is built on it and `Bound`
+exposes the prepared Case. Admission runs entirely before `binding.Open`, so a crossed, stale or
+noncanonical subject is rejected before any resource is created: the subject is prepared under
+the Profile the deployment flags derive, and a `DriverIdentity` other than the recorded Run's is
+`stale`. The prepared Case is what the offline semantic replay evaluates.
 
 **The Lean side recovers the admitted Query.** A produced Case carries no Query, so the bridge's
 `admit` frame names the set and either the Query (a functional set's) or the exploration
@@ -110,28 +119,35 @@ Three replay classes are explicit and reported apart:
 - **semantic replay** re-evaluates the recorded Run through the same prepared Contract offline
   (`PreparedCase.Evaluate`, the facade export of the Case Runtime's own evaluator, over the
   prepared Case admission produced without a deployment) and must reproduce the same Verdict:
-  status, each rule's status and terminal state, and the supporting sequences. It runs before any
-  rerun and proves the Verdict is the Contract's reading of the events, not the Monitor's timing;
+  status, each rule's status and terminal state, and the supporting sequences. Beside the Verdict
+  it returns the *evaluation*: for each violated rule, the sequence of the event whose evidence
+  resolved the obligation violated and that evidence's kind, which the evaluator already knows
+  (the monitor rules' transition trace; the correlated monitor's `release`, where a buffered
+  evidence may be released by a later event and the released evidence, not the releasing event,
+  is the one named). It runs before any rerun and proves the Verdict is the Contract's reading of
+  the events, not the Monitor's timing;
 - **concrete rerun** prepares the same canonical Case under the exact Profile identity through
   `binding.Bind` and executes one fresh isolated Run;
 - **SDK history replay** is diagnostic only and outside this spec: no type, no field.
 
-**The violation key** is read in Definition IDs: every Case-local name (`rule_id`,
-`terminal_state_id`, an observation id) is resolved through the Case's `provenance.local_names`
-rows, because local names are the shortest unique dotted suffix among the Case's own Definition
-IDs and a candidate with fewer steps can rename what survives. It binds the violated rules (by
-Definition ID, sorted) each with the terminal state it reached and the *terminal step's evidence*:
-the evidence kinds (by Definition ID, as a sorted set) carried by the event at which the rule's
-status became violated, found by evaluating the Run's prefixes offline through
-`PreparedCase.Evaluate` and taking the shortest prefix whose Verdict names the rule violated. It
-does not read the Verdict's `supporting_event_sequences`, because the correlated monitor unions
-every semantic step's support into every rule's support
-(`internal/verification/correlated.go`, `release`), so that set grows with the path and would
-call every reduced candidate a different violation. It excludes `contract_id`, `run_id`,
-sequences, elapsed times, activation, attempt and instruction ids, values, source ids, cleanup and
-diagnostics. A different violated rule set, terminal state or terminal-step evidence is a
-different violation. The candidate's identity (its Case checksum) is recorded beside the key and
-is never part of it.
+**The violation key** is read in Definition IDs: a Case-local name (a `rule_id`, a monitor
+rule's `terminal_state_id`, a monitor rule's observation id, a correlated evidence kind) is
+resolved through the Case's `provenance.local_names` rows where a row exists and taken as-is
+where none does, because local names are the shortest unique dotted suffix among the Case's own
+Definition IDs and a candidate with fewer steps can rename what survives. It binds the violated
+rules (by Definition ID, sorted), each with the terminal state it reached and its *violating
+evidence*: for a monitor rule the terminal state is the rule's own state and the evidence is the
+observation ids the violating event carries; for a correlated rule the terminal state is the
+runtime's constant (`correlated.violated`, taken as-is) and the evidence is the `Kind` of the
+decoded `CorrelatedEvidence` value whose release resolved the obligation, both read from the
+evaluation the offline replay returns, never searched for. It does not read the Verdict's
+`supporting_event_sequences`, because the correlated monitor unions every semantic step's
+support into every rule's support (`internal/verification/correlated.go`, `release`), so that set
+grows with the path and would call every reduced candidate a different violation. It excludes
+`contract_id`, `run_id`, sequences, elapsed times, activation, attempt and instruction ids,
+values, source ids, cleanup and diagnostics. A different violated rule set, terminal state or
+violating evidence is a different violation. The candidate's identity (its Case checksum) is
+recorded beside the key and is never part of it.
 
 **Reproduction** takes two fresh Runs of the subject's Case. The admissible violated form is a
 Run whose disposition is `STOPPED_BY_MONITOR` (the evaluator stops at the first violation) or
@@ -147,15 +163,18 @@ row, last first (every Scenario ends on its target row and the Producer rejects 
 the end of a path, so a silent step is a prefix step and no second edit names it). Each edit is
 re-admitted through `Umpire.Command.checkAdmitted`; one the Model does not admit (the row is no
 longer reachable) is `inapplicable`, recorded, no Case produced. An admitted edit is produced as a
-whole Case under the same realization. The key makes the comparison sound: the violated rule is
-the Property's clause on the target action, unchanged by the edit, so its Definition ID and
-terminal state carry across candidates whatever the candidate's local names, and the terminal
-step's evidence is the same step's; rules of dropped steps vanish and are not in the key. A
-candidate is retained only after two fresh Runs reproduce the subject's key; the retained
-candidate becomes the subject of the next edit; a rejected or non-reproducing edit is never
-retried and a dropped step is never reintroduced. Reduction ends `minimized` when every remaining
-edit is inapplicable or non-reproducing after at least one was retained, `irreducible` when none
-was retained, or `incomplete` at a bound. An exploration counterexample is already a
+whole Case under the same realization. The key makes the comparison sound: the violated rule
+keeps its Definition ID across candidates (the lowered clause triggers on the Scenario's opening
+action with the target's position as its bound, so the trigger and the bound follow the edited
+Scenario while the rule's identity does not change), its terminal state and violating evidence
+are the same step's whatever the candidate's local names, and rules of dropped steps vanish and
+are not in the key. A candidate is retained only after two fresh Runs reproduce the subject's
+key; the retained candidate becomes the subject of the next edit; a rejected or non-reproducing
+edit is never retried and a dropped step is never reintroduced. A candidate whose rerun is
+`indeterminate` is rerun once more within the Run budget; still indeterminate, the reduction ends
+`incomplete` naming that edit, never counting it as non-reproducing. Reduction ends `minimized`
+when every remaining edit is inapplicable or conclusively non-reproducing after at least one was
+retained, `irreducible` when none was retained, or `incomplete` at a bound or an undecided edit. An exploration counterexample is already a
 shortest-prefix witness (EXP-05, fn-33), so its expected result is `irreducible` at once; a
 functional Query authored with a longer Scenario is what reduces.
 
@@ -168,13 +187,17 @@ lift no evidence), which support no rule. The negative control's Run carries suc
 core is proved to omit them, named by instruction id, while the same violated rule and terminal
 state hold.
 
-**Promotion.** Only a `minimized` or `irreducible` result compiles one proposal:
+**Promotion.** Only a `minimized` or `irreducible` result compiles one proposal (the control's
+proposal proves the mechanism only: its expected trace is the row the platform never takes, and
+it is never reviewed into a regression set, which its name and documentation say):
 `Umpire.Promotion.compilePromotionSource` from the retained candidate's admitted Query, the anchor
 read off its planning and fresh names keyed by the candidate's digest under the Model's family
 (the fn-33 .5 shape, lifted from `Umpire.Exploration.Promotion` into `Umpire.Promotion.propose`
 so both consumers share it). The proposal renders the Model's expected trace, never the observed
-violating Run; it is review-only, written only under `--promotion-root` outside the model, and
-never installed.
+violating Run; it is review-only, written only under `--promotion-root` outside the model through
+the writer `umpire-fuzz` already has, lifted into `tools/umpire/internal/cli` so both commands
+share the containment, the check-before-write and the no-overwrite decisions, and never
+installed.
 
 ## Limits and failure behavior
 
@@ -193,24 +216,28 @@ into reproduction. A proposal or report write failure never installs anything an
 
 ## Acceptance Criteria
 
-- **R1:** Strict admission accepts one canonical Case, its exact Profile identity and one closed
-  matching violated Run/Verdict; crossed, stale, incomplete, noncanonical, unsupported or
-  non-violated inputs fail before target effects.
+- **R1:** Strict admission accepts one canonical Case and one recorded Run (closed, matching,
+  violated, with the `DriverIdentity` it was prepared under); crossed, stale, incomplete,
+  noncanonical, unsupported or non-violated inputs fail before `binding.Open`, so before any
+  target effect.
 - **R2:** One stable Contract-relative violation key, read in Definition IDs, distinguishes
   semantic identity from per-Run transport identity and from the candidate's Case identity,
-  binding the violated rules, their terminal states and their terminal steps' evidence kinds.
+  binding the violated rules, their terminal states and their violating evidence as the
+  evaluator reports them.
 - **R3:** Two fresh isolated concrete reruns classify the subject `reproduced`, `not-reproduced` or
   `indeterminate`, and SDK history replay is no proof.
 - **R4:** Lean owns a finite fixed-order set of typed edits over the admitted Query's exact-trace
   Scenario, re-admits each and compiles each admitted one as a whole Case; Go cannot edit
   semantics, and a retained reduction never reintroduces a dropped step.
 - **R5:** Reduction retains a candidate only after two fresh Runs preserve the subject's key,
-  distinguishes `minimized`, `irreducible` and `incomplete`, and never silently skips an
-  applicable edit.
-- **R6:** The negative control is one labeled Lean-produced Case under the caller Realization
-  whose Model keeps the platform's real row authorized, proved violated twice against the test
-  cluster with one key, its Verdict reproduced offline, and its evidence core omits the Run's
-  scaffolding events, named by instruction id, without modifying the Run or Verdict.
+  distinguishes `minimized`, `irreducible` and `incomplete`, ends `incomplete` on an edit a
+  retried indeterminate rerun left undecided, and never silently skips an applicable edit.
+- **R6:** The Producer declares every result's evidence on each witnessed row, checked in Lean
+  on the produced control Case before any live Run; the negative control is one labeled
+  Lean-produced Case under the caller Realization whose Model keeps the platform's real row
+  authorized, proved violated twice against the test cluster with one key, its Verdict reproduced
+  offline, and its evidence core omits the Run's scaffolding events, named by instruction id,
+  without modifying the Run or Verdict.
 - **R7:** Only a `minimized` or `irreducible` result compiles one checked, review-only proposal of
   the Model's expected behavior; the observed violating Run is never promoted or installed.
 - **R8:** A bounded library-first controller and thin local command report admission, semantic
@@ -224,12 +251,14 @@ into reproduction. A proposal or report write failure never installs anything an
 
 ## Early proof point
 
-Task .2, before any reducer or command work: produce the negative-control Case from a labeled
-control Model under the caller Realization, run it twice against the test cluster through the
-facade, and prove the same Contract-relative violation key and the same Verdict offline. Stop and
-revise rather than add an adapter if the control cannot be expressed without scenario-specific Go,
-or if its Runs come back inconclusive (an unauthorized transition or an observe failure) rather
-than violated.
+Tasks .2 and .3, before any reducer or command work: have the Producer declare every result's
+evidence on witnessed rows and check on the produced control Case that the platform's real event
+kind is declared and projected to the real row; then produce the negative-control Case from a
+labeled control Model under the caller Realization, run it twice against the test cluster through
+the facade, and prove the same Contract-relative violation key and the same Verdict offline. Stop
+and revise rather than add an adapter if the control cannot be expressed without
+scenario-specific Go, or if its Runs come back inconclusive (an unauthorized transition or an
+observe failure) rather than violated.
 
 ## Boundaries
 
@@ -243,12 +272,12 @@ regression view. Existing comments are preserved where the invariant they descri
 | Requirement | Tasks |
 | --- | --- |
 | R1, R2, R9 | `.1` |
-| R6 | `.2`, `.8` |
-| R3, R9 | `.3` |
-| R4 | `.4` |
-| R5 | `.5` |
-| R7 | `.6` |
-| R8, R10 | `.7`, `.8` |
+| R6 | `.2`, `.3`, `.8` |
+| R3, R9 | `.4` |
+| R4 | `.5` |
+| R5 | `.6` |
+| R7 | `.7` |
+| R8, R10 | `.8` |
 
 ## Decision Context
 
@@ -272,6 +301,23 @@ regression view. Existing comments are preserved where the invariant they descri
   which is an observe failure and an inconclusive Run; a rule is violated only when the observed
   step is an authorized row whose response predicate fails. The control keeps the platform's real
   row and adds the row the Query selects.
+- **Why the Producer declares every result's evidence (2026-09-22, plan review round two):**
+  `derivedEvidence` and `resolveEvidence` run over the witness's steps only, so a produced Case
+  lifts the kinds its witness records and nothing else; a platform that takes another result of
+  a witnessed row records an event the Case never reads, the obligation stays pending and the Run
+  ends inconclusive. A violated Verdict on a produced Case, the control's or an exploration
+  counterexample's, is reachable only when the alternatives' evidence is declared and projected
+  to the row that records it. The transition table already carries every result of a witnessed
+  (state, action) pair, so the change is to the evidence, not the table.
+- **Why the recorded Run carries the identity (2026-09-22, plan review round two):** the `Run`
+  proto has no Profile, catalog or binding fingerprint, and deriving the identity from the same
+  flags the rerun prepares under could never differ from it; the identity is recorded beside the
+  Run by whoever closed it, and `stale` compares the two.
+- **Why the evaluator reports the violating evidence (2026-09-22, plan review round two):**
+  `Evaluate` closes the Run it evaluates and rejects one whose last event is not `RUN_CLOSED`, so
+  a prefix search would build the key on swallowed errors; and the correlated monitor may violate
+  in `release` for evidence buffered until a later event, so the releasing event is not the
+  evidence. The evaluator knows both and says so.
 - **Why semantic replay is a facade export (2026-09-22):** the Case Runtime evaluates a Run
   through a prepared Contract internally at the end of every Run; exposing that on
   `PreparedCase` is the smallest change that makes the offline class real instead of a report
@@ -291,6 +337,20 @@ in `.1`; the control's fixture goes through `umpire-gen-case-runtime-conformance
 declares `Touches`, `.4` lists the exploration bridge and its gate, `.5` the campaign bridge
 client; the command's exit codes name a rejected subject and a proposal write failure; the
 `dropSilentStep` edit is gone; the admissible violated form is stated.
+
+Round two (2026-09-22): NEEDS_WORK with ten findings, all applied: the control cannot violate
+under witness-only evidence, so the Producer declares every result's evidence on witnessed rows
+first (new task .2, with a Lean check on the control Case before any live Run); the subject's
+identity is recorded beside the Run by `umpire-run --record` and the live suite, so `stale` is
+real; `binding.Prepare` is free of `Open` and admission completes before it, so nothing is
+provisioned for a rejected subject; the evaluator reports each violated rule's violating evidence
+and the key reads that, the correlated evidence kind from the decoded value and the correlated
+terminal state as the runtime constant; `.1` pins the key on a synthetic Case a scripted facade
+Driver violates offline and the live pinning moves to `.3`; an indeterminate candidate is retried
+once and then ends the reduction `incomplete`; the clause's trigger and bound follow the edited
+Scenario; the fixture table test is not a touch point; the control's proposal proves the
+mechanism only; the proposal writer is shared with `umpire-fuzz`. Tasks renumbered `.1` to `.8`
+with the Producer change at `.2`.
 
 ## History
 
