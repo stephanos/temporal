@@ -709,6 +709,13 @@ case nexusCallerCanaryCases
   realizes nexusCallerCanary
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
+/- The exploratory set's Cases are produced by the exploration bridge, one per candidate, under the
+functional set's realization; the block emits the machine's claims, catalog and relations for it
+and registers nothing. -/
+case nexusCallerExplorationCases
+  realizes nexusCallerExploration
+  as nexusCallerCases.realization
+
 -- authoring: end
 
 end Temporal.Feature.Nexus.Caller

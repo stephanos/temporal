@@ -2785,7 +2785,8 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
     name := name.getId.toString
     purpose := purposeSpelling
     queries := queryNames
-    «repeat» := repeat?.map fun switchRef => switchRef.getId.eraseMacroScopes.toString })
+    «repeat» := repeat?.map fun switchRef => switchRef.getId.eraseMacroScopes.toString
+    machine := resolvedMachine.map (·.1) })
 
 /-! ### Registering a switch
 

@@ -1766,9 +1766,12 @@ set unknownPurpose
     caller: driven
   queries: [completion]
 
-/- Only a functional set compiles to Cases. -/
+/- An exploratory set's block emits what the exploration bridge produces each candidate's Case
+with -- the realization and the machine's claims, evidence catalog, field relations and timers --
+and registers no Case; its candidates read the machine's own `evidence:` lines, so the block
+writes none. -/
 /--
-error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; a functional set compiles to Cases and a canary set is admitted through them, one per Query, while an exploratory set covers rather than lists Queries
+error: set 'exploration' is exploratory; its candidates' Cases read the machine's own `evidence:` lines, so the block writes none
 -/
 #guard_msgs in
 case exploredCases
@@ -1776,6 +1779,16 @@ case exploredCases
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
   evidence
     awaitStart ← history nexusOperationStarted
+
+case exploredProduction
+  realizes exploration
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+
+#guard exploredProduction.realization.producerId == "temporal.nexus.caller.testpilot"
+#guard exploredProduction.claims.isEmpty
+#guard exploredProduction.catalog.isEmpty
+#guard exploredProduction.relations.isEmpty
+#guard exploredProduction.timers.isEmpty
 
 /-! ### Abstraction claims
 

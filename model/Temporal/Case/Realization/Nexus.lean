@@ -217,12 +217,15 @@ def awaitCloseNode : InstructionNode :=
   rpc "await-close" getHistoryMethod
     (historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)) #[]
 
-/-- The full history read, run once the instruction before it succeeded. -/
+/-- The full history read, run once the instruction before it succeeded. It lifts the history
+kinds among the resolved rules; a path that records none -- a schedule alone, whose evidence is the
+pending-operation read -- lifts nothing, because a lift with no rule is a Case Prepare rejects. -/
 def historyNode (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod historyAssignments #[
     Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
-      #[Program.observationTarget historyObservation,
-        Evidence.target correlatedObservation resolved]
+      (#[Program.observationTarget historyObservation] ++
+        if resolved.any Evidence.readsHistory then #[Evidence.target correlatedObservation resolved]
+        else #[])
   ]
 
 /-- The controller's bounded poll of the pending operation, run until `condition` holds of one
