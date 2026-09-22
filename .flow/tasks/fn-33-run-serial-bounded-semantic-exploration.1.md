@@ -40,7 +40,7 @@ Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space
 - [x] The Space-based Core, Language, Engine, Candidate, Selection, Guided and Coverage modules and `beginSession` are gone with their tests; `Umpire.Variations` and its users are untouched; the cursor's exact-binding semantics are pinned on the new surface; the UMPIRE4 Exploration concept carries the GOV-02 draft.
 - [x] A 10x synthetic Model explores within the same limits; identical inputs give byte-identical results.
 ## Done summary
-Done 2026-09-22; plan reviewed through `flowctl claude plan-review` (SHIP); implementation review through `flowctl claude impl-review`. Commit 241b78581.
+Done 2026-09-22; plan reviewed through `flowctl claude plan-review` (SHIP); implementation reviewed through `flowctl claude impl-review` (opus at high): NEEDS_WORK with four findings, all applied in 8c0cf817e, then SHIP. Commits 241b78581, 8c0cf817e.
 
 `Umpire.Exploration` is now a campaign over one exploratory set's coverage targets. `Target`
 turns a target into the Query the campaign runs for it -- the row it names (`chooseRow`), the
@@ -94,6 +94,20 @@ spec's Exploration concept and the Variations concept's "draws candidates from" 
 amendments drafted by fn-33 awaiting GOV-02 approval, with the exact-prefix shortest witness named
 as EXP-05's minimization.
 
+### Review
+
+Round one found four things, fixed in 8c0cf817e: a counterexample was only recorded when the class
+had no verdict yet, so a class satisfied by a row candidate could never report a later violation
+(now every violated Run crossing a class member is a counterexample, once per candidate, and a
+violation supersedes an earlier satisfied verdict; pinned both ways in `Tests.Classed`); a row
+target tried only its first result, so a row plannable under its second was called unreachable
+(now each result in order, the named ones first; `Tests.Results` pins the walker whose far row
+plans under `moved`); exhausted selection fuel read as an honest exhaustion (now a tooling
+failure); a zero-step budget still planned one step (now `none`). Round two: SHIP, with two notes
+for task .2's author: the class-member branch takes each row's first result only, failing honest
+rather than wrong, and the class ledger keys on the class spelling alone, which merges two claims
+that reuse a spelling across actions.
+
 ### Gates
 
 `cd model && lake build`, `lake exe umpire-lint-tests`, `make umpire-check-goldens
@@ -101,6 +115,6 @@ umpire-check-regression-views umpire-check-inventory umpire-check-retired-vocabu
 -count=1 -tags test_dep ./tools/umpire/...`, `LEAN_NUM_THREADS=1 make lint-model` at the fn-86
 closeout baseline.
 ## Evidence
-- Commits: 241b78581
+- Commits: 241b78581, 8c0cf817e
 - Tests: cd model && lake build, cd model && lake exe umpire-lint-tests, make umpire-check-goldens umpire-check-regression-views umpire-check-inventory umpire-check-retired-vocabulary, go test -count=1 -tags test_dep ./tools/umpire/..., LEAN_NUM_THREADS=1 make lint-model
 - PRs:
