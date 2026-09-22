@@ -19,6 +19,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/internal/cli"
 )
 
 const fixtureRoot = "../../../../tests/testcore/testpilot/testdata"
@@ -276,7 +277,7 @@ func TestRunHonoursTheTimeoutWhileBinding(t *testing.T) {
 func TestInterruptibleContextCancelsOnSIGINT(t *testing.T) {
 	process, err := os.FindProcess(os.Getpid())
 	require.NoError(t, err)
-	ctx, cancel := interruptible(context.Background(), time.Minute)
+	ctx, cancel := cli.Interruptible(context.Background(), time.Minute)
 	defer cancel()
 
 	if err := process.Signal(os.Interrupt); err != nil {
