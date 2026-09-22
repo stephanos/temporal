@@ -80,16 +80,16 @@ func (e *LimitError) Error() string {
 // (identity, kind, observation, never a Run), they are the coordinator's retained state, whatever
 // the volume.
 type Counters struct {
-	Planned      int
-	Prepared     int
-	Started      int
-	Decisive     int
-	CaseBytes    int64
-	RunEvents    int64
-	Skipped      int
-	Rejected     int
-	Failed       int
-	Inconclusive int
+	Planned      int   `json:"planned"`
+	Prepared     int   `json:"prepared"`
+	Started      int   `json:"started"`
+	Decisive     int   `json:"decisive"`
+	Rejected     int   `json:"rejected"`
+	Failed       int   `json:"failed"`
+	Inconclusive int   `json:"inconclusive"`
+	Skipped      int   `json:"skipped"`
+	CaseBytes    int64 `json:"caseBytes"`
+	RunEvents    int64 `json:"runEvents"`
 }
 
 // Terminal is how the campaign ended.
