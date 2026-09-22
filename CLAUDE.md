@@ -34,7 +34,8 @@ claude plugin install flow-next@flow-next
   cloud clone is shallow and has no `main`; pass `--base umpire` (the integration branch, which
   shares history) or fetch `main` deep enough for a merge base. The heuristic that derives
   `--files` from the spec text mis-parses `.lean` paths; pass the seam files explicitly.
-- A fresh clone cannot change task status: runtime state lives in the clone's `.git`
-  common-dir, so every task reads `todo` from the committed snapshot and `start`, `done` and
-  `spec close` refuse. Reviews, dependencies, spec status and `validate` all work, and the
-  one-line "runtime state absent" advisory on read commands is expected, not a fault.
+- Task status is runtime state in the clone's `.git` common-dir, not in the committed task JSON:
+  a fresh clone reads every task as `todo` until `start`/`done` are replayed there, and
+  `spec close` needs every task done in that clone. `done` rewrites the task file's Evidence
+  lines from the evidence JSON, so pass the receipt's real commit list (full hashes included) or
+  restore the file afterwards. `spec close` writes the spec JSON, which is committed.

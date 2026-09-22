@@ -129,7 +129,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-86-retire-hand-written-models-one.md",
-  "status": "open",
+  "status": "done",
   "title": "Retire hand-written Models: one authoring path through the commands",
   "tracker": {
     "baseHashFlow": null,
@@ -142,5 +142,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T14:53:55.254913Z"
+  "updated_at": "2026-09-22T15:06:23.350877Z"
 }

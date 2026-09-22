@@ -1181,7 +1181,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md",
-  "status": "open",
+  "status": "done",
   "title": "Tighten the Testpilot protocol: glossary names, one expression language, structure by concept",
   "tracker": {
     "baseHashFlow": null,
@@ -1194,5 +1194,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T21:48:48.092895Z"
+  "updated_at": "2026-09-22T15:05:47.464542Z"
 }
