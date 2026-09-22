@@ -432,13 +432,13 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 				}
 				live, err := monitor.Close(context.Background(), run)
 				require.NoError(t, err)
-				offline, err := prepared.Evaluate(context.Background(), run)
+				offline, _, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(live, offline))
 				want := map[int]testpilotspb.RuleVerdictStatus{0: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.RULE_VERDICT_STATUS_SATISFIED, 3: testpilotspb.RULE_VERDICT_STATUS_VIOLATED}[fixture.Expected]
 				require.Equal(t, want, live.Rules[0].Status)
 				live.Rules[0].Status = testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED
-				replayed, err := prepared.Evaluate(context.Background(), run)
+				replayed, _, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(offline, replayed))
 			}
@@ -571,7 +571,7 @@ func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
 	run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: 3}
 	live, err := e.Close(context.Background(), run)
 	require.NoError(t, err)
-	offline, err := p.Evaluate(context.Background(), run)
+	offline, _, err := p.Evaluate(context.Background(), run)
 	require.NoError(t, err)
 	require.True(t, proto.Equal(live, offline))
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.Status)

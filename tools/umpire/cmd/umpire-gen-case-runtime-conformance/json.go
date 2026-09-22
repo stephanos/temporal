@@ -7,11 +7,12 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/tools/umpire/internal/casefile"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-const persistedIndent = "  "
+const persistedIndent = casefile.Indent
 
 func marshalExpected(expected expectedResult) ([]byte, error) {
 	encoded, err := json.MarshalIndent(expected, "", persistedIndent)
@@ -29,15 +30,7 @@ func marshalExpected(expected expectedResult) ([]byte, error) {
 // idempotent whatever whitespace the input carried; both passes preserve key order and string
 // escapes exactly.
 func persistedForm(encoded []byte) ([]byte, error) {
-	var compact bytes.Buffer
-	if err := json.Compact(&compact, encoded); err != nil {
-		return nil, fmt.Errorf("compact JSON artifact: %w", err)
-	}
-	var indented bytes.Buffer
-	if err := json.Indent(&indented, compact.Bytes(), "", persistedIndent); err != nil {
-		return nil, fmt.Errorf("indent JSON artifact: %w", err)
-	}
-	return append(indented.Bytes(), '\n'), nil
+	return casefile.Persisted(encoded)
 }
 
 // requirePersistedForm rejects a staged artifact that is valid JSON but not stored the way the

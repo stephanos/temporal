@@ -409,6 +409,46 @@ func TestDriveReportsTheSameBytesTwiceAndTheCompletedPrefixWhenStopped(t *testin
 	require.Equal(t, 1, stopped.Counters.Decisive)
 }
 
+// A Recorder is handed each violated Run as it closes, with the Case bytes the bridge handed out
+// and the identity the candidate was prepared under; a satisfied Run is not recorded, and a
+// Recorder that fails ends the campaign as a tooling failure.
+func TestDriveRecordingHandsEachViolatedRunToTheRecorder(t *testing.T) {
+	bridge, fake := initialized(t, sampleCandidates()...)
+	run, verdict := closedRun(testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, testpilotspb.CLEANUP_STATUS_SUCCEEDED, testpilotspb.VERDICT_STATUS_VIOLATED)
+	binder := &fakeBinder{run: run, verdict: verdict, bridge: fake, identity: "profile-a"}
+	var records []Record
+	report, err := DriveRecording(t.Context(), bridge, binder, Caps{}, nil, func(record Record) error {
+		records = append(records, record)
+		return nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, Terminal{Status: StatusExhausted}, report.Terminal)
+	require.Len(t, records, 2)
+	require.Equal(t, firstIdentity, records[0].Candidate)
+	var expectedCase, recordedCase bytes.Buffer
+	require.NoError(t, json.Compact(&expectedCase, sampleCandidates()[0].Case))
+	require.NoError(t, json.Compact(&recordedCase, records[0].Case))
+	require.Equal(t, expectedCase.String(), recordedCase.String(), "the Case bytes as the bridge handed them out")
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, records[0].Verdict.GetStatus())
+	require.Equal(t, testpilot.DriverIdentity{Profile: "profile-a", Catalog: "fake-catalog", Bindings: "fake-bindings"}, records[0].Driver)
+
+	bridge, fake = initialized(t, sampleCandidates()...)
+	satisfied := satisfiedBinder(fake)
+	report, err = DriveRecording(t.Context(), bridge, satisfied, Caps{}, nil, func(Record) error {
+		t.Fatal("a satisfied Run was recorded")
+		return nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, Terminal{Status: StatusExhausted}, report.Terminal)
+
+	bridge, fake = initialized(t, sampleCandidates()...)
+	binder = &fakeBinder{run: run, verdict: verdict, bridge: fake}
+	report, err = DriveRecording(t.Context(), bridge, binder, Caps{}, nil, func(Record) error { return errors.New("disk full") })
+	require.ErrorContains(t, err, "disk full")
+	require.Equal(t, StatusToolingFailure, report.Terminal.Status)
+	require.Contains(t, report.Terminal.Failure, "record candidate")
+}
+
 // A stop between candidates loses none.
 func TestDriveStoppedBetweenCandidatesLosesNone(t *testing.T) {
 	bridge, _ := initialized(t, sampleCandidates()...)
@@ -445,7 +485,8 @@ func (b *blockingBinder) Run(ctx context.Context) (*testpilotspb.Run, *testpilot
 	}
 	return nil, nil, ctx.Err()
 }
-func (b *blockingBinder) Release(context.Context) error { b.released++; return nil }
+func (b *blockingBinder) Release(context.Context) error      { b.released++; return nil }
+func (b *blockingBinder) Identity() testpilot.DriverIdentity { return testpilot.DriverIdentity{} }
 
 func TestDriveEndsAsToolingFailureWhenBindingFailsAndKeepsTheSummary(t *testing.T) {
 	bridge, fake := initialized(t, sampleCandidates()...)

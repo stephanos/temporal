@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 )
 
 // Status is the terminal status of a campaign. Exactly one of the four ends it.
@@ -401,6 +404,28 @@ func (p *stepper) move(transition func(*Session) (*Session, error)) error {
 // bridge or context failure -- and is nil when the campaign ended by what the bridge reported,
 // exhaustion or a tooling failure of the bridge's own.
 func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progress io.Writer) (Report, error) {
+	return DriveRecording(ctx, bridge, binder, caps, progress, nil)
+}
+
+// Record is one violated Run as it closed, handed to a Recorder by DriveRecording: the candidate's
+// identity, its Case bytes as the bridge handed them out, the Run and Verdict, and the Profile
+// identity it was prepared under. The report retains none of it.
+type Record struct {
+	Candidate string
+	Case      []byte
+	Run       *testpilotspb.Run
+	Verdict   *testpilotspb.Verdict
+	Driver    testpilot.DriverIdentity
+}
+
+// Recorder receives each violated Run's Record as the campaign observes it. An error it returns
+// ends the campaign as a tooling failure.
+type Recorder func(Record) error
+
+// DriveRecording is Drive with a Recorder: each candidate whose Run the bridge read as violated is
+// handed to it, with the Case bytes and the identity a replay needs, before the next candidate is
+// asked for. A nil Recorder records nothing.
+func DriveRecording(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progress io.Writer, record Recorder) (Report, error) {
 	current := &stepper{session: NewSession(caps)}
 	var outcomes []OutcomeSummary
 	var driveErr error
@@ -433,6 +458,9 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 		writeProgress(progress, "candidate %s %s", candidate.Identity, candidate.Target)
 		outcome, err := runCandidate(ctx, bridge, binder, candidate, current)
 		outcomes = append(outcomes, summarize(candidate, outcome))
+		if err == nil {
+			err = recordViolated(record, candidate, outcome)
+		}
 		if err != nil {
 			driveErr = current.end(ctx, err)
 			writeProgress(progress, "candidate %s %s", candidate.Identity, current.session.Terminal().Status)
@@ -448,21 +476,39 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 			}
 		}
 	}
-	// The summary is asked for on a context of its own, bounded like Close: a stopped campaign's
-	// context has ended, and its summary is still the bridge's to give.
-	if bridge.Broken() == nil {
-		status := ""
-		if report.Terminal.Status == StatusStopped || report.Terminal.Status == StatusLimitReached {
-			status = string(report.Terminal.Status)
-		}
-		finishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), CloseTimeout)
-		finished, err := bridge.Finish(finishCtx, status)
-		cancel()
-		if err != nil {
-			return report, errors.Join(driveErr, fmt.Errorf("finish: %w", err))
-		}
-		report.Finished = &finished
+	return finish(ctx, bridge, report, driveErr)
+}
+
+// recordViolated hands a candidate whose Run the bridge read as violated to the Recorder, when
+// there is one; anything else is not recorded.
+func recordViolated(record Recorder, candidate *Candidate, outcome Outcome) error {
+	if record == nil || outcome.Run == nil || outcome.Credited == nil || outcome.Credited.Observation != "violated" {
+		return nil
 	}
+	if err := record(Record{Candidate: candidate.Identity, Case: candidate.Case, Run: outcome.Run, Verdict: outcome.Verdict, Driver: outcome.Driver}); err != nil {
+		return fmt.Errorf("record candidate %s: %w", candidate.Identity, err)
+	}
+	return nil
+}
+
+// finish asks the bridge for its summary on a context of its own, bounded like Close: a stopped
+// campaign's context has ended, and its summary is still the bridge's to give. A broken bridge is
+// not asked.
+func finish(ctx context.Context, bridge *Bridge, report Report, driveErr error) (Report, error) {
+	if bridge.Broken() != nil {
+		return report, driveErr
+	}
+	status := ""
+	if report.Terminal.Status == StatusStopped || report.Terminal.Status == StatusLimitReached {
+		status = string(report.Terminal.Status)
+	}
+	finishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), CloseTimeout)
+	finished, err := bridge.Finish(finishCtx, status)
+	cancel()
+	if err != nil {
+		return report, errors.Join(driveErr, fmt.Errorf("finish: %w", err))
+	}
+	report.Finished = &finished
 	return report, driveErr
 }
 

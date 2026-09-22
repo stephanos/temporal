@@ -297,6 +297,10 @@ func (b *fakeBinder) Run(context.Context) (*testpilotspb.Run, *testpilotspb.Verd
 	return b.run, b.verdict, b.runErr
 }
 
+func (b *fakeBinder) Identity() testpilot.DriverIdentity {
+	return testpilot.DriverIdentity{Profile: b.identity, Catalog: "fake-catalog", Bindings: "fake-bindings"}
+}
+
 func (b *fakeBinder) Release(context.Context) error {
 	b.released++
 	if b.bridge != nil {

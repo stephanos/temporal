@@ -131,6 +131,21 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 				require.NotNil(t, result.verdict)
 				require.Equal(t, *expected.Projection, projectFacadeRun(result.run))
 				require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
+				// The recorded Run replayed offline through the same prepared Contract reads the
+				// same Verdict, and names what violated each violated rule.
+				replayed, evaluation, err := prepared.Evaluate(t.Context(), result.run)
+				require.NoError(t, err)
+				require.True(t, proto.Equal(result.verdict, replayed), "offline replay differs from the Monitor's Verdict")
+				require.NotNil(t, evaluation)
+				if class == "violated" || class == "cleanup-failure-after-proved-violation" {
+					require.Len(t, evaluation.Violations, 1)
+					violation := evaluation.Violations[0]
+					require.Equal(t, "result", violation.RuleID)
+					require.Equal(t, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, result.run.GetEvents()[violation.Sequence-1].GetKind())
+					require.Empty(t, violation.CorrelatedKind)
+				} else {
+					require.Empty(t, evaluation.Violations)
+				}
 				validateFacadeDynamicFields(t, result.run)
 				require.NotContains(t, runIDs, result.run.GetRunId())
 				runIDs[result.run.GetRunId()] = struct{}{}
@@ -364,6 +379,7 @@ func (s *facadeSession) PollRPC(ctx context.Context, coordinate testpilot.Coordi
 func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
+
 // InjectFault realizes every fault at once: the facade owns no worker, so the outage is recorded
 // and nothing stops, which is what the Run Event evidence variant reads.
 func (*facadeSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
