@@ -279,8 +279,9 @@ Promotion is a separate target. Go tests consume checked-in fixtures without inv
 rewriting data.
 
 `TemporalModelTests` imports the ordinary Temporal model tests. `UmpireTests` imports reusable
-Umpire tests, including the scenario-neutral promotion source checks. `TemporalExperimentalTests`
-retains experimental model tests that still exist, without restoring deleted runtime adapters.
+Umpire tests, including the scenario-neutral promotion source checks. The experimental test root
+was retired with the first-generation Nexus models (fn-86 R6); no Temporal-side compatibility
+family remains.
 
 The full regression boundary is:
 

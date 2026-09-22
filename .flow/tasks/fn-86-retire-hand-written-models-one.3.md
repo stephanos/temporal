@@ -142,7 +142,7 @@ Query runs under `search: 64`.
 
 The four untyped Nexus instruction shapes (the start, the completion whose result was an
 expression, the handler response and the enum naming its kind) are gone from
-`instruction.proto` (arms 3, 4 and 7 reserved by number and name), `api/testpilot/v1`,
+`instruction.proto` (arms 3, 4 and 7 removed outright; their numbers are reused by the arms that followed, and nothing is reserved, since the protocol is internal and every fixture regenerates), `api/testpilot/v1`,
 `Testpilot.Authoring` and its tests, the Go contract (`Opcode` is now the arm's position in the
 oneof; `MaxOpcode` stays `ReadEvidence`), admission, the scheduler, the worker interpreter and
 driver, the profile tables and both READMEs; the Go unit tests that built them build the typed
