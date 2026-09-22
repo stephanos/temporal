@@ -140,6 +140,58 @@ checked Model, which is what Promotion re-answers through. -/
 #guard hardCandidate?.any fun candidate =>
   candidate.admitted.admitted.query.id == candidate.checked.query.id
 
+/-! ### The counterexample's proposal
+
+The counterexample's candidate is compiled into a review-only regression source: the bytes are
+rendered from its witness trace, compiled from the admission the campaign retained beside it, and
+sealed with their SHA-256 under fresh names keyed by the candidate's digest. The proposal is a
+value: nothing here writes a file or registers a Query, and a second campaign over the same
+inputs and the same observation seals the same digest. -/
+
+private def proposal? : Option Proposal := do
+  let campaign ← violated?
+  match campaign.proposals with
+  | [(identity, .ok proposal)] => if identity == proposal.identity then some proposal else none
+  | _ => none
+
+#guard proposal?.isSome
+#guard (do
+  let proposal ← proposal?
+  let candidate ← hardCandidate?
+  let anchor ← promotionAnchor candidate
+  let digest := candidateDigest candidate.identity
+  pure (proposal.identity == candidate.identity &&
+    proposal.spec.sourceLocation.path == "classed-" ++ digest ++ ".lean" &&
+    proposal.spec.sourceLocation.provenance == "umpire-explore" &&
+    proposal.spec.promotedQueryDefinitionId != candidate.checked.query.id &&
+    proposal.spec.promotedBehaviorDefinitionId != candidate.checked.query.behavior.id &&
+    proposal.bytes == renderPromotionSource proposal.spec anchor.expectedTrace &&
+    proposal.sha256 == promotionSourceSha256 proposal.bytes)).getD false
+
+/-- The same campaign walked again from its admission: the counterexample's proposal is the same
+bytes under the same digest. -/
+private def secondProposal? : Option Proposal := do
+  let campaign ← (Campaign.check lampMachine classed two).toOption
+  match campaign.next with
+  | .candidate candidate campaign =>
+      match (campaign.observe candidate .violated).proposals with
+      | [(_, .ok proposal)] => some proposal
+      | _ => none
+  | _ => none
+
+#guard (do
+  let first ← proposal?
+  let second ← secondProposal?
+  pure (first.sha256 == second.sha256 && first.bytes == second.bytes &&
+    first.spec == second.spec)).getD false
+
+/-! A satisfied member proposes nothing, and a non-decisive Run proposes nothing. -/
+#guard (do
+  let campaign ← afterHard?
+  let candidate ← hardCandidate?
+  pure ((campaign.observe candidate .satisfied).proposals.isEmpty &&
+    (campaign.observe candidate .inconclusive).proposals.isEmpty)).getD false
+
 /-- A satisfied member is a class verdict and no counterexample; the second member's candidate is
 the soft toggle from dim, which brightens. -/
 private def finished? := do
@@ -177,6 +229,16 @@ private def satisfiedThenViolated? := do
   campaign.ledger.classes.map (fun entry => (entry.className, entry.verdict)) ==
       [("hard", Observation.satisfied), ("soft", Observation.violated)] &&
     campaign.ledger.counterexamples.map (·.className) == ["soft"]
+
+/-! The soft counterexample's proposal is the soft candidate's, and it is not the hard one's. -/
+#guard (do
+  let campaign ← satisfiedThenViolated?
+  let hard ← proposal?
+  match campaign.proposals with
+  | [(identity, .ok proposal)] =>
+      pure (campaign.ledger.counterexamples.map (fun (sample : Counterexample) => sample.candidate) == [identity] &&
+        proposal.sha256 != hard.sha256 && proposal.spec.sourceLocation.path != hard.spec.sourceLocation.path)
+  | _ => none).getD false
 
 /-! Rows and class members together: the row candidate for the hard toggle from dim also crosses
 the hard class member, so its verdicts are the class's. Satisfied first sets the class; a later

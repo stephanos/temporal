@@ -375,6 +375,40 @@ func TestDriveStoppedDuringARunNamesTheLostIterationAndSynthesizesNothing(t *tes
 	}
 }
 
+// The coordinator is a function of its inputs: the same bridge answers and the same binder answers
+// give the same report, byte for byte, twice. A campaign stopped during its second Run reports the
+// same completed prefix, then the lost iteration: timing changes where the report ends, never what
+// the completed part says.
+func TestDriveReportsTheSameBytesTwiceAndTheCompletedPrefixWhenStopped(t *testing.T) {
+	drive := func(ctx context.Context, binder func(*fakeBridge) *fakeBinder) (Report, string) {
+		bridge, fake := initialized(t, sampleCandidates()...)
+		report, _ := Drive(ctx, bridge, binder(fake), Caps{}, nil)
+		encoded, err := json.Marshal(report)
+		require.NoError(t, err)
+		return report, string(encoded)
+	}
+	full, once := drive(t.Context(), satisfiedBinder)
+	_, again := drive(t.Context(), satisfiedBinder)
+	require.Equal(t, once, again)
+	require.Equal(t, Terminal{Status: StatusExhausted}, full.Terminal)
+	require.Len(t, full.Outcomes, 2)
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	stopped, _ := drive(ctx, func(fake *fakeBridge) *fakeBinder {
+		binder := satisfiedBinder(fake)
+		binder.stopAtRun, binder.cancel = 2, cancel
+		return binder
+	})
+	require.Equal(t, Terminal{Status: StatusStopped, Lost: secondIdentity}, stopped.Terminal)
+	require.Len(t, stopped.Outcomes, 2)
+	require.Equal(t, full.Outcomes[0], stopped.Outcomes[0], "the completed prefix is the full campaign's")
+	require.Equal(t, OutcomeLost, stopped.Outcomes[1].Kind)
+	require.Equal(t, full.Outcomes[1].Identity, stopped.Outcomes[1].Identity, "the lost iteration is the candidate the full campaign ran next")
+	require.Equal(t, full.Counters.Prepared, stopped.Counters.Prepared)
+	require.Equal(t, 1, stopped.Counters.Decisive)
+}
+
 // A stop between candidates loses none.
 func TestDriveStoppedBetweenCandidatesLosesNone(t *testing.T) {
 	bridge, _ := initialized(t, sampleCandidates()...)
