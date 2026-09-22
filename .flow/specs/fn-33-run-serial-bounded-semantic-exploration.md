@@ -168,6 +168,21 @@ honours the context; a Case whose handler-queue binding disagrees with the campa
 at `Bind` rather than left to time out. Three transport rounds returned no verdict and were
 refunded.
 
+Task .6 (2026-09-22): `campaign.Session` is the process-local coordinator state -- idle,
+planning, preparing, running, observing, finished -- one value, every transition consuming the one
+it starts from (a consumed value refuses everything with `ErrConsumed`), so a second outstanding
+candidate has no representation. The caps are the campaign's own counters, checked before the
+action each bounds: candidates, aggregate Case bytes and aggregate Run Events before each `next`
+(a Case that arrives over the byte cap is never bound), the Run timeout on the Run's context
+before it opens, the report cap on the rendered report; exceeding one is `limit-reached`, never
+truncation, and the budget's `search` limit is never a campaign cap. `Drive` is the loop: it moves
+the session as the serial path of task .3 moves each candidate (the path reports its steps to a
+listener, so `RunCandidate` and the coordinator share one path), asks the bridge for its summary on
+a bounded context of its own once the campaign ended, and reports the coordinator's terminal as
+authoritative beside it. A context that ends during a Run is `stopped` with the Run's candidate as
+the lost iteration, released and never observed; between candidates it is `stopped` with none lost;
+any other failure is `tooling-failure`. Nothing is recovered, resumed or persisted.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
