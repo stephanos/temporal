@@ -181,7 +181,19 @@ listener, so `RunCandidate` and the coordinator share one path), asks the bridge
 a bounded context of its own once the campaign ended, and reports the coordinator's terminal as
 authoritative beside it. A context that ends during a Run is `stopped` with the Run's candidate as
 the lost iteration, released and never observed; between candidates it is `stopped` with none lost;
-any other failure is `tooling-failure`. Nothing is recovered, resumed or persisted.
+any other failure is `tooling-failure`. Nothing is recovered, resumed or persisted. Its
+implementation review (round one) settled four points: the lost iteration is named whenever a
+Run was opened for the outstanding candidate and not credited, which covers the facade's real
+stop shape (a closed incomplete Run whose cleanup ran, never observed) as well as a Run in
+flight; `Drive` returns the error that struck, wrapped, so a caller can still tell a broken bridge
+from a rejected frame from a Run's deadline; `Plan` is refused from every state but idle before
+the caps are looked at, so a tripped cap never ends a campaign with a candidate outstanding; and
+the report keeps a summary per candidate (identity, target, kind, observation, credited keys),
+never a Run, so the retained state is the counters and one line per candidate. A Run that
+reaches its timeout is observed as the interrupted Run the facade closes, which the bridge reads
+as inconclusive; it is per-Run work and never `limit-reached`. The report cap is a `*LimitError`
+for the command to map. The bridge's own progress lines and `Drive`'s say the same thing, so the
+command routes one of them to stderr, not both.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 

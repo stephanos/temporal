@@ -34,27 +34,31 @@ func TestEveryTransitionIsPinnedToItsSourceStates(t *testing.T) {
 	}
 	for name, transition := range transitions {
 		for _, state := range []State{StateIdle, StatePlanning, StatePreparing, StateRunning, StateObserving, StateFinished} {
-			t.Run(name+" from "+string(state), func(t *testing.T) {
-				session := sessionIn(t, state, first)
-				next, err := transition.apply(session)
-				admitted := false
-				for _, from := range transition.from {
-					if from == state {
-						admitted = true
+			for _, caps := range []Caps{{}, {Candidates: 1}} {
+				t.Run(name+" from "+string(state), func(t *testing.T) {
+					session := sessionWith(t, caps, state, first)
+					next, err := transition.apply(session)
+					admitted := false
+					for _, from := range transition.from {
+						if from == state {
+							admitted = true
+						}
 					}
-				}
-				if !admitted {
-					require.Error(t, err)
-					require.Nil(t, next)
-					require.Equal(t, state, session.State(), "a refused transition leaves the state alone")
-					return
-				}
-				require.NoError(t, err)
-				require.NotNil(t, next)
-				// The state transitioned from is consumed: it admits nothing more.
-				_, err = transition.apply(session)
-				require.ErrorIs(t, err, ErrConsumed)
-			})
+					if !admitted {
+						require.Error(t, err)
+						require.Nil(t, next)
+						require.Equal(t, state, session.State(), "a refused transition leaves the state alone")
+						require.Equal(t, sessionWith(t, caps, state, first).Outstanding(), session.Outstanding(),
+							"a refused transition never drops the outstanding candidate")
+						return
+					}
+					require.NoError(t, err)
+					require.NotNil(t, next)
+					// The state transitioned from is consumed: it admits nothing more.
+					_, err = transition.apply(session)
+					require.ErrorIs(t, err, ErrConsumed)
+				})
+			}
 		}
 	}
 }
@@ -62,7 +66,14 @@ func TestEveryTransitionIsPinnedToItsSourceStates(t *testing.T) {
 // sessionIn walks a fresh session to the state named.
 func sessionIn(t *testing.T, state State, candidate Candidate) *Session {
 	t.Helper()
-	session := NewSession(Caps{})
+	return sessionWith(t, Caps{}, state, candidate)
+}
+
+// sessionWith walks a fresh session under the caps to the state named; a cap of one candidate is
+// not yet tripped on the way there (the walk plans one candidate at most before the state).
+func sessionWith(t *testing.T, caps Caps, state State, candidate Candidate) *Session {
+	t.Helper()
+	session := NewSession(caps)
 	var err error
 	steps := map[State][]func(*Session) (*Session, error){
 		StateIdle:      nil,
@@ -151,6 +162,9 @@ func TestCapsAreEnforcedBeforeTheActionTheyBound(t *testing.T) {
 		session := NewSession(Caps{ReportBytes: 10})
 		require.NoError(t, session.CheckReport(10))
 		err := session.CheckReport(11)
+		var limit *LimitError
+		require.ErrorAs(t, err, &limit)
+		require.Equal(t, "report-bytes", limit.Limit)
 		require.ErrorContains(t, err, string(StatusLimitReached))
 	})
 	t.Run("run timeout before the Run opens", func(t *testing.T) {
@@ -194,7 +208,19 @@ func TestStopNamesTheLostIterationOnlyWhileARunIsInFlight(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, Terminal{Status: StatusStopped, Lost: firstIdentity}, *stopped.Terminal())
 	require.Zero(t, stopped.Counters().Decisive)
-	for _, state := range []State{StateIdle, StatePlanning, StatePreparing, StateObserving} {
+	// A Run that closed under the interruption and was never observed is lost too.
+	closedUnobserved := sessionIn(t, StateObserving, first)
+	stopped, err = closedUnobserved.Stopped()
+	require.NoError(t, err)
+	require.Equal(t, Terminal{Status: StatusStopped, Lost: firstIdentity}, *stopped.Terminal())
+	// A preparation rejection being observed opened no Run: nothing is lost.
+	preparing := sessionIn(t, StatePreparing, first)
+	rejected, err := preparing.Rejected()
+	require.NoError(t, err)
+	stopped, err = rejected.Stopped()
+	require.NoError(t, err)
+	require.Equal(t, Terminal{Status: StatusStopped}, *stopped.Terminal())
+	for _, state := range []State{StateIdle, StatePlanning, StatePreparing} {
 		session := sessionIn(t, state, first)
 		stopped, err := session.Stopped()
 		require.NoError(t, err)
@@ -256,6 +282,7 @@ func TestDriveRunsEveryCandidateToExhaustion(t *testing.T) {
 	require.Equal(t, 2, report.Counters.Decisive)
 	require.EqualValues(t, 4, report.Counters.RunEvents)
 	require.Len(t, report.Outcomes, 2)
+	require.Equal(t, OutcomeSummary{Identity: firstIdentity, Target: "row:a", Kind: OutcomeCompleted, Observation: "satisfied", Credited: []string{"row:a", "result:x"}}, report.Outcomes[0])
 	require.NotNil(t, report.Finished)
 	require.Equal(t, "exhausted", report.Finished.Status)
 	require.Equal(t, 2, binder.released)
@@ -308,27 +335,33 @@ func TestDriveEndsAsLimitReachedOnAggregateCaseBytes(t *testing.T) {
 }
 
 // A stop while a Run is in flight: the Run's context ends, the candidate is the lost iteration,
-// nothing is observed for it, and the summary is still asked for on a context of its own.
+// nothing is observed for it, and the summary is still asked for on a context of its own. The
+// facade answers an interrupted Run either with nothing, before the Driver opened, or with a
+// closed incomplete Run whose cleanup ran; both lose the candidate.
 func TestDriveStoppedDuringARunNamesTheLostIterationAndSynthesizesNothing(t *testing.T) {
-	bridge, fake := initialized(t, sampleCandidates()...)
-	ctx, cancel := context.WithCancel(t.Context())
-	binder := &blockingBinder{cancel: cancel}
-	report, err := Drive(ctx, bridge, binder, Caps{}, nil)
-	require.ErrorIs(t, err, context.Canceled)
-	require.Equal(t, Terminal{Status: StatusStopped, Lost: firstIdentity}, report.Terminal)
-	require.Zero(t, report.Counters.Decisive)
-	require.Equal(t, 1, report.Counters.Started)
-	require.Len(t, report.Outcomes, 1)
-	require.Equal(t, OutcomeRunFailed, report.Outcomes[0].Kind)
-	require.Equal(t, 1, binder.released, "the lost iteration is still released")
-	frames := drain(fake)
-	kinds := []string{}
-	for _, frame := range frames {
-		kinds = append(kinds, frame.Frame)
+	for name, closed := range map[string]bool{"before the Driver opened": false, "closed incomplete Run": true} {
+		t.Run(name, func(t *testing.T) {
+			bridge, fake := initialized(t, sampleCandidates()...)
+			ctx, cancel := context.WithCancel(t.Context())
+			binder := &blockingBinder{cancel: cancel, closed: closed}
+			report, err := Drive(ctx, bridge, binder, Caps{}, nil)
+			require.ErrorIs(t, err, context.Canceled)
+			require.Equal(t, Terminal{Status: StatusStopped, Lost: firstIdentity}, report.Terminal)
+			require.Zero(t, report.Counters.Decisive)
+			require.Equal(t, 1, report.Counters.Started)
+			require.Len(t, report.Outcomes, 1)
+			require.Empty(t, report.Outcomes[0].Observation, "nothing was observed for the lost iteration")
+			require.Equal(t, 1, binder.released, "the lost iteration is still released")
+			frames := drain(fake)
+			kinds := []string{}
+			for _, frame := range frames {
+				kinds = append(kinds, frame.Frame)
+			}
+			require.Equal(t, []string{"next", "finish"}, kinds, "no observe frame was written for the lost iteration")
+			require.NotNil(t, report.Finished)
+			require.Equal(t, "stopped", report.Finished.Status)
+		})
 	}
-	require.Equal(t, []string{"next", "finish"}, kinds, "no observe frame was written for the lost iteration")
-	require.NotNil(t, report.Finished)
-	require.Equal(t, "stopped", report.Finished.Status)
 }
 
 // A stop between candidates loses none.
@@ -346,15 +379,25 @@ func TestDriveStoppedBetweenCandidatesLosesNone(t *testing.T) {
 // interrupted by SIGINT does.
 type blockingBinder struct {
 	cancel   context.CancelFunc
+	closed   bool
 	released int
 }
 
 func (b *blockingBinder) Bind(context.Context, string, *testpilotspb.Case) (Bound, error) {
 	return b, nil
 }
+
+// Run cancels the campaign and waits for its own context to end, as a Run interrupted by SIGINT
+// does; with closed it answers as the facade does once the scheduler is executing, with a closed
+// incomplete Run whose cleanup ran.
 func (b *blockingBinder) Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	b.cancel()
 	<-ctx.Done()
+	if b.closed {
+		verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}
+		return &testpilotspb.Run{RunId: "run-1", CaseId: "temporal.case.set.1", Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE,
+			Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict}, verdict, ctx.Err()
+	}
 	return nil, nil, ctx.Err()
 }
 func (b *blockingBinder) Release(context.Context) error { b.released++; return nil }
@@ -400,10 +443,22 @@ func TestDriveReportsARejectedNextAsAToolingFailure(t *testing.T) {
 	fake.rawReplies = append(fake.rawReplies, `{"frame":"rejected","seq":2,"reason":"a candidate is outstanding"}`)
 	report, err := Drive(t.Context(), bridge, &fakeBinder{}, Caps{}, nil)
 	var rejected *RejectedError
-	require.Error(t, err)
+	require.ErrorAs(t, err, &rejected, "the error that struck is kept, not its text")
 	require.Equal(t, StatusToolingFailure, report.Terminal.Status)
 	require.Contains(t, report.Terminal.Failure, "a candidate is outstanding")
-	_ = rejected
+}
+
+// A tripped cap never ends a campaign with a candidate outstanding: Plan is refused from every
+// state but idle before the cap is looked at.
+func TestATrippedCapDoesNotEndACampaignWithACandidateOutstanding(t *testing.T) {
+	first := sampleCandidates()[0]
+	for _, state := range []State{StatePlanning, StatePreparing, StateRunning, StateObserving} {
+		session := sessionWith(t, Caps{Candidates: 1}, state, first)
+		_, err := session.Plan()
+		require.Error(t, err, "from %s", state)
+		require.Equal(t, state, session.State())
+		require.Nil(t, session.Terminal())
+	}
 }
 
 func TestReportBytesCapIsCheckedOnTheRenderedReport(t *testing.T) {
