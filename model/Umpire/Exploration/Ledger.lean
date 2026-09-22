@@ -102,7 +102,12 @@ def markUnreachable (ledger : Ledger) (target : CoverageTarget) : Ledger :=
 
 /-- Credit one candidate's observation to the targets on its planned path. A `satisfied` Run
 covers every one of them, whatever a previous candidate said; a `violated` Run marks the ones not
-already covered; anything else marks the ones still pending or planned as attempted. -/
+already covered; anything else marks the ones still pending or planned as attempted.
+
+A decisive Run is also a class verdict for every class member on the path: the first decisive
+verdict stands, except that a violation supersedes an earlier satisfaction, because a class one
+Run contradicted is contradicted. Every violated Run that crosses a class member is a
+counterexample for that class, once per candidate, whatever the class ledger already said. -/
 def credit (ledger : Ledger) (candidate : ArtifactChecksum) (covers : List CoverageTarget)
     (observation : Observation) : Ledger := Id.run do
   let keys := covers.map targetKey
@@ -115,17 +120,22 @@ def credit (ledger : Ledger) (candidate : ArtifactChecksum) (covers : List Cover
       | _, .pending => { entry with status := .attempted }
       | _, .planned => { entry with status := .attempted }
       | _, _ => entry
-  -- Only a decisive Verdict is a class verdict, and the class is judged by its member target.
   let mut classes := ledger.classes
   let mut counterexamples := ledger.counterexamples
   if observation == .satisfied || observation == .violated then
     for target in covers do
       if let .classMember member _ _ className _ := target then
-        unless classes.any (·.className == className) do
-          classes := classes ++ [{ className, member, verdict := observation }]
-          if observation == .violated then
-            counterexamples := counterexamples ++
-              [({ className, target, candidate } : Counterexample)]
+        match classes.find? (·.className == className) with
+        | none => classes := classes ++ [{ className, member, verdict := observation }]
+        | some recorded =>
+            if recorded.verdict == .satisfied && observation == .violated then
+              classes := classes.map fun entry =>
+                if entry.className == className then { entry with verdict := .violated } else entry
+        if observation == .violated then
+          let sample : Counterexample := { className, target, candidate }
+          unless counterexamples.any fun seen =>
+              seen.className == className && seen.candidate == candidate do
+            counterexamples := counterexamples ++ [sample]
   return ({ entries, classes, counterexamples } : Ledger)
 
 def count (ledger : Ledger) (status : TargetStatus) : Nat :=

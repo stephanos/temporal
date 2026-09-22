@@ -78,6 +78,7 @@ def shortestPaths (rows : List (FiniteTransitionRow State Action Outcome Fact))
 never taking the final step's action to another outcome on the way. -/
 def pathTo (model : DeclaredModel Setup State Action Outcome Fact) (steps : Nat)
     (final : PathStep State Action Outcome Fact) : Option (Reached State Action Outcome Fact) :=
+  if steps == 0 then none else
   let admissible (step : PathStep State Action Outcome Fact) : Bool :=
     step.row.action != final.row.action || step.result.outcome == final.result.outcome
   (shortestPaths model.table.transitions model.initial (steps - 1) admissible).find?
@@ -95,9 +96,12 @@ def chooseRow (model : DeclaredModel Setup State Action Outcome Fact) (steps : N
     (pathTo model steps { row, result }).map fun lead => (lead, ({ row, result } : PathStep State Action Outcome Fact))
   match target with
   | .row key _ _ results =>
+      -- The row's results in order, the ones the target names first: a result whose outcome the
+      -- prefix must take the same action to earlier is not plannable, and the row's next one may be.
       (rows.find? (·.key == key)).bind fun row =>
-        let preferred := row.results.find? fun result => results.contains (outcomeId result.outcome)
-        (preferred <|> row.results.head?).bind (planned row)
+        let named := row.results.filter fun result => results.contains (outcomeId result.outcome)
+        let others := row.results.filter fun result => !results.contains (outcomeId result.outcome)
+        (named ++ others).findSome? (planned row)
   | .result outcome =>
       rows.findSome? fun row =>
         (row.results.find? fun result => outcomeId result.outcome == outcome).bind (planned row)

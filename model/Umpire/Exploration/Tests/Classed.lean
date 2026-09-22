@@ -157,6 +157,64 @@ private def finished? := do
     campaign.summary.violated == 1 &&
     campaign.summary.exhausted
 
+/-! ### A violation is a counterexample whatever the class ledger already said
+
+The hard member satisfied first, then the soft member violated: the soft counterexample is
+recorded, and the hard class keeps its verdict. And a class satisfied by one candidate and
+violated by a later one is a violated class with its counterexample, because a class one Run
+contradicted is contradicted. -/
+
+private def satisfiedThenViolated? := do
+  let campaign ← afterHard?
+  let candidate ← hardCandidate?
+  let campaign := campaign.observe candidate .satisfied
+  let next := campaign.next
+  let soft ← candidateOf next
+  let campaign ← campaignOf next
+  pure (campaign.observe soft .violated)
+
+#guard satisfiedThenViolated?.any fun campaign =>
+  campaign.ledger.classes.map (fun entry => (entry.className, entry.verdict)) ==
+      [("hard", Observation.satisfied), ("soft", Observation.violated)] &&
+    campaign.ledger.counterexamples.map (·.className) == ["soft"]
+
+/-! Rows and class members together: the row candidate for the hard toggle from dim also crosses
+the hard class member, so its verdicts are the class's. Satisfied first sets the class; a later
+violated candidate over the same member supersedes it and is a counterexample; the same candidate
+observed twice is one counterexample. -/
+set classedRows
+  purpose: exploratory
+  bind:
+    operator: driven
+  machine: lampMachine
+  cover: rows | classMembers
+  budget: two
+
+private def rowsCampaign? : Option (Campaign lampMachine) :=
+  (Campaign.check lampMachine classedRows two).toOption
+
+#guard rowsCampaign?.isSome
+#guard classedRows.targets.map CoverageTarget.kind ==
+  ["row", "row", "row", "row", "classMember", "classMember"]
+
+private def rowsFirst? := rowsCampaign?.map Campaign.next
+private def rowsCandidate? := rowsFirst?.bind candidateOf
+private def rowsAfter? := rowsFirst?.bind campaignOf
+
+#guard rowsCandidate?.any fun candidate =>
+  candidate.covers.map CoverageTarget.kind == ["row", "classMember"]
+
+private def supersededClass? := do
+  let campaign ← rowsAfter?
+  let candidate ← rowsCandidate?
+  let satisfied := campaign.observe candidate .satisfied
+  let violated := satisfied.observe candidate .violated
+  pure (satisfied.ledger.classes.map fun (entry : ClassVerdict) => entry.verdict,
+    violated.ledger.classes.map fun (entry : ClassVerdict) => entry.verdict,
+    (violated.observe candidate .violated).ledger.counterexamples.length)
+
+#guard supersededClass? == some ([Observation.satisfied], [Observation.violated], 1)
+
 /-! A non-decisive Run is no class verdict. -/
 #guard (do
   let campaign ← afterHard?

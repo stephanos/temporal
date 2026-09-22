@@ -124,9 +124,12 @@ private def queryKeyFor (set : SetDeclaration) (target : CoverageTarget) : Strin
 /-- Plan the first pending target. A target no path reaches, or whose Query selects nothing, is
 marked unreachable and the next pending target is tried; any other admission error, a candidate
 without a Plan, or a witness that does not contain its own target is a tooling failure. Each
-retry marks one pending target unreachable, so the fuel of one per target never runs out. -/
+retry marks one pending target unreachable, so the fuel of one per target never runs out; if it
+ever did, that is a broken invariant and says so. -/
 def nextWith : Nat → Campaign model → Next model
-  | 0, campaign => .exhausted campaign
+  | 0, campaign =>
+      .toolingFailure { target := "", reason := "selection fuel exhausted with targets pending" }
+        campaign
   | fuel + 1, campaign =>
     match campaign.ledger.nextPending with
     | none => .exhausted campaign
