@@ -243,12 +243,15 @@ type Options struct {
 	MaxFrameBytes int
 }
 
-// Start spawns the bridge process. Close ends it.
+// Start spawns the bridge process in a process group of its own. Close ends it. The context
+// bounds the process's life: a caller whose campaign context may be cancelled while the bridge's
+// summary is still wanted starts it on a context that outlives the campaign and lets Close end it.
 func Start(ctx context.Context, options Options) (*Bridge, error) {
 	if options.Executable == "" {
 		return nil, errors.New("bridge executable is required")
 	}
 	command := exec.CommandContext(ctx, options.Executable, options.Args...)
+	detach(command)
 	command.Dir = options.Dir
 	command.Stderr = options.Stderr
 	stdin, err := command.StdinPipe()
