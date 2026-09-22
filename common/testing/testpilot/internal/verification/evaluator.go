@@ -53,7 +53,9 @@ type ruleChange struct {
 // whose evidence resolved it and that evidence. A monitor rule names the observation ids the
 // violating event carried, or none when its deadline violated it, since which event reaches a
 // count is timing; a correlated rule names the kind of the evidence whose release resolved the
-// obligation, which a later event may have released, and the event that carried that evidence.
+// obligation, which a later event may have released, and the event that carried that evidence,
+// or neither when the violation was found at closure with the obligation still pending under a
+// final ending, since no evidence resolved it.
 type Violation struct {
 	RuleID         string
 	Sequence       int64
@@ -552,7 +554,7 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 		e.result.SupportingEventSequences = unionSequences(e.result.SupportingEventSequences, result.SupportingEventSequences)
 		result.TerminalStateId = ""
 		if result.Status == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
-			if !e.violated || !slices.ContainsFunc(e.violations, func(v Violation) bool { return v.RuleID == result.RuleId }) {
+			if !slices.ContainsFunc(e.violations, func(v Violation) bool { return v.RuleID == result.RuleId }) {
 				violation := Violation{RuleID: result.RuleId}
 				if evidence := e.correlated.violation(i); evidence != nil {
 					violation.Kind = evidence.GetKind()

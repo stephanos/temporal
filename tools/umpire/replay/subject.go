@@ -95,21 +95,9 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 	if run.GetProgramId() != source.GetProgram().GetProgramId() {
 		return nil, reject(ReasonCrossed, "the Run names Program %q, the Case's is %q", run.GetProgramId(), source.GetProgram().GetProgramId())
 	}
-	if run.GetRunId() == "" || len(run.GetEvents()) == 0 {
-		return nil, reject(ReasonIncomplete, "the Run has no identity or no events")
-	}
 	verdict := run.GetVerdict()
-	if run.GetDisposition() == testpilotspb.RUN_DISPOSITION_COMPLETED && verdict.GetStatus() == testpilotspb.VERDICT_STATUS_VIOLATED {
-		return nil, reject(ReasonMalformed, "a completed disposition beside a violated Verdict, which the Monitor never produces")
-	}
-	if run.GetDisposition() == testpilotspb.RUN_DISPOSITION_INCOMPLETE || run.GetCleanup().GetStatus() != testpilotspb.CLEANUP_STATUS_SUCCEEDED {
-		return nil, reject(ReasonIncomplete, "disposition %s, cleanup %s", run.GetDisposition(), run.GetCleanup().GetStatus())
-	}
-	if verdict.GetStatus() != testpilotspb.VERDICT_STATUS_VIOLATED {
-		return nil, reject(ReasonNonViolated, "verdict %s, not violated", verdict.GetStatus())
-	}
-	if ok, reason := ViolatedForm(run, verdict); !ok {
-		return nil, reject(ReasonNonViolated, "%s", reason)
+	if ok, class, detail := ViolatedForm(run, verdict); !ok {
+		return nil, reject(class, "%s", detail)
 	}
 	if err := checkSupport(run, verdict); err != nil {
 		return nil, err

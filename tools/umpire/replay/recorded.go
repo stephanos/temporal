@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -86,6 +87,10 @@ func DecodeRecordedRun(document []byte) (testpilot.DriverIdentity, *testpilotspb
 	var recorded RecordedRun
 	if err := decoder.Decode(&recorded); err != nil {
 		return testpilot.DriverIdentity{}, nil, fmt.Errorf("decode recorded Run: %w", err)
+	}
+	// One document and nothing after it: a second document or trailing bytes are not a record.
+	if err := decoder.Decode(new(json.RawMessage)); !errors.Is(err, io.EOF) {
+		return testpilot.DriverIdentity{}, nil, errors.New("decode recorded Run: bytes after the document")
 	}
 	if len(recorded.Run) == 0 {
 		return testpilot.DriverIdentity{}, nil, errors.New("recorded Run carries no Run")

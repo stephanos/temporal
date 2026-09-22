@@ -254,10 +254,16 @@ func recorder(configuration config) campaign.Recorder {
 		return nil
 	}
 	return func(record campaign.Record) error {
+		// The file is named by the bridge's identity; only a digest names a file, so an identity
+		// that is not one never reaches the file system.
+		digest := strings.TrimPrefix(record.Candidate, "sha256:")
+		if len(digest) != 64 || strings.Trim(digest, "0123456789abcdef") != "" {
+			return fmt.Errorf("candidate identity %q is not a digest", record.Candidate)
+		}
 		if err := os.MkdirAll(configuration.RecordRoot, 0o755); err != nil {
 			return err
 		}
-		stem := filepath.Join(configuration.RecordRoot, configuration.Set+"-"+strings.TrimPrefix(record.Candidate, "sha256:"))
+		stem := filepath.Join(configuration.RecordRoot, configuration.Set+"-"+digest)
 		compact, err := casefile.Compact(record.Case)
 		if err != nil {
 			return fmt.Errorf("record Case: %w", err)

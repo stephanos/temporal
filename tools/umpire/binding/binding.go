@@ -136,7 +136,6 @@ func (c *Campaign) Close(ctx context.Context) error {
 // Bound is one prepared Case with the Driver that runs it.
 type Bound struct {
 	prepared *testpilot.PreparedCase
-	profile  testpilot.ProfileSpec
 	driver   *testpilotdriver.Driver
 	releases []func(context.Context) error
 }
@@ -161,8 +160,18 @@ type Prepared struct {
 // deployment cannot bind rejects here: a handler queue the Case binds that handlerQueue does not
 // route to (or the reverse), a Profile that cannot be derived, or a *testpilot.PreparationError.
 func Prepare(deployment Deployment, handlerQueue, identity string, source *testpilotspb.Case) (*Prepared, error) {
-	if source == nil {
-		return nil, errors.New("the Case is required")
+	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+	if err != nil {
+		return nil, fmt.Errorf("build method catalog: %w", err)
+	}
+	return PrepareWith(catalog, deployment, handlerQueue, identity, source)
+}
+
+// PrepareWith is Prepare against a catalog the caller already holds, the campaign's for every
+// candidate.
+func PrepareWith(catalog *testpilot.Catalog, deployment Deployment, handlerQueue, identity string, source *testpilotspb.Case) (*Prepared, error) {
+	if source == nil || catalog == nil {
+		return nil, errors.New("the Case and the catalog are required")
 	}
 	// The handler queue is the one the deployment routes its endpoint to, so the endpoint's route
 	// and the handler's poll never disagree: a Case that binds a handler queue of its own under a
@@ -171,10 +180,6 @@ func Prepare(deployment Deployment, handlerQueue, identity string, source *testp
 	if bindsHandlerQueue := testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != ""; bindsHandlerQueue != (handlerQueue != "") {
 		return nil, fmt.Errorf("case %q binds a Nexus handler queue of its own (%t) but the campaign was opened with handler queue %q",
 			source.GetCaseId(), bindsHandlerQueue, handlerQueue)
-	}
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	if err != nil {
-		return nil, fmt.Errorf("build method catalog: %w", err)
 	}
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity:         identity,
@@ -201,12 +206,12 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	if c == nil || source == nil {
 		return nil, errors.New("campaign binding and Case are required")
 	}
-	prepared, err := Prepare(c.deployment, c.handlerQueue, identity, source)
+	prepared, err := PrepareWith(c.catalog, c.deployment, c.handlerQueue, identity, source)
 	if err != nil {
 		return nil, err
 	}
 	profile := prepared.Profile
-	bound := &Bound{prepared: prepared.Case, profile: profile}
+	bound := &Bound{prepared: prepared.Case}
 	fail := func(err error) (*Bound, error) {
 		return nil, errors.Join(err, ReleaseAll(context.WithoutCancel(ctx), bound.releases))
 	}

@@ -313,7 +313,9 @@ lie outside `--model-root`: a proposal is for review, and nothing installs it. T
 same set, caps and Run results write the same summary bytes and the same proposal files; one stopped
 early writes the completed prefix of the other's candidates. `--record-root <dir>` writes each
 counterexample's Case (`<set>-<digest>-case.json`, the compact canonical form with one newline) and
-its recorded Run (`<set>-<digest>-run.json`), outside the model, as they close.
+its recorded Run (`<set>-<digest>-run.json`), outside the model, as they close; each file is created
+and never replaced, so a second campaign over the same set into the same root ends as a tooling
+failure at its first counterexample.
 
 ```sh
 make umpire-run                      # builds ./.build/umpire-run
