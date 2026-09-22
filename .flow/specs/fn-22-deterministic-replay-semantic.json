@@ -18,9 +18,9 @@
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 5,
+  "plan_review_rounds": 6,
   "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-22T22:20:03.078107Z",
+  "plan_reviewed_at": "2026-09-22T22:28:55.467013Z",
   "ready": false,
   "review_attempts": [
     {
@@ -777,6 +777,35 @@
       "task": null,
       "timestamp": "2026-09-22T22:20:03.076978Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "64cbbca16304e3116fa1fc511b5bcc2dfc2d6a55391ed7d981f42a3858b44b10",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "7ba672c37e3045fdd3be47252d78dea9dd953b85",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6902,
+      "output_sha256": "006ba9c3e84d6a54d145c3860232222fbaaecd4cdf50b3f8d61530ac651df74d",
+      "reservation_id": "6daf998c1e7f49c0b90f4112889587d6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-22T22:28:55.465902Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -802,5 +831,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T22:20:03.078117Z"
+  "updated_at": "2026-09-22T22:28:55.467063Z"
 }
