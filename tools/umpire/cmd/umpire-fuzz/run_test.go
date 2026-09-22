@@ -19,6 +19,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/campaign"
+	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -305,6 +306,9 @@ func (b *scriptedBinder) Run(context.Context) (*testpilotspb.Run, *testpilotspb.
 }
 
 func (b *scriptedBinder) Release(context.Context) error { return nil }
+func (b *scriptedBinder) Identity() testpilot.DriverIdentity {
+	return testpilot.DriverIdentity{Profile: "umpire-fuzz.fuzz", Catalog: "scripted-catalog", Bindings: "scripted-bindings"}
+}
 
 func scriptedOpener(t testing.TB, binder campaign.Binder, candidates []campaign.Candidate, script func(*scriptedBridge)) opener {
 	return func(ctx context.Context, configuration config, _ io.Writer) (*bound, error) {
@@ -425,6 +429,35 @@ func TestRunWritesEachProposalUnderThePromotionRootOnly(t *testing.T) {
 	require.Equal(t, bytesOnce, bytesAgain)
 }
 
+// --record-root writes each counterexample's Case, compact with one newline, and its recorded Run
+// with the identity it was prepared under, named by the candidate's digest; a satisfied
+// candidate is not recorded, and a root under the model is refused at parse.
+func TestRunRecordsEachCounterexampleUnderTheRecordRoot(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "records")
+	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_VIOLATED}}
+	var stdout, stderr bytes.Buffer
+	code := Run(requiredFlags("--record-root", root), &stdout, &stderr, scriptedOpener(t, binder, sampleCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	entries, err := os.ReadDir(root)
+	require.NoError(t, err)
+	names := []string{}
+	for _, entry := range entries {
+		names = append(names, entry.Name())
+	}
+	digest := strings.TrimPrefix(secondIdentity, "sha256:")
+	require.Equal(t, []string{"nexusCallerExploration-" + digest + "-case.json", "nexusCallerExploration-" + digest + "-run.json"}, names)
+	caseBytes, err := os.ReadFile(filepath.Join(root, names[0]))
+	require.NoError(t, err)
+	require.Equal(t, string(sampleCandidates()[1].Case)+"\n", string(caseBytes), "the Case as the bridge handed it out, compact, one newline")
+	recorded, err := os.ReadFile(filepath.Join(root, names[1]))
+	require.NoError(t, err)
+	identity, run, err := replay.DecodeRecordedRun(recorded)
+	require.NoError(t, err)
+	require.Equal(t, binder.Identity(), identity)
+	require.Equal(t, "temporal.case.set.2", run.GetCaseId())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
+}
+
 // A proposal path that would leave the promotion root is refused: the campaign's findings stand
 // in the summary, the file is not written, and the command exits as a tooling failure.
 func TestRunRefusesAProposalPathOutsideThePromotionRoot(t *testing.T) {
@@ -530,7 +563,8 @@ func (blockingBinder) Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb
 	<-ctx.Done()
 	return nil, nil, ctx.Err()
 }
-func (blockingBinder) Release(context.Context) error { return nil }
+func (blockingBinder) Release(context.Context) error      { return nil }
+func (blockingBinder) Identity() testpilot.DriverIdentity { return testpilot.DriverIdentity{} }
 
 func TestRunExitsThreeOnAToolingFailureAndSaysWhat(t *testing.T) {
 	t.Run("the binding fails", func(t *testing.T) {
@@ -712,7 +746,8 @@ func (b *violatedThenBlocking) Run(ctx context.Context) (*testpilotspb.Run, *tes
 	return &testpilotspb.Run{RunId: "run", CaseId: b.caseID, Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
 		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict}, verdict, nil
 }
-func (b *violatedThenBlocking) Release(context.Context) error { return nil }
+func (b *violatedThenBlocking) Release(context.Context) error      { return nil }
+func (b *violatedThenBlocking) Identity() testpilot.DriverIdentity { return testpilot.DriverIdentity{} }
 
 // The real opening starts the bridge on a context that outlives the campaign's, so a stopped
 // campaign still reads its summary; the stand-in bridge here is a script that answers the frames.
@@ -759,6 +794,7 @@ func TestRunRejectsTheCommandLineBeforeOpeningAnything(t *testing.T) {
 		{"report cap below the floor", requiredFlags("--max-report-bytes", "200"), "at least"},
 		{"promotion root under the model", requiredFlags("--model-root", "m", "--promotion-root", "m/proposals"), "must not be under the model root"},
 		{"promotion root is the model", requiredFlags("--model-root", "m", "--promotion-root", "m"), "must not be under the model root"},
+		{"record root under the model", requiredFlags("--model-root", "m", "--record-root", "m/records"), "--record-root must not be under the model root"},
 	} {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer

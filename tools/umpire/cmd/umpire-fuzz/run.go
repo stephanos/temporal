@@ -14,7 +14,9 @@ import (
 
 	"go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/campaign"
+	"go.temporal.io/server/tools/umpire/internal/casefile"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/replay"
 )
 
 // Exit codes. A counterexample or violated coverage outranks a stop or a cap, because the finding
@@ -50,9 +52,12 @@ type config struct {
 	ModelRoot  string
 	// PromotionRoot is where compiled proposals are written, one file each; empty writes none.
 	PromotionRoot string
-	Bridge        string
-	Timeout       time.Duration
-	Caps          campaign.Caps
+	// RecordRoot is where each counterexample's Case bytes and recorded Run are written, so it can
+	// be a replay's subject; empty records nothing.
+	RecordRoot string
+	Bridge     string
+	Timeout    time.Duration
+	Caps       campaign.Caps
 }
 
 // bound is one opened campaign: its bridge, initialized over the set, the binder its candidates
@@ -137,7 +142,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 
 	// The bridge's own stderr carries the progress line per candidate; the coordinator's would say
 	// the same thing, so it goes nowhere.
-	report, driveErr := campaign.Drive(ctx, opened.bridge, opened.binder, configuration.Caps, nil)
+	report, driveErr := campaign.DriveRecording(ctx, opened.bridge, opened.binder, configuration.Caps, nil, recorder(configuration))
 	report = settle(report, driveErr)
 	if driveErr != nil {
 		cli.WriteLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
@@ -239,6 +244,36 @@ func exitCode(report campaign.Report) int {
 		return exitLimitOrStop
 	}
 	return exitExhausted
+}
+
+// recorder writes each violated Run's Case and recorded Run under the record root, named by the
+// candidate's digest as the bridge names its Case, compact with one trailing newline; each file is
+// created, never replaced. Without a root nothing is recorded.
+func recorder(configuration config) campaign.Recorder {
+	if configuration.RecordRoot == "" {
+		return nil
+	}
+	return func(record campaign.Record) error {
+		if err := os.MkdirAll(configuration.RecordRoot, 0o755); err != nil {
+			return err
+		}
+		stem := filepath.Join(configuration.RecordRoot, configuration.Set+"-"+strings.TrimPrefix(record.Candidate, "sha256:"))
+		compact, err := casefile.Compact(record.Case)
+		if err != nil {
+			return fmt.Errorf("record Case: %w", err)
+		}
+		file, err := os.OpenFile(stem+"-case.json", os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if err != nil {
+			return fmt.Errorf("record Case: %w", err)
+		}
+		if _, err := file.Write(append(compact, '\n')); err != nil {
+			return errors.Join(fmt.Errorf("record Case: %w", err), file.Close())
+		}
+		if err := file.Close(); err != nil {
+			return err
+		}
+		return replay.WriteRecordedRun(stem+"-run.json", record.Driver, record.Run)
+	}
 }
 
 // writeProposals writes each compiled proposal under the promotion root, at the path the bridge
@@ -355,6 +390,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	binding.RegisterFlags(flags, &configuration.Deployment, "the Cases")
 	flags.StringVar(&configuration.ModelRoot, "model-root", defaultModelRoot, "the model package the bridge runs in")
 	flags.StringVar(&configuration.PromotionRoot, "promotion-root", "", "a directory outside the model to write each counterexample's promotion source under; none writes nothing")
+	flags.StringVar(&configuration.RecordRoot, "record-root", "", "a directory outside the model to write each counterexample's Case and recorded Run under; none records nothing")
 	flags.StringVar(&configuration.Bridge, "bridge", "", "the exploration bridge executable (default <model-root>/"+bridgeRelativePath+")")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole campaign")
 	flags.DurationVar(&configuration.Caps.RunTimeout, "run-timeout", defaultRunTimeout, "bound on one Run")
@@ -413,15 +449,22 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 		cli.WriteLine(stderr, "--bridge: %s", err)
 		return config{}, err
 	}
-	if configuration.PromotionRoot != "" {
-		if configuration.PromotionRoot, err = filepath.Abs(configuration.PromotionRoot); err != nil {
-			cli.WriteLine(stderr, "--promotion-root: %s", err)
+	for _, root := range []struct {
+		flag string
+		path *string
+	}{{"--promotion-root", &configuration.PromotionRoot}, {"--record-root", &configuration.RecordRoot}} {
+		if *root.path == "" {
+			continue
+		}
+		if *root.path, err = filepath.Abs(*root.path); err != nil {
+			cli.WriteLine(stderr, "%s: %s", root.flag, err)
 			return config{}, err
 		}
-		// A proposal is for review, never an installed regression: the model never receives one.
-		if within(modelRoot, configuration.PromotionRoot) {
-			cli.WriteLine(stderr, "--promotion-root must not be under the model root %s", modelRoot)
-			return config{}, errors.New("promotion root under the model")
+		// A proposal is for review, never an installed regression, and a record is a replay's
+		// input: the model never receives either.
+		if within(modelRoot, *root.path) {
+			cli.WriteLine(stderr, "%s must not be under the model root %s", root.flag, modelRoot)
+			return config{}, errors.New("root under the model")
 		}
 	}
 	return configuration, nil

@@ -17,10 +17,12 @@ type Binder interface {
 	Bind(ctx context.Context, identity string, source *testpilotspb.Case) (Bound, error)
 }
 
-// Bound is one prepared candidate with the Driver that runs it.
+// Bound is one prepared candidate with the Driver that runs it. Identity is the Profile identity
+// the prepared Case runs under, which a recorded Run carries.
 type Bound interface {
 	Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error)
 	Release(ctx context.Context) error
+	Identity() testpilot.DriverIdentity
 }
 
 // CampaignBinder adapts the shared deployment binding to Binder.
@@ -68,9 +70,11 @@ type Outcome struct {
 	Kind     OutcomeKind
 	Identity string
 	// Detail names the rejection or the failure; empty for a completed Run.
-	Detail   string
-	Run      *testpilotspb.Run
-	Verdict  *testpilotspb.Verdict
+	Detail  string
+	Run     *testpilotspb.Run
+	Verdict *testpilotspb.Verdict
+	// Driver is the Profile identity the candidate was prepared under, set once it prepared.
+	Driver   testpilot.DriverIdentity
 	Credited *Credited
 	// RunError is the error the facade returned beside a closed Run, when it returned one; the
 	// Run was observed regardless, because a proved Verdict is not erased by what followed it.
@@ -148,6 +152,7 @@ func runCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 		return Outcome{Kind: OutcomeBindFailed, Identity: candidate.Identity, Detail: err.Error()},
 			errors.Join(err, bound.Release(context.WithoutCancel(ctx)))
 	}
+	driver := bound.Identity()
 	runCtx, cancel := listener.runContext(ctx)
 	run, verdict, runErr := bound.Run(runCtx)
 	cancel()
@@ -165,7 +170,7 @@ func runCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 			fmt.Errorf("run candidate %s: %w", candidate.Identity, runErr)
 	}
 	failed := func(err error) (Outcome, error) {
-		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}, err
+		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, Driver: driver, RunError: runErr, ReleaseError: releaseErr}, err
 	}
 	if run.GetCleanup() == nil {
 		return failed(errors.New("the Run returned without an observed cleanup"))
@@ -177,7 +182,7 @@ func runCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 	if err := listener.ran(len(run.GetEvents())); err != nil {
 		return failed(err)
 	}
-	outcome := Outcome{Kind: OutcomeCompleted, Identity: candidate.Identity, Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}
+	outcome := Outcome{Kind: OutcomeCompleted, Identity: candidate.Identity, Run: run, Verdict: verdict, Driver: driver, RunError: runErr, ReleaseError: releaseErr}
 	credited, err := bridge.Observe(ctx, candidate.Identity, Result{Run: encoded})
 	if err != nil {
 		return outcome, err

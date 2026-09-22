@@ -22,6 +22,7 @@ type Evaluator struct {
 	prepared                                                 *PreparedContract
 	rules                                                    []ruleState
 	trace                                                    []transitionTrace
+	violations                                               []Violation
 	sequence, elapsed, totalWork, captureCount, captureBytes int64
 	incomplete, violated, closed, sawClosure                 bool
 	failure                                                  error
@@ -46,6 +47,18 @@ type ruleChange struct {
 	captures    map[string]capturedValue
 	support     bool
 	trace       transitionTrace
+}
+
+// Violation is what the evaluator knows of one violated rule beyond its Verdict: the Run Event
+// whose evidence resolved it and that evidence. A monitor rule names the observation ids the
+// violating event carried, or none when its deadline violated it, since which event reaches a
+// count is timing; a correlated rule names the kind of the evidence whose release resolved the
+// obligation, which a later event may have released, and the event that carried that evidence.
+type Violation struct {
+	RuleID         string
+	Sequence       int64
+	Kind           string
+	ObservationIDs []string
 }
 
 // New implements the private execution factory contract over the exact admitted Program view.
@@ -177,7 +190,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 			e.result.Rules[change.rule].SupportingEventSequences = state.support
 		}
 		e.trace = append(e.trace, change.trace)
-		e.recordTerminal(change)
+		e.recordTerminal(change, event)
 	}
 	if support {
 		e.result.SupportingEventSequences = append(e.result.SupportingEventSequences, event.Sequence)
@@ -428,7 +441,7 @@ func (e *Evaluator) checkDisposition(run *testpilotspb.Run) error {
 	}
 	return nil
 }
-func (e *Evaluator) recordTerminal(change ruleChange) {
+func (e *Evaluator) recordTerminal(change ruleChange, event *testpilotspb.RunEvent) {
 	terminal := e.prepared.rules[change.rule].source.States[change.state]
 	result := e.result.Rules[change.rule]
 	switch terminal.Status {
@@ -436,6 +449,15 @@ func (e *Evaluator) recordTerminal(change ruleChange) {
 		result.Status = testpilotspb.RULE_VERDICT_STATUS_VIOLATED
 		result.TerminalStateId = terminal.StateId
 		e.violated = true
+		violation := Violation{RuleID: result.RuleId, Sequence: event.GetSequence()}
+		// A deadline violation has no transition, and no evidence: the count reached is timing.
+		if change.trace.Transition != "" {
+			for _, observation := range event.GetObservations() {
+				violation.ObservationIDs = append(violation.ObservationIDs, observation.GetObservationId())
+			}
+			slices.Sort(violation.ObservationIDs)
+		}
+		e.violations = append(e.violations, violation)
 	case testpilotspb.CONTRACT_STATE_STATUS_SATISFIED:
 		result.Status = testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 		result.TerminalStateId = terminal.StateId
@@ -458,10 +480,14 @@ func (e *Evaluator) verdict(disposition testpilotspb.RunDisposition) *testpilots
 	return e.result
 }
 
-// Evaluate replays the recorded prefix through the same per-Run machine used by live callbacks.
-func (p *PreparedContract) Evaluate(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, error) {
-	_, verdict, err := p.evaluate(ctx, run)
-	return verdict, err
+// Evaluate replays the recorded prefix through the same per-Run machine used by live callbacks,
+// and says, per violated rule, which evidence violated it.
+func (p *PreparedContract) Evaluate(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, []Violation, error) {
+	e, verdict, err := p.evaluate(ctx, run)
+	if e == nil {
+		return verdict, nil, err
+	}
+	return verdict, slices.Clone(e.violations), err
 }
 func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotspb.Run) (*Evaluator, *testpilotspb.Verdict, error) {
 	if p == nil {
@@ -526,6 +552,16 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 		e.result.SupportingEventSequences = unionSequences(e.result.SupportingEventSequences, result.SupportingEventSequences)
 		result.TerminalStateId = ""
 		if result.Status == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+			if !e.violated || !slices.ContainsFunc(e.violations, func(v Violation) bool { return v.RuleID == result.RuleId }) {
+				violation := Violation{RuleID: result.RuleId}
+				if evidence := e.correlated.violation(i); evidence != nil {
+					violation.Kind = evidence.GetKind()
+					if len(evidence.supportingEventSequences) > 0 {
+						violation.Sequence = evidence.supportingEventSequences[0]
+					}
+				}
+				e.violations = append(e.violations, violation)
+			}
 			e.violated = true
 			result.TerminalStateId = "correlated.violated"
 		}

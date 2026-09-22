@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/replay"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
@@ -33,6 +34,9 @@ type config struct {
 	// Deployment is what the Case binds to; its handler task queue, when empty, derives
 	// `<task-queue>-handler` for a Case that binds one.
 	Deployment binding.Deployment
+	// RecordPath, when named, receives the closed Run with the identity it was prepared under,
+	// the recorded Run a replay reads; empty records nothing.
+	RecordPath string
 	Timeout    time.Duration
 }
 
@@ -40,6 +44,8 @@ type config struct {
 type session struct {
 	// run executes the prepared Case against the Driver the binding opened.
 	run func(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+	// identity is the Profile identity the Case was prepared under, recorded beside its Run.
+	identity testpilot.DriverIdentity
 	// release is best-effort teardown, run whatever the Run did. It names every resource it could
 	// not remove.
 	release func(ctx context.Context) error
@@ -80,6 +86,14 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	}
 
 	report(stdout, run, verdict)
+	if configuration.RecordPath != "" {
+		// The Run is reported whatever happens to its record; a record that could not be written
+		// is the command's failure, said after the report.
+		if err := replay.WriteRecordedRun(configuration.RecordPath, bound.identity, run); err != nil {
+			cli.WriteLine(stderr, "%s", err)
+			return exitFailed
+		}
+	}
 	return exitCode(verdict)
 }
 
@@ -90,6 +104,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&configuration.CasePath, "case", "", "path to a checked-in Case fixture")
 	binding.RegisterFlags(flags, &configuration.Deployment, "the Case")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
+	flags.StringVar(&configuration.RecordPath, "record", "", "write the closed Run with the identity it was prepared under to this file, which must not exist")
 	if err := flags.Parse(arguments); err != nil {
 		return config{}, err
 	}
@@ -185,7 +200,8 @@ func openSession(ctx context.Context, configuration config, source *testpilotspb
 		return nil, errors.Join(err, campaign.Close(context.WithoutCancel(ctx)))
 	}
 	return &session{
-		run: bound.Run,
+		run:      bound.Run,
+		identity: bound.Identity(),
 		release: func(ctx context.Context) error {
 			return errors.Join(bound.Release(ctx), campaign.Close(ctx))
 		},

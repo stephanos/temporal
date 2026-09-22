@@ -2,6 +2,7 @@ package verification
 
 import (
 	"context"
+	"maps"
 	"slices"
 	"strconv"
 	"unicode/utf8"
@@ -19,6 +20,9 @@ type admittedCorrelatedEvidence struct {
 type correlatedObligation struct {
 	remaining int64
 	status    testpilotspb.RuleVerdictStatus
+	// violatedBy is the evidence whose release resolved the obligation violated, kept so that a
+	// replay can name it: the releasing event may be later than the event that carried it.
+	violatedBy *admittedCorrelatedEvidence
 }
 
 // retainedCapture is one occurrence a declared capture kept. Entries are only appended, so an
@@ -509,6 +513,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 					o.status = testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 				} else if o.remaining == 0 {
 					o.status = testpilotspb.RULE_VERDICT_STATUS_VIOLATED
+					o.violatedBy = e
 				} else {
 					o.remaining--
 				}
@@ -616,6 +621,25 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 	}
 	return n, work + n.obligationWork - r.obligationWork, nil
 }
+
+// violation is the evidence that resolved the rule's first violated obligation, in the order
+// answer reads them, or nil when no obligation of the rule is violated.
+func (r *correlatedMonitor) violation(index int) *admittedCorrelatedEvidence {
+	if r == nil {
+		return nil
+	}
+	// Operations are keyed in a map; the first violated obligation must be the same one on every
+	// reading, so the keys are walked in order.
+	for _, key := range slices.Sorted(maps.Keys(r.operations)) {
+		for _, o := range r.operations[key].obligations[index] {
+			if o.status == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+				return o.violatedBy
+			}
+		}
+	}
+	return nil
+}
+
 func (r *correlatedMonitor) answer(s *testpilotspb.CorrelatedContract, index int, closed, incomplete bool) testpilotspb.RuleVerdictStatus {
 	pending := false
 	for _, op := range r.operations {

@@ -17,7 +17,10 @@ Profile's carriers, and an instruction limit the Case omits takes the Profile's
 private prepared resources, and includes the complete binding fingerprint in Prepared Case identity.
 `PreparedCase.Run` checks the Driver identity, calls `Driver.Validate` without target I/O, creates the
 Monitor, and only then opens a per-Run `Session`. Validation failure produces no Session, Run, Verdict,
-or effect. Scheduling, recording, expression admission, and Contract evaluation stay private to this
+or effect. `PreparedCase.Evaluate` replays a closed Run's events through the same prepared Contract
+with no Driver and no target, the offline semantic replay: it returns the Verdict that reading gives
+and, per violated rule, the Run Event whose evidence resolved it and that evidence (a monitor rule's
+observation ids, or none when its deadline violated it; a correlated rule's evidence kind). Scheduling, recording, expression admission, and Contract evaluation stay private to this
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
 

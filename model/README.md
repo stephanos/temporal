@@ -293,7 +293,9 @@ Two commands consume the canonical bytes against any Temporal deployment, linkin
 the SDK and never the test cluster. `umpire-run` runs one checked-in Case: it reads the fixture,
 derives the Profile the Case implies, binds it to the namespace, task queue and Nexus endpoint the
 caller names (creating and removing them with `--create`), runs once, reports the Run, cleanup and
-Verdict, and exits 0 satisfied, 1 violated, 2 inconclusive, 3 when nothing ran. `umpire-fuzz run`
+Verdict, and exits 0 satisfied, 1 violated, 2 inconclusive, 3 when nothing ran; `--record <path>`
+writes the closed Run beside the Profile identity it was prepared under (the *recorded Run*, a
+local JSON file `tools/umpire/replay` reads as a replay subject; the file must not exist). `umpire-fuzz run`
 runs one exploration campaign: it opens the exploration bridge over the set it names, takes each
 candidate's Case through the same binding (`tools/umpire/binding`, campaign-scoped once and
 candidate-scoped per Case), one Run and cleanup, hands the closed Run back to the bridge, and stops
@@ -309,7 +311,9 @@ is in the summary by its proposal's digest and path; `--promotion-root <dir>` wr
 proposal there, at the path the bridge named, and the summary says where (`written`). The root must
 lie outside `--model-root`: a proposal is for review, and nothing installs it. Two campaigns over the
 same set, caps and Run results write the same summary bytes and the same proposal files; one stopped
-early writes the completed prefix of the other's candidates.
+early writes the completed prefix of the other's candidates. `--record-root <dir>` writes each
+counterexample's Case (`<set>-<digest>-case.json`, the compact canonical form with one newline) and
+its recorded Run (`<set>-<digest>-run.json`), outside the model, as they close.
 
 ```sh
 make umpire-run                      # builds ./.build/umpire-run

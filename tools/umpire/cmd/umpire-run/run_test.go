@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/replay"
 )
 
 const fixtureRoot = "../../../../tests/testcore/testpilot/testdata"
@@ -82,6 +83,41 @@ func TestRunExitsZeroAndReportsEveryRuleVerdictWhenSatisfied(t *testing.T) {
 		"rule clause-one Satisfied answered",
 		"rule clause-two Satisfied answered",
 	}, strings.Split(strings.TrimSpace(stdout.String()), "\n"))
+}
+
+// --record writes the closed Run with the identity it was prepared under, after the report, and
+// never replaces a file that exists.
+func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "run.json")
+	identity := testpilot.DriverIdentity{Profile: "umpire-run.fuzz", Catalog: "catalog", Bindings: "bindings"}
+	open := func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		return &session{
+			identity: identity,
+			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+				verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
+				return &testpilotspb.Run{
+					RunId: "run-1", CaseId: "temporal.case.nexusCallerTests.asyncCompletion", Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+					Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict,
+				}, verdict, nil
+			},
+		}, nil
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, open)
+	require.Equal(t, exitViolated, code, stderr.String())
+	recorded, err := os.ReadFile(path)
+	require.NoError(t, err)
+	decodedIdentity, run, err := replay.DecodeRecordedRun(recorded)
+	require.NoError(t, err)
+	require.Equal(t, identity, decodedIdentity)
+	require.Equal(t, "run-1", run.GetRunId())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
+
+	stdout.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, open)
+	require.Equal(t, exitFailed, code, "an existing record is never replaced")
+	require.Contains(t, stdout.String(), "verdict Violated", "the Run is reported before the record fails")
+	require.Contains(t, stderr.String(), "exist")
 }
 
 func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {

@@ -221,7 +221,7 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
 			require.Equal(t, []int64{2, 4}, live.SupportingEventSequences)
-			offline, err := p.Evaluate(context.Background(), run)
+			offline, _, err := p.Evaluate(context.Background(), run)
 			require.NoError(t, err)
 			require.True(t, proto.Equal(live, offline))
 		})
@@ -335,7 +335,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			for _, bad := range []int64{0, sequence + 2} {
 				invalidRun := proto.CloneOf(run)
 				invalidRun.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: bad}
-				_, err := p.Evaluate(context.Background(), invalidRun)
+				_, _, err := p.Evaluate(context.Background(), invalidRun)
 				require.Error(t, err)
 			}
 		})

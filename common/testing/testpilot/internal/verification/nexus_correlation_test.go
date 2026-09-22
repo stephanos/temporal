@@ -176,7 +176,7 @@ func nexusEvaluateLiveAndOffline(t testing.TB, contract *PreparedContract, view 
 	}
 	live, err = monitor.Close(context.Background(), run)
 	require.NoError(t, err)
-	offline, err = contract.Evaluate(context.Background(), run)
+	offline, _, err = contract.Evaluate(context.Background(), run)
 	require.NoError(t, err)
 	return live, offline
 }

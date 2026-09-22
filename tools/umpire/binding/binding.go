@@ -136,32 +136,52 @@ func (c *Campaign) Close(ctx context.Context) error {
 // Bound is one prepared Case with the Driver that runs it.
 type Bound struct {
 	prepared *testpilot.PreparedCase
+	profile  testpilot.ProfileSpec
 	driver   *testpilotdriver.Driver
 	releases []func(context.Context) error
 }
 
-// Bind prepares one Case under this deployment and opens its Driver. identity names the Profile
-// the Case runs under, which the prepared Case's Driver identity carries. A Case the deployment
-// cannot bind rejects before any Driver opens: a Profile that cannot be derived, or a
-// *testpilot.PreparationError, holds nothing and creates no Run.
-func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilotspb.Case) (*Bound, error) {
-	if c == nil || source == nil {
-		return nil, errors.New("campaign binding and Case are required")
+// Prepared is the prepared Case the binding runs.
+func (b *Bound) Prepared() *testpilot.PreparedCase { return b.prepared }
+
+// Identity is the Profile identity the prepared Case runs under.
+func (b *Bound) Identity() testpilot.DriverIdentity { return b.prepared.Identity() }
+
+// Prepared is one Case prepared under a deployment's names with no connection to it: what
+// admission and offline replay need, and what Bind opens a Driver for.
+type Prepared struct {
+	Case    *testpilot.PreparedCase
+	Profile testpilot.ProfileSpec
+}
+
+// Prepare derives the Profile one Case implies under the deployment's names and prepares it,
+// touching no deployment: it builds the method catalog itself, opens no connection, provisions
+// nothing and opens no Driver. identity names the Profile the Case is prepared under, which the
+// prepared Case's Driver identity carries beside the catalog and binding fingerprints. A Case the
+// deployment cannot bind rejects here: a handler queue the Case binds that handlerQueue does not
+// route to (or the reverse), a Profile that cannot be derived, or a *testpilot.PreparationError.
+func Prepare(deployment Deployment, handlerQueue, identity string, source *testpilotspb.Case) (*Prepared, error) {
+	if source == nil {
+		return nil, errors.New("the Case is required")
 	}
-	// The handler queue is the one the campaign was opened with, so the endpoint's route and the
-	// handler's poll never disagree: a Case that binds a handler queue of its own under a campaign
-	// opened without one, or the reverse, would poll one queue while the endpoint routes to
-	// another, and is refused here rather than left to time out.
-	if bindsHandlerQueue := testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != ""; bindsHandlerQueue != (c.handlerQueue != "") {
+	// The handler queue is the one the deployment routes its endpoint to, so the endpoint's route
+	// and the handler's poll never disagree: a Case that binds a handler queue of its own under a
+	// deployment bound without one, or the reverse, would poll one queue while the endpoint routes
+	// to another, and is refused here rather than left to time out.
+	if bindsHandlerQueue := testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != ""; bindsHandlerQueue != (handlerQueue != "") {
 		return nil, fmt.Errorf("case %q binds a Nexus handler queue of its own (%t) but the campaign was opened with handler queue %q",
-			source.GetCaseId(), bindsHandlerQueue, c.handlerQueue)
+			source.GetCaseId(), bindsHandlerQueue, handlerQueue)
 	}
-	profile, err := testpilotdriver.DeriveProfile(source, c.catalog, testpilotdriver.Environment{
+	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+	if err != nil {
+		return nil, fmt.Errorf("build method catalog: %w", err)
+	}
+	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity:         identity,
-		Namespace:        c.deployment.Namespace,
-		TaskQueue:        c.deployment.TaskQueue,
-		HandlerTaskQueue: c.handlerQueue,
-		NexusEndpoint:    c.deployment.NexusEndpoint,
+		Namespace:        deployment.Namespace,
+		TaskQueue:        deployment.TaskQueue,
+		HandlerTaskQueue: handlerQueue,
+		NexusEndpoint:    deployment.NexusEndpoint,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("derive Profile for Case %q: %w", source.GetCaseId(), err)
@@ -170,7 +190,23 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	if err != nil {
 		return nil, err
 	}
-	bound := &Bound{prepared: prepared}
+	return &Prepared{Case: prepared, Profile: profile}, nil
+}
+
+// Bind prepares one Case under this deployment and opens its Driver. identity names the Profile
+// the Case runs under, which the prepared Case's Driver identity carries. A Case the deployment
+// cannot bind rejects before any Driver opens, as Prepare decides it: it holds nothing and
+// creates no Run.
+func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilotspb.Case) (*Bound, error) {
+	if c == nil || source == nil {
+		return nil, errors.New("campaign binding and Case are required")
+	}
+	prepared, err := Prepare(c.deployment, c.handlerQueue, identity, source)
+	if err != nil {
+		return nil, err
+	}
+	profile := prepared.Profile
+	bound := &Bound{prepared: prepared.Case, profile: profile}
 	fail := func(err error) (*Bound, error) {
 		return nil, errors.Join(err, ReleaseAll(context.WithoutCancel(ctx), bound.releases))
 	}
