@@ -33,10 +33,11 @@ const (
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-explore"
 	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary
-	// (status, set, Profile, machine, budget, Limits and counters) is always written in full, so a
-	// cap under it could only be met by truncation, which is never done. The floor covers the fixed
-	// fields; a long failure message or set name can still carry that summary past the cap, which
-	// is then said on stderr rather than hidden.
+	// (status, set, Profile, machine, budget, Limits, counters and the counterexamples by identity)
+	// is always written in full, so a cap under it could only be met by truncation, which is never
+	// done. The floor covers the fixed fields; a long failure message, a long set name or many
+	// counterexamples can still carry that summary past the cap, which is then said on stderr
+	// rather than hidden.
 	minimumReportBytes = 1024
 )
 
@@ -124,21 +125,22 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	if driveErr != nil {
 		writeLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
 	}
-	rendered, err := render(configuration, opened, report)
+	rendered, err := render(configuration, opened, report, false)
 	if err != nil {
 		writeLine(stderr, "render summary: %s", err)
 		return exitToolingError
 	}
 	session := campaign.NewSession(configuration.Caps)
 	if err := session.CheckReport(len(rendered)); err != nil {
-		// Over the cap is limit-reached, never a truncated report: the terminal alone is written. A
-		// failure or a stop keeps its terminal, because what it names outranks the cap; only a
-		// campaign that ended well becomes limit-reached.
+		// Over the cap is limit-reached, never a truncated report: the terminal, the counters and
+		// the counterexamples are written, and the coverage, the ledger and the candidates are not.
+		// A failure, a stop or a campaign cap keeps its terminal, because what it names outranks
+		// this cap; only a campaign that ended exhausted becomes limit-reached.
 		writeLine(stderr, "%s", err)
-		if report.Terminal.Status != campaign.StatusToolingFailure && report.Terminal.Status != campaign.StatusStopped {
+		if report.Terminal.Status == campaign.StatusExhausted {
 			report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
 		}
-		rendered, err = render(configuration, opened, campaign.Report{Terminal: report.Terminal, Counters: report.Counters})
+		rendered, err = render(configuration, opened, report, true)
 		if err != nil {
 			writeLine(stderr, "render summary: %s", err)
 			return exitToolingError
@@ -216,8 +218,10 @@ func exitCode(report campaign.Report) int {
 	return exitExhausted
 }
 
-// render is the canonical summary: one JSON document, keys in declaration order, one LF.
-func render(configuration config, opened *bound, report campaign.Report) ([]byte, error) {
+// render is the canonical summary: one JSON document, keys in declaration order, one LF. The
+// terminal-only form leaves out what grows with the campaign (coverage, ledger, candidates) and
+// keeps the counterexamples, which are bounded by the class targets and are what exit 1 names.
+func render(configuration config, opened *bound, report campaign.Report, terminalOnly bool) ([]byte, error) {
 	rendered := summary{
 		Status:          string(report.Terminal.Status),
 		Limit:           report.Terminal.Limit,
@@ -237,14 +241,19 @@ func render(configuration config, opened *bound, report campaign.Report) ([]byte
 		rendered.Limits = &limits
 	}
 	if report.Finished != nil {
-		coverage := report.Finished.Summary
-		rendered.Coverage = &coverage
 		if report.Finished.Counterexamples != nil {
 			rendered.Counterexamples = report.Finished.Counterexamples
 		}
-		if report.Finished.Ledger != nil {
-			rendered.Targets = report.Finished.Ledger
+		if !terminalOnly {
+			coverage := report.Finished.Summary
+			rendered.Coverage = &coverage
+			if report.Finished.Ledger != nil {
+				rendered.Targets = report.Finished.Ledger
+			}
 		}
+	}
+	if terminalOnly {
+		report.Outcomes = nil
 	}
 	for _, outcome := range report.Outcomes {
 		credited := outcome.Credited
