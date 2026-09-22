@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/campaign"
+	"go.temporal.io/server/tools/umpire/internal/cli"
 )
 
 // Exit codes. A counterexample or violated coverage outranks a stop or a cap, because the finding
@@ -119,18 +119,18 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	if err != nil {
 		return exitToolingError
 	}
-	ctx, cancel := interruptible(context.Background(), configuration.Timeout)
+	ctx, cancel := cli.Interruptible(context.Background(), configuration.Timeout)
 	defer cancel()
 
 	opened, err := open(ctx, configuration, stderr)
 	if err != nil {
-		writeLine(stderr, "%s", err)
+		cli.WriteLine(stderr, "%s", err)
 		return exitToolingError
 	}
 	defer func() {
 		if err := opened.release(context.WithoutCancel(ctx)); err != nil {
-			for _, failure := range flatten(err) {
-				writeLine(stderr, "%s", failure)
+			for _, failure := range cli.Flatten(err) {
+				cli.WriteLine(stderr, "%s", failure)
 			}
 		}
 	}()
@@ -140,17 +140,17 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	report, driveErr := campaign.Drive(ctx, opened.bridge, opened.binder, configuration.Caps, nil)
 	report = settle(report, driveErr)
 	if driveErr != nil {
-		writeLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
+		cli.WriteLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
 	}
 	written, err := writeProposals(configuration.PromotionRoot, report.Finished)
 	if err != nil {
 		// The campaign's findings stand; the command did not do what it was told with them.
-		writeLine(stderr, "%s", err)
+		cli.WriteLine(stderr, "%s", err)
 		report.Terminal.Status, report.Terminal.Failure = campaign.StatusToolingFailure, err.Error()
 	}
 	rendered, err := render(configuration, opened, report, written, false)
 	if err != nil {
-		writeLine(stderr, "render summary: %s", err)
+		cli.WriteLine(stderr, "render summary: %s", err)
 		return exitToolingError
 	}
 	if err := configuration.Caps.CheckReport(len(rendered)); err != nil {
@@ -159,24 +159,24 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		// which grow with the campaign, are not. A failure, a stop or a campaign cap keeps its
 		// terminal, because what it names outranks this cap; only a campaign that ended exhausted
 		// becomes limit-reached.
-		writeLine(stderr, "%s", err)
+		cli.WriteLine(stderr, "%s", err)
 		if report.Terminal.Status == campaign.StatusExhausted {
 			report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
 		}
 		rendered, err = render(configuration, opened, report, written, true)
 		if err != nil {
-			writeLine(stderr, "render summary: %s", err)
+			cli.WriteLine(stderr, "render summary: %s", err)
 			return exitToolingError
 		}
 		if err := configuration.Caps.CheckReport(len(rendered)); err != nil {
-			writeLine(stderr, "the terminal-only summary is over the cap too and is written whole: %s", err)
+			cli.WriteLine(stderr, "the terminal-only summary is over the cap too and is written whole: %s", err)
 		}
 	}
 	if _, err := stdout.Write(rendered); err != nil {
-		writeLine(stderr, "write summary: %s", err)
+		cli.WriteLine(stderr, "write summary: %s", err)
 		return exitToolingError
 	}
-	writeLine(stderr, "campaign %s", describeTerminal(report.Terminal))
+	cli.WriteLine(stderr, "campaign %s", describeTerminal(report.Terminal))
 	return exitCode(report)
 }
 
@@ -343,49 +343,16 @@ func render(configuration config, opened *bound, report campaign.Report, written
 	return append(encoded, '\n'), nil
 }
 
-// interruptible bounds the campaign by the caller's timeout and cancels it on SIGINT. Teardown and
-// the bridge's summary run on their own contexts afterwards.
-func interruptible(parent context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
-	notified, stopNotify := signal.NotifyContext(parent, os.Interrupt)
-	ctx, cancelTimeout := context.WithTimeout(notified, timeout)
-	return ctx, func() {
-		cancelTimeout()
-		stopNotify()
-	}
-}
-
-func writeLine(destination io.Writer, format string, arguments ...any) {
-	_, _ = fmt.Fprintf(destination, format+"\n", arguments...)
-}
-
-func flatten(err error) []string {
-	var joined interface{ Unwrap() []error }
-	if errors.As(err, &joined) {
-		var lines []string
-		for _, nested := range joined.Unwrap() {
-			lines = append(lines, flatten(nested)...)
-		}
-		return lines
-	}
-	return []string{err.Error()}
-}
-
 func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	if len(arguments) == 0 || arguments[0] != "run" {
-		writeLine(stderr, "usage: umpire-fuzz run --set <set> --grpc <address> --http <address> --namespace <namespace> --task-queue <queue> [flags]")
+		cli.WriteLine(stderr, "usage: umpire-fuzz run --set <set> --grpc <address> --http <address> --namespace <namespace> --task-queue <queue> [flags]")
 		return config{}, errors.New("the subcommand is run")
 	}
 	var configuration config
 	flags := flag.NewFlagSet("umpire-fuzz run", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.StringVar(&configuration.Set, "set", "", "the exploratory set to explore")
-	flags.StringVar(&configuration.Deployment.GRPCAddress, "grpc", "", "frontend gRPC address")
-	flags.StringVar(&configuration.Deployment.HTTPAddress, "http", "", "frontend HTTP address")
-	flags.StringVar(&configuration.Deployment.Namespace, "namespace", "", "namespace the Cases bind to")
-	flags.StringVar(&configuration.Deployment.TaskQueue, "task-queue", "", "task queue the Cases bind to")
-	flags.StringVar(&configuration.Deployment.NexusEndpoint, "nexus-endpoint", "", "Nexus endpoint the Cases bind to")
-	flags.StringVar(&configuration.Deployment.HandlerTaskQueue, "handler-task-queue", "", "task queue the Cases' Nexus handlers poll (default <task-queue>-handler)")
-	flags.BoolVar(&configuration.Deployment.Create, "create", false, "create the named resources and delete them on exit")
+	binding.RegisterFlags(flags, &configuration.Deployment, "the Cases")
 	flags.StringVar(&configuration.ModelRoot, "model-root", defaultModelRoot, "the model package the bridge runs in")
 	flags.StringVar(&configuration.PromotionRoot, "promotion-root", "", "a directory outside the model to write each counterexample's promotion source under; none writes nothing")
 	flags.StringVar(&configuration.Bridge, "bridge", "", "the exploration bridge executable (default <model-root>/"+bridgeRelativePath+")")
@@ -399,23 +366,19 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 		return config{}, err
 	}
 	if flags.NArg() != 0 {
-		writeLine(stderr, "umpire-fuzz run accepts no positional arguments")
+		cli.WriteLine(stderr, "umpire-fuzz run accepts no positional arguments")
 		return config{}, errors.New("unexpected positional arguments")
 	}
-	for _, required := range []struct{ name, value string }{
-		{"--set", configuration.Set},
-		{"--grpc", configuration.Deployment.GRPCAddress},
-		{"--http", configuration.Deployment.HTTPAddress},
-		{"--namespace", configuration.Deployment.Namespace},
-		{"--task-queue", configuration.Deployment.TaskQueue},
-	} {
-		if required.value == "" {
-			writeLine(stderr, "%s is required", required.name)
-			return config{}, fmt.Errorf("missing %s", required.name)
-		}
+	if configuration.Set == "" {
+		cli.WriteLine(stderr, "--set is required")
+		return config{}, errors.New("missing --set")
+	}
+	if missing := binding.Missing(configuration.Deployment); len(missing) > 0 {
+		cli.WriteLine(stderr, "%s is required", missing[0])
+		return config{}, fmt.Errorf("missing %s", missing[0])
 	}
 	if configuration.Timeout <= 0 || configuration.Caps.RunTimeout <= 0 {
-		writeLine(stderr, "--timeout and --run-timeout must be positive")
+		cli.WriteLine(stderr, "--timeout and --run-timeout must be positive")
 		return config{}, errors.New("non-positive timeout")
 	}
 	for _, cap := range []struct {
@@ -428,36 +391,36 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 		{"--max-report-bytes", configuration.Caps.ReportBytes},
 	} {
 		if cap.value < 0 {
-			writeLine(stderr, "%s must not be negative", cap.name)
+			cli.WriteLine(stderr, "%s must not be negative", cap.name)
 			return config{}, errors.New("negative cap")
 		}
 	}
 	if configuration.Caps.ReportBytes > 0 && configuration.Caps.ReportBytes < minimumReportBytes {
-		writeLine(stderr, "--max-report-bytes must be 0 or at least %d, the terminal-only summary's floor", minimumReportBytes)
+		cli.WriteLine(stderr, "--max-report-bytes must be 0 or at least %d, the terminal-only summary's floor", minimumReportBytes)
 		return config{}, errors.New("report cap below the floor")
 	}
 	// The bridge runs in the model root, and a relative executable would be looked up there rather
 	// than where the command was invoked, so both paths are made absolute first.
 	modelRoot, err := filepath.Abs(configuration.ModelRoot)
 	if err != nil {
-		writeLine(stderr, "--model-root: %s", err)
+		cli.WriteLine(stderr, "--model-root: %s", err)
 		return config{}, err
 	}
 	configuration.ModelRoot = modelRoot
 	if configuration.Bridge == "" {
 		configuration.Bridge = filepath.Join(modelRoot, filepath.FromSlash(bridgeRelativePath))
 	} else if configuration.Bridge, err = filepath.Abs(configuration.Bridge); err != nil {
-		writeLine(stderr, "--bridge: %s", err)
+		cli.WriteLine(stderr, "--bridge: %s", err)
 		return config{}, err
 	}
 	if configuration.PromotionRoot != "" {
 		if configuration.PromotionRoot, err = filepath.Abs(configuration.PromotionRoot); err != nil {
-			writeLine(stderr, "--promotion-root: %s", err)
+			cli.WriteLine(stderr, "--promotion-root: %s", err)
 			return config{}, err
 		}
 		// A proposal is for review, never an installed regression: the model never receives one.
 		if within(modelRoot, configuration.PromotionRoot) {
-			writeLine(stderr, "--promotion-root must not be under the model root %s", modelRoot)
+			cli.WriteLine(stderr, "--promotion-root must not be under the model root %s", modelRoot)
 			return config{}, errors.New("promotion root under the model")
 		}
 	}
