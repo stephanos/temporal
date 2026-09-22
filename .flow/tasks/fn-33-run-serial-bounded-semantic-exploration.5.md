@@ -14,7 +14,7 @@ Run identical checked inputs, caps and decisive observations twice and compare c
 - A scripted observation stream (decisive verdicts by candidate identity) drives the campaign in Lean and the coordinator in Go; both are replayed twice and compared byte for byte.
 - A stream that ends early (stopped) yields a prefix of the full run's summary with the same identities.
 - The Switch example's functional set Cases are shown outside the campaign's caps.
-- For a counterexample, render the proposal with `renderPromotionSource` over the candidate's witness trace, compile it with `compilePromotionSource` from the retained `AdmittedQuery`, a `PromotionBaseAnchor` (plan result, plan, expected trace, selection reason) and fresh namespaced promoted IDs with a source location, and compare the SHA-256 across two runs; the file is written only under a caller-named scratch root and never under `model/`.
+- For a counterexample, render the proposal with `renderPromotionSource` over the candidate's witness trace, compile it with `compilePromotionSource` from the `AdmittedQuery` the campaign retained beside the candidate (one Model per campaign, so one index), a `PromotionBaseAnchor` (plan result, plan, expected trace, selection reason) and fresh namespaced promoted IDs with a source location, and compare the SHA-256 across two runs; the file is written only under a caller-named scratch root and never under `model/`.
 
 ### Investigation targets
 **Required** (read before coding):
