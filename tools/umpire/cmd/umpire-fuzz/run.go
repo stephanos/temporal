@@ -34,8 +34,8 @@ const (
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-explore"
 	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary
-	// (status, set, Profile, machine, budget, Limits, counters and the counterexamples by identity)
-	// is always written in full, so a cap under it could only be met by truncation, which is never
+	// (status, set, Profile, machine, budget, Limits, counters, coverage counts and the
+	// counterexamples by identity) is always written in full, so a cap under it could only be met by truncation, which is never
 	// done. The floor covers the fixed fields; a long failure message, a long set name or many
 	// counterexamples can still carry that summary past the cap, which is then said on stderr
 	// rather than hidden.
@@ -146,19 +146,19 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	if err != nil {
 		// The campaign's findings stand; the command did not do what it was told with them.
 		writeLine(stderr, "%s", err)
-		report.Terminal = campaign.Terminal{Status: campaign.StatusToolingFailure, Failure: err.Error()}
+		report.Terminal.Status, report.Terminal.Failure = campaign.StatusToolingFailure, err.Error()
 	}
 	rendered, err := render(configuration, opened, report, written, false)
 	if err != nil {
 		writeLine(stderr, "render summary: %s", err)
 		return exitToolingError
 	}
-	session := campaign.NewSession(configuration.Caps)
-	if err := session.CheckReport(len(rendered)); err != nil {
-		// Over the cap is limit-reached, never a truncated report: the terminal, the counters and
-		// the counterexamples are written, and the coverage, the ledger and the candidates are not.
-		// A failure, a stop or a campaign cap keeps its terminal, because what it names outranks
-		// this cap; only a campaign that ended exhausted becomes limit-reached.
+	if err := configuration.Caps.CheckReport(len(rendered)); err != nil {
+		// Over the cap is limit-reached, never a truncated report: the terminal, the counters, the
+		// coverage counts and the counterexamples are written, and the ledger and the candidates,
+		// which grow with the campaign, are not. A failure, a stop or a campaign cap keeps its
+		// terminal, because what it names outranks this cap; only a campaign that ended exhausted
+		// becomes limit-reached.
 		writeLine(stderr, "%s", err)
 		if report.Terminal.Status == campaign.StatusExhausted {
 			report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
@@ -168,7 +168,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 			writeLine(stderr, "render summary: %s", err)
 			return exitToolingError
 		}
-		if err := session.CheckReport(len(rendered)); err != nil {
+		if err := configuration.Caps.CheckReport(len(rendered)); err != nil {
 			writeLine(stderr, "the terminal-only summary is over the cap too and is written whole: %s", err)
 		}
 	}
@@ -287,8 +287,9 @@ func within(root, path string) bool {
 }
 
 // render is the canonical summary: one JSON document, keys in declaration order, one LF. The
-// terminal-only form leaves out what grows with the campaign (coverage, ledger, candidates) and
-// keeps the counterexamples, which are bounded by the class targets and are what exit 1 names.
+// terminal-only form leaves out what grows with the campaign (the ledger and the candidates) and
+// keeps the coverage counts, which are fixed in size, and the counterexamples, which are bounded
+// by the class targets; together they are what exit 1 names.
 func render(configuration config, opened *bound, report campaign.Report, written map[string]string, terminalOnly bool) ([]byte, error) {
 	rendered := summary{
 		Status:          string(report.Terminal.Status),
@@ -309,6 +310,8 @@ func render(configuration config, opened *bound, report campaign.Report, written
 		rendered.Limits = &limits
 	}
 	if report.Finished != nil {
+		coverage := report.Finished.Summary
+		rendered.Coverage = &coverage
 		for _, sample := range report.Finished.Counterexamples {
 			rendered.Counterexamples = append(rendered.Counterexamples, counterexample{
 				ClassName: sample.ClassName, Target: sample.Target, Candidate: sample.Candidate,
@@ -316,12 +319,8 @@ func render(configuration config, opened *bound, report campaign.Report, written
 				PromotionError: sample.PromotionError, Written: written[sample.Candidate],
 			})
 		}
-		if !terminalOnly {
-			coverage := report.Finished.Summary
-			rendered.Coverage = &coverage
-			if report.Finished.Ledger != nil {
-				rendered.Targets = report.Finished.Ledger
-			}
+		if !terminalOnly && report.Finished.Ledger != nil {
+			rendered.Targets = report.Finished.Ledger
 		}
 	}
 	if terminalOnly {
