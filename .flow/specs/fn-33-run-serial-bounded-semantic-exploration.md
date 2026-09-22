@@ -216,7 +216,16 @@ rendered summary; over it, the terminal alone is written as `limit-reached`, nev
 report. The bridge's stderr is the command's stderr, so its one progress line per candidate is the
 operator's, and the coordinator's identical lines go nowhere; the command adds one line naming the
 terminal. `make umpire-fuzz` builds the command and `make umpire-fuzz-run SET=<set>` builds the
-bridge and runs a campaign against the deployment `UMPIRE_FUZZ_*` names.
+bridge and runs a campaign against the deployment `UMPIRE_FUZZ_*` names. Its implementation review
+(round one) settled five points: the bridge is started on a context that outlives the campaign's
+and in a process group of its own, so a stop or the timeout ends the campaign and the bridge's
+summary is still read before release closes it; a report whose terminal is not one of the four,
+or that ended exhausted or limit-reached without the bridge's summary, is settled as a tooling
+failure, and a violated Run observed before a stop exits 1 with or without the summary; the
+report-cap fallback keeps a tooling-failure or stopped terminal (what it names outranks the cap)
+and turns only a campaign that ended well into `limit-reached`; the terminal-only summary is the
+floor a cap cannot go below, refused under 1024 bytes at parse; and the Make target checks its
+inputs before the model build.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 

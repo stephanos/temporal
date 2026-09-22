@@ -32,6 +32,10 @@ const (
 	defaultModelRoot  = "model"
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-explore"
+	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary
+	// (status, set, Profile, machine, budget, Limits and counters) is always written, so a cap under
+	// it could only be met by truncation, which is never done.
+	minimumReportBytes = 1024
 )
 
 // config is what the caller names: the set, the deployment as `umpire-run` names it, and the
@@ -72,24 +76,11 @@ type summary struct {
 	Machine         string                    `json:"machine,omitempty"`
 	Budget          string                    `json:"budget,omitempty"`
 	Limits          *campaign.Limits          `json:"limits,omitempty"`
-	Counters        counters                  `json:"counters"`
+	Counters        campaign.Counters         `json:"counters"`
 	Coverage        *campaign.Summary         `json:"coverage,omitempty"`
 	Counterexamples []campaign.Counterexample `json:"counterexamples"`
 	Targets         []campaign.TargetStatus   `json:"targets"`
 	Candidates      []candidate               `json:"candidates"`
-}
-
-type counters struct {
-	Planned      int   `json:"planned"`
-	Prepared     int   `json:"prepared"`
-	Started      int   `json:"started"`
-	Decisive     int   `json:"decisive"`
-	Rejected     int   `json:"rejected"`
-	Failed       int   `json:"failed"`
-	Inconclusive int   `json:"inconclusive"`
-	Skipped      int   `json:"skipped"`
-	CaseBytes    int64 `json:"caseBytes"`
-	RunEvents    int64 `json:"runEvents"`
 }
 
 type candidate struct {
@@ -130,6 +121,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	if driveErr != nil {
 		writeLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
 	}
+	report = settle(report, driveErr)
 	rendered, err := render(configuration, opened, report)
 	if err != nil {
 		writeLine(stderr, "render summary: %s", err)
@@ -137,9 +129,13 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	}
 	session := campaign.NewSession(configuration.Caps)
 	if err := session.CheckReport(len(rendered)); err != nil {
-		// Over the cap is limit-reached, never a truncated report: the terminal alone is written.
+		// Over the cap is limit-reached, never a truncated report: the terminal alone is written. A
+		// failure or a stop keeps its terminal, because what it names outranks the cap; only a
+		// campaign that ended well becomes limit-reached.
 		writeLine(stderr, "%s", err)
-		report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
+		if report.Terminal.Status != campaign.StatusToolingFailure && report.Terminal.Status != campaign.StatusStopped {
+			report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
+		}
 		rendered, err = render(configuration, opened, campaign.Report{Terminal: report.Terminal, Counters: report.Counters})
 		if err != nil {
 			writeLine(stderr, "render summary: %s", err)
@@ -152,6 +148,30 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	}
 	writeLine(stderr, "campaign %s", describeTerminal(report.Terminal))
 	return exitCode(report)
+}
+
+// settle makes the report answer for itself: a terminal that is not one of the four, or a campaign
+// that ended without the bridge's summary when it should have had one, is a tooling failure, because
+// what such a report says cannot be trusted.
+func settle(report campaign.Report, driveErr error) campaign.Report {
+	switch report.Terminal.Status {
+	case campaign.StatusExhausted, campaign.StatusLimitReached, campaign.StatusStopped, campaign.StatusToolingFailure:
+	default:
+		failure := "the coordinator ended without a terminal"
+		if driveErr != nil {
+			failure = driveErr.Error()
+		}
+		report.Terminal = campaign.Terminal{Status: campaign.StatusToolingFailure, Failure: failure}
+		return report
+	}
+	if report.Finished == nil && report.Terminal.Status != campaign.StatusToolingFailure && report.Terminal.Status != campaign.StatusStopped {
+		failure := "the bridge's summary could not be read"
+		if driveErr != nil {
+			failure = driveErr.Error()
+		}
+		report.Terminal = campaign.Terminal{Status: campaign.StatusToolingFailure, Failure: failure}
+	}
+	return report
 }
 
 func describeTerminal(terminal campaign.Terminal) string {
@@ -169,12 +189,20 @@ func describeTerminal(terminal campaign.Terminal) string {
 	return string(terminal.Status)
 }
 
-// exitCode maps the terminal and the findings to the exit code.
+// exitCode maps the terminal and the findings to the exit code. A violation is read from the
+// bridge's summary and from the candidates observed, so a stop that lost the summary still exits 1
+// when an earlier Run was violated.
 func exitCode(report campaign.Report) int {
 	if report.Terminal.Status == campaign.StatusToolingFailure {
 		return exitToolingError
 	}
-	if report.Finished != nil && (len(report.Finished.Counterexamples) > 0 || report.Finished.Summary.Violated > 0) {
+	violated := report.Finished != nil && (len(report.Finished.Counterexamples) > 0 || report.Finished.Summary.Violated > 0)
+	for _, outcome := range report.Outcomes {
+		if outcome.Observation == "violated" {
+			violated = true
+		}
+	}
+	if violated {
 		return exitViolated
 	}
 	if report.Terminal.Status == campaign.StatusLimitReached || report.Terminal.Status == campaign.StatusStopped {
@@ -197,12 +225,7 @@ func render(configuration config, opened *bound, report campaign.Report) ([]byte
 		Counterexamples: []campaign.Counterexample{},
 		Targets:         []campaign.TargetStatus{},
 		Candidates:      []candidate{},
-		Counters: counters{
-			Planned: report.Counters.Planned, Prepared: report.Counters.Prepared, Started: report.Counters.Started,
-			Decisive: report.Counters.Decisive, Rejected: report.Counters.Rejected, Failed: report.Counters.Failed,
-			Inconclusive: report.Counters.Inconclusive, Skipped: report.Counters.Skipped,
-			CaseBytes: report.Counters.CaseBytes, RunEvents: report.Counters.RunEvents,
-		},
+		Counters:        report.Counters,
 	}
 	if opened.opened.Budget != "" {
 		limits := opened.opened.Limits
@@ -323,6 +346,10 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 			return config{}, errors.New("negative cap")
 		}
 	}
+	if configuration.Caps.ReportBytes > 0 && configuration.Caps.ReportBytes < minimumReportBytes {
+		writeLine(stderr, "--max-report-bytes must be 0 or at least %d, the terminal-only summary's floor", minimumReportBytes)
+		return config{}, errors.New("report cap below the floor")
+	}
 	if configuration.Bridge == "" {
 		configuration.Bridge = filepath.Join(configuration.ModelRoot, filepath.FromSlash(bridgeRelativePath))
 	}
@@ -343,7 +370,9 @@ func openCampaign(ctx context.Context, configuration config, stderr io.Writer) (
 	fail := func(err error) (*bound, error) {
 		return nil, errors.Join(err, binding.ReleaseAll(context.WithoutCancel(ctx), releases))
 	}
-	bridge, err := campaign.Start(ctx, campaign.Options{
+	// The bridge outlives the campaign context: a stop or the timeout ends the campaign, and the
+	// bridge's summary is then asked for and read before release closes the bridge.
+	bridge, err := campaign.Start(context.WithoutCancel(ctx), campaign.Options{
 		Executable: configuration.Bridge, Dir: configuration.ModelRoot, Stderr: stderr,
 	})
 	if err != nil {
