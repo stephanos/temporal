@@ -114,6 +114,12 @@ lean_exe «umpire-inventory-make-tests» where
 @[default_target] lean_exe «umpire-case» where
   root := `Temporal.Tool.Testpilot
 
+lean_exe «umpire-explore» where
+  root := `Temporal.Tool.ExplorationBridgeMain
+
+lean_exe «umpire-explore-tests» where
+  root := `Temporal.Tool.ExplorationBridgeTests
+
 lean_exe «umpire-goldens» where
   root := `Temporal.Tool.Goldens
 

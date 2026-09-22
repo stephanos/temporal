@@ -15,7 +15,9 @@ whose Queries it realizes and the realization that runs them, and, for a machine
 The commands it sits beside are `Umpire.Command`'s. A functional set's Cases are registered for the
 renderer; a canary set's are produced the same way and registered nowhere, because what admits a
 canary is that a deployment can close every gap its Cases carry, which only the produced Case
-says.
+says. An exploratory set has no Queries to produce Cases for at elaboration: its block emits what
+the exploration bridge produces each candidate's Case with -- the realization and the machine's
+claims, evidence catalog and field relations -- and registers nothing.
 
 The Case ID prefix is Temporal's too. Every identity derives from the set's name and each Query's:
 the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture `<set>-<query>`, so a Case is named by
@@ -71,8 +73,16 @@ private def notASetMessage (spelling : String) : String :=
 a functional set under identities derived from the set's and each Query's name"
 
 private def notFunctionalMessage (spelling purpose : String) : String :=
-  s!"set '{spelling}' is {purpose}; a functional set compiles to Cases and a canary set is admitted \
-through them, one per Query, while an exploratory set covers rather than lists Queries"
+  s!"set '{spelling}' is {purpose}; a functional set compiles to Cases, a canary set is admitted \
+through them, one per Query, and an exploratory set's Cases are produced by the exploration bridge \
+under the realization its `case` block names"
+
+private def exploratoryEvidenceMessage (spelling : String) : String :=
+  s!"set '{spelling}' is exploratory; its candidates' Cases read the machine's own `evidence:` \
+lines, so the block writes none"
+
+private def exploratoryMachineMessage (spelling : String) : String :=
+  s!"set '{spelling}' is exploratory but records no machine; a `set` with `machine:` records it"
 
 private def whiteBoxGapMessage (queryName kind code : String) : String :=
   s!"Query '{queryName}' cannot be a canary: its Case carries the white-box Known Gap '{code}' \
@@ -85,6 +95,47 @@ private def canaryProductionMessage (queryName construct : String) : String :=
 private def unselectedBySetMessage (spelling : String) (selected : Array String) : String :=
   s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
 {spellingList selected}"
+
+/-! ### An exploratory set's production
+
+An exploratory set covers a machine rather than listing Queries, so its Cases are produced at run
+time, one per candidate the campaign plans, by the exploration bridge. What the bridge cannot read
+is what the elaboration Registry holds: the machine's claims, its `evidence:` catalog, its timers
+and its Properties' field relations. The block over an exploratory set emits those beside the
+realization, each under the block's name, and registers no Case. -/
+
+private def elabExploratoryCase (name : Ident) (setRef : Ident) (realization : Term)
+    (declaredSet : Umpire.Command.Registry.SetEntry) (lines : Array (TSyntax `caseEvidence)) :
+    CommandElabM Unit := do
+  let environment ← getEnv
+  for line in lines do
+    throwErrorAt line (exploratoryEvidenceMessage declaredSet.name)
+  let some machineName := declaredSet.machine
+    | throwErrorAt setRef (exploratoryMachineMessage declaredSet.name)
+  let some declaredMachine := Umpire.Command.Registry.machine? environment machineName
+    | throwErrorAt setRef (exploratoryMachineMessage declaredSet.name)
+  let actionRefs := declaredMachine.actionDecls.map mkIdent
+  let pairs ← declaredMachine.evidence.mapM fun (fact, observed) =>
+    `(term| ($(Lean.quote fact), $(Lean.quote observed)))
+  let relationRefs := (Umpire.Command.Registry.relationsOf environment machineName).map fun entry =>
+    mkIdent entry.declName
+  let realizationName := mkIdentFrom name (name.getId ++ `realization)
+  let claimsName := mkIdentFrom name (name.getId ++ `claims)
+  let catalogName := mkIdentFrom name (name.getId ++ `catalog)
+  let relationsName := mkIdentFrom name (name.getId ++ `relations)
+  let timersName := mkIdentFrom name (name.getId ++ `timers)
+  let timerTerms : Array Term := declaredMachine.timers.map Lean.quote
+  elabCommand (← `(command|
+    def $realizationName : Umpire.Case.Producer.Realization := $realization))
+  elabCommand (← `(command|
+    def $claimsName : List Umpire.Case.Producer.ClassClaim :=
+      Umpire.Command.classClaims ($(mkIdent machineName)) [$actionRefs,*]))
+  elabCommand (← `(command|
+    def $catalogName : List (String × String) := [$pairs,*]))
+  elabCommand (← `(command|
+    def $relationsName : List Umpire.Case.Producer.FieldRelation := [$relationRefs,*]))
+  elabCommand (← `(command|
+    def $timersName : List String := [$timerTerms,*]))
 
 /-! ### A functional set's Cases
 
@@ -146,6 +197,8 @@ elab "case" name:ident
   let environment ← getEnv
   let some declaredSet := Umpire.Command.Registry.set? environment setName
     | throwErrorAt setRef (notASetMessage setName.toString)
+  if declaredSet.purpose == "exploratory" then
+    return ← elabExploratoryCase name setRef realization declaredSet lines
   unless declaredSet.purpose == "functional" || declaredSet.purpose == "canary" do
     throwErrorAt setRef (notFunctionalMessage setName.toString declaredSet.purpose)
   let canary := declaredSet.purpose == "canary"
