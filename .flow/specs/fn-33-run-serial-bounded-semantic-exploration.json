@@ -18,7 +18,7 @@
     "fn-33-run-serial-bounded-semantic-exploration.1": 0,
     "fn-33-run-serial-bounded-semantic-exploration.2": 0,
     "fn-33-run-serial-bounded-semantic-exploration.3": 0,
-    "fn-33-run-serial-bounded-semantic-exploration.4": 4,
+    "fn-33-run-serial-bounded-semantic-exploration.4": 0,
     "fn-33-run-serial-bounded-semantic-exploration.5": 0,
     "fn-33-run-serial-bounded-semantic-exploration.6": 0
   },
@@ -1792,12 +1792,86 @@
       "task": "fn-33-run-serial-bounded-semantic-exploration.4",
       "timestamp": "2026-09-22T21:32:21.730895Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2d43b3699754f4ce432e60a10bf6fd7366fa664d564d9fcb6fb73196e5b2007e",
+      "backend": "claude",
+      "base_sha": "63ef9869540997adfb5e8a55aa3110bcbc9c3195",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad6f6a4a9e482c9f7565b47a88b76f718273d87f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "c7a2543cd0d34910a5148be23a471b46",
+      "round_consumed": false,
+      "scope": "impl:fn-33-run-serial-bounded-semantic-exploration.4",
+      "superseded_by": null,
+      "task": "fn-33-run-serial-bounded-semantic-exploration.4",
+      "timestamp": "2026-09-22T21:37:01.128561Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "2d43b3699754f4ce432e60a10bf6fd7366fa664d564d9fcb6fb73196e5b2007e",
+      "backend": "claude",
+      "base_sha": "63ef9869540997adfb5e8a55aa3110bcbc9c3195",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-779d629bd82688517134a7996a806890",
+            "classification": "introduced",
+            "findingId": "finding-779d629bd82688517134a7996a806890",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad6f6a4a9e482c9f7565b47a88b76f718273d87f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4205,
+      "output_sha256": "7a85c4a933cfed319413017792f21fa63258a86912f9b0cd31e5e07339bc2f4e",
+      "reservation_id": "7f4d02ffd5584643a01476584734d88f",
+      "round_consumed": true,
+      "scope": "impl:fn-33-run-serial-bounded-semantic-exploration.4",
+      "superseded_by": null,
+      "task": "fn-33-run-serial-bounded-semantic-exploration.4",
+      "timestamp": "2026-09-22T21:39:14.317973Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-33-run-serial-bounded-semantic-exploration.1": 1,
     "impl:fn-33-run-serial-bounded-semantic-exploration.2": 1,
     "impl:fn-33-run-serial-bounded-semantic-exploration.3": 1,
+    "impl:fn-33-run-serial-bounded-semantic-exploration.4": 1,
     "impl:fn-33-run-serial-bounded-semantic-exploration.5": 1,
     "impl:fn-33-run-serial-bounded-semantic-exploration.6": 1,
     "plan": 4,
@@ -1828,5 +1902,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T21:32:21.735513Z"
+  "updated_at": "2026-09-22T21:39:14.323393Z"
 }
