@@ -475,11 +475,11 @@ func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, ki
 	if err := json.Unmarshal(line, &answer); err != nil {
 		return reply{}, fmt.Errorf("decode bridge reply to %s: %w", frame.Frame, err)
 	}
-	if answer.Frame == "rejected" {
-		return reply{}, &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
-	}
 	if answer.Seq != frame.Seq {
 		return reply{}, &ProtocolError{Expected: fmt.Sprintf("seq %d", frame.Seq), Actual: fmt.Sprintf("seq %d", answer.Seq)}
+	}
+	if answer.Frame == "rejected" {
+		return reply{}, &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
 	}
 	if answer.Set != b.set {
 		return reply{}, &ProtocolError{Expected: "set " + b.set, Actual: "set " + answer.Set}
