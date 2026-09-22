@@ -8,7 +8,9 @@ its candidate's Run says, the answer is recorded and the campaign moves on. `cov
 status a Run earns; `unreachable` is decided without one; `violated` and `attempted` say a Run was
 spent and did not confirm the planned path -- the first because the deployment contradicted it, the
 second because nothing decisive came back; `unrealizable` says no Run could be spent, because the
-realization the campaign produces Cases under binds nothing for a member on the planned path.
+realization the campaign produces Cases under binds nothing for a member on the planned path. It
+is credited to the target planned and to the members not bound, never to the rest of the path,
+which another candidate may reach.
 
 A class ledger sits beside the targets: per claimed class, the decisive verdict of the candidate
 planned for its member target. A `violated` there is a counterexample, the one thing an exploration
