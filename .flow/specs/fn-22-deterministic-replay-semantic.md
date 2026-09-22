@@ -93,17 +93,23 @@ Case, Contract, Run or event stream.
 renderer's compact canonical ProtoJSON, one owner: the exploration bridge hands it out in that
 form and `umpire-fuzz --record-root` writes it so; a checked-in fixture is that form re-indented
 with two spaces and a trailing newline by the conformance generator's `persistedForm`, which Go
-inverts with `json.Compact`. Admission compacts the input, requires that re-indenting the
-compact bytes gives the input back (so that "noncanonical" means anything but the canonical form
-or its persisted re-indentation), decodes the compact bytes, and takes the subject's *identity*
-as the SHA-256 of them; the Lean bridge's `admit` re-produces the Case and compares the same
+inverts with `json.Compact`. Admission accepts an input that is the compact form (one trailing
+newline allowed, which `--record-root` writes) or its persisted re-indentation, that is
+`input == compact(input) || input == persistedForm(compact(input))`, with `persistedForm` decided
+once in an importable package the conformance generator and the replay share; anything else is
+`noncanonical`. It decodes the compact bytes and takes the subject's *identity* as the SHA-256
+of them; the Lean bridge's `admit` re-produces the Case and compares the same
 compact bytes. The recorded Run is: a local JSON file holding the closed Run
 with its Verdict and the `DriverIdentity` it was prepared under (Profile name, catalog and
 environment-binding fingerprints, none secret), written by `umpire-run --record <path>`, by
 `umpire-fuzz --record-root <dir>` for each counterexample (its Case bytes as
 `<set>-<digest>-case.json` beside its recorded Run as `<set>-<digest>-run.json`, which is how an
-exploration counterexample becomes a subject), and by the live suite's helper beside every Run
-it closes. It is a value the command reads from two files and the deployment flags; the recorded
+exploration counterexample becomes a subject; the campaign's `Drive` gains a per-candidate record
+hook that hands each violated Run's Case bytes, Run, Verdict and `DriverIdentity` to the caller
+as they close, matched to the summary's counterexamples by candidate identity, so nothing is
+retained in the report), and by the live suite's helper through one
+`run` method on its bound Case that records into the test's temporary directory, which the
+control test alone uses. It is a value the command reads from two files and the deployment flags; the recorded
 Run is a file shape of `tools/umpire/replay`, not an artifact family, bundle, digest or trust
 store.
 
@@ -184,9 +190,14 @@ The pair's class is by precedence: any `not-reproduced` makes the pair `not-repr
 otherwise any `indeterminate` makes it `indeterminate`, otherwise it is `reproduced`. A preparation rejection is an admission failure before
 any Run. fn-64 terminal precedence stays authoritative.
 
-**Reduction** is over the admitted Query's exact-trace Scenario, keeping the Property fixed, in
-one sweep: Lean enumerates one typed edit in a fixed order, `dropPrefixStep i` for each step
-before the target row, last first (every Scenario ends on its target row and the Producer rejects
+**Reduction** starts only on a subject whose pair is `reproduced`; otherwise the report says the
+reduction was not attempted and no proposal is compiled. It is over the admitted Query's
+Scenario, keeping the Property fixed, in one sweep: Lean enumerates one typed edit in a fixed
+order, `dropPrefixStep i` for each step before the target row, last first, defined over the
+Scenario's action sequence (rebuilt with `Scenario.exactly` minus occurrence `i`, which is what
+every functional Query authors; an exploration Query, which also sets `traceExactly`, drops the
+step there too), the behavior author rebuilt from the set's declared Scenario before
+`checkAdmitted` (every Scenario ends on its target row and the Producer rejects
 a silent step at the end of a path, so a silent step is a prefix step and no second edit names
 it), and each edit is tried once against the candidate retained so far; nothing is re-enumerated
 after a retention, so `minimized` means no single edit of that sweep reproduced, not that no
@@ -231,8 +242,9 @@ it is never reviewed into a regression set, which its name and documentation say
 `Umpire.Promotion.compilePromotionSource` from the retained candidate's admitted Query, the anchor
 read off its planning and fresh names keyed by the candidate's digest (its Plan checksum, the
 same digest that names its Case) under the Model's family
-(the fn-33 .5 shape, lifted from `Umpire.Exploration.Promotion` into `Umpire.Promotion.propose`
-so both consumers share it). The proposal renders the Model's expected trace, never the observed
+(the fn-33 .5 shape, lifted from `Umpire.Exploration.Promotion` into
+`Umpire.Command.Promotion.propose`, downstream of `Umpire.Command.Authoring` so that
+`Umpire.Promotion` keeps importing only Search and Admission, and both consumers share it). The proposal renders the Model's expected trace, never the observed
 violating Run; it is review-only, written only under `--promotion-root` outside the model through
 the writer `umpire-fuzz` already has, lifted into `tools/umpire/internal/cli` so both commands
 share the containment (both roots resolved through their symlinks first), the check-before-write
@@ -253,7 +265,8 @@ Crossed identities (Case, Program, Run, Profile), a stale Profile identity, a no
 incomplete or unclosed Run, a `COMPLETED` disposition beside a violation, a non-violated Verdict,
 a supporting sequence naming no event, an offline replay that errs or does not reproduce the
 recorded Verdict, or a Case no set of the Model produces reject before any rerun, and the
-command exits 3 naming the rejection in its field. Target non-success is a Run outcome.
+command exits 3 naming the rejection in its field; a proposal that does not compile exits 3
+with the `proposal` field naming the error, the rest of the report standing. Target non-success is a Run outcome.
 Monitor, cleanup or Driver failure follows fn-64 precedence and cannot turn an inconclusive attempt
 into reproduction. A proposal or report write failure never installs anything and never reruns.
 
@@ -384,7 +397,7 @@ semantic step, since the correlated monitor supports every rule with every step;
 the platform's real row authorized and adds the row its Query selects, with inconclusive Runs a
 stop condition; the key is read in Definition IDs through `provenance.local_names` and on the
 terminal step's evidence kinds, not on the Verdict's accumulated support or instruction ids;
-`binding.Campaign.Prepare` prepares without a deployment so offline replay and `stale` are decided
+`binding.Prepare` prepares without a deployment so offline replay and `stale` are decided
 in `.1`; the control's fixture goes through `umpire-gen-case-runtime-conformance` into
 `tests/testcore/testpilot/testdata` and the module through `Temporal.Feature.Nexus`; every task
 declares `Touches`, `.4` lists the exploration bridge and its gate, `.5` the campaign bridge
@@ -431,6 +444,14 @@ classifier's value alone and the report's field set is `.8`'s; the pair rule and
 retry are stated and counted in the budget; R9 matches the Contracts section. The replay bridge
 carries a typed binding table, not the registry; one function decides the admissible violated
 form for admission and reruns. Task `.1` stays one task by the owner's decision.
+
+Round six (2026-09-22): SHIP, with six P2 and two P3 notes folded into the plan: the
+canonical-form rule admits the compact form or its persisted re-indentation, the persisted form
+decided once in an importable package; `dropPrefixStep` is over the Scenario's action sequence;
+the reducer starts only on a `reproduced` subject; `umpire-fuzz --record-root` records through a
+per-candidate hook in `Drive`, so `.1` touches `tools/umpire/campaign`; the live helper records
+through one method the control test uses; a proposal compile failure exits 3; `.8` satisfies R6;
+the shared `propose` lives in `Umpire.Command.Promotion`, downstream of Authoring.
 
 ## History
 

@@ -18,7 +18,7 @@ Implement two fresh isolated reruns of the admitted subject through `tools/umpir
 **Touches:** `tools/umpire/replay/rerun*.go`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
 - [ ] Every attempt binds fresh state under the exact Profile identity; nothing stale or rejected at admission reaches a Run; `Open` runs only after admission.
 - [ ] Runtime, monitor, cleanup and Verdict outcomes keep fn-64 precedence and map to the three classes without a fourth.
