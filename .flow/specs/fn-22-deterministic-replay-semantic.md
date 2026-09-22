@@ -135,7 +135,8 @@ Three replay classes are explicit and reported apart:
   (the monitor rules' transition trace; the correlated monitor's `release`, where a buffered
   evidence may be released by a later event and the released evidence, not the releasing event,
   is the one named). It runs before any rerun and proves the Verdict is the Contract's reading of
-  the events, not the Monitor's timing;
+  the events, not the Monitor's timing. A replay whose Verdict differs from the recorded one, or
+  whose evaluation errs, rejects the subject before any rerun (`semanticReplay` names the cause);
 - **concrete rerun** prepares the same canonical Case under the exact Profile identity through
   `binding.Bind` and executes one fresh isolated Run;
 - **SDK history replay** is diagnostic only and outside this spec: no type, no field.
@@ -147,7 +148,8 @@ where none does, because local names are the shortest unique dotted suffix among
 Definition IDs and a candidate with fewer steps can rename what survives. It binds the violated
 rules (by Definition ID, sorted), each with the terminal state it reached and its *violating
 evidence*: for a monitor rule the terminal state is the rule's own state and the evidence is the
-observation ids the violating event carries; for a correlated rule the terminal state is the
+observation ids the violating event carries, except that a rule violated by its deadline names
+the deadline's violation state and no evidence, since which event reaches the count is timing; for a correlated rule the terminal state is the
 runtime's constant (`correlated.violated`, taken as-is) and the evidence is the `Kind` of the
 decoded `CorrelatedEvidence` value whose release resolved the obligation, both read from the
 evaluation the offline replay returns, never searched for. It does not read the Verdict's
@@ -160,11 +162,12 @@ violating evidence is a different violation. The candidate's identity (its Case 
 recorded beside the key and is never part of it.
 
 **Reproduction** takes two fresh Runs of the subject's Case. The admissible violated form is a
-Run whose disposition is `STOPPED_BY_MONITOR` (the evaluator stops at the first violation) or
-`COMPLETED`, whose cleanup `SUCCEEDED`, and whose Verdict is `VIOLATED`. Both Runs in that form
-with the subject's key: `reproduced`. Any `COMPLETED` `satisfied` Verdict or a violated Verdict
-with another key: `not-reproduced`. An `INCOMPLETE` disposition, an unclosed cleanup or an
-`inconclusive` Verdict: `indeterminate`. A preparation rejection is an admission failure before
+Run whose disposition is `STOPPED_BY_MONITOR` (the evaluator stops at the first violation, and
+records a violation found at closure the same way; it refuses `COMPLETED` beside a violation, so
+admission rejects that pair as malformed), whose cleanup `SUCCEEDED`, and whose Verdict is
+`VIOLATED`. Both Runs in that form with the subject's key: `reproduced`. Any `COMPLETED`
+`satisfied` Verdict or a violated Verdict with another key: `not-reproduced`. An `INCOMPLETE`
+disposition, an unclosed cleanup or an `inconclusive` Verdict: `indeterminate`. A preparation rejection is an admission failure before
 any Run. fn-64 terminal precedence stays authoritative.
 
 **Reduction** is over the admitted Query's exact-trace Scenario, keeping the Property fixed, in
@@ -175,11 +178,14 @@ it), and each edit is tried once against the candidate retained so far; nothing 
 after a retention, so `minimized` means no single edit of that sweep reproduced, not that no
 subset would. Each edit is re-admitted through `Umpire.Command.checkAdmitted`; one the Model
 does not admit (the row is no longer reachable) is `inapplicable`, recorded, no Case produced.
-An admitted edit is produced as a whole Case under the same realization, with the identity
-`temporal.case.<set>.<digest>` and the fixture `<set>-<digest>` the exploration bridge gives a
-candidate, the digest being the candidate's checksum; an edit whose Case the Producer or
-`testpilot.Prepare` rejects is `rejected`, recorded with the reason, never rerun, and counts as
-inapplicable for completion. The key makes the comparison sound: the violated rule
+An admitted edit is produced as a whole Case under the same realization, named as the
+exploration bridge names a candidate: the *digest* is the edited Query's Plan checksum
+(`Umpire.Exploration.candidateDigest`, which exists before the Case is produced and is what the
+Case ID must not contain), the Case ID is `temporal.case.<set>.<digest>` and the fixture
+`<set>-<digest>`; the subject itself, when it is the retained candidate, has the digest of its
+own admitted Query's Plan. The Case checksum is the report's separate `identity` field and names
+nothing. An edit whose Case the Producer or `testpilot.Prepare` rejects is `rejected`, recorded
+with the reason, never rerun, and counts as inapplicable for completion. The key makes the comparison sound: the violated rule
 keeps its Definition ID across candidates (the lowered clause triggers on the Scenario's opening
 action with the target's position as its bound, so the trigger and the bound follow the edited
 Scenario while the rule's identity does not change), its terminal state and violating evidence
@@ -208,7 +214,8 @@ state hold.
 proposal proves the mechanism only: its expected trace is the row the platform never takes, and
 it is never reviewed into a regression set, which its name and documentation say):
 `Umpire.Promotion.compilePromotionSource` from the retained candidate's admitted Query, the anchor
-read off its planning and fresh names keyed by the candidate's digest under the Model's family
+read off its planning and fresh names keyed by the candidate's digest (its Plan checksum, the
+same digest that names its Case) under the Model's family
 (the fn-33 .5 shape, lifted from `Umpire.Exploration.Promotion` into `Umpire.Promotion.propose`
 so both consumers share it). The proposal renders the Model's expected trace, never the observed
 violating Run; it is review-only, written only under `--promotion-root` outside the model through
@@ -227,8 +234,10 @@ dispatch. Cancellation stops new work and lets the active Run follow fn-64 abort
 semantics; a Run lost to a stop is named, never synthesized.
 
 Crossed identities (Case, Program, Run, Profile), a stale Profile identity, a noncanonical Case, an
-incomplete or unclosed Run, a non-violated Verdict, a supporting sequence naming no event, or a
-Case no set of the Model produces reject before any rerun. Target non-success is a Run outcome.
+incomplete or unclosed Run, a `COMPLETED` disposition beside a violation, a non-violated Verdict,
+a supporting sequence naming no event, an offline replay that errs or does not reproduce the
+recorded Verdict, or a Case no set of the Model produces reject before any rerun, and the
+command exits 3 naming the rejection in its field. Target non-success is a Run outcome.
 Monitor, cleanup or Driver failure follows fn-64 precedence and cannot turn an inconclusive attempt
 into reproduction. A proposal or report write failure never installs anything and never reruns.
 
@@ -342,6 +351,10 @@ regression view. Existing comments are preserved where the invariant they descri
   keeps `stale` about what can go stale, the catalog and the bindings, and lets a Run recorded by
   any of the three writers be replayed. Dynamic configuration is not in `binding.Deployment`,
   so a Run recorded under switch settings is stale to this slice rather than silently rebound.
+- **Why a candidate's digest is its Plan checksum (2026-09-22, plan review round four):** the
+  Producer writes the Case ID into the Case, so an ID that contained the Case's own checksum could
+  never be computed; the Plan checksum exists before production, and it is what the exploration
+  bridge and the proposal names already key on.
 - **Why semantic replay is a facade export (2026-09-22):** the Case Runtime evaluates a Run
   through a prepared Contract internally at the end of every Run; exposing that on
   `PreparedCase` is the smallest change that makes the offline class real instead of a report
@@ -387,6 +400,13 @@ each counterexample's Case and recorded Run so the exploration admit path has an
 shared proposal writer resolves symlinks and creates exclusively; the conformance output path is
 `common/testing/testpilot/testdata/case-runtime-conformance`; a candidate's Case ID and fixture
 follow the exploration bridge's scheme; "unsupported" is defined.
+
+Round four (2026-09-22): NEEDS_WORK with five findings, all applied: a candidate's digest is
+the edited Query's Plan checksum and the Case checksum is the report's `identity` alone; an
+offline replay that errs or disagrees rejects the subject before any rerun, exit 3; the only
+admissible violated disposition is `STOPPED_BY_MONITOR`; `.1` no longer touches the conformance
+output; `.8`'s live proof fails rather than skips without the replay bridge and the live gate
+builds it first. A deadline-violated monitor rule keys on its violation state alone.
 
 ## History
 
