@@ -30,6 +30,10 @@ claude plugin install flow-next@flow-next
 - The published plugin carries the same store `SCHEMA_VERSION` as this repository's `.flow`,
   so it reads and writes the store without migrating it. Check that before installing a
   version that has moved on.
+- Reviews (`flowctl <backend> plan-review` and friends) need a merge base with the base branch. A
+  cloud clone is shallow and has no `main`; pass `--base umpire` (the integration branch, which
+  shares history) or fetch `main` deep enough for a merge base. The heuristic that derives
+  `--files` from the spec text mis-parses `.lean` paths; pass the seam files explicitly.
 - A fresh clone cannot change task status: runtime state lives in the clone's `.git`
   common-dir, so every task reads `todo` from the committed snapshot and `start`, `done` and
   `spec close` refuse. Reviews, dependencies, spec status and `validate` all work, and the
