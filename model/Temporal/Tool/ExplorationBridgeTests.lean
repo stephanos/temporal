@@ -475,8 +475,8 @@ private def checkCaller : IO Unit := do
   require ((← stringsField "initialized" initialized "targets") == bound.targets) "targets differ"
   let candidate ← frameAt opened 1 "candidate" 2
   -- The first row target performs a schedule member the realization binds nothing for (every
-  -- timeout expiring at once), so it is skipped as prepare-rejected and the first realizable row
-  -- is the candidate.
+  -- timeout expiring at once), so it is credited unrealizable without a Run, listed as skipped,
+  -- and the first realizable row is the candidate.
   let skipped ← match ← field "candidate" candidate "skipped" with
     | .arr rows => rows.toList.mapM fun row => do
         pure (← stringField "skipped" row "target", ← stringField "skipped" row "reason")
