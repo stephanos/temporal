@@ -584,6 +584,11 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
   let seq := frame.seq
   let accepted (line : String) (state : State) : Outcome :=
     .reply line { state with expected := seq + 1 }
+  -- The campaign's own defect, wherever it surfaced, ends it the same way.
+  let failWith (failure : ToolingFailure) (skipped : List Skipped) (runner : Runner)
+      (seen : List ArtifactChecksum) : Outcome :=
+    accepted (renderToolingFailure seq state.setName state.profile failure skipped)
+      { state with phase := .failed failure, runner, seen }
   match frame.request with
   | .initialize profile =>
       if profile.isEmpty then
@@ -613,23 +618,17 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
       | .exhausted skipped runner =>
           pure (accepted (renderExhausted seq state.setName state.profile skipped)
             { state with phase := .exhausted, runner, seen })
-      | .toolingFailure failure skipped runner =>
-          pure (accepted (renderToolingFailure seq state.setName state.profile failure skipped)
-            { state with phase := .failed failure, runner, seen })
+      | .toolingFailure failure skipped runner => pure (failWith failure skipped runner seen)
       | .candidate view skipped runner =>
           match view.produced with
           | .error error =>
               let failure : ToolingFailure :=
                 { target := view.target, reason := s!"production: {error.construct} at {error.sourceDefinitionId}" }
-              pure (accepted (renderToolingFailure seq state.setName state.profile failure skipped)
-                { state with phase := .failed failure, runner, seen })
+              pure (failWith failure skipped runner seen)
           | .ok produced =>
               match ← Testpilot.ProtoJSON.canonical produced with
               | .error error =>
-                  let failure : ToolingFailure :=
-                    { target := view.target, reason := s!"encoding: {error}" }
-                  pure (accepted (renderToolingFailure seq state.setName state.profile failure skipped)
-                    { state with phase := .failed failure, runner, seen })
+                  pure (failWith { target := view.target, reason := s!"encoding: {error}" } skipped runner seen)
               | .ok encoded =>
                   effects.writeProgress s!"candidate {view.identity.render} {view.target}"
                   pure (accepted (renderCandidate seq state.setName state.profile view skipped encoded)
