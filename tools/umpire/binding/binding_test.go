@@ -41,6 +41,7 @@ func TestHandlerQueueForNamesTheHandlerQueueOnlyWhenTheProgramBindsOne(t *testin
 	deployment.HandlerTaskQueue = "named"
 	require.Equal(t, "named", HandlerQueueFor(deployment, source.GetProgram()))
 	require.Empty(t, HandlerQueueFor(deployment, &testpilotspb.Program{}))
+	require.Equal(t, "named", HandlerQueue(deployment))
 }
 
 func TestOpenWithoutCreateTouchesNoServerAndCloses(t *testing.T) {
