@@ -18,7 +18,7 @@ Change the Producer so that each witnessed row declares the evidence of every re
 **Touches:** `model/Umpire/Case/**`, `model/Umpire/Command/Tests/**`, `model/Temporal/Feature/**/Tests.lean`, `tests/testcore/testpilot/testdata/**`, `common/testing/testpilot/testdata/case-runtime-conformance/**`, `model/**/Fixtures/**`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
 - [ ] Every result of a witnessed row has its evidence kind declared and projected to its own row; the witness's step is the confirmed one; a Case with no alternative results is byte-identical to before.
 - [ ] Goldens and functional fixtures are regenerated, the conformance check passes, and every fixture still prepares.
