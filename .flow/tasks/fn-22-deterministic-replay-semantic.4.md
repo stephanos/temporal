@@ -1,27 +1,28 @@
 ---
-satisfies: [R4]
+satisfies: [R3, R9]
 ---
-# fn-22-deterministic-replay-semantic.4 Compile ordered typed edits into whole candidate Cases through a Lean replay bridge
+# fn-22-deterministic-replay-semantic.4 Classify fresh concrete reruns of the subject
 
 ## Description
-Add `Umpire.Replay`: over an `AdmittedQuery` with its checked Model, the finite ordered edit `dropPrefixStep i` (last prefix step first), each re-admitted through `Umpire.Command.checkAdmitted` and reported `inapplicable` when the Model does not admit it, and a monotonic `Reduction` value that retains a candidate, never retries a rejected edit and never reintroduces a dropped step. Lift the exploration bridge's frame parsing, rejection rules, profile echo and `Effects` into `Temporal.Tool.Bridge`, imported by both executables, with `umpire-check-exploration-bridge` kept green. Add `Temporal.Tool.ReplayBridge` (`umpire-replay-bridge`, non-default): `admit` names the set and the Query or the exploration target key, recovers the admitted Query (registry, or the fn-33 campaign replanned to that target), re-produces the Case under the set's realization and admits only when the bytes are the subject's; `next` hands out the next candidate as one whole Case with its identity and the edit applied; `observe` takes the candidate's classification (task .3's class, by Go) and advances the reduction; `finish` reports minimized, irreducible or incomplete with every edit's fate. Determinism as fn-33 .5 pins it: the same frames twice give the same frames.
+Implement two fresh isolated reruns of the admitted subject through `tools/umpire/binding` (`Open` once, after admission; `Bind` and `Run` per attempt; `Release` before the next) and classify: both in the admissible violated form with the subject's key `reproduced`; a `COMPLETED` `satisfied` Verdict or another key `not-reproduced`; an `INCOMPLETE` Run, unclosed cleanup or `inconclusive` Verdict `indeterminate`. Stale identity and preparation rejection were decided at admission (task .1) and never reach a Run. The classifier is a listener-free value like fn-33's `Outcome`; the reducer of task .6 consumes it unchanged for candidates.
 
 ### Approach
-- The lamp Model of `Umpire.Exploration.Tests.Classed` and the switch pin the edits; the caller Model's exploratory candidate pins `irreducible` at once; a functional caller Query with a prefix pins one admitted edit.
+- Reuse `binding.Campaign.Bind` and `Bound.Run`; a scripted `Binder` as in `tools/umpire/campaign` tests drives every class.
+- History replay has no type and no field; the test pins the report's field set.
 
 ### Quick commands
-`cd model && lake build umpire-replay-bridge umpire-replay-bridge-tests umpire-explore umpire-explore-tests UmpireTests && lake exe umpire-replay-bridge-tests && cd .. && make umpire-check-exploration-bridge`
+`go test -count=1 -tags test_dep ./tools/umpire/replay/`
 
-**Size:** L
-**Files:** `model/Umpire/Replay.lean`, `model/Umpire/Replay/Edits.lean`, `model/Umpire/Replay/Tests.lean`, `model/Temporal/Tool/Bridge.lean`, `model/Temporal/Tool/ExplorationBridge.lean`, `model/Temporal/Tool/ExplorationBridgeTests.lean`, `model/Temporal/Tool/ReplayBridge.lean`, `model/Temporal/Tool/ReplayBridgeMain.lean`, `model/Temporal/Tool/ReplayBridgeTests.lean`, `model/lakefile.lean`, `Makefile`
-**Touches:** `model/Umpire/Replay*`, `model/Temporal/Tool/**`, `model/lakefile.lean`, `Makefile`
+**Size:** M
+**Files:** `tools/umpire/replay/rerun.go`, `tools/umpire/replay/rerun_test.go`
+**Touches:** `tools/umpire/replay/rerun*.go`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review round one; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Lean owns applicability, order, candidate identity and Case compilation; an edit the Model does not admit is `inapplicable`, recorded, and produces no Case; no edit is listed twice.
-- [ ] A subject whose bytes no set of the Model produces is `crossed` at `admit`; duplicate, stale, out-of-order and oversized frames are rejected before any campaign call; the exploration bridge's tests and gate stay green over the shared module.
-- [ ] Go receives whole Cases and returns classes; it has no Case mutation or coordinate-editing API.
+- [ ] Every attempt binds fresh state under the exact Profile identity; nothing stale or rejected at admission reaches a Run; `Open` runs only after admission.
+- [ ] Runtime, monitor, cleanup and Verdict outcomes keep fn-64 precedence and map to the three classes without a fourth.
+- [ ] The report carries semantic replay, concrete rerun and no history-replay field.
 ## Done summary
 TBD
 

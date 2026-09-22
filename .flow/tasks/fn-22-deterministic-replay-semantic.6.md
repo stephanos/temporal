@@ -1,27 +1,27 @@
 ---
-satisfies: [R7]
+satisfies: [R5]
 ---
-# fn-22-deterministic-replay-semantic.6 Emit the checked review-only regression proposal
+# fn-22-deterministic-replay-semantic.6 Implement the bounded monotonic minimizer over the bridge
 
 ## Description
-Lift fn-33 .5's proposal shape into `Umpire.Promotion.propose` (an admitted Query, its checked Model, the anchor read off its planning, fresh names keyed by the candidate's digest under the Model's family, a caller-named location) so the exploration campaign and the replay bridge share it; the bridge's `finish` frame carries the retained candidate's proposal (digest, path, bytes) or its error only for a `minimized` or `irreducible` result. Go writes the bytes only under `--promotion-root` outside the model, at the path the bridge named, checking every path before writing any, refusing to overwrite an existing destination, and reports the digest, the path and where it was written; a write failure or an existing destination never reruns.
+Implement the Go client of the replay bridge (one request outstanding, exact echo, byte caps) over `tools/umpire/campaign.Bridge`'s transport, generalized where fn-33 left it specific to the exploration frames, and the reducer: for each candidate the bridge hands out, two fresh reruns through task .4, retained only when both reproduce the subject's key, then reported to the bridge; an `indeterminate` rerun is retried once within the Run budget and, still indeterminate, ends the reduction `incomplete` naming the edit, never counted as non-reproducing; fixed limits (eight edits enumerated, twelve Runs in all, one active Run, 25 minutes, Case, event and report bytes) checked before preparation or dispatch; cancellation stops new work, the active Run follows fn-64 semantics and a lost Run is named. Completion is the bridge's: `minimized`, `irreducible` or `incomplete` with the limit or the undecided edit that ended it. Determinism: the same scripted classes twice give the same decisions and the same report bytes.
 
 ### Approach
-- `Umpire.Exploration.Promotion.propose` becomes a call into the shared function; its tests stay green.
+- The reducer is a consumed-value state machine like `campaign.Session`; `campaign`'s tests stay green over the generalized transport.
 
 ### Quick commands
-`cd model && lake build UmpireTests umpire-replay-bridge-tests umpire-explore-tests && lake exe umpire-replay-bridge-tests && lake exe umpire-explore-tests && cd .. && go test -count=1 -tags test_dep ./tools/umpire/replay/`
+`go test -count=1 -tags test_dep ./tools/umpire/replay/ ./tools/umpire/campaign/`
 
-**Size:** M
-**Files:** `model/Umpire/Promotion.lean`, `model/Umpire/Exploration/Promotion.lean`, `model/Umpire/PromotionTests.lean`, `model/Umpire/Exploration/Tests/Classed.lean`, `model/Temporal/Tool/ReplayBridge.lean`, `model/Temporal/Tool/ReplayBridgeTests.lean`, `tools/umpire/replay/proposal.go`, `tools/umpire/replay/proposal_test.go`
-**Touches:** `model/Umpire/Promotion*.lean`, `model/Umpire/Exploration/Promotion.lean`, `model/Umpire/Exploration/Tests/Classed.lean`, `model/Temporal/Tool/ReplayBridge*.lean`, `tools/umpire/replay/proposal*.go`
+**Size:** L
+**Files:** `tools/umpire/replay/minimize.go`, `tools/umpire/replay/minimize_test.go`, `tools/umpire/replay/bridge.go`, `tools/umpire/replay/bridge_test.go`, `tools/umpire/campaign/bridge.go`, `tools/umpire/campaign/run_test.go`
+**Touches:** `tools/umpire/replay/**`, `tools/umpire/campaign/bridge.go`, `tools/umpire/campaign/*_test.go`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review round one; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] An incomplete, not-reproduced or indeterminate result carries no proposal.
-- [ ] The proposal compiles through `Umpire.Promotion` from the retained candidate's admitted Query, renders the Model's expected trace and never the observed Run, and seals the same digest across two reductions.
-- [ ] Nothing is written under the model root; a write failure or an existing destination is reported as the proposal's status and triggers no rerun.
+- [ ] Edit, Run, wall-time, Case-byte, event and report limits are enforced before the work they bound, and `incomplete` names the limit or the undecided edit.
+- [ ] Compile or preparation rejection, not-reproduced, indeterminate (retried once, then incomplete), cancellation and limit exhaustion stay distinct in the report, and no applicable edit is skipped or counted as non-reproducing without two conclusive Runs.
+- [ ] The same inputs and classes give the same reduction decisions and report bytes; a retained candidate never reintroduces a dropped step.
 ## Done summary
 TBD
 
