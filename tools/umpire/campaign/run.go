@@ -57,6 +57,9 @@ const (
 	// facade may have returned an error beside the Run -- a recorder or Monitor close failure after
 	// the Verdict was fixed -- which RunError carries; the Run is still the authoritative record.
 	OutcomeCompleted OutcomeKind = "completed"
+	// OutcomeLost: the campaign stopped while this candidate's Run was opened and not credited;
+	// the report marks the lost iteration so, whatever the path returned for it.
+	OutcomeLost OutcomeKind = "lost"
 )
 
 // Outcome is what one candidate came to. Run and Verdict are set whenever the facade returned a
