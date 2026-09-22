@@ -45,13 +45,15 @@ def next (session : Session model) : Step model :=
       | .exhausted campaign => .exhausted { campaign, outstanding := none }
       | .toolingFailure failure campaign => .toolingFailure failure { campaign, outstanding := none }
 
-/-- Admit exactly the outstanding candidate's binding with its observation. -/
-def observe (session : Session model) (bindings : List ArtifactBinding) (observation : Observation) :
-    Option (Session model) :=
+/-- Admit exactly the outstanding candidate's binding with its observation, credited to its
+planned path or to the `covers` named instead. -/
+def observe (session : Session model) (bindings : List ArtifactBinding) (observation : Observation)
+    (covers : Option (List CoverageTarget) := none) : Option (Session model) :=
   match session.outstanding, bindings with
   | some candidate, [binding] =>
       if binding == candidate.binding then
-        some { campaign := session.campaign.observe candidate observation, outstanding := none }
+        some { campaign := session.campaign.observe candidate observation (covers.getD candidate.covers)
+               outstanding := none }
       else none
   | _, _ => none
 

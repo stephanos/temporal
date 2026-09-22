@@ -282,7 +282,7 @@ private def checkParsing : IO Unit := do
     | .ok _ => fail s!"`{line}` parsed as a frame"
   let malformed (line : String) (mentions : String) : IO Unit :=
     match parseFrame line with
-    | .ok (.error reason) =>
+    | .ok (.error (_, reason)) =>
         require ((reason.splitOn mentions).length > 1) s!"`{line}`: reason `{reason}` lacks `{mentions}`"
     | .ok (.ok _) => fail s!"`{line}` parsed as a well-formed frame"
     | .error reason => fail s!"`{line}` is no frame at all: {reason}"
@@ -302,6 +302,13 @@ private def checkParsing : IO Unit := do
   malformed "{\"frame\":\"next\",\"seq\":1,\"set\":\"s\",\"target\":\"row:x\"}" "admits no `target`"
   malformed "{\"frame\":\"initialize\",\"seq\":1,\"set\":\"s\",\"profile\":\"p\",\"case\":{}}" "admits no `case`"
   malformed "{\"frame\":\"finish\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\"}" "admits no `candidate`"
+  -- A malformed frame is rejected under the sequence number it carries, or 0 without one.
+  match parseFrame "{\"frame\":\"next\",\"seq\":7}" with
+  | .ok (.error (7, _)) => pure ()
+  | _ => fail "a malformed frame did not keep its seq"
+  match parseFrame "{\"frame\":\"next\"}" with
+  | .ok (.error (0, _)) => pure ()
+  | _ => fail "a malformed frame without seq is not rejected at 0"
   match parseFrame "{\"frame\":\"finish\",\"seq\":9,\"set\":\"s\",\"status\":\"limit-reached\"}" with
   | .ok (.ok parsed) =>
       let limitReached := match parsed.request with
@@ -329,7 +336,7 @@ private def checkProtocol : IO Unit := do
     frame "next" 7 stubSet,                        -- 7: out of order
     observeRejected 3 "other" first.render,        -- 8: wrong set
     observeRejected 3 stubSet second.render,       -- 9: crossed
-    "{\"frame\":\"observe\",\"seq\":3}",           -- 10: malformed, rejected at seq 0
+    "{\"frame\":\"observe\",\"seq\":3}",           -- 10: malformed, rejected under its seq
     observeRejected 3 stubSet first.render "other-profile", -- 11: crossed profile
     frame "observe" 3 stubSet (",\"candidate\":\"" ++ first.render ++ "\",\"profile\":\"" ++ profile ++
       "\",\"run\":{}"),                              -- 12: an empty Run is no observation
@@ -378,7 +385,7 @@ private def checkProtocol : IO Unit := do
   requireRejected captured 7 7 "out-of-order"
   requireRejected captured 8 3 "names set other"
   requireRejected captured 9 3 "crossed observe"
-  requireRejected captured 10 0 "`set`"
+  requireRejected captured 10 3 "`set`"
   requireRejected captured 11 3 "crossed profile"
   requireRejected captured 12 3 "names no `runId`"
   requireRejected captured 13 3 "does not decode"
@@ -521,6 +528,15 @@ private def checkCaller : IO Unit := do
   require ((← natField "summary" summary "attempted") == 0) "a skipped candidate counted as attempted"
   let ledger ← statusesOf "finished" finished "ledger"
   require (skipped.all fun (key, _) => ledger.contains (key, "unrealizable")) "skipped targets are not unrealizable"
+  -- Only the skipped targets and the unbound members' class targets are unrealizable: the result
+  -- every schedule reaches, and every other target on a skipped path, stays reachable.
+  let unrealizableKeys := (ledger.filter (·.2 == "unrealizable")).map (·.1)
+  require (unrealizableKeys.all fun key =>
+      skipped.any (·.1 == key) || (key.startsWith "class:" && (key.splitOn "schedule").length == 2))
+    s!"targets other candidates may reach were marked unrealizable: {unrealizableKeys}"
+  require (!unrealizableKeys.any (·.startsWith "result:")) "a result target was marked unrealizable"
+  require (ledger.any fun (key, status) => key.startsWith "result:" && status == "covered")
+    "the satisfied Run did not cover the result its path reaches"
 
 /-! ### The executable -/
 

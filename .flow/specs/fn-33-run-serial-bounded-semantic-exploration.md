@@ -99,7 +99,10 @@ and ledger status, distinct from `attempted`, which says a Run was spent -- with
 as skipped on the frame that follows, and the campaign moves on within the same `next`. The
 implementation review asked whether to stop instead, bind every member, or filter the targets at
 `Campaign.check`; the skip with its own status was chosen because the enumeration is the Model's
-and what the realization cannot run is a finding the ledger should show, not hide.
+and what the realization cannot run is a finding the ledger should show, not hide. The status is
+credited to the target planned and to the class members of the unbound members only, never to the
+rest of the skipped path (a result every bound schedule reaches stays pending), so `observe` takes
+the covers to credit beside the observation.
 The Producer is not changed to reject, because a realization may leave an action unbound on
 purpose. Second, a path whose only evidence is the scheduled read lifts no history event, and a
 history read with an empty evidence lift is a Case `Prepare` rejects; `asyncNexus`'s history read

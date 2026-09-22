@@ -126,12 +126,13 @@ private def elabExploratoryCase (name : Ident) (setRef : Ident) (realization : T
     (declaredSet : Umpire.Command.Registry.SetEntry) (lines : Array (TSyntax `caseEvidence)) :
     CommandElabM Unit := do
   let environment ← getEnv
+  let setName := declaredSet.declName.toString
   for line in lines do
-    throwErrorAt line (exploratoryEvidenceMessage declaredSet.name)
+    throwErrorAt line (exploratoryEvidenceMessage setName)
   let some machineName := declaredSet.machine
-    | throwErrorAt setRef (exploratoryMachineMessage declaredSet.name)
+    | throwErrorAt setRef (exploratoryMachineMessage setName)
   let some declaredMachine := Umpire.Command.Registry.machine? environment machineName
-    | throwErrorAt setRef (unregisteredMachineMessage declaredSet.name machineName.toString)
+    | throwErrorAt setRef (unregisteredMachineMessage setName machineName.toString)
   let (claims, catalog, relationRefs) ← machineProductionTerms environment machineName declaredMachine
   let realizationName := mkIdentFrom name (name.getId ++ `realization)
   let claimsName := mkIdentFrom name (name.getId ++ `claims)

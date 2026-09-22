@@ -30,9 +30,10 @@ own and nothing is registered in the Temporal Case Registry.
 A realization binds the class members it can perform, and a machine's table enumerates every
 member: a planned path that performs a member with no binding and no timer behind it is one the
 realization cannot run, and the Producer would assemble a Program without that step. The bridge
-reads the bindings before producing: such a candidate is credited `unrealizable` at once, its
-targets marked so in the ledger rather than `attempted`, reported in the `skipped` list of the
-frame that follows it, and the campaign moves on within the same `next`.
+reads the bindings before producing: such a candidate is credited `unrealizable` at once -- to the
+target it was planned for and to the class members not bound, never to the rest of its path, which
+another candidate may reach -- reported in the `skipped` list of the frame that follows it, and
+the campaign moves on within the same `next`.
 
 The frames are exact: each kind admits a closed set of keys, and an object carrying any other key
 -- one that would let the coordinator name a target, a coordinate or a Case family -- is rejected.
@@ -166,18 +167,28 @@ variable [DecidableEq Outcome] [DecidableEq Fact]
 variable {model : DeclaredModel Setup State Action Outcome Fact}
 
 /-- The class members on the candidate's path that no action binding resolves to and no timer
-names, by their spelling: what the realization cannot perform. The path is read the way the
-Producer reads it, the stated program or else the exact action sequence. -/
+names, each by its Definition ID and its spelling: what the realization cannot perform. The path
+is read the way the Producer reads it, the stated program or else the exact action sequence. -/
 def unrealizable (production : Production) (checked : Umpire.Command.CheckedModel model) :
-    List String :=
+    List (DefinitionId × String) :=
   let input := Umpire.Command.producerInput checked
   let bound := production.realization.actions.map (·.resolve (some input.vocabulary))
   let path := (input.program.map (·.map (·.1))).getD (input.scenario.actionsExactly.getD [])
   (path.filterMap fun action =>
     if bound.contains action then none
     else match input.vocabulary.actions.find? (·.definitionId == action) with
-      | some value => if production.timers.contains value.value then none else some value.value
-      | none => some action.value).eraseDups
+      | some value => if production.timers.contains value.value then none else some (action, value.value)
+      | none => some (action, action.value)).eraseDups
+
+/-- The targets an unrealizable candidate is credited to: the one it was planned for, and the
+class members on its path that the unbound members are. -/
+def unrealizableCovers (candidate : Candidate model) (unbound : List (DefinitionId × String)) :
+    List Umpire.Command.CoverageTarget :=
+  candidate.selected :: candidate.covers.filter fun target =>
+    match target with
+    | Umpire.Command.CoverageTarget.classMember member _ _ _ _ =>
+        targetKey target != targetKey candidate.selected && unbound.any (·.1 == member)
+    | _ => false
 
 /-- One candidate's Case, produced from its checked Model the way a `case` block's Cases are. The
 machine's `evidence:` catalog confirms each fact along the witness, so the Case writes no evidence
@@ -211,10 +222,10 @@ partial def advance (binding : Binding model) (session : Session model) (skipped
   | .candidate candidate next =>
       match unrealizable binding.production candidate.checked with
       | [] => .candidate (produceCandidate binding candidate) skipped (ofSession binding next)
-      | members =>
+      | unbound =>
         let target := targetKey candidate.selected
-        let reason := "unrealizable: the realization binds no " ++ ", ".intercalate members
-        match next.observe [candidate.binding] .unrealizable with
+        let reason := "unrealizable: the realization binds no " ++ ", ".intercalate (unbound.map (·.2))
+        match next.observe [candidate.binding] .unrealizable (some (unrealizableCovers candidate unbound)) with
         | some after =>
             advance binding after (skipped ++ [{ identity := candidate.identity, target, reason }])
         | none =>
@@ -348,12 +359,14 @@ coordinator stopped it, or a campaign counter of its own tripped. -/
 def stopStatuses : List String := ["stopped", "limit-reached"]
 
 /-- Read one line as a frame. A line that is not a JSON object is no frame at all; an object that
-is not a well-formed frame is a frame to reject. -/
-def parseFrame (line : String) : Except String (Except String Frame) := do
+is not a well-formed frame is a frame to reject, under the sequence number it carries where it
+carries one, so the coordinator can match the rejection to what it sent. -/
+def parseFrame (line : String) : Except String (Except (Nat × String) Frame) := do
   let json ← match Lean.Json.parse line with
     | .ok json => pure json
     | .error reason => throw s!"not JSON: {reason}"
   let .obj members := json | throw "not a JSON object"
+  let seqOf : Nat := (json.getObjValAs? Nat "seq").toOption.getD 0
   let frameOf : Except String Frame := do
     let kind ← (json.getObjValAs? String "frame").mapError fun _ => "frame names no `frame`"
     let seq ← (json.getObjValAs? Nat "seq").mapError fun _ => "frame names no `seq`"
@@ -386,7 +399,7 @@ def parseFrame (line : String) : Except String (Except String Frame) := do
           | .ok _ => throw "finish `status` is not a string"
       | other => throw s!"unknown frame `{other}`"
     pure { seq, setName := set, request }
-  pure frameOf
+  pure (frameOf.mapError fun reason => (seqOf, reason))
 
 /-! ### Rendering -/
 
@@ -667,8 +680,8 @@ partial def serve (effects : Effects) (bound : List Bound) : IO UInt32 := do
           | .error reason =>
               effects.writeError s!"{diagnosticPrefix} line is not a frame: {reason}\n"
               pure 1
-          | .ok (.error reason) =>
-              effects.writeFrame (renderRejected 0 reason)
+          | .ok (.error (seq, reason)) =>
+              effects.writeFrame (renderRejected seq reason)
               loop state
           | .ok (.ok frame) =>
               match rejection state frame with
