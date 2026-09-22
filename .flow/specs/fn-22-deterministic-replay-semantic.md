@@ -409,7 +409,16 @@ deadline), a correlated rule on the obligation `release` resolved, read back in 
 order so the choice is the same on every reading; `PreparedContract.Evaluate` returns them and
 the facade's `PreparedCase.Evaluate` exports them as an `Evaluation`. The conformance corpus's
 `violated` Case, driven offline by a scripted Driver, pins admission, every rejection, the key's
-independence from per-Run values and from a Case-local renaming, and the pair rule.
+independence from per-Run values and from a Case-local renaming, and the pair rule. Its
+implementation review (`flowctl claude impl-review`, opus at high), round one: NEEDS_WORK with
+seven findings, all applied: the violating evidence is pinned live and offline on a monitor rule
+whose transition carries an observation and on the correlated Lean fixtures (kind and carrying
+event, or nothing at closure, which the docs now say), and the key's evidence part and rule set
+are pinned by construction; `umpire-run --record` refuses an existing file or a missing directory
+before anything runs and a race after the Run keeps the Verdict's exit code; `Bound.profile` is
+gone and `Campaign.Bind` prepares through `PrepareWith` against the campaign's catalog; the
+admissible violated form is one function returning its reason class, which `Admit` maps; the
+record file name admits only a digest; a recorded Run with bytes after its document is rejected.
 
 ## Plan review
 

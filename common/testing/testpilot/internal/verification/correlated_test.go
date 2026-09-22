@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -363,6 +364,7 @@ func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 }
 
 func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
+	var violationsWithEvidence atomic.Int64
 	encoded, err := os.ReadFile("../../testdata/case-runtime-conformance/correlated.json")
 	require.NoError(t, err)
 	var fixtures []struct {
@@ -432,11 +434,29 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 				}
 				live, err := monitor.Close(context.Background(), run)
 				require.NoError(t, err)
-				offline, _, err := prepared.Evaluate(context.Background(), run)
+				offline, violations, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(live, offline))
 				want := map[int]testpilotspb.RuleVerdictStatus{0: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.RULE_VERDICT_STATUS_SATISFIED, 3: testpilotspb.RULE_VERDICT_STATUS_VIOLATED}[fixture.Expected]
 				require.Equal(t, want, live.Rules[0].Status)
+				if want == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+					// The violation names the evidence whose release resolved the obligation, by
+					// its kind and the event that carried it, or nothing for a violation found at
+					// closure with the obligation still pending.
+					require.Len(t, violations, 1)
+					require.Equal(t, live.Rules[0].RuleId, violations[0].RuleID)
+					require.Empty(t, violations[0].ObservationIDs)
+					if violations[0].Sequence > 0 {
+						var evidence testpilotspb.CorrelatedEvidence
+						require.NoError(t, run.Events[violations[0].Sequence-1].Observations[0].Value.GetMessageValue().UnmarshalTo(&evidence))
+						require.Equal(t, evidence.GetKind(), violations[0].Kind)
+						violationsWithEvidence.Add(1)
+					} else {
+						require.Empty(t, violations[0].Kind)
+					}
+				} else {
+					require.Empty(t, violations)
+				}
 				live.Rules[0].Status = testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED
 				replayed, _, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
@@ -444,6 +464,7 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			}
 		})
 	}
+	require.Positive(t, violationsWithEvidence.Load(), "no violated fixture named its evidence")
 }
 
 func TestCorrelatedResourceBoundaries(t *testing.T) {
