@@ -40,13 +40,16 @@ type OutcomeKind string
 
 const (
 	// OutcomePrepareRejected: the Case's own static rejection, decided before any Driver opened.
-	// No Run exists; the bridge was told and the campaign advanced.
+	// No Run exists. The campaign advanced only when Credited is set; with an error beside the
+	// outcome the bridge could not be told and the candidate is still outstanding.
 	OutcomePrepareRejected OutcomeKind = "prepare-rejected"
 	// OutcomeBindFailed: the deployment or the Driver could not be opened for a Case that
 	// prepared. No Run exists and the candidate is still outstanding on the bridge.
 	OutcomeBindFailed OutcomeKind = "bind-failed"
 	// OutcomeRunFailed: the Run could not execute (the Driver refused, the context ended before a
-	// Run opened). No Run exists and the candidate is still outstanding on the bridge.
+	// Run opened), or what came back could not be observed (no cleanup, or a Run that does not
+	// encode). Run and Verdict carry whatever the facade returned; the bridge was not told and the
+	// candidate is still outstanding on it.
 	OutcomeRunFailed OutcomeKind = "run-failed"
 	// OutcomeCompleted: one Run exists with its cleanup observed, and the bridge credited it. The
 	// facade may have returned an error beside it -- a recorder or Monitor close failure after the
@@ -54,8 +57,8 @@ const (
 	OutcomeCompleted OutcomeKind = "completed"
 )
 
-// Outcome is what one candidate came to. Run and Verdict are set only for Completed; Credited is
-// set whenever the bridge was told (PrepareRejected and Completed).
+// Outcome is what one candidate came to. Run and Verdict are set whenever the facade returned a
+// Run; Credited is set whenever the bridge was told and answered.
 type Outcome struct {
 	Kind     OutcomeKind
 	Identity string
@@ -121,7 +124,7 @@ func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 	}
 	if run.GetCleanup() == nil {
 		err := errors.New("the Run returned without an observed cleanup")
-		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), RunError: runErr, ReleaseError: releaseErr}, err
+		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}, err
 	}
 	encoded, err := protojson.Marshal(run)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"slices"
 	"strings"
 )
 
@@ -294,7 +295,7 @@ func (b *Bridge) Initialize(ctx context.Context, set, profile string) (Initializ
 		return Initialized{}, errors.New("set and profile identity are required")
 	}
 	b.set, b.profile = set, profile
-	answer, err := b.exchange(ctx, request{Frame: "initialize", Profile: profile}, "initialized")
+	answer, err := b.exchange(ctx, request{Frame: "initialize", Profile: profile}, nil, "initialized")
 	if err != nil {
 		b.set, b.profile = "", ""
 		return Initialized{}, err
@@ -314,15 +315,18 @@ func (b *Bridge) Next(ctx context.Context) (Next, error) {
 	if b.outstanding != nil {
 		return Next{}, ErrCandidateOutstanding
 	}
-	answer, err := b.exchange(ctx, request{Frame: "next"}, "candidate", "exhausted", "toolingFailure")
+	whole := func(answer reply) error {
+		if answer.Frame == "candidate" && (answer.Candidate == "" || len(answer.Case) == 0 || answer.CaseID == "") {
+			return &ProtocolError{Expected: "a candidate with an identity, a Case ID and a Case", Actual: "an incomplete candidate frame"}
+		}
+		return nil
+	}
+	answer, err := b.exchange(ctx, request{Frame: "next"}, whole, "candidate", "exhausted", "toolingFailure")
 	if err != nil {
 		return Next{}, err
 	}
 	switch answer.Frame {
 	case "candidate":
-		if answer.Candidate == "" || len(answer.Case) == 0 || answer.CaseID == "" {
-			return Next{}, &ProtocolError{Expected: "a candidate with an identity, a Case ID and a Case", Actual: "an incomplete candidate frame"}
-		}
 		candidate := &Candidate{
 			Identity: answer.Candidate, Target: answer.Target, Covers: answer.Covers,
 			CaseID: answer.CaseID, Fixture: answer.Fixture, Case: answer.Case,
@@ -352,15 +356,18 @@ func (b *Bridge) Observe(ctx context.Context, identity string, result Result) (C
 	if (len(result.Run) == 0) == (result.PrepareRejected == nil) {
 		return Credited{}, errors.New("an observation carries exactly one of a Run and a preparation rejection")
 	}
+	same := func(answer reply) error {
+		if answer.Candidate != identity {
+			return &ProtocolError{Expected: "candidate " + identity, Actual: "candidate " + answer.Candidate}
+		}
+		return nil
+	}
 	answer, err := b.exchange(ctx, request{
 		Frame: "observe", Profile: b.profile, Candidate: identity,
 		Run: result.Run, PrepareRejected: result.PrepareRejected,
-	}, "credited")
+	}, same, "credited")
 	if err != nil {
 		return Credited{}, err
-	}
-	if answer.Candidate != identity {
-		return Credited{}, &ProtocolError{Expected: "candidate " + identity, Actual: "candidate " + answer.Candidate}
 	}
 	b.outstanding = nil
 	return Credited{
@@ -375,7 +382,7 @@ func (b *Bridge) Finish(ctx context.Context, status string) (Finished, error) {
 	if err := b.open(); err != nil {
 		return Finished{}, err
 	}
-	answer, err := b.exchange(ctx, request{Frame: "finish", Status: status}, "finished")
+	answer, err := b.exchange(ctx, request{Frame: "finish", Status: status}, nil, "finished")
 	if err != nil {
 		return Finished{}, err
 	}
@@ -402,12 +409,12 @@ func (b *Bridge) open() error {
 	return nil
 }
 
-// exchange writes one frame and reads its reply, matched by sequence number, set and profile. A
-// `rejected` reply is a RejectedError and leaves the sequence where it was, as the bridge does.
-// A frame that could not be written, a reply that could not be read or did not match, or a
-// context that ended mid-exchange breaks the bridge: its stream is out of step, so every later
-// call returns the same failure without writing.
-func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (reply, error) {
+// exchange writes one frame and reads its reply, matched by sequence number, set and profile, of
+// one of the kinds named, and passing the kind's own check. A `rejected` reply is a RejectedError
+// and leaves the sequence where it was, as the bridge does. A frame that could not be written, a
+// reply that could not be read or did not match, or a context that ended mid-exchange breaks the
+// bridge: its stream is out of step, so every later call returns the same failure without writing.
+func (b *Bridge) exchange(ctx context.Context, frame request, check func(reply) error, kinds ...string) (reply, error) {
 	frame.Seq = b.seq + 1
 	frame.Set = b.set
 	encoded, err := json.Marshal(frame)
@@ -420,7 +427,7 @@ func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (
 	if err := ctx.Err(); err != nil {
 		return reply{}, err
 	}
-	answer, err := b.transact(ctx, frame, encoded, kinds)
+	answer, err := b.transact(ctx, frame, encoded, kinds, check)
 	if err != nil {
 		var rejected *RejectedError
 		if !errors.As(err, &rejected) {
@@ -432,7 +439,7 @@ func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (
 	return answer, nil
 }
 
-func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, kinds []string) (reply, error) {
+func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, kinds []string, check func(reply) error) (reply, error) {
 	if _, err := b.stdin.Write(append(encoded, '\n')); err != nil {
 		return reply{}, fmt.Errorf("write %s frame: %w", frame.Frame, err)
 	}
@@ -460,8 +467,13 @@ func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, ki
 	if answer.Profile != profile {
 		return reply{}, &ProtocolError{Expected: "profile " + profile, Actual: "profile " + answer.Profile}
 	}
-	if !contains(kinds, answer.Frame) {
+	if !slices.Contains(kinds, answer.Frame) {
 		return reply{}, &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
+	}
+	if check != nil {
+		if err := check(answer); err != nil {
+			return reply{}, err
+		}
 	}
 	return answer, nil
 }
@@ -499,13 +511,4 @@ func (b *Bridge) readFrame(ctx context.Context) ([]byte, error) {
 	case result := <-done:
 		return result.line, result.err
 	}
-}
-
-func contains(values []string, value string) bool {
-	for _, candidate := range values {
-		if candidate == value {
-			return true
-		}
-	}
-	return false
 }

@@ -36,7 +36,7 @@ func TestIntegrationOneCandidateCreditsItsPlannedPath(t *testing.T) {
 		NexusEndpoint: "umpire-fuzz-" + suffix,
 		Create:        true,
 	}
-	campaign, err := binding.Open(ctx, deployment, deployment.TaskQueue+"-handler")
+	campaign, err := binding.Open(ctx, deployment, binding.HandlerQueue(deployment))
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, campaign.Close(context.Background())) })
 
