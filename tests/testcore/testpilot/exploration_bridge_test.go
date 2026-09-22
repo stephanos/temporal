@@ -29,15 +29,20 @@ func explorationBridgeBinary(t *testing.T) string {
 // explorationFrame is the part of every bridge frame the coordinator reads: its kind, its
 // sequence number, and, on a candidate, the identity, the Case and the targets the Case covers.
 type explorationFrame struct {
-	Frame     string          `json:"frame"`
-	Seq       int             `json:"seq"`
-	Set       string          `json:"set"`
-	Reason    string          `json:"reason"`
-	Candidate string          `json:"candidate"`
-	Target    string          `json:"target"`
-	Covers    []string        `json:"covers"`
-	CaseID    string          `json:"caseId"`
-	Case      json.RawMessage `json:"case"`
+	Frame     string   `json:"frame"`
+	Seq       int      `json:"seq"`
+	Set       string   `json:"set"`
+	Reason    string   `json:"reason"`
+	Candidate string   `json:"candidate"`
+	Target    string   `json:"target"`
+	Covers    []string `json:"covers"`
+	CaseID    string   `json:"caseId"`
+	Skipped   []struct {
+		Candidate string `json:"candidate"`
+		Target    string `json:"target"`
+		Reason    string `json:"reason"`
+	} `json:"skipped"`
+	Case json.RawMessage `json:"case"`
 }
 
 func runExplorationBridge(t *testing.T, binary string, frames ...string) []explorationFrame {
@@ -57,20 +62,23 @@ func runExplorationBridge(t *testing.T, binary string, frames ...string) []explo
 	return decoded
 }
 
-// The first row target of the caller Model's exploratory set crosses the bridge as a whole Case
-// that Prepare accepts under the caller Profile: Go reads the frame's Case and identity and
-// nothing else about the campaign.
+// The first realizable row target of the caller Model's exploratory set crosses the bridge as a
+// whole Case that Prepare accepts under the caller Profile: Go reads the frame's Case and identity
+// and nothing else about the campaign. The first row target itself performs a schedule member the
+// realization binds nothing for, so the bridge reports it as skipped and moves on.
 func TestExplorationBridgeFirstCandidatePrepares(t *testing.T) {
 	binary := explorationBridgeBinary(t)
 	const set = "nexusCallerExploration"
 	frames := runExplorationBridge(t, binary,
-		`{"frame":"initialize","seq":1,"set":"`+set+`"}`,
+		`{"frame":"initialize","seq":1,"set":"`+set+`","profile":"`+asyncNexusArtifactNamespace+`"}`,
 		`{"frame":"next","seq":2,"set":"`+set+`"}`,
 		`{"frame":"finish","seq":3,"set":"`+set+`"}`,
 	)
 	require.Len(t, frames, 3)
 	require.Equal(t, "initialized", frames[0].Frame)
 	require.Equal(t, "candidate", frames[1].Frame)
+	require.NotEmpty(t, frames[1].Skipped)
+	require.True(t, strings.HasPrefix(frames[1].Skipped[0].Target, "row:"), frames[1].Skipped[0].Target)
 	require.Equal(t, 2, frames[1].Seq)
 	require.True(t, strings.HasPrefix(frames[1].Target, "row:"), frames[1].Target)
 	require.Contains(t, frames[1].Covers, frames[1].Target)
@@ -95,8 +103,8 @@ func TestExplorationBridgeRejectsOutOfOrderFrames(t *testing.T) {
 	const set = "nexusCallerExploration"
 	frames := runExplorationBridge(t, binary,
 		`{"frame":"next","seq":1,"set":"`+set+`"}`,
-		`{"frame":"initialize","seq":1,"set":"`+set+`"}`,
-		`{"frame":"initialize","seq":1,"set":"`+set+`"}`,
+		`{"frame":"initialize","seq":1,"set":"`+set+`","profile":"p"}`,
+		`{"frame":"initialize","seq":1,"set":"`+set+`","profile":"p"}`,
 		`{"frame":"finish","seq":5,"set":"`+set+`"}`,
 		`{"frame":"finish","seq":2,"set":"`+set+`"}`,
 	)

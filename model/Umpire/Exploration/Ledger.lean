@@ -7,7 +7,8 @@ A target starts pending. Planning it moves it to `planned`, and it is never plan
 its candidate's Run says, the answer is recorded and the campaign moves on. `covered` is the only
 status a Run earns; `unreachable` is decided without one; `violated` and `attempted` say a Run was
 spent and did not confirm the planned path -- the first because the deployment contradicted it, the
-second because nothing decisive came back.
+second because nothing decisive came back; `unrealizable` says no Run could be spent, because the
+realization the campaign produces Cases under binds nothing for a member on the planned path.
 
 A class ledger sits beside the targets: per claimed class, the decisive verdict of the candidate
 planned for its member target. A `violated` there is a counterexample, the one thing an exploration
@@ -26,6 +27,7 @@ inductive TargetStatus where
   | unreachable
   | violated
   | attempted
+  | unrealizable
   deriving BEq, DecidableEq, Repr
 
 def TargetStatus.name : TargetStatus → String
@@ -35,14 +37,17 @@ def TargetStatus.name : TargetStatus → String
   | .unreachable => "unreachable"
   | .violated => "violated"
   | .attempted => "attempted"
+  | .unrealizable => "unrealizable"
 
 /-- What a candidate's Run said, once its cleanup is closed. Anything that is not a decisive
-Verdict on a completed Run credits nothing. -/
+Verdict on a completed Run credits nothing. `unrealizable` is the one observation made without a
+Run: the realization cannot perform a member on the candidate's path. -/
 inductive Observation where
   | satisfied
   | violated
   | prepareRejected
   | inconclusive
+  | unrealizable
   deriving BEq, DecidableEq, Repr
 
 def Observation.name : Observation → String
@@ -50,6 +55,7 @@ def Observation.name : Observation → String
   | .violated => "violated"
   | .prepareRejected => "prepare-rejected"
   | .inconclusive => "inconclusive"
+  | .unrealizable => "unrealizable"
 
 /-- One target and what the campaign knows about it. -/
 structure LedgerEntry where
@@ -102,7 +108,8 @@ def markUnreachable (ledger : Ledger) (target : CoverageTarget) : Ledger :=
 
 /-- Credit one candidate's observation to the targets on its planned path. A `satisfied` Run
 covers every one of them, whatever a previous candidate said; a `violated` Run marks the ones not
-already covered; anything else marks the ones still pending or planned as attempted.
+already covered; `unrealizable` marks the ones still pending or planned as unrealizable; anything
+else marks them attempted.
 
 A decisive Run is also a class verdict for every class member on the path: the first decisive
 verdict stands, except that a violation supersedes an earlier satisfaction, because a class one
@@ -117,6 +124,8 @@ def credit (ledger : Ledger) (candidate : ArtifactChecksum) (covers : List Cover
       | .satisfied, _ => { entry with status := .covered }
       | .violated, .covered => entry
       | .violated, _ => { entry with status := .violated }
+      | .unrealizable, .pending => { entry with status := .unrealizable }
+      | .unrealizable, .planned => { entry with status := .unrealizable }
       | _, .pending => { entry with status := .attempted }
       | _, .planned => { entry with status := .attempted }
       | _, _ => entry
