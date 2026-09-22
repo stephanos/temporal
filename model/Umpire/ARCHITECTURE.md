@@ -27,7 +27,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Scenario.Check` | Scenario admission, canonicalization, and trace admission. |
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios; `Search.admit` admits one for search. |
 | `Umpire.Variations` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
-| `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
+| `Umpire.Exploration` | A campaign over one exploratory set's coverage targets: one exact-trace target Query per candidate, a ledger of what each Run credited, counterexamples, and one-candidate sessions. |
 | `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces; `EvidenceStructure.analyze` returns the Evidence structure whose `orderingFault?` and `closureFault?` give the first fault for a raw bundle or an accepted trace. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
 | `Umpire.Search` | Deterministic incremental planning over checked Queries; `Search.admit` owns the Property, Scenario, Known Gap, Query, and search-view chain and returns an `AdmittedQuery`. |
@@ -102,7 +102,7 @@ DraftModel ── checkModel ──▶ CheckedModel
                                      ├── Property ─┐
                                      ├── Scenario ─┼── Search.admit ──▶ AdmittedQuery
                                      └── Query ────┘                        │
-                                                    Planning / Space / Exploration / Promotion
+                                                    Planning / Variations / Exploration / Promotion
 ```
 
 A feature Model reaches this diagram through the commands: `machine` enumerates the author's step

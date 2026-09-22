@@ -552,7 +552,17 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   /-- The one-instance view a Producer lowers. -/
   realizable : Realizable model.lawStatement
 
-def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+/-- A checked Model together with the admission it came from. `CheckedModel` carries what a
+Producer reads; the `AdmittedQuery` is what a second search of the same Query needs -- Promotion
+re-answers through it -- and a Query re-admitted later is a different admission. The index is the
+checked target, so the two cannot be paired across Models. -/
+structure AdmittedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) where
+  checked : CheckedModel model
+  admitted : AdmittedQuery checked.target
+
+/-- `check`, keeping the admission beside the checked Model. -/
+def checkAdmitted [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
     (model : DeclaredModel Setup State Action Outcome Fact)
@@ -564,7 +574,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : TableModelSpec := model.modelSpec) :
-    Except AdmissionError (CheckedModel model) := do
+    Except AdmissionError (AdmittedModel model) := do
   let target ← checkFiniteTarget authoredTable model.table model.identity authoredDefinition
     model.composition |>.mapError .invalidTarget
   let vocabulary ← modelVocabulary model authoredTable |>.mapError .invalidVocabulary
@@ -587,12 +597,35 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let query := admitted.query
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>
-      pure { target, vocabulary, property, behavior, query, run, witness := some witness
-             realizable := { target, vocabulary, property, behavior, witness := some witness } }
+      let checked : CheckedModel model :=
+        { target, vocabulary, property, behavior, query, run, witness := some witness
+          realizable := { target, vocabulary, property, behavior, witness := some witness } }
+      pure { checked, admitted }
   | .verifyClaim, .verified =>
-      pure { target, vocabulary, property, behavior, query, run, witness := none
-             realizable := { target, vocabulary, property, behavior, witness := none } }
+      let checked : CheckedModel model :=
+        { target, vocabulary, property, behavior, query, run, witness := none
+          realizable := { target, vocabulary, property, behavior, witness := none } }
+      pure { checked, admitted }
   | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
+
+/-- Admit and search one Query over a declared Model: the Model's own table and vocabulary first,
+then the Property and Scenario the authors write over that vocabulary, then the search under the
+limits. What a Producer lowers is the result. -/
+def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact)
+    (queryKey : String)
+    (limits : Limits)
+    (propertyAuthor : ModelVocabulary → Property)
+    (behaviorAuthor : ModelVocabulary → Scenario)
+    (knownGaps : List KnownGap := [])
+    (form : QueryFormKind := .selectWitness)
+    (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
+    (authoredDefinition : TableModelSpec := model.modelSpec) :
+    Except AdmissionError (CheckedModel model) :=
+  (checkAdmitted model queryKey limits propertyAuthor behaviorAuthor knownGaps form authoredTable
+    authoredDefinition).map (·.checked)
 
 
 /-! ### What one action's rows say

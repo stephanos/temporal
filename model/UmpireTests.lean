@@ -31,13 +31,9 @@ import Umpire.Variations.Tests.Intent
 import Umpire.Variations.Tests.Lowering
 import Umpire.Variations.Tests.Metadata
 import Umpire.Variations.Tests.Validation
-import Umpire.Exploration.Tests.Validation
-import Umpire.Exploration.Tests.Candidate
-import Umpire.Exploration.Tests.Selection
-import Umpire.Exploration.Tests.Guided
-import Umpire.Exploration.Tests.Engine
-import Umpire.Exploration.Tests.Pinned
-import Umpire.Exploration.Tests.Session
+import Umpire.Exploration.Tests.Campaign
+import Umpire.Exploration.Tests.Classed
+import Umpire.Exploration.Tests.Scale
 import Umpire.Case.CompilerTests
 import Umpire.Case.LocalNamesTests
 import Umpire.Case.Tests.FieldLowering
