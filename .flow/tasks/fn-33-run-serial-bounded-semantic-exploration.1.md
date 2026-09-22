@@ -34,15 +34,73 @@ Replace the Space-based exploration core with a campaign over one exploratory se
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] `Campaign.next` walks the Switch exploratory set's target order deterministically, one bounded Search per candidate, and classifies unreachable targets without a Run.
-- [ ] Every candidate's planned witness contains its selected target; a `satisfied` observation credits every row, result and class member on that path; `violated` marks them; a preparation rejection or a non-decisive observation marks them `attempted`; crossed and stale observations reject at the cursor; admission errors other than `notSelected` are `tooling-failure`.
-- [ ] A violated class-member target on the test-local classed machine is one counterexample naming class, target and candidate identity, with its `AdmittedQuery` retained; the Switch fixtures are unchanged.
-- [ ] The Space-based Core, Language, Engine, Candidate, Selection, Guided and Coverage modules and `beginSession` are gone with their tests; `Umpire.Variations` and its users are untouched; the cursor's exact-binding semantics are pinned on the new surface; the UMPIRE4 Exploration concept carries the GOV-02 draft.
-- [ ] A 10x synthetic Model explores within the same limits; identical inputs give byte-identical results.
+- [x] `Campaign.next` walks the Switch exploratory set's target order deterministically, one bounded Search per candidate, and classifies unreachable targets without a Run.
+- [x] Every candidate's planned witness contains its selected target; a `satisfied` observation credits every row, result and class member on that path; `violated` marks them; a preparation rejection or a non-decisive observation marks them `attempted`; crossed and stale observations reject at the cursor; admission errors other than `notSelected` are `tooling-failure`.
+- [x] A violated class-member target on the test-local classed machine is one counterexample naming class, target and candidate identity, with its `AdmittedQuery` retained; the Switch fixtures are unchanged.
+- [x] The Space-based Core, Language, Engine, Candidate, Selection, Guided and Coverage modules and `beginSession` are gone with their tests; `Umpire.Variations` and its users are untouched; the cursor's exact-binding semantics are pinned on the new surface; the UMPIRE4 Exploration concept carries the GOV-02 draft.
+- [x] A 10x synthetic Model explores within the same limits; identical inputs give byte-identical results.
 ## Done summary
-TBD
+Done 2026-09-22; plan reviewed through `flowctl claude plan-review` (SHIP); implementation review through `flowctl claude impl-review`. Commit 241b78581.
 
+`Umpire.Exploration` is now a campaign over one exploratory set's coverage targets. `Target`
+turns a target into the Query the campaign runs for it -- the row it names (`chooseRow`), the
+shortest admissible path to that row's source (`pathTo` over `shortestPaths`), and the exact-trace
+Scenario with `actionsExactly` beside `traceExactly` plus the outcome-clause Property on the final
+step (`targetAuthors`) -- and `coveredTargets` reads what a planned witness reaches. `Ledger` is
+the per-target status (`pending`, `planned`, `covered`, `unreachable`, `violated`, `attempted`),
+the class ledger and the counterexamples, and `credit` is the one place an observation becomes a
+status. `Campaign.check` admits the set against its machine's identity and the `Limits` value its
+budget names; `Campaign.next` plans the first pending target through the new
+`Umpire.Command.checkAdmitted`, marks a target no admissible path or `notSelected` reaches
+unreachable and moves on, and ends the campaign as a tooling failure on any other admission
+error, a candidate without a Plan, or a witness that does not contain its own target
+(`admissionFailure` is the classification, pinned alone); `observe` credits; `summary` is the closed
+record. `Session` keeps one candidate outstanding with exact-binding `observe`. The Space-based
+`Core`, `Language`, `Engine`, `Candidate`, `Selection`, `Guided`, `Coverage` and their seven test
+modules are gone; `Umpire.Variations` and its users are untouched; the module keeps its name.
+
+### What the implementation found
+
+A transition contract binds every occurrence of its action at search time (`Property.Evaluate`),
+and the Producer lowers only action-triggered clauses, from the first occurrence with a window to
+the end. So the prefix to a target's row may take the row's action earlier only with the row's
+outcome, or the Query is unsatisfiable. `pathTo` searches under that admissibility, one bounded
+search per candidate; a row with no such path is `unreachable` under this Query form, and the
+counter Model's last self-loop (`row:s9-advance`: nine advances that move, then one that stays)
+is the pinned example. The spec's Decision Context records it.
+
+The set records its machine under the machine's own identity, not the Model's target, and class
+members enumerate in the machine's action order, which is by member name.
+
+### Tests
+
+`Umpire.Exploration.Tests.Campaign` walks the Switch's new exploratory set (`switchExploration`,
+one row and two results under `one`): the selection order, what each candidate's planned path
+covers, credit under satisfied, violated, inconclusive and prepare-rejected observations, a covered
+target staying covered, an unreachable target skipped without a Run, the four campaign rejections,
+`admissionFailure`, byte-identical results for identical inputs, and the session's one-outstanding
+and exact-binding rules. `Tests.Classed` is a test-local lamp Model with a classed action and
+examples: two class-member targets, a violated member recorded as one counterexample with its
+`AdmittedQuery` retained, a satisfied member as a class verdict, a non-decisive Run as neither.
+`Tests.Scale` is a ten-slot counter, twenty rows: twenty-one targets covered in nineteen
+candidates and the one self-loop honestly unreachable. Adding a set changes no machine identity, so
+the Switch fixtures are unchanged.
+
+### Docs and spec
+
+`model/README.md`, `model/ARCHITECTURE.md` and `model/Umpire/ARCHITECTURE.md` describe the
+set-based exploration; two docstrings that named the retired modules are reworded. The UMPIRE4
+spec's Exploration concept and the Variations concept's "draws candidates from" sentence carry
+amendments drafted by fn-33 awaiting GOV-02 approval, with the exact-prefix shortest witness named
+as EXP-05's minimization.
+
+### Gates
+
+`cd model && lake build`, `lake exe umpire-lint-tests`, `make umpire-check-goldens
+umpire-check-regression-views umpire-check-inventory umpire-check-retired-vocabulary`, `go test
+-count=1 -tags test_dep ./tools/umpire/...`, `LEAN_NUM_THREADS=1 make lint-model` at the fn-86
+closeout baseline.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 241b78581
+- Tests: cd model && lake build, cd model && lake exe umpire-lint-tests, make umpire-check-goldens umpire-check-regression-views umpire-check-inventory umpire-check-retired-vocabulary, go test -count=1 -tags test_dep ./tools/umpire/..., LEAN_NUM_THREADS=1 make lint-model
 - PRs:

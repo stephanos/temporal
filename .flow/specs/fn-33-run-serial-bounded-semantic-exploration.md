@@ -78,6 +78,14 @@ Execution order: `.1`, `.2`, `.3`, `.6`, `.4`, `.5`; `.4`'s exit codes rest on `
 
 ## Decision Context
 
+Task .1 (2026-09-22) refined the target Query's reachability rule while implementing it: a
+transition contract binds every occurrence of its action at search time, and the Producer lowers
+it from the first occurrence, so the prefix to a target's row may take the row's action earlier
+only with the row's outcome. `Target.pathTo` searches under that admissibility per candidate; a
+row with no such path is `unreachable` under this Query form (the counter's last self-loop is the
+pinned example), which is honest coverage rather than a Run that no deployment could satisfy.
+Class members enumerate in the machine's action order, which is by member name.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
