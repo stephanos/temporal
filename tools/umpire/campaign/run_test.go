@@ -250,6 +250,10 @@ type fakeBinder struct {
 	released int
 	runs     int
 	identity string
+	// observedAtRelease is how many observe frames the fake bridge had received when Release
+	// ran, so the order release-then-observe can be pinned.
+	observedAtRelease int
+	bridge            *fakeBridge
 }
 
 func (b *fakeBinder) Bind(_ context.Context, identity string, source *testpilotspb.Case) (Bound, error) {
@@ -271,6 +275,9 @@ func (b *fakeBinder) Run(context.Context) (*testpilotspb.Run, *testpilotspb.Verd
 
 func (b *fakeBinder) Release(context.Context) error {
 	b.released++
+	if b.bridge != nil {
+		b.observedAtRelease = len(b.bridge.observed)
+	}
 	return nil
 }
 
@@ -393,6 +400,25 @@ func TestAClosedRunReturnedBesideAnErrorIsStillObserved(t *testing.T) {
 	require.Nil(t, bridge.Outstanding())
 }
 
+// A Run that comes back without an observed cleanup is not closed: it is reported as such, the
+// bridge is not told, and the candidate stays outstanding.
+func TestARunWithoutAnObservedCleanupIsNotObserved(t *testing.T) {
+	bridge, fake := initialized(t, sampleCandidates()...)
+	next, err := bridge.Next(t.Context())
+	require.NoError(t, err)
+	fake.nextRequest(t)
+	run := &testpilotspb.Run{RunId: "run-1", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Verdict: &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}}
+	binder := &fakeBinder{run: run, verdict: run.Verdict}
+
+	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	require.ErrorContains(t, err, "without an observed cleanup")
+	require.Equal(t, OutcomeRunFailed, outcome.Kind)
+	require.NotNil(t, outcome.Run, "the Run the facade returned travels with the outcome")
+	require.Equal(t, 1, binder.released)
+	fake.requireNoRequest(t)
+	require.Equal(t, firstIdentity, bridge.Outstanding().Identity)
+}
+
 func TestARunThatCouldNotExecuteReleasesAndLeavesTheCandidateOutstanding(t *testing.T) {
 	bridge, fake := initialized(t, sampleCandidates()...)
 	next, err := bridge.Next(t.Context())
@@ -429,13 +455,14 @@ func TestADecisiveRunIsObservedAfterCleanupAndCreditedAlongItsPath(t *testing.T)
 			require.NoError(t, err)
 			fake.nextRequest(t)
 			run, verdict := closedRun(probe.disposition, probe.cleanup, probe.verdict)
-			binder := &fakeBinder{run: run, verdict: verdict}
+			binder := &fakeBinder{run: run, verdict: verdict, bridge: fake}
 
 			outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
 			require.NoError(t, err)
 			require.Equal(t, OutcomeCompleted, outcome.Kind)
 			require.Equal(t, 1, binder.runs)
-			require.Equal(t, 1, binder.released, "the candidate is released before it is observed")
+			require.Equal(t, 1, binder.released)
+			require.Zero(t, binder.observedAtRelease, "the candidate is released before it is observed")
 			observed := fake.nextRequest(t)
 			require.Equal(t, "observe", observed.Frame)
 			require.Equal(t, firstIdentity, observed.Candidate)
@@ -522,6 +549,7 @@ func TestAReplyThatDoesNotMatchTheFrameIsAProtocolErrorAndBreaksTheBridge(t *tes
 		"set":       `{"frame":"exhausted","seq":2,"set":"other","profile":"profile-a","skipped":[]}`,
 		"profile":   `{"frame":"exhausted","seq":2,"set":"set","profile":"other","skipped":[]}`,
 		"kind":      `{"frame":"finished","seq":2,"set":"set","profile":"profile-a"}`,
+		"rejection": `{"frame":"rejected","seq":9,"reason":"stale"}`,
 		"candidate": `{"frame":"candidate","seq":2,"set":"set","profile":"profile-a","candidate":"","caseId":"c","case":{}}`,
 	} {
 		t.Run(name, func(t *testing.T) {
