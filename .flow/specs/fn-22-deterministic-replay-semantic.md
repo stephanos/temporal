@@ -54,8 +54,9 @@ adapter, resident executor or public execution service, and it adds no Umpire ar
 ## Intent
 
 Turn one admitted violated Run of a produced Case into three separate answers: whether the same
-Contract-relative violation recurs in fresh Runs of the same Case, which steps of the Case's path
-are necessary for it, and which checked expected behavior should be proposed for review. Offline
+Contract-relative violation recurs in fresh Runs of the same Case, which prefix steps of the
+Case's path one last-first sweep can drop while the violation persists, and which checked
+expected behavior should be proposed for review. Offline
 semantic replay, concrete rerun and reduction remain distinct. Temporal SDK history replay is
 deferred.
 
@@ -90,20 +91,29 @@ Case, Contract, Run or event stream.
 
 **The subject** is one canonical Case (the bytes a `case` block registered as a fixture or the
 exploration bridge handed out) and one *recorded Run*: a local JSON file holding the closed Run
-with its Verdict and the `DriverIdentity` it was prepared under (Profile, catalog and
-environment-binding fingerprints, none secret), written by `umpire-run --record <path>` and by
-the live suite's helper beside every Run they close. It is a value the command reads from two
-files and the deployment flags; the recorded Run is a file shape of `tools/umpire/replay`, not an
-artifact family, bundle, digest or trust store.
+with its Verdict and the `DriverIdentity` it was prepared under (Profile name, catalog and
+environment-binding fingerprints, none secret), written by `umpire-run --record <path>`, by
+`umpire-fuzz --record-root <dir>` for each counterexample (its Case bytes as
+`<set>-<digest>-case.json` beside its recorded Run as `<set>-<digest>-run.json`, which is how an
+exploration counterexample becomes a subject), and by the live suite's helper beside every Run
+it closes. It is a value the command reads from two files and the deployment flags; the recorded
+Run is a file shape of `tools/umpire/replay`, not an artifact family, bundle, digest or trust
+store.
 
 **Preparation without a deployment.** `binding` gains a free `Prepare(deployment, handlerQueue,
 identity, source)`: it builds the method catalog itself, derives the Profile and calls
 `testpilot.Prepare`; it opens no connection, provisions nothing and needs no `Campaign`, and
 returns the `PreparedCase` with its `DriverIdentity`. `Campaign.Bind` is built on it and `Bound`
 exposes the prepared Case. Admission runs entirely before `binding.Open`, so a crossed, stale or
-noncanonical subject is rejected before any resource is created: the subject is prepared under
-the Profile the deployment flags derive, and a `DriverIdentity` other than the recorded Run's is
-`stale`. The prepared Case is what the offline semantic replay evaluates.
+noncanonical subject is rejected before any resource is created. The identity `umpire-replay`
+prepares under is fixed: the Profile *name* is the recorded Run's, so that a Run recorded by
+`umpire-run` (`umpire-run.<namespace>`), by `umpire-fuzz` (`umpire-fuzz.<namespace>`) or by the
+live helper is replayed under its own name; the catalog and the environment bindings (namespace,
+task queue, handler queue, Nexus endpoint) are derived from the deployment flags, and
+`binding.Deployment` carries no dynamic configuration, so a Profile recorded with switch settings
+is `stale` to this slice by design and the control is recorded without them. `stale` is a catalog
+or bindings fingerprint other than the recorded Run's. The prepared Case is what the offline
+semantic replay evaluates.
 
 **The Lean side recovers the admitted Query.** A produced Case carries no Query, so the bridge's
 `admit` frame names the set and either the Query (a functional set's) or the exploration
@@ -157,13 +167,19 @@ with another key: `not-reproduced`. An `INCOMPLETE` disposition, an unclosed cle
 `inconclusive` Verdict: `indeterminate`. A preparation rejection is an admission failure before
 any Run. fn-64 terminal precedence stays authoritative.
 
-**Reduction** is over the admitted Query's exact-trace Scenario, keeping the Property fixed. Lean
-enumerates one typed edit in a fixed order: `dropPrefixStep i` for each step before the target
-row, last first (every Scenario ends on its target row and the Producer rejects a silent step at
-the end of a path, so a silent step is a prefix step and no second edit names it). Each edit is
-re-admitted through `Umpire.Command.checkAdmitted`; one the Model does not admit (the row is no
-longer reachable) is `inapplicable`, recorded, no Case produced. An admitted edit is produced as a
-whole Case under the same realization. The key makes the comparison sound: the violated rule
+**Reduction** is over the admitted Query's exact-trace Scenario, keeping the Property fixed, in
+one sweep: Lean enumerates one typed edit in a fixed order, `dropPrefixStep i` for each step
+before the target row, last first (every Scenario ends on its target row and the Producer rejects
+a silent step at the end of a path, so a silent step is a prefix step and no second edit names
+it), and each edit is tried once against the candidate retained so far; nothing is re-enumerated
+after a retention, so `minimized` means no single edit of that sweep reproduced, not that no
+subset would. Each edit is re-admitted through `Umpire.Command.checkAdmitted`; one the Model
+does not admit (the row is no longer reachable) is `inapplicable`, recorded, no Case produced.
+An admitted edit is produced as a whole Case under the same realization, with the identity
+`temporal.case.<set>.<digest>` and the fixture `<set>-<digest>` the exploration bridge gives a
+candidate, the digest being the candidate's checksum; an edit whose Case the Producer or
+`testpilot.Prepare` rejects is `rejected`, recorded with the reason, never rerun, and counts as
+inapplicable for completion. The key makes the comparison sound: the violated rule
 keeps its Definition ID across candidates (the lowered clause triggers on the Scenario's opening
 action with the target's position as its bound, so the trigger and the bound follow the edited
 Scenario while the rule's identity does not change), its terminal state and violating evidence
@@ -173,8 +189,9 @@ key; the retained candidate becomes the subject of the next edit; a rejected or 
 edit is never retried and a dropped step is never reintroduced. A candidate whose rerun is
 `indeterminate` is rerun once more within the Run budget; still indeterminate, the reduction ends
 `incomplete` naming that edit, never counting it as non-reproducing. Reduction ends `minimized`
-when every remaining edit is inapplicable or conclusively non-reproducing after at least one was
-retained, `irreducible` when none was retained, or `incomplete` at a bound or an undecided edit. An exploration counterexample is already a
+when every edit of the sweep is inapplicable, rejected or conclusively non-reproducing after at
+least one was retained, `irreducible` when none was retained, or `incomplete` at a bound or an
+undecided edit. An exploration counterexample is already a
 shortest-prefix witness (EXP-05, fn-33), so its expected result is `irreducible` at once; a
 functional Query authored with a longer Scenario is what reduces.
 
@@ -196,7 +213,8 @@ read off its planning and fresh names keyed by the candidate's digest under the 
 so both consumers share it). The proposal renders the Model's expected trace, never the observed
 violating Run; it is review-only, written only under `--promotion-root` outside the model through
 the writer `umpire-fuzz` already has, lifted into `tools/umpire/internal/cli` so both commands
-share the containment, the check-before-write and the no-overwrite decisions, and never
+share the containment (both roots resolved through their symlinks first), the check-before-write
+and the no-overwrite decisions (each file created exclusively, never replaced), and never
 installed.
 
 ## Limits and failure behavior
@@ -219,7 +237,7 @@ into reproduction. A proposal or report write failure never installs anything an
 - **R1:** Strict admission accepts one canonical Case and one recorded Run (closed, matching,
   violated, with the `DriverIdentity` it was prepared under); crossed, stale, incomplete,
   noncanonical, unsupported or non-violated inputs fail before `binding.Open`, so before any
-  target effect.
+  target effect; "unsupported" is a Verdict whose supporting sequences name no event of the Run.
 - **R2:** One stable Contract-relative violation key, read in Definition IDs, distinguishes
   semantic identity from per-Run transport identity and from the candidate's Case identity,
   binding the violated rules, their terminal states and their violating evidence as the
@@ -232,8 +250,9 @@ into reproduction. A proposal or report write failure never installs anything an
 - **R5:** Reduction retains a candidate only after two fresh Runs preserve the subject's key,
   distinguishes `minimized`, `irreducible` and `incomplete`, ends `incomplete` on an edit a
   retried indeterminate rerun left undecided, and never silently skips an applicable edit.
-- **R6:** The Producer declares every result's evidence on each witnessed row, checked in Lean
-  on the produced control Case before any live Run; the negative control is one labeled
+- **R6:** The Producer declares every result's evidence on each witnessed row (a kind two rows
+  would record is rejected by name), checked in Lean on the produced control Case before any
+  live Run; the negative control is one labeled
   Lean-produced Case under the caller Realization whose Model keeps the platform's real row
   authorized, proved violated twice against the test cluster with one key, its Verdict reproduced
   offline, and its evidence core omits the Run's scaffolding events, named by instruction id,
@@ -318,6 +337,11 @@ regression view. Existing comments are preserved where the invariant they descri
   a prefix search would build the key on swallowed errors; and the correlated monitor may violate
   in `release` for evidence buffered until a later event, so the releasing event is not the
   evidence. The evaluator knows both and says so.
+- **Why the replay Profile takes its name from the recorded Run (2026-09-22, plan review round
+  three):** the identity has three parts, and only the name is free; taking it from the record
+  keeps `stale` about what can go stale, the catalog and the bindings, and lets a Run recorded by
+  any of the three writers be replayed. Dynamic configuration is not in `binding.Deployment`,
+  so a Run recorded under switch settings is stale to this slice rather than silently rebound.
 - **Why semantic replay is a facade export (2026-09-22):** the Case Runtime evaluates a Run
   through a prepared Contract internally at the end of every Run; exposing that on
   `PreparedCase` is the smallest change that makes the offline class real instead of a report
@@ -351,6 +375,18 @@ once and then ends the reduction `incomplete`; the clause's trigger and bound fo
 Scenario; the fixture table test is not a touch point; the control's proposal proves the
 mechanism only; the proposal writer is shared with `umpire-fuzz`. Tasks renumbered `.1` to `.8`
 with the Producer change at `.2`.
+
+Round three (2026-09-22): NEEDS_WORK with eight findings, all applied: the replay Profile's
+name is the recorded Run's and only the catalog and bindings are derived from the flags, with
+dynamic configuration outside this slice and the control recorded without it, and the `.8` live
+proof replays against the live helper's retained resources without `--create`; a compile or
+preparation rejection of an edit is `rejected` and counts as inapplicable; the reducer is one
+last-first sweep and `minimized` says so; a kind two rows would record is rejected by name and an
+alternative's evidence confirms the witness's silent prefix; `umpire-fuzz --record-root` writes
+each counterexample's Case and recorded Run so the exploration admit path has an input; the
+shared proposal writer resolves symlinks and creates exclusively; the conformance output path is
+`common/testing/testpilot/testdata/case-runtime-conformance`; a candidate's Case ID and fixture
+follow the exploration bridge's scheme; "unsupported" is defined.
 
 ## History
 
