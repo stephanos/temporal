@@ -389,6 +389,28 @@ regression view. Existing comments are preserved where the invariant they descri
   `PreparedCase` is the smallest change that makes the offline class real instead of a report
   field that nothing computes.
 
+## Implementation
+
+Task .1 (2026-09-22): the recorded Run is a local JSON document `{identity: {profile, catalog,
+bindings}, run: <compact ProtoJSON Run>}`, written exclusively (never replacing a file) by
+`umpire-run --record <path>` after its report, by `umpire-fuzz --record-root <dir>` for each
+violated candidate as it closes (through `campaign.DriveRecording`, a Recorder handed the Case
+bytes, Run, Verdict and Profile identity, so the report retains nothing), and read strictly.
+`binding.Prepare(deployment, handlerQueue, identity, source)` builds the catalog, derives the
+Profile and prepares with no connection; `Campaign.Bind` is built on it and `Bound` exposes the
+prepared Case and its identity, which `campaign.Bound` now requires of every binder. Admission
+(`replay.Admit`) takes the Case in the canonical form `tools/umpire/internal/casefile` decides for
+the conformance generator too, decodes it, checks the Run is the Case's and in the admissible
+violated form with every supporting sequence naming one event once, prepares under the recorded
+Profile name, compares the catalog and bindings fingerprints (`stale`), replays offline and
+requires the recorded Verdict, then derives the key. The evaluator records each violated rule's
+violating evidence: a monitor rule at `recordTerminal` from the violating event (no evidence for a
+deadline), a correlated rule on the obligation `release` resolved, read back in sorted operation
+order so the choice is the same on every reading; `PreparedContract.Evaluate` returns them and
+the facade's `PreparedCase.Evaluate` exports them as an `Evaluation`. The conformance corpus's
+`violated` Case, driven offline by a scripted Driver, pins admission, every rejection, the key's
+independence from per-Run values and from a Case-local renaming, and the pair rule.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
