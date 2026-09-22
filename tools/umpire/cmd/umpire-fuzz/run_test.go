@@ -475,9 +475,9 @@ func wideCandidates() []campaign.Candidate {
 	return candidates
 }
 
-// The report cap is enforced on the rendered summary: over it, the terminal alone is written as
-// limit-reached, never a truncated report. The terminal-only summary is the floor a cap cannot
-// go below, which the flag set refuses.
+// The report cap is enforced on the rendered summary: over it, the terminal, the counters and the
+// counterexamples are written as limit-reached, never a truncated report. The terminal-only
+// summary is the floor a cap cannot go below, which the flag set refuses.
 func TestRunReportsLimitReachedRatherThanTruncatingTheSummary(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run(requiredFlags("--max-report-bytes", "1024"), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, wideCandidates(), nil))
@@ -491,7 +491,8 @@ func TestRunReportsLimitReachedRatherThanTruncatingTheSummary(t *testing.T) {
 	require.Contains(t, stderr.String(), "report-bytes")
 }
 
-// A failure or a stop keeps its terminal under the report cap: what it names outranks the cap.
+// A failure, a stop or a campaign cap keeps its terminal under the report cap: what it names
+// outranks the cap.
 func TestReportCapFallbackKeepsAFailureOrStopTerminal(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	binder := &scriptedBinder{bindErr: errors.New("open SDK client: connection refused")}
@@ -501,6 +502,32 @@ func TestReportCapFallbackKeepsAFailureOrStopTerminal(t *testing.T) {
 	require.Equal(t, "tooling-failure", decoded.Status)
 	require.Contains(t, decoded.Failure, "connection refused")
 	require.Nil(t, decoded.Coverage)
+
+	stdout.Reset()
+	code = Run(requiredFlags("--max-report-bytes", "1024", "--max-candidates", "1"), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, wideCandidates(), nil))
+	require.Equal(t, exitLimitOrStop, code, stderr.String())
+	decoded = decodeSummary(t, stdout.String())
+	require.Equal(t, "limit-reached", decoded.Status)
+	require.Equal(t, "candidates", decoded.Limit, "the cap that ended the campaign is kept")
+	require.Nil(t, decoded.Coverage)
+	require.Contains(t, stderr.String(), "report-bytes")
+}
+
+// The counterexamples survive the report cap: they are what exit 1 names, and they are bounded by
+// the class targets, not by the campaign.
+func TestReportCapKeepsTheCounterexamples(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_VIOLATED}}
+	code := Run(requiredFlags("--max-report-bytes", "1024"), &stdout, &stderr, scriptedOpener(t, binder, wideCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	decoded := decodeSummary(t, stdout.String())
+	require.Equal(t, "limit-reached", decoded.Status)
+	require.Equal(t, "report-bytes", decoded.Limit)
+	require.Len(t, decoded.Counterexamples, 1)
+	require.Equal(t, secondIdentity, decoded.Counterexamples[0].Candidate)
+	require.Equal(t, "class:m:f:c", decoded.Counterexamples[0].Target)
+	require.Nil(t, decoded.Coverage)
+	require.Empty(t, decoded.Candidates)
 }
 
 // A summary the bridge refuses after an exhausted campaign is a tooling failure, never an exit 0

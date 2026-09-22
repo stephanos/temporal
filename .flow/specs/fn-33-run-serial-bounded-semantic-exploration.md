@@ -212,8 +212,8 @@ per-target ledger copied as answered, the counterexamples, and one line per cand
 3 for a tooling failure first, because nothing else it reports can then be trusted; 1 for a
 counterexample or violated coverage next, because the finding is what the campaign ran for,
 whatever stopped it; 2 for a cap or a stop; 0 for exhaustion. The report cap is checked on the
-rendered summary; over it, the terminal alone is written as `limit-reached`, never a truncated
-report. The bridge's stderr is the command's stderr, so its one progress line per candidate is the
+rendered summary; over it, the terminal, the counters and the counterexamples alone are written,
+an exhausted campaign as `limit-reached`, never a truncated report. The bridge's stderr is the command's stderr, so its one progress line per candidate is the
 operator's, and the coordinator's identical lines go nowhere; the command adds one line naming the
 terminal. `make umpire-fuzz` builds the command and `make umpire-fuzz-run SET=<set>` builds the
 bridge and runs a campaign against the deployment `UMPIRE_FUZZ_*` names. Its implementation review
@@ -225,7 +225,14 @@ failure, and a violated Run observed before a stop exits 1 with or without the s
 report-cap fallback keeps a tooling-failure or stopped terminal (what it names outranks the cap)
 and turns only a campaign that ended well into `limit-reached`; the terminal-only summary is the
 floor a cap cannot go below, refused under 1024 bytes at parse; and the Make target checks its
-inputs before the model build.
+inputs before the model build. Round two: the bridge and model-root paths are made absolute at
+parse (a relative bridge was looked up inside the model root the bridge runs in, so the default
+flags found nothing), the terminal-only fallback is checked against the cap too and says on
+stderr when it is still over, and the Make target checks each variable once. Round three: the
+terminal-only summary keeps the counterexamples (by identity and digest, never the source
+bytes), because they are what exit 1 names and the class targets bound them, and a campaign that
+ended at one of its own caps keeps that cap's name under the report cap; only an exhausted
+campaign becomes `limit-reached` by `report-bytes`.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
