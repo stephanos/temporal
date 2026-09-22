@@ -276,6 +276,11 @@ opus at high) was SHIP in one round; its one P3 is applied: every proposal path 
 before any file is written, and a write that fails after others returns what was written so the
 summary names it.
 
+Completion review (2026-09-22, `flowctl claude completion-review`, opus at high): SHIP, twenty-one
+requirements traced; one P3 recorded and not applied: the 10x Model test explores under its own
+`ten` limits and does not count Searches per candidate, a property that holds by construction
+(`Campaign.next` admits once per planned target). The spec is closed.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
