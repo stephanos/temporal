@@ -54,7 +54,13 @@ func sampleCase(caseID string) json.RawMessage {
 	if err != nil {
 		panic(err)
 	}
-	return encoded
+	// The scripted bridge hands the Case out through json.Marshal, which compacts a RawMessage;
+	// protojson's spacing is not stable, so the sample is compacted here to count the same bytes.
+	var compacted bytes.Buffer
+	if err := json.Compact(&compacted, encoded); err != nil {
+		panic(err)
+	}
+	return compacted.Bytes()
 }
 
 func sampleCandidates() []campaign.Candidate {
@@ -612,10 +618,42 @@ func TestParseConfigDerivesTheBridgeFromTheModelRoot(t *testing.T) {
 	var stderr bytes.Buffer
 	configuration, err := parseConfig(requiredFlags("--model-root", "elsewhere"), &stderr)
 	require.NoError(t, err)
-	require.Equal(t, "elsewhere/.lake/build/bin/umpire-explore", strings.ReplaceAll(configuration.Bridge, "\\", "/"))
+	root, err := filepath.Abs("elsewhere")
+	require.NoError(t, err)
+	require.Equal(t, root, configuration.ModelRoot)
+	require.Equal(t, filepath.Join(root, ".lake", "build", "bin", "umpire-explore"), configuration.Bridge)
 	require.Equal(t, "fuzz-queue", configuration.Deployment.TaskQueue)
 	require.Equal(t, defaultRunTimeout, configuration.Caps.RunTimeout)
-	configuration, err = parseConfig(requiredFlags("--bridge", "/opt/explore"), &stderr)
+	configuration, err = parseConfig(requiredFlags("--bridge", "explore"), &stderr)
 	require.NoError(t, err)
-	require.Equal(t, "/opt/explore", configuration.Bridge)
+	bridge, err := filepath.Abs("explore")
+	require.NoError(t, err)
+	require.Equal(t, bridge, configuration.Bridge)
+}
+
+// The default flags name the bridge relative to the model root, and the bridge runs in that
+// root: the command must find `model/.lake/build/bin/umpire-explore` from the invoking directory,
+// not from inside `model`.
+func TestOpenCampaignFindsTheDefaultBridgeFromTheInvokingDirectory(t *testing.T) {
+	invokedIn := t.TempDir()
+	bridgeDir := filepath.Join(invokedIn, defaultModelRoot, filepath.FromSlash(filepath.Dir(bridgeRelativePath)))
+	require.NoError(t, os.MkdirAll(bridgeDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(bridgeDir, filepath.Base(bridgeRelativePath)), []byte(`#!/bin/sh
+read line
+printf '%s\n' '{"frame":"initialized","seq":1,"set":"s","profile":"umpire-fuzz.fuzz","machine":"m","budget":"b","limits":{"steps":1,"actions":1,"search":1},"targets":[]}'
+read line
+printf '%s\n' '{"frame":"finished","seq":2,"set":"s","profile":"umpire-fuzz.fuzz","status":"exhausted","summary":{},"counterexamples":[],"ledger":[]}'
+cat >/dev/null
+`), 0o755))
+	t.Chdir(invokedIn)
+	var stderr bytes.Buffer
+	configuration, err := parseConfig(requiredFlags("--set", "s", "--grpc", "127.0.0.1:1"), &stderr)
+	require.NoError(t, err)
+	opened, err := openCampaign(t.Context(), configuration, &stderr)
+	require.NoError(t, err)
+	require.Equal(t, "m", opened.opened.Machine)
+	finished, err := opened.bridge.Finish(t.Context(), "exhausted")
+	require.NoError(t, err)
+	require.Equal(t, "exhausted", finished.Status)
+	require.NoError(t, opened.release(t.Context()))
 }
