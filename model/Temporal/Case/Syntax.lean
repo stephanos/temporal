@@ -84,6 +84,9 @@ lines, so the block writes none"
 private def exploratoryMachineMessage (spelling : String) : String :=
   s!"set '{spelling}' is exploratory but records no machine; a `set` with `machine:` records it"
 
+private def unregisteredMachineMessage (spelling machine : String) : String :=
+  s!"set '{spelling}' records machine '{machine}', which no `machine` command registered"
+
 private def whiteBoxGapMessage (queryName kind code : String) : String :=
   s!"Query '{queryName}' cannot be a canary: its Case carries the white-box Known Gap '{code}' \
 ({kind}), a step of its path that no observation confirms; a canary runs against a deployment the \
@@ -95,6 +98,21 @@ private def canaryProductionMessage (queryName construct : String) : String :=
 private def unselectedBySetMessage (spelling : String) (selected : Array String) : String :=
   s!"no Query of the set selects Action '{spelling}'; the set's Queries select: \
 {spellingList selected}"
+
+/-- What one machine contributes to producing a Case on it, as terms: the claims its actions make
+(`Umpire.Command.classClaims` over the declarations it steps on), its `evidence:` catalog, and the
+field relations its Properties declare. A functional set's Cases and an exploratory set's block read
+the same three, so they are formed once. -/
+private def machineProductionTerms (environment : Environment) (machineName : Name)
+    (declaredMachine : Umpire.Command.Registry.MachineEntry) :
+    CommandElabM (Term × Term × Array Ident) := do
+  let actionRefs := declaredMachine.actionDecls.map mkIdent
+  let pairs ← declaredMachine.evidence.mapM fun (fact, observed) =>
+    `(term| ($(Lean.quote fact), $(Lean.quote observed)))
+  let relationRefs := (Umpire.Command.Registry.relationsOf environment machineName).map fun entry =>
+    mkIdent entry.declName
+  pure (← `(term| Umpire.Command.classClaims ($(mkIdent machineName)) [$actionRefs,*]),
+    ← `(term| ([$pairs,*] : List (String × String))), relationRefs)
 
 /-! ### An exploratory set's production
 
@@ -113,12 +131,8 @@ private def elabExploratoryCase (name : Ident) (setRef : Ident) (realization : T
   let some machineName := declaredSet.machine
     | throwErrorAt setRef (exploratoryMachineMessage declaredSet.name)
   let some declaredMachine := Umpire.Command.Registry.machine? environment machineName
-    | throwErrorAt setRef (exploratoryMachineMessage declaredSet.name)
-  let actionRefs := declaredMachine.actionDecls.map mkIdent
-  let pairs ← declaredMachine.evidence.mapM fun (fact, observed) =>
-    `(term| ($(Lean.quote fact), $(Lean.quote observed)))
-  let relationRefs := (Umpire.Command.Registry.relationsOf environment machineName).map fun entry =>
-    mkIdent entry.declName
+    | throwErrorAt setRef (unregisteredMachineMessage declaredSet.name machineName.toString)
+  let (claims, catalog, relationRefs) ← machineProductionTerms environment machineName declaredMachine
   let realizationName := mkIdentFrom name (name.getId ++ `realization)
   let claimsName := mkIdentFrom name (name.getId ++ `claims)
   let catalogName := mkIdentFrom name (name.getId ++ `catalog)
@@ -128,10 +142,9 @@ private def elabExploratoryCase (name : Ident) (setRef : Ident) (realization : T
   elabCommand (← `(command|
     def $realizationName : Umpire.Case.Producer.Realization := $realization))
   elabCommand (← `(command|
-    def $claimsName : List Umpire.Case.Producer.ClassClaim :=
-      Umpire.Command.classClaims ($(mkIdent machineName)) [$actionRefs,*]))
+    def $claimsName : List Umpire.Case.Producer.ClassClaim := $claims))
   elabCommand (← `(command|
-    def $catalogName : List (String × String) := [$pairs,*]))
+    def $catalogName : List (String × String) := $catalog))
   elabCommand (← `(command|
     def $relationsName : List Umpire.Case.Producer.FieldRelation := [$relationRefs,*]))
   elabCommand (← `(command|
@@ -150,13 +163,6 @@ The realization is a `Umpire.Case.Producer.Realization` value, named or written 
 It is an elaborator rather than a macro because it resolves names -- the set, its Queries, their
 Scenarios' Action orders, the machine's `evidence:` catalog -- and registers the Cases it
 declares. -/
-
-/-- The declarations of the actions one machine steps on, as the machine resolved them, for the
-claims their examples make. A timer is stepped on by name and has no `action` declaration, so it is
-not among them. -/
-private def machineActionDecls (declaredMachine : Umpire.Command.Registry.MachineEntry) :
-    Array Name :=
-  declaredMachine.actionDecls
 
 /-- The Known Gaps of a produced Case that a deployment cannot close, as (kind, code): the
 `capability` and `interpretation` kinds, each a step of the path that no observation confirms. An
@@ -250,18 +256,11 @@ elab "case" name:ident
     let caseId := caseIdRoot ++ "." ++ declaredSet.name ++ "." ++ short
     -- The claims the machine's actions make, for the Producer to record the ones this path performs,
     -- and the machine's own `evidence:` lines, which a Case with no lines of its own reads.
-    let (claims, catalog) ← match Umpire.Command.Registry.machine? environment modelName with
-      | some declaredMachine => do
-          let actionRefs := (machineActionDecls declaredMachine).map mkIdent
-          let pairs ← declaredMachine.evidence.mapM fun (fact, observed) =>
-            `(term| ($(Lean.quote fact), $(Lean.quote observed)))
-          pure (← `(term| Umpire.Command.classClaims ($(mkIdent modelName)) [$actionRefs,*]),
-            ← `(term| ([$pairs,*] : List (String × String))))
-      | none => do pure (← `(term| []), ← `(term| ([] : List (String × String))))
-    -- The field relations the machine's Properties declare: the Producer lowers the ones whose
-    -- action the path performs.
-    let relationRefs := (Umpire.Command.Registry.relationsOf environment modelName).map fun entry =>
-      mkIdent entry.declName
+    -- The field relations the machine's Properties declare are read with the claims and the
+    -- catalog: the Producer lowers the ones whose action the path performs.
+    let (claims, catalog, relationRefs) ← match Umpire.Command.Registry.machine? environment modelName with
+      | some declaredMachine => machineProductionTerms environment modelName declaredMachine
+      | none => do pure (← `(term| []), ← `(term| ([] : List (String × String))), #[])
     let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
     let identityName := mkIdentFrom name (caseName.getId ++ `identity)
     let evidenceName := mkIdentFrom name (caseName.getId ++ `evidence)

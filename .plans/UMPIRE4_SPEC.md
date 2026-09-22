@@ -645,7 +645,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   Model. The platform's bridge drives one campaign by frames (`initialize`, `next`, `observe`,
   `finish`), each candidate crossing as one whole produced Case under its own identity; a
   candidate whose path performs a class member the realization binds nothing for is credited
-  `prepare-rejected` without a Run and the campaign moves on.
+  `unrealizable`, a ledger status of its own, without a Run, and the campaign moves on.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of Exploration Limits.
 - **Promotion (`Umpire.Promotion`).** Re-answering a Query against the Behavior Model using exactly
