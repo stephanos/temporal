@@ -287,6 +287,33 @@ exact Case 1.0 resources as the sole source of namespaces, task queues, and name
 Transport targets, credentials, callback authority, SDK clients, and lifecycle configuration remain
 physical Driver inputs.
 
+### Running Cases and campaigns against a deployment
+
+Two commands consume the canonical bytes against any Temporal deployment, linking the Driver and
+the SDK and never the test cluster. `umpire-run` runs one checked-in Case: it reads the fixture,
+derives the Profile the Case implies, binds it to the namespace, task queue and Nexus endpoint the
+caller names (creating and removing them with `--create`), runs once, reports the Run, cleanup and
+Verdict, and exits 0 satisfied, 1 violated, 2 inconclusive, 3 when nothing ran. `umpire-fuzz run`
+runs one exploration campaign: it opens the exploration bridge over the set it names, takes each
+candidate's Case through the same binding (`tools/umpire/binding`, campaign-scoped once and
+candidate-scoped per Case), one Run and cleanup, hands the closed Run back to the bridge, and stops
+at exhaustion, at one of its own caps (`--max-candidates`, `--max-case-bytes`, `--max-run-events`,
+`--max-report-bytes`; `--run-timeout` bounds one Run, `--timeout` the campaign), on SIGINT or its
+timeout, or on a tooling failure. No flag names a target or widens a declared Limit. It writes one
+canonical JSON summary to stdout -- terminal status, the campaign's counters, the bridge's per-target
+ledger and coverage counts, the counterexamples, and one line per candidate -- and one progress line
+per candidate to stderr; it exits 0 exhausted, 1 on a counterexample or violated coverage, 2 on a
+cap or a stop, 3 on a tooling failure. Nothing unexecuted, inconclusive or cleanup-uncertain is
+ever reported as coverage: coverage is the bridge's ledger, copied, never inferred.
+
+```sh
+make umpire-run                      # builds ./.build/umpire-run
+make umpire-fuzz                     # builds ./.build/umpire-fuzz
+UMPIRE_FUZZ_GRPC=127.0.0.1:7233 UMPIRE_FUZZ_HTTP=127.0.0.1:7243 UMPIRE_FUZZ_NAMESPACE=fuzz \
+  UMPIRE_FUZZ_TASK_QUEUE=fuzz-queue UMPIRE_FUZZ_NEXUS_ENDPOINT=fuzz-endpoint UMPIRE_FUZZ_CREATE=1 \
+  UMPIRE_FUZZ_FLAGS='--max-candidates 20' make umpire-fuzz-run SET=nexusCallerExploration
+```
+
 ## Generated artifacts
 
 The checked semantic inventory is the generated navigation view

@@ -682,6 +682,27 @@ umpire-run:
 	@mise exec -- go build -o ./.build/umpire-run ./tools/umpire/cmd/umpire-run
 	@printf 'Built ./.build/umpire-run\n'
 
+umpire-fuzz:
+	@printf $(COLOR) "Build the Umpire exploration campaign runner..."
+	@mise exec -- go build -o ./.build/umpire-fuzz ./tools/umpire/cmd/umpire-fuzz
+	@printf 'Built ./.build/umpire-fuzz\n'
+
+# One exploration campaign against a deployment named by environment: SET names the exploratory
+# set, UMPIRE_FUZZ_GRPC/UMPIRE_FUZZ_HTTP the frontend, UMPIRE_FUZZ_NAMESPACE/UMPIRE_FUZZ_TASK_QUEUE/
+# UMPIRE_FUZZ_NEXUS_ENDPOINT the resources it binds to (created and removed when UMPIRE_FUZZ_CREATE
+# is set), UMPIRE_FUZZ_FLAGS any further flags such as caps. The bridge is built first.
+umpire-fuzz-run: umpire-fuzz
+	@cd model && $(LEAN_LAKE) -q build umpire-explore
+	@test -n "$(SET)" || { printf 'SET=<exploratory set> is required\n'; exit 3; }
+	@./.build/umpire-fuzz run --set "$(SET)" \
+		--grpc "$${UMPIRE_FUZZ_GRPC:?UMPIRE_FUZZ_GRPC is required}" \
+		--http "$${UMPIRE_FUZZ_HTTP:?UMPIRE_FUZZ_HTTP is required}" \
+		--namespace "$${UMPIRE_FUZZ_NAMESPACE:?UMPIRE_FUZZ_NAMESPACE is required}" \
+		--task-queue "$${UMPIRE_FUZZ_TASK_QUEUE:?UMPIRE_FUZZ_TASK_QUEUE is required}" \
+		$${UMPIRE_FUZZ_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_FUZZ_NEXUS_ENDPOINT"} \
+		$${UMPIRE_FUZZ_CREATE:+--create} \
+		$(UMPIRE_FUZZ_FLAGS)
+
 umpire-export-model-module-index:
 	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index
 
@@ -855,7 +876,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

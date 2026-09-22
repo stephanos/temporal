@@ -26,9 +26,9 @@ Add the bounded `umpire-fuzz run` command over the completed serial coordinator.
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] The summary reports selected, prepared, started, decisive, covered, unreachable, violated, attempted and counterexample counts without collapsing them, and lists each counterexample; stderr carries one progress line per candidate.
-- [ ] Terminal status is exactly one of exhausted, limit-reached, stopped, tooling-failure, with its exit code.
-- [ ] Unexecuted, inconclusive and cleanup-uncertain work is never reported as coverage.
+- [x] The summary reports selected, prepared, started, decisive, covered, unreachable, violated, attempted and counterexample counts without collapsing them, and lists each counterexample; stderr carries one progress line per candidate.
+- [x] Terminal status is exactly one of exhausted, limit-reached, stopped, tooling-failure, with its exit code.
+- [x] Unexecuted, inconclusive and cleanup-uncertain work is never reported as coverage.
 ## Done summary
 TBD
 
