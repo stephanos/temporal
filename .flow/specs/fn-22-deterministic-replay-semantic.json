@@ -17,7 +17,7 @@
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {
-    "fn-22-deterministic-replay-semantic.1": 1
+    "fn-22-deterministic-replay-semantic.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1000,9 +1000,102 @@
       "task": "fn-22-deterministic-replay-semantic.1",
       "timestamp": "2026-09-22T23:00:47.921164Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "758a0838919455e7190c4928d9656a19ff09a7b79609272e6f99d42ec90b2073",
+      "backend": "claude",
+      "base_sha": "52dd921f15b22cda85b9ac2ae89067d98ac19b65",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b8268fcef59d3beb9209d203546391e4",
+            "classification": "introduced",
+            "findingId": "finding-b8268fcef59d3beb9209d203546391e4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3a66bbae4dfe2703e1ea8fef28f99bce",
+            "classification": "introduced",
+            "findingId": "finding-3a66bbae4dfe2703e1ea8fef28f99bce",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b1ba81ab7640391decaee740a39d60e4",
+            "classification": "introduced",
+            "findingId": "finding-b1ba81ab7640391decaee740a39d60e4",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b0a4c2efb8eca8eda8bbca7e1bc76c50",
+            "classification": "introduced",
+            "findingId": "finding-b0a4c2efb8eca8eda8bbca7e1bc76c50",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0640f3aaac2f71f84bb44ebe91683660",
+            "classification": "introduced",
+            "findingId": "finding-0640f3aaac2f71f84bb44ebe91683660",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1bb143cf7933cd4fc21372a319c46e5d",
+            "classification": "introduced",
+            "findingId": "finding-1bb143cf7933cd4fc21372a319c46e5d",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d6003762e91ec6da5c4591c0cfa242e3",
+            "classification": "introduced",
+            "findingId": "finding-d6003762e91ec6da5c4591c0cfa242e3",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bef9bcd8fc60ad940e28ee79bacb4edc9902b674",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 2986,
+      "output_sha256": "ea2643bc4b8ff5df8874fe1a880d8fc1874bcade78a249aa8c11f873ef08da81",
+      "reservation_id": "9395944f590946b69a8ca398369606f4",
+      "round_consumed": true,
+      "scope": "impl:fn-22-deterministic-replay-semantic.1",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.1",
+      "timestamp": "2026-09-22T23:07:02.451050Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-22-deterministic-replay-semantic.1": 1,
     "plan": 2,
     "plan#completion": 0
   },
@@ -1026,5 +1119,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T23:00:47.926172Z"
+  "updated_at": "2026-09-22T23:07:02.456693Z"
 }
