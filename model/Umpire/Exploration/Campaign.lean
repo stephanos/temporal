@@ -73,6 +73,10 @@ structure Campaign (model : DeclaredModel Setup State Action Outcome Fact) where
   ledger : Ledger
   /-- Candidates planned so far, in order, each with the observation it received. -/
   history : List (ArtifactChecksum × String × Option Observation) := []
+  /-- The candidates whose violated Run crossed a class member, retained whole (their admission
+  and their checked Model) so that each counterexample can be compiled into its promotion source;
+  one per identity, in the order they were observed. -/
+  counterexampleCandidates : List (Candidate model) := []
 
 namespace Campaign
 
@@ -173,12 +177,20 @@ path, whatever `covers` names. -/
 def observe (campaign : Campaign model) (candidate : Candidate model) (observation : Observation)
     (covers : List CoverageTarget := candidate.covers) : Campaign model :=
   let keys := candidate.covers.map targetKey
+  let crossesClass := covers.any fun target => match target with
+    | .classMember .. => keys.contains (targetKey target)
+    | _ => false
+  let retained := if observation == .violated && crossesClass &&
+      !campaign.counterexampleCandidates.any (·.identity == candidate.identity)
+    then campaign.counterexampleCandidates ++ [candidate]
+    else campaign.counterexampleCandidates
   { campaign with
     ledger := campaign.ledger.credit candidate.identity
       (covers.filter fun target => keys.contains (targetKey target)) observation
     history := campaign.history.map fun (identity, key, recorded) =>
       if identity == candidate.identity then (identity, key, some observation)
-      else (identity, key, recorded) }
+      else (identity, key, recorded)
+    counterexampleCandidates := retained }
 
 /-- The campaign's counts, in one closed record. -/
 structure Summary where

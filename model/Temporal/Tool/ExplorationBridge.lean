@@ -115,11 +115,18 @@ The Model a campaign covers fixes the types of its states, actions and outcomes,
 must not: `initialize` names the set by a string. A runner is a session with its types erased
 into the four operations the protocol needs, each of which returns the next runner. -/
 
+/-- What the summary says of one counterexample's proposal: its compiled source and digest, or why
+it did not compile. -/
+inductive ProposalReport where
+  | compiled (proposal : Proposal)
+  | failed (error : PromotionError)
+
 mutual
 
 inductive Runner where
   | mk (next : Unit → Step) (observe : ArtifactChecksum → Observation → Observed)
        (summary : Unit → Campaign.Summary) (ledger : Unit → List (String × TargetStatus))
+       (proposals : Unit → List (ArtifactChecksum × ProposalReport))
 
 /-- What `next` returns, each with the candidates passed over on the way to it. -/
 inductive Step where
@@ -140,23 +147,27 @@ end
 namespace Runner
 
 def next : Runner → Step
-  | .mk next _ _ _ => next ()
+  | .mk next _ _ _ _ => next ()
 
 def observe : Runner → ArtifactChecksum → Observation → Observed
-  | .mk _ observe _ _, identity, observation => observe identity observation
+  | .mk _ observe _ _ _, identity, observation => observe identity observation
 
 def summary : Runner → Campaign.Summary
-  | .mk _ _ summary _ => summary ()
+  | .mk _ _ summary _ _ => summary ()
 
 def ledger : Runner → List (String × TargetStatus)
-  | .mk _ _ _ ledger => ledger ()
+  | .mk _ _ _ ledger _ => ledger ()
+
+/-- Every counterexample's proposal, compiled from the candidate the campaign retained. -/
+def proposals : Runner → List (ArtifactChecksum × ProposalReport)
+  | .mk _ _ _ _ proposals => proposals ()
 
 private def emptySummary : Campaign.Summary :=
   { targets := 0, selected := 0, covered := 0, unreachable := 0, violated := 0, attempted := 0,
     unrealizable := 0, pending := 0, counterexamples := [], exhausted := true }
 
 instance : Inhabited Runner :=
-  ⟨.mk (fun _ => .outstanding) (fun _ _ => .rejected) (fun _ => emptySummary) (fun _ => [])⟩
+  ⟨.mk (fun _ => .outstanding) (fun _ _ => .rejected) (fun _ => emptySummary) (fun _ => []) (fun _ => [])⟩
 
 instance : Inhabited Step := ⟨.outstanding⟩
 
@@ -253,6 +264,10 @@ partial def ofSession (binding : Binding model) (session : Session model) : Runn
       | none => .rejected)
     (fun _ => session.campaign.summary)
     (fun _ => ledgerOf session)
+    (fun _ => session.campaign.proposals.map fun (identity, proposal) =>
+      (identity, match proposal with
+        | .ok compiled => .compiled compiled
+        | .error error => .failed error))
 
 end
 
@@ -471,10 +486,11 @@ def renderCredited (seq : Nat) (setName profile : String) (identity : ArtifactCh
     ("credited", jsonStrings covered),
     ("statuses", statusRows statuses)])
 
-/-- The summary frame. `promotion` names the promotion source's SHA-256 for a counterexample's
-candidate when one is compiled; none is rendered as JSON null. -/
+/-- The summary frame. Each counterexample carries its proposal: the promotion source's SHA-256
+and bytes when it compiled, or the reason it did not, so that whoever runs the campaign writes
+the source where it names and compares the digest across runs. -/
 def renderFinished (seq : Nat) (setName profile : String) (status : String) (summary : Campaign.Summary)
-    (ledger : List (String × TargetStatus)) (promotion : ArtifactChecksum → Option String) : String :=
+    (ledger : List (String × TargetStatus)) (proposals : List (ArtifactChecksum × ProposalReport)) : String :=
   jsonObject (header "finished" seq setName profile ++ [
     ("status", jsonString status),
     ("summary", jsonObject [
@@ -488,11 +504,22 @@ def renderFinished (seq : Nat) (setName profile : String) (status : String) (sum
       ("pending", toString summary.pending),
       ("exhausted", if summary.exhausted then "true" else "false")]),
     ("counterexamples", jsonArray (summary.counterexamples.map fun sample =>
-      jsonObject [
+      let proposal := (proposals.find? (·.1 == sample.candidate)).map (·.2)
+      jsonObject ([
         ("className", jsonString sample.className),
         ("target", jsonString (targetKey sample.target)),
-        ("candidate", jsonString sample.candidate.render),
-        ("promotionSourceSha256", (promotion sample.candidate).elim "null" jsonString)])),
+        ("candidate", jsonString sample.candidate.render)] ++
+        match proposal with
+        | some (.compiled compiled) => [
+            ("promotionSourceSha256", jsonString compiled.sha256),
+            ("promotionSourcePath", jsonString compiled.spec.sourceLocation.path),
+            ("promotionSource", jsonString compiled.bytes)]
+        | some (.failed error) => [
+            ("promotionSourceSha256", "null"),
+            ("promotionError", jsonString s!"{repr error.kind}: {error.detail}")]
+        | none => [
+            ("promotionSourceSha256", "null"),
+            ("promotionError", jsonString "the campaign retained no candidate for this counterexample")]))),
     ("ledger", statusRows ledger)])
 
 /-! ### The protocol -/
@@ -533,7 +560,6 @@ structure Effects where
   writeFrame : String → IO Unit
   writeProgress : String → IO Unit
   writeError : String → IO Unit
-  promotion : ArtifactChecksum → Option String := fun _ => none
 
 /-- The reason a frame is rejected, or none when it is in order. Checked before any campaign call. -/
 def rejection (state : State) (frame : Frame) : Option String :=
@@ -660,7 +686,7 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
                 { state with runner, outstanding := none, seen := state.seen ++ [view.identity] })
   | .finish requested =>
       pure (Outcome.finished (renderFinished seq state.setName state.profile (finishStatus state requested)
-        state.runner.summary state.runner.ledger effects.promotion))
+        state.runner.summary state.runner.ledger state.runner.proposals))
 
 /-- The diagnostic prefix every failure outside a frame carries. -/
 def diagnosticPrefix : String := "umpire-explore:"
