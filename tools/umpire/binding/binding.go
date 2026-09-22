@@ -48,37 +48,40 @@ type Deployment struct {
 	Create           bool
 }
 
-// HandlerQueueFor is the queue a Case's Nexus handler polls under this deployment: the named one,
-// or `<task-queue>-handler`, when the Program binds a handler queue apart from the workflow's, and
-// "" when it does not.
-func HandlerQueueFor(deployment Deployment, program *testpilotspb.Program) string {
-	if testpilotdriver.HandlerTaskQueueBindingID(program) == "" {
-		return ""
-	}
-	return handlerQueue(deployment)
-}
-
-func handlerQueue(deployment Deployment) string {
+// HandlerQueue is the queue a Nexus handler polls under this deployment when a Case binds one
+// apart from the caller's: the named one, or `<task-queue>-handler`.
+func HandlerQueue(deployment Deployment) string {
 	if deployment.HandlerTaskQueue != "" {
 		return deployment.HandlerTaskQueue
 	}
 	return deployment.TaskQueue + "-handler"
 }
 
+// HandlerQueueFor is the queue one Case's Nexus handler polls: HandlerQueue when the Program binds
+// a handler queue apart from the workflow's, and "" when it does not.
+func HandlerQueueFor(deployment Deployment, program *testpilotspb.Program) string {
+	if testpilotdriver.HandlerTaskQueueBindingID(program) == "" {
+		return ""
+	}
+	return HandlerQueue(deployment)
+}
+
 // Campaign is one deployment bound for a sequence of Cases: the connection, the provisioned
 // resources and the catalog every candidate prepares against.
 type Campaign struct {
-	deployment Deployment
-	connection *grpc.ClientConn
-	catalog    *testpilot.Catalog
-	releases   []func(context.Context) error
+	deployment   Deployment
+	handlerQueue string
+	connection   *grpc.ClientConn
+	catalog      *testpilot.Catalog
+	releases     []func(context.Context) error
 }
 
-// Open binds the deployment once. handlerQueue is the queue the Nexus endpoint routes to when the
-// Cases' handlers poll one of their own ("" routes it to the task queue); a caller binding one Case
-// takes it from HandlerQueueFor, a campaign names it once for every candidate. With Create the
-// named resources are registered and released with the campaign. A binding that fails rolls back
-// what it had opened before returning.
+// Open binds the deployment once. handlerQueue is the queue the Nexus endpoint routes to and every
+// Case's handler polls when a Case binds a handler queue of its own ("" routes the endpoint to
+// the task queue and binds no handler queue); a caller binding one Case takes it from
+// HandlerQueueFor, a campaign takes HandlerQueue once for every candidate. With Create the named
+// resources are registered and released with the campaign. A binding that fails rolls back what
+// it had opened before returning.
 func Open(ctx context.Context, deployment Deployment, handlerQueue string) (*Campaign, error) {
 	connection, err := grpc.NewClient(deployment.GRPCAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -86,9 +89,10 @@ func Open(ctx context.Context, deployment Deployment, handlerQueue string) (*Cam
 		return nil, fmt.Errorf("dial %q: %w", deployment.GRPCAddress, err)
 	}
 	campaign := &Campaign{
-		deployment: deployment,
-		connection: connection,
-		releases:   []func(context.Context) error{func(context.Context) error { return connection.Close() }},
+		deployment:   deployment,
+		handlerQueue: handlerQueue,
+		connection:   connection,
+		releases:     []func(context.Context) error{func(context.Context) error { return connection.Close() }},
 	}
 	// A binding that failed rolls back on a context the failure cannot have cancelled.
 	fail := func(err error) (*Campaign, error) {
@@ -147,11 +151,17 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	if c == nil || source == nil {
 		return nil, errors.New("campaign binding and Case are required")
 	}
+	// The handler queue is the one the campaign was opened with, so the endpoint's route and the
+	// handler's poll never disagree; a Case that binds no handler queue of its own takes none.
+	handlerQueue := ""
+	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
+		handlerQueue = c.handlerQueue
+	}
 	profile, err := testpilotdriver.DeriveProfile(source, c.catalog, testpilotdriver.Environment{
 		Identity:         identity,
 		Namespace:        c.deployment.Namespace,
 		TaskQueue:        c.deployment.TaskQueue,
-		HandlerTaskQueue: HandlerQueueFor(c.deployment, source.GetProgram()),
+		HandlerTaskQueue: handlerQueue,
 		NexusEndpoint:    c.deployment.NexusEndpoint,
 	})
 	if err != nil {

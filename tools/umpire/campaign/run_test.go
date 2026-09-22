@@ -516,7 +516,7 @@ func TestARejectedFrameLeavesTheSequenceAndTheCandidateWhereTheyWere(t *testing.
 	require.Equal(t, 3, fake.nextRequest(t).Seq)
 }
 
-func TestAReplyThatDoesNotMatchTheFrameIsAProtocolError(t *testing.T) {
+func TestAReplyThatDoesNotMatchTheFrameIsAProtocolErrorAndBreaksTheBridge(t *testing.T) {
 	for name, raw := range map[string]string{
 		"sequence":  `{"frame":"exhausted","seq":9,"set":"set","profile":"profile-a","skipped":[]}`,
 		"set":       `{"frame":"exhausted","seq":2,"set":"other","profile":"profile-a","skipped":[]}`,
@@ -531,8 +531,31 @@ func TestAReplyThatDoesNotMatchTheFrameIsAProtocolError(t *testing.T) {
 			var protocol *ProtocolError
 			require.ErrorAs(t, err, &protocol)
 			fake.nextRequest(t)
+			require.Nil(t, bridge.Outstanding())
+			_, err = bridge.Next(t.Context())
+			require.ErrorIs(t, err, ErrBroken)
+			fake.requireNoRequest(t)
 		})
 	}
+}
+
+func TestACreditedReplyForAnotherCandidateBreaksTheBridge(t *testing.T) {
+	bridge, fake := initialized(t, sampleCandidates()...)
+	_, err := bridge.Next(t.Context())
+	require.NoError(t, err)
+	fake.nextRequest(t)
+	fake.rawReplies = append(fake.rawReplies, `{"frame":"credited","seq":3,"set":"set","profile":"profile-a","candidate":"`+secondIdentity+`","observation":"satisfied","detail":"","credited":[],"statuses":[]}`)
+	detail := "no worker"
+	_, err = bridge.Observe(t.Context(), firstIdentity, Result{PrepareRejected: &detail})
+	var protocol *ProtocolError
+	require.ErrorAs(t, err, &protocol)
+	require.ErrorIs(t, bridge.Broken(), ErrBroken)
+	fake.nextRequest(t)
+	_, err = bridge.Observe(t.Context(), firstIdentity, Result{PrepareRejected: &detail})
+	require.ErrorIs(t, err, ErrBroken)
+	_, err = bridge.Next(t.Context())
+	require.ErrorIs(t, err, ErrBroken)
+	fake.requireNoRequest(t)
 }
 
 func TestAnOversizedFrameInEitherDirectionIsRefused(t *testing.T) {
