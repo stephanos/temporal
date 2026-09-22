@@ -113,11 +113,41 @@ func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
 	require.Equal(t, "run-1", run.GetRunId())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
 
+	// An existing record, or a directory that does not exist, is refused before anything runs.
+	opened := false
+	refusing := func(context.Context, config, *testpilotspb.Case) (*session, error) { opened = true; return nil, nil }
 	stdout.Reset()
-	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, open)
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, refusing)
 	require.Equal(t, exitFailed, code, "an existing record is never replaced")
-	require.Contains(t, stdout.String(), "verdict Violated", "the Run is reported before the record fails")
+	require.False(t, opened)
+	require.Contains(t, stderr.String(), "exists and is never replaced")
+	stderr.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", filepath.Join(t.TempDir(), "missing", "run.json")), &stdout, &stderr, refusing)
+	require.Equal(t, exitFailed, code)
+	require.False(t, opened)
+	require.Contains(t, stderr.String(), "directory does not exist")
+
+	// A record that fails after the Run, a race on the path, keeps the Verdict's exit code and is
+	// said on stderr.
+	raced := filepath.Join(t.TempDir(), "raced.json")
+	racing := func(ctx context.Context, configuration config, source *testpilotspb.Case) (*session, error) {
+		require.NoError(t, os.WriteFile(raced, []byte("{}"), 0o644))
+		return open(ctx, configuration, source)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", raced), &stdout, &stderr, racing)
+	require.Equal(t, exitViolated, code)
+	require.Contains(t, stdout.String(), "verdict Violated")
 	require.Contains(t, stderr.String(), "exist")
+	require.Equal(t, "{}", string(mustRead(t, raced)), "the raced file is never replaced")
+}
+
+func mustRead(t *testing.T, path string) []byte {
+	t.Helper()
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	return content
 }
 
 func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {
