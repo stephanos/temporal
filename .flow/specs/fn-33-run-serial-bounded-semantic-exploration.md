@@ -94,8 +94,12 @@ target of `nexusCallerExploration` -- the schedule with all three timeouts expir
 Program with no Nexus operation that `Prepare` rejected on its handler reservation. The bridge now
 reads the realization's bindings and the machine's timers (the exploratory `case` block emits the
 timers beside the claims, catalog and relations) before producing: a candidate whose path performs
-a member with no binding and no timer behind it is credited `prepare-rejected` without a Run,
-listed as skipped on the frame that follows, and the campaign moves on within the same `next`.
+a member with no binding and no timer behind it is credited `unrealizable` -- its own observation
+and ledger status, distinct from `attempted`, which says a Run was spent -- without a Run, listed
+as skipped on the frame that follows, and the campaign moves on within the same `next`. The
+implementation review asked whether to stop instead, bind every member, or filter the targets at
+`Campaign.check`; the skip with its own status was chosen because the enumeration is the Model's
+and what the realization cannot run is a finding the ledger should show, not hide.
 The Producer is not changed to reject, because a realization may leave an action unbound on
 purpose. Second, a path whose only evidence is the scheduled read lifts no history event, and a
 history read with an empty evidence lift is a Case `Prepare` rejects; `asyncNexus`'s history read
@@ -109,6 +113,12 @@ stopped is `violated`, since that is how the evaluator ends a violated Run. `fin
 `exhausted`, `tooling-failure`, or the status the coordinator names (`stopped`, `limit-reached`)
 when targets are pending, because the candidate cap and the byte counters are the coordinator's.
 Counterexamples carry `promotionSourceSha256` as JSON null until task .5 compiles the source.
+The frames are exact: each kind admits a closed key set and any other key rejects; a Run the bridge
+cannot read (undecodable, or naming no Run or Case) rejects the frame and leaves the candidate
+outstanding rather than spending it. `initialize` names the Profile identity the coordinator runs
+under, which the bridge echoes on every frame and requires unchanged on `observe`; `initialized`
+writes the budget's Limits out by value. The Profile's contents stay the coordinator's (task .3):
+a Run carries no Profile, so the identity is the binding the bridge can check.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
