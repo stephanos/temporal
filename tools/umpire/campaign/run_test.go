@@ -672,6 +672,23 @@ func TestCloseKillsABridgeThatNeverAnswers(t *testing.T) {
 	}
 }
 
+// A bridge started on a context that outlives the campaign's answers the summary after the
+// campaign's context ended, which is how a stopped campaign still gets its summary.
+func TestAStartedBridgeOutlivesTheCampaignContext(t *testing.T) {
+	campaignCtx, cancel := context.WithCancel(t.Context())
+	bridge, err := Start(context.WithoutCancel(campaignCtx), Options{Executable: "sh", Args: []string{"-c", `read line; printf '%s\n' '{"frame":"initialized","seq":1,"set":"set","profile":"p","targets":[]}'; read line; printf '%s\n' '{"frame":"finished","seq":2,"set":"set","profile":"p","status":"stopped","summary":{},"counterexamples":[],"ledger":[]}'; cat >/dev/null`}})
+	require.NoError(t, err)
+	_, err = bridge.Initialize(campaignCtx, "set", "p")
+	require.NoError(t, err)
+	cancel()
+	finishCtx, cancelFinish := context.WithTimeout(context.WithoutCancel(campaignCtx), 5*time.Second)
+	defer cancelFinish()
+	finished, err := bridge.Finish(finishCtx, "stopped")
+	require.NoError(t, err)
+	require.Equal(t, "stopped", finished.Status)
+	require.NoError(t, bridge.Close())
+}
+
 // A finished bridge is given its EOF and exits on its own; Close waits for it.
 func TestCloseWaitsForAFinishedBridge(t *testing.T) {
 	bridge, err := Start(t.Context(), Options{Executable: "sh", Args: []string{"-c", `read line; printf '%s\n' '{"frame":"initialized","seq":1,"set":"set","profile":"p","targets":[]}'; read line; printf '%s\n' '{"frame":"finished","seq":2,"set":"set","profile":"p","status":"stopped","summary":{},"counterexamples":[],"ledger":[]}'; cat >/dev/null`}})

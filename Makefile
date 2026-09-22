@@ -691,9 +691,13 @@ umpire-fuzz:
 # set, UMPIRE_FUZZ_GRPC/UMPIRE_FUZZ_HTTP the frontend, UMPIRE_FUZZ_NAMESPACE/UMPIRE_FUZZ_TASK_QUEUE/
 # UMPIRE_FUZZ_NEXUS_ENDPOINT the resources it binds to (created and removed when UMPIRE_FUZZ_CREATE
 # is set), UMPIRE_FUZZ_FLAGS any further flags such as caps. The bridge is built first.
-umpire-fuzz-run: umpire-fuzz
-	@cd model && $(LEAN_LAKE) -q build umpire-explore
+umpire-fuzz-run:
 	@test -n "$(SET)" || { printf 'SET=<exploratory set> is required\n'; exit 3; }
+	@for required in UMPIRE_FUZZ_GRPC UMPIRE_FUZZ_HTTP UMPIRE_FUZZ_NAMESPACE UMPIRE_FUZZ_TASK_QUEUE; do \
+		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
+	done
+	@$(MAKE) --no-print-directory umpire-fuzz
+	@cd model && $(LEAN_LAKE) -q build umpire-explore
 	@./.build/umpire-fuzz run --set "$(SET)" \
 		--grpc "$${UMPIRE_FUZZ_GRPC:?UMPIRE_FUZZ_GRPC is required}" \
 		--http "$${UMPIRE_FUZZ_HTTP:?UMPIRE_FUZZ_HTTP is required}" \

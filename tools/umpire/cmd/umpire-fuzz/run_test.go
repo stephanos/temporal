@@ -7,8 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -37,6 +40,8 @@ type scriptedBridge struct {
 	statuses   map[string]string
 	violated   []campaign.Counterexample
 	toolingOn  int
+	// rejectFinish answers finish with a rejection, so the summary is never read.
+	rejectFinish bool
 }
 
 func sampleCase(caseID string) json.RawMessage {
@@ -173,6 +178,9 @@ func (s *scriptedBridge) answer(frame map[string]json.RawMessage) map[string]any
 		reply["statuses"] = statuses
 		s.outstand = nil
 	case "finish":
+		if s.rejectFinish {
+			return map[string]any{"frame": "rejected", "seq": seq, "reason": "the summary is refused"}
+		}
 		reply["frame"] = "finished"
 		status := text(frame, "status")
 		if status == "" {
@@ -316,8 +324,9 @@ func decodeSummary(t *testing.T, stdout string) summary {
 
 func TestRunExhaustsTheSetAndReportsCoverageFromTheLedgerOnly(t *testing.T) {
 	var stdout, stderr bytes.Buffer
+	candidates := sampleCandidates()
 	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE}}
-	code := Run(requiredFlags(), &stdout, &stderr, scriptedOpener(t, binder, sampleCandidates(), nil))
+	code := Run(requiredFlags(), &stdout, &stderr, scriptedOpener(t, binder, candidates, nil))
 	require.Equal(t, exitExhausted, code, stderr.String())
 	decoded := decodeSummary(t, stdout.String())
 	require.Equal(t, "exhausted", decoded.Status)
@@ -325,7 +334,7 @@ func TestRunExhaustsTheSetAndReportsCoverageFromTheLedgerOnly(t *testing.T) {
 	require.Equal(t, "umpire-fuzz.fuzz", decoded.Profile)
 	require.Equal(t, "four", decoded.Budget)
 	require.Equal(t, &campaign.Limits{Steps: 4, Actions: 4, Search: 32768}, decoded.Limits)
-	require.Equal(t, counters{Planned: 2, Prepared: 2, Started: 2, Decisive: 1, Inconclusive: 1, CaseBytes: int64(2 * len(sampleCase("temporal.case.set.1"))), RunEvents: 2}, decoded.Counters)
+	require.Equal(t, campaign.Counters{Planned: 2, Prepared: 2, Started: 2, Decisive: 1, Inconclusive: 1, CaseBytes: int64(len(candidates[0].Case) + len(candidates[1].Case)), RunEvents: 2}, decoded.Counters)
 	require.NotNil(t, decoded.Coverage)
 	require.Equal(t, 2, decoded.Coverage.Covered, "only the satisfied Run's path is covered")
 	require.Equal(t, 2, decoded.Coverage.Attempted, "the inconclusive Run's path is attempted, never covered")
@@ -450,18 +459,121 @@ func TestRunReportsPreparationRejectionsAndGoesOn(t *testing.T) {
 	require.Equal(t, "unsupported at program: opcode", decoded.Candidates[0].Detail)
 }
 
+// wideCandidates cover enough targets that the full summary is over a small cap while the
+// terminal-only summary is under it.
+func wideCandidates() []campaign.Candidate {
+	candidates := sampleCandidates()
+	for index := range 40 {
+		candidates[0].Covers = append(candidates[0].Covers, "row:wide-"+strings.Repeat("x", 20)+string(rune('a'+index%26)))
+	}
+	return candidates
+}
+
 // The report cap is enforced on the rendered summary: over it, the terminal alone is written as
-// limit-reached, never a truncated report.
+// limit-reached, never a truncated report. The terminal-only summary is the floor a cap cannot
+// go below, which the flag set refuses.
 func TestRunReportsLimitReachedRatherThanTruncatingTheSummary(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	code := Run(requiredFlags("--max-report-bytes", "200"), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, sampleCandidates(), nil))
+	code := Run(requiredFlags("--max-report-bytes", "1024"), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, wideCandidates(), nil))
 	require.Equal(t, exitLimitOrStop, code, stderr.String())
 	decoded := decodeSummary(t, stdout.String())
 	require.Equal(t, "limit-reached", decoded.Status)
 	require.Equal(t, "report-bytes", decoded.Limit)
 	require.Nil(t, decoded.Coverage)
 	require.Empty(t, decoded.Candidates)
+	require.LessOrEqual(t, stdout.Len(), 1024, "the terminal-only summary fits the cap")
 	require.Contains(t, stderr.String(), "report-bytes")
+}
+
+// A failure or a stop keeps its terminal under the report cap: what it names outranks the cap.
+func TestReportCapFallbackKeepsAFailureOrStopTerminal(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	binder := &scriptedBinder{bindErr: errors.New("open SDK client: connection refused")}
+	code := Run(requiredFlags("--max-report-bytes", "1024"), &stdout, &stderr, scriptedOpener(t, binder, wideCandidates(), nil))
+	require.Equal(t, exitToolingError, code, stderr.String())
+	decoded := decodeSummary(t, stdout.String())
+	require.Equal(t, "tooling-failure", decoded.Status)
+	require.Contains(t, decoded.Failure, "connection refused")
+	require.Nil(t, decoded.Coverage)
+}
+
+// A summary the bridge refuses after an exhausted campaign is a tooling failure, never an exit 0
+// with no coverage; a violated Run observed before a stop still exits 1 without the summary.
+func TestRunNeverTrustsAMissingSummary(t *testing.T) {
+	t.Run("refused after exhaustion", func(t *testing.T) {
+		var stdout, stderr bytes.Buffer
+		code := Run(requiredFlags(), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, sampleCandidates(), func(s *scriptedBridge) { s.rejectFinish = true }))
+		require.Equal(t, exitToolingError, code, stderr.String())
+		decoded := decodeSummary(t, stdout.String())
+		require.Equal(t, "tooling-failure", decoded.Status)
+		require.Contains(t, decoded.Failure, "refused")
+		require.Nil(t, decoded.Coverage)
+	})
+	t.Run("violated before a stop", func(t *testing.T) {
+		var stdout, stderr bytes.Buffer
+		binder := &violatedThenBlocking{}
+		code := Run(requiredFlags("--timeout", "300ms"), &stdout, &stderr, scriptedOpener(t, binder, sampleCandidates(), func(s *scriptedBridge) { s.rejectFinish = true }))
+		require.Equal(t, exitViolated, code, stderr.String())
+		decoded := decodeSummary(t, stdout.String())
+		require.Equal(t, "stopped", decoded.Status)
+		require.Equal(t, secondIdentity, decoded.Lost)
+		require.Equal(t, "violated", decoded.Candidates[0].Observation)
+	})
+	t.Run("an empty report", func(t *testing.T) {
+		settled := settle(campaign.Report{}, errors.New("invariant"))
+		require.Equal(t, campaign.StatusToolingFailure, settled.Terminal.Status)
+		require.Equal(t, "invariant", settled.Terminal.Failure)
+		require.Equal(t, exitToolingError, exitCode(settled))
+	})
+}
+
+// violatedThenBlocking's first Run is violated; its second waits for the campaign to end.
+type violatedThenBlocking struct {
+	runs   int
+	caseID string
+}
+
+func (b *violatedThenBlocking) Bind(_ context.Context, _ string, source *testpilotspb.Case) (campaign.Bound, error) {
+	b.caseID = source.GetCaseId()
+	return b, nil
+}
+func (b *violatedThenBlocking) Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+	b.runs++
+	if b.runs > 1 {
+		<-ctx.Done()
+		return nil, nil, ctx.Err()
+	}
+	verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
+	return &testpilotspb.Run{RunId: "run", CaseId: b.caseID, Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict}, verdict, nil
+}
+func (b *violatedThenBlocking) Release(context.Context) error { return nil }
+
+// The real opening starts the bridge on a context that outlives the campaign's, so a stopped
+// campaign still reads its summary; the stand-in bridge here is a script that answers the frames.
+func TestOpenCampaignStartsTheBridgeBeyondTheCampaignContext(t *testing.T) {
+	script := filepath.Join(t.TempDir(), "bridge.sh")
+	require.NoError(t, os.WriteFile(script, []byte(`#!/bin/sh
+read line
+printf '%s\n' '{"frame":"initialized","seq":1,"set":"s","profile":"umpire-fuzz.fuzz","machine":"m","budget":"b","limits":{"steps":1,"actions":1,"search":1},"targets":[]}'
+read line
+printf '%s\n' '{"frame":"finished","seq":2,"set":"s","profile":"umpire-fuzz.fuzz","status":"stopped","summary":{},"counterexamples":[],"ledger":[]}'
+cat >/dev/null
+`), 0o755))
+	var stderr bytes.Buffer
+	configuration, err := parseConfig(requiredFlags("--set", "s", "--bridge", script, "--model-root", t.TempDir(), "--grpc", "127.0.0.1:1"), &stderr)
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(t.Context())
+	opened, err := openCampaign(ctx, configuration, &stderr)
+	require.NoError(t, err)
+	require.Equal(t, "m", opened.opened.Machine)
+	cancel()
+	finishCtx, cancelFinish := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+	defer cancelFinish()
+	finished, err := opened.bridge.Finish(finishCtx, "stopped")
+	require.NoError(t, err)
+	require.Equal(t, "stopped", finished.Status)
+	require.NoError(t, opened.release(context.WithoutCancel(ctx)))
 }
 
 func TestRunRejectsTheCommandLineBeforeOpeningAnything(t *testing.T) {
@@ -479,6 +591,7 @@ func TestRunRejectsTheCommandLineBeforeOpeningAnything(t *testing.T) {
 		{"positional", requiredFlags("extra"), "accepts no positional arguments"},
 		{"non-positive timeout", requiredFlags("--timeout", "0s"), "must be positive"},
 		{"negative cap", requiredFlags("--max-candidates", "-1"), "must not be negative"},
+		{"report cap below the floor", requiredFlags("--max-report-bytes", "200"), "at least"},
 	} {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
