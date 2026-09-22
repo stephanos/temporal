@@ -18,7 +18,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-09-01T11:12:31.100461Z",
+  "plan_reviewed_at": "2026-09-22T14:43:30.643727Z",
   "review_attempts": [
     {
       "artifact_sha256": "eb452f6334d3f91ac4562eca9c7c0e871221094388f5d382383b36a45d773e8c",
@@ -713,10 +713,97 @@
       "task": null,
       "timestamp": "2026-09-01T11:12:31.095800Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e8c34b99aa1b674b31dd85924a0228ad316a5f05b78210c43173073628226889",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "1a1167ffccf4d2d8dcd24df71cf0ef293bb7ca6b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 17709,
+      "output_sha256": "bed8d9bdfca1f192f9b33a6f64da00f58bc7dee7d39dbd0ec0537f812382d1a3",
+      "reservation_id": "d0d912db0d0f4c3fae15189b3b7dc203",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-22T14:36:18.752229Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5f7e0af857c9d868b83c8f7539e3802c07f6c9b9982352cf5af5b01ab856316c",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "1a1167ffccf4d2d8dcd24df71cf0ef293bb7ca6b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 5431,
+      "output_sha256": "30b6dc4920bbd4eb3c1cd07961abb80ed1df94dac816c8e260e0d36a575308bf",
+      "reservation_id": "dc535adf64e04762b7d179718084c5ac",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-22T14:41:47.863221Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4f8d3e526ca12dd934d8f3925c8e695c601a8e42a8d8858b87f5b7596e870e5e",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "1a1167ffccf4d2d8dcd24df71cf0ef293bb7ca6b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 2688,
+      "output_sha256": "2b285f2bcf11762392c1084976b515b82db8d43c9c9f4f7eba2376437ef31785",
+      "reservation_id": "d808d2ef95664abcbfa55bf330c67206",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-22T14:43:30.639975Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 3,
+    "plan": 4,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -738,5 +825,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T04:48:34.128120Z"
+  "updated_at": "2026-09-22T14:43:30.644372Z"
 }

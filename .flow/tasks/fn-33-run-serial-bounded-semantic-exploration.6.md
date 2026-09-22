@@ -4,7 +4,7 @@ satisfies: [R2, R6]
 # fn-33-run-serial-bounded-semantic-exploration.6 Enforce the serial process-local coordinator boundary
 
 ## Description
-Model process-local idle, planning, preparing, running, observing, and finished states with one transition at a time. Runs before `.4`: the command's exit codes and `.3`'s one-outstanding guarantee rest on this state machine. Bound candidate count, aggregate Case bytes/static work, Run time/work, event references, and report bytes; define stop/crash handling without durable recovery.
+Model process-local idle, planning, preparing, running, observing, and finished states with one transition at a time. Runs before `.4`: the command's exit codes rest on this state machine, which supersedes `.3`'s local guard in the bridge client. Bound candidate count, aggregate Case bytes/static work, Run time/work, event references, and report bytes; define stop/crash handling without durable recovery.
 
 **Size:** M
 **Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`
@@ -13,7 +13,7 @@ Model process-local idle, planning, preparing, running, observing, and finished 
 ### Approach
 - One state machine value owned by the coordinator; every transition consumes the previous state, so two outstanding candidates cannot be represented.
 - SIGINT during a Run: bounded cleanup, `stopped` with a lost iteration named by identity; SIGINT between candidates: `stopped` with none lost.
-- Caps are declared once in the command's configuration and enforced before the action they bound; exceeding one is `limit-reached`, never truncation.
+- Caps are the campaign's own counters (candidate cap, aggregate Case bytes, report bytes), declared once in the command's configuration and enforced before the action they bound; exceeding one is `limit-reached`, never truncation. The budget's `search` limit bounds one Search and is never a campaign cap.
 - Tests drive the state machine with fakes for the bridge and the facade; a 10x candidate volume stops at the cap with bounded retained state.
 
 ### Investigation targets
