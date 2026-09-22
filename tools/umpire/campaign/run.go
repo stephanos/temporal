@@ -45,10 +45,12 @@ const (
 	// OutcomeBindFailed: the deployment or the Driver could not be opened for a Case that
 	// prepared. No Run exists and the candidate is still outstanding on the bridge.
 	OutcomeBindFailed OutcomeKind = "bind-failed"
-	// OutcomeRunFailed: the Run could not execute (the Driver refused, the context ended). No Run
-	// exists and the candidate is still outstanding on the bridge.
+	// OutcomeRunFailed: the Run could not execute (the Driver refused, the context ended before a
+	// Run opened). No Run exists and the candidate is still outstanding on the bridge.
 	OutcomeRunFailed OutcomeKind = "run-failed"
-	// OutcomeCompleted: one Run exists with its cleanup observed, and the bridge credited it.
+	// OutcomeCompleted: one Run exists with its cleanup observed, and the bridge credited it. The
+	// facade may have returned an error beside it -- a recorder or Monitor close failure after the
+	// Verdict was fixed -- which RunError carries; the Run is still the authoritative record.
 	OutcomeCompleted OutcomeKind = "completed"
 )
 
@@ -62,6 +64,9 @@ type Outcome struct {
 	Run      *testpilotspb.Run
 	Verdict  *testpilotspb.Verdict
 	Credited *Credited
+	// RunError is the error the facade returned beside a closed Run, when it returned one; the
+	// Run was observed regardless, because a proved Verdict is not erased by what followed it.
+	RunError error
 	// ReleaseError names what the candidate's teardown could not remove; it changes nothing about
 	// the observation, whose cleanup status is the Run's own.
 	ReleaseError error
@@ -104,24 +109,27 @@ func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 	// Teardown runs on its own context: an interrupted or timed-out Run still releases what it
 	// opened, and what it could not remove is reported beside the outcome, never as the outcome.
 	releaseErr := bound.Release(context.WithoutCancel(ctx))
-	if runErr != nil {
+	// The facade returns a closed Run beside an error when the failure came after the Verdict was
+	// fixed; that Run is the authoritative record and is observed. Only no Run at all is a failure
+	// to execute.
+	if run == nil {
+		if runErr == nil {
+			runErr = errors.New("the Run returned nothing")
+		}
 		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: runErr.Error(), ReleaseError: releaseErr},
 			fmt.Errorf("run candidate %s: %w", candidate.Identity, runErr)
 	}
-	if run == nil || run.GetCleanup() == nil {
+	if run.GetCleanup() == nil {
 		err := errors.New("the Run returned without an observed cleanup")
-		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), ReleaseError: releaseErr}, err
+		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), RunError: runErr, ReleaseError: releaseErr}, err
 	}
-	if run.GetVerdict() == nil && verdict != nil {
-		run.Verdict = verdict
-	}
-	encoded, err := protojson.MarshalOptions{UseProtoNames: false}.Marshal(run)
+	encoded, err := protojson.Marshal(run)
 	if err != nil {
-		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, ReleaseError: releaseErr},
+		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr},
 			fmt.Errorf("encode Run of candidate %s: %w", candidate.Identity, err)
 	}
 	credited, err := bridge.Observe(ctx, candidate.Identity, Result{Run: encoded})
-	outcome := Outcome{Kind: OutcomeCompleted, Identity: candidate.Identity, Run: run, Verdict: verdict, ReleaseError: releaseErr}
+	outcome := Outcome{Kind: OutcomeCompleted, Identity: candidate.Identity, Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}
 	if err != nil {
 		return outcome, err
 	}

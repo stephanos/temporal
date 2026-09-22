@@ -149,7 +149,12 @@ The Profile identity named at `initialize` is the identity the Case is bound und
 prepared Case's Driver identity carries it. The integration proof runs under
 `-tags 'test_dep integration'` against a cluster named by `UMPIRE_FUZZ_GRPC`/`UMPIRE_FUZZ_HTTP`
 and skips, saying so, without one; the live-bridge test runs the real `umpire-explore` whenever
-it is built.
+it is built. Its implementation review (round one) added two rules: a closed Run the facade
+returns beside an error -- a recorder or Monitor close failure after the Verdict was fixed -- is
+observed, with the error carried beside the outcome, because a proved Verdict is not erased by
+what followed it; and a bridge whose stream is out of step (an unwritable frame, an unreadable or
+mismatched reply, a frame over the cap, a context that ended mid-exchange) is broken, and every
+later call returns that failure without writing a frame.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
