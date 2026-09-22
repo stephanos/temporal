@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/binding"
+	"go.temporal.io/server/tools/umpire/internal/cli"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
@@ -29,17 +29,11 @@ const defaultTimeout = 5 * time.Minute
 // config is what the caller names. Nothing here ever enters the Case: addresses and credentials
 // stay outside the bytes, and no flag widens a declared Limit.
 type config struct {
-	CasePath      string
-	GRPCAddress   string
-	HTTPAddress   string
-	Namespace     string
-	TaskQueue     string
-	NexusEndpoint string
-	// HandlerTaskQueue is the queue the Case's Nexus handler polls when the Case binds one apart
-	// from the caller's; empty derives `<task-queue>-handler` for a Case that binds one.
-	HandlerTaskQueue string
-	Create           bool
-	Timeout          time.Duration
+	CasePath string
+	// Deployment is what the Case binds to; its handler task queue, when empty, derives
+	// `<task-queue>-handler` for a Case that binds one.
+	Deployment binding.Deployment
+	Timeout    time.Duration
 }
 
 // session is one bound Case: how to run it once, and how to release everything the binding opened.
@@ -65,23 +59,23 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 
 	source, err := readCase(configuration.CasePath)
 	if err != nil {
-		writeLine(stderr, "%s", err)
+		cli.WriteLine(stderr, "%s", err)
 		return exitFailed
 	}
 
-	ctx, cancel := interruptible(context.Background(), configuration.Timeout)
+	ctx, cancel := cli.Interruptible(context.Background(), configuration.Timeout)
 	defer cancel()
 
 	bound, err := open(ctx, configuration, source)
 	if err != nil {
-		writeLine(stderr, "%s", describeFailure(err))
+		cli.WriteLine(stderr, "%s", describeFailure(err))
 		return exitFailed
 	}
 	defer releaseSession(bound, stderr)
 
 	run, verdict, err := bound.run(ctx)
 	if err != nil {
-		writeLine(stderr, "run Case %q: %v", source.GetCaseId(), err)
+		cli.WriteLine(stderr, "run Case %q: %v", source.GetCaseId(), err)
 		return exitFailed
 	}
 
@@ -89,57 +83,30 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	return exitCode(verdict)
 }
 
-// interruptible bounds the Run by the caller's timeout and cancels it on SIGINT. Teardown runs on
-// its own context afterwards, so an interrupted Run still removes what it created.
-func interruptible(parent context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
-	notified, stopNotify := signal.NotifyContext(parent, os.Interrupt)
-	ctx, cancelTimeout := context.WithTimeout(notified, timeout)
-	return ctx, func() {
-		cancelTimeout()
-		stopNotify()
-	}
-}
-
-// writeLine reports one line. A report the caller cannot receive is not a failure worth changing
-// the exit code for, so the write error is deliberately dropped.
-func writeLine(destination io.Writer, format string, arguments ...any) {
-	_, _ = fmt.Fprintf(destination, format+"\n", arguments...)
-}
-
 func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	var configuration config
 	flags := flag.NewFlagSet("umpire-run", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.StringVar(&configuration.CasePath, "case", "", "path to a checked-in Case fixture")
-	flags.StringVar(&configuration.GRPCAddress, "grpc", "", "frontend gRPC address")
-	flags.StringVar(&configuration.HTTPAddress, "http", "", "frontend HTTP address")
-	flags.StringVar(&configuration.Namespace, "namespace", "", "namespace the Case binds to")
-	flags.StringVar(&configuration.TaskQueue, "task-queue", "", "task queue the Case binds to")
-	flags.StringVar(&configuration.NexusEndpoint, "nexus-endpoint", "", "Nexus endpoint the Case binds to")
-	flags.StringVar(&configuration.HandlerTaskQueue, "handler-task-queue", "", "task queue the Case's Nexus handler polls when it binds one of its own (default <task-queue>-handler)")
-	flags.BoolVar(&configuration.Create, "create", false, "create the named resources and delete them on exit")
+	binding.RegisterFlags(flags, &configuration.Deployment, "the Case")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
 	if err := flags.Parse(arguments); err != nil {
 		return config{}, err
 	}
 	if flags.NArg() != 0 {
-		writeLine(stderr, "umpire-run accepts no positional arguments")
+		cli.WriteLine(stderr, "umpire-run accepts no positional arguments")
 		return config{}, errors.New("unexpected positional arguments")
 	}
-	for _, required := range []struct{ name, value string }{
-		{"--case", configuration.CasePath},
-		{"--grpc", configuration.GRPCAddress},
-		{"--http", configuration.HTTPAddress},
-		{"--namespace", configuration.Namespace},
-		{"--task-queue", configuration.TaskQueue},
-	} {
-		if required.value == "" {
-			writeLine(stderr, "%s is required", required.name)
-			return config{}, fmt.Errorf("missing %s", required.name)
-		}
+	if configuration.CasePath == "" {
+		cli.WriteLine(stderr, "--case is required")
+		return config{}, errors.New("missing --case")
+	}
+	if missing := binding.Missing(configuration.Deployment); len(missing) > 0 {
+		cli.WriteLine(stderr, "%s is required", missing[0])
+		return config{}, fmt.Errorf("missing %s", missing[0])
 	}
 	if configuration.Timeout <= 0 {
-		writeLine(stderr, "--timeout must be positive")
+		cli.WriteLine(stderr, "--timeout must be positive")
 		return config{}, errors.New("non-positive timeout")
 	}
 	return configuration, nil
@@ -174,31 +141,19 @@ func releaseSession(bound *session, stderr io.Writer) {
 	// Teardown runs on its own context: an interrupted or timed-out Run still releases what it
 	// created.
 	if err := bound.release(context.Background()); err != nil {
-		for _, failure := range flatten(err) {
-			writeLine(stderr, "%s", failure)
+		for _, failure := range cli.Flatten(err) {
+			cli.WriteLine(stderr, "%s", failure)
 		}
 	}
 }
 
 // flatten reports one line per leaked resource rather than one joined blob.
-func flatten(err error) []string {
-	var joined interface{ Unwrap() []error }
-	if errors.As(err, &joined) {
-		var lines []string
-		for _, nested := range joined.Unwrap() {
-			lines = append(lines, flatten(nested)...)
-		}
-		return lines
-	}
-	return []string{err.Error()}
-}
-
 func report(stdout io.Writer, run *testpilotspb.Run, verdict *testpilotspb.Verdict) {
-	writeLine(stdout, "run %s", run.GetDisposition())
-	writeLine(stdout, "cleanup %s", run.GetCleanup().GetStatus())
-	writeLine(stdout, "verdict %s", verdict.GetStatus())
+	cli.WriteLine(stdout, "run %s", run.GetDisposition())
+	cli.WriteLine(stdout, "cleanup %s", run.GetCleanup().GetStatus())
+	cli.WriteLine(stdout, "verdict %s", verdict.GetStatus())
 	for _, rule := range verdict.GetRules() {
-		writeLine(stdout, "rule %s %s %s", rule.GetRuleId(), rule.GetStatus(), rule.GetTerminalStateId())
+		cli.WriteLine(stdout, "rule %s %s %s", rule.GetRuleId(), rule.GetStatus(), rule.GetTerminalStateId())
 	}
 }
 
@@ -219,20 +174,12 @@ func exitCode(verdict *testpilotspb.Verdict) int {
 // its own SDK worker). Both live in `tools/umpire/binding`, which a campaign shares; the CLI's
 // behavior and exit codes are unchanged.
 func openSession(ctx context.Context, configuration config, source *testpilotspb.Case) (*session, error) {
-	deployment := binding.Deployment{
-		GRPCAddress:      configuration.GRPCAddress,
-		HTTPAddress:      configuration.HTTPAddress,
-		Namespace:        configuration.Namespace,
-		TaskQueue:        configuration.TaskQueue,
-		NexusEndpoint:    configuration.NexusEndpoint,
-		HandlerTaskQueue: configuration.HandlerTaskQueue,
-		Create:           configuration.Create,
-	}
+	deployment := configuration.Deployment
 	campaign, err := binding.Open(ctx, deployment, binding.HandlerQueueFor(deployment, source.GetProgram()))
 	if err != nil {
 		return nil, err
 	}
-	bound, err := campaign.Bind(ctx, "umpire-run."+configuration.Namespace, source)
+	bound, err := campaign.Bind(ctx, "umpire-run."+deployment.Namespace, source)
 	if err != nil {
 		// A binding that failed rolls back on a context the failure cannot have cancelled.
 		return nil, errors.Join(err, campaign.Close(context.WithoutCancel(ctx)))

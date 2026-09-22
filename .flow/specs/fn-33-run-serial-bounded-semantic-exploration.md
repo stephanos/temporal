@@ -236,7 +236,9 @@ campaign becomes `limit-reached` by `report-bytes`. Round four: the coverage cou
 summary too, since they are fixed in size and a violated row-only candidate is no counterexample,
 so they alone explain exit 1 under the cap; a proposal write failure keeps the terminal's lost
 identity and limit name; and the report cap is checked through `Caps.CheckReport`, not a second
-coordinator.
+coordinator. Round five: SHIP; its P3 applied as polish: the deployment flags are registered once
+by `binding.RegisterFlags` and checked by `binding.Missing` for both commands, and the
+interruptible context, the line writer and the error flattening live in `tools/umpire/internal/cli`.
 
 Task .5 (2026-09-22): determinism is pinned where each side owns it. In Lean, the campaign
 replays a scripted observation stream keyed by candidate identity (`Umpire.Exploration.Tests.Campaign`):
