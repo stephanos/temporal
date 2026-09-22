@@ -167,12 +167,15 @@ def next (campaign : Campaign model) : Next model :=
   nextWith (campaign.ledger.entries.length + 1) campaign
 
 /-- Take back what a candidate's Run said, credited to every target on its planned path, or to
-the `covers` named instead: a candidate no Run was spent on is credited to the targets the
-reason reaches, not to every target its path passes through. -/
+the ones among them that `covers` names: a candidate no Run was spent on is credited to the targets
+the reason reaches, not to every target its path passes through. Credit never leaves the planned
+path, whatever `covers` names. -/
 def observe (campaign : Campaign model) (candidate : Candidate model) (observation : Observation)
     (covers : List CoverageTarget := candidate.covers) : Campaign model :=
+  let keys := candidate.covers.map targetKey
   { campaign with
-    ledger := campaign.ledger.credit candidate.identity covers observation
+    ledger := campaign.ledger.credit candidate.identity
+      (covers.filter fun target => keys.contains (targetKey target)) observation
     history := campaign.history.map fun (identity, key, recorded) =>
       if identity == candidate.identity then (identity, key, some observation)
       else (identity, key, recorded) }
