@@ -166,11 +166,13 @@ def nextWith : Nat → Campaign model → Next model
 def next (campaign : Campaign model) : Next model :=
   nextWith (campaign.ledger.entries.length + 1) campaign
 
-/-- Take back what a candidate's Run said. -/
-def observe (campaign : Campaign model) (candidate : Candidate model) (observation : Observation) :
-    Campaign model :=
+/-- Take back what a candidate's Run said, credited to every target on its planned path, or to
+the `covers` named instead: a candidate no Run was spent on is credited to the targets the
+reason reaches, not to every target its path passes through. -/
+def observe (campaign : Campaign model) (candidate : Candidate model) (observation : Observation)
+    (covers : List CoverageTarget := candidate.covers) : Campaign model :=
   { campaign with
-    ledger := campaign.ledger.credit candidate.identity candidate.covers observation
+    ledger := campaign.ledger.credit candidate.identity covers observation
     history := campaign.history.map fun (identity, key, recorded) =>
       if identity == candidate.identity then (identity, key, some observation)
       else (identity, key, recorded) }

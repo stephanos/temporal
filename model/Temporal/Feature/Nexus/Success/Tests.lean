@@ -1771,7 +1771,7 @@ with -- the realization and the machine's claims, evidence catalog, field relati
 and registers no Case; its candidates read the machine's own `evidence:` lines, so the block
 writes none. -/
 /--
-error: set 'exploration' is exploratory; its candidates' Cases read the machine's own `evidence:` lines, so the block writes none
+error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; its candidates' Cases read the machine's own `evidence:` lines, so the block writes none
 -/
 #guard_msgs in
 case exploredCases
