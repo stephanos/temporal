@@ -711,6 +711,16 @@ per instance, replacing the per-instance rule copies Producers emit today (the t
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
 spec once every Case comes from the commands.
 
+**Also deferred from fn-86 R2:** a field path through a repeated field selecting the element the
+observation correlates to the row's entity instance. `Temporal.Case.FieldPath` rejects every
+repeated-field path today; neither migrated example needed the positive form, so the selection form
+was never built (fn-86 completion review, 2026-09-22).
+
+**Completion reviews, 2026-09-22.** fn-46 and fn-86 each passed `flowctl claude completion-review`
+(opus at high) with SHIP; fn-86's five P2/P3 documentation and tidiness findings are applied. Both
+specs' `spec close` still waits on a clone with runtime task state, because every task reads `todo`
+from the committed snapshot here.
+
 ### Additional open specs
 
 These remain open in Flow and are outside the first-canary critical path.
@@ -725,7 +735,7 @@ Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-86 closeout
 
 | Gate | This session |
 | ---- | ------------ |
-| `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** (the Caller Model's seven Queries under two switch values, the pair, the workflow-start, worker-outage and system-info Cases) |
+| `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** (the Caller Model's seven Queries under two switch values, the pair, the workflow-start and worker-outage Cases; the system-info Case is an offline artifact identity, not a live one) |
 | `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report the two generated `Temporal/API/Proto.lean` findings and 40 warnings, none new |
 | `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=9484405 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records |
 

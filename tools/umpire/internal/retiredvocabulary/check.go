@@ -839,9 +839,6 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		"common/testing/testpilot/internal/ir/catalog.go": {
 			"." + "qualified": true,
 		},
-		"tests/testcore/testpilot/testdata/get-system-info-case.json": {
-			`"bounds"`: true,
-		},
 	}
 	for _, class := range []string{
 		"cleanup-failure-after-proved-violation",
