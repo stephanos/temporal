@@ -163,6 +163,9 @@ structure SetEntry where
   purpose : String
   queries : Array Name := #[]
   «repeat» : Option String := none
+  /-- The machine an exploratory set covers, as its declaration name: the set lists no Queries to
+  reach its machine through, so the command that produces its Cases reads it here. -/
+  machine : Option Name := none
   deriving Inhabited, Repr, BEq
 
 /-- One switch a realization registered, by name and by the names of its values. A `set`'s

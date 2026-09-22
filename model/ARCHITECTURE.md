@@ -179,6 +179,14 @@ classes.
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
 
+`Temporal.Tool.ExplorationBridge` (`umpire-explore`) is the run-time counterpart for an
+exploratory set: it opens the set's `Umpire.Exploration` campaign and answers `initialize`,
+`next`, `observe` and `finish` frames over stdin and stdout, producing each candidate's Case
+through the same Producer and the realization the set's `case` block names, under the candidate's
+own identity (`temporal.case.<set>.<digest>`), and crediting the campaign from the closed Run the
+coordinator hands back. It registers nothing in the Temporal Case Registry and reads no Run
+Event: credit is the planned witness path.
+
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
 closed set they form; a resource-free Program references none. These references

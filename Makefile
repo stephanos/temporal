@@ -703,6 +703,12 @@ umpire-check-model-module-index:
 		test "$$(wc -l < "$$stdout")" -eq 1 || { printf 'The Make export path wrote more than one line.\n'; exit 1; }; \
 		printf 'The Make export path wrote one %s-byte document and nothing else.\n' "$$(wc -c < "$$stdout" | tr -d ' ')"
 
+umpire-check-exploration-bridge:
+	@printf $(COLOR) "Check the exploration bridge..."
+	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-explore-tests
+	@cd model && $(LEAN_LAKE) -q exe umpire-explore-tests
+	@mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot -run '^TestExplorationBridge'
+
 umpire-check-live-tests:
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
@@ -849,7 +855,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
