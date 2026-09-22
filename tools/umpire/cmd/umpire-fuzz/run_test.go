@@ -442,6 +442,26 @@ func TestRunRefusesAProposalPathOutsideThePromotionRoot(t *testing.T) {
 	require.NoFileExists(t, filepath.Join(filepath.Dir(root), "escaped.lean"))
 }
 
+// Every proposal path is checked before any file is written: one path that would leave the root
+// leaves the root empty, whatever came before it in the summary.
+func TestWriteProposalsWritesNothingWhenAnyPathEscapes(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "proposals")
+	first := proposalFor(firstIdentity, "")
+	first.Candidate = firstIdentity
+	escaping := proposalFor(secondIdentity, "../escaped.lean")
+	escaping.Candidate = secondIdentity
+	written, err := writeProposals(root, &campaign.Finished{Counterexamples: []campaign.Counterexample{first, escaping}})
+	require.ErrorContains(t, err, "outside the promotion root")
+	require.Empty(t, written)
+	require.NoDirExists(t, root)
+	written, err = writeProposals(root, &campaign.Finished{Counterexamples: []campaign.Counterexample{first, {Candidate: secondIdentity, PromotionError: "nonFoundResult"}}})
+	require.NoError(t, err)
+	require.Equal(t, map[string]string{firstIdentity: filepath.Join(root, first.PromotionSourcePath)}, written)
+	written, err = writeProposals("", &campaign.Finished{Counterexamples: []campaign.Counterexample{first}})
+	require.NoError(t, err)
+	require.Empty(t, written, "no root, nothing written")
+}
+
 // The same scripted campaign twice writes the same summary bytes; a campaign whose bridge is cut
 // after the first candidate writes that candidate as the full campaign did.
 func TestRunWritesTheSameSummaryTwice(t *testing.T) {
