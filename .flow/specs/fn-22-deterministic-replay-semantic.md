@@ -89,8 +89,15 @@ every semantic edit and compiles every candidate Case (`Temporal.Tool.ReplayBrid
 `umpire-replay-bridge`, frames over stdin and stdout like the exploration bridge); Go never edits a
 Case, Contract, Run or event stream.
 
-**The subject** is one canonical Case (the bytes a `case` block registered as a fixture or the
-exploration bridge handed out) and one *recorded Run*: a local JSON file holding the closed Run
+**The subject** is one Case and one *recorded Run*. The Case's canonical form is the Lean
+renderer's compact canonical ProtoJSON, one owner: the exploration bridge hands it out in that
+form and `umpire-fuzz --record-root` writes it so; a checked-in fixture is that form re-indented
+with two spaces and a trailing newline by the conformance generator's `persistedForm`, which Go
+inverts with `json.Compact`. Admission compacts the input, requires that re-indenting the
+compact bytes gives the input back (so that "noncanonical" means anything but the canonical form
+or its persisted re-indentation), decodes the compact bytes, and takes the subject's *identity*
+as the SHA-256 of them; the Lean bridge's `admit` re-produces the Case and compares the same
+compact bytes. The recorded Run is: a local JSON file holding the closed Run
 with its Verdict and the `DriverIdentity` it was prepared under (Profile name, catalog and
 environment-binding fingerprints, none secret), written by `umpire-run --record <path>`, by
 `umpire-fuzz --record-root <dir>` for each counterexample (its Case bytes as
@@ -106,7 +113,8 @@ identity, source)`: it builds the method catalog itself, derives the Profile and
 returns the `PreparedCase` with its `DriverIdentity`. `Campaign.Bind` is built on it and `Bound`
 exposes the prepared Case. Admission runs entirely before `binding.Open`, so a crossed, stale or
 noncanonical subject is rejected before any resource is created. The identity `umpire-replay`
-prepares under is fixed: the Profile *name* is the recorded Run's, so that a Run recorded by
+prepares under (its `DriverIdentity`, not to be confused with the subject's Case identity above)
+is fixed: the Profile *name* is the recorded Run's, so that a Run recorded by
 `umpire-run` (`umpire-run.<namespace>`), by `umpire-fuzz` (`umpire-fuzz.<namespace>`) or by the
 live helper is replayed under its own name; the catalog and the environment bindings (namespace,
 task queue, handler queue, Nexus endpoint) are derived from the deployment flags, and
@@ -115,11 +123,13 @@ is `stale` to this slice by design and the control is recorded without them. `st
 or bindings fingerprint other than the recorded Run's. The prepared Case is what the offline
 semantic replay evaluates.
 
-**The Lean side recovers the admitted Query.** A produced Case carries no Query, so the bridge's
-`admit` frame names the set and either the Query (a functional set's) or the exploration
-candidate's target key (an exploratory set's, replanned deterministically by fn-33 .5's
-guarantee); the bridge re-produces the Case under the set's realization and admits only when the
-bytes are the subject's, byte for byte. A Case whose bytes no set of the Model produces is
+**The Lean side recovers the admitted Query.** A produced Case carries no Query, and the Case
+Registry holds produced values only, so the replay bridge carries a typed binding table like the
+exploration bridge's (`Binding`: the Model, its sets, their Queries and the realization each
+`case` block names); the `admit` frame names the set and either the Query (a functional set's)
+or the exploration candidate's target key (an exploratory set's, replanned deterministically by
+fn-33 .5's guarantee); the bridge re-produces the Case under the set's realization and admits
+only when the compact canonical bytes are the subject's, byte for byte. A Case whose bytes no set of the Model produces is
 `crossed`, before any target effect.
 
 ## Contracts
@@ -139,7 +149,8 @@ Three replay classes are explicit and reported apart:
   whose evaluation errs, rejects the subject before any rerun (`semanticReplay` names the cause);
 - **concrete rerun** prepares the same canonical Case under the exact Profile identity through
   `binding.Bind` and executes one fresh isolated Run;
-- **SDK history replay** is diagnostic only and outside this spec: no type, no field.
+- **SDK history replay** is diagnostic only and outside this spec: no type, no field, and it
+  affects nothing.
 
 **The violation key** is read in Definition IDs: a Case-local name (a `rule_id`, a monitor
 rule's `terminal_state_id`, a monitor rule's observation id, a correlated evidence kind) is
@@ -165,9 +176,12 @@ recorded beside the key and is never part of it.
 Run whose disposition is `STOPPED_BY_MONITOR` (the evaluator stops at the first violation, and
 records a violation found at closure the same way; it refuses `COMPLETED` beside a violation, so
 admission rejects that pair as malformed), whose cleanup `SUCCEEDED`, and whose Verdict is
-`VIOLATED`. Both Runs in that form with the subject's key: `reproduced`. Any `COMPLETED`
-`satisfied` Verdict or a violated Verdict with another key: `not-reproduced`. An `INCOMPLETE`
-disposition, an unclosed cleanup or an `inconclusive` Verdict: `indeterminate`. A preparation rejection is an admission failure before
+`VIOLATED`; one function in `tools/umpire/replay` decides it, for admission and for reruns
+alike. Each Run is classed alone: that form with the subject's key is `reproduced`; a
+`COMPLETED` `satisfied` Verdict or a violated Verdict with another key is `not-reproduced`; an
+`INCOMPLETE` disposition, an unclosed cleanup or an `inconclusive` Verdict is `indeterminate`.
+The pair's class is by precedence: any `not-reproduced` makes the pair `not-reproduced`,
+otherwise any `indeterminate` makes it `indeterminate`, otherwise it is `reproduced`. A preparation rejection is an admission failure before
 any Run. fn-64 terminal precedence stays authoritative.
 
 **Reduction** is over the admitted Query's exact-trace Scenario, keeping the Property fixed, in
@@ -192,9 +206,10 @@ Scenario while the rule's identity does not change), its terminal state and viol
 are the same step's whatever the candidate's local names, and rules of dropped steps vanish and
 are not in the key. A candidate is retained only after two fresh Runs reproduce the subject's
 key; the retained candidate becomes the subject of the next edit; a rejected or non-reproducing
-edit is never retried and a dropped step is never reintroduced. A candidate whose rerun is
-`indeterminate` is rerun once more within the Run budget; still indeterminate, the reduction ends
-`incomplete` naming that edit, never counting it as non-reproducing. Reduction ends `minimized`
+edit is never retried and a dropped step is never reintroduced. A candidate whose pair is
+`indeterminate` has its indeterminate Run alone rerun once, one Run spent from the budget; still
+indeterminate, the reduction ends `incomplete` naming that edit, never counting it as
+non-reproducing. Reduction ends `minimized`
 when every edit of the sweep is inapplicable, rejected or conclusively non-reproducing after at
 least one was retained, `irreducible` when none was retained, or `incomplete` at a bound or an
 undecided edit. An exploration counterexample is already a
@@ -227,8 +242,9 @@ installed.
 ## Limits and failure behavior
 
 Fixed for the first vertical slice: at most eight edits enumerated, twelve fresh Runs in all (two
-for the subject, two per candidate, so at most five candidates run live; the edit cap bounds the
-inapplicable ones), one active Run, 25 minutes wall time, the fn-33 caps on Case bytes,
+for the subject, two per candidate and one per retry, so at most five candidates run live and
+fewer when a retry is spent; the edit cap bounds the inapplicable ones), one active Run, 25
+minutes wall time, the fn-33 caps on Case bytes,
 Run Events and report bytes, and bounded progress output. Limits are checked before preparation or
 dispatch. Cancellation stops new work and lets the active Run follow fn-64 abort, drain and cleanup
 semantics; a Run lost to a stop is named, never synthesized.
@@ -271,8 +287,8 @@ into reproduction. A proposal or report write failure never installs anything an
 - **R8:** A bounded library-first controller and thin local command report admission, semantic
   replay, reproduction class, reduction completion, limits, cleanup, proposal status and tooling
   failure separately, with deterministic output and no secret-bearing diagnostics.
-- **R9:** Semantic replay, concrete rerun and diagnostic history replay stay separate types and
-  fields; history replay is deferred and affects nothing.
+- **R9:** Semantic replay and concrete rerun are separate types and report fields; SDK history
+  replay is deferred, has no type and no field, and affects nothing.
 - **R10:** No artifact family, trust store, durable Run recovery, resident executor, public
   network service or compatibility reader is added; the retired replay-bundle vocabulary stays
   retired.
@@ -407,6 +423,14 @@ offline replay that errs or disagrees rejects the subject before any rerun, exit
 admissible violated disposition is `STOPPED_BY_MONITOR`; `.1` no longer touches the conformance
 output; `.8`'s live proof fails rather than skips without the replay bridge and the live gate
 builds it first. A deadline-violated monitor rule keys on its violation state alone.
+
+Round five (2026-09-22): NEEDS_WORK with four findings, all applied: the Case's canonical form
+is the Lean renderer's compact canonical ProtoJSON, which Go reaches from a persisted fixture by
+`json.Compact` and checks by re-indenting, and the identity is its SHA-256; `.4` pins the
+classifier's value alone and the report's field set is `.8`'s; the pair rule and the one-Run
+retry are stated and counted in the budget; R9 matches the Contracts section. The replay bridge
+carries a typed binding table, not the registry; one function decides the admissible violated
+form for admission and reruns. Task `.1` stays one task by the owner's decision.
 
 ## History
 
