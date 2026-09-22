@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -87,11 +88,11 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 
 	report(stdout, run, verdict)
 	if configuration.RecordPath != "" {
-		// The Run is reported whatever happens to its record; a record that could not be written
-		// is the command's failure, said after the report.
+		// The Run is reported and its Verdict decides the exit code whatever happens to its
+		// record; a record that could not be written after all is said on stderr, since the path
+		// was checked before anything ran and only a race or the disk can fail it now.
 		if err := replay.WriteRecordedRun(configuration.RecordPath, bound.identity, run); err != nil {
 			cli.WriteLine(stderr, "%s", err)
-			return exitFailed
 		}
 	}
 	return exitCode(verdict)
@@ -104,7 +105,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&configuration.CasePath, "case", "", "path to a checked-in Case fixture")
 	binding.RegisterFlags(flags, &configuration.Deployment, "the Case")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
-	flags.StringVar(&configuration.RecordPath, "record", "", "write the closed Run with the identity it was prepared under to this file, which must not exist")
+	flags.StringVar(&configuration.RecordPath, "record", "", "write the closed Run with the identity it was prepared under to this file, which must not exist yet in a directory that does")
 	if err := flags.Parse(arguments); err != nil {
 		return config{}, err
 	}
@@ -123,6 +124,24 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	if configuration.Timeout <= 0 {
 		cli.WriteLine(stderr, "--timeout must be positive")
 		return config{}, errors.New("non-positive timeout")
+	}
+	if configuration.RecordPath != "" {
+		// A record that could not be written would lose the Run it records, so the path is refused
+		// before anything runs: it must not exist, and its directory must.
+		path, err := filepath.Abs(configuration.RecordPath)
+		if err != nil {
+			cli.WriteLine(stderr, "--record: %s", err)
+			return config{}, err
+		}
+		if _, err := os.Stat(path); err == nil {
+			cli.WriteLine(stderr, "--record %s exists and is never replaced", path)
+			return config{}, errors.New("record exists")
+		}
+		if info, err := os.Stat(filepath.Dir(path)); err != nil || !info.IsDir() {
+			cli.WriteLine(stderr, "--record %s: the directory does not exist", path)
+			return config{}, errors.New("record directory missing")
+		}
+		configuration.RecordPath = path
 	}
 	return configuration, nil
 }

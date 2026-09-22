@@ -67,7 +67,7 @@ func TestKeyReadsDefinitionIDsAndNothingPerRun(t *testing.T) {
 	}
 	require.True(t, keyOf(first).Equal(keyOf(second)), "two Runs of one Case share the key")
 
-	// Per-Run transport values: another run id, later times, other instruction ids.
+	// Per-Run transport values: another run id, later times, other activation and instruction ids.
 	shifted := proto.CloneOf(first)
 	shifted.RunId = "another-run"
 	for index, event := range shifted.GetEvents() {
@@ -76,6 +76,7 @@ func TestKeyReadsDefinitionIDsAndNothingPerRun(t *testing.T) {
 		}
 		if event.GetCoordinates() != nil {
 			event.Coordinates.ActivationId = "another-activation"
+			event.Coordinates.InstructionId = "another-instruction"
 		}
 	}
 	require.True(t, keyOf(first).Equal(keyOf(shifted)))
@@ -149,20 +150,24 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 		reason    string
 		detail    string
 	}{
-		"noncanonical whitespace":    {[]byte(strings.Replace(string(persisted), "  ", "    ", 1)), recorded, ReasonNoncanonical, "canonical"},
-		"not a Case":                 {[]byte(`{"nonsense":1}`), recorded, ReasonNoncanonical, "does not decode"},
-		"crossed Case":               {caseBytes, edited(func(r *testpilotspb.Run) { r.CaseId = "temporal.case.other" }), ReasonCrossed, "names Case"},
-		"crossed Program":            {caseBytes, edited(func(r *testpilotspb.Run) { r.ProgramId = "other.program" }), ReasonCrossed, "names Program"},
-		"stale catalog":              {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: "other-catalog", Bindings: driver.Bindings}), ReasonStale, "recorded under"},
-		"stale bindings":             {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: "other-bindings"}), ReasonStale, "recorded under"},
-		"incomplete":                 {caseBytes, edited(func(r *testpilotspb.Run) { r.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }), ReasonIncomplete, "Incomplete"},
+		"noncanonical whitespace": {[]byte(strings.Replace(string(persisted), "  ", "    ", 1)), recorded, ReasonNoncanonical, "canonical"},
+		"not a Case":              {[]byte(`{"nonsense":1}`), recorded, ReasonNoncanonical, "does not decode"},
+		"crossed Case":            {caseBytes, edited(func(r *testpilotspb.Run) { r.CaseId = "temporal.case.other" }), ReasonCrossed, "names Case"},
+		"crossed Program":         {caseBytes, edited(func(r *testpilotspb.Run) { r.ProgramId = "other.program" }), ReasonCrossed, "names Program"},
+		"stale catalog":           {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: "other-catalog", Bindings: driver.Bindings}), ReasonStale, "recorded under"},
+		"stale bindings":          {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: "other-bindings"}), ReasonStale, "recorded under"},
+		"incomplete":              {caseBytes, edited(func(r *testpilotspb.Run) { r.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }), ReasonIncomplete, "Incomplete"},
+		"completed beside satisfied rules": {caseBytes, edited(func(r *testpilotspb.Run) {
+			r.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED
+			r.Verdict.Status = testpilotspb.VERDICT_STATUS_SATISFIED
+		}), ReasonNonViolated, "not violated"},
 		"unclosed cleanup":           {caseBytes, edited(func(r *testpilotspb.Run) { r.Cleanup.Status = testpilotspb.CLEANUP_STATUS_TIMED_OUT }), ReasonIncomplete, "cleanup"},
 		"completed beside violation": {caseBytes, edited(func(r *testpilotspb.Run) { r.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED }), ReasonMalformed, "never produces"},
 		"non-violated":               {satisfiedBytes, satisfiedRecorded, ReasonNonViolated, "not violated"},
 		"unsupported":                {caseBytes, edited(func(r *testpilotspb.Run) { r.Verdict.Rules[0].SupportingEventSequences = []int64{99} }), ReasonUnsupported, "does not carry"},
 		"duplicate":                  {caseBytes, edited(func(r *testpilotspb.Run) { r.Verdict.SupportingEventSequences = []int64{4, 4} }), ReasonDuplicate, "twice"},
 		"replay disagrees":           {caseBytes, edited(func(r *testpilotspb.Run) { r.Verdict.Rules[0].TerminalStateId = "elsewhere" }), ReasonReplay, "replays to"},
-		"no events":                  {caseBytes, edited(func(r *testpilotspb.Run) { r.Events = nil }), ReasonIncomplete, "no events"},
+		"no events":                  {caseBytes, edited(func(r *testpilotspb.Run) { r.Events = nil }), ReasonIncomplete, "0 events"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			subject, err := Admit(t.Context(), probe.caseInput, probe.recorded, prepare)
@@ -178,6 +183,45 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 	rejection, ok := IsRejection(err)
 	require.True(t, ok)
 	require.Equal(t, ReasonMalformed, rejection.Reason)
+}
+
+// The evidence part and the rule set of the key, as the evaluation names them: another observation
+// id, another correlated kind or another violated rule is another violation, and each name resolves
+// through the Case's local names.
+func TestKeyReadsTheViolatingEvidenceAndTheRuleSet(t *testing.T) {
+	source := &testpilotspb.Case{
+		Contract: &testpilotspb.Contract{Correlated: &testpilotspb.CorrelatedContract{Rules: []*testpilotspb.CorrelatedRule{{RuleId: "c"}}}},
+		Provenance: &testpilotspb.CaseProvenance{LocalNames: []*testpilotspb.LocalName{
+			{LocalName: "r", DefinitionId: "umpire.rule.result"},
+			{LocalName: "c", DefinitionId: "umpire.rule.correlated"},
+			{LocalName: "failed", DefinitionId: "umpire.evidence.failed"},
+			{LocalName: "obs.a", DefinitionId: "umpire.observation.a"},
+		}},
+	}
+	violated := func(rules ...string) *testpilotspb.Verdict {
+		verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
+		for _, rule := range rules {
+			verdict.Rules = append(verdict.Rules, &testpilotspb.RuleVerdict{RuleId: rule, Status: testpilotspb.RULE_VERDICT_STATUS_VIOLATED, TerminalStateId: "bad"})
+		}
+		return verdict
+	}
+	monitorA := KeyOf(source, violated("r"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "r", Sequence: 4, ObservationIDs: []string{"obs.a"}}}})
+	require.Equal(t, "umpire.rule.result@bad[umpire.observation.a]", monitorA.String())
+	monitorB := KeyOf(source, violated("r"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "r", Sequence: 9, ObservationIDs: []string{"obs.b"}}}})
+	require.Equal(t, "umpire.rule.result@bad[obs.b]", monitorB.String(), "a name with no row is its own")
+	require.False(t, monitorA.Equal(monitorB), "another observation is another violation")
+	deadline := KeyOf(source, violated("r"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "r", Sequence: 4}}})
+	require.Equal(t, "umpire.rule.result@bad[]", deadline.String())
+	correlated := KeyOf(source, violated("c"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "c", Sequence: 6, CorrelatedKind: "failed"}}})
+	require.Equal(t, "umpire.rule.correlated@correlated.violated[umpire.evidence.failed]", correlated.String())
+	otherKind := KeyOf(source, violated("c"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "c", Sequence: 6, CorrelatedKind: "completed"}}})
+	require.False(t, correlated.Equal(otherKind), "another kind is another violation")
+	atClosure := KeyOf(source, violated("c"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "c"}}})
+	require.Equal(t, "umpire.rule.correlated@correlated.violated[]", atClosure.String())
+	both := KeyOf(source, violated("r", "c"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "c", CorrelatedKind: "failed"}, {RuleID: "r", ObservationIDs: []string{"obs.a"}}}})
+	require.Equal(t, "umpire.rule.correlated@correlated.violated[umpire.evidence.failed];umpire.rule.result@bad[umpire.observation.a]", both.String())
+	require.False(t, both.Equal(monitorA), "another rule set is another violation")
+	require.True(t, both.Equal(KeyOf(source, violated("c", "r"), &testpilot.Evaluation{Violations: []testpilot.RuleViolation{{RuleID: "r", ObservationIDs: []string{"obs.a"}}, {RuleID: "c", CorrelatedKind: "failed"}}})), "order is not identity")
 }
 
 func TestRecordedRunRoundTripsAndNeverReplacesAFile(t *testing.T) {
@@ -202,6 +246,10 @@ func TestRecordedRunRoundTripsAndNeverReplacesAFile(t *testing.T) {
 	require.ErrorContains(t, WriteRecordedRun(path, driver, run), "exist")
 	_, _, err = DecodeRecordedRun(nil)
 	require.Error(t, err)
+	_, _, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), recorded...))
+	require.ErrorContains(t, err, "after the document")
+	_, _, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), []byte("trailing")...))
+	require.ErrorContains(t, err, "after the document")
 }
 
 func TestClassifyAndThePairRule(t *testing.T) {
@@ -216,13 +264,14 @@ func TestClassifyAndThePairRule(t *testing.T) {
 	class, detail := Classify(subject.Key, run, run.GetVerdict(), other)
 	require.Equal(t, ClassNotReproduced, class)
 	require.Contains(t, detail, "otherwise")
-	satisfied := &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
+	opened := []*testpilotspb.RunEvent{{Sequence: 1, Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED}}
+	satisfied := &testpilotspb.Run{RunId: "r", Events: opened, Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
 	class, _ = Classify(subject.Key, satisfied, &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}, ViolationKey{})
 	require.Equal(t, ClassNotReproduced, class)
-	incomplete := &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
+	incomplete := &testpilotspb.Run{RunId: "r", Events: opened, Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
 	class, _ = Classify(subject.Key, incomplete, &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}, ViolationKey{})
 	require.Equal(t, ClassIndeterminate, class)
-	unclosed := &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED}}
+	unclosed := &testpilotspb.Run{RunId: "r", Events: opened, Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED}}
 	class, _ = Classify(subject.Key, unclosed, &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}, ViolationKey{})
 	require.Equal(t, ClassIndeterminate, class)
 

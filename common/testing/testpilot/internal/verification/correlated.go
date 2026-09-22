@@ -622,8 +622,9 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 	return n, work + n.obligationWork - r.obligationWork, nil
 }
 
-// violation is the evidence that resolved the rule's first violated obligation, in the order
-// answer reads them, or nil when no obligation of the rule is violated.
+// violation is the evidence that resolved the rule's first violated obligation, operations walked
+// in key order so the choice is the same on every reading, or nil when no obligation of the rule
+// is violated by evidence: an obligation answer reports violated at closure stays pending here.
 func (r *correlatedMonitor) violation(index int) *admittedCorrelatedEvidence {
 	if r == nil {
 		return nil

@@ -20,7 +20,9 @@ type Evaluation struct {
 
 // RuleViolation names what violated one rule. A monitor rule carries the observation ids of the
 // violating event, or none when its deadline violated it; a correlated rule carries the kind of
-// the evidence whose release resolved the obligation and the event that carried that evidence.
+// the evidence whose release resolved the obligation and the event that carried that evidence,
+// or neither (Sequence 0, no kind) when the violation was found at closure with the obligation
+// still pending under a final ending.
 type RuleViolation struct {
 	RuleID         string
 	Sequence       int64
