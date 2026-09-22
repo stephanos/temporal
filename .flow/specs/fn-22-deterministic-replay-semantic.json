@@ -18,7 +18,7 @@
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-09-04T18:46:42.791494Z",
   "ready": false,
@@ -367,8 +367,19 @@
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "99e5ac8cc0f847d5a4572b2f48479e2b": {
+      "artifact_sha256": "63632adf277ffa90905d4d09bb4eda85622354b20ff894f1a4f43868a1d22d42",
+      "counter_scope": "plan",
+      "epoch": 1,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -386,5 +397,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T00:16:19.329444Z"
+  "updated_at": "2026-09-22T21:45:00.345715Z"
 }
