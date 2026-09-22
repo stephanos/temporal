@@ -63,9 +63,10 @@ func runExplorationBridge(t *testing.T, binary string, frames ...string) []explo
 }
 
 // The first realizable row target of the caller Model's exploratory set crosses the bridge as a
-// whole Case that Prepare accepts under the caller Profile: Go reads the frame's Case and identity
-// and nothing else about the campaign. The first row target itself performs a schedule member the
-// realization binds nothing for, so the bridge reports it as skipped and moves on.
+// whole Case that Prepare accepts under the caller Profile. Go reads the frame's Case, its identity
+// and the opaque target keys, and interprets none of them. The first row target itself performs a
+// schedule member the realization binds nothing for, so the bridge reports it as skipped and moves
+// on.
 func TestExplorationBridgeFirstCandidatePrepares(t *testing.T) {
 	binary := explorationBridgeBinary(t)
 	const set = "nexusCallerExploration"

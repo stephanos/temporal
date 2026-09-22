@@ -538,6 +538,28 @@ private def checkCaller : IO Unit := do
   require (ledger.any fun (key, status) => key.startsWith "result:" && status == "covered")
     "the satisfied Run did not cover the result its path reaches"
 
+/-! ### Timer steps are the platform's
+
+The functional set's timeout and retry paths fire timers (`scheduleToStart`, `backoff`), which no
+action binding names; they are realizable because the machine's timers are, so a path made of bound
+members and timers reports nothing unbound. -/
+
+private def checkTimers : IO Unit := do
+  let production := nexusCallerBinding.production
+  require (production.timers == ["backoff", "scheduleToClose", "scheduleToStart", "startToClose"])
+    s!"the caller machine's timers differ: {production.timers}"
+  let witnesses : List (String × Except Umpire.Command.AdmissionError
+      (Umpire.Command.CheckedModel Temporal.Feature.Nexus.Caller.nexusProtocol)) := [
+    ("scheduleToStartTimeout", Temporal.Feature.Nexus.Caller.scheduleToStartTimeout),
+    ("startToCloseTimeout", Temporal.Feature.Nexus.Caller.startToCloseTimeout),
+    ("retry", Temporal.Feature.Nexus.Caller.retry)]
+  for (name, admitted) in witnesses do
+    match admitted with
+    | .error _ => fail s!"{name} is not admitted"
+    | .ok checked =>
+        let unbound := Runner.unrealizable production checked
+        require unbound.isEmpty s!"{name} reports unbound members: {unbound.map (·.2)}"
+
 /-! ### The executable -/
 
 private def executable : IO System.FilePath := do
@@ -578,6 +600,7 @@ def main : IO UInt32 := do
     ("credit", checkCredit),
     ("outside", checkOutside),
     ("caller", checkCaller),
+    ("timers", checkTimers),
     ("executable", checkExecutable)]
   let mut failed := 0
   for (name, check) in checks do
