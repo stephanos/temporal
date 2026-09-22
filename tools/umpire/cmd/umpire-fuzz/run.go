@@ -33,8 +33,10 @@ const (
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-explore"
 	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary
-	// (status, set, Profile, machine, budget, Limits and counters) is always written, so a cap under
-	// it could only be met by truncation, which is never done.
+	// (status, set, Profile, machine, budget, Limits and counters) is always written in full, so a
+	// cap under it could only be met by truncation, which is never done. The floor covers the fixed
+	// fields; a long failure message or set name can still carry that summary past the cap, which
+	// is then said on stderr rather than hidden.
 	minimumReportBytes = 1024
 )
 
@@ -118,10 +120,10 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	// The bridge's own stderr carries the progress line per candidate; the coordinator's would say
 	// the same thing, so it goes nowhere.
 	report, driveErr := campaign.Drive(ctx, opened.bridge, opened.binder, configuration.Caps, nil)
+	report = settle(report, driveErr)
 	if driveErr != nil {
 		writeLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
 	}
-	report = settle(report, driveErr)
 	rendered, err := render(configuration, opened, report)
 	if err != nil {
 		writeLine(stderr, "render summary: %s", err)
@@ -140,6 +142,9 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		if err != nil {
 			writeLine(stderr, "render summary: %s", err)
 			return exitToolingError
+		}
+		if err := session.CheckReport(len(rendered)); err != nil {
+			writeLine(stderr, "the terminal-only summary is over the cap too and is written whole: %s", err)
 		}
 	}
 	if _, err := stdout.Write(rendered); err != nil {
@@ -350,8 +355,19 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 		writeLine(stderr, "--max-report-bytes must be 0 or at least %d, the terminal-only summary's floor", minimumReportBytes)
 		return config{}, errors.New("report cap below the floor")
 	}
+	// The bridge runs in the model root, and a relative executable would be looked up there rather
+	// than where the command was invoked, so both paths are made absolute first.
+	modelRoot, err := filepath.Abs(configuration.ModelRoot)
+	if err != nil {
+		writeLine(stderr, "--model-root: %s", err)
+		return config{}, err
+	}
+	configuration.ModelRoot = modelRoot
 	if configuration.Bridge == "" {
-		configuration.Bridge = filepath.Join(configuration.ModelRoot, filepath.FromSlash(bridgeRelativePath))
+		configuration.Bridge = filepath.Join(modelRoot, filepath.FromSlash(bridgeRelativePath))
+	} else if configuration.Bridge, err = filepath.Abs(configuration.Bridge); err != nil {
+		writeLine(stderr, "--bridge: %s", err)
+		return config{}, err
 	}
 	return configuration, nil
 }

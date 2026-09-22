@@ -301,8 +301,8 @@ at exhaustion, at one of its own caps (`--max-candidates`, `--max-case-bytes`, `
 `--max-report-bytes`; `--run-timeout` bounds one Run, `--timeout` the campaign), on SIGINT or its
 timeout, or on a tooling failure. No flag names a target or widens a declared Limit. It writes one
 canonical JSON summary to stdout -- terminal status, the campaign's counters, the bridge's per-target
-ledger and coverage counts, the counterexamples, and one line per candidate -- and one progress line
-per candidate to stderr; it exits 0 exhausted, 1 on a counterexample or violated coverage, 2 on a
+ledger and coverage counts, the counterexamples, and one line per candidate -- and the bridge's
+progress lines per candidate (the candidate handed out, then its observation) to stderr; it exits 0 exhausted, 1 on a counterexample or violated coverage, 2 on a
 cap or a stop, 3 on a tooling failure. Nothing unexecuted, inconclusive or cleanup-uncertain is
 ever reported as coverage: coverage is the bridge's ledger, copied, never inferred.
 

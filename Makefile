@@ -699,10 +699,8 @@ umpire-fuzz-run:
 	@$(MAKE) --no-print-directory umpire-fuzz
 	@cd model && $(LEAN_LAKE) -q build umpire-explore
 	@./.build/umpire-fuzz run --set "$(SET)" \
-		--grpc "$${UMPIRE_FUZZ_GRPC:?UMPIRE_FUZZ_GRPC is required}" \
-		--http "$${UMPIRE_FUZZ_HTTP:?UMPIRE_FUZZ_HTTP is required}" \
-		--namespace "$${UMPIRE_FUZZ_NAMESPACE:?UMPIRE_FUZZ_NAMESPACE is required}" \
-		--task-queue "$${UMPIRE_FUZZ_TASK_QUEUE:?UMPIRE_FUZZ_TASK_QUEUE is required}" \
+		--grpc "$$UMPIRE_FUZZ_GRPC" --http "$$UMPIRE_FUZZ_HTTP" \
+		--namespace "$$UMPIRE_FUZZ_NAMESPACE" --task-queue "$$UMPIRE_FUZZ_TASK_QUEUE" \
 		$${UMPIRE_FUZZ_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_FUZZ_NEXUS_ENDPOINT"} \
 		$${UMPIRE_FUZZ_CREATE:+--create} \
 		$(UMPIRE_FUZZ_FLAGS)
