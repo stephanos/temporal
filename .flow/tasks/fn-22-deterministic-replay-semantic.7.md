@@ -1,27 +1,27 @@
 ---
-satisfies: [R8, R10]
+satisfies: [R7]
 ---
-# fn-22-deterministic-replay-semantic.7 Expose the bounded replay command and its report
+# fn-22-deterministic-replay-semantic.7 Emit the checked review-only regression proposal
 
 ## Description
-Add `umpire-replay run`: the subject from `--case <fixture.json>` and `--run <run.json>`, the set and the Query or exploration target the bridge recovers it by, the deployment through `binding.RegisterFlags`, `--promotion-root`, the fixed limits by name only. One canonical JSON report to stdout with `admission`, `semanticReplay`, the `key` and the Case `identity` apart, `reproduction` and each rerun's outcome, `reduction` (completion and every edit's fate), `limits`, `cleanup`, `proposal` (digest, path, written, or its status) and `failure` as separate fields; bounded progress on stderr. Exit codes: 0 reproduced with a complete reduction and, when a root is named, the proposal written; 1 not-reproduced; 2 indeterminate, incomplete or stopped; 3 tooling failure, which is also a rejected subject (the `admission` field names the reason, nothing ran) and a proposal write failure or existing destination (the `proposal` field names it, the rest of the report stands). `make umpire-replay` and `make umpire-replay-run` wrap it beside `umpire-fuzz`.
+Lift fn-33 .5's proposal shape into `Umpire.Promotion.propose` (an admitted Query, its checked Model, the anchor read off its planning, fresh names keyed by the candidate's digest under the Model's family, a caller-named location) so the exploration campaign and the replay bridge share it; the bridge's `finish` frame carries the retained candidate's proposal (digest, path, bytes) or its error only for a `minimized` or `irreducible` result. Lift `umpire-fuzz`'s proposal writer (the promotion root's containment outside the model, the check of every path before any write, the written paths) into `tools/umpire/internal/cli`, add the no-overwrite rule there, and have both commands use it; `tools/umpire/replay` reports the digest, the path and where it was written, and a write failure or an existing destination never reruns.
 
 ### Approach
-- The command mirrors `umpire-fuzz run`'s shape: parse and refuse before opening anything, open once, drive, settle, render, cap the report without truncating; the command-edge helpers come from `tools/umpire/internal/cli`.
+- `Umpire.Exploration.Promotion.propose` becomes a call into the shared function; its tests stay green; `umpire-fuzz`'s tests stay green over the shared writer.
 
 ### Quick commands
-`go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-replay/`
+`cd model && lake build UmpireTests umpire-replay-bridge-tests umpire-explore-tests && lake exe umpire-replay-bridge-tests && lake exe umpire-explore-tests && cd .. && go test -count=1 -tags test_dep ./tools/umpire/replay/ ./tools/umpire/internal/cli/ ./tools/umpire/cmd/umpire-fuzz/`
 
 **Size:** M
-**Files:** `tools/umpire/cmd/umpire-replay/main.go`, `tools/umpire/cmd/umpire-replay/run.go`, `tools/umpire/cmd/umpire-replay/run_test.go`, `tools/umpire/replay/report.go`, `tools/umpire/replay/report_test.go`, `Makefile`, `model/README.md`
-**Touches:** `tools/umpire/cmd/umpire-replay/**`, `tools/umpire/replay/report*.go`, `Makefile`, `model/README.md`
+**Files:** `model/Umpire/Promotion.lean`, `model/Umpire/Exploration/Promotion.lean`, `model/Umpire/PromotionTests.lean`, `model/Umpire/Exploration/Tests/Classed.lean`, `model/Temporal/Tool/ReplayBridge.lean`, `model/Temporal/Tool/ReplayBridgeTests.lean`, `tools/umpire/internal/cli/proposal.go`, `tools/umpire/internal/cli/proposal_test.go`, `tools/umpire/cmd/umpire-fuzz/run.go`, `tools/umpire/cmd/umpire-fuzz/run_test.go`, `tools/umpire/replay/proposal.go`, `tools/umpire/replay/proposal_test.go`
+**Touches:** `model/Umpire/Promotion*.lean`, `model/Umpire/Exploration/Promotion.lean`, `model/Umpire/Exploration/Tests/Classed.lean`, `model/Temporal/Tool/ReplayBridge*.lean`, `tools/umpire/internal/cli/**`, `tools/umpire/cmd/umpire-fuzz/**`, `tools/umpire/replay/proposal*.go`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review round one; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review rounds one and two; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] The command exposes no arbitrary Driver, checker, executable, semantic edit or compatibility option, and refuses the command line before opening anything.
-- [ ] Every exit code is pinned, a rejected subject and a proposal failure included; output, cancellation and reporting failure are canonical and bounded; the report cap never truncates.
-- [ ] A reporting or proposal failure never installs a regression and never reruns target effects.
+- [ ] An incomplete, not-reproduced or indeterminate result carries no proposal.
+- [ ] The proposal compiles through `Umpire.Promotion` from the retained candidate's admitted Query, renders the Model's expected trace and never the observed Run, and seals the same digest across two reductions.
+- [ ] Nothing is written under the model root; a write failure or an existing destination is reported as the proposal's status and triggers no rerun; one writer serves both commands.
 ## Done summary
 TBD
 

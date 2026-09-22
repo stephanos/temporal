@@ -3,14 +3,12 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-08-26T11:52:41Z",
-  "depends_on": [
-    "fn-22-deterministic-replay-semantic.1"
-  ],
+  "depends_on": [],
   "id": "fn-22-deterministic-replay-semantic.2",
   "priority": null,
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.2.md",
   "status": "todo",
-  "title": "Prove the negative-control Case before any reduction",
-  "updated_at": "2026-09-22T21:54:49.163949Z"
+  "title": "Declare every result's evidence on witnessed rows in the Producer",
+  "updated_at": "2026-09-22T22:05:05.995765Z"
 }
