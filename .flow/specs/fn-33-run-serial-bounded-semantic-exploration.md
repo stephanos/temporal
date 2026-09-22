@@ -154,7 +154,13 @@ returns beside an error -- a recorder or Monitor close failure after the Verdict
 observed, with the error carried beside the outcome, because a proved Verdict is not erased by
 what followed it; and a bridge whose stream is out of step (an unwritable frame, an unreadable or
 mismatched reply, a frame over the cap, a context that ended mid-exchange) is broken, and every
-later call returns that failure without writing a frame.
+later call returns that failure without writing a frame. Round two made every reply mismatch,
+including one found by the kind's own check, break the bridge, and gave the campaign binding one
+handler queue for the endpoint's route and every handler's poll. Round three bounded `Close`: a
+finished bridge gets its EOF and a bounded wait, a broken or unfinished one is killed, and the
+frame write runs under the same context guard as the read. A `DeriveProfile` failure stays
+`bind-failed` rather than `prepare-rejected`: a produced Case with no derivable Profile is a
+tooling defect that ends the campaign, not a candidate the deployment declined.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 

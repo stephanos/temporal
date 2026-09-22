@@ -51,9 +51,11 @@ const (
 	// encode). Run and Verdict carry whatever the facade returned; the bridge was not told and the
 	// candidate is still outstanding on it.
 	OutcomeRunFailed OutcomeKind = "run-failed"
-	// OutcomeCompleted: one Run exists with its cleanup observed, and the bridge credited it. The
-	// facade may have returned an error beside it -- a recorder or Monitor close failure after the
-	// Verdict was fixed -- which RunError carries; the Run is still the authoritative record.
+	// OutcomeCompleted: one Run exists with its cleanup observed. The campaign advanced only when
+	// Credited is set; with an error beside the outcome the bridge could not be told (a rejected
+	// frame, a broken bridge, a context that ended) and the candidate is still outstanding. The
+	// facade may have returned an error beside the Run -- a recorder or Monitor close failure after
+	// the Verdict was fixed -- which RunError carries; the Run is still the authoritative record.
 	OutcomeCompleted OutcomeKind = "completed"
 )
 

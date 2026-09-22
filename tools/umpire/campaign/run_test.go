@@ -534,6 +534,7 @@ func TestAReplyThatDoesNotMatchTheFrameIsAProtocolErrorAndBreaksTheBridge(t *tes
 			require.Nil(t, bridge.Outstanding())
 			_, err = bridge.Next(t.Context())
 			require.ErrorIs(t, err, ErrBroken)
+			require.ErrorAs(t, err, &protocol, "the break carries the mismatch that caused it")
 			fake.requireNoRequest(t)
 		})
 	}
@@ -586,19 +587,6 @@ func TestAnOversizedFrameInEitherDirectionIsRefused(t *testing.T) {
 	fake.requireNoRequest(t)
 }
 
-func TestAMismatchedReplyBreaksTheBridge(t *testing.T) {
-	bridge, fake := initialized(t)
-	fake.rawReplies = append(fake.rawReplies, `{"frame":"exhausted","seq":9,"set":"set","profile":"profile-a","skipped":[]}`)
-	_, err := bridge.Next(t.Context())
-	var protocol *ProtocolError
-	require.ErrorAs(t, err, &protocol)
-	fake.nextRequest(t)
-	_, err = bridge.Next(t.Context())
-	require.ErrorIs(t, err, ErrBroken)
-	require.ErrorAs(t, err, &protocol)
-	fake.requireNoRequest(t)
-}
-
 func TestACandidateWhoseCaseNamesAnotherCaseIsNotBound(t *testing.T) {
 	bridge, fake := initialized(t, Candidate{
 		Identity: firstIdentity, Target: "row:a", Covers: []string{"row:a"},
@@ -622,6 +610,38 @@ func TestRunCandidateRefusesACandidateThatIsNotOutstanding(t *testing.T) {
 	_, err := RunCandidate(t.Context(), bridge, &fakeBinder{}, &candidates[0])
 	require.ErrorIs(t, err, ErrCrossedCandidate)
 	fake.requireNoRequest(t)
+}
+
+// A spawned bridge that neither reads nor answers is abandoned at the deadline and killed on
+// Close, so a coordinator giving each call its own deadline is never stuck behind a search.
+func TestCloseKillsABridgeThatNeverAnswers(t *testing.T) {
+	bridge, err := Start(t.Context(), Options{Executable: "sh", Args: []string{"-c", "exec sleep 60"}})
+	require.NoError(t, err)
+	ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
+	defer cancel()
+	_, err = bridge.Initialize(ctx, "set", "profile")
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.ErrorIs(t, bridge.Broken(), ErrBroken)
+	closed := make(chan error, 1)
+	go func() { closed <- bridge.Close() }()
+	select {
+	case err := <-closed:
+		require.Error(t, err, "a killed bridge reports its exit status")
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close did not return for a bridge that never answers")
+	}
+}
+
+// A finished bridge is given its EOF and exits on its own; Close waits for it.
+func TestCloseWaitsForAFinishedBridge(t *testing.T) {
+	bridge, err := Start(t.Context(), Options{Executable: "sh", Args: []string{"-c", `read line; printf '%s\n' '{"frame":"initialized","seq":1,"set":"set","profile":"p","targets":[]}'; read line; printf '%s\n' '{"frame":"finished","seq":2,"set":"set","profile":"p","status":"stopped","summary":{},"counterexamples":[],"ledger":[]}'; cat >/dev/null`}})
+	require.NoError(t, err)
+	_, err = bridge.Initialize(t.Context(), "set", "p")
+	require.NoError(t, err)
+	finished, err := bridge.Finish(t.Context(), "stopped")
+	require.NoError(t, err)
+	require.Equal(t, "stopped", finished.Status)
+	require.NoError(t, bridge.Close())
 }
 
 func TestAContextThatEndsWhileWaitingOnTheBridgeReturns(t *testing.T) {
