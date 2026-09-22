@@ -243,12 +243,13 @@ func exitCode(report campaign.Report) int {
 
 // writeProposals writes each compiled proposal under the promotion root, at the path the bridge
 // named, and returns the written path by candidate. No root, no writing: the digests alone are
-// reported. A path that would leave the root is refused, as is a root under the model.
+// reported. Every path is checked before any file is written, so a path that would leave the
+// root writes nothing at all; a write that then fails returns what was written before it.
 func writeProposals(root string, finished *campaign.Finished) (map[string]string, error) {
 	if root == "" || finished == nil {
 		return nil, nil
 	}
-	written := map[string]string{}
+	paths := map[string]string{}
 	for _, sample := range finished.Counterexamples {
 		if sample.PromotionSourceSHA256 == nil || sample.PromotionSourcePath == "" {
 			continue
@@ -257,12 +258,19 @@ func writeProposals(root string, finished *campaign.Finished) (map[string]string
 		if filepath.IsAbs(relative) || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
 			return nil, fmt.Errorf("proposal for %s names a path outside the promotion root: %q", sample.Candidate, sample.PromotionSourcePath)
 		}
-		path := filepath.Join(root, relative)
+		paths[sample.Candidate] = filepath.Join(root, relative)
+	}
+	written := map[string]string{}
+	for _, sample := range finished.Counterexamples {
+		path, ok := paths[sample.Candidate]
+		if !ok {
+			continue
+		}
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return nil, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
+			return written, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
 		}
 		if err := os.WriteFile(path, []byte(sample.PromotionSource), 0o644); err != nil {
-			return nil, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
+			return written, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
 		}
 		written[sample.Candidate] = path
 	}

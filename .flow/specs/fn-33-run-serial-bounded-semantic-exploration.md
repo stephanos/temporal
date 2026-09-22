@@ -265,7 +265,10 @@ and `--promotion-root <dir>` writes each compiled proposal at the path the bridg
 a root inside `--model-root` at parse and a path that would leave the root at write (the
 campaign's findings stand, the command exits 3); the summary says where each was written. The
 integration proof (two bridges over the same set hand out and credit the same first candidate)
-skips without a cluster, as .3's does.
+skips without a cluster, as .3's does. Its implementation review (`flowctl claude impl-review`,
+opus at high) was SHIP in one round; its one P3 is applied: every proposal path is checked
+before any file is written, and a write that fails after others returns what was written so the
+summary names it.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
