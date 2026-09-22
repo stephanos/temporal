@@ -11,6 +11,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.8.md",
   "status": "todo",
-  "title": "Close replay matrices, gates, and documentation",
-  "updated_at": "2026-09-04T18:37:21.930688Z"
+  "title": "Close the replay matrices, live proof, gates and documentation",
+  "updated_at": "2026-09-22T21:41:30.537454Z"
 }
