@@ -272,7 +272,11 @@ bridge handed out, bind it (preparation first, so a rejected Case opens no Drive
 Run), run it once, observe its cleanup, and hand the closed Run back to the bridge, which alone
 says what it credited. One request is outstanding at a time; the client refuses a second `next`
 before `observe` without writing a frame, and a binding or execution failure leaves the candidate
-outstanding rather than inventing an observation.
+outstanding rather than inventing an observation. The coordinator's state is one `Session` value
+(idle, planning, preparing, running, observing, finished) whose every transition consumes the
+state it starts from, with the campaign's caps -- candidates, aggregate Case bytes, aggregate Run
+Events, one Run's time, the report's bytes -- enforced before the action each bounds; `Drive` runs
+that loop to its terminal and never recovers, resumes or persists.
 
 ## Artifact ownership and tests
 

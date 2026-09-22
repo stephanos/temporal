@@ -39,7 +39,7 @@ func newFakeBridge(t testing.TB, candidates ...Candidate) (*Bridge, *fakeBridge)
 	t.Helper()
 	toBridge, fromClient := io.Pipe()
 	toClient, fromBridge := io.Pipe()
-	fake := &fakeBridge{t: t, requests: make(chan request, 16), writer: fromBridge, candidates: candidates}
+	fake := &fakeBridge{t: t, requests: make(chan request, 4096), writer: fromBridge, candidates: candidates}
 	go fake.serve(toBridge)
 	t.Cleanup(func() {
 		_ = fromClient.Close()
@@ -61,6 +61,15 @@ func (f *fakeBridge) serve(input io.Reader) {
 		if len(f.rawReplies) > 0 {
 			raw := f.rawReplies[0]
 			f.rawReplies = f.rawReplies[1:]
+			// A scripted reply that is not a rejection was accepted as far as the bridge is
+			// concerned, so the sequence moves as it would have.
+			var probe struct {
+				Frame string `json:"frame"`
+				Seq   int    `json:"seq"`
+			}
+			if err := json.Unmarshal([]byte(raw), &probe); err == nil && probe.Frame != "rejected" {
+				f.seq = probe.Seq
+			}
 			f.write(raw)
 			continue
 		}
@@ -155,6 +164,9 @@ func (f *fakeBridge) answer(frame request) string {
 	case "finish":
 		header["frame"] = "finished"
 		header["status"] = "stopped"
+		if frame.Status != "" {
+			header["status"] = frame.Status
+		}
 		if f.handed == len(f.candidates) && f.outstand == nil {
 			header["status"] = "exhausted"
 		}
@@ -262,7 +274,7 @@ func (b *fakeBinder) Bind(_ context.Context, identity string, source *testpilots
 	if b.bindErr != nil {
 		return nil, b.bindErr
 	}
-	if b.run != nil && b.run.CaseId == "" {
+	if b.run != nil {
 		b.run.CaseId = source.GetCaseId()
 	}
 	return b, nil
