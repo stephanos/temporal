@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-46-export-lean-model-module-impact-index",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-22T14:48:20.696763Z",
   "created_at": "2026-08-30T16:01:33.767686Z",
   "default_impl": null,
   "default_review": null,
@@ -221,15 +221,45 @@
       "timestamp": "2026-09-08T14:50:56.824540Z",
       "tool_calls": 7,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ad099da578b06857103fe4286fcf24328a8e1af1584135175330c7651068d0b6",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4510e3f58e51170eac2847ef722616608fc48852",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 12828,
+      "output_sha256": "39fee9cd503367701e383d1d89a585f40e1b9dd8e2696c2901963aeec6eae4cd",
+      "reservation_id": "299809f3816043ecb83be6999f7a2a3c",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-22T14:48:20.693237Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 2,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-46-export-lean-model-module-impact-index.md",
@@ -246,5 +276,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T03:53:22.214073Z"
+  "updated_at": "2026-09-22T14:48:20.697489Z"
 }
