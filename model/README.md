@@ -77,8 +77,9 @@ Testpilot terms have precise boundaries:
 The retained model uses separate `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`,
 `Umpire.Query`, `Umpire.Search`, `Umpire.Variations`, `Umpire.Exploration`, and `Umpire.Promotion`
 APIs. A checked Model owns behavior; Properties state Trace claims; Scenarios constrain Trace
-shape; Queries ask bounded questions and Search answers them; Variations and Exploration select
-finite candidates. None of these performs runtime I/O.
+shape; Queries ask bounded questions and Search answers them; Variations compile authored variation
+points; Exploration walks an exploratory set's coverage targets, one target Query per candidate,
+and keeps a ledger of what each Run credited. None of these performs runtime I/O.
 
 For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
 `Umpire.Scenario`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and

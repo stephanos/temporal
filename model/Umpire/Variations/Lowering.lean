@@ -15,9 +15,8 @@ or a dependency edge -- there is no Program there to name one in. So placement a
 argument, and this lowering does not read the occurrence. Deriving the dependency edge from the
 occurrence would need an occurrence-to-instruction map the caller owns; no caller has one yet.
 
-`Umpire.Exploration.Coverage` keeps its wording: a requested fault is intent until the Run carries a
-`FAULT_INJECTED` event for it. Lowering produces the instruction that can realize one; it does not
-claim the realization.
+A requested fault is intent until the Run carries a `FAULT_INJECTED` event for it. Lowering
+produces the instruction that can realize one; it does not claim the realization.
 -/
 
 namespace Umpire
