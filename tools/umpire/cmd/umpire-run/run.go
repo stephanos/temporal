@@ -10,15 +10,9 @@ import (
 	"os/signal"
 	"time"
 
-	"go.temporal.io/api/operatorservice/v1"
-	"go.temporal.io/api/workflowservice/v1"
-	sdkclient "go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"go.temporal.io/server/tools/umpire/binding"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
@@ -30,15 +24,7 @@ const (
 	exitFailed       = 3
 )
 
-const (
-	defaultTimeout = 5 * time.Minute
-	// teardownTimeout bounds each released resource on its own, so a worker that will not stop
-	// cannot starve the namespace deletion that follows it.
-	teardownTimeout   = 30 * time.Second
-	workerStopTimeout = 10 * time.Second
-	workflowRole      = "temporal.workflow-service"
-	workerRole        = "temporal.worker"
-)
+const defaultTimeout = 5 * time.Minute
 
 // config is what the caller names. Nothing here ever enters the Case: addresses and credentials
 // stay outside the bytes, and no flag widens a declared Limit.
@@ -227,105 +213,34 @@ func exitCode(verdict *testpilotspb.Verdict) int {
 	}
 }
 
-// openSession is the real binding: dial the frontend, create the named resources when asked,
-// derive the Profile the Case implies, prepare its unchanged bytes, and open one composite Driver
-// with its own SDK worker.
+// openSession is the real binding: the campaign-scoped part (dial the frontend, create the named
+// resources when asked, build the catalog) opened for this one Case, then the candidate-scoped part
+// (derive the Profile the Case implies, prepare its unchanged bytes, open one composite Driver with
+// its own SDK worker). Both live in `tools/umpire/binding`, which a campaign shares; the CLI's
+// behavior and exit codes are unchanged.
 func openSession(ctx context.Context, configuration config, source *testpilotspb.Case) (*session, error) {
-	connection, err := grpc.NewClient(configuration.GRPCAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("dial %q: %w", configuration.GRPCAddress, err)
-	}
-	releases := []func(context.Context) error{func(context.Context) error { return connection.Close() }}
-	// A binding that failed rolls back on a context the failure cannot have cancelled.
-	fail := func(err error) (*session, error) {
-		return nil, errors.Join(err, releaseAll(context.WithoutCancel(ctx), releases))
-	}
-
-	handlerQueue := ""
-	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
-		handlerQueue = configuration.HandlerTaskQueue
-		if handlerQueue == "" {
-			handlerQueue = configuration.TaskQueue + "-handler"
-		}
-	}
-	if configuration.Create {
-		cleanup, err := provision.Create(ctx, provision.Clients{
-			Workflow: workflowservice.NewWorkflowServiceClient(connection),
-			Operator: operatorservice.NewOperatorServiceClient(connection),
-		}, provision.Resources{
-			Namespace:      configuration.Namespace,
-			TaskQueue:      configuration.TaskQueue,
-			NexusEndpoint:  configuration.NexusEndpoint,
-			NexusTaskQueue: handlerQueue,
-		})
-		if err != nil {
-			return fail(err)
-		}
-		releases = append(releases, cleanup)
-	}
-
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	if err != nil {
-		return fail(fmt.Errorf("build method catalog: %w", err))
-	}
-	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
-		Identity:         "umpire-run." + configuration.Namespace,
+	deployment := binding.Deployment{
+		GRPCAddress:      configuration.GRPCAddress,
+		HTTPAddress:      configuration.HTTPAddress,
 		Namespace:        configuration.Namespace,
 		TaskQueue:        configuration.TaskQueue,
-		HandlerTaskQueue: handlerQueue,
 		NexusEndpoint:    configuration.NexusEndpoint,
-	})
-	if err != nil {
-		return fail(fmt.Errorf("derive Profile for Case %q: %w", source.GetCaseId(), err))
+		HandlerTaskQueue: configuration.HandlerTaskQueue,
+		Create:           configuration.Create,
 	}
-	prepared, err := testpilot.Prepare(source, profile)
+	campaign, err := binding.Open(ctx, deployment, binding.HandlerQueueFor(deployment, source.GetProgram()))
 	if err != nil {
-		return fail(err)
+		return nil, err
 	}
-
-	caseClient, err := sdkclient.Dial(sdkclient.Options{
-		HostPort: configuration.GRPCAddress, Namespace: configuration.Namespace,
-	})
+	bound, err := campaign.Bind(ctx, "umpire-run."+configuration.Namespace, source)
 	if err != nil {
-		return fail(fmt.Errorf("open SDK client: %w", err))
+		// A binding that failed rolls back on a context the failure cannot have cancelled.
+		return nil, errors.Join(err, campaign.Close(context.WithoutCancel(ctx)))
 	}
-	releases = append(releases, func(context.Context) error { caseClient.Close(); return nil })
-
-	driver, err := testpilotdriver.New(testpilotdriver.Options{
-		Profile: profile,
-		ServerEndpoints: map[string]testpilotdriver.Endpoint{
-			workflowRole: {Target: configuration.GRPCAddress, Credentials: insecure.NewCredentials()},
-		},
-		SystemCallbackBaseURL: "http://" + configuration.HTTPAddress,
-		SDKClient:             caseClient,
-		WorkerRoleID:          workerRole,
-		WorkerStopTimeout:     workerStopTimeout,
-	})
-	if err != nil {
-		return fail(fmt.Errorf("open Driver: %w", err))
-	}
-	releases = append(releases, driver.Close)
-
 	return &session{
-		run: func(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
-			return prepared.Run(ctx, driver)
+		run: bound.Run,
+		release: func(ctx context.Context) error {
+			return errors.Join(bound.Release(ctx), campaign.Close(ctx))
 		},
-		release: func(ctx context.Context) error { return releaseAll(ctx, releases) },
 	}, nil
-}
-
-// releaseAll releases in reverse order and keeps going after a failure, so one stuck resource never
-// hides the others. Each release gets its own budget for the same reason.
-func releaseAll(ctx context.Context, releases []func(context.Context) error) error {
-	var failures []error
-	for index := len(releases) - 1; index >= 0; index-- {
-		each, cancel := context.WithTimeout(ctx, teardownTimeout)
-		err := releases[index](each)
-		cancel()
-		if err != nil {
-			failures = append(failures, err)
-		}
-	}
-	return errors.Join(failures...)
 }

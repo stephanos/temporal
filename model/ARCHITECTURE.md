@@ -262,6 +262,18 @@ and cleanup proceed through owned handles and a fresh cleanup context. Dispositi
 and Verdict remain independent; a proved violation is not erased by cleanup failure. After closure,
 late completion and Driver diagnostics cannot mutate returned data.
 
+The exploration campaign's Go side is two small packages over that boundary. `tools/umpire/binding`
+is the deployment binding `umpire-run` performs, split into what a campaign opens once (the
+frontend connection, the provisioned namespace, task queue and Nexus endpoint, the method catalog)
+and what each candidate opens for itself (the derived Profile, `Prepare`, one composite Driver with
+its own SDK worker); `umpire-run` binds one Case through the same two steps. `tools/umpire/campaign`
+is the client of the exploration bridge and the serial path for one candidate: decode the Case the
+bridge handed out, bind it (preparation first, so a rejected Case opens no Driver and creates no
+Run), run it once, observe its cleanup, and hand the closed Run back to the bridge, which alone
+says what it credited. One request is outstanding at a time; the client refuses a second `next`
+before `observe` without writing a frame, and a binding or execution failure leaves the candidate
+outstanding rather than inventing an observation.
+
 ## Artifact ownership and tests
 
 Semantic owners depend on `Umpire.OutcomeClassification` for neutral classifier and projection
