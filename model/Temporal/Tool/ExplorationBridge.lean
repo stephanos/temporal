@@ -203,8 +203,8 @@ private def ledgerOf (session : Session model) : List (String × TargetStatus) :
 
 mutual
 
-/-- The next realizable candidate: an unrealizable one is credited `prepare-rejected` on the spot
-and recorded as skipped, and the session moves on. -/
+/-- The next realizable candidate: an unrealizable one is credited `unrealizable` on the spot,
+without a Run, recorded as skipped, and the session moves on. -/
 partial def advance (binding : Binding model) (session : Session model) (skipped : List Skipped) :
     Step :=
   match session.next with
