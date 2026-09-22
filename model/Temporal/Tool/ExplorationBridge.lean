@@ -1,0 +1,660 @@
+import Temporal.Feature.Nexus.Caller.Model
+import Testpilot.ProtoJSON
+import Umpire.Exploration
+
+/-!
+# The exploration bridge
+
+One exploratory campaign, driven from outside one frame at a time. The coordinator that runs the
+Cases is Go's and knows no target, coordinate or Case family; what it sees is this protocol: a
+frame in, a frame out, each one line of canonical JSON, each naming the set, the frame's sequence
+number and, where one is in play, the candidate's opaque identity.
+
+The frames are `initialize`, `next`, `observe` and `finish`. `initialize` names the set and opens
+its campaign; `next` hands out the next candidate as one whole Lean-produced Case with its identity
+and the target keys its planned path covers, or says the campaign is exhausted, or reports the
+campaign's own defect; `observe` takes back the exact closed Run of the one outstanding candidate,
+or the fact that its preparation was rejected, and answers with what was credited; `finish`
+renders the summary and the counterexamples. A `next` while a candidate is outstanding, an
+`observe` for a candidate that is not the outstanding one, a frame out of sequence, a frame naming
+another set, or a frame after the campaign ended is rejected before any campaign call and leaves
+the campaign as it was.
+
+The Case each candidate carries is produced the way a `case` block's Cases are, from the
+candidate's checked Model under the realization the block over the exploratory set names, with the
+machine's claims, evidence catalog and field relations the same block emits. Its identity is the
+candidate's: the Case ID `temporal.case.<set>.<digest>` and the fixture `<set>-<digest>`, where the
+digest is the candidate's Plan checksum, so every candidate's run scope and workflow type are its
+own and nothing is registered in the Temporal Case Registry.
+
+A realization binds the class members it can perform, and a machine's table enumerates every
+member: a planned path that performs a member with no binding and no timer behind it is one the
+realization cannot run, and the Producer would assemble a Program without that step. The bridge
+reads the bindings before producing: such a candidate is credited `prepare-rejected` at once,
+reported in the `skipped` list of the frame that follows it, and the campaign moves on within the
+same `next`.
+
+What a Run says is read off its disposition, its cleanup and its Verdict alone: a completed Run
+whose cleanup succeeded with a `satisfied` Verdict is `satisfied`; a Run whose cleanup succeeded
+with a `violated` Verdict, completed or stopped by the Monitor, is `violated`; a preparation
+rejection is `prepare-rejected`; anything else, including a Run for another Case, is
+`inconclusive`. The bridge reads no Run Event: credit is the planned witness path.
+-/
+
+namespace Temporal.Tool.ExplorationBridge
+
+open Umpire Umpire.Exploration
+open Umpire.Command (DeclaredModel SetDeclaration)
+
+/-! ### What produces a candidate's Case -/
+
+/-- What the `case` block over an exploratory set emits: the realization and, for the set's
+machine, the claims its actions make, its `evidence:` catalog and its Properties' field relations. -/
+structure Production where
+  realization : Umpire.Case.Producer.Realization
+  claims : List Umpire.Case.Producer.ClassClaim := []
+  catalog : List (String × String) := []
+  relations : List Umpire.Case.Producer.FieldRelation := []
+  /-- The machine's timers by name: a path step that fires one is the platform's, not an
+  instruction the realization must bind. -/
+  timers : List String := []
+
+/-- One exploratory set bound to the Model it covers, the limits its budget names and what produces
+its Cases. -/
+structure Binding {Setup State Action Outcome Fact : Type}
+    [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) where
+  set : SetDeclaration
+  limits : Limits
+  production : Production
+
+/-- The Definition ID root every candidate's Case ID hangs off: the Temporal Case root, as a `case`
+block's Cases use it. -/
+def caseIdRoot : String := Temporal.Case.caseIdRoot
+
+/-- The digest a candidate's identity contributes to its Case ID and fixture: the checksum's hex
+digits, because a Case ID admits no colon. -/
+def digestOf (identity : ArtifactChecksum) : String :=
+  let rendered := identity.render
+  if rendered.startsWith "sha256:" then String.ofList (rendered.toList.drop 7) else rendered
+
+def caseIdOf (setName : String) (identity : ArtifactChecksum) : String :=
+  caseIdRoot ++ "." ++ setName ++ "." ++ digestOf identity
+
+def fixtureOf (setName : String) (identity : ArtifactChecksum) : String :=
+  setName ++ "-" ++ digestOf identity
+
+/-- A candidate as a frame carries it: its identity, the target it was planned for, every target
+key its planned path covers, its Case identity and the Case itself, or the production error. -/
+structure CandidateView where
+  identity : ArtifactChecksum
+  target : String
+  covers : List String
+  caseId : String
+  fixture : String
+  /-- The class members on the planned path the realization binds nothing for, by spelling. -/
+  unrealizable : List String
+  produced : Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case
+
+/-- A candidate the bridge passed over: planned, found unrealizable, credited `prepare-rejected`. -/
+structure Skipped where
+  identity : ArtifactChecksum
+  target : String
+  reason : String
+
+/-! ### A campaign with its types erased
+
+The Model a campaign covers fixes the types of its states, actions and outcomes, and the protocol
+must not: `initialize` names the set by a string. A runner is a session with its types erased
+into the four operations the protocol needs, each of which returns the next runner. -/
+
+mutual
+
+inductive Runner where
+  | mk (next : Unit → Step) (observe : ArtifactChecksum → Observation → Observed)
+       (summary : Unit → Campaign.Summary) (ledger : Unit → List (String × TargetStatus))
+
+/-- What `next` returns, each with the candidates passed over on the way to it. -/
+inductive Step where
+  | candidate (view : CandidateView) (skipped : List Skipped) (runner : Runner)
+  | exhausted (skipped : List Skipped) (runner : Runner)
+  | toolingFailure (failure : ToolingFailure) (skipped : List Skipped) (runner : Runner)
+  | outstanding
+
+/-- What `observe` returns: the target keys the observation covered, the statuses of every target
+on the candidate's planned path after crediting, and the runner after; or a rejection, when the
+identity is not the outstanding candidate's. -/
+inductive Observed where
+  | credited (covered : List String) (statuses : List (String × TargetStatus)) (runner : Runner)
+  | rejected
+
+end
+
+namespace Runner
+
+def next : Runner → Step
+  | .mk next _ _ _ => next ()
+
+def observe : Runner → ArtifactChecksum → Observation → Observed
+  | .mk _ observe _ _, identity, observation => observe identity observation
+
+def summary : Runner → Campaign.Summary
+  | .mk _ _ summary _ => summary ()
+
+def ledger : Runner → List (String × TargetStatus)
+  | .mk _ _ _ ledger => ledger ()
+
+private def emptySummary : Campaign.Summary :=
+  { targets := 0, selected := 0, covered := 0, unreachable := 0, violated := 0, attempted := 0,
+    pending := 0, counterexamples := [], exhausted := true }
+
+instance : Inhabited Runner :=
+  ⟨.mk (fun _ => .outstanding) (fun _ _ => .rejected) (fun _ => emptySummary) (fun _ => [])⟩
+
+instance : Inhabited Step := ⟨.outstanding⟩
+
+variable {Setup State Action Outcome Fact : Type}
+variable [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+variable [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+variable [DecidableEq Outcome] [DecidableEq Fact]
+variable {model : DeclaredModel Setup State Action Outcome Fact}
+
+/-- The class members on the candidate's path that no action binding resolves to and no timer
+names, by their spelling: what the realization cannot perform. The path is read the way the
+Producer reads it, the stated program or else the exact action sequence. -/
+def unrealizable (production : Production) (checked : Umpire.Command.CheckedModel model) :
+    List String :=
+  let input := Umpire.Command.producerInput checked
+  let bound := production.realization.actions.map (·.resolve (some input.vocabulary))
+  let path := (input.program.map (·.map (·.1))).getD (input.scenario.actionsExactly.getD [])
+  (path.filterMap fun action =>
+    if bound.contains action then none
+    else match input.vocabulary.actions.find? (·.definitionId == action) with
+      | some value => if production.timers.contains value.value then none else some value.value
+      | none => some action.value).eraseDups
+
+/-- One candidate's Case, produced from its checked Model the way a `case` block's Cases are. The
+machine's `evidence:` catalog confirms each fact along the witness, so the Case writes no evidence
+lines of its own. -/
+def produceCandidate (binding : Binding model) (candidate : Candidate model) : CandidateView :=
+  let identity := candidate.identity
+  let caseId := caseIdOf binding.set.name identity
+  let fixture := fixtureOf binding.set.name identity
+  { identity
+    target := targetKey candidate.selected
+    covers := candidate.covers.map targetKey
+    caseId
+    fixture
+    unrealizable := unrealizable binding.production candidate.checked
+    produced := Umpire.Command.produce candidate.checked
+      ({ caseId, fixture } : Umpire.Case.Producer.Identity)
+      binding.production.realization (fun _ => [])
+      (claims := binding.production.claims)
+      (evidenceCatalog := binding.production.catalog)
+      (relations := binding.production.relations) }
+
+private def ledgerOf (session : Session model) : List (String × TargetStatus) :=
+  session.campaign.ledger.entries.map fun entry => (targetKey entry.target, entry.status)
+
+mutual
+
+/-- The next realizable candidate: an unrealizable one is credited `prepare-rejected` on the spot
+and recorded as skipped, and the session moves on. -/
+partial def advance (binding : Binding model) (session : Session model) (skipped : List Skipped) :
+    Step :=
+  match session.next with
+  | .candidate candidate next =>
+      let view := produceCandidate binding candidate
+      if view.unrealizable.isEmpty then .candidate view skipped (ofSession binding next)
+      else
+        let reason := "unrealizable: the realization binds no " ++ ", ".intercalate view.unrealizable
+        match next.observe [candidate.binding] .prepareRejected with
+        | some after =>
+            advance binding after (skipped ++ [{ identity := view.identity, target := view.target, reason }])
+        | none =>
+            .toolingFailure { target := view.target, reason := "a planned candidate could not be credited" }
+              skipped (ofSession binding next)
+  | .exhausted next => .exhausted skipped (ofSession binding next)
+  | .toolingFailure failure next => .toolingFailure failure skipped (ofSession binding next)
+  | .outstanding => .outstanding
+
+/-- The session as a runner. -/
+partial def ofSession (binding : Binding model) (session : Session model) : Runner :=
+  .mk
+    (fun _ => advance binding session [])
+    (fun identity observation =>
+      match session.outstanding with
+      | some candidate =>
+          if candidate.identity != identity then .rejected
+          else match session.observe [candidate.binding] observation with
+            | none => .rejected
+            | some next =>
+                let keys := candidate.covers.map targetKey
+                let after := ledgerOf next
+                let covered := if observation == .satisfied then keys else []
+                .credited covered (after.filter fun (key, _) => keys.contains key) (ofSession binding next)
+      | none => .rejected)
+    (fun _ => session.campaign.summary)
+    (fun _ => ledgerOf session)
+
+end
+
+end Runner
+
+/-- One set the bridge can open: its name, what `initialize` reports about it, and the campaign
+over it, checked when opened. -/
+structure Bound where
+  name : String
+  machine : String
+  budget : String
+  targets : List String
+  campaign : Unit → Except CampaignError Runner
+
+/-- Bind one exploratory set to its Model. -/
+def Bound.of {Setup State Action Outcome Fact : Type}
+    [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Fact]
+    {model : DeclaredModel Setup State Action Outcome Fact} (binding : Binding model) : Bound :=
+  { name := binding.set.name
+    machine := ((binding.set.machine.map (·.value)).getD "")
+    budget := binding.set.budget.getD ""
+    targets := binding.set.targets.map targetKey
+    campaign := fun _ =>
+      (Campaign.check model binding.set binding.limits).map fun campaign =>
+        Runner.ofSession binding (Session.begin campaign) }
+
+/-! ### Reading a Run -/
+
+/-- What a closed Run says about its candidate, read off the disposition, the cleanup and the
+Verdict alone. -/
+def observationOf (run : temporal.server.api.testpilot.v1.Run) : Observation :=
+  let cleanupClosed := run.cleanup.any fun cleanup =>
+    cleanup.status == temporal.server.api.testpilot.v1.CleanupStatus.CLEANUP_STATUS_SUCCEEDED
+  let verdict : Option temporal.server.api.testpilot.v1.VerdictStatus := run.verdict.map (·.status)
+  if !cleanupClosed then .inconclusive
+  else match run.disposition, verdict with
+    | .RUN_DISPOSITION_COMPLETED, some .VERDICT_STATUS_SATISFIED => .satisfied
+    | .RUN_DISPOSITION_COMPLETED, some .VERDICT_STATUS_VIOLATED => .violated
+    | .RUN_DISPOSITION_STOPPED_BY_MONITOR, some .VERDICT_STATUS_VIOLATED => .violated
+    | _, _ => .inconclusive
+
+/-- Why a Run credited nothing, for the `credited` frame's detail; empty when it was decisive. -/
+def detailOf (expectedCaseId : String) (run : temporal.server.api.testpilot.v1.Run) : String :=
+  if run.case_id != expectedCaseId then
+    s!"run {run.run_id} names Case {run.case_id}, not {expectedCaseId}"
+  else if !(run.cleanup.any fun cleanup =>
+      cleanup.status == temporal.server.api.testpilot.v1.CleanupStatus.CLEANUP_STATUS_SUCCEEDED) then
+    "cleanup is not closed"
+  else match observationOf run with
+    | .satisfied | .violated => ""
+    | _ => "the Run is not a completed Run with a decisive Verdict"
+
+private def parseOptions : Protobuf.Json.ParseOptions :=
+  Protobuf.Json.ParseOptions.withGeneratedPool { discardUnknownFields := false, allowPartial := false }
+
+/-- Decode one Run from its ProtoJSON object. -/
+def decodeRun (json : Lean.Json) : IO (Except String temporal.server.api.testpilot.v1.Run) := do
+  match ← Protobuf.Json.fromJson json temporal.server.api.testpilot.v1.Run parseOptions with
+  | .ok run => pure (.ok run)
+  | .error error => pure (.error (toString error))
+
+/-! ### Frames -/
+
+/-- The frames the coordinator sends. -/
+inductive Request where
+  | initialize
+  | next
+  | observe (candidate : String) (outcome : Except String Lean.Json)
+  | finish (status : Option String)
+
+/-- One frame as read: its sequence number, the set it names and what it asks. -/
+structure Frame where
+  seq : Nat
+  setName : String
+  request : Request
+
+/-- The terminal statuses `finish` may name when the campaign ended with targets pending: the
+coordinator stopped it, or a campaign counter of its own tripped. -/
+def stopStatuses : List String := ["stopped", "limit-reached"]
+
+/-- Read one line as a frame. A line that is not a JSON object is no frame at all; an object that
+is not a well-formed frame is a frame to reject. -/
+def parseFrame (line : String) : Except String (Except String Frame) := do
+  let json ← match Lean.Json.parse line with
+    | .ok json => pure json
+    | .error reason => throw s!"not JSON: {reason}"
+  let .obj _ := json | throw "not a JSON object"
+  let frameOf : Except String Frame := do
+    let kind ← (json.getObjValAs? String "frame").mapError fun _ => "frame names no `frame`"
+    let seq ← (json.getObjValAs? Nat "seq").mapError fun _ => "frame names no `seq`"
+    let set ← (json.getObjValAs? String "set").mapError fun _ => "frame names no `set`"
+    let request ← match kind with
+      | "initialize" => pure .initialize
+      | "next" => pure .next
+      | "observe" =>
+          let candidate ← (json.getObjValAs? String "candidate").mapError fun _ =>
+            "observe names no `candidate`"
+          match json.getObjVal? "run", json.getObjVal? "prepareRejected" with
+          | .ok run, .error _ => pure (.observe candidate (.ok run))
+          | .error _, .ok (.str detail) => pure (.observe candidate (.error detail))
+          | .ok _, .ok _ => throw "observe carries both `run` and `prepareRejected`"
+          | _, _ => throw "observe carries neither `run` nor a `prepareRejected` string"
+      | "finish" =>
+          match json.getObjVal? "status" with
+          | .error _ => pure (.finish none)
+          | .ok (.str status) =>
+              if stopStatuses.contains status then pure (.finish (some status))
+              else throw s!"finish names status `{status}`; one of {stopStatuses}"
+          | .ok _ => throw "finish `status` is not a string"
+      | other => throw s!"unknown frame `{other}`"
+    pure { seq, setName := set, request }
+  pure frameOf
+
+/-! ### Rendering -/
+
+private def jsonString (value : String) : String := Lean.Json.compress (.str value)
+
+private def jsonObject (members : List (String × String)) : String :=
+  "{" ++ ",".intercalate (members.map fun (name, rendered) => jsonString name ++ ":" ++ rendered) ++ "}"
+
+private def jsonArray (items : List String) : String :=
+  "[" ++ ",".intercalate items ++ "]"
+
+private def jsonStrings (items : List String) : String := jsonArray (items.map jsonString)
+
+private def statusRows (statuses : List (String × TargetStatus)) : String :=
+  jsonArray (statuses.map fun (target, status) =>
+    jsonObject [("target", jsonString target), ("status", jsonString status.name)])
+
+private def header (kind : String) (seq : Nat) (setName : String) : List (String × String) :=
+  [("frame", jsonString kind), ("seq", toString seq), ("set", jsonString setName)]
+
+def renderRejected (seq : Nat) (reason : String) : String :=
+  jsonObject [("frame", jsonString "rejected"), ("seq", toString seq), ("reason", jsonString reason)]
+
+def renderInitialized (seq : Nat) (bound : Bound) : String :=
+  jsonObject (header "initialized" seq bound.name ++ [
+    ("machine", jsonString bound.machine),
+    ("budget", jsonString bound.budget),
+    ("targets", jsonStrings bound.targets)])
+
+private def skippedRows (skipped : List Skipped) : String :=
+  jsonArray (skipped.map fun entry =>
+    jsonObject [("candidate", jsonString entry.identity.render), ("target", jsonString entry.target),
+      ("reason", jsonString entry.reason)])
+
+/-- The candidate frame; `encodedCase` is the Case's canonical ProtoJSON, embedded verbatim. -/
+def renderCandidate (seq : Nat) (setName : String) (view : CandidateView) (skipped : List Skipped)
+    (encodedCase : String) : String :=
+  jsonObject (header "candidate" seq setName ++ [
+    ("candidate", jsonString view.identity.render),
+    ("target", jsonString view.target),
+    ("covers", jsonStrings view.covers),
+    ("caseId", jsonString view.caseId),
+    ("fixture", jsonString view.fixture),
+    ("skipped", skippedRows skipped),
+    ("case", encodedCase)])
+
+def renderExhausted (seq : Nat) (setName : String) (skipped : List Skipped) : String :=
+  jsonObject (header "exhausted" seq setName ++ [("skipped", skippedRows skipped)])
+
+def renderToolingFailure (seq : Nat) (setName : String) (failure : ToolingFailure)
+    (skipped : List Skipped) : String :=
+  jsonObject (header "toolingFailure" seq setName ++ [
+    ("target", jsonString failure.target),
+    ("reason", jsonString failure.reason),
+    ("skipped", skippedRows skipped)])
+
+def renderCredited (seq : Nat) (setName : String) (identity : ArtifactChecksum) (observation : Observation)
+    (detail : String) (covered : List String) (statuses : List (String × TargetStatus)) : String :=
+  jsonObject (header "credited" seq setName ++ [
+    ("candidate", jsonString identity.render),
+    ("observation", jsonString observation.name),
+    ("detail", jsonString detail),
+    ("credited", jsonStrings covered),
+    ("statuses", statusRows statuses)])
+
+/-- The summary frame. `promotion` names the promotion source's SHA-256 for a counterexample's
+candidate when one is compiled; none is rendered as JSON null. -/
+def renderFinished (seq : Nat) (setName : String) (status : String) (summary : Campaign.Summary)
+    (ledger : List (String × TargetStatus)) (promotion : ArtifactChecksum → Option String) : String :=
+  jsonObject (header "finished" seq setName ++ [
+    ("status", jsonString status),
+    ("summary", jsonObject [
+      ("targets", toString summary.targets),
+      ("selected", toString summary.selected),
+      ("covered", toString summary.covered),
+      ("unreachable", toString summary.unreachable),
+      ("violated", toString summary.violated),
+      ("attempted", toString summary.attempted),
+      ("pending", toString summary.pending),
+      ("exhausted", if summary.exhausted then "true" else "false")]),
+    ("counterexamples", jsonArray (summary.counterexamples.map fun sample =>
+      jsonObject [
+        ("className", jsonString sample.className),
+        ("target", jsonString (targetKey sample.target)),
+        ("candidate", jsonString sample.candidate.render),
+        ("promotionSourceSha256", (promotion sample.candidate).elim "null" jsonString)])),
+    ("ledger", statusRows ledger)])
+
+/-! ### The protocol -/
+
+/-- Where the campaign stands between frames. -/
+inductive Phase where
+  /-- No `initialize` yet. -/
+  | closed
+  | running
+  /-- `next` said exhausted; only `finish` remains. -/
+  | exhausted
+  /-- The campaign's own defect ended it; only `finish` remains. -/
+  | failed (failure : ToolingFailure)
+  deriving Repr
+
+structure State where
+  phase : Phase := .closed
+  /-- The sequence number the next frame must carry. -/
+  expected : Nat := 1
+  setName : String := ""
+  runner : Runner := default
+  /-- The outstanding candidate, whose Case the coordinator holds. -/
+  outstanding : Option CandidateView := none
+  /-- Candidates already observed, whose identities a later `observe` is stale for. -/
+  seen : List ArtifactChecksum := []
+
+/-- What one accepted frame produces: the frame to write and the state after, and whether the
+protocol is complete. -/
+inductive Outcome where
+  | reply (line : String) (state : State)
+  | finished (line : String)
+
+/-- The effects the bridge runs under, injected so a test measures what reached each stream. -/
+structure Effects where
+  readLine : IO (Option String)
+  writeFrame : String → IO Unit
+  writeProgress : String → IO Unit
+  writeError : String → IO Unit
+  promotion : ArtifactChecksum → Option String := fun _ => none
+
+/-- The reason a frame is rejected, or none when it is in order. Checked before any campaign call. -/
+def rejection (state : State) (frame : Frame) : Option String :=
+  if frame.seq != state.expected then
+    if frame.seq + 1 == state.expected then some s!"duplicate frame: seq {frame.seq} was already accepted"
+    else some s!"out-of-order frame: expected seq {state.expected}, got {frame.seq}"
+  else match state.phase, frame.request with
+    | .closed, .initialize => none
+    | .closed, _ => some "no campaign is open; send `initialize` first"
+    | _, .initialize => some s!"campaign over {state.setName} is already open"
+    | _, _ =>
+      if frame.setName != state.setName then some s!"frame names set {frame.setName}; the campaign is over {state.setName}"
+      else match state.phase, frame.request with
+        | .exhausted, .next => some "the campaign is exhausted; send `finish`"
+        | .exhausted, .observe .. => some "the campaign is exhausted; send `finish`"
+        | .failed failure, .next => some s!"the campaign ended on a tooling failure ({failure.reason}); send `finish`"
+        | .failed failure, .observe .. =>
+            some s!"the campaign ended on a tooling failure ({failure.reason}); send `finish`"
+        | .running, .next =>
+            match state.outstanding with
+            | some view => some s!"candidate {view.identity.render} is outstanding; send `observe`"
+            | none => none
+        | .running, .observe candidate _ =>
+            match state.outstanding with
+            | none =>
+                if state.seen.any (·.render == candidate) then
+                  some s!"stale observe: candidate {candidate} was already observed"
+                else some "no candidate is outstanding; send `next`"
+            | some view =>
+                if view.identity.render == candidate then none
+                else some s!"crossed observe: candidate {view.identity.render} is outstanding, not {candidate}"
+        | _, .finish _ => none
+        | _, _ => none
+
+/-- The terminal status `finish` reports. -/
+def finishStatus (state : State) (requested : Option String) : String :=
+  match state.phase with
+  | .failed _ => "tooling-failure"
+  | .exhausted => "exhausted"
+  | _ => if state.runner.summary.exhausted then "exhausted" else requested.getD "stopped"
+
+/-- Apply one in-order frame. -/
+def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame) : IO Outcome := do
+  let seq := frame.seq
+  let accepted (line : String) (state : State) : Outcome :=
+    .reply line { state with expected := seq + 1 }
+  match frame.request with
+  | .initialize =>
+      match bound.find? (·.name == frame.setName) with
+      | none =>
+          pure (Outcome.reply (renderRejected seq s!"unknown set {frame.setName}; the bridge binds {bound.map (·.name)}") state)
+      | some found =>
+          match found.campaign () with
+          | .error error => pure (Outcome.reply (renderRejected seq s!"set {frame.setName} is not a campaign: {error.render}") state)
+          | .ok runner =>
+              pure (accepted (renderInitialized seq found)
+                { state with phase := .running, setName := found.name, runner })
+  | .next =>
+      let step := state.runner.next
+      let skipped := match step with
+        | .candidate _ skipped _ => skipped
+        | .exhausted skipped _ => skipped
+        | .toolingFailure _ skipped _ => skipped
+        | .outstanding => []
+      for entry in skipped do
+        effects.writeProgress s!"skipped {entry.identity.render} {entry.target} {entry.reason}"
+      let seen := state.seen ++ skipped.map (·.identity)
+      match step with
+      | .outstanding =>
+          pure (Outcome.reply (renderRejected seq "a candidate is outstanding") state)
+      | .exhausted skipped runner =>
+          pure (accepted (renderExhausted seq state.setName skipped)
+            { state with phase := .exhausted, runner, seen })
+      | .toolingFailure failure skipped runner =>
+          pure (accepted (renderToolingFailure seq state.setName failure skipped)
+            { state with phase := .failed failure, runner, seen })
+      | .candidate view skipped runner =>
+          match view.produced with
+          | .error error =>
+              let failure : ToolingFailure :=
+                { target := view.target, reason := s!"production: {error.construct} at {error.sourceDefinitionId}" }
+              pure (accepted (renderToolingFailure seq state.setName failure skipped)
+                { state with phase := .failed failure, runner, seen })
+          | .ok produced =>
+              match ← Testpilot.ProtoJSON.canonical produced with
+              | .error error =>
+                  let failure : ToolingFailure :=
+                    { target := view.target, reason := s!"encoding: {error}" }
+                  pure (accepted (renderToolingFailure seq state.setName failure skipped)
+                    { state with phase := .failed failure, runner, seen })
+              | .ok encoded =>
+                  effects.writeProgress s!"candidate {view.identity.render} {view.target}"
+                  pure (accepted (renderCandidate seq state.setName view skipped encoded)
+                    { state with runner, outstanding := some view, seen })
+  | .observe candidate outcome =>
+      let some view := state.outstanding
+        | pure (Outcome.reply (renderRejected seq "no candidate is outstanding") state)
+      let (observation, detail) ← match outcome with
+        | .error _ => pure (Observation.prepareRejected, "preparation was rejected")
+        | .ok json =>
+            match ← decodeRun json with
+            | .error reason => pure (Observation.inconclusive, s!"run does not decode: {reason}")
+            | .ok run =>
+                if run.case_id != view.caseId then pure (Observation.inconclusive, detailOf view.caseId run)
+                else pure (observationOf run, detailOf view.caseId run)
+      match state.runner.observe view.identity observation with
+      | .rejected =>
+          pure (Outcome.reply (renderRejected seq s!"candidate {candidate} is not the outstanding candidate") state)
+      | .credited covered statuses runner =>
+          effects.writeProgress s!"observed {view.identity.render} {observation.name}"
+          pure (accepted (renderCredited seq state.setName view.identity observation detail covered statuses)
+            { state with runner, outstanding := none, seen := state.seen ++ [view.identity] })
+  | .finish requested =>
+      pure (Outcome.finished (renderFinished seq state.setName (finishStatus state requested)
+        state.runner.summary state.runner.ledger effects.promotion))
+
+/-- The diagnostic prefix every failure outside a frame carries. -/
+def diagnosticPrefix : String := "umpire-explore:"
+
+/-- Serve frames until `finish`. A line that is no frame, or stdin closing before `finish`, is a
+failure outside the protocol: a diagnostic on stderr and a non-zero exit. -/
+partial def serve (effects : Effects) (bound : List Bound) : IO UInt32 := do
+  let rec loop (state : State) : IO UInt32 := do
+    match ← effects.readLine with
+    | none =>
+        effects.writeError s!"{diagnosticPrefix} stdin closed before `finish`\n"
+        pure 1
+    | some line =>
+        if line.all Char.isWhitespace then loop state
+        else match parseFrame line with
+          | .error reason =>
+              effects.writeError s!"{diagnosticPrefix} line is not a frame: {reason}\n"
+              pure 1
+          | .ok (.error reason) =>
+              effects.writeFrame (renderRejected 0 reason)
+              loop state
+          | .ok (.ok frame) =>
+              match rejection state frame with
+              | some reason =>
+                  effects.writeFrame (renderRejected frame.seq reason)
+                  loop state
+              | none =>
+                  match ← step effects bound state frame with
+                  | .reply line next =>
+                      effects.writeFrame line
+                      loop next
+                  | .finished line =>
+                      effects.writeFrame line
+                      pure 0
+  loop {}
+
+/-! ### The sets the bridge binds -/
+
+/-- The caller Model's exploratory set under the functional set's realization, with what the
+exploratory `case` block emits for the protocol machine. -/
+def nexusCallerBinding : Binding Temporal.Feature.Nexus.Caller.nexusProtocol :=
+  { set := Temporal.Feature.Nexus.Caller.nexusCallerExploration
+    limits := Temporal.Feature.Nexus.Caller.four
+    production := {
+      realization := Temporal.Feature.Nexus.Caller.nexusCallerExplorationCases.realization
+      claims := Temporal.Feature.Nexus.Caller.nexusCallerExplorationCases.claims
+      catalog := Temporal.Feature.Nexus.Caller.nexusCallerExplorationCases.catalog
+      relations := Temporal.Feature.Nexus.Caller.nexusCallerExplorationCases.relations
+      timers := Temporal.Feature.Nexus.Caller.nexusCallerExplorationCases.timers } }
+
+/-- Every set the bridge opens. -/
+def boundSets : List Bound := [Bound.of nexusCallerBinding]
+
+/-- The effects of the process boundary: frames on stdout, flushed one at a time because the
+coordinator waits on each; progress and diagnostics on stderr. -/
+def processEffects : IO Effects := do
+  let stdin ← IO.getStdin
+  let stdout ← IO.getStdout
+  let stderr ← IO.getStderr
+  pure {
+    readLine := do
+      let line ← stdin.getLine
+      pure (if line.isEmpty then none else some line)
+    writeFrame := fun line => do stdout.putStr (line ++ "\n"); stdout.flush
+    writeProgress := fun line => do stderr.putStr (line ++ "\n"); stderr.flush
+    writeError := fun text => do stderr.putStr text; stderr.flush }
+
+end Temporal.Tool.ExplorationBridge

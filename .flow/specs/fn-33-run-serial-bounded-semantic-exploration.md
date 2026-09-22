@@ -86,6 +86,30 @@ row with no such path is `unreachable` under this Query form (the counter's last
 pinned example), which is honest coverage rather than a Run that no deployment could satisfy.
 Class members enumerate in the machine's action order, which is by member name.
 
+Task .2 (2026-09-22) found two things the plan assumed and the caller realization does not
+give. First, the caller machine's table enumerates every `schedule` member (each timeout expiring
+or not, eight members) while `asyncNexus` binds three, and the Producer places no instruction for a
+path action no binding names (the Success slice relies on that for its waits), so the first row
+target of `nexusCallerExploration` -- the schedule with all three timeouts expiring -- produced a
+Program with no Nexus operation that `Prepare` rejected on its handler reservation. The bridge now
+reads the realization's bindings and the machine's timers (the exploratory `case` block emits the
+timers beside the claims, catalog and relations) before producing: a candidate whose path performs
+a member with no binding and no timer behind it is credited `prepare-rejected` without a Run,
+listed as skipped on the frame that follows, and the campaign moves on within the same `next`.
+The Producer is not changed to reject, because a realization may leave an action unbound on
+purpose. Second, a path whose only evidence is the scheduled read lifts no history event, and a
+history read with an empty evidence lift is a Case `Prepare` rejects; `asyncNexus`'s history read
+now lifts nothing when no resolved rule reads history, which leaves every functional Case's bytes
+unchanged. The proof point therefore holds for the first realizable row target: the first row
+target is skipped as unrealizable and the next row's Case is accepted by `Prepare` under the caller
+Profile (`TestExplorationBridgeFirstCandidatePrepares`). A Run for another Case, a Run whose
+cleanup is not closed, an incomplete or inconclusive Run and a Verdict that is not decisive are
+`inconclusive` and mark the planned path `attempted`; a violated Verdict on a Run the Monitor
+stopped is `violated`, since that is how the evaluator ends a violated Run. `finish` reports
+`exhausted`, `tooling-failure`, or the status the coordinator names (`stopped`, `limit-reached`)
+when targets are pending, because the candidate cap and the byte counters are the coordinator's.
+Counterexamples carry `promotionSourceSha256` as JSON null until task .5 compiles the source.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)

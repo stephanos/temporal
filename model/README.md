@@ -322,6 +322,23 @@ model/.lake/build/bin/umpire-case nexusCallerTests-asyncCompletion
 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotNexusCallerAsyncCompletion$'
 ```
 
+The exploration bridge (`Temporal.Tool.ExplorationBridge`, `lean_exe umpire-explore`, not a default
+target) drives one exploratory set's campaign from outside, one canonical JSON frame per line on
+stdin and stdout: `initialize` names the set, `next` hands out the next candidate as one whole
+produced Case with its opaque identity and the target keys its planned path covers, `observe` takes
+back the exact closed Run of the outstanding candidate (or its preparation rejection) and answers with
+what was credited, `finish` renders the summary and the counterexamples. A duplicate, stale, crossed
+or out-of-order frame is rejected before any campaign call. A candidate whose planned path performs a
+class member the realization binds nothing for is credited `prepare-rejected` and listed as skipped
+on the next frame. Progress goes to stderr; nothing but frames goes to stdout.
+
+```sh
+make umpire-check-exploration-bridge   # builds umpire-explore, runs its tests and the Go Prepare proof
+printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration"}' \
+  '{"frame":"next","seq":2,"set":"nexusCallerExploration"}' \
+  '{"frame":"finish","seq":3,"set":"nexusCallerExploration"}' | model/.lake/build/bin/umpire-explore
+```
+
 The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both
 environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
 the same satisfied Contract result. Its binding fingerprints and Driver identities differ because

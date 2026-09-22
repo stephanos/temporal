@@ -32,10 +32,10 @@ Define the canonical `initialize`, `next`, `observe`, and `finish` frames and bi
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Candidate, Case, budget, Profile/catalog and Limit bindings are canonical and exact in every frame; duplicate, stale, crossed, incomplete and N+1 frames fail before production or credit.
-- [ ] `next` returns a whole Case that `testpilot.Prepare` accepts for the first row target of `nexusCallerExploration`; Go sees no target, coordinate or Case-family API.
-- [ ] `observe` credits only from a `satisfied` closed Run for the outstanding candidate, along its planned path, and returns the credited target keys; the `case … realizes` block accepts the exploratory set through the machine recorded on `SetEntry` and registers nothing; each candidate carries its own fixture and run scope.
-- [ ] The bridge executable is non-default, writes nothing to stdout beyond frames, and exits non-zero with a diagnostic on stderr for any failure outside a frame.
+- [x] Candidate, Case, budget, Profile/catalog and Limit bindings are canonical and exact in every frame; duplicate, stale, crossed, incomplete and N+1 frames fail before production or credit.
+- [x] `next` returns a whole Case that `testpilot.Prepare` accepts for the first row target of `nexusCallerExploration`; Go sees no target, coordinate or Case-family API.
+- [x] `observe` credits only from a `satisfied` closed Run for the outstanding candidate, along its planned path, and returns the credited target keys; the `case … realizes` block accepts the exploratory set through the machine recorded on `SetEntry` and registers nothing; each candidate carries its own fixture and run scope.
+- [x] The bridge executable is non-default, writes nothing to stdout beyond frames, and exits non-zero with a diagnostic on stderr for any failure outside a frame.
 ## Done summary
 TBD
 
