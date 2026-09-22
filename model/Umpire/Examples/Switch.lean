@@ -103,6 +103,16 @@ query exactAction
   in: oneFlip
   limits: one
 
+/- The switch explored: every row and result the machine reaches within one step of off. It is the
+exploratory set Umpire's own campaign tests walk. -/
+set switchExploration
+  purpose: exploratory
+  bind:
+    operator: driven
+  machine: twoState
+  cover: rows | results
+  budget: one
+
 /-! ### What the commands declared, under the names the tests read
 
 Everything below is a view: a value the commands computed, or a record assembled from such values.
