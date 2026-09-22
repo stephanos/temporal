@@ -368,6 +368,31 @@ func TestABindingFailureThatIsNotTheCasesLeavesTheCandidateOutstanding(t *testin
 	require.Equal(t, firstIdentity, bridge.Outstanding().Identity)
 }
 
+// A closed Run that comes back beside an error -- a recorder or Monitor close failure after the
+// Verdict was fixed -- is the authoritative record: it is observed, and the error travels beside
+// the outcome.
+func TestAClosedRunReturnedBesideAnErrorIsStillObserved(t *testing.T) {
+	bridge, fake := initialized(t, sampleCandidates()...)
+	next, err := bridge.Next(t.Context())
+	require.NoError(t, err)
+	fake.nextRequest(t)
+	run, verdict := closedRun(testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, testpilotspb.CLEANUP_STATUS_SUCCEEDED, testpilotspb.VERDICT_STATUS_VIOLATED)
+	binder := &fakeBinder{run: run, verdict: verdict, runErr: errors.New("recorder: closure capacity")}
+
+	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, outcome.Kind)
+	require.ErrorContains(t, outcome.RunError, "closure capacity")
+	require.Equal(t, 1, binder.released)
+	observed := fake.nextRequest(t)
+	require.Equal(t, "observe", observed.Frame)
+	var sent testpilotspb.Run
+	require.NoError(t, protojson.Unmarshal(observed.Run, &sent))
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, sent.GetVerdict().GetStatus())
+	require.Equal(t, "violated", outcome.Credited.Observation)
+	require.Nil(t, bridge.Outstanding())
+}
+
 func TestARunThatCouldNotExecuteReleasesAndLeavesTheCandidateOutstanding(t *testing.T) {
 	bridge, fake := initialized(t, sampleCandidates()...)
 	next, err := bridge.Next(t.Context())
@@ -526,6 +551,29 @@ func TestAnOversizedFrameInEitherDirectionIsRefused(t *testing.T) {
 	_, err = bridge.Observe(t.Context(), firstIdentity, Result{PrepareRejected: &detail})
 	require.ErrorIs(t, err, ErrFrameTooLarge)
 	fake.nextRequest(t)
+	// The stream is out of step after an oversized reply: the bridge is broken, and every later
+	// call says so without writing anything.
+	require.ErrorIs(t, bridge.Broken(), ErrBroken)
+	_, err = bridge.Observe(t.Context(), firstIdentity, Result{PrepareRejected: &detail})
+	require.ErrorIs(t, err, ErrBroken)
+	_, err = bridge.Next(t.Context())
+	require.ErrorIs(t, err, ErrBroken)
+	_, err = bridge.Finish(t.Context(), "")
+	require.ErrorIs(t, err, ErrBroken)
+	fake.requireNoRequest(t)
+}
+
+func TestAMismatchedReplyBreaksTheBridge(t *testing.T) {
+	bridge, fake := initialized(t)
+	fake.rawReplies = append(fake.rawReplies, `{"frame":"exhausted","seq":9,"set":"set","profile":"profile-a","skipped":[]}`)
+	_, err := bridge.Next(t.Context())
+	var protocol *ProtocolError
+	require.ErrorAs(t, err, &protocol)
+	fake.nextRequest(t)
+	_, err = bridge.Next(t.Context())
+	require.ErrorIs(t, err, ErrBroken)
+	require.ErrorAs(t, err, &protocol)
+	fake.requireNoRequest(t)
 }
 
 func TestACandidateWhoseCaseNamesAnotherCaseIsNotBound(t *testing.T) {
@@ -562,5 +610,9 @@ func TestAContextThatEndsWhileWaitingOnTheBridgeReturns(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
 	defer cancel()
 	_, err := bridge.Initialize(ctx, "set", "profile")
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	// A reader is still waiting on the stream, so the bridge is broken rather than read twice.
+	_, err = bridge.Initialize(t.Context(), "set", "profile")
+	require.ErrorIs(t, err, ErrBroken)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 }

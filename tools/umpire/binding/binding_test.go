@@ -52,10 +52,24 @@ func TestOpenWithoutCreateTouchesNoServerAndCloses(t *testing.T) {
 }
 
 // A Case whose Profile the deployment cannot derive rejects before preparation; a Case that
-// prepares but whose deployment is unreachable fails at the SDK client, after preparation and
-// before any Driver opens. Neither is the Case's own static rejection.
+// Prepare rejects is the Case's own static rejection, decided before the SDK client dials; a Case
+// that prepares but whose deployment is unreachable fails at the SDK client, after preparation and
+// before any Driver opens.
 func TestBindDecidesPreparationBeforeAnyDriverOpens(t *testing.T) {
 	source := nexusCallerCase(t)
+	malformed := nexusCallerCase(t)
+	malformed.CaseId = ""
+	campaignForMalformed, err := Open(t.Context(), unreachable(), "probe-queue-handler")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, campaignForMalformed.Close(context.Background())) })
+	rejectedBound, err := campaignForMalformed.Bind(t.Context(), "probe.identity", malformed)
+	require.Error(t, err)
+	require.Nil(t, rejectedBound)
+	rejection, rejected := IsPreparationRejection(err)
+	require.True(t, rejected, "a Case Prepare rejects is a preparation rejection: %v", err)
+	require.Equal(t, testpilot.PreparationMalformed, rejection.Category)
+	require.NotContains(t, err.Error(), "open SDK client", "a rejected Case never dials")
+
 	noEndpoint := unreachable()
 	noEndpoint.NexusEndpoint = ""
 	campaign, err := Open(t.Context(), noEndpoint, "")
@@ -65,7 +79,7 @@ func TestBindDecidesPreparationBeforeAnyDriverOpens(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, bound)
 	require.ErrorContains(t, err, "derive Profile")
-	_, rejected := IsPreparationRejection(err)
+	_, rejected = IsPreparationRejection(err)
 	require.False(t, rejected)
 
 	reachableProfile, err := Open(t.Context(), unreachable(), "probe-queue-handler")
