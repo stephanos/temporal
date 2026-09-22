@@ -56,12 +56,27 @@ type Caps struct {
 	RunEvents int64
 	// ReportBytes bounds the summary, checked on the rendered report.
 	ReportBytes int64
-	// RunTimeout bounds one Run, applied to its context before the Run opens.
+	// RunTimeout bounds one Run, applied to its context before the Run opens. A Run that reaches
+	// it closes as the facade closes an interrupted Run and is observed as that Run, which the
+	// bridge reads as inconclusive; it is per-Run work, not a campaign counter, so it never ends
+	// the campaign as limit-reached.
 	RunTimeout time.Duration
 }
 
-// Counters are what the campaign has consumed. They are the coordinator's only retained state
-// beyond the outstanding candidate, whatever the volume.
+// LimitError is a cap that tripped on what was measured against it.
+type LimitError struct {
+	Limit    string
+	Measured int64
+	Cap      int64
+}
+
+func (e *LimitError) Error() string {
+	return fmt.Sprintf("%s: %s of %d exceeds the cap of %d", StatusLimitReached, e.Limit, e.Measured, e.Cap)
+}
+
+// Counters are what the campaign has consumed. With the per-candidate summaries the report keeps
+// (identity, kind, observation, never a Run), they are the coordinator's retained state, whatever
+// the volume.
 type Counters struct {
 	Planned      int
 	Prepared     int
@@ -97,8 +112,11 @@ type Session struct {
 	caps        Caps
 	counters    Counters
 	outstanding *Candidate
-	terminal    *Terminal
-	consumed    bool
+	// ran says a Run was opened for the outstanding candidate and not yet credited, so a stop
+	// now loses it whether the Run is in flight or closed and unobserved.
+	ran      bool
+	terminal *Terminal
+	consumed bool
 }
 
 // NewSession is a coordinator in StateIdle.
@@ -147,8 +165,15 @@ func (s *Session) finish(terminal Terminal) (*Session, error) {
 }
 
 // Plan moves idle to planning, or to finished with limit-reached when a cap the next candidate
-// would exceed has tripped. The caps are checked here, before the bridge is asked for anything.
+// would exceed has tripped. The caps are checked here, before the bridge is asked for anything,
+// and only from idle: a tripped cap never ends a campaign with a candidate outstanding.
 func (s *Session) Plan() (*Session, error) {
+	if s.consumed {
+		return nil, ErrConsumed
+	}
+	if s.state != StateIdle {
+		return nil, fmt.Errorf("coordinator is %s, not idle", s.state)
+	}
 	if limit := s.tripped(); limit != "" {
 		return s.finish(Terminal{Status: StatusLimitReached, Limit: limit})
 	}
@@ -204,11 +229,12 @@ func (s *Session) Planned(next Next) (*Session, error) {
 	after.counters.Planned++
 	after.counters.CaseBytes += bytes
 	after.outstanding = next.Candidate
+	after.ran = false
 	return after, nil
 }
 
 // Prepared moves preparing to running once the candidate's Case is bound and prepared; one Run
-// may now open, under RunTimeout.
+// may now open, under RunTimeout, and a stop from here on loses this candidate.
 func (s *Session) Prepared() (*Session, error) {
 	after, err := s.transition([]State{StatePreparing}, StateRunning)
 	if err != nil {
@@ -216,6 +242,7 @@ func (s *Session) Prepared() (*Session, error) {
 	}
 	after.counters.Prepared++
 	after.counters.Started++
+	after.ran = true
 	return after, nil
 }
 
@@ -256,6 +283,7 @@ func (s *Session) Observed(credited Credited) (*Session, error) {
 		after.counters.Inconclusive++
 	}
 	after.outstanding = nil
+	after.ran = false
 	return after, nil
 }
 
@@ -271,22 +299,23 @@ func (s *Session) Failed(failure string) (*Session, error) {
 	return after, nil
 }
 
-// Stopped ends the campaign on a stop. A Run in flight is the lost iteration, named by its
-// candidate's identity; a stop between candidates loses none. No Verdict or coverage is made up
-// for a lost iteration.
+// Stopped ends the campaign on a stop. A candidate whose Run was opened and not credited -- in
+// flight, or closed by the interruption and never observed -- is the lost iteration, named by its
+// identity; a stop before any Run opened, or between candidates, loses none. No Verdict or
+// coverage is made up for a lost iteration.
 func (s *Session) Stopped() (*Session, error) {
 	terminal := Terminal{Status: StatusStopped}
-	if s.state == StateRunning && s.outstanding != nil {
+	if s.ran && s.outstanding != nil {
 		terminal.Lost = s.outstanding.Identity
 	}
 	return s.finish(terminal)
 }
 
 // CheckReport enforces the report cap on the rendered summary: a report over the cap is
-// limit-reached, never truncated.
+// limit-reached, as a *LimitError, never truncated.
 func (s *Session) CheckReport(rendered int) error {
 	if s.caps.ReportBytes > 0 && int64(rendered) > s.caps.ReportBytes {
-		return fmt.Errorf("report of %d bytes exceeds the cap of %d: %s", rendered, s.caps.ReportBytes, StatusLimitReached)
+		return &LimitError{Limit: "report-bytes", Measured: int64(rendered), Cap: s.caps.ReportBytes}
 	}
 	return nil
 }
@@ -305,8 +334,28 @@ type Report struct {
 	Terminal Terminal
 	Counters Counters
 	Finished *Finished
-	// Outcomes are the candidates' outcomes in order, each with its identity.
-	Outcomes []Outcome
+	// Outcomes summarize the candidates in order; no Run is retained.
+	Outcomes []OutcomeSummary
+}
+
+// OutcomeSummary is what the report keeps of one candidate: its identity and target, how far it
+// got, and what the bridge read its result as.
+type OutcomeSummary struct {
+	Identity    string
+	Target      string
+	Kind        OutcomeKind
+	Detail      string
+	Observation string
+	Credited    []string
+}
+
+func summarize(candidate *Candidate, outcome Outcome) OutcomeSummary {
+	summary := OutcomeSummary{Identity: candidate.Identity, Target: candidate.Target, Kind: outcome.Kind, Detail: outcome.Detail}
+	if outcome.Credited != nil {
+		summary.Observation = outcome.Credited.Observation
+		summary.Credited = outcome.Credited.Credited
+	}
+	return summary
 }
 
 // stepper moves the session as the serial path moves one candidate.
@@ -339,11 +388,11 @@ func (p *stepper) move(transition func(*Session) (*Session, error)) error {
 // asked; the report's Terminal is the coordinator's own, whatever the bridge answers.
 func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progress io.Writer) (Report, error) {
 	current := &stepper{session: NewSession(caps)}
-	var outcomes []Outcome
+	var outcomes []OutcomeSummary
 	var driveErr error
 	for current.session.State() != StateFinished {
 		if err := ctx.Err(); err != nil {
-			driveErr = current.end(ctx, "")
+			driveErr = current.end(ctx, err)
 			break
 		}
 		if err := current.move((*Session).Plan); err != nil {
@@ -354,7 +403,7 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 		}
 		next, err := bridge.Next(ctx)
 		if err != nil {
-			driveErr = current.end(ctx, "next: "+err.Error())
+			driveErr = current.end(ctx, fmt.Errorf("next: %w", err))
 			break
 		}
 		for _, skipped := range next.Skipped {
@@ -369,9 +418,9 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 		candidate := next.Candidate
 		writeProgress(progress, "candidate %s %s", candidate.Identity, candidate.Target)
 		outcome, err := runCandidate(ctx, bridge, binder, candidate, current)
-		outcomes = append(outcomes, outcome)
+		outcomes = append(outcomes, summarize(candidate, outcome))
 		if err != nil {
-			driveErr = current.end(ctx, err.Error())
+			driveErr = current.end(ctx, err)
 			writeProgress(progress, "candidate %s %s", candidate.Identity, current.session.Terminal().Status)
 			break
 		}
@@ -396,20 +445,21 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 	return report, driveErr
 }
 
-// end finishes the session on the error that struck: a context that ended is a stop (a Run in
-// flight is the lost iteration), anything else a tooling failure. The error returned is what
-// Drive reports.
-func (p *stepper) end(ctx context.Context, failure string) error {
+// end finishes the session on the error that struck: a context that ended is a stop (a Run that
+// was opened and not credited is the lost iteration), anything else a tooling failure. The error
+// returned is the one that struck, so a caller can still tell a broken bridge from a rejected
+// frame from a Run's deadline.
+func (p *stepper) end(ctx context.Context, cause error) error {
 	if ctx.Err() != nil {
 		if err := p.move((*Session).Stopped); err != nil {
 			return err
 		}
-		return ctx.Err()
+		return cause
 	}
-	if err := p.move(func(s *Session) (*Session, error) { return s.Failed(failure) }); err != nil {
+	if err := p.move(func(s *Session) (*Session, error) { return s.Failed(cause.Error()) }); err != nil {
 		return err
 	}
-	return errors.New(failure)
+	return cause
 }
 
 func outcomeSummary(outcome Outcome) string {
