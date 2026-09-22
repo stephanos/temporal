@@ -132,6 +132,25 @@ credit never leaves the planned path whatever covers `observe` is handed, the fu
 and retry witnesses pin that timer steps report nothing unbound, one failure helper in `step`, and
 the Go proof's comment. Three transport rounds returned no verdict and were refunded.
 
+Task .3 (2026-09-22): the deployment binding is lifted from `umpire-run` into `tools/umpire/binding`
+as `Open` (campaign-scoped: connection, provisioning, catalog) and `Campaign.Bind`
+(candidate-scoped: derived Profile, `Prepare`, SDK client, composite Driver); `umpire-run` binds one
+Case through both and keeps its behavior, messages and exit codes. The bridge client
+(`tools/umpire/campaign.Bridge`) matches every reply to its frame by sequence number, set and
+profile, refuses a second `next` while a candidate is outstanding and an `observe` for another
+identity before writing anything, treats a `rejected` reply as leaving the campaign untouched, and
+caps frames in both directions. `RunCandidate` is the serial path: decode, bind (a
+`*testpilot.PreparationError` is observed as `prepare-rejected` before any Driver opens), one Run,
+release, then `observe` with the closed Run as ProtoJSON. A binding failure that is not the Case's
+own and a Run that could not execute leave the candidate outstanding and are returned as
+`bind-failed` and `run-failed`, because the bridge accepts only a Run or a preparation rejection
+and nothing honest can be observed for them; task .6's state machine ends the campaign on them.
+The Profile identity named at `initialize` is the identity the Case is bound under, so the
+prepared Case's Driver identity carries it. The integration proof runs under
+`-tags 'test_dep integration'` against a cluster named by `UMPIRE_FUZZ_GRPC`/`UMPIRE_FUZZ_HTTP`
+and skips, saying so, without one; the live-bridge test runs the real `umpire-explore` whenever
+it is built.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
