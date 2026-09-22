@@ -93,7 +93,8 @@ The retained semantic APIs keep these responsibilities separate:
 - Query asks one bounded question, and Search answers it. `Search.admit` checks the Property,
   Scenario, Known Gaps, Query, and search view in one order and returns an `AdmittedQuery` or the
   first stage that rejected.
-- Variations and Exploration select from a finite checked universe without performing runtime I/O.
+- Variations compile a finite checked universe, and Exploration plans one target Query per coverage
+  target of an exploratory set, without performing runtime I/O.
 - Evidence and Implementation Link retain the offline mapping path for model analysis.
 - Promotion validates one exact scenario-neutral Plan source for human review.
 

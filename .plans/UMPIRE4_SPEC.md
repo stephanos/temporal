@@ -450,6 +450,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   instructions, not an authoring language, and Testpilot does not accept it.
 - **Variations (`Umpire.Variations`).** A finite space of authored variations over one Model.
   `Umpire.VariationSpace` is the declared space Exploration draws candidates from.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* `Umpire.VariationSpace` is a finite
+  space of authored variations over one Model that a Variations compiler lowers to Plans; Exploration
+  no longer draws candidates from it.
 - **Artifact (`Umpire.Artifact`).** Immutable, versioned, inspectable data exchanged across
   components, languages, and processes. Artifacts cannot define model behavior.
 - **Artifact Checksum.** A reproducible checksum over all Artifact content in canonical order,
@@ -633,6 +636,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Exploration (`Umpire.Exploration`).** Model-owned selection from a declared `Umpire.Variations`
   space to find useful Plans or counterexamples. It is exhaustive only when it covers the declared
   finite space within its Limits.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* Model-owned walking of one exploratory
+  set's enumerated coverage targets: one candidate per target in enumeration order, each an
+  exact-trace Query admitted and searched like any command Query, credited per target from a
+  decisive Run along its planned witness path. It is exhausted when no target is pending, and it
+  claims coverage only for targets a satisfied Run confirmed. A candidate's exact-prefix shortest
+  witness is the minimization EXP-05 requires: there is no shorter trace to that row under the
+  Model.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of Exploration Limits.
 - **Promotion (`Umpire.Promotion`).** Re-answering a Query against the Behavior Model using exactly
