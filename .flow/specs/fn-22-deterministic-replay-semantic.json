@@ -16,7 +16,9 @@
     "fn-87-tighten-the-testpilot-protocol-glossary"
   ],
   "id": "fn-22-deterministic-replay-semantic",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-22-deterministic-replay-semantic.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -912,8 +914,19 @@
     "plan": 2,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-22-deterministic-replay-semantic.1": 1
+  },
+  "review_reservations": {
+    "dc785e61f4064d4fa0aca9ff9af19be5": {
+      "artifact_sha256": "ef2b49ac449dd9cdfa68db6c0f5575c41def615e630004f0efa44405195a70b5",
+      "counter_scope": "impl:fn-22-deterministic-replay-semantic.1",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -931,5 +944,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T22:40:25.953087Z"
+  "updated_at": "2026-09-22T22:57:29.805311Z"
 }

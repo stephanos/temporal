@@ -837,7 +837,18 @@ reads each for a white-box gap and admits the set when there is none. -/
 case nexusCallerCanaryCases
   realizes nexusCallerCanary
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+
+/- The exploratory set's Cases are produced by the exploration bridge, one per candidate, under the
+functional set's realization; the block emits the machine's claims, catalog and relations for it
+and registers nothing. -/
+case nexusCallerExplorationCases
+  realizes nexusCallerExploration
+  as nexusCallerCases.realization
 ```
+
+The exploratory set's block is the third: it names the functional set's realization by its
+emitted value, produces no fixture and registers nothing, and is what `umpire-explore` produces
+each candidate's Case through (see the exploration bridge in [README.md](README.md)).
 
 ## 12. From the file to a green live test
 
