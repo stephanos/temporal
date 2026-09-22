@@ -1,19 +1,26 @@
 ---
-satisfies: [R3, R4, R5, R6, R7]
+satisfies: [R7]
 ---
+# fn-22-deterministic-replay-semantic.6 Emit the checked review-only regression proposal
 
-# fn-22-deterministic-replay-semantic.6 Prove the Case-native negative control and evidence core
 ## Description
-Recompile the fn-21 duplicate-observation control into one generic fn-64 Case with no scenario-specific Go path. Prove two matching violated Runs, complete reduction or irreducibility, and a diagnostic EvidenceCore that omits one labeled non-responsible Observation while leaving the source Run/Verdict unchanged.
+Lift fn-33 .5's proposal shape into `Umpire.Promotion.propose` (an admitted Query, its checked Model, the anchor read off its planning, fresh names keyed by the candidate's digest under the Model's family, a caller-named location) so the exploration campaign and the replay bridge share it; the bridge's `finish` frame carries the retained candidate's proposal (digest, path, bytes) or its error only for a `minimized` or `irreducible` result. Go writes the bytes only under `--promotion-root` outside the model, at the path the bridge named, refusing a path that leaves the root before writing anything, and reports the digest, the path and where it was written; a write failure or an existing destination never reruns and never overwrites silently.
 
-**Size:** L
-**Touches:** `model/Temporal/Feature/Nexus/Experimental/**`, `tools/umpire/replay/integration_test.go`, `tests/umpire_replay_test.go`
+### Approach
+- `Umpire.Exploration.Promotion.propose` becomes a one-line call into the shared function; its tests stay green.
 
+### Quick commands
+`cd model && lake build UmpireTests umpire-replay-bridge-tests && lake exe umpire-replay-bridge-tests && cd .. && go test -count=1 -tags test_dep ./tools/umpire/replay/`
+
+**Size:** M
+**Files:** `model/Umpire/Promotion.lean`, `model/Umpire/Exploration/Promotion.lean`, `model/Umpire/PromotionTests.lean`, `model/Temporal/Tool/ReplayBridge.lean`, `tools/umpire/replay/proposal.go`, `tools/umpire/replay/proposal_test.go`
+
+### Re-plan note (2026-09-22)
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; see the spec's **Re-plan** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] The negative Case uses only public Program instructions, Contract machines, and Temporal Driver capabilities.
-- [ ] Repeated Runs preserve the semantic violation key and are isolated.
-- [ ] EvidenceCore omission is proved without rewriting events, Run, Verdict, or Contract.
-
+- [ ] An incomplete, not-reproduced or indeterminate result carries no proposal.
+- [ ] The proposal compiles through `Umpire.Promotion` from the retained candidate's admitted Query, renders the Model's expected trace and never the observed Run, and seals the same digest across two reductions.
+- [ ] Nothing is written under the model root; a write failure or an existing destination is reported and triggers no rerun.
 ## Done summary
 TBD
 
