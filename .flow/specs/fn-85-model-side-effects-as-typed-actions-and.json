@@ -124,7 +124,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-actions-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Model side effects as typed actions and run query sets",
   "tracker": {
     "baseHashFlow": null,
@@ -137,5 +137,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T22:09:57.327091Z"
+  "updated_at": "2026-09-22T15:08:43.498075Z"
 }
