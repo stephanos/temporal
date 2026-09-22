@@ -35,6 +35,10 @@ var (
 	ErrNotInitialized = errors.New("the campaign is not initialized")
 	// ErrFinished is returned once Finish has been answered.
 	ErrFinished = errors.New("the campaign is finished")
+	// ErrBroken wraps the failure after which the bridge's stream can no longer be trusted: a
+	// write or read failure, a reply that did not match its frame, a frame over the cap, or a
+	// context that ended mid-exchange. Every later call returns it without writing a frame.
+	ErrBroken = errors.New("the bridge is broken")
 )
 
 // RejectedError is the bridge's answer to a frame it refused: the campaign is untouched.
@@ -48,7 +52,7 @@ func (e *RejectedError) Error() string {
 }
 
 // ProtocolError says the bridge's reply did not match the frame sent: a different sequence
-// number, set, profile, candidate or kind. The campaign cannot be trusted after one.
+// number, set, profile, candidate or kind. The bridge is broken after one.
 type ProtocolError struct {
 	Expected string
 	Actual   string
@@ -215,6 +219,7 @@ type Bridge struct {
 	initialized bool
 	finished    bool
 	outstanding *Candidate
+	broken      error
 }
 
 // Options configure a bridge process.
@@ -279,6 +284,9 @@ func (b *Bridge) Close() error {
 
 // Initialize opens the campaign over one set under one Profile identity.
 func (b *Bridge) Initialize(ctx context.Context, set, profile string) (Initialized, error) {
+	if b.broken != nil {
+		return Initialized{}, b.broken
+	}
 	if b.initialized {
 		return Initialized{}, fmt.Errorf("campaign over %s is already initialized", b.set)
 	}
@@ -378,7 +386,13 @@ func (b *Bridge) Finish(ctx context.Context, status string) (Finished, error) {
 	}, nil
 }
 
+// Broken is the failure after which the bridge can no longer be trusted, or nil.
+func (b *Bridge) Broken() error { return b.broken }
+
 func (b *Bridge) open() error {
+	if b.broken != nil {
+		return b.broken
+	}
 	if !b.initialized {
 		return ErrNotInitialized
 	}
@@ -390,6 +404,9 @@ func (b *Bridge) open() error {
 
 // exchange writes one frame and reads its reply, matched by sequence number, set and profile. A
 // `rejected` reply is a RejectedError and leaves the sequence where it was, as the bridge does.
+// A frame that could not be written, a reply that could not be read or did not match, or a
+// context that ended mid-exchange breaks the bridge: its stream is out of step, so every later
+// call returns the same failure without writing.
 func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (reply, error) {
 	frame.Seq = b.seq + 1
 	frame.Set = b.set
@@ -403,6 +420,19 @@ func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (
 	if err := ctx.Err(); err != nil {
 		return reply{}, err
 	}
+	answer, err := b.transact(ctx, frame, encoded, kinds)
+	if err != nil {
+		var rejected *RejectedError
+		if !errors.As(err, &rejected) {
+			b.broken = fmt.Errorf("%w: %w", ErrBroken, err)
+		}
+		return reply{}, err
+	}
+	b.seq = frame.Seq
+	return answer, nil
+}
+
+func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, kinds []string) (reply, error) {
 	if _, err := b.stdin.Write(append(encoded, '\n')); err != nil {
 		return reply{}, fmt.Errorf("write %s frame: %w", frame.Frame, err)
 	}
@@ -433,12 +463,11 @@ func (b *Bridge) exchange(ctx context.Context, frame request, kinds ...string) (
 	if !contains(kinds, answer.Frame) {
 		return reply{}, &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
 	}
-	b.seq = frame.Seq
 	return answer, nil
 }
 
 // readFrame reads one line within the byte cap. The read honours the context: a bridge that never
-// answers is abandoned at the deadline, and the caller closes it.
+// answers is abandoned at the deadline, which breaks the bridge, and the caller closes it.
 func (b *Bridge) readFrame(ctx context.Context) ([]byte, error) {
 	type read struct {
 		line []byte
