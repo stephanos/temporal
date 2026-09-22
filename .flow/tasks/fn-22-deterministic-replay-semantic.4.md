@@ -4,7 +4,7 @@ satisfies: [R3, R9]
 # fn-22-deterministic-replay-semantic.4 Classify fresh concrete reruns of the subject
 
 ## Description
-Implement two fresh isolated reruns of the admitted subject through `tools/umpire/binding` (`Open` once, after admission; `Bind` and `Run` per attempt; `Release` before the next) and classify: both in the admissible violated form with the subject's key `reproduced`; a `COMPLETED` `satisfied` Verdict or another key `not-reproduced`; an `INCOMPLETE` Run, unclosed cleanup or `inconclusive` Verdict `indeterminate`. Stale identity and preparation rejection were decided at admission (task .1) and never reach a Run. The classifier is a listener-free value like fn-33's `Outcome`; the reducer of task .6 consumes it unchanged for candidates.
+Implement two fresh isolated reruns of the admitted subject through `tools/umpire/binding` (`Open` once, after admission; `Bind` and `Run` per attempt; `Release` before the next) and classify: both in the admissible violated form (`STOPPED_BY_MONITOR`, cleanup `SUCCEEDED`, `VIOLATED`) with the subject's key `reproduced`; a `COMPLETED` `satisfied` Verdict or another key `not-reproduced`; an `INCOMPLETE` Run, unclosed cleanup or `inconclusive` Verdict `indeterminate`. Stale identity and preparation rejection were decided at admission (task .1) and never reach a Run. The classifier is a listener-free value like fn-33's `Outcome`; the reducer of task .6 consumes it unchanged for candidates.
 
 ### Approach
 - Reuse `binding.Campaign.Bind` and `Bound.Run`; a scripted `Binder` as in `tools/umpire/campaign` tests drives every class.
