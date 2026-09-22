@@ -134,7 +134,6 @@ private def stubView (candidate : StubCandidate) : CandidateView :=
     covers := candidate.covers
     caseId := caseIdOf stubSet candidate.identity
     fixture := fixtureOf stubSet candidate.identity
-    unrealizable := []
     produced := .ok Testpilot.Examples.Synthetic.case }
 
 private def stubStatus (observation : Observation) : TargetStatus :=
@@ -151,6 +150,7 @@ private def stubSummary (ledger : List (String × TargetStatus)) (selected : Nat
     unreachable := count .unreachable
     violated := count .violated
     attempted := count .attempted
+    unrealizable := count .unrealizable
     pending := count .pending + count .planned
     counterexamples := []
     exhausted := ledger.all fun (_, status) => status != .pending && status != .planned }
@@ -184,6 +184,7 @@ private def stubBound : Bound :=
   { name := stubSet
     machine := "stub.machine"
     budget := "two"
+    limits := Limits.bounded 2 2 64
     targets := ["t1", "t2", "t3"]
     campaign := fun _ => .ok (stubRunner stubCandidates none
       [("t1", .pending), ("t2", .pending), ("t3", .pending)] 0) }
@@ -194,8 +195,14 @@ private def frame (kind : String) (seq : Nat) (setName : String) (extra : String
   "{\"frame\":\"" ++ kind ++ "\",\"seq\":" ++ toString seq ++ ",\"set\":\"" ++ setName ++ "\"" ++
     extra ++ "}"
 
-private def observeRejected (seq : Nat) (setName candidate : String) : String :=
-  frame "observe" seq setName (",\"candidate\":\"" ++ candidate ++ "\",\"prepareRejected\":\"no worker\"")
+private def profile : String := "test-profile"
+
+private def openFrame (seq : Nat) (setName : String) (under : String := profile) : String :=
+  frame "initialize" seq setName (",\"profile\":\"" ++ under ++ "\"")
+
+private def observeRejected (seq : Nat) (setName candidate : String) (under : String := profile) : String :=
+  frame "observe" seq setName (",\"candidate\":\"" ++ candidate ++ "\",\"profile\":\"" ++ under ++
+    "\",\"prepareRejected\":\"no worker\"")
 
 /-- A closed Run for one Case ID with one disposition, cleanup status and Verdict status. -/
 private def runFor (caseId : String) (disposition : temporal.server.api.testpilot.v1.RunDisposition)
@@ -211,7 +218,8 @@ private def encodeRun (run : temporal.server.api.testpilot.v1.Run) : IO String :
 
 private def observeRun (seq : Nat) (setName candidate : String) (run : temporal.server.api.testpilot.v1.Run) :
     IO String := do
-  pure (frame "observe" seq setName (",\"candidate\":\"" ++ candidate ++ "\",\"run\":" ++ (← encodeRun run)))
+  pure (frame "observe" seq setName (",\"candidate\":\"" ++ candidate ++ "\",\"profile\":\"" ++ profile ++
+    "\",\"run\":" ++ (← encodeRun run)))
 
 private def satisfiedRun (caseId : String) : temporal.server.api.testpilot.v1.Run :=
   runFor caseId .RUN_DISPOSITION_COMPLETED .CLEANUP_STATUS_SUCCEEDED .VERDICT_STATUS_SATISFIED
@@ -252,9 +260,12 @@ private def checkObservations : IO Unit := do
   expect "cleanup unspecified"
     (runFor caseId .RUN_DISPOSITION_COMPLETED .CLEANUP_STATUS_UNSPECIFIED .VERDICT_STATUS_SATISFIED)
     .inconclusive
-  require (detailOf caseId (satisfiedRun caseId) == "") "a decisive Run has no detail"
-  require ((detailOf caseId (satisfiedRun "temporal.case.stub.other")).startsWith "run run-1 names Case")
+  require (readRun caseId (satisfiedRun caseId) == (.satisfied, "")) "a decisive Run has no detail"
+  require ((readRun caseId (satisfiedRun "temporal.case.stub.other")).1 == .inconclusive &&
+      (readRun caseId (satisfiedRun "temporal.case.stub.other")).2.startsWith "run run-1 names Case")
     "a Run for another Case says so"
+  require ((readRun caseId (runFor caseId .RUN_DISPOSITION_COMPLETED .CLEANUP_STATUS_FAILED
+      .VERDICT_STATUS_SATISFIED)).2 == "cleanup is not closed") "an unclosed cleanup says so"
   -- A Run with fields the schema does not declare does not decode.
   match ← decodeRun (Lean.Json.mkObj [("runId", Lean.Json.str "run-1"), ("caseId", Lean.Json.str caseId),
       ("extra", Lean.Json.str "1")]) with
@@ -281,10 +292,16 @@ private def checkParsing : IO Unit := do
   malformed "{\"frame\":\"next\"}" "`seq`"
   malformed "{\"frame\":\"next\",\"seq\":1}" "`set`"
   malformed "{\"frame\":\"dance\",\"seq\":1,\"set\":\"s\"}" "unknown frame"
+  malformed "{\"frame\":\"initialize\",\"seq\":1,\"set\":\"s\"}" "`profile`"
   malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\"}" "`candidate`"
-  malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\"}" "neither"
-  malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\",\"run\":{},\"prepareRejected\":\"x\"}" "both"
+  malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\"}" "`profile`"
+  malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\",\"profile\":\"p\"}" "neither"
+  malformed "{\"frame\":\"observe\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\",\"profile\":\"p\",\"run\":{},\"prepareRejected\":\"x\"}" "both"
   malformed "{\"frame\":\"finish\",\"seq\":1,\"set\":\"s\",\"status\":\"done\"}" "one of"
+  -- A frame is exact: a key the bridge does not read, such as one naming a target, rejects.
+  malformed "{\"frame\":\"next\",\"seq\":1,\"set\":\"s\",\"target\":\"row:x\"}" "admits no `target`"
+  malformed "{\"frame\":\"initialize\",\"seq\":1,\"set\":\"s\",\"profile\":\"p\",\"case\":{}}" "admits no `case`"
+  malformed "{\"frame\":\"finish\",\"seq\":1,\"set\":\"s\",\"candidate\":\"c\"}" "admits no `candidate`"
   match parseFrame "{\"frame\":\"finish\",\"seq\":9,\"set\":\"s\",\"status\":\"limit-reached\"}" with
   | .ok (.ok parsed) =>
       let limitReached := match parsed.request with
@@ -302,35 +319,44 @@ private def checkProtocol : IO Unit := do
   let secondCase := caseIdOf stubSet second
   let script : List String := [
     frame "next" 1 stubSet,                        -- 0: no campaign open
-    frame "initialize" 1 "other",                  -- 1: unknown set
-    frame "initialize" 1 stubSet,                  -- 2: initialized
-    frame "initialize" 2 stubSet,                  -- 3: already open
+    openFrame 1 "other",                          -- 1: unknown set
+    openFrame 1 stubSet,                          -- 2: initialized
+    openFrame 2 stubSet,                          -- 3: already open
     "",                                            --    blank lines are skipped
     frame "next" 2 stubSet,                        -- 4: candidate 1
     frame "next" 3 stubSet,                        -- 5: outstanding
     frame "next" 2 stubSet,                        -- 6: duplicate
     frame "next" 7 stubSet,                        -- 7: out of order
-    frame "observe" 3 "other" (",\"candidate\":\"" ++ first.render ++ "\",\"prepareRejected\":\"x\""), -- 8: wrong set
+    observeRejected 3 "other" first.render,        -- 8: wrong set
     observeRejected 3 stubSet second.render,       -- 9: crossed
     "{\"frame\":\"observe\",\"seq\":3}",           -- 10: malformed, rejected at seq 0
-    observeRejected 3 stubSet first.render,        -- 11: credited prepare-rejected
-    observeRejected 4 stubSet first.render,        -- 12: stale
-    frame "next" 4 stubSet,                        -- 13: candidate 2
-    ← observeRun 5 stubSet second.render (satisfiedRun "temporal.case.stub.other"), -- 14: another Case's Run
-    ← observeRun 6 stubSet second.render (satisfiedRun secondCase), -- 15: stale, already observed
-    frame "next" 6 stubSet,                        -- 16: exhausted
-    frame "next" 7 stubSet,                        -- 17: after exhaustion
-    frame "finish" 7 stubSet]                      -- 18: finished
+    observeRejected 3 stubSet first.render "other-profile", -- 11: crossed profile
+    frame "observe" 3 stubSet (",\"candidate\":\"" ++ first.render ++ "\",\"profile\":\"" ++ profile ++
+      "\",\"run\":{}"),                              -- 12: an empty Run is no observation
+    frame "observe" 3 stubSet (",\"candidate\":\"" ++ first.render ++ "\",\"profile\":\"" ++ profile ++
+      "\",\"run\":{\"runId\":\"r\",\"caseId\":\"c\",\"extra\":1}"), -- 13: an undecodable Run likewise
+    observeRejected 3 stubSet first.render,        -- 14: credited prepare-rejected
+    observeRejected 4 stubSet first.render,        -- 15: stale
+    frame "next" 4 stubSet,                        -- 16: candidate 2
+    ← observeRun 5 stubSet second.render (satisfiedRun "temporal.case.stub.other"), -- 17: another Case's Run
+    ← observeRun 6 stubSet second.render (satisfiedRun secondCase), -- 18: stale, already observed
+    frame "next" 6 stubSet,                        -- 19: exhausted
+    frame "next" 7 stubSet,                        -- 20: after exhaustion
+    frame "finish" 7 stubSet]                      -- 21: finished
   let captured ← runScript [stubBound] script
   require (captured.status == 0) s!"bridge exited {captured.status}: {captured.errors}"
   require captured.errors.isEmpty s!"bridge wrote a diagnostic: {captured.errors}"
-  require (captured.frames.length == 19) s!"bridge wrote {captured.frames.length} frames, not 19"
+  require (captured.frames.length == 22) s!"bridge wrote {captured.frames.length} frames, not 22"
   requireRejected captured 0 1 "no campaign is open"
   requireRejected captured 1 1 "unknown set"
   let initialized ← frameAt captured 2 "initialized" 1
   require ((← stringsField "initialized" initialized "targets") == ["t1", "t2", "t3"]) "targets differ"
   require ((← stringField "initialized" initialized "machine") == "stub.machine") "machine differs"
   require ((← stringField "initialized" initialized "budget") == "two") "budget differs"
+  require ((← stringField "initialized" initialized "profile") == profile) "profile not echoed"
+  let limits ← field "initialized" initialized "limits"
+  require ((← natField "limits" limits "steps") == 2 && (← natField "limits" limits "actions") == 2 &&
+    (← natField "limits" limits "search") == 64) "limits differ"
   requireRejected captured 3 2 "already open"
   let candidate ← frameAt captured 4 "candidate" 2
   require ((← stringField "candidate" candidate "candidate") == first.render) "candidate identity differs"
@@ -351,24 +377,28 @@ private def checkProtocol : IO Unit := do
   requireRejected captured 6 2 "duplicate"
   requireRejected captured 7 7 "out-of-order"
   requireRejected captured 8 3 "names set other"
-  requireRejected captured 9 3 "crossed"
+  requireRejected captured 9 3 "crossed observe"
   requireRejected captured 10 0 "`set`"
-  let credited ← frameAt captured 11 "credited" 3
+  requireRejected captured 11 3 "crossed profile"
+  requireRejected captured 12 3 "names no `runId`"
+  requireRejected captured 13 3 "does not decode"
+  let credited ← frameAt captured 14 "credited" 3
   require ((← stringField "credited" credited "observation") == "prepare-rejected") "observation differs"
+  require ((← stringField "credited" credited "profile") == profile) "profile not echoed on credit"
   require ((← stringsField "credited" credited "credited") == []) "a rejected preparation credited something"
   require ((← statusesOf "credited" credited "statuses") == [("t1", "attempted")]) "statuses differ"
-  requireRejected captured 12 4 "stale"
-  let candidate2 ← frameAt captured 13 "candidate" 4
+  requireRejected captured 15 4 "stale"
+  let candidate2 ← frameAt captured 16 "candidate" 4
   require ((← stringField "candidate" candidate2 "candidate") == second.render) "second identity differs"
-  let crossedRun ← frameAt captured 14 "credited" 5
+  let crossedRun ← frameAt captured 17 "credited" 5
   require ((← stringField "credited" crossedRun "observation") == "inconclusive") "a crossed Run was decisive"
   require (((← stringField "credited" crossedRun "detail").splitOn "names Case").length == 2) "no detail"
   require ((← statusesOf "credited" crossedRun "statuses") == [("t2", "attempted"), ("t3", "attempted")])
     "crossed statuses differ"
-  requireRejected captured 15 6 "stale"
-  let _ ← frameAt captured 16 "exhausted" 6
-  requireRejected captured 17 7 "exhausted"
-  let finished ← frameAt captured 18 "finished" 7
+  requireRejected captured 18 6 "stale"
+  let _ ← frameAt captured 19 "exhausted" 6
+  requireRejected captured 20 7 "exhausted"
+  let finished ← frameAt captured 21 "finished" 7
   require ((← stringField "finished" finished "status") == "exhausted") "status differs"
   let summary ← field "finished" finished "summary"
   require ((← natField "summary" summary "selected") == 2) "selected differs"
@@ -385,7 +415,7 @@ private def checkCredit : IO Unit := do
   let first := stubIdentity 1
   let second := stubIdentity 2
   let captured ← runScript [stubBound] [
-    frame "initialize" 1 stubSet,
+    openFrame 1 stubSet,
     frame "next" 2 stubSet,
     ← observeRun 3 stubSet first.render (satisfiedRun (caseIdOf stubSet first)),
     frame "next" 4 stubSet,
@@ -408,23 +438,23 @@ private def checkCredit : IO Unit := do
     "an exhausted ledger reports exhausted whatever finish names"
   -- Stopped early: the requested status stands.
   let early ← runScript [stubBound] [
-    frame "initialize" 1 stubSet, frame "finish" 2 stubSet ",\"status\":\"limit-reached\""]
+    openFrame 1 stubSet, frame "finish" 2 stubSet ",\"status\":\"limit-reached\""]
   require (early.status == 0) s!"early finish exited {early.status}"
   require ((← stringField "finished" (← frameAt early 1 "finished" 2) "status") == "limit-reached")
     "limit-reached not reported"
-  let stopped ← runScript [stubBound] [frame "initialize" 1 stubSet, frame "finish" 2 stubSet]
+  let stopped ← runScript [stubBound] [openFrame 1 stubSet, frame "finish" 2 stubSet]
   require ((← stringField "finished" (← frameAt stopped 1 "finished" 2) "status") == "stopped")
     "stopped not reported"
 
 /-! ### Failures outside the protocol -/
 
 private def checkOutside : IO Unit := do
-  let closed ← runScript [stubBound] [frame "initialize" 1 stubSet, frame "next" 2 stubSet]
+  let closed ← runScript [stubBound] [openFrame 1 stubSet, frame "next" 2 stubSet]
   require (closed.status == 1) s!"stdin closing exited {closed.status}"
   require (closed.frames.length == 2) "frames before stdin closed were not written"
   require ((closed.errors.splitOn "stdin closed before `finish`").length == 2) s!"no diagnostic: {closed.errors}"
   require (closed.errors.startsWith diagnosticPrefix) "diagnostic lacks the prefix"
-  let garbage ← runScript [stubBound] [frame "initialize" 1 stubSet, "not a frame", frame "finish" 2 stubSet]
+  let garbage ← runScript [stubBound] [openFrame 1 stubSet, "not a frame", frame "finish" 2 stubSet]
   require (garbage.status == 1) s!"a non-frame line exited {garbage.status}"
   require (garbage.frames.length == 1) "frames after a non-frame line were written"
   require ((garbage.errors.splitOn "line is not a frame").length == 2) s!"no diagnostic: {garbage.errors}"
@@ -439,7 +469,7 @@ private def checkCaller : IO Unit := do
   require (bound.budget == "four") s!"budget is {bound.budget}"
   let some firstTarget := bound.targets.head? | fail "the caller set has no targets"
   require (firstTarget.startsWith "row:") s!"the first target is {firstTarget}, not a row"
-  let opened ← runScript boundSets [frame "initialize" 1 callerSet, frame "next" 2 callerSet]
+  let opened ← runScript boundSets [openFrame 1 callerSet, frame "next" 2 callerSet]
   require (opened.frames.length == 2) s!"caller wrote {opened.frames.length} frames: {opened.errors}"
   let initialized ← frameAt opened 0 "initialized" 1
   require ((← stringsField "initialized" initialized "targets") == bound.targets) "targets differ"
@@ -453,6 +483,9 @@ private def checkCaller : IO Unit := do
     | other => fail s!"skipped is not an array: {other.compress}"
   require (skipped.head?.map (·.1) == some firstTarget) s!"the first row target was not skipped: {skipped}"
   require (skipped.all fun (_, reason) => (reason.splitOn "unrealizable").length == 2) "skip reason differs"
+  let limits ← field "initialized" initialized "limits"
+  require ((← natField "limits" limits "steps") == 4 && (← natField "limits" limits "search") == 32768)
+    "the caller budget's limits are not written out"
   require (skipped.any fun (_, reason) => (reason.splitOn "schedule-expires-expires-expires").length == 2)
     "the unbound member is not named"
   let target ← stringField "candidate" candidate "target"
@@ -469,7 +502,7 @@ private def checkCaller : IO Unit := do
   require (covers.contains target) "the candidate's covers omit its target"
   -- The same first candidate, credited satisfied and finished: identities are the enumeration's.
   let captured ← runScript boundSets [
-    frame "initialize" 1 callerSet,
+    openFrame 1 callerSet,
     frame "next" 2 callerSet,
     ← observeRun 3 callerSet identity (satisfiedRun caseId),
     frame "finish" 4 callerSet]
@@ -484,7 +517,10 @@ private def checkCaller : IO Unit := do
   let summary ← field "finished" finished "summary"
   require ((← natField "summary" summary "covered") == covers.length) "covered differs"
   require ((← natField "summary" summary "selected") == skipped.length + 1) "selected differs"
-  require ((← natField "summary" summary "attempted") >= skipped.length) "skipped candidates were not attempted"
+  require ((← natField "summary" summary "unrealizable") >= skipped.length) "skipped candidates are not unrealizable"
+  require ((← natField "summary" summary "attempted") == 0) "a skipped candidate counted as attempted"
+  let ledger ← statusesOf "finished" finished "ledger"
+  require (skipped.all fun (key, _) => ledger.contains (key, "unrealizable")) "skipped targets are not unrealizable"
 
 /-! ### The executable -/
 
@@ -499,7 +535,7 @@ private def runExecutable (input : String) : IO IO.Process.Output := do
   IO.Process.output { cmd := "sh", args := #["-c", "printf '%s\\n' \"$1\" | \"$2\"", "sh", input, path.toString] }
 
 private def checkExecutable : IO Unit := do
-  let script := "\n".intercalate [frame "initialize" 1 callerSet, frame "next" 2 callerSet, frame "finish" 3 callerSet]
+  let script := "\n".intercalate [openFrame 1 callerSet, frame "next" 2 callerSet, frame "finish" 3 callerSet]
   let output ← runExecutable script
   require (output.exitCode == 0) s!"executable exited {output.exitCode}: {output.stderr}"
   let lines := (output.stdout.splitOn "\n").filter (!·.isEmpty)
@@ -511,7 +547,7 @@ private def checkExecutable : IO Unit := do
   let _ ← frameAt captured 2 "finished" 3
   require ((output.stderr.splitOn "candidate sha256:").length == 2) s!"no progress line: {output.stderr}"
   require ((output.stderr.splitOn "skipped sha256:").length >= 2) s!"no skipped line: {output.stderr}"
-  let closed ← runExecutable (frame "initialize" 1 callerSet)
+  let closed ← runExecutable (openFrame 1 callerSet)
   require (closed.exitCode == 1) s!"stdin closing exited {closed.exitCode}"
   require ((closed.stderr.splitOn diagnosticPrefix).length == 2) s!"no diagnostic: {closed.stderr}"
   let withArguments ← IO.Process.output { cmd := (← executable).toString, args := #["--help"] }

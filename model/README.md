@@ -329,12 +329,15 @@ produced Case with its opaque identity and the target keys its planned path cove
 back the exact closed Run of the outstanding candidate (or its preparation rejection) and answers with
 what was credited, `finish` renders the summary and the counterexamples. A duplicate, stale, crossed
 or out-of-order frame is rejected before any campaign call. A candidate whose planned path performs a
-class member the realization binds nothing for is credited `prepare-rejected` and listed as skipped
-on the next frame. Progress goes to stderr; nothing but frames goes to stdout.
+class member the realization binds nothing for is credited `unrealizable` and listed as skipped on
+the next frame. Frames are exact: a key a frame kind does not admit rejects it; `initialize` names
+the Profile identity the coordinator runs under, echoed on every frame and required on `observe`;
+`initialized` writes the budget's Limits out by value. Progress goes to stderr; nothing but frames
+goes to stdout.
 
 ```sh
 make umpire-check-exploration-bridge   # builds umpire-explore, runs its tests and the Go Prepare proof
-printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration"}' \
+printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration","profile":"dev"}' \
   '{"frame":"next","seq":2,"set":"nexusCallerExploration"}' \
   '{"frame":"finish","seq":3,"set":"nexusCallerExploration"}' | model/.lake/build/bin/umpire-explore
 ```

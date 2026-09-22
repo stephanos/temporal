@@ -183,6 +183,7 @@ structure Summary where
   unreachable : Nat
   violated : Nat
   attempted : Nat
+  unrealizable : Nat
   pending : Nat
   counterexamples : List Counterexample
   exhausted : Bool
@@ -195,6 +196,7 @@ def summary (campaign : Campaign model) : Summary := {
   unreachable := campaign.ledger.count .unreachable
   violated := campaign.ledger.count .violated
   attempted := campaign.ledger.count .attempted
+  unrealizable := campaign.ledger.count .unrealizable
   pending := campaign.ledger.count .pending + campaign.ledger.count .planned
   counterexamples := campaign.ledger.counterexamples
   exhausted := campaign.ledger.exhausted }

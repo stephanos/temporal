@@ -110,6 +110,7 @@ private def finished? := do
   unreachable := 0
   violated := 0
   attempted := 0
+  unrealizable := 0
   pending := 0
   counterexamples := []
   exhausted := true }
