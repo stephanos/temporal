@@ -123,6 +123,15 @@ under, which the bridge echoes on every frame and requires unchanged on `observe
 writes the budget's Limits out by value. The Profile's contents stay the coordinator's (task .3):
 a Run carries no Profile, so the identity is the binding the bridge can check.
 
+Task .2's implementation review (`flowctl claude impl-review`, opus at high, 2026-09-22): four
+NEEDS_WORK rounds, all findings applied -- exact frames with closed key sets, unreadable Runs
+rejected rather than spent, the Profile identity named at `initialize` and required on `observe`,
+Limits written out by value, the `unrealizable` status and its narrow credit, one helper for the
+case block's machine terms, wording -- then SHIP with four P3 notes, applied after the verdict:
+credit never leaves the planned path whatever covers `observe` is handed, the functional timeout
+and retry witnesses pin that timer steps report nothing unbound, one failure helper in `step`, and
+the Go proof's comment. Three transport rounds returned no verdict and were refunded.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
