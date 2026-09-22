@@ -16,11 +16,16 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"time"
 )
 
 // DefaultMaxFrameBytes bounds one frame in either direction. A candidate frame carries a whole
 // Case and an observe frame a whole Run; anything larger is a defect, not a bigger Case.
 const DefaultMaxFrameBytes = 16 << 20
+
+// CloseTimeout bounds the wait for a bridge process to exit on Close after a finished campaign; a
+// process still running past it, like one that was never finished or is broken, is killed.
+const CloseTimeout = 10 * time.Second
 
 var (
 	// ErrCandidateOutstanding is returned by Next while a candidate's Case is with the caller. It
@@ -212,6 +217,7 @@ type Bridge struct {
 	stdout        *bufio.Reader
 	closeStdin    func() error
 	wait          func() error
+	kill          func() error
 	maxFrameBytes int
 
 	set         string
@@ -227,6 +233,8 @@ type Bridge struct {
 type Options struct {
 	// Executable is the bridge binary, `umpire-explore`.
 	Executable string
+	// Args are the executable's arguments; the bridge takes none, a test's stand-in may.
+	Args []string
 	// Dir is the working directory the bridge runs in.
 	Dir string
 	// Stderr receives the bridge's progress lines and diagnostics.
@@ -240,7 +248,7 @@ func Start(ctx context.Context, options Options) (*Bridge, error) {
 	if options.Executable == "" {
 		return nil, errors.New("bridge executable is required")
 	}
-	command := exec.CommandContext(ctx, options.Executable)
+	command := exec.CommandContext(ctx, options.Executable, options.Args...)
 	command.Dir = options.Dir
 	command.Stderr = options.Stderr
 	stdin, err := command.StdinPipe()
@@ -257,6 +265,12 @@ func Start(ctx context.Context, options Options) (*Bridge, error) {
 	bridge := New(stdin, stdout, options.MaxFrameBytes)
 	bridge.closeStdin = stdin.Close
 	bridge.wait = command.Wait
+	bridge.kill = func() error {
+		if command.Process == nil {
+			return nil
+		}
+		return command.Process.Kill()
+	}
 	return bridge, nil
 }
 
@@ -270,6 +284,7 @@ func New(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
 		stdout:        bufio.NewReaderSize(stdout, 64<<10),
 		closeStdin:    func() error { return nil },
 		wait:          func() error { return nil },
+		kill:          func() error { return nil },
 		maxFrameBytes: maxFrameBytes,
 	}
 }
@@ -277,10 +292,22 @@ func New(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
 // Outstanding is the candidate whose Case is with the caller, or nil.
 func (b *Bridge) Outstanding() *Candidate { return b.outstanding }
 
-// Close ends the bridge: stdin closes, and a spawned process is waited for. A bridge that was
-// not finished exits non-zero on the closed stdin; that status is returned.
+// Close ends the bridge. A finished bridge is given its stdin's EOF and CloseTimeout to exit; a
+// bridge that is broken or was never finished may be stuck in a search and not reading stdin, so
+// it is killed and then waited for. A process that had to be killed reports its exit status.
 func (b *Bridge) Close() error {
-	return errors.Join(b.closeStdin(), b.wait())
+	closeErr := b.closeStdin()
+	if b.broken != nil || !b.finished {
+		return errors.Join(closeErr, b.kill(), b.wait())
+	}
+	waited := make(chan error, 1)
+	go func() { waited <- b.wait() }()
+	select {
+	case err := <-waited:
+		return errors.Join(closeErr, err)
+	case <-time.After(CloseTimeout):
+		return errors.Join(closeErr, b.kill(), <-waited)
+	}
 }
 
 // Initialize opens the campaign over one set under one Profile identity.
@@ -440,10 +467,7 @@ func (b *Bridge) exchange(ctx context.Context, frame request, check func(reply) 
 }
 
 func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, kinds []string, check func(reply) error) (reply, error) {
-	if _, err := b.stdin.Write(append(encoded, '\n')); err != nil {
-		return reply{}, fmt.Errorf("write %s frame: %w", frame.Frame, err)
-	}
-	line, err := b.readFrame(ctx)
+	line, err := b.roundTrip(ctx, frame.Frame, append(encoded, '\n'))
 	if err != nil {
 		return reply{}, err
 	}
@@ -478,15 +502,20 @@ func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, ki
 	return answer, nil
 }
 
-// readFrame reads one line within the byte cap. The read honours the context: a bridge that never
-// answers is abandoned at the deadline, which breaks the bridge, and the caller closes it.
-func (b *Bridge) readFrame(ctx context.Context) ([]byte, error) {
+// roundTrip writes one frame and reads its reply within the byte cap. Both honour the context: a
+// bridge that neither reads nor answers is abandoned at the deadline, which breaks the bridge,
+// and Close kills it.
+func (b *Bridge) roundTrip(ctx context.Context, kind string, encoded []byte) ([]byte, error) {
 	type read struct {
 		line []byte
 		err  error
 	}
 	done := make(chan read, 1)
 	go func() {
+		if _, err := b.stdin.Write(encoded); err != nil {
+			done <- read{nil, fmt.Errorf("write %s frame: %w", kind, err)}
+			return
+		}
 		var line bytes.Buffer
 		for {
 			fragment, isPrefix, err := b.stdout.ReadLine()
