@@ -269,7 +269,9 @@ The exploration campaign's Go side is two small packages over that boundary. `to
 is the deployment binding `umpire-run` performs, split into what a campaign opens once (the
 frontend connection, the provisioned namespace, task queue and Nexus endpoint, the method catalog)
 and what each candidate opens for itself (the derived Profile, `Prepare`, one composite Driver with
-its own SDK worker); `umpire-run` binds one Case through the same two steps. `tools/umpire/campaign`
+its own SDK worker); `umpire-run` binds one Case through the same two steps, and `binding.Prepare`
+is the candidate-scoped part alone, touching no deployment, which admission and offline replay use.
+`tools/umpire/campaign`
 is the client of the exploration bridge and the serial path for one candidate: decode the Case the
 bridge handed out, bind it (preparation first, so a rejected Case opens no Driver and creates no
 Run), run it once, observe its cleanup, and hand the closed Run back to the bridge, which alone
@@ -282,7 +284,19 @@ Events, one Run's time, the report's bytes -- enforced before the action each bo
 that loop to its terminal and never recovers, resumes or persists. The report is a function of the
 bridge's and the binder's answers: the same answers give the same report, and a stop changes only
 where it ends. `umpire-fuzz run` reports each counterexample by its proposal's digest and path and
-writes the bytes only under a `--promotion-root` outside the model.
+writes the bytes only under a `--promotion-root` outside the model; with `--record-root` it also
+records each violated Run's Case and recorded Run as they close, through the per-candidate hook
+`DriveRecording` offers, retaining nothing in the report.
+
+`tools/umpire/replay` admits one such subject: a Case in its canonical form (the renderer's compact
+ProtoJSON, or its persisted re-indentation, decided once in `tools/umpire/internal/casefile`) and a
+recorded Run, checked to be the Case's, closed by the Monitor's stop with a violated Verdict, its
+supporting sequences naming the Run's events, prepared under the recorded Profile name with the
+recorded catalog and bindings (`stale` otherwise), and replayed offline to the recorded Verdict. The
+subject's identity is the canonical bytes' SHA-256; its violation key is Contract-relative and read
+in Definition IDs (the violated rules, their terminal states, their violating evidence as the
+evaluation names it), never the Case or Run identity, sequences, times or the Verdict's accumulated
+support, so a rerun of the Case and a reduced candidate can share it.
 
 ## Artifact ownership and tests
 

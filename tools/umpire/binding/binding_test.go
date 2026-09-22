@@ -51,6 +51,38 @@ func TestOpenWithoutCreateTouchesNoServerAndCloses(t *testing.T) {
 	require.NoError(t, campaign.Close(t.Context()))
 }
 
+// Prepare needs no deployment: it prepares a Case under the deployment's names with the catalog it
+// builds itself, refuses a handler-queue mismatch and a Case Prepare rejects, and returns the
+// prepared Case with the identity Bind would run it under, all against an address nothing answers.
+func TestPrepareTouchesNoDeployment(t *testing.T) {
+	source := nexusCallerCase(t)
+	prepared, err := Prepare(unreachable(), "probe-queue-handler", "probe.identity", source)
+	require.NoError(t, err)
+	require.NotNil(t, prepared.Case)
+	require.Equal(t, "probe.identity", prepared.Case.Identity().Profile)
+	require.NotEmpty(t, prepared.Case.Identity().Catalog)
+	require.NotEmpty(t, prepared.Case.Identity().Bindings)
+	require.Equal(t, "probe.identity", prepared.Profile.Identity)
+	again, err := Prepare(unreachable(), "probe-queue-handler", "probe.identity", source)
+	require.NoError(t, err)
+	require.Equal(t, prepared.Case.Identity(), again.Case.Identity(), "the identity is a function of the Case and the names")
+	other := unreachable()
+	other.Namespace = "elsewhere"
+	elsewhere, err := Prepare(other, "probe-queue-handler", "probe.identity", source)
+	require.NoError(t, err)
+	require.NotEqual(t, prepared.Case.Identity().Bindings, elsewhere.Case.Identity().Bindings, "other names are another binding fingerprint")
+
+	malformed := nexusCallerCase(t)
+	malformed.CaseId = ""
+	_, err = Prepare(unreachable(), "probe-queue-handler", "probe.identity", malformed)
+	_, rejected := IsPreparationRejection(err)
+	require.True(t, rejected, "a Case Prepare rejects is a preparation rejection: %v", err)
+	_, err = Prepare(unreachable(), "", "probe.identity", source)
+	require.ErrorContains(t, err, "handler queue")
+	_, err = Prepare(unreachable(), "probe-queue-handler", "probe.identity", nil)
+	require.Error(t, err)
+}
+
 // A Case whose Profile the deployment cannot derive rejects before preparation; a Case that
 // Prepare rejects is the Case's own static rejection, decided before the SDK client dials; a Case
 // that prepares but whose deployment is unreachable fails at the SDK client, after preparation and
