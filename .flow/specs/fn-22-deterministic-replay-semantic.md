@@ -419,6 +419,9 @@ before anything runs and a race after the Run keeps the Verdict's exit code; `Bo
 gone and `Campaign.Bind` prepares through `PrepareWith` against the campaign's catalog; the
 admissible violated form is one function returning its reason class, which `Admit` maps; the
 record file name admits only a digest; a recorded Run with bytes after its document is rejected.
+Round two: SHIP. Its one note, that `PreparedCase` finds its evaluator by an interface assertion
+on the Monitor factory where a typed field would make the check static, is recorded and not
+applied: the factory field is the execution package's contract and stays as it is.
 
 ## Plan review
 
