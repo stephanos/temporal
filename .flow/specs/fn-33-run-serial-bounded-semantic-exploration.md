@@ -160,7 +160,13 @@ handler queue for the endpoint's route and every handler's poll. Round three bou
 finished bridge gets its EOF and a bounded wait, a broken or unfinished one is killed, and the
 frame write runs under the same context guard as the read. A `DeriveProfile` failure stays
 `bind-failed` rather than `prepare-rejected`: a produced Case with no derivable Profile is a
-tooling defect that ends the campaign, not a candidate the deployment declined.
+tooling defect that ends the campaign, not a candidate the deployment declined. Round four:
+SHIP, with four notes applied after the verdict: a `rejected` reply under another sequence
+number breaks the bridge like any mismatch; the Run-without-cleanup branch is tested and the
+release-before-observe order pinned; the binding's unused exports are gone and its SDK dial
+honours the context; a Case whose handler-queue binding disagrees with the campaign's is refused
+at `Bind` rather than left to time out. Three transport rounds returned no verdict and were
+refunded.
 
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 

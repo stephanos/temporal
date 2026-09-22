@@ -27,12 +27,12 @@ import (
 )
 
 const (
-	// TeardownTimeout bounds each released resource on its own, so a worker that will not stop
+	// teardownTimeout bounds each released resource on its own, so a worker that will not stop
 	// cannot starve the namespace deletion that follows it.
-	TeardownTimeout   = 30 * time.Second
-	WorkerStopTimeout = 10 * time.Second
-	WorkflowRole      = "temporal.workflow-service"
-	WorkerRole        = "temporal.worker"
+	teardownTimeout   = 30 * time.Second
+	workerStopTimeout = 10 * time.Second
+	workflowRole      = "temporal.workflow-service"
+	workerRole        = "temporal.worker"
 )
 
 // Deployment is what the caller names: where the frontend is, which resources a Case binds to,
@@ -124,9 +124,6 @@ func Open(ctx context.Context, deployment Deployment, handlerQueue string) (*Cam
 // Catalog is the method catalog every candidate prepares against.
 func (c *Campaign) Catalog() *testpilot.Catalog { return c.catalog }
 
-// Deployment is what the campaign was bound to.
-func (c *Campaign) Deployment() Deployment { return c.deployment }
-
 // Close releases what Open opened: the provisioned resources, then the connection. It names every
 // resource it could not remove.
 func (c *Campaign) Close(ctx context.Context) error {
@@ -152,16 +149,18 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 		return nil, errors.New("campaign binding and Case are required")
 	}
 	// The handler queue is the one the campaign was opened with, so the endpoint's route and the
-	// handler's poll never disagree; a Case that binds no handler queue of its own takes none.
-	handlerQueue := ""
-	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
-		handlerQueue = c.handlerQueue
+	// handler's poll never disagree: a Case that binds a handler queue of its own under a campaign
+	// opened without one, or the reverse, would poll one queue while the endpoint routes to
+	// another, and is refused here rather than left to time out.
+	if bindsHandlerQueue := testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != ""; bindsHandlerQueue != (c.handlerQueue != "") {
+		return nil, fmt.Errorf("case %q binds a Nexus handler queue of its own (%t) but the campaign was opened with handler queue %q",
+			source.GetCaseId(), bindsHandlerQueue, c.handlerQueue)
 	}
 	profile, err := testpilotdriver.DeriveProfile(source, c.catalog, testpilotdriver.Environment{
 		Identity:         identity,
 		Namespace:        c.deployment.Namespace,
 		TaskQueue:        c.deployment.TaskQueue,
-		HandlerTaskQueue: handlerQueue,
+		HandlerTaskQueue: c.handlerQueue,
 		NexusEndpoint:    c.deployment.NexusEndpoint,
 	})
 	if err != nil {
@@ -175,7 +174,7 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	fail := func(err error) (*Bound, error) {
 		return nil, errors.Join(err, ReleaseAll(context.WithoutCancel(ctx), bound.releases))
 	}
-	caseClient, err := sdkclient.Dial(sdkclient.Options{
+	caseClient, err := sdkclient.DialContext(ctx, sdkclient.Options{
 		HostPort: c.deployment.GRPCAddress, Namespace: c.deployment.Namespace,
 	})
 	if err != nil {
@@ -185,12 +184,12 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	driver, err := testpilotdriver.New(testpilotdriver.Options{
 		Profile: profile,
 		ServerEndpoints: map[string]testpilotdriver.Endpoint{
-			WorkflowRole: {Target: c.deployment.GRPCAddress, Credentials: insecure.NewCredentials()},
+			workflowRole: {Target: c.deployment.GRPCAddress, Credentials: insecure.NewCredentials()},
 		},
 		SystemCallbackBaseURL: "http://" + c.deployment.HTTPAddress,
 		SDKClient:             caseClient,
-		WorkerRoleID:          WorkerRole,
-		WorkerStopTimeout:     WorkerStopTimeout,
+		WorkerRoleID:          workerRole,
+		WorkerStopTimeout:     workerStopTimeout,
 	})
 	if err != nil {
 		return fail(fmt.Errorf("open Driver: %w", err))
@@ -199,9 +198,6 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	bound.releases = append(bound.releases, driver.Close)
 	return bound, nil
 }
-
-// Prepared is the admitted Case.
-func (b *Bound) Prepared() *testpilot.PreparedCase { return b.prepared }
 
 // Run executes the prepared Case once against the Driver the binding opened. The Run it returns
 // has observed its cleanup.
@@ -223,7 +219,7 @@ func (b *Bound) Release(ctx context.Context) error {
 func ReleaseAll(ctx context.Context, releases []func(context.Context) error) error {
 	var failures []error
 	for index := len(releases) - 1; index >= 0; index-- {
-		each, cancel := context.WithTimeout(ctx, TeardownTimeout)
+		each, cancel := context.WithTimeout(ctx, teardownTimeout)
 		err := releases[index](each)
 		cancel()
 		if err != nil {

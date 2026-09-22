@@ -48,7 +48,6 @@ func TestOpenWithoutCreateTouchesNoServerAndCloses(t *testing.T) {
 	campaign, err := Open(t.Context(), unreachable(), "probe-queue-handler")
 	require.NoError(t, err)
 	require.NotNil(t, campaign.Catalog())
-	require.Equal(t, "probe", campaign.Deployment().Namespace)
 	require.NoError(t, campaign.Close(t.Context()))
 }
 
@@ -71,9 +70,19 @@ func TestBindDecidesPreparationBeforeAnyDriverOpens(t *testing.T) {
 	require.Equal(t, testpilot.PreparationMalformed, rejection.Category)
 	require.NotContains(t, err.Error(), "open SDK client", "a rejected Case never dials")
 
+	// A Case that binds a handler queue of its own under a campaign opened without one would poll
+	// one queue while the endpoint routes to another; it is refused before preparation.
+	mixed, err := Open(t.Context(), unreachable(), "")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, mixed.Close(context.Background())) })
+	mixedBound, err := mixed.Bind(t.Context(), "probe.identity", source)
+	require.Error(t, err)
+	require.Nil(t, mixedBound)
+	require.ErrorContains(t, err, "handler queue")
+
 	noEndpoint := unreachable()
 	noEndpoint.NexusEndpoint = ""
-	campaign, err := Open(t.Context(), noEndpoint, "")
+	campaign, err := Open(t.Context(), noEndpoint, "probe-queue-handler")
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, campaign.Close(context.Background())) })
 	bound, err := campaign.Bind(t.Context(), "probe.identity", source)
