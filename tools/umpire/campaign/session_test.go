@@ -54,9 +54,14 @@ func TestEveryTransitionIsPinnedToItsSourceStates(t *testing.T) {
 					}
 					require.NoError(t, err)
 					require.NotNil(t, next)
-					// The state transitioned from is consumed: it admits nothing more.
+					// The state transitioned from is consumed: it admits nothing more, whichever
+					// transition is tried on it.
 					_, err = transition.apply(session)
 					require.ErrorIs(t, err, ErrConsumed)
+					for _, other := range transitions {
+						_, err = other.apply(session)
+						require.ErrorIs(t, err, ErrConsumed)
+					}
 				})
 			}
 		}
@@ -242,6 +247,11 @@ func TestCountersDistinguishRejectedDecisiveAndInconclusive(t *testing.T) {
 	require.NoError(t, err)
 	counters := idle.Counters()
 	require.Equal(t, Counters{Planned: 2, Prepared: 1, Started: 1, Decisive: 1, CaseBytes: int64(len(candidates[0].Case) + len(candidates[1].Case)), RunEvents: 1, Skipped: 1, Rejected: 1}, counters)
+	// A prepared candidate whose Run never came back is prepared and not started.
+	opened, err := sessionIn(t, StatePreparing, candidates[0]).Prepared()
+	require.NoError(t, err)
+	require.Equal(t, 1, opened.Counters().Prepared)
+	require.Zero(t, opened.Counters().Started)
 	planning, err = idle.Plan()
 	require.NoError(t, err)
 	finished, err := planning.Planned(Next{Exhausted: true})
@@ -348,8 +358,9 @@ func TestDriveStoppedDuringARunNamesTheLostIterationAndSynthesizesNothing(t *tes
 			require.ErrorIs(t, err, context.Canceled)
 			require.Equal(t, Terminal{Status: StatusStopped, Lost: firstIdentity}, report.Terminal)
 			require.Zero(t, report.Counters.Decisive)
-			require.Equal(t, 1, report.Counters.Started)
+			require.Equal(t, 1, report.Counters.Prepared)
 			require.Len(t, report.Outcomes, 1)
+			require.Equal(t, OutcomeLost, report.Outcomes[0].Kind, "the lost iteration is marked as such in the report")
 			require.Empty(t, report.Outcomes[0].Observation, "nothing was observed for the lost iteration")
 			require.Equal(t, 1, binder.released, "the lost iteration is still released")
 			frames := drain(fake)

@@ -59,7 +59,9 @@ type Caps struct {
 	// RunTimeout bounds one Run, applied to its context before the Run opens. A Run that reaches
 	// it closes as the facade closes an interrupted Run and is observed as that Run, which the
 	// bridge reads as inconclusive; it is per-Run work, not a campaign counter, so it never ends
-	// the campaign as limit-reached.
+	// the campaign as limit-reached. A timeout that fires before the facade opened the Driver
+	// returns no Run at all, which is run-failed and ends the campaign as tooling-failure, since
+	// nothing honest can be observed for it.
 	RunTimeout time.Duration
 }
 
@@ -197,6 +199,9 @@ func (s *Session) tripped() string {
 // and a tooling failure finish the campaign. A candidate whose Case would push the aggregate over
 // the cap finishes it as limit-reached; that Case is never bound.
 func (s *Session) Planned(next Next) (*Session, error) {
+	if s.consumed {
+		return nil, ErrConsumed
+	}
 	if s.state != StatePlanning {
 		return nil, fmt.Errorf("coordinator is %s, not planning", s.state)
 	}
@@ -241,7 +246,6 @@ func (s *Session) Prepared() (*Session, error) {
 		return nil, err
 	}
 	after.counters.Prepared++
-	after.counters.Started++
 	after.ran = true
 	return after, nil
 }
@@ -257,13 +261,15 @@ func (s *Session) Rejected() (*Session, error) {
 	return after, nil
 }
 
-// Ran moves running to observing once the Run closed with its cleanup observed; runEvents is what
-// it recorded, counted against the cap before the next candidate.
+// Ran moves running to observing once the Run closed with its cleanup observed: a started Run,
+// whose runEvents are counted against the cap before the next candidate. A prepared candidate
+// whose Run never came back is prepared and not started.
 func (s *Session) Ran(runEvents int) (*Session, error) {
 	after, err := s.transition([]State{StateRunning}, StateObserving)
 	if err != nil {
 		return nil, err
 	}
+	after.counters.Started++
 	after.counters.RunEvents += int64(runEvents)
 	return after, nil
 }
@@ -385,7 +391,10 @@ func (p *stepper) move(transition func(*Session) (*Session, error)) error {
 // under the caps, until the bridge is exhausted, a cap trips, the context ends, or something
 // fails. Progress goes to `progress`, one line per candidate as it is selected and as it comes to
 // its outcome. The bridge is initialized by the caller and finished here, when it can still be
-// asked; the report's Terminal is the coordinator's own, whatever the bridge answers.
+// asked. The report's Terminal is the authoritative outcome, whatever the bridge answers; the
+// error carries the cause only when something struck the coordinator itself -- a binding, Run,
+// bridge or context failure -- and is nil when the campaign ended by what the bridge reported,
+// exhaustion or a tooling failure of the bridge's own.
 func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progress io.Writer) (Report, error) {
 	current := &stepper{session: NewSession(caps)}
 	var outcomes []OutcomeSummary
@@ -427,6 +436,13 @@ func Drive(ctx context.Context, bridge *Bridge, binder Binder, caps Caps, progre
 		writeProgress(progress, "candidate %s %s", candidate.Identity, outcomeSummary(outcome))
 	}
 	report := Report{Terminal: *current.session.Terminal(), Counters: current.session.Counters(), Outcomes: outcomes}
+	if lost := report.Terminal.Lost; lost != "" {
+		for index := range report.Outcomes {
+			if report.Outcomes[index].Identity == lost {
+				report.Outcomes[index].Kind = OutcomeLost
+			}
+		}
+	}
 	// The summary is asked for on a context of its own, bounded like Close: a stopped campaign's
 	// context has ended, and its summary is still the bridge's to give.
 	if bridge.Broken() == nil {
