@@ -4,7 +4,7 @@ satisfies: [R3, R9]
 # fn-22-deterministic-replay-semantic.3 Classify fresh concrete reruns of the subject
 
 ## Description
-Implement two fresh isolated reruns of the admitted subject through `tools/umpire/binding` (`Open` once, `Bind` and `Run` per attempt, `Release` before the next) and classify: both closed and violated with the subject's key `reproduced`; a completed `satisfied` Verdict or another key `not-reproduced`; an incomplete Run, unclosed cleanup or `inconclusive` Verdict `indeterminate`. A Profile identity other than the subject's is `stale`, an admission failure before any Run; a preparation rejection is an admission failure with no Run. The classifier is a listener-free value like fn-33's `Outcome`; the bridge and the reducer of tasks .4 and .5 consume it unchanged for candidates.
+Implement two fresh isolated reruns of the admitted subject through `tools/umpire/binding` (`Open` once, `Bind` and `Run` per attempt, `Release` before the next) and classify: both in the admissible violated form with the subject's key `reproduced`; a `COMPLETED` `satisfied` Verdict or another key `not-reproduced`; an `INCOMPLETE` Run, unclosed cleanup or `inconclusive` Verdict `indeterminate`. Stale identity and preparation rejection were decided at admission (task .1) and never reach a Run. The classifier is a listener-free value like fn-33's `Outcome`; the reducer of task .5 consumes it unchanged for candidates.
 
 ### Approach
 - Reuse `binding.Campaign.Bind` and `Bound.Run`; a scripted `Binder` as in `tools/umpire/campaign` tests drives every class.
@@ -15,11 +15,12 @@ Implement two fresh isolated reruns of the admitted subject through `tools/umpir
 
 **Size:** M
 **Files:** `tools/umpire/replay/rerun.go`, `tools/umpire/replay/rerun_test.go`
+**Touches:** `tools/umpire/replay/rerun*.go`
 
 ### Re-plan note (2026-09-22)
-Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; see the spec's **Re-plan** section. Start only after the spec's fresh plan review.
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK; revised after plan review round one; see the spec's **Re-plan** and **Plan review** sections. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Every attempt binds fresh state under the exact Profile identity; a stale identity or a preparation rejection creates no Run.
+- [ ] Every attempt binds fresh state under the exact Profile identity; nothing stale or rejected at admission reaches a Run.
 - [ ] Runtime, monitor, cleanup and Verdict outcomes keep fn-64 precedence and map to the three classes without a fourth.
 - [ ] The report carries semantic replay, concrete rerun and no history-replay field.
 ## Done summary
