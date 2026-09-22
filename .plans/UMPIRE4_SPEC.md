@@ -645,7 +645,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   Model. The platform's bridge drives one campaign by frames (`initialize`, `next`, `observe`,
   `finish`), each candidate crossing as one whole produced Case under its own identity; a
   candidate whose path performs a class member the realization binds nothing for is credited
-  `unrealizable`, a ledger status of its own, without a Run, and the campaign moves on.
+  `unrealizable`, a ledger status of its own, without a Run, and the campaign moves on. The
+  campaign is a function of its checked inputs and the decisive observations it is handed: the
+  same set, budget and observation stream select the same candidates in the same order, credit
+  the same targets and render the same summary; an observation stream that ends early yields the
+  completed prefix, with the same identities. A violated class-member target is a counterexample
+  whose candidate the campaign retains and compiles through `Umpire.Promotion` into a review-only
+  regression source under fresh names keyed by the candidate's digest (`Umpire.Exploration.Promotion`);
+  the summary carries the source's digest and bytes, the same for the same counterexample every
+  run, and nothing installs it.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of Exploration Limits.
 - **Promotion (`Umpire.Promotion`).** Re-answering a Query against the Behavior Model using exactly
@@ -663,6 +671,10 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **EXP-03 — Bounded fuzzing is not exhaustive.** Runtime fuzzing stopped by a time or work Limit
   MUST NOT claim exhaustive coverage.
 - **EXP-04 — Pinned Regressions.** Known Regressions MUST run independently of Exploration Limits.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* A campaign's targets are its
+  exploratory set's alone: a pinned Regression, a functional set's Case or a promoted Query is
+  never selected, prepared or counted against a campaign cap, and a proposal a campaign compiles
+  is written only where the caller names, outside the model.
 - **EXP-05 — Reviewed promotion.** Before human review for promotion to a permanent Lean Regression,
   a discovered failure MUST be reproduced at runtime, minimized in model terms, and re-answered
   against the Behavior Model through `Umpire.Promotion` using its exact referenced identities.

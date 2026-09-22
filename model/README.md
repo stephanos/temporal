@@ -304,7 +304,12 @@ canonical JSON summary to stdout -- terminal status, the campaign's counters, th
 ledger and coverage counts, the counterexamples, and one line per candidate -- and the bridge's
 progress lines per candidate (the candidate handed out, then its observation) to stderr; it exits 0 exhausted, 1 on a counterexample or violated coverage, 2 on a
 cap or a stop, 3 on a tooling failure. Nothing unexecuted, inconclusive or cleanup-uncertain is
-ever reported as coverage: coverage is the bridge's ledger, copied, never inferred.
+ever reported as coverage: coverage is the bridge's ledger, copied, never inferred. A counterexample
+is in the summary by its proposal's digest and path; `--promotion-root <dir>` writes each compiled
+proposal there, at the path the bridge named, and the summary says where (`written`). The root must
+lie outside `--model-root`: a proposal is for review, and nothing installs it. Two campaigns over the
+same set, caps and Run results write the same summary bytes and the same proposal files; one stopped
+early writes the completed prefix of the other's candidates.
 
 ```sh
 make umpire-run                      # builds ./.build/umpire-run
@@ -354,8 +359,13 @@ target) drives one exploratory set's campaign from outside, one canonical JSON f
 stdin and stdout: `initialize` names the set, `next` hands out the next candidate as one whole
 produced Case with its opaque identity and the target keys its planned path covers, `observe` takes
 back the exact closed Run of the outstanding candidate (or its preparation rejection) and answers with
-what was credited, `finish` renders the summary and the counterexamples. A duplicate, stale, crossed
-or out-of-order frame is rejected before any campaign call. A candidate whose planned path performs a
+what was credited, `finish` renders the summary and the counterexamples. Each counterexample carries
+its proposal: the campaign retains the violated candidate and `Umpire.Exploration.Promotion` compiles
+it through `Umpire.Promotion` into a review-only regression source under fresh names keyed by the
+candidate's digest, so the frame names the source's SHA-256, its path (`<set>-<digest>.lean`) and its
+bytes, or the reason it did not compile. The bridge writes no file: whoever runs the campaign writes
+the bytes where it names, never under `model/`, and the same counterexample seals the same digest
+every run. A duplicate, stale, crossed or out-of-order frame is rejected before any campaign call. A candidate whose planned path performs a
 class member the realization binds nothing for is credited `unrealizable` and listed as skipped on
 the next frame. Frames are exact: a key a frame kind does not admit rejects it; `initialize` names
 the Profile identity the coordinator runs under, echoed on every frame and required on `observe`;

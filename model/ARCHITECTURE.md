@@ -185,7 +185,10 @@ exploratory set: it opens the set's `Umpire.Exploration` campaign and answers `i
 through the same Producer and the realization the set's `case` block names, under the candidate's
 own identity (`temporal.case.<set>.<digest>`), and crediting the campaign from the closed Run the
 coordinator hands back. It registers nothing in the Temporal Case Registry and reads no Run
-Event: credit is the planned witness path.
+Event: credit is the planned witness path. The campaign retains each counterexample's candidate
+and `Umpire.Exploration.Promotion` compiles it through `Umpire.Promotion` into a review-only
+regression source under fresh names keyed by the candidate's digest; the `finished` frame carries
+the source's digest, path and bytes (or why it did not compile), and the bridge writes no file.
 
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
@@ -276,7 +279,10 @@ outstanding rather than inventing an observation. The coordinator's state is one
 (idle, planning, preparing, running, observing, finished) whose every transition consumes the
 state it starts from, with the campaign's caps -- candidates, aggregate Case bytes, aggregate Run
 Events, one Run's time, the report's bytes -- enforced before the action each bounds; `Drive` runs
-that loop to its terminal and never recovers, resumes or persists.
+that loop to its terminal and never recovers, resumes or persists. The report is a function of the
+bridge's and the binder's answers: the same answers give the same report, and a stop changes only
+where it ends. `umpire-fuzz run` reports each counterexample by its proposal's digest and path and
+writes the bytes only under a `--promotion-root` outside the model.
 
 ## Artifact ownership and tests
 

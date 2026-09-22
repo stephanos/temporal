@@ -34,8 +34,7 @@ structure Captured where
   errors : String
 
 /-- Serve one script of lines with injected effects, capturing every stream separately. -/
-private def runScript (bound : List Bound) (lines : List String)
-    (promotion : ArtifactChecksum → Option String := fun _ => none) : IO Captured := do
+private def runScript (bound : List Bound) (lines : List String) : IO Captured := do
   let input ← IO.mkRef lines
   let frames ← IO.mkRef ([] : List String)
   let progress ← IO.mkRef ([] : List String)
@@ -47,8 +46,7 @@ private def runScript (bound : List Bound) (lines : List String)
       | line :: rest => input.set rest; pure (some line)
     writeFrame := fun line => frames.modify (· ++ [line])
     writeProgress := fun line => progress.modify (· ++ [line])
-    writeError := fun text => errors.modify (· ++ text)
-    promotion } bound
+    writeError := fun text => errors.modify (· ++ text) } bound
   pure { status, frames := ← frames.get, progress := ← progress.get, errors := ← errors.get }
 
 private def parseJson (label : String) (line : String) : IO Lean.Json :=
@@ -142,7 +140,14 @@ private def stubStatus (observation : Observation) : TargetStatus :=
   | .violated => .violated
   | _ => .attempted
 
-private def stubSummary (ledger : List (String × TargetStatus)) (selected : Nat) : Campaign.Summary :=
+/-- What a stub campaign says at its end beyond the ledger: the counterexamples its summary lists
+and the proposals it reports for them. -/
+private structure StubEnd where
+  counterexamples : List Umpire.Exploration.Counterexample := []
+  proposals : List (ArtifactChecksum × ProposalReport) := []
+
+private def stubSummary (ledger : List (String × TargetStatus)) (selected : Nat)
+    (counterexamples : List Umpire.Exploration.Counterexample) : Campaign.Summary :=
   let count (status : TargetStatus) := (ledger.filter (·.2 == status)).length
   { targets := ledger.length
     selected
@@ -152,21 +157,23 @@ private def stubSummary (ledger : List (String × TargetStatus)) (selected : Nat
     attempted := count .attempted
     unrealizable := count .unrealizable
     pending := count .pending + count .planned
-    counterexamples := []
+    counterexamples
     exhausted := ledger.all fun (_, status) => status != .pending && status != .planned }
 
 /-- The stub runner: `remaining` candidates to hand out, `outstanding` the one out, `ledger` the
-statuses so far, `selected` how many were handed out. -/
-private partial def stubRunner (remaining : List StubCandidate) (outstanding : Option StubCandidate)
-    (ledger : List (String × TargetStatus)) (selected : Nat) : Runner :=
+statuses so far, `selected` how many were handed out, `ending` what the summary adds. -/
+private partial def stubRunner (ending : StubEnd) (remaining : List StubCandidate)
+    (outstanding : Option StubCandidate) (ledger : List (String × TargetStatus)) (selected : Nat) :
+    Runner :=
   .mk
     (fun _ => match outstanding, remaining with
       | some _, _ => .outstanding
-      | none, [] => .exhausted [] (stubRunner [] none ledger selected)
+      | none, [] => .exhausted [] (stubRunner ending [] none ledger selected)
       | none, candidate :: rest =>
           let planned := ledger.map fun (key, status) =>
             if candidate.covers.contains key then (key, TargetStatus.planned) else (key, status)
-          .candidate (stubView candidate) [] (stubRunner rest (some candidate) planned (selected + 1)))
+          .candidate (stubView candidate) []
+            (stubRunner ending rest (some candidate) planned (selected + 1)))
     (fun identity observation => match outstanding with
       | some candidate =>
           if candidate.identity != identity then .rejected
@@ -175,19 +182,22 @@ private partial def stubRunner (remaining : List StubCandidate) (outstanding : O
               if candidate.covers.contains key then (key, stubStatus observation) else (key, status)
             let covered := if observation == .satisfied then candidate.covers else []
             .credited covered (after.filter fun (key, _) => candidate.covers.contains key)
-              (stubRunner remaining none after selected)
+              (stubRunner ending remaining none after selected)
       | none => .rejected)
-    (fun _ => stubSummary ledger selected)
+    (fun _ => stubSummary ledger selected ending.counterexamples)
     (fun _ => ledger)
+    (fun _ => ending.proposals)
 
-private def stubBound : Bound :=
+private def stubBoundEnding (ending : StubEnd) : Bound :=
   { name := stubSet
     machine := "stub.machine"
     budget := "two"
     limits := Limits.bounded 2 2 64
     targets := ["t1", "t2", "t3"]
-    campaign := fun _ => .ok (stubRunner stubCandidates none
+    campaign := fun _ => .ok (stubRunner ending stubCandidates none
       [("t1", .pending), ("t2", .pending), ("t3", .pending)] 0) }
+
+private def stubBound : Bound := stubBoundEnding {}
 
 /-! ### Frames as the coordinator writes them -/
 
@@ -453,6 +463,97 @@ private def checkCredit : IO Unit := do
   require ((← stringField "finished" (← frameAt stopped 1 "finished" 2) "status") == "stopped")
     "stopped not reported"
 
+/-! ### The same frames twice
+
+The bridge is a function of its frames: the same script yields the same frames and the same
+progress lines byte for byte, and a script cut short yields the frames the full script wrote up to
+the cut, so that timing on the other side of the pipe can change only the completed prefix. -/
+
+private def checkDeterminism : IO Unit := do
+  let first := stubIdentity 1
+  let second := stubIdentity 2
+  let script := [
+    openFrame 1 stubSet,
+    frame "next" 2 stubSet,
+    ← observeRun 3 stubSet first.render (satisfiedRun (caseIdOf stubSet first)),
+    frame "next" 4 stubSet,
+    ← observeRun 5 stubSet second.render
+      (runFor (caseIdOf stubSet second) .RUN_DISPOSITION_STOPPED_BY_MONITOR .CLEANUP_STATUS_SUCCEEDED
+        .VERDICT_STATUS_VIOLATED),
+    frame "finish" 6 stubSet ",\"status\":\"stopped\""]
+  let once ← runScript [stubBound] script
+  let again ← runScript [stubBound] script
+  require (once.status == 0) s!"bridge exited {once.status}: {once.errors}"
+  require (once.frames.length == 6) s!"{once.frames.length} frames"
+  require (once.frames == again.frames) "the same script wrote different frames"
+  require (once.progress == again.progress) "the same script wrote different progress lines"
+  require (once.errors == again.errors) "the same script wrote different diagnostics"
+  let cut ← runScript [stubBound] (script.take 3)
+  require (cut.frames == once.frames.take 3) "a cut script did not write the full script's prefix"
+  require (cut.progress == once.progress.take cut.progress.length) "a cut script's progress is not a prefix"
+  require (cut.status == 1) "a cut script finished"
+
+/-! ### A counterexample's proposal in the summary
+
+The campaign compiles each counterexample's proposal; the bridge's summary carries the compiled
+source, its path and its digest, or the reason it did not compile, so that the same counterexample
+is compared by digest across runs and written only by whoever runs the campaign. -/
+
+private def stubProposal (identity : ArtifactChecksum) : Proposal :=
+  let spec : PromotionSourceSpec := {
+    sourceDefinitionId := DefinitionId.of "umpire.stub.promotion.source"
+    sourceLocation := proposalLocation stubSet identity
+    promotedBehaviorDefinitionId := DefinitionId.of "umpire.stub.behavior.regression"
+    promotedQueryDefinitionId := DefinitionId.of "umpire.stub.query.regression" }
+  let bytes := "-- stub source\n"
+  { identity, spec, bytes, sha256 := promotionSourceSha256 bytes }
+
+private def stubCounterexample (identity : ArtifactChecksum) : Umpire.Exploration.Counterexample :=
+  { className := "hard", target := .result (DefinitionId.of "umpire.stub.outcome.firm"), candidate := identity }
+
+private def checkProposal : IO Unit := do
+  let second := stubIdentity 2
+  let proposal := stubProposal second
+  let script := [openFrame 1 stubSet, frame "finish" 2 stubSet ",\"status\":\"stopped\""]
+  let compiled ← runScript [stubBoundEnding {
+    counterexamples := [stubCounterexample second]
+    proposals := [(second, .compiled proposal)] }] script
+  require (compiled.status == 0) s!"bridge exited {compiled.status}: {compiled.errors}"
+  let finished ← frameAt compiled 1 "finished" 2
+  let samples ← match ← field "finished" finished "counterexamples" with
+    | .arr samples => pure samples.toList
+    | _ => fail "counterexamples is not an array"
+  let sample ← match samples with
+    | [sample] => pure sample
+    | _ => fail s!"{samples.length} counterexamples"
+  require ((← stringField "counterexample" sample "candidate") == second.render) "wrong candidate"
+  require ((← stringField "counterexample" sample "className") == "hard") "wrong class"
+  require ((← stringField "counterexample" sample "promotionSourceSha256") == proposal.sha256) "wrong digest"
+  require ((← stringField "counterexample" sample "promotionSourcePath") == proposalPath stubSet second)
+    "wrong path"
+  require ((← stringField "counterexample" sample "promotionSource") == proposal.bytes) "wrong source"
+  require (((compiled.frames.getD 1 "").splitOn "promotionError").length == 1) "an error beside a compiled source"
+  let againCompiled ← runScript [stubBoundEnding {
+    counterexamples := [stubCounterexample second]
+    proposals := [(second, .compiled proposal)] }] script
+  require (compiled.frames == againCompiled.frames) "the same proposal rendered differently"
+  let failed ← runScript [stubBoundEnding {
+    counterexamples := [stubCounterexample second]
+    proposals := [(second, .failed {
+      kind := .nonFoundResult, subject := DefinitionId.of "umpire.stub.query.q", detail := "no trace" })] }]
+    script
+  let sample ← match ← field "finished" (← frameAt failed 1 "finished" 2) "counterexamples" with
+    | .arr #[sample] => pure sample
+    | _ => fail "one counterexample expected"
+  require ((← field "counterexample" sample "promotionSourceSha256") == .null) "a digest without a source"
+  require ((← stringField "counterexample" sample "promotionError").endsWith ": no trace") "error not reported"
+  let unretained ← runScript [stubBoundEnding { counterexamples := [stubCounterexample second] }] script
+  let sample ← match ← field "finished" (← frameAt unretained 1 "finished" 2) "counterexamples" with
+    | .arr #[sample] => pure sample
+    | _ => fail "one counterexample expected"
+  require ((← stringField "counterexample" sample "promotionError").startsWith "the campaign retained no")
+    "an unretained counterexample is not said"
+
 /-! ### Failures outside the protocol -/
 
 private def checkOutside : IO Unit := do
@@ -598,6 +699,8 @@ def main : IO UInt32 := do
     ("parsing", checkParsing),
     ("protocol", checkProtocol),
     ("credit", checkCredit),
+    ("determinism", checkDeterminism),
+    ("proposal", checkProposal),
     ("outside", checkOutside),
     ("caller", checkCaller),
     ("timers", checkTimers),

@@ -27,11 +27,11 @@ Run identical checked inputs, caps and decisive observations twice and compare c
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Two runs over identical inputs and observations produce identical candidate order, credit and summary bytes; an early stop produces a prefix.
-- [ ] Pinned regressions are not selected, prepared or counted against any campaign cap.
-- [ ] A counterexample renders, compiles and compares to the same promotion source SHA-256 across runs, written only where the caller names, never installed.
+- [x] Two runs over identical inputs and observations produce identical candidate order, credit and summary bytes; an early stop produces a prefix.
+- [x] Pinned regressions are not selected, prepared or counted against any campaign cap.
+- [x] A counterexample renders, compiles and compares to the same promotion source SHA-256 across runs, written only where the caller names, never installed.
 ## Done summary
-TBD
+Determinism is pinned on each side. Lean: `Umpire.Exploration.Tests.Campaign` replays a scripted observation stream keyed by candidate identity through two campaigns checked from the same declarations (same candidates, statuses and summary), a cut stream (the completed prefix, the same identities, the rest pending) and a foreign stream (nothing); `ExplorationBridgeTests` runs the same script twice (frames, progress and diagnostics byte-identical) and a cut script (the full script's prefix). Go: `Drive` twice gives the same report bytes and a stop during the second Run keeps the first outcome as the full campaign's, then the lost iteration; `umpire-fuzz run` twice writes the same summary bytes and a candidate cap the prefix. Pinned regressions are outside the campaign: the switch's compiled regression source's promoted Query and its base are no campaign candidate, and the selected count is the campaign's own. The counterexample's proposal: `Campaign.observe` retains the violated class-member candidate, `Umpire.Exploration.Promotion` compiles it through `compilePromotionSource` from the retained `AdmittedQuery`, an anchor read off its own planning and fresh names keyed by its digest at `<set>-<digest>.lean`; the lamp's hard counterexample seals the same SHA-256 from two campaigns, a satisfied or non-decisive member proposes nothing. The bridge's `finished` frame carries each proposal's digest, path and bytes or its error; the Go client decodes them; `umpire-fuzz run` reports digest and path, and `--promotion-root` (refused under the model root, refusing a path that leaves it) writes the bytes where the caller names. Nothing installs a proposal.
 
 ## Evidence
 - Commits:
