@@ -27,9 +27,9 @@ Model process-local idle, planning, preparing, running, observing, and finished 
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] No state admits a second outstanding candidate; every transition is pinned.
-- [ ] Every cap is enforced before the action it bounds and reports `limit-reached`.
-- [ ] Stop and lost-iteration handling never synthesizes a Verdict or coverage; 10x volume stops at the cap with bounded retained state.
+- [x] No state admits a second outstanding candidate; every transition is pinned.
+- [x] Every cap is enforced before the action it bounds and reports `limit-reached`.
+- [x] Stop and lost-iteration handling never synthesizes a Verdict or coverage; 10x volume stops at the cap with bounded retained state.
 ## Done summary
 TBD
 

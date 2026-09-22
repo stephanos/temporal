@@ -77,12 +77,38 @@ type Outcome struct {
 	ReleaseError error
 }
 
+// steps is what the serial path tells its caller at each transition, so a coordinator can move
+// its state as the candidate moves. The path stops at the first step that refuses.
+type steps interface {
+	rejected() error
+	prepared() error
+	// runContext bounds the Run; the path opens it under the context returned.
+	runContext(ctx context.Context) (context.Context, context.CancelFunc)
+	ran(runEvents int) error
+	observed(credited Credited) error
+}
+
+// noSteps is the path with no coordinator listening.
+type noSteps struct{}
+
+func (noSteps) rejected() error         { return nil }
+func (noSteps) prepared() error         { return nil }
+func (noSteps) ran(int) error           { return nil }
+func (noSteps) observed(Credited) error { return nil }
+func (noSteps) runContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithCancel(ctx)
+}
+
 // RunCandidate takes one outstanding candidate through the serial path: decode its Case, bind it
 // (preparation first, before any Driver opens), run it once, observe its cleanup, and hand the
 // closed Run back to the bridge. Exactly one Prepare or Run is in flight, and the bridge is told
 // only what happened: a preparation rejection or the Run itself. A binding or execution failure
 // leaves the candidate outstanding, because nothing honest can be observed for it.
 func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate *Candidate) (Outcome, error) {
+	return runCandidate(ctx, bridge, binder, candidate, noSteps{})
+}
+
+func runCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate *Candidate, listener steps) (Outcome, error) {
 	if bridge == nil || binder == nil || candidate == nil {
 		return Outcome{}, errors.New("bridge, binder and candidate are required")
 	}
@@ -102,15 +128,26 @@ func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 	if err != nil {
 		if rejection, ok := binding.IsPreparationRejection(err); ok {
 			detail := fmt.Sprintf("%s at %s: %s", rejection.Category, rejection.Path, rejection.Detail)
+			outcome := Outcome{Kind: OutcomePrepareRejected, Identity: candidate.Identity, Detail: detail}
+			if err := listener.rejected(); err != nil {
+				return outcome, err
+			}
 			credited, err := bridge.Observe(ctx, candidate.Identity, Result{PrepareRejected: &detail})
 			if err != nil {
-				return Outcome{Kind: OutcomePrepareRejected, Identity: candidate.Identity, Detail: detail}, err
+				return outcome, err
 			}
-			return Outcome{Kind: OutcomePrepareRejected, Identity: candidate.Identity, Detail: detail, Credited: &credited}, nil
+			outcome.Credited = &credited
+			return outcome, listener.observed(credited)
 		}
 		return Outcome{Kind: OutcomeBindFailed, Identity: candidate.Identity, Detail: err.Error()}, err
 	}
-	run, verdict, runErr := bound.Run(ctx)
+	if err := listener.prepared(); err != nil {
+		return Outcome{Kind: OutcomeBindFailed, Identity: candidate.Identity, Detail: err.Error()},
+			errors.Join(err, bound.Release(context.WithoutCancel(ctx)))
+	}
+	runCtx, cancel := listener.runContext(ctx)
+	run, verdict, runErr := bound.Run(runCtx)
+	cancel()
 	// Teardown runs on its own context: an interrupted or timed-out Run still releases what it
 	// opened, and what it could not remove is reported beside the outcome, never as the outcome.
 	releaseErr := bound.Release(context.WithoutCancel(ctx))
@@ -124,20 +161,24 @@ func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate 
 		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: runErr.Error(), ReleaseError: releaseErr},
 			fmt.Errorf("run candidate %s: %w", candidate.Identity, runErr)
 	}
-	if run.GetCleanup() == nil {
-		err := errors.New("the Run returned without an observed cleanup")
+	failed := func(err error) (Outcome, error) {
 		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}, err
+	}
+	if run.GetCleanup() == nil {
+		return failed(errors.New("the Run returned without an observed cleanup"))
 	}
 	encoded, err := protojson.Marshal(run)
 	if err != nil {
-		return Outcome{Kind: OutcomeRunFailed, Identity: candidate.Identity, Detail: err.Error(), Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr},
-			fmt.Errorf("encode Run of candidate %s: %w", candidate.Identity, err)
+		return failed(fmt.Errorf("encode Run of candidate %s: %w", candidate.Identity, err))
 	}
-	credited, err := bridge.Observe(ctx, candidate.Identity, Result{Run: encoded})
+	if err := listener.ran(len(run.GetEvents())); err != nil {
+		return failed(err)
+	}
 	outcome := Outcome{Kind: OutcomeCompleted, Identity: candidate.Identity, Run: run, Verdict: verdict, RunError: runErr, ReleaseError: releaseErr}
+	credited, err := bridge.Observe(ctx, candidate.Identity, Result{Run: encoded})
 	if err != nil {
 		return outcome, err
 	}
 	outcome.Credited = &credited
-	return outcome, nil
+	return outcome, listener.observed(credited)
 }
