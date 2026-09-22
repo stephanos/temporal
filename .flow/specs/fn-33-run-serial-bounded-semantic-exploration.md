@@ -212,8 +212,8 @@ per-target ledger copied as answered, the counterexamples, and one line per cand
 3 for a tooling failure first, because nothing else it reports can then be trusted; 1 for a
 counterexample or violated coverage next, because the finding is what the campaign ran for,
 whatever stopped it; 2 for a cap or a stop; 0 for exhaustion. The report cap is checked on the
-rendered summary; over it, the terminal, the counters and the counterexamples alone are written,
-an exhausted campaign as `limit-reached`, never a truncated report. The bridge's stderr is the command's stderr, so its one progress line per candidate is the
+rendered summary; over it, the terminal, the counters, the coverage counts and the counterexamples
+alone are written, an exhausted campaign as `limit-reached`, never a truncated report. The bridge's stderr is the command's stderr, so its one progress line per candidate is the
 operator's, and the coordinator's identical lines go nowhere; the command adds one line naming the
 terminal. `make umpire-fuzz` builds the command and `make umpire-fuzz-run SET=<set>` builds the
 bridge and runs a campaign against the deployment `UMPIRE_FUZZ_*` names. Its implementation review
@@ -232,7 +232,11 @@ stderr when it is still over, and the Make target checks each variable once. Rou
 terminal-only summary keeps the counterexamples (by identity and digest, never the source
 bytes), because they are what exit 1 names and the class targets bound them, and a campaign that
 ended at one of its own caps keeps that cap's name under the report cap; only an exhausted
-campaign becomes `limit-reached` by `report-bytes`.
+campaign becomes `limit-reached` by `report-bytes`. Round four: the coverage counts stay in that
+summary too, since they are fixed in size and a violated row-only candidate is no counterexample,
+so they alone explain exit 1 under the cap; a proposal write failure keeps the terminal's lost
+identity and limit name; and the report cap is checked through `Caps.CheckReport`, not a second
+coordinator.
 
 Task .5 (2026-09-22): determinism is pinned where each side owns it. In Lean, the campaign
 replays a scripted observation stream keyed by candidate identity (`Umpire.Exploration.Tests.Campaign`):

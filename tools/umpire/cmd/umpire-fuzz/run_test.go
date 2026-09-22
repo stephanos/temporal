@@ -599,7 +599,8 @@ func TestRunReportsLimitReachedRatherThanTruncatingTheSummary(t *testing.T) {
 	decoded := decodeSummary(t, stdout.String())
 	require.Equal(t, "limit-reached", decoded.Status)
 	require.Equal(t, "report-bytes", decoded.Limit)
-	require.Nil(t, decoded.Coverage)
+	require.NotNil(t, decoded.Coverage, "the coverage counts are fixed in size and stay")
+	require.Empty(t, decoded.Targets)
 	require.Empty(t, decoded.Candidates)
 	require.LessOrEqual(t, stdout.Len(), 1024, "the terminal-only summary fits the cap")
 	require.Contains(t, stderr.String(), "report-bytes")
@@ -615,7 +616,7 @@ func TestReportCapFallbackKeepsAFailureOrStopTerminal(t *testing.T) {
 	decoded := decodeSummary(t, stdout.String())
 	require.Equal(t, "tooling-failure", decoded.Status)
 	require.Contains(t, decoded.Failure, "connection refused")
-	require.Nil(t, decoded.Coverage)
+	require.Empty(t, decoded.Candidates)
 
 	stdout.Reset()
 	code = Run(requiredFlags("--max-report-bytes", "1024", "--max-candidates", "1"), &stdout, &stderr, scriptedOpener(t, &scriptedBinder{}, wideCandidates(), nil))
@@ -623,7 +624,7 @@ func TestReportCapFallbackKeepsAFailureOrStopTerminal(t *testing.T) {
 	decoded = decodeSummary(t, stdout.String())
 	require.Equal(t, "limit-reached", decoded.Status)
 	require.Equal(t, "candidates", decoded.Limit, "the cap that ended the campaign is kept")
-	require.Nil(t, decoded.Coverage)
+	require.Empty(t, decoded.Candidates)
 	require.Contains(t, stderr.String(), "report-bytes")
 }
 
@@ -640,7 +641,24 @@ func TestReportCapKeepsTheCounterexamples(t *testing.T) {
 	require.Len(t, decoded.Counterexamples, 1)
 	require.Equal(t, secondIdentity, decoded.Counterexamples[0].Candidate)
 	require.Equal(t, "class:m:f:c", decoded.Counterexamples[0].Target)
-	require.Nil(t, decoded.Coverage)
+	require.NotNil(t, decoded.Coverage)
+	require.Equal(t, 2, decoded.Coverage.Violated)
+	require.Empty(t, decoded.Candidates)
+}
+
+// A violated Run over rows alone is no counterexample, so exit 1 is explained under the report cap
+// only by the coverage counts, which stay.
+func TestReportCapKeepsTheCoverageThatExplainsExitOne(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_VIOLATED, testpilotspb.VERDICT_STATUS_SATISFIED}}
+	code := Run(requiredFlags("--max-report-bytes", "1024"), &stdout, &stderr, scriptedOpener(t, binder, wideCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	decoded := decodeSummary(t, stdout.String())
+	require.Equal(t, "limit-reached", decoded.Status)
+	require.Empty(t, decoded.Counterexamples)
+	require.NotNil(t, decoded.Coverage)
+	require.Positive(t, decoded.Coverage.Violated)
+	require.Empty(t, decoded.Targets)
 	require.Empty(t, decoded.Candidates)
 }
 

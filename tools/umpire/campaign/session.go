@@ -318,12 +318,17 @@ func (s *Session) Stopped() (*Session, error) {
 }
 
 // CheckReport enforces the report cap on the rendered summary: a report over the cap is
-// limit-reached, as a *LimitError, never truncated.
-func (s *Session) CheckReport(rendered int) error {
-	if s.caps.ReportBytes > 0 && int64(rendered) > s.caps.ReportBytes {
-		return &LimitError{Limit: "report-bytes", Measured: int64(rendered), Cap: s.caps.ReportBytes}
+// limit-reached, as a *LimitError, never truncated. It is a function of the caps alone.
+func (c Caps) CheckReport(rendered int) error {
+	if c.ReportBytes > 0 && int64(rendered) > c.ReportBytes {
+		return &LimitError{Limit: "report-bytes", Measured: int64(rendered), Cap: c.ReportBytes}
 	}
 	return nil
+}
+
+// CheckReport is the session's caps' check.
+func (s *Session) CheckReport(rendered int) error {
+	return s.caps.CheckReport(rendered)
 }
 
 // RunContext bounds one Run by RunTimeout, applied before the Run opens.
