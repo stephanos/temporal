@@ -28,10 +28,10 @@ Implement the serial path from an outstanding canonical Case through `testpilot.
 ### Re-plan note (2026-09-21)
 Re-planned on fn-85's exploratory set after fn-86 R6 deleted the variation Space this task was first written against; see the spec's **Re-plan on fn-85** section. Start only after the spec's fresh plan review.
 ## Acceptance
-- [ ] Exactly one Prepare or Run is outstanding at any time; the bridge client refuses a second `next` before `observe` (a local guard, pinned by a test; `.6` owns the coordinator's state machine).
-- [ ] `prepare-rejected`, Run failure, cleanup failure and a decisive Verdict are distinguishable observations with the exact candidate identity.
-- [ ] `umpire-run` keeps its behavior and exit codes; the shared binding has no flag that widens a declared Limit.
-- [ ] The integration proof point, when a cluster is available, runs one candidate and credits its planned path; the receipt says whether it ran.
+- [x] Exactly one Prepare or Run is outstanding at any time; the bridge client refuses a second `next` before `observe` (a local guard, pinned by a test; `.6` owns the coordinator's state machine).
+- [x] `prepare-rejected`, Run failure, cleanup failure and a decisive Verdict are distinguishable observations with the exact candidate identity.
+- [x] `umpire-run` keeps its behavior and exit codes; the shared binding has no flag that widens a declared Limit.
+- [x] The integration proof point, when a cluster is available, runs one candidate and credits its planned path; the receipt says whether it ran.
 ## Done summary
 TBD
 
