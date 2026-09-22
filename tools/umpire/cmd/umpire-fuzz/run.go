@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/umpire/binding"
@@ -47,9 +48,11 @@ type config struct {
 	Set        string
 	Deployment binding.Deployment
 	ModelRoot  string
-	Bridge     string
-	Timeout    time.Duration
-	Caps       campaign.Caps
+	// PromotionRoot is where compiled proposals are written, one file each; empty writes none.
+	PromotionRoot string
+	Bridge        string
+	Timeout       time.Duration
+	Caps          campaign.Caps
 }
 
 // bound is one opened campaign: its bridge, initialized over the set, the binder its candidates
@@ -70,20 +73,34 @@ type opener func(ctx context.Context, configuration config, stderr io.Writer) (*
 // bridge's ledger says per target, the counterexamples, and one line per candidate. Coverage is
 // the bridge's alone; nothing unexecuted, inconclusive or cleanup-uncertain appears as covered.
 type summary struct {
-	Status          string                    `json:"status"`
-	Limit           string                    `json:"limit,omitempty"`
-	Failure         string                    `json:"failure,omitempty"`
-	Lost            string                    `json:"lost,omitempty"`
-	Set             string                    `json:"set"`
-	Profile         string                    `json:"profile"`
-	Machine         string                    `json:"machine,omitempty"`
-	Budget          string                    `json:"budget,omitempty"`
-	Limits          *campaign.Limits          `json:"limits,omitempty"`
-	Counters        campaign.Counters         `json:"counters"`
-	Coverage        *campaign.Summary         `json:"coverage,omitempty"`
-	Counterexamples []campaign.Counterexample `json:"counterexamples"`
-	Targets         []campaign.TargetStatus   `json:"targets"`
-	Candidates      []candidate               `json:"candidates"`
+	Status          string                  `json:"status"`
+	Limit           string                  `json:"limit,omitempty"`
+	Failure         string                  `json:"failure,omitempty"`
+	Lost            string                  `json:"lost,omitempty"`
+	Set             string                  `json:"set"`
+	Profile         string                  `json:"profile"`
+	Machine         string                  `json:"machine,omitempty"`
+	Budget          string                  `json:"budget,omitempty"`
+	Limits          *campaign.Limits        `json:"limits,omitempty"`
+	Counters        campaign.Counters       `json:"counters"`
+	Coverage        *campaign.Summary       `json:"coverage,omitempty"`
+	Counterexamples []counterexample        `json:"counterexamples"`
+	Targets         []campaign.TargetStatus `json:"targets"`
+	Candidates      []candidate             `json:"candidates"`
+}
+
+// counterexample is one violated class member in the summary: the bridge's proposal by digest and
+// path, or why none compiled, and the file the proposal was written to when `--promotion-root`
+// named one. The source bytes are never in the summary: they are the file, and its digest is what
+// two campaigns compare.
+type counterexample struct {
+	ClassName             string  `json:"className"`
+	Target                string  `json:"target"`
+	Candidate             string  `json:"candidate"`
+	PromotionSourceSHA256 *string `json:"promotionSourceSha256"`
+	PromotionSourcePath   string  `json:"promotionSourcePath,omitempty"`
+	PromotionError        string  `json:"promotionError,omitempty"`
+	Written               string  `json:"written,omitempty"`
 }
 
 type candidate struct {
@@ -125,7 +142,13 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	if driveErr != nil {
 		writeLine(stderr, "campaign %s: %s", report.Terminal.Status, driveErr)
 	}
-	rendered, err := render(configuration, opened, report, false)
+	written, err := writeProposals(configuration.PromotionRoot, report.Finished)
+	if err != nil {
+		// The campaign's findings stand; the command did not do what it was told with them.
+		writeLine(stderr, "%s", err)
+		report.Terminal = campaign.Terminal{Status: campaign.StatusToolingFailure, Failure: err.Error()}
+	}
+	rendered, err := render(configuration, opened, report, written, false)
 	if err != nil {
 		writeLine(stderr, "render summary: %s", err)
 		return exitToolingError
@@ -140,7 +163,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		if report.Terminal.Status == campaign.StatusExhausted {
 			report.Terminal = campaign.Terminal{Status: campaign.StatusLimitReached, Limit: "report-bytes"}
 		}
-		rendered, err = render(configuration, opened, report, true)
+		rendered, err = render(configuration, opened, report, written, true)
 		if err != nil {
 			writeLine(stderr, "render summary: %s", err)
 			return exitToolingError
@@ -218,10 +241,47 @@ func exitCode(report campaign.Report) int {
 	return exitExhausted
 }
 
+// writeProposals writes each compiled proposal under the promotion root, at the path the bridge
+// named, and returns the written path by candidate. No root, no writing: the digests alone are
+// reported. A path that would leave the root is refused, as is a root under the model.
+func writeProposals(root string, finished *campaign.Finished) (map[string]string, error) {
+	if root == "" || finished == nil {
+		return nil, nil
+	}
+	written := map[string]string{}
+	for _, sample := range finished.Counterexamples {
+		if sample.PromotionSourceSHA256 == nil || sample.PromotionSourcePath == "" {
+			continue
+		}
+		relative := filepath.Clean(filepath.FromSlash(sample.PromotionSourcePath))
+		if filepath.IsAbs(relative) || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+			return nil, fmt.Errorf("proposal for %s names a path outside the promotion root: %q", sample.Candidate, sample.PromotionSourcePath)
+		}
+		path := filepath.Join(root, relative)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
+		}
+		if err := os.WriteFile(path, []byte(sample.PromotionSource), 0o644); err != nil {
+			return nil, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
+		}
+		written[sample.Candidate] = path
+	}
+	return written, nil
+}
+
+// within reports whether path is root or under it; both are absolute and clean.
+func within(root, path string) bool {
+	relative, err := filepath.Rel(root, path)
+	if err != nil {
+		return false
+	}
+	return relative == "." || (relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)))
+}
+
 // render is the canonical summary: one JSON document, keys in declaration order, one LF. The
 // terminal-only form leaves out what grows with the campaign (coverage, ledger, candidates) and
 // keeps the counterexamples, which are bounded by the class targets and are what exit 1 names.
-func render(configuration config, opened *bound, report campaign.Report, terminalOnly bool) ([]byte, error) {
+func render(configuration config, opened *bound, report campaign.Report, written map[string]string, terminalOnly bool) ([]byte, error) {
 	rendered := summary{
 		Status:          string(report.Terminal.Status),
 		Limit:           report.Terminal.Limit,
@@ -231,7 +291,7 @@ func render(configuration config, opened *bound, report campaign.Report, termina
 		Profile:         opened.profile,
 		Machine:         opened.opened.Machine,
 		Budget:          opened.opened.Budget,
-		Counterexamples: []campaign.Counterexample{},
+		Counterexamples: []counterexample{},
 		Targets:         []campaign.TargetStatus{},
 		Candidates:      []candidate{},
 		Counters:        report.Counters,
@@ -241,8 +301,12 @@ func render(configuration config, opened *bound, report campaign.Report, termina
 		rendered.Limits = &limits
 	}
 	if report.Finished != nil {
-		if report.Finished.Counterexamples != nil {
-			rendered.Counterexamples = report.Finished.Counterexamples
+		for _, sample := range report.Finished.Counterexamples {
+			rendered.Counterexamples = append(rendered.Counterexamples, counterexample{
+				ClassName: sample.ClassName, Target: sample.Target, Candidate: sample.Candidate,
+				PromotionSourceSHA256: sample.PromotionSourceSHA256, PromotionSourcePath: sample.PromotionSourcePath,
+				PromotionError: sample.PromotionError, Written: written[sample.Candidate],
+			})
 		}
 		if !terminalOnly {
 			coverage := report.Finished.Summary
@@ -316,6 +380,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&configuration.Deployment.HandlerTaskQueue, "handler-task-queue", "", "task queue the Cases' Nexus handlers poll (default <task-queue>-handler)")
 	flags.BoolVar(&configuration.Deployment.Create, "create", false, "create the named resources and delete them on exit")
 	flags.StringVar(&configuration.ModelRoot, "model-root", defaultModelRoot, "the model package the bridge runs in")
+	flags.StringVar(&configuration.PromotionRoot, "promotion-root", "", "a directory outside the model to write each counterexample's promotion source under; none writes nothing")
 	flags.StringVar(&configuration.Bridge, "bridge", "", "the exploration bridge executable (default <model-root>/"+bridgeRelativePath+")")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole campaign")
 	flags.DurationVar(&configuration.Caps.RunTimeout, "run-timeout", defaultRunTimeout, "bound on one Run")
@@ -377,6 +442,17 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	} else if configuration.Bridge, err = filepath.Abs(configuration.Bridge); err != nil {
 		writeLine(stderr, "--bridge: %s", err)
 		return config{}, err
+	}
+	if configuration.PromotionRoot != "" {
+		if configuration.PromotionRoot, err = filepath.Abs(configuration.PromotionRoot); err != nil {
+			writeLine(stderr, "--promotion-root: %s", err)
+			return config{}, err
+		}
+		// A proposal is for review, never an installed regression: the model never receives one.
+		if within(modelRoot, configuration.PromotionRoot) {
+			writeLine(stderr, "--promotion-root must not be under the model root %s", modelRoot)
+			return config{}, errors.New("promotion root under the model")
+		}
 	}
 	return configuration, nil
 }

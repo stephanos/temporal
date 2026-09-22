@@ -33,6 +33,8 @@ type fakeBridge struct {
 	outstand   *Candidate
 	observed   []request
 	rawReplies []string
+	// counterexamples is what the finished frame lists; the fake never derives them.
+	counterexamples []Counterexample
 }
 
 func newFakeBridge(t testing.TB, candidates ...Candidate) (*Bridge, *fakeBridge) {
@@ -171,7 +173,7 @@ func (f *fakeBridge) answer(frame request) string {
 			header["status"] = "exhausted"
 		}
 		header["summary"] = Summary{Targets: 2, Selected: f.handed}
-		header["counterexamples"] = []Counterexample{}
+		header["counterexamples"] = append([]Counterexample{}, f.counterexamples...)
 		header["ledger"] = []TargetStatus{}
 	default:
 		return f.reject(frame.Seq, "unknown frame")
@@ -266,6 +268,10 @@ type fakeBinder struct {
 	// ran, so the order release-then-observe can be pinned.
 	observedAtRelease int
 	bridge            *fakeBridge
+	// stopAtRun, when positive, makes that Run cancel the campaign and answer as a Run
+	// interrupted by SIGINT does: a closed incomplete Run beside the cancellation.
+	stopAtRun int
+	cancel    context.CancelFunc
 }
 
 func (b *fakeBinder) Bind(_ context.Context, identity string, source *testpilotspb.Case) (Bound, error) {
@@ -282,6 +288,12 @@ func (b *fakeBinder) Bind(_ context.Context, identity string, source *testpilots
 
 func (b *fakeBinder) Run(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	b.runs++
+	if b.stopAtRun > 0 && b.runs == b.stopAtRun {
+		b.cancel()
+		verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}
+		return &testpilotspb.Run{RunId: "run-1", CaseId: b.run.GetCaseId(), Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE,
+			Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict}, verdict, context.Canceled
+	}
 	return b.run, b.verdict, b.runErr
 }
 
@@ -300,6 +312,22 @@ func closedRun(disposition testpilotspb.RunDisposition, cleanup testpilotspb.Cle
 		Cleanup: &testpilotspb.CleanupOutcome{Status: cleanup},
 		Verdict: verdict,
 	}, verdict
+}
+
+// The summary's counterexamples carry the bridge's proposal: digest, path and source bytes when
+// it compiled, the reason when it did not. Go decodes them and derives nothing.
+func TestFinishCarriesEachCounterexamplesProposal(t *testing.T) {
+	bridge, fake := initialized(t, sampleCandidates()...)
+	digest := "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	fake.counterexamples = []Counterexample{
+		{ClassName: "c", Target: "class:m:f:c", Candidate: firstIdentity, PromotionSourceSHA256: &digest,
+			PromotionSourcePath: "set-" + digest + ".lean", PromotionSource: "-- proposal\n"},
+		{ClassName: "d", Target: "class:m:f:d", Candidate: secondIdentity, PromotionError: "nonFoundResult: no trace"},
+	}
+	finished, err := bridge.Finish(t.Context(), "stopped")
+	require.NoError(t, err)
+	require.Equal(t, fake.counterexamples, finished.Counterexamples)
+	require.Nil(t, finished.Counterexamples[1].PromotionSourceSHA256)
 }
 
 func initialized(t *testing.T, candidates ...Candidate) (*Bridge, *fakeBridge) {

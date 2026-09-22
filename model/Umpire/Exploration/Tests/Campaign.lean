@@ -1,5 +1,6 @@
 import Umpire.Exploration
 import Umpire.Examples.Switch
+import Umpire.Promotion.Tests.Fixtures.CompiledSource
 
 /-!
 # The campaign over the switch's exploratory set
@@ -224,6 +225,115 @@ private def walked? := campaign?.map (walk · 8 [])
 #guard walked? == campaign?.map (walk · 8 [])
 #guard walked?.any fun (seen, summary) =>
   seen.map (·.2) == [targetKey rowTarget, targetKey deferredTarget] && summary.exhausted
+
+/-- What a replay records of one candidate: its identity, the target it was selected for, its
+Query's identity and the observation it was read as. -/
+private structure Replayed where
+  identity : ArtifactChecksum
+  target : String
+  query : DefinitionId
+  observation : Umpire.Exploration.Observation
+  deriving BEq, Repr
+
+/-- What a replay ends with: the candidates in order, every target's status, and the summary. -/
+private structure Replay where
+  seen : List Replayed
+  statuses : List (String × Option TargetStatus)
+  summary : Campaign.Summary
+  deriving BEq, Repr
+
+private def statusesOf (campaign : Campaign twoState) : List (String × Option TargetStatus) :=
+  switchExploration.targets.map fun target => (targetKey target, campaign.ledger.status? target)
+
+/-- Replay a scripted observation stream: each entry is the decisive observation the candidate of
+that identity is read as, consumed in order. The walk ends when the stream does, before another
+candidate is planned, the way a campaign its caller stops ends after the completed prefix; a
+candidate the stream does not name at its position ends the walk too, so that a stream keyed by
+the wrong identities records nothing past the mismatch. -/
+private def replay (campaign : Campaign twoState) :
+    List (ArtifactChecksum × Umpire.Exploration.Observation) →
+    List Replayed → Replay
+  | [], seen => { seen, statuses := statusesOf campaign, summary := campaign.summary }
+  | (identity, observation) :: rest, seen =>
+      match campaign.next with
+      | .candidate candidate campaign =>
+          if candidate.identity != identity then
+            { seen, statuses := statusesOf campaign, summary := campaign.summary }
+          else
+            let replayed : Replayed := {
+              identity := candidate.identity
+              target := targetKey candidate.selected
+              query := candidate.checked.query.id
+              observation }
+            replay (campaign.observe candidate observation) rest (seen ++ [replayed])
+      | .exhausted campaign => { seen, statuses := statusesOf campaign, summary := campaign.summary }
+      | .toolingFailure _ campaign =>
+          { seen, statuses := statusesOf campaign, summary := campaign.summary }
+
+/-- The stream the pins replay: the identities the first walk planned, the row candidate satisfied
+and the deferred result's candidate violated. -/
+private def stream? : Option (List (ArtifactChecksum × Umpire.Exploration.Observation)) :=
+  walked?.map fun (seen, _) =>
+    (seen.map (·.1)).zip [Umpire.Exploration.Observation.satisfied, .violated]
+
+private def replayedOnce? : Option Replay := do
+  let campaign ← (Campaign.check twoState switchExploration one).toOption
+  pure (replay campaign (← stream?) [])
+
+private def replayedAgain? : Option Replay := do
+  let campaign ← (Campaign.check twoState switchExploration one).toOption
+  pure (replay campaign (← stream?) [])
+
+/-! Two campaigns checked from the same declarations and replayed over the same stream record the
+same candidates in the same order, the same status for every target and the same summary. -/
+#guard replayedOnce?.isSome
+#guard replayedOnce? == replayedAgain?
+#guard replayedOnce?.any fun replayed =>
+  replayed.seen.map (·.observation) == [Umpire.Exploration.Observation.satisfied, .violated] &&
+    replayed.statuses.map (·.2) == [some TargetStatus.covered, some .covered, some .violated] &&
+    replayed.summary.selected == 2 && replayed.summary.covered == 2 &&
+    replayed.summary.violated == 1 && replayed.summary.exhausted
+
+/-- The stream cut after its first observation: the campaign stopped by its caller. -/
+private def replayedPrefix? : Option Replay := do
+  let campaign ← (Campaign.check twoState switchExploration one).toOption
+  pure (replay campaign ((← stream?).take 1) [])
+
+/-! A stream that ends early records a prefix of the full replay's candidates, with the same
+identities, and credits the same targets for that prefix; what the full replay observed later is
+still pending here, and the campaign is not exhausted. -/
+#guard ((do
+  let full ← replayedOnce?
+  let cut ← replayedPrefix?
+  pure (cut.seen == full.seen.take 1 &&
+    cut.statuses.map (·.2) == [some TargetStatus.covered, some .covered, some .pending] &&
+    cut.summary.selected == 1 && cut.summary.covered == 2 && !cut.summary.exhausted)) : Option Bool).getD false
+
+/-! A stream whose identities are not the campaign's records nothing: a stale or crossed script
+is not replayed. -/
+#guard ((do
+  let campaign ← (Campaign.check twoState switchExploration one).toOption
+  let replayed := replay campaign [(planChecksumOf "elsewhere", Umpire.Exploration.Observation.satisfied)] []
+  pure replayed.seen.isEmpty) : Option Bool).getD false
+
+/-! ### Pinned regressions are outside the campaign
+
+The switch's compiled regression source promotes its exact-action Query under a fresh name. That
+Query is pinned by `Umpire.PromotionTests`, not selected by the campaign: no candidate is it, and
+the campaign's count of selected candidates is the count of its own candidates, so a pinned
+regression consumes none of the campaign's budget. -/
+
+private def promotedQuery? : Option (CheckedQuery LawStatement) :=
+  (Umpire.Promotion.Tests.Fixtures.CompiledSource.promotedQueryResult exactActionQuery).toOption
+
+#guard promotedQuery?.isSome
+#guard ((do
+  let promoted ← promotedQuery?
+  let replayed ← replayedOnce?
+  pure (replayed.seen.all (fun candidate =>
+      candidate.query != promoted.id && candidate.query != exactActionQuery.id) &&
+    replayed.summary.selected == replayed.seen.length &&
+    replayed.summary.targets == switchExploration.targets.length)) : Option Bool).getD false
 
 /-! ### The session: one candidate at a time -/
 

@@ -152,6 +152,13 @@ type Counterexample struct {
 	Target                string  `json:"target"`
 	Candidate             string  `json:"candidate"`
 	PromotionSourceSHA256 *string `json:"promotionSourceSha256"`
+	// PromotionSourcePath is the file the bridge names the compiled proposal at, relative to
+	// wherever the caller chooses to write it, and PromotionSource is its bytes; both are absent
+	// when the proposal did not compile, and PromotionError then says why. Go writes the bytes
+	// where it is told and never under the model.
+	PromotionSourcePath string `json:"promotionSourcePath,omitempty"`
+	PromotionSource     string `json:"promotionSource,omitempty"`
+	PromotionError      string `json:"promotionError,omitempty"`
 }
 
 // Finished is the bridge's answer to finish.

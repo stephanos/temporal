@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -42,6 +44,20 @@ type scriptedBridge struct {
 	toolingOn  int
 	// rejectFinish answers finish with a rejection, so the summary is never read.
 	rejectFinish bool
+	// proposalPath names each counterexample's proposal; empty names `<set>-<digest>.lean`.
+	proposalPath string
+}
+
+// proposalFor is the scripted proposal of one violated candidate: bytes naming the candidate, so
+// two candidates never share a digest, and the digest the bridge would seal them with.
+func proposalFor(identity, path string) campaign.Counterexample {
+	source := "-- proposal for " + identity + "\n"
+	digest := sha256.Sum256([]byte(source))
+	encoded := hex.EncodeToString(digest[:])
+	if path == "" {
+		path = "nexusCallerExploration-" + strings.TrimPrefix(identity, "sha256:") + ".lean"
+	}
+	return campaign.Counterexample{PromotionSourceSHA256: &encoded, PromotionSourcePath: path, PromotionSource: source}
 }
 
 func sampleCase(caseID string) json.RawMessage {
@@ -166,7 +182,9 @@ func (s *scriptedBridge) answer(frame map[string]json.RawMessage) map[string]any
 			status = "violated"
 			for _, key := range s.outstand.Covers {
 				if strings.HasPrefix(key, "class:") {
-					s.violated = append(s.violated, campaign.Counterexample{ClassName: "c", Target: key, Candidate: s.outstand.Identity})
+					sample := proposalFor(s.outstand.Identity, s.proposalPath)
+					sample.ClassName, sample.Target, sample.Candidate = "c", key, s.outstand.Identity
+					s.violated = append(s.violated, sample)
 				}
 			}
 		default:
@@ -363,6 +381,82 @@ func TestRunExitsOneOnACounterexample(t *testing.T) {
 	require.Equal(t, "class:m:f:c", decoded.Counterexamples[0].Target)
 	require.Equal(t, secondIdentity, decoded.Counterexamples[0].Candidate)
 	require.Equal(t, 2, decoded.Coverage.Violated)
+}
+
+// The proposal is in the summary by digest and path, never by its bytes; with a promotion root it
+// is written there, at the path the bridge named, and the summary says where. The same campaign
+// twice writes the same summary bytes and the same file.
+func TestRunWritesEachProposalUnderThePromotionRootOnly(t *testing.T) {
+	violated := func() *scriptedBinder {
+		return &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_VIOLATED}}
+	}
+	expected := proposalFor(secondIdentity, "")
+
+	var stdout, stderr bytes.Buffer
+	code := Run(requiredFlags(), &stdout, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	withoutRoot := decodeSummary(t, stdout.String())
+	require.Len(t, withoutRoot.Counterexamples, 1)
+	require.Equal(t, counterexample{ClassName: "c", Target: "class:m:f:c", Candidate: secondIdentity,
+		PromotionSourceSHA256: expected.PromotionSourceSHA256, PromotionSourcePath: expected.PromotionSourcePath}, withoutRoot.Counterexamples[0])
+	require.NotContains(t, stdout.String(), "-- proposal", "the source bytes are never in the summary")
+
+	root := filepath.Join(t.TempDir(), "proposals")
+	var stdoutOnce, stdoutAgain bytes.Buffer
+	code = Run(requiredFlags("--promotion-root", root), &stdoutOnce, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	written := filepath.Join(root, expected.PromotionSourcePath)
+	bytesOnce, err := os.ReadFile(written)
+	require.NoError(t, err)
+	require.Equal(t, expected.PromotionSource, string(bytesOnce))
+	withRoot := decodeSummary(t, stdoutOnce.String())
+	require.Len(t, withRoot.Counterexamples, 1)
+	require.Equal(t, written, withRoot.Counterexamples[0].Written)
+	require.Equal(t, expected.PromotionSourceSHA256, withRoot.Counterexamples[0].PromotionSourceSHA256)
+	entries, err := os.ReadDir(root)
+	require.NoError(t, err)
+	require.Len(t, entries, 1, "one file per counterexample, nothing else")
+
+	code = Run(requiredFlags("--promotion-root", root), &stdoutAgain, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
+	require.Equal(t, exitViolated, code, stderr.String())
+	require.Equal(t, stdoutOnce.String(), stdoutAgain.String(), "the same campaign writes the same summary bytes")
+	bytesAgain, err := os.ReadFile(written)
+	require.NoError(t, err)
+	require.Equal(t, bytesOnce, bytesAgain)
+}
+
+// A proposal path that would leave the promotion root is refused: the campaign's findings stand
+// in the summary, the file is not written, and the command exits as a tooling failure.
+func TestRunRefusesAProposalPathOutsideThePromotionRoot(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "proposals")
+	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_VIOLATED}}
+	var stdout, stderr bytes.Buffer
+	code := Run(requiredFlags("--promotion-root", root), &stdout, &stderr,
+		scriptedOpener(t, binder, sampleCandidates(), func(s *scriptedBridge) { s.proposalPath = "../escaped.lean" }))
+	require.Equal(t, exitToolingError, code, stderr.String())
+	require.Contains(t, stderr.String(), "outside the promotion root")
+	decoded := decodeSummary(t, stdout.String())
+	require.Equal(t, "tooling-failure", decoded.Status)
+	require.Len(t, decoded.Counterexamples, 1)
+	require.Empty(t, decoded.Counterexamples[0].Written)
+	require.NoFileExists(t, filepath.Join(filepath.Dir(root), "escaped.lean"))
+}
+
+// The same scripted campaign twice writes the same summary bytes; a campaign whose bridge is cut
+// after the first candidate writes that candidate as the full campaign did.
+func TestRunWritesTheSameSummaryTwice(t *testing.T) {
+	run := func(extra ...string) (summary, string) {
+		var stdout, stderr bytes.Buffer
+		binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE}}
+		Run(requiredFlags(extra...), &stdout, &stderr, scriptedOpener(t, binder, sampleCandidates(), nil))
+		return decodeSummary(t, stdout.String()), stdout.String()
+	}
+	full, once := run()
+	_, again := run()
+	require.Equal(t, once, again)
+	capped, _ := run("--max-candidates", "1")
+	require.Equal(t, "limit-reached", capped.Status)
+	require.Equal(t, full.Candidates[:1], capped.Candidates)
 }
 
 func TestRunExitsTwoAtACapAndReportsWhichOne(t *testing.T) {
@@ -625,6 +719,8 @@ func TestRunRejectsTheCommandLineBeforeOpeningAnything(t *testing.T) {
 		{"non-positive timeout", requiredFlags("--timeout", "0s"), "must be positive"},
 		{"negative cap", requiredFlags("--max-candidates", "-1"), "must not be negative"},
 		{"report cap below the floor", requiredFlags("--max-report-bytes", "200"), "at least"},
+		{"promotion root under the model", requiredFlags("--model-root", "m", "--promotion-root", "m/proposals"), "must not be under the model root"},
+		{"promotion root is the model", requiredFlags("--model-root", "m", "--promotion-root", "m"), "must not be under the model root"},
 	} {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer

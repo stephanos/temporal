@@ -234,6 +234,39 @@ bytes), because they are what exit 1 names and the class targets bound them, and
 ended at one of its own caps keeps that cap's name under the report cap; only an exhausted
 campaign becomes `limit-reached` by `report-bytes`.
 
+Task .5 (2026-09-22): determinism is pinned where each side owns it. In Lean, the campaign
+replays a scripted observation stream keyed by candidate identity (`Umpire.Exploration.Tests.Campaign`):
+two campaigns checked from the same declarations record the same candidates, statuses and summary,
+a stream cut short records the completed prefix with the same identities and leaves the rest
+pending, and a stream keyed by foreign identities records nothing. The bridge is pinned as a
+function of its frames (`ExplorationBridgeTests`, `determinism`): the same script writes the same
+frames, progress lines and diagnostics byte for byte, and a cut script writes the full script's
+prefix. In Go, `Drive` twice over the same fake answers gives the same report bytes, and a campaign
+stopped during its second Run reports the first outcome as the full campaign did, then the lost
+iteration; `umpire-fuzz run` twice writes the same summary bytes and a candidate cap writes the
+prefix of the candidates. Pinned regressions are outside the campaign: the switch's compiled
+regression source (`Umpire.Promotion.Tests.Fixtures.CompiledSource`) promotes the exact-action
+Query under a fresh name, no campaign candidate is that Query or its base, and the summary's
+selected count is the campaign's own candidates. The counterexample's proposal: `Campaign.observe`
+retains the candidate of a violated class-member target (once per identity), and
+`Umpire.Exploration.Promotion` compiles each through `compilePromotionSource` from the retained
+`AdmittedQuery`, an anchor read off the candidate's own planning (its Query's identities, the
+`PlanResult`, the Plan, the found trace and its selection reason) and fresh names under the Model's
+family keyed by the candidate's digest (`promotion-source`, `behavior regression-<digest>`,
+`query regression-<digest>`), at the location `<set>-<digest>.lean` with provenance
+`umpire-explore`; the expectation is the rendering itself, so the compiler proves replanning
+reproduces the anchor and seals the bytes and SHA-256. The lamp's hard counterexample compiles
+to the same digest from two campaigns, a satisfied or non-decisive member proposes nothing, and
+the soft counterexample's proposal is not the hard one's. The bridge's `finished` frame carries
+per counterexample `promotionSourceSha256`, `promotionSourcePath` and `promotionSource`, or
+`promotionError`; the Go client decodes them and derives nothing. `umpire-fuzz run` reports each
+counterexample by digest and path (never the bytes, which would carry a summary past its cap),
+and `--promotion-root <dir>` writes each compiled proposal at the path the bridge named, refusing
+a root inside `--model-root` at parse and a path that would leave the root at write (the
+campaign's findings stand, the command exits 3); the summary says where each was written. The
+integration proof (two bridges over the same set hand out and credit the same first candidate)
+skips without a cluster, as .3's does.
+
 Maintainability (plan review): duplication - the one-outstanding invariant is `.6`'s state machine; `.3` keeps only a local guard in the bridge client and `.6` supersedes it; structure - the deployment binding lifted from `umpire-run` lives in a neutral package `tools/umpire/binding` that both `umpire-run` and the campaign consume, never in the campaign package.
 
 ## Plan review (2026-09-21)
