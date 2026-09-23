@@ -17,14 +17,13 @@ Add `tools/canary/authority`: read the credentials from the environment only (`U
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Any ref, event, workflow, coordinate digest, namespace, Case or catalog mismatch performs no mutation and creates no Run or receipt; each refusal is named. The endpoint's route is not read (it needs cluster admin): it is an operator precondition the Run itself proves, a repointed endpoint yielding a Run that is not accepted.
-- [ ] Credentials and raw coordinates never reach a receipt, provenance document, summary, progress line or log: the Redactor is applied to every written text and a test plants each credential and coordinate and finds none; recorded Runs, which hold whole history events, are never uploaded (.5, .9).
-- [ ] Preflight proves the exact canary scope and claims nothing about the rest of production.
+- [x] Any ref, event, workflow, coordinate digest, namespace, Case or catalog mismatch performs no mutation and creates no Run or receipt; each refusal is named. The endpoint's route is not read (it needs cluster admin): it is an operator precondition the Run itself proves, a repointed endpoint yielding a Run that is not accepted.
+- [x] Credentials and raw coordinates never reach a receipt, provenance document, summary, progress line or log: the Redactor is applied to every written text and a test plants each credential and coordinate and finds none; recorded Runs, which hold whole history events, are never uploaded (.5, .9).
+- [x] Preflight proves the exact canary scope and claims nothing about the rest of production.
 
 ## Done summary
-TBD
-
+`tools/canary/authority` reads `UMPIRE_CANARY_*` coordinates and the credential (a TLS pair, an API key, or both) only through an injected lookup, refuses a half pair, an unreadable pair or no credential by variable name, and builds a TLS-only `Transport` for the Driver's endpoint (with the namespace header) and the SDK client. Its `Redactor` removes every credential and coordinate, including PEM body lines and the target's host, through `Redact`, a bounded line-buffered `Writer`, and an SDK `Logger` at warning level; a test plants each value in every form and finds none. `tools/canary/preflight.Check` refuses by name (`workflow-context`, `policy-unconfigured`, `coordinate-mismatch`, `case-mismatch`, `namespace-missing`, `namespace-unavailable`), deciding every connection-free check first and then making one `DescribeNamespace` read through an interface with no mutating method; every refusal detail is redacted. It returns a `Scope` of the invocation ID, the coordinate digests and the prepared Case. Implementation review: SHIP in one round; its two P3 notes and four FYIs applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d7a3ea300ad6db015b1a2d06f425eaf4eb6a7e0, 6aa00cc1a9a7928dfe9ff9b3ef2c9c7e47d04661
+- Tests: go test -count=1 -tags test_dep ./tools/canary/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
