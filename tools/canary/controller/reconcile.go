@@ -91,16 +91,16 @@ func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int)
 		return done(StatusRecoveryUnreadable, ExitFailed, err.Error())
 	}
 	report.Invocation, report.Lease = record.InvocationID, record.Lease
-	if record.Lease == nil {
-		return done(StatusNothingToReconcile, ExitAccepted,
-			"the job's record names no lease; one may be held, and the next dispatch finds and refuses it until it is reconciled")
-	}
 	// The record is this job's: a fresh runner's temporary directory holds no other, and one that
 	// names another invocation is refused rather than acted on.
 	runID, _ := reconciliation.Lookup(preflight.VariableRunID)
 	attempt, _ := reconciliation.Lookup(preflight.VariableRunAttempt)
 	if record.InvocationID != runID+"-"+attempt {
 		return done(StatusRecoveryUnreadable, ExitFailed, "the recovery record is not this job's invocation's")
+	}
+	if record.Lease == nil {
+		return done(StatusNothingToReconcile, ExitAccepted,
+			"the job's record names no lease; one may be held, and the next dispatch finds and refuses it until it is reconciled")
 	}
 	canary, _, err := reconciliation.Seams.Policy()
 	if err != nil {
@@ -120,13 +120,7 @@ func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int)
 	if dial == nil {
 		dial = client.Dial
 	}
-	connect := reconciliation.service
-	if connect == nil {
-		connect = func(loaded *authority.Authority, namespace string, progress io.Writer) (*lazyService, error) {
-			return connectLazily(dial, loaded, namespace, progress), nil
-		}
-	}
-	service, err := connect(loaded, loaded.Coordinates.Namespace, progress)
+	service, err := openService(reconciliation.service, dial, loaded, progress)
 	if err != nil {
 		return done(StatusToolingFailure, ExitFailed, err.Error())
 	}
@@ -180,7 +174,17 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 		return StatusToolingFailure, ExitFailed, err.Error()
 	}
 	if observed.State == LeaseAbsent {
-		return StatusReconciled, ExitAccepted, "the server does not find the lease run: the scope is clean"
+		// The named run is gone; the scope is clean only when the lease ID has no run at all, or its
+		// latest was closed by the canary.
+		latest, err := leaseState(ctx, r.target, fence.WorkflowID)
+		if err != nil {
+			return StatusToolingFailure, ExitFailed, err.Error()
+		}
+		if latest.State.Clean() {
+			return StatusReconciled, ExitAccepted, "the server does not find the lease run: the scope is clean"
+		}
+		return StatusReconcileUncertain, ExitUncertain, fmt.Sprintf(
+			"the server does not find the recorded lease run, and the lease's latest run %s is %s", latest.RunID, latest.State)
 	}
 	// A found lease still open may be a live invocation's: it is left alone until no invocation
 	// could still be running under it.
@@ -191,6 +195,13 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 	}
 	fenced, err := fencedIDs(ctx, r.target, fence)
 	if err != nil {
+		// The fence cannot be read back: the job's own record names what it opened, for an
+		// operator to close by hand.
+		if lease.Held == recovery.HeldTook {
+			for _, iteration := range r.record.Iterations {
+				r.report.Unverified = append(r.report.Unverified, iteration.RunID)
+			}
+		}
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
 	}
 	r.report.Fenced = nonNil(fenced)
@@ -252,13 +263,7 @@ func (r *reconciler) lostOrUnknown(ctx context.Context, fence Fence, fenced []st
 // close verifies one fenced workflow closed, terminating it first when it is open, and says
 // whether it is closed and whether reconcile terminated it.
 func (r *reconciler) close(ctx context.Context, id string, pause time.Duration) (closed, terminated bool) {
-	closed, err := workflowClosed(ctx, r.target, id, pause, r.wait)
-	if err == nil && !closed {
-		if err = terminate(ctx, r.target, &commonpb.WorkflowExecution{WorkflowId: id}, ReasonReconciled); err == nil {
-			terminated = true
-			closed, err = workflowClosed(ctx, r.target, id, pause, r.wait)
-		}
-	}
+	closed, terminated, err := closeFenced(ctx, r.target, id, pause, r.wait, ReasonReconciled)
 	if err != nil {
 		r.logf("fenced workflow %s: %s", id, err)
 		return false, terminated
