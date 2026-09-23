@@ -52,6 +52,9 @@ private def renderOf (declaration : Declaration) : Option String :=
 #guard errorOf { valid with reasons := valid.reasons.take 1 } == some .kindsWithoutBlocking
 #guard errorOf { valid with blockingGaps := [], reasons := valid.reasons.take 1 } == none
 
+#guard firstDuplicate ["a", "b", "a", "b"] == some "a"
+#guard firstDuplicate ([] : List String) == none
+
 #guard (ProfileError.repeatedCondition .unsupportedRule).render =
   "condition 'unsupported-rule' is named by two reasons"
 
