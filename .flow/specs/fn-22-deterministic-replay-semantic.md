@@ -611,6 +611,12 @@ the subject's Runs that closed, and a Run whose release failed is kept among the
 finish after a stop is bounded; the live test checks the recording process started before reading
 its exit code.
 
+Completion review, 2026-09-23 (`flowctl claude completion-review`, opus at high): SHIP, every
+requirement R1 to R10 met. Its one P3 applied as polish: a Case that no longer prepares statically
+under the recorded Profile is an admission rejection (`stale`), reported in `admission` rather than
+as a tooling failure; any other preparation error, a deployment flag disagreeing with the Case
+included, stays a tooling failure. The spec is closed.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
