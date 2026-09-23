@@ -17,6 +17,7 @@ import (
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/converter"
+	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -220,8 +221,10 @@ func fencedIDs(ctx context.Context, target Target, fence Fence) ([]string, error
 				continue
 			}
 			var id string
-			if err := converter.GetDefaultDataConverter().FromPayloads(signaled.GetInput(), &id); err != nil || id == "" {
-				return nil, fmt.Errorf("a %s signal on the canary lease names no workflow ID", SignalRunOpened)
+			if err := converter.GetDefaultDataConverter().FromPayloads(signaled.GetInput(), &id); err != nil || !assessment.IsTestpilotRunID(id) {
+				// Only the canary's own fence names a Run; anything else signalled to the lease fails
+				// closed, so cleanup never acts on a workflow the canary did not start.
+				return nil, fmt.Errorf("a %s signal on the canary lease names no Testpilot Run", SignalRunOpened)
 			}
 			if !slices.Contains(ids, id) {
 				ids = append(ids, id)

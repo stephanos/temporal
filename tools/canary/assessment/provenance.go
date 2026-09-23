@@ -139,6 +139,19 @@ func (p *Provenance) validateIdentities() error {
 	return nil
 }
 
+// canonicalUUID reports whether value is a UUID in its one canonical form: lower-case and dashed.
+func canonicalUUID(value string) bool {
+	parsed, err := uuid.Parse(value)
+	return err == nil && parsed.String() == value
+}
+
+// IsTestpilotRunID reports whether id is a Run ID as Testpilot chooses one: its prefix and a
+// canonical UUID, and nothing else.
+func IsTestpilotRunID(id string) bool {
+	suffix, ok := strings.CutPrefix(id, testpilotRunPrefix)
+	return ok && canonicalUUID(suffix)
+}
+
 // positiveNumber reports whether value is a positive decimal number written canonically.
 func positiveNumber(value string) bool {
 	number, err := strconv.ParseUint(value, 10, 64)
@@ -158,7 +171,7 @@ func (p *Provenance) validateScope() error {
 			return fmt.Errorf("%s is not a digest", digest.name)
 		}
 	}
-	if _, err := uuid.Parse(p.Lease.Fence); err != nil {
+	if !canonicalUUID(p.Lease.Fence) {
 		return errors.New("the fence is not a lease run ID")
 	}
 	if err := p.Limits.Validate(); err != nil {
@@ -173,7 +186,6 @@ func (p *Provenance) validateScope() error {
 // validateIteration checks the iteration against its invocation: its number within the limit, its
 // Run the fence's in that position, and both cleanups recorded ones.
 func (p *Provenance) validateIteration() error {
-
 	iterations := p.Limits.Iterations
 	if p.Invocation.Iteration < 1 || p.Invocation.Iteration > iterations {
 		return fmt.Errorf("iteration %d is not one of the invocation's %d", p.Invocation.Iteration, iterations)
@@ -192,7 +204,7 @@ func (p *Provenance) validateIteration() error {
 	}
 	seen := map[string]bool{}
 	for _, id := range p.Fenced {
-		if !strings.HasPrefix(id, testpilotRunPrefix) || id == testpilotRunPrefix || seen[id] {
+		if !IsTestpilotRunID(id) || seen[id] {
 			return errors.New("the fenced workflow IDs are not distinct Testpilot Run IDs")
 		}
 		seen[id] = true

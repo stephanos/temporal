@@ -70,17 +70,17 @@ func TestFencedDriverFencesBeforeItOpens(t *testing.T) {
 	require.Equal(t, "stub", identity.Profile)
 	require.NoError(t, driver.Validate(t.Context(), testpilot.PreparedProgram{}))
 
-	session, err := driver.Open(t.Context(), "run-1", testpilot.PreparedProgram{})
+	session, err := driver.Open(t.Context(), runID(1), testpilot.PreparedProgram{})
 	require.NoError(t, err)
 	require.NotNil(t, session)
-	require.Equal(t, []string{"run-1"}, fenced)
+	require.Equal(t, []string{runID(1)}, fenced)
 	require.Equal(t, 1, inner.fencedBeforeOpen, "the Run is fenced before it is opened")
-	require.Equal(t, "run-1", driver.Opened())
+	require.Equal(t, runID(1), driver.Opened())
 
-	_, err = driver.Open(t.Context(), "run-2", testpilot.PreparedProgram{})
+	_, err = driver.Open(t.Context(), runID(2), testpilot.PreparedProgram{})
 	require.ErrorIs(t, err, ErrSecondOpen)
 	require.Equal(t, 1, inner.opens, "a second or concurrent Run opens nothing")
-	require.Equal(t, []string{"run-1"}, fenced)
+	require.Equal(t, []string{runID(1)}, fenced)
 }
 
 // A fence that fails -- a stale lease run, a lost connection -- opens nothing.
@@ -88,13 +88,15 @@ func TestFencedDriverOpensNothingWhenTheFenceFails(t *testing.T) {
 	inner := &stubDriver{}
 	stale := errors.New("the lease run is closed")
 	driver := NewFencedDriver(inner, func(context.Context, string) error { return stale })
-	_, err := driver.Open(t.Context(), "run-1", testpilot.PreparedProgram{})
+	_, err := driver.Open(t.Context(), runID(1), testpilot.PreparedProgram{})
 	require.ErrorIs(t, err, stale)
 	require.Zero(t, inner.opens)
 	require.Empty(t, driver.Opened())
 
-	_, err = NewFencedDriver(inner, func(context.Context, string) error { return nil }).Open(t.Context(), "", testpilot.PreparedProgram{})
-	require.Error(t, err, "a Run with no ID cannot be fenced")
+	for _, id := range []string{"", "customer-workflow", "testpilot.run.other"} {
+		_, err = NewFencedDriver(inner, func(context.Context, string) error { return nil }).Open(t.Context(), id, testpilot.PreparedProgram{})
+		require.Error(t, err, "only a Testpilot Run ID can be fenced")
+	}
 	require.Zero(t, inner.opens)
 }
 
@@ -102,12 +104,12 @@ func TestFencedDriverOpensNothingWhenTheFenceFails(t *testing.T) {
 func TestTheFencedSessionStartsOnlyTheFencedWorkflow(t *testing.T) {
 	inner := &stubDriver{}
 	driver := NewFencedDriver(inner, func(context.Context, string) error { return nil })
-	session, err := driver.Open(t.Context(), "testpilot.run.1", testpilot.PreparedProgram{})
+	session, err := driver.Open(t.Context(), runID(1), testpilot.PreparedProgram{})
 	require.NoError(t, err)
 	start := workflowServiceMethod("StartWorkflowExecution")
 	history := workflowServiceMethod("GetWorkflowExecutionHistory")
 
-	_, err = session.InvokeRPC(t.Context(), testpilot.Coordinate{}, "role", start, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: "testpilot.run.1"})
+	_, err = session.InvokeRPC(t.Context(), testpilot.Coordinate{}, "role", start, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: runID(1)})
 	require.NoError(t, err)
 	_, err = session.InvokeRPC(t.Context(), testpilot.Coordinate{}, "role", start, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"})
 	require.ErrorIs(t, err, ErrOutsideFence)
