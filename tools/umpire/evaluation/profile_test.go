@@ -42,7 +42,7 @@ func TestLoadProfileSelectsAnEmbeddedProfileByItsExactName(t *testing.T) {
 
 	for _, name := range []string{"", "local", "Local-Ephemeral", "local-ephemeral.json", "profiles/local-ephemeral", "../evaluation/profiles/local-ephemeral", "local-strict"} {
 		_, err := LoadProfile(name)
-		require.ErrorContains(t, err, "no Evaluation Profile is named", "a Profile is a name from the embedded set, never a path: %q", name)
+		require.ErrorIs(t, err, ErrUnknownProfile, "a Profile is a name from the embedded set, never a path: %q", name)
 	}
 }
 

@@ -19,7 +19,7 @@
     "fn-26-local-qualification-receipts-and-staged.2": 0,
     "fn-26-local-qualification-receipts-and-staged.3": 0,
     "fn-26-local-qualification-receipts-and-staged.4": 0,
-    "fn-26-local-qualification-receipts-and-staged.5": 1
+    "fn-26-local-qualification-receipts-and-staged.5": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -911,6 +911,95 @@
       "task": "fn-26-local-qualification-receipts-and-staged.5",
       "timestamp": "2026-09-23T10:25:29.435858Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7b460f8a04525dab352b08b6d7ffbc67d7097aa2382cd4c0266d149230e3c886",
+      "backend": "claude",
+      "base_sha": "f57959a406721afd254103c094201a3cce993a1e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "timeout",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a6cd1d5b84c8e8991554bf18918b75fa2749b724",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "f387392e45514df394e458af2598c809",
+      "round_consumed": false,
+      "scope": "impl:fn-26-local-qualification-receipts-and-staged.5",
+      "superseded_by": null,
+      "task": "fn-26-local-qualification-receipts-and-staged.5",
+      "timestamp": "2026-09-23T10:56:30.850860Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "7b460f8a04525dab352b08b6d7ffbc67d7097aa2382cd4c0266d149230e3c886",
+      "backend": "claude",
+      "base_sha": "f57959a406721afd254103c094201a3cce993a1e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d8242081c9a3347a64354ba23c989a96",
+            "classification": "introduced",
+            "findingId": "finding-d8242081c9a3347a64354ba23c989a96",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4e11c590f899d393e8270f07651a97e7",
+            "classification": "introduced",
+            "findingId": "finding-4e11c590f899d393e8270f07651a97e7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-761714983d26905c84af435041e98a81",
+            "classification": "introduced",
+            "findingId": "finding-761714983d26905c84af435041e98a81",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a6cd1d5b84c8e8991554bf18918b75fa2749b724",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 5327,
+      "output_sha256": "c09a810e02b4e1c7ade404cb1ddf70abdd59ef775cc04263801098ad2df31c20",
+      "reservation_id": "928a76717bf0485d916149a17f43afe2",
+      "round_consumed": true,
+      "scope": "impl:fn-26-local-qualification-receipts-and-staged.5",
+      "superseded_by": null,
+      "task": "fn-26-local-qualification-receipts-and-staged.5",
+      "timestamp": "2026-09-23T10:58:11.692712Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -918,6 +1007,7 @@
     "impl:fn-26-local-qualification-receipts-and-staged.2": 1,
     "impl:fn-26-local-qualification-receipts-and-staged.3": 1,
     "impl:fn-26-local-qualification-receipts-and-staged.4": 1,
+    "impl:fn-26-local-qualification-receipts-and-staged.5": 1,
     "plan": 3,
     "plan#completion": 1
   },
@@ -945,5 +1035,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T10:25:29.440234Z"
+  "updated_at": "2026-09-23T10:58:11.697216Z"
 }
