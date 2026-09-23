@@ -12,9 +12,11 @@ contract in what the tree now has:
   `tools/umpire/internal/casefile` decides) and a recorded Run (`replay.RecordedRun`: the Run with
   its Verdict and the `DriverIdentity` it was prepared under, as `umpire-run --record` and
   `umpire-fuzz --record-root` write it). Admission reads both strictly and never prepares, runs or
-  replays. The Run must be the Case's: its `case_id` and `program_id` are the Case's, and the set of
-  rule IDs its Verdict names equals the set of the Contract's rules, each exactly once, whatever
-  its status (a Run carries no Contract ID; the receipt takes the Contract ID from the Case). It
+  replays. The Case must be format version 1.0. The Run must be the Case's: its `case_id` and
+  `program_id` are the Case's, and the set of rule IDs its Verdict names equals the Contract's
+  rules -- `contract.rules` and `contract.correlated.rules` together, as the evaluator reports them
+  -- each exactly once, whatever its status (a Run carries no Contract ID; the receipt takes the
+  Contract ID from the Case). It
   must be closed: a terminal disposition, a cleanup outcome, a Verdict. It must be consistent:
   every supporting sequence names one event once, and the Verdict's status agrees with its rules
   and the disposition as the protocol defines it (violated when any rule is violated, and then the
@@ -22,9 +24,9 @@ contract in what the tree now has:
   Run). The recorded catalog fingerprint must be the tree's static catalog's
   (`NewWorkflowServiceCatalog().Identity()`, which reads no Case): admission alone decides
   staleness. The recorded Profile name and bindings fingerprint are bound into the receipt as
-  recorded. The checks shared with replay admission (the Case and Program crossing, the supporting
-  sequences) are exported from `tools/umpire/replay` once and called by both, each with its own
-  reason vocabulary. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
+  recorded. What replay admission and qualification admission share -- reading the canonical Case
+  and the recorded Run, the Case and Program crossing, the supporting sequences -- is exported from
+  `tools/umpire/replay` once and called by both, each mapping it to its own reason vocabulary. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
   most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB.
 - **Evidence and verification are the recorded Verdict's.** *Verification* is the recorded Verdict
   status; it is never re-derived. *Evidence* is each rule's supporting sequences: a rule the
@@ -32,13 +34,21 @@ contract in what the tree now has:
   require support; an unsupported rule then keeps the decision below `accepted`. The receipt
   carries each rule's supporting sequences as its evidence links, never an event body.
 - **Lean owns the Evaluation Profile, Go assesses.** `Umpire.Evaluation` (Temporal-free) declares a
-  checked Evaluation Profile as data: the claim, the dispositions, Verdict statuses and cleanup
-  outcomes it accepts, the Known Gap kinds that block acceptance, whether rule support is
-  required, the trust basis, and an ordered reason table. It carries no catalog, endpoint,
-  credential, path or execution authority. `Temporal.Evaluation.Local` declares the one
-  `local-ephemeral` Profile. A non-default `umpire-evaluation-profiles` executable renders every
+  checked Evaluation Profile as data: the claim, the trust basis, the Known Gap kinds that block
+  acceptance, the subject Limits it assesses under (the admission caps, by value), and an ordered
+  reason table whose reasons each name one status-specific condition from a closed set --
+  `verdict-violated`, `verdict-inconclusive`, `verdict-pending`, `disposition-stopped`,
+  `disposition-incomplete`, `cleanup-unclosed`, `known-gap-blocking`, `unsupported-rule` -- and the
+  decision it forces, `rejected` or `incomplete`. A subject for which no reason holds is accepted.
+  It carries no catalog, endpoint, credential, path or execution authority. `Temporal.Evaluation.Local` declares the one
+  `local-ephemeral` Profile, whose table is, in precedence order: `verdict-violated` and
+  `disposition-stopped` reject (a violated claim is a failed claim); `verdict-inconclusive`,
+  `verdict-pending`, `disposition-incomplete`, `cleanup-unclosed`, `known-gap-blocking` (every
+  `capability` and `interpretation` gap) and `unsupported-rule` leave it `incomplete` (absent
+  verification is never proof, and never a failure either). A non-default `umpire-evaluation-profiles` executable renders every
   declared Profile to canonical JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by
-  a Makefile gate; the Profile's identity is the SHA-256 of those bytes. `tools/umpire/evaluation`
+  a Makefile gate that `umpire-check-regression` runs; the Profile's identity is the SHA-256 of
+  those bytes. `tools/umpire/evaluation`
   embeds that directory (`//go:embed`) and selects a Profile only by its exact name, so a Profile is
   never a path. A test-only second Profile lives in the Go tests, never in Lean or the embedded set.
 - **Assessment decides before anything is rendered.** `Assess(subject, profile) Decision` is pure:
@@ -49,8 +59,9 @@ contract in what the tree now has:
   Profile name and identity, the Case identity (SHA-256 of the canonical Case) and its Case,
   Program and Contract IDs, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the
   Verdict with each rule's status, terminal state and supporting sequences, the decision and every
-  reason, the Known Gaps by kind and code. It carries no raw payload, event body, credential, path
-  or endpoint.
+  reason, the trust basis and the Limits the Profile assessed under, the Known Gaps by kind and
+  code, and the receipt format version. It carries no raw payload, event body, credential, path or
+  endpoint.
 - **Publication is atomic, exclusive and idempotent.** `cli.Publish` writes the receipt to a
   temporary file in the target directory, syncs it, and hard-links it to
   `<root>/<receipt-identity>.json` (`os.Link` is atomic and fails if the name exists), then removes
@@ -151,4 +162,15 @@ each rule's supporting sequences and verification the recorded Verdict status, a
 require support; admission checks the Verdict's aggregation against its rules and disposition;
 the caps are named constants. The suppressed note is applied too: the test-only Profile lives in
 the Go tests, never in the embedded set.
+
+Round two (2026-09-23): NEEDS_WORK with two P1, four P2 and one P3 findings, all applied. The
+Contract's rules are `contract.rules` with `contract.correlated.rules`, as the evaluator reports
+them, so a correlated-only Case (every Model-produced one) is not crossed; the reason conditions
+are status-specific and `local-ephemeral`'s table is written out, so an inconclusive Verdict is
+`incomplete` and a violated one `rejected`; admission rejects a Case of another format version as
+`incompatible`; the Profile carries its subject Limits and the receipt carries the trust basis, the
+Limits and its own format version; the Profile check runs in `umpire-check-regression`; the
+unused `profile-name` condition is gone; the Lean/Go Profile agreement is .1's criterion. The FYI
+on cancellation is taken: `umpire-assess`'s interrupt matters only around the hard link, which .5
+states.
 
