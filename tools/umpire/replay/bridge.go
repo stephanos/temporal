@@ -18,12 +18,11 @@ var (
 	ErrNotAdmitted = errors.New("no subject is admitted")
 	// ErrReductionFinished is returned once Finish has been answered or admission was crossed.
 	ErrReductionFinished = errors.New("the reduction is finished")
-	// ErrCandidateOutstanding is returned by Next while a candidate's Case is with the caller.
-	ErrCandidateOutstanding = errors.New("a candidate is outstanding; observe it before asking for the next")
-	// ErrNoCandidate is returned by Observe when no candidate is outstanding.
-	ErrNoCandidate = errors.New("no candidate is outstanding")
-	// ErrCrossedCandidate is returned by Observe for a candidate other than the outstanding one.
-	ErrCrossedCandidate = errors.New("the observation names a candidate other than the outstanding one")
+	// ErrCandidateOutstanding, ErrNoCandidate and ErrCrossedCandidate are the exploration
+	// client's own guards, the same values, so one errors.Is serves both clients.
+	ErrCandidateOutstanding = campaign.ErrCandidateOutstanding
+	ErrNoCandidate          = campaign.ErrNoCandidate
+	ErrCrossedCandidate     = campaign.ErrCrossedCandidate
 )
 
 // CrossedError is the bridge's answer that no set of the Model produces the subject's Case: the
