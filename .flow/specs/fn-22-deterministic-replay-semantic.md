@@ -566,6 +566,15 @@ here: a Driver that outlives its Run keeps polling its queues, so the proof reco
 `umpire-run` process rather than an in-test Driver; and the SDK client's default logger wrote to
 stdout, which `binding.Bind` now routes to stderr for both commands.
 
+Implementation review of task .6, round two: NEEDS_WORK with three findings, all applied. A pair
+stops being retried the moment it is decided, so a `not-reproduced` retry after two indeterminate
+Runs settles the edit without a second retry or a limit; a candidate whose Runs were cut short
+still lists the class of every Run that closed, with no fate; the replay client aliases the
+exploration client's guard errors and finishes with the campaign's status constants. The Run
+budget, wall time and Run Events are now checked once a candidate is handed out and before it is
+prepared, so a sweep with nothing left ends exhausted rather than at a limit it would not reach.
+Implementation review of task .7, round two: SHIP.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

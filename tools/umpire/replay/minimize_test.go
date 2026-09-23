@@ -156,6 +156,26 @@ func TestReduceNamesTheEditCapOfACappedSweep(t *testing.T) {
 	require.Equal(t, "incomplete", report.Status)
 }
 
+// A pair both of whose Runs are indeterminate stops retrying once a retry decides it: a
+// not-reproduced retry settles the edit without spending a second retry, even when the budget
+// has room for exactly one.
+func TestReduceStopsRetryingOnceThePairIsDecided(t *testing.T) {
+	r := newReduction(t, []attemptScript{nil, nil, runIncomplete, runIncomplete, runSatisfied}, edit(0, "a"))
+	report, err := r.run(t.Context(), t)
+	require.NoError(t, err)
+	require.Equal(t, []Class{ClassIndeterminate, ClassIndeterminate, ClassNotReproduced}, report.Candidates[0].Classes)
+	require.Equal(t, ClassNotReproduced, report.Candidates[0].Class)
+	require.Equal(t, 5, report.Runs)
+
+	r = newReduction(t, []attemptScript{nil, nil, runIncomplete, runIncomplete, runSatisfied}, edit(0, "a"))
+	r.reducer.Limits.Runs = 5
+	report, err = r.run(t.Context(), t)
+	require.NoError(t, err)
+	require.Empty(t, report.Limit, "a decided edit never ends at a limit")
+	require.Equal(t, "not-reproduced", report.Candidates[0].Fate)
+	require.Equal(t, "irreducible", report.Status)
+}
+
 // A candidate that does not prepare is reported rejected and never rerun.
 func TestReduceReportsAPreparationRejectionWithoutARun(t *testing.T) {
 	r := newReduction(t, nil, edit(0, "a"))
@@ -228,7 +248,9 @@ func TestReduceNamesTheCandidateLostToAStop(t *testing.T) {
 	require.True(t, report.Stopped)
 	require.Empty(t, report.Failure, "a stop is not a failure")
 	require.Equal(t, "candidate-1", report.Lost)
-	require.Empty(t, report.Candidates, "a lost candidate is not settled")
+	require.Len(t, report.Candidates, 1, "the Run that closed is listed")
+	require.Len(t, report.Candidates[0].Classes, 1, "with the class of the one Run that closed")
+	require.Empty(t, report.Candidates[0].Fate, "a lost candidate is not settled")
 	require.Equal(t, "incomplete", report.Status)
 	require.Equal(t, binds+1, r.binder.binds, "no Run is dispatched after the stop")
 	require.Equal(t, 3, report.Runs, "the Run that closed after the stop is counted")

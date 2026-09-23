@@ -23,7 +23,8 @@
     "fn-22-deterministic-replay-semantic.4": 0,
     "fn-22-deterministic-replay-semantic.5": 0,
     "fn-22-deterministic-replay-semantic.6": 2,
-    "fn-22-deterministic-replay-semantic.7": 0
+    "fn-22-deterministic-replay-semantic.7": 0,
+    "fn-22-deterministic-replay-semantic.8": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1695,8 +1696,19 @@
     "plan": 2,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-22-deterministic-replay-semantic.8": 1
+  },
+  "review_reservations": {
+    "23e81045e71442bd88dbc588182af48f": {
+      "artifact_sha256": "66686e55e231b5c24dd6578f0e8c60f103a578185695507b67102589cff65323",
+      "counter_scope": "impl:fn-22-deterministic-replay-semantic.8",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-22-deterministic-replay-semantic.1": 0,
     "impl:fn-22-deterministic-replay-semantic.2": 0,
@@ -1721,5 +1733,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T08:26:06.033850Z"
+  "updated_at": "2026-09-23T08:30:53.607782Z"
 }
