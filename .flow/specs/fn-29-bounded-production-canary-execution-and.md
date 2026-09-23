@@ -14,7 +14,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   `nexusCallerCanary.syncCompletion`. The renderer gains a canary registry beside the functional
   one (`Registry.recordCanary`, recorded in the canary branch of the `case` block) and an
   `umpire-case --render-canary <case-id>` mode; `make canary-gen-case` writes
-  `tools/canary/testdata/nexusCallerCanary-syncCompletion-case.json` and `canary-check-case`
+  `tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json`, which
+  `casebinding` embeds, and `canary-check-case`
   diffs a fresh render, in `umpire-check-regression`. The Case reaches its Verdict only from the
   public server observations its Contract names. The produced Case carries its own Nexus handler
   entrypoint (the realization is the functional set's; `handler: observed` changes what the
@@ -32,7 +33,12 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   coordinates live only in the protected environment), the lease's workflow ID, type and task
   queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 10 minutes per invocation, a
   2-minute cleanup reserve, a 24-hour lease run timeout (rejected unless longer than the invocation
-  limit plus the reserve), and 64 KiB of progress. A limit cannot be raised by a flag. A Run's own
+  limit plus the reserve), and 64 KiB of progress. A limit cannot be raised by a flag. The coordinate digests are the
+  operator's: the repository cannot know production's names, so the committed policy starts with
+  each coordinate the literal `unconfigured`, which preflight refuses with its own status
+  (`policy-unconfigured`), and the runbook's procedure is to compute each digest from the protected
+  environment's value and commit them in a reviewed pull request to `main`, as for any later
+  coordinate change. A Run's own
   duration is bounded by the Temporal Profile (30 seconds, and 20 of cleanup), so the policy sets
   no per-Run limit of its own. The Run's own RPC, worker, duration and event ceilings are the
   Temporal Profile's (`testpilotdriver.DefaultCeilings`, which `DeriveProfile` applies), and the
@@ -78,8 +84,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   backstop far longer than any operator's response; its run ID is the fence. A Run's ID is
   Testpilot's own (`PreparedCase.Run` creates it and the canary Case's workflow ID is it), so the
   canary fences Runs by wrapping the Driver: `FencedDriver` captures the Run ID at `Open`,
-  signals it to the lease workflow (`run-opened`, recorded in the lease's history by the server
-  with no worker) and only then delegates. The lease's signals are the durable, server-side list
+  signals it to the lease workflow (`run-opened`, sent to the exact lease ID and fence run ID, so a stale fence
+  fails the signal, and recorded in the lease's history by the server with no worker) and only then delegates. The lease's signals are the durable, server-side list
   of every workflow ID the fence may touch; cleanup and reconciliation act on those exact IDs and
   on nothing else. Runs are serial: preflight prepares the Case once with `testpilot.Prepare` and
   the controller runs that `PreparedCase` for each iteration against a fresh fenced Driver. A
@@ -353,3 +359,14 @@ the CI workflow and its regression test so CI runs the canary's unit tests and c
 appended to the pinned command. .2 updates the comments that said canary Cases are registered
 nowhere; reconcile's status for a recovery file with no lease, and a publication conflict's place
 in `run`'s precedence, are named; the authority-class set is defined once, in the policy package.
+
+Round seven (2026-09-23): NEEDS_WORK with one P1, three P2 and two P3 findings, all applied. The
+production coordinate digests are the operator's: the committed policy starts `unconfigured`,
+which preflight refuses as `policy-unconfigured`, and the runbook gives the procedure for
+committing them (P1). The pinned Case lives under `tools/canary/casebinding/testdata/`, which the
+package embeds; .1 commits the all-zero Case identity and .2 replaces it with the real one. An
+iteration whose Run errors or whose record admission rejects is `unconstructible`, ends the
+invocation and exits 3. The rule that a workflow not found on two reads an RPC timeout apart never
+started is one predicate, `workflowClosed`, beside `leaseState`, shared by cleanup and reconcile;
+`run-opened` is signalled to the exact lease ID and fence run ID; .4's quick commands run the
+lifecycle test.
