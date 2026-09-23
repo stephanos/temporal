@@ -218,6 +218,18 @@ No CI, remote, staging, canary, production, release authorization, automatic exe
 | R7 | `.1`, `.3`, `.4`, `.5`, `.6` |
 | R8 | `.6` |
 
+## Implementation
+
+Task .1 (2026-09-23): `Umpire.Evaluation` declares the checked, Temporal-free Evaluation Profile
+and `Temporal.Evaluation.Local` the `local-ephemeral` Profile with the plan's table;
+`umpire-evaluation-profiles` renders them under `tools/umpire/evaluation/profiles/`, checked by
+`umpire-check-evaluation-profiles` within `umpire-check-regression`. The identity is pinned in
+`Temporal/Evaluation/LocalTests.lean`. The error type is `ProfileError`, since `DeclarationError`
+is retired vocabulary. Implementation review: SHIP in one round; its two P3 notes applied (blocking
+kinds sort by the derived kind order; the renderer reuses the declaration's duplicate check), and
+the FYI taken: a Profile has no structural equality, since two declarations can render the same
+bytes.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
