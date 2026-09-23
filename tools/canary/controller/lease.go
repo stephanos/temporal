@@ -310,6 +310,20 @@ func workflowClosed(ctx context.Context, target Target, workflowID string, pause
 	return true, nil
 }
 
+// closeFenced verifies one fenced workflow closed, terminating it with reason first when it is
+// open, and says whether it is closed and whether it was terminated. Cleanup and reconcile share it.
+func closeFenced(ctx context.Context, target Target, id string, pause time.Duration, wait Wait, reason string) (closed, terminated bool, err error) {
+	closed, err = workflowClosed(ctx, target, id, pause, wait)
+	if err != nil || closed {
+		return closed, false, err
+	}
+	if err := terminate(ctx, target, &commonpb.WorkflowExecution{WorkflowId: id}, reason); err != nil {
+		return false, false, err
+	}
+	closed, err = workflowClosed(ctx, target, id, pause, wait)
+	return closed, true, err
+}
+
 // terminate ends one workflow run with reason. A run already closed or never started is not an
 // error: the caller verifies with workflowClosed.
 func terminate(ctx context.Context, target Target, execution *commonpb.WorkflowExecution, reason string) error {
