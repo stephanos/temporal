@@ -401,3 +401,14 @@ func facadeFixture(t testing.TB) (*testpilotspb.Case, ProfileSpec) {
 	}
 	return source, ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: proto.CloneOf(programLimits), ContractLimits: contractLimits}
 }
+
+func TestIsRunID(t *testing.T) {
+	require.True(t, IsRunID(RunIDPrefix+"2d185b3f-c34e-4572-8ea4-4a606aa3e27a"))
+	for _, id := range []string{
+		"", RunIDPrefix, "2d185b3f-c34e-4572-8ea4-4a606aa3e27a", RunIDPrefix + "other",
+		RunIDPrefix + "2D185B3F-C34E-4572-8EA4-4A606AA3E27A", RunIDPrefix + "2d185b3fc34e45728ea44a606aa3e27a",
+		RunIDPrefix + "urn:uuid:2d185b3f-c34e-4572-8ea4-4a606aa3e27a", "customer-workflow",
+	} {
+		require.False(t, IsRunID(id), id)
+	}
+}
