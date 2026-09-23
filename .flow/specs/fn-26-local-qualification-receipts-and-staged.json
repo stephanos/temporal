@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-26-local-qualification-receipts-and-staged",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-23T11:21:59.315009Z",
   "created_at": "2026-08-26T13:43:16.667023Z",
   "default_impl": null,
   "default_review": null,
@@ -1030,6 +1030,58 @@
       "task": "fn-26-local-qualification-receipts-and-staged.6",
       "timestamp": "2026-09-23T11:15:55.537907Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "343e59c6324c418c3f902f1ebb55c71cf424d3c90d491da41594d78803cc7fa2",
+      "backend": "claude",
+      "base_sha": "85c4da54f7aa0230cc820365df4ecd09f956435a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3632f2071966c9475f3ed5031763e0fc",
+            "classification": "introduced",
+            "findingId": "finding-3632f2071966c9475f3ed5031763e0fc",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-33d4c82371413233f7e941a4c2ad87e9",
+            "classification": "introduced",
+            "findingId": "finding-33d4c82371413233f7e941a4c2ad87e9",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "e11e666842576f9d7a3693a54a39b3ccc2128c5c",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 11200,
+      "output_sha256": "f0e5cc71ae78e9d645c03194810fc85807abd13b0351d59ada80135ade7db11b",
+      "reservation_id": "77233d3589cf4502bd8a1ae0b65c9ce1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-23T11:21:59.310384Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1040,11 +1092,12 @@
     "impl:fn-26-local-qualification-receipts-and-staged.5": 1,
     "impl:fn-26-local-qualification-receipts-and-staged.6": 1,
     "plan": 3,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-26-local-qualification-receipts-and-staged.1": 0,
     "impl:fn-26-local-qualification-receipts-and-staged.2": 0,
     "impl:fn-26-local-qualification-receipts-and-staged.3": 0,
@@ -1054,7 +1107,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-26-local-qualification-receipts-and-staged.md",
-  "status": "open",
+  "status": "done",
   "title": "Local qualification receipts and staged profile contract",
   "tracker": {
     "baseHashFlow": null,
@@ -1067,5 +1120,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T11:15:55.541456Z"
+  "updated_at": "2026-09-23T11:22:37.481910Z"
 }

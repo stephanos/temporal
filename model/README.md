@@ -424,7 +424,9 @@ model. It admits the pair strictly (the record must name this Case's canonical b
 catalog), reads the recorded Verdict, disposition, cleanup, Known Gaps and supporting sequences
 against the Profile's reason table, and publishes one canonical Evaluation Receipt named by its
 SHA-256, by hard link, never overwriting: the same subject under the same Profile is
-`already-published`, another Profile is another receipt. It takes no address, so it can neither
+`already-published`, another Profile is another receipt. Whether a rule's conclusion must have
+supporting events is the Profile's choice: under `local-ephemeral` a rule the Verdict names at a
+terminal state with none keeps the decision at `incomplete`. It takes no address, so it can neither
 create nor replay a Run. Exit 0 is accepted, 1 rejected, 2 incomplete, 3 anything else, with a
 named status in the one-line JSON summary on stdout.
 

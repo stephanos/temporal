@@ -181,6 +181,9 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 		"duplicate":                  {caseBytes, edited(func(r *testpilotspb.Run) { r.Verdict.SupportingEventSequences = []int64{4, 4} }), ReasonDuplicate, "twice"},
 		"replay disagrees":           {caseBytes, edited(func(r *testpilotspb.Run) { r.Verdict.Rules[0].TerminalStateId = "elsewhere" }), ReasonReplay, "replays to"},
 		"no events":                  {caseBytes, edited(func(r *testpilotspb.Run) { r.Events = nil }), ReasonIncomplete, "0 events"},
+		"a pending rule beside a violation": {caseBytes, edited(func(r *testpilotspb.Run) {
+			r.Verdict.Rules = append(r.Verdict.Rules, &testpilotspb.RuleVerdict{RuleId: "pending", Status: testpilotspb.RULE_VERDICT_STATUS_PENDING})
+		}), ReasonMalformed, "Pending"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			subject, err := Admit(t.Context(), probe.caseInput, probe.recorded, prepare)
