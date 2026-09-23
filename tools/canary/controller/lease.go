@@ -118,8 +118,18 @@ func notFound(err error) bool {
 // leaseState reads the lease's latest run and, when it is closed, its close event, since a
 // describe reports a termination without its reason. The controller and reconcile share it.
 func leaseState(ctx context.Context, target Target, leaseID string) (Observed, error) {
+	return leaseRunState(ctx, target, &commonpb.WorkflowExecution{WorkflowId: leaseID})
+}
+
+// fenceState is leaseState for one exact lease run, the fence a recovery record names.
+func fenceState(ctx context.Context, target Target, fence Fence) (Observed, error) {
+	return leaseRunState(ctx, target, &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID})
+}
+
+func leaseRunState(ctx context.Context, target Target, execution *commonpb.WorkflowExecution) (Observed, error) {
+	leaseID := execution.GetWorkflowId()
 	described, err := target.Service.DescribeWorkflowExecution(ctx, &workflowservice.DescribeWorkflowExecutionRequest{
-		Namespace: target.Namespace, Execution: &commonpb.WorkflowExecution{WorkflowId: leaseID},
+		Namespace: target.Namespace, Execution: execution,
 	})
 	if notFound(err) {
 		return Observed{State: LeaseAbsent}, nil
