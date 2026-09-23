@@ -16,6 +16,8 @@ testdata/
 !/tools/umpire/testdata/**
 !/tools/umpire/**/testdata/
 !/tools/umpire/**/testdata/**
+!/tools/canary/**/testdata/
+!/tools/canary/**/testdata/**
 !/common/testing/testpilot/testdata/
 !/common/testing/testpilot/testdata/**
 !/tests/testcore/testpilot/testdata/

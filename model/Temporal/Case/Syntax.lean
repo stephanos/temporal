@@ -15,9 +15,10 @@ whose Queries it realizes and the realization that runs them, and, for a machine
 The commands it sits beside are `Umpire.Command`'s. A functional set's Cases are registered for the
 renderer; a canary set's are produced the same way and, once admitted, registered apart, for the
 canary that pins them and never as a functional fixture, because what admits a canary is that a
-deployment can close every gap its Cases carry, which only the produced Case says. An exploratory set has no Queries to produce Cases for at elaboration: its block emits what
-the exploration bridge produces each candidate's Case with -- the realization and the machine's
-claims, evidence catalog and field relations -- and registers nothing.
+deployment can close every gap its Cases carry, which only the produced Case says. An exploratory
+set has no Queries to produce Cases for at elaboration: its block emits what the exploration bridge
+produces each candidate's Case with -- the realization and the machine's claims, evidence catalog
+and field relations -- and registers nothing.
 
 The Case ID prefix is Temporal's too. Every identity derives from the set's name and each Query's:
 the Case ID is `<caseIdRoot>.<set>.<query>` and the fixture `<set>-<query>`, so a Case is named by
