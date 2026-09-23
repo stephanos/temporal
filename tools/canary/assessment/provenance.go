@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/umpire/recordedrun"
 )
@@ -27,10 +28,6 @@ const (
 	CleanupReleased  = "released"
 	CleanupUncertain = "uncertain"
 )
-
-// testpilotRunPrefix begins every Run ID Testpilot chooses, and so every workflow ID the fence
-// names, since the canary Case's workflow ID is its Run ID.
-const testpilotRunPrefix = "testpilot.run."
 
 // Isolation is the one isolation statement a canary provenance makes: what the scope is, not a
 // claim about the rest of production.
@@ -125,7 +122,9 @@ func (p *Provenance) validateIdentities() error {
 	}
 	repositoryAndPath, ref, ok := strings.Cut(p.Workflow.Ref, "@")
 	repository, path, _ := strings.Cut(repositoryAndPath, "/.github/workflows/")
-	if !ok || repository == "" || !strings.HasSuffix(path, ".yml") || strings.Contains(path, "/") ||
+	owner, name, _ := strings.Cut(repository, "/")
+	if !ok || owner == "" || name == "" || strings.Contains(name, "/") ||
+		!strings.HasSuffix(path, ".yml") || path == ".yml" || strings.Contains(path, "/") ||
 		!strings.HasPrefix(ref, "refs/heads/") || ref == "refs/heads/" {
 		return fmt.Errorf("workflow ref %q is not <repository>/.github/workflows/<file>.yml@<branch ref>", p.Workflow.Ref)
 	}
@@ -143,13 +142,6 @@ func (p *Provenance) validateIdentities() error {
 func canonicalUUID(value string) bool {
 	parsed, err := uuid.Parse(value)
 	return err == nil && parsed.String() == value
-}
-
-// IsTestpilotRunID reports whether id is a Run ID as Testpilot chooses one: its prefix and a
-// canonical UUID, and nothing else.
-func IsTestpilotRunID(id string) bool {
-	suffix, ok := strings.CutPrefix(id, testpilotRunPrefix)
-	return ok && canonicalUUID(suffix)
 }
 
 // positiveNumber reports whether value is a positive decimal number written canonically.
@@ -204,7 +196,7 @@ func (p *Provenance) validateIteration() error {
 	}
 	seen := map[string]bool{}
 	for _, id := range p.Fenced {
-		if !IsTestpilotRunID(id) || seen[id] {
+		if !testpilot.IsRunID(id) || seen[id] {
 			return errors.New("the fenced workflow IDs are not distinct Testpilot Run IDs")
 		}
 		seen[id] = true

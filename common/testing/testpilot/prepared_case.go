@@ -3,6 +3,7 @@ package testpilot
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -62,5 +63,19 @@ func (p *PreparedCase) Run(ctx context.Context, driver Driver) (*testpilotspb.Ru
 	if err != nil {
 		return nil, nil, err
 	}
-	return execution.Run(ctx, p.program, executionDriver, monitor, "testpilot.run."+uuid.NewString(), p.source.GetCaseId())
+	return execution.Run(ctx, p.program, executionDriver, monitor, RunIDPrefix+uuid.NewString(), p.source.GetCaseId())
+}
+
+// RunIDPrefix begins every Run ID Run chooses; the rest is a canonical UUID.
+const RunIDPrefix = "testpilot.run."
+
+// IsRunID reports whether id is a Run ID in the form Run chooses: RunIDPrefix and a lower-case,
+// dashed UUID, and nothing else.
+func IsRunID(id string) bool {
+	suffix, ok := strings.CutPrefix(id, RunIDPrefix)
+	if !ok {
+		return false
+	}
+	parsed, err := uuid.Parse(suffix)
+	return err == nil && parsed.String() == suffix
 }

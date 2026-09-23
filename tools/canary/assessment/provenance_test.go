@@ -116,9 +116,7 @@ func TestProvenanceRefusesEveryMutation(t *testing.T) {
 		"a non-canonical fence":               func(p *Provenance) { p.Lease.Fence = "urn:uuid:" + p.Lease.Fence },
 		"an undashed fence":                   func(p *Provenance) { p.Lease.Fence = strings.ReplaceAll(p.Lease.Fence, "-", "") },
 		"a repeated fenced ID":                func(p *Provenance) { p.Fenced[1] = p.Fenced[0] },
-		"more fenced IDs than iterations": func(p *Provenance) {
-			p.Fenced = append(p.Fenced, "testpilot.run.third")
-		},
+
 		"no fenced IDs":        func(p *Provenance) { p.Fenced = nil },
 		"a non-positive limit": func(p *Provenance) { p.Limits.ProgressBytes = 0 },
 		"iterations past the policy ceiling": func(p *Provenance) {
@@ -133,6 +131,12 @@ func TestProvenanceRefusesEveryMutation(t *testing.T) {
 			p.Invocation.Iteration = 2
 			p.Invocation.RunID = p.Fenced[1]
 			p.Fenced = p.Fenced[:1]
+		},
+		"a workflow file with no name": func(p *Provenance) {
+			p.Workflow.Ref = "temporalio/temporal/.github/workflows/.yml@refs/heads/main"
+		},
+		"a repository with no owner": func(p *Provenance) {
+			p.Workflow.Ref = "temporal/.github/workflows/canary.yml@refs/heads/main"
 		},
 		"a workflow ref on a tag": func(p *Provenance) {
 			p.Workflow.Ref = strings.Replace(p.Workflow.Ref, "refs/heads/main", "refs/tags/v1", 1)
@@ -158,6 +162,19 @@ func TestProvenanceRefusesEveryMutation(t *testing.T) {
 			require.Error(t, err, "the decoder refuses it")
 		})
 	}
+}
+
+// The lease fences one Run per iteration, so a provenance naming more fenced Runs than the
+// invocation's iterations is refused for that alone.
+func TestProvenanceRefusesMoreFencedRunsThanIterations(t *testing.T) {
+	provenance := sampleProvenance(t)
+	provenance.Fenced = append(provenance.Fenced, "testpilot.run.9b8f3c2e-5d1a-4e6f-8a7b-0c9d2e1f3a4b")
+	_, err := RenderProvenance(provenance)
+	require.ErrorContains(t, err, "more than the invocation's")
+	written, err := encodeProvenance(provenance)
+	require.NoError(t, err)
+	_, err = DecodeProvenance(written)
+	require.ErrorContains(t, err, "more than the invocation's")
 }
 
 // The decoder reads only the canonical rendering: no other key, spelling, spacing, document or
