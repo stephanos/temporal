@@ -34,7 +34,12 @@ const (
 	StatusPublicationConflict   = "publication-conflict"
 	StatusPublicationUnreported = "publication-unreported"
 	StatusPublicationFailed     = "publication-failed"
+	StatusInterrupted           = "interrupted"
 )
+
+// publishTimeout bounds publication, which runs under its own context after the cleanup attempt,
+// so an interrupt that ended the iterations still publishes every receipt already decided.
+const publishTimeout = time.Minute
 
 // The exit codes, by precedence: the highest an invocation reaches is its exit.
 const (
@@ -154,7 +159,8 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 		return finish()
 	}
 	redactor = loaded.Redactor
-	progress := redactor.Writer(invocation.Progress)
+	// One capped, redacting writer for everything the invocation and its SDK clients write.
+	progress := redactor.Writer(&boundedWriter{out: invocation.Progress, remaining: canary.Limits.ProgressBytes})
 	defer func() { _ = progress.Close() }()
 
 	connect := invocation.service
@@ -201,14 +207,7 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 		result.raise(StatusToolingFailure, ExitFailed, err.Error())
 		return finish()
 	}
-	run := newInvocation(config)
-	if invocation.prepare != nil {
-		invocation.prepare(run)
-	}
-	ran, err := run.run(ctx)
-	if closeErr := run.progress.Close(); err == nil && closeErr != nil {
-		err = closeErr
-	}
+	ran, err := runWith(ctx, config, invocation.prepare)
 	if err != nil {
 		result.raise(StatusToolingFailure, ExitFailed, err.Error())
 		return finish()
@@ -217,7 +216,15 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 		result.raise(StatusLeaseUnreconciled, ExitUncertain, "the canary lease's latest run is open or closed without a canary termination; reconcile it first")
 		return finish()
 	}
-	invocation.record(ctx, canary, scope, ran, store, result)
+	switch ran.StoppedBy {
+	case StopRelease, StopRecord:
+		result.raise(StatusToolingFailure, ExitFailed, ran.Stopped)
+	case StopInterrupted:
+		result.raise(StatusInterrupted, ExitFailed, ran.Stopped)
+	}
+	publishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), publishTimeout)
+	defer cancel()
+	invocation.record(publishCtx, canary, scope, ran, store, result)
 	return finish()
 }
 
@@ -404,11 +411,17 @@ type lazyService struct {
 	once    sync.Once
 	dial    func() (client.Client, error)
 	client  client.Client
-	direct  Service
+	direct  leaseService
 	dialErr error
 }
 
-func (s *lazyService) get() (Service, error) {
+// leaseService is what the lease, cleanup and preflight's read call on the target.
+type leaseService interface {
+	Service
+	preflight.Namespaces
+}
+
+func (s *lazyService) get() (leaseService, error) {
 	if s.direct != nil {
 		return s.direct, nil
 	}
@@ -432,11 +445,7 @@ func (s *lazyService) DescribeNamespace(ctx context.Context, request *workflowse
 	if err != nil {
 		return nil, err
 	}
-	namespaces, ok := service.(preflight.Namespaces)
-	if !ok {
-		return nil, errors.New("the canary's service cannot describe a namespace")
-	}
-	return namespaces.DescribeNamespace(ctx, request, options...)
+	return service.DescribeNamespace(ctx, request, options...)
 }
 
 func (s *lazyService) StartWorkflowExecution(ctx context.Context, request *workflowservice.StartWorkflowExecutionRequest, options ...grpc.CallOption) (*workflowservice.StartWorkflowExecutionResponse, error) {
