@@ -235,7 +235,8 @@ query timesOutOnProtocol
 
 A canary is admitted when a deployment can close every gap its Cases carry: the handler is
 `observed`, and every step of the sync and async completion paths records evidence. The Cases are
-produced under the functional set's realization and registered nowhere. -/
+produced under the functional set's realization and registered apart from the functional fixtures,
+rendered only on request. -/
 
 #guard nexusCallerCanary.purpose == .canary
 #guard nexusCallerCanary.bindings ==
