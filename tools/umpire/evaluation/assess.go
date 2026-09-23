@@ -7,13 +7,6 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 )
 
-// HeldReason is one reason of a Profile's table that holds for a subject.
-type HeldReason struct {
-	Name      string
-	Condition string
-	Decision  string
-}
-
 // KnownGapRef is one of the Case's Known Gaps as a receipt names it: its kind and its code.
 type KnownGapRef struct {
 	Kind string
@@ -26,7 +19,8 @@ type KnownGapRef struct {
 type Decision struct {
 	// Outcome is accepted, rejected or incomplete.
 	Outcome string
-	Reasons []HeldReason
+	// Reasons are the rows of the Profile's table that hold, in the table's order.
+	Reasons []Reason
 
 	ProfileName     string
 	ProfileIdentity string
@@ -72,7 +66,27 @@ func Assess(subject *Subject, profile Profile) Decision {
 			decision.UnsupportedRules = append(decision.UnsupportedRules, rule.GetRuleId())
 		}
 	}
-	holds := map[string]bool{
+	holds := conditionsHolding(decision, blocking)
+	decision.Outcome = DecisionAccepted
+	for _, reason := range profile.Reasons {
+		// A loaded Profile names only known conditions; one that is not known holds, so that a
+		// condition this reader cannot evaluate can never let a subject through.
+		if held, known := holds[reason.Condition]; known && !held {
+			continue
+		}
+		decision.Reasons = append(decision.Reasons, reason)
+		if reason.Decision == DecisionRejected {
+			decision.Outcome = DecisionRejected
+		} else if decision.Outcome != DecisionRejected {
+			decision.Outcome = DecisionIncomplete
+		}
+	}
+	return decision
+}
+
+// conditionsHolding evaluates every condition of the closed set against the recorded facts.
+func conditionsHolding(decision Decision, blocking bool) map[string]bool {
+	return map[string]bool{
 		"verdict-violated":       decision.Verdict == testpilotspb.VERDICT_STATUS_VIOLATED,
 		"verdict-inconclusive":   decision.Verdict == testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
 		"disposition-stopped":    decision.Disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
@@ -81,17 +95,4 @@ func Assess(subject *Subject, profile Profile) Decision {
 		"known-gap-blocking":     blocking,
 		"unsupported-rule":       len(decision.UnsupportedRules) > 0,
 	}
-	decision.Outcome = DecisionAccepted
-	for _, reason := range profile.Reasons {
-		if !holds[reason.Condition] {
-			continue
-		}
-		decision.Reasons = append(decision.Reasons, HeldReason(reason))
-		if reason.Decision == DecisionRejected {
-			decision.Outcome = DecisionRejected
-		} else if decision.Outcome != DecisionRejected {
-			decision.Outcome = DecisionIncomplete
-		}
-	}
-	return decision
 }
