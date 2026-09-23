@@ -16,9 +16,9 @@
   "id": "fn-26-local-qualification-receipts-and-staged",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-23T08:38:46.516731Z",
+  "plan_reviewed_at": "2026-09-23T08:43:51.530938Z",
   "ready": false,
   "review_attempts": [
     {
@@ -318,6 +318,35 @@
       "task": null,
       "timestamp": "2026-09-23T08:38:46.515973Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5d81699159cda7233fb2dfb58bb81c7680661d630305ad77ad5fee49074f6452",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "64bfb0f923c86a3e68fccc43b40b89094ffd7fd4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 8637,
+      "output_sha256": "6e45b96fcc52f84601fee389da18175a83b82f9938aa1f5365541cda2ac603be",
+      "reservation_id": "f808845f5c20498db090b1e453bebaba",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-23T08:43:51.530305Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -343,5 +372,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T08:38:46.516747Z"
+  "updated_at": "2026-09-23T08:43:51.530945Z"
 }
