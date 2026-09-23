@@ -38,6 +38,9 @@ const (
 	DecisionIncomplete = "incomplete"
 )
 
+// ErrUnknownProfile says a name is not one of the embedded Profiles.
+var ErrUnknownProfile = errors.New("no Evaluation Profile is named so")
+
 // profileFormatVersion is the rendered Profile format this reader knows.
 const profileFormatVersion = 1
 
@@ -82,7 +85,7 @@ func LoadProfile(name string) (*Profile, error) {
 		return nil, err
 	}
 	if !slices.Contains(names, name) {
-		return nil, fmt.Errorf("no Evaluation Profile is named %q; the Profiles are %s", name, strings.Join(names, ", "))
+		return nil, fmt.Errorf("%w: no Evaluation Profile is named %q; the Profiles are %s", ErrUnknownProfile, name, strings.Join(names, ", "))
 	}
 	encoded, err := embeddedProfiles.ReadFile(path.Join("profiles", name+".json"))
 	if err != nil {

@@ -22,8 +22,9 @@ const (
 	exitFailed     = 3
 )
 
-// assessTimeout bounds the whole assessment. Admission and assessment are pure and quick, so the
-// bound only ever matters around publication.
+// assessTimeout bounds publication, the one step an interrupt or a deadline can matter to: reading,
+// admission, assessment and rendering are pure and quick, and run before the signal is captured, so
+// an interrupt there simply ends the process with nothing published.
 const assessTimeout = time.Minute
 
 const defaultModelRoot = "model"
@@ -32,6 +33,8 @@ const defaultModelRoot = "model"
 const (
 	statusRejectedSubject       = "rejected-subject"
 	statusUnknownProfile        = "unknown-profile"
+	statusProfileUnreadable     = "profile-unreadable"
+	statusAdmissionFailed       = "admission-failed"
 	statusUnreadableInput       = "unreadable-input"
 	statusCatalogUnavailable    = "catalog-unavailable"
 	statusReceiptOversized      = "receipt-oversized"
@@ -50,6 +53,13 @@ type config struct {
 	Profile     *evaluation.Profile
 	ReceiptRoot string
 }
+
+// The self-check and the publisher; a test replaces them to reach the failures no real subject or
+// root produces.
+var (
+	decodeReceipt = evaluation.DecodeReceipt
+	publish       = cli.Publish
+)
 
 // environment is what the command reads beyond its arguments: the tree's catalog fingerprint, and
 // the context an assessment runs under. A test supplies its own.
@@ -79,7 +89,10 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 	configuration, err := parseConfig(arguments, stderr)
 	var unknown *unknownProfileError
 	if errors.As(err, &unknown) {
-		return failed(statusUnknownProfile, "%s", unknown.err)
+		if errors.Is(unknown.err, evaluation.ErrUnknownProfile) {
+			return failed(statusUnknownProfile, "%s", unknown.err)
+		}
+		return failed(statusProfileUnreadable, "%s", unknown.err)
 	}
 	if err != nil {
 		return exitFailed
@@ -100,7 +113,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 	if err != nil {
 		rejection, ok := evaluation.IsRejection(err)
 		if !ok {
-			return failed(statusRejectedSubject, "%s", err)
+			return failed(statusAdmissionFailed, "%s", err)
 		}
 		return report(stdout, stderr, summary{Status: statusRejectedSubject, Rejection: rejection.Reason, Detail: rejection.Detail}, exitFailed)
 	}
@@ -113,14 +126,14 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 	if err != nil {
 		return failed(statusReceiptUnreadable, "render the receipt: %s", err)
 	}
-	if _, err := evaluation.DecodeReceipt(rendered); err != nil {
+	if _, err := decodeReceipt(rendered); err != nil {
 		return failed(statusReceiptUnreadable, "the rendered receipt does not read back: %s", err)
 	}
 
 	identity := evaluation.ReceiptIdentity(rendered)
 	ctx, cancel := env.context()
 	defer cancel()
-	publication, err := cli.Publish(ctx, configuration.ReceiptRoot, identity+".json", rendered)
+	publication, err := publish(ctx, configuration.ReceiptRoot, identity+".json", rendered)
 	var conflict *cli.ConflictError
 	switch {
 	case errors.As(err, &conflict):
@@ -249,8 +262,8 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	return configuration, nil
 }
 
-// unknownProfileError says --profile names no embedded Profile: refused before anything is read,
-// and reported with its own summary status.
+// unknownProfileError says --profile names no loadable Profile: refused before anything is read,
+// and reported as an unknown name or as an embedded Profile that does not load.
 type unknownProfileError struct{ err error }
 
 func (e *unknownProfileError) Error() string { return "--profile: " + e.err.Error() }
