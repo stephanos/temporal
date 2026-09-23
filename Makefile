@@ -598,18 +598,29 @@ umpire-check-goldens:
 			diff -ru "model/$$directory" "$$temporary/$$directory"; \
 		done
 
+# The rendered Evaluation Profiles, each group in the directory that embeds it: the local ones
+# umpire-assess embeds, the production canary's, and the canary harness's.
+_UMPIRE_EVALUATION_PROFILE_DIRS := local:tools/umpire/evaluation/profiles canary:tools/canary/assessment/profiles harness:tools/canary/testharness/profiles
+
 umpire-gen-evaluation-profiles:
 	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles >/dev/null
-	@cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --output-dir ../tools/umpire/evaluation/profiles
+	@cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles \
+		--local-dir ../tools/umpire/evaluation/profiles \
+		--canary-dir ../tools/canary/assessment/profiles \
+		--harness-dir ../tools/canary/testharness/profiles
 
 umpire-check-evaluation-profiles:
 	@printf $(COLOR) "Check rendered Umpire Evaluation Profiles..."
-	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests
+	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests Temporal.Evaluation.CanaryTests
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-evaluation-profiles.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --output-dir "$$temporary" ); \
-		diff -r tools/umpire/evaluation/profiles "$$temporary"
+		mkdir "$$temporary/local" "$$temporary/canary" "$$temporary/harness"; \
+		( cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --local-dir "$$temporary/local" \
+			--canary-dir "$$temporary/canary" --harness-dir "$$temporary/harness" ); \
+		for group_dir in $(_UMPIRE_EVALUATION_PROFILE_DIRS); do \
+			diff -r "$${group_dir#*:}" "$$temporary/$${group_dir%%:*}"; \
+		done
 
 umpire-gen-case-runtime-conformance:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null

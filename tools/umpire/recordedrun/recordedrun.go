@@ -6,6 +6,8 @@
 //
 // It is a leaf: it imports the Case Runtime's public types and the canonical Case form, never the
 // replay bridge, a Driver or a deployment, so an admission that must not execute imports it freely.
+// It is public, outside tools/umpire/internal, so code beyond Umpire -- the canary -- computes a
+// Case's identity and encodes a recorded Run exactly as Umpire does.
 package recordedrun
 
 import (

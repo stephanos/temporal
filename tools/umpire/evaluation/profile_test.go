@@ -48,7 +48,7 @@ func TestLoadProfileSelectsAnEmbeddedProfileByItsExactName(t *testing.T) {
 
 // The test-only Profile is a second, independent Profile: it parses, and its identity is its own.
 func TestTheTestOnlyProfileIsAnotherProfile(t *testing.T) {
-	strict, err := parseProfile(readTestProfile(t, "local-strict"))
+	strict, err := ParseProfile(readTestProfile(t, "local-strict"))
 	require.NoError(t, err)
 	require.Equal(t, "local-strict", strict.Name)
 	require.NotEqual(t, localEphemeralIdentity, strict.Identity)
@@ -60,7 +60,7 @@ func TestParseProfileRejectsWhatLeanWouldNotDeclare(t *testing.T) {
 	embedded, err := embeddedProfiles.ReadFile("profiles/local-ephemeral.json")
 	require.NoError(t, err)
 	valid := string(embedded)
-	_, err = parseProfile(embedded)
+	_, err = ParseProfile(embedded)
 	require.NoError(t, err)
 	mutate := func(old, replacement string) []byte {
 		require.Contains(t, valid, old)
@@ -97,7 +97,7 @@ func TestParseProfileRejectsWhatLeanWouldNotDeclare(t *testing.T) {
 		"not JSON":                  {[]byte("{"), "decode Profile"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			_, err := parseProfile(probe.encoded)
+			_, err := ParseProfile(probe.encoded)
 			require.ErrorContains(t, err, probe.detail)
 		})
 	}
