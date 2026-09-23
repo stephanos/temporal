@@ -11,6 +11,7 @@ Exercise, against the controller in-process and the harness: target and routing 
 `go test -race -count=1 -tags test_dep ./tools/canary/...; go test -count=1 -tags "test_dep integration" ./tests/ -run '^TestUmpireCanary'`
 
 **Files:** `tools/canary/**/*_test.go`, `tests/umpire_canary_test.go`
+**Touches:** `tools/canary/**/*_test.go`, `tests/umpire_canary_test.go`
 
 ### Re-plan note (2026-09-23)
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.

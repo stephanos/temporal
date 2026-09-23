@@ -26,8 +26,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   identity (SHA-256 of its canonical bytes), the Profile name the Case is prepared under
   (`production-canary`), the Evaluation Profile name, the SHA-256 digests of the target's gRPC
   and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
-  coordinates live only in the protected environment), the trusted ref (`refs/heads/main`) and
-  workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
+  coordinates live only in the protected environment), the lease's workflow ID, type and task
+  queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
   invocation, a 2-minute cleanup reserve, the recorded-Run and receipt caps fn-26 fixes, and 64 KiB
   of progress. A limit cannot be raised by a flag.
 - **The Evaluation Profile is Lean's, the provenance is canary's.** `Temporal.Evaluation.Canary`
@@ -49,45 +49,83 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   writer keeps them out of every output. Preflight, before any mutation, requires
   `GITHUB_REF` to be the trusted ref, `GITHUB_WORKFLOW_REF` the canary workflow on it,
   `GITHUB_EVENT_NAME` `workflow_dispatch`; the digests of the environment's coordinates to equal
-  the policy's; the canonical Case to be the pinned one; the namespace, both queues' routing and
-  the Nexus endpoint to exist exactly as the policy names them (Describe calls only, fn-83's
-  `provision` package is used by the harness to create them, never by the canary); and the
-  catalog to be the tree's. Any mismatch performs no mutation and creates no Run or receipt.
-- **One lease, one fence, one Run at a time.** The lease is a workflow with a fixed ID in the canary
-  namespace, started with `WORKFLOW_ID_CONFLICT_POLICY_FAIL` and a run timeout equal to the
-  invocation limit; its run ID is the fence. Every Run the canary creates carries the fence in its
-  workflow IDs (the Profile's identity scope), so cleanup and reconciliation touch only exact
-  fenced resources. Runs are serial: the controller prepares the Case once with
-  `testpilot.Prepare` and runs the prepared Case for each iteration against a fresh Driver.
-  Cleanup runs under a fresh context bounded by the reserve on every exit after the lease is held,
-  and the lease is terminated last.
-- **Recovery never dispatches.** A mode-0600 recovery record holds only the invocation ID, the lease
-  workflow ID and fence, the active Run's ID prefix, the dispatch phase, the cleanup reserve and the
-  expiry. A process lost after a Run started leaves that iteration `lost`. `umpire-canary
-  reconcile` reads the record, terminates or verifies only workflows carrying its fence, releases
-  the lease and marks the scope closed or uncertain; it prepares, runs, assesses and publishes
-  nothing. A later invocation starts only after the record is closed or explicitly marked
-  uncertain by `reconcile`; nothing reruns automatically.
-- **Assessment is fn-26's, verbatim.** Each completed iteration is written as a recorded Run
-  (`tools/umpire/recordedrun`, exported from `tools/umpire/internal/recordedrun` so the canary
-  imports it) and admitted with `evaluation.Admit` against the tree's catalog, assessed with
-  `evaluation.Assess` under the `production-canary` Profile, rendered with `evaluation.Render`,
-  and published with the receipt root publisher fn-26 built (exported as
-  `tools/umpire/publish`). A lost or unconstructible iteration has no receipt. The canary
-  provenance document binds the receipt's identity and is published beside it under its own
-  identity; `releaseEligibility` is a constant `false` its decoder rejects any other value of.
+  the policy's; the canonical Case to be the pinned one (fn-83's `provision` package creates the
+  resources in the harness, never in the canary); and the
+  catalog to be the tree's. The namespace must exist (`DescribeNamespace`), and the Nexus endpoint,
+  found by name with `ListNexusEndpoints`, must target that namespace and the handler queue (task
+  queues are created lazily, so their existence proves nothing). Any mismatch performs no mutation
+  and creates no Run or receipt; the `PreparedCase` preflight makes is the one the controller runs.
+- **One lease, one fence, one Run at a time.** The lease is a workflow with the policy's fixed ID and
+  type (`umpire-canary-lease`) on a lease task queue no worker polls (`umpire-canary-lease`, in
+  the policy), started with `WORKFLOW_ID_CONFLICT_POLICY_FAIL` and a 24-hour run timeout, a
+  backstop far longer than any operator's response; its run ID is the fence. A Run's ID is
+  Testpilot's own (`PreparedCase.Run` creates it and the canary Case's workflow ID is it), so the
+  canary fences Runs by wrapping the Driver: `FencedDriver` captures the Run ID at `Open`,
+  signals it to the lease workflow (`run-opened`, recorded in the lease's history by the server
+  with no worker) and only then delegates. The lease's signals are the durable, server-side list
+  of every workflow ID the fence may touch; cleanup and reconciliation act on those exact IDs and
+  on nothing else. Runs are serial: preflight prepares the Case once with `testpilot.Prepare` and
+  the controller runs that `PreparedCase` for each iteration against a fresh fenced Driver. A
+  non-accepted iteration ends the invocation: no further Run is made against production after a
+  rejected or incomplete one. Cleanup runs under a fresh context bounded by the reserve on every
+  exit after the lease is held, and the controller terminates the lease only after every fenced
+  workflow is verified closed.
+- **Recovery never dispatches, and the guard is on the server.** A lost process leaves the lease
+  held, so the next `run` collides on the lease's ID and refuses, naming the scope as
+  unreconciled; only `umpire-canary reconcile` releases it. Reconcile reads the lease by its fixed
+  ID, verifies or terminates exactly the workflow IDs its `run-opened` signals name, and
+  terminates the lease once each is verified closed, or leaves it held and reports the scope
+  uncertain; it prepares, runs, assesses and publishes nothing, and writes only its own bounded
+  reconciliation report (the lost iterations, what it closed, what it could not verify). The
+  runner is a fresh GitHub-hosted runner per dispatch, so nothing is kept on it between jobs; a
+  mode-0600 recovery file written in the job (invocation ID, fence, the current Run ID and phase)
+  only lets the same job's `reconcile` step name what was in flight before it reads the lease.
+- **Assessment is fn-26's, verbatim, and publication comes last.** Each completed iteration is
+  encoded as a recorded Run (`tools/umpire/recordedrun`, exported from
+  `tools/umpire/internal/recordedrun` so the canary imports it), admitted with `evaluation.Admit`
+  against the tree's catalog, assessed with `evaluation.Assess` under the policy's Evaluation
+  Profile and rendered with `evaluation.Render`, all held in memory. After cleanup and the lease's
+  release, each iteration's receipt is published with the exclusive publisher fn-26 built
+  (exported as `tools/umpire/publish`), then its provenance, which now carries the invocation's
+  cleanup outcome; a process lost before publication leaves its iterations unpublished, which
+  reconcile reports as lost. A lost or unconstructible iteration has no receipt. `releaseEligibility`
+  is a constant `false` the provenance decoder rejects any other value of.
+- **What is retained is secret-free; what is not stays on the runner.** A recorded Run holds the
+  observed history events whole -- the task queue and endpoint names, the operation's payloads,
+  error text -- so it is never uploaded: recorded Runs live in a runner-local directory the job
+  removes. The uploaded artifact holds only receipts, provenance documents, the summary and the
+  progress log, and credentials and raw coordinates never appear in any of them (receipts carry
+  identities, IDs, statuses and sequence numbers; provenance carries digests). The Redactor
+  applies to progress, the summary and logs; a recorded Run is never rewritten.
 - **The command is `umpire-canary`.** `tools/canary/cmd/umpire-canary` has two closed modes, `run` and
   `reconcile`, with no Case, target, Driver, checker, retry, executable, endpoint, credential or
-  release flag; `run` takes only the retained-output directory and the recovery-record path. It
-  exits 0 when every iteration's receipt is accepted, 1 when any is rejected or incomplete, 2 for
-  a lost iteration or cleanup uncertainty, and 3 for a tooling or preflight failure, with one
-  bounded JSON summary on stdout.
-- **The workflow is manual and protected.** `.github/workflows/umpire-production-canary.yml` runs
-  on `workflow_dispatch` only, in the `production-canary` environment, only when the ref is
-  `refs/heads/main`, with `contents: read` and no other permission, a job timeout, `umpire-canary
-  run`, then `umpire-canary reconcile` under `if: always()`, then the retained receipts,
-  provenance and progress uploaded as an artifact. A regression test in `tools/umpire/regression`
-  pins those properties the way the CI workflow test pins its own.
+  release flag; each takes only the retained-output directory, the runner-local directory and the
+  recovery-file path. `run` exits by precedence 3 > 2 > 1 > 0: 3 for a preflight, tooling or
+  unreported publication (each with a named status), 2 when cleanup is uncertain or the lease
+  could not be released, 1 when an iteration is rejected or incomplete, 0 when every iteration's
+  receipt is accepted. `reconcile` exits 0 when the scope is closed and the lease released, 2 when
+  it is uncertain, 3 for a tooling failure. Each writes one bounded JSON summary on stdout.
+- **The harness is a separate build.** A `canary_harness` build tag compiles a policy and hook
+  provider into a harness binary only: it reads a test policy (the test cluster's digests, the
+  `canary-harness` Evaluation Profile Lean declares beside `production-canary`, and a
+  `harness` authority class) and a crash hook from the environment. The untagged binary has one
+  policy, the embedded one, and one Profile, `production-canary`; a regression test pins that the
+  untagged build has no override path, so a harness receipt is never a production receipt.
+- **The workflow is manual and protected, and the protection is the environment's.** A
+  `workflow_dispatch` runs the workflow file and code of whatever branch it is dispatched on, so the
+  guarantee that only `main` receives the credentials is a precondition on the repository's
+  `production-canary` environment: deployment branches restricted to `main` and required
+  reviewers, which the runbook states and an operator configures. The in-repo checks are defense
+  in depth: `.github/workflows/umpire-production-canary.yml` runs on `workflow_dispatch` only, in
+  that environment, only when the ref is `refs/heads/main`, with `contents: read` and no other
+  permission, a job timeout, `umpire-canary run`, then `umpire-canary reconcile` under
+  `if: always()`, then the receipts, provenance, summaries and progress uploaded under
+  `if: always()`; preflight re-checks the ref. A regression test in `tools/umpire/regression` pins
+  the file's properties.
+- **The early proof is .2 with .4's two-Run test.** .2 pins and prepares the canary Case under the
+  canary's names with no canary policy in Umpire, and .4 runs the prepared Case twice, serially,
+  through a fenced in-process Driver, before any authority or participant work; a finding there
+  that canary policy must enter Umpire stops the spec.
 
 Tasks .1 to .13 are rewritten below on these contracts in their existing order and dependencies.
 The requirements R1–R10 and the boundaries stand. R1's "canary Assessment Profile" is the Lean
@@ -180,4 +218,18 @@ No customer traffic, rollout, deployment/config mutation, automatic schedule, re
 
 ## Plan review
 
-The re-plan awaits its first plan review.
+Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
+two P0, five P1, four P2 and one P3 findings, all applied. Testpilot owns a Run's ID, so Runs are
+fenced by a wrapping Driver that signals each Run ID to the lease before delegating, and cleanup
+and reconciliation act on exactly those IDs (P0). A recorded Run holds whole history events,
+queue and endpoint names and payloads among them, so recorded Runs stay on the runner and only
+receipts, provenance, summaries and progress are uploaded (P0). Publication follows cleanup, so
+provenance carries the invocation's cleanup outcome, and reconcile writes only its own report,
+never a receipt. The lease is the server-side guard across fresh runners: a lost process leaves
+it held and only reconcile releases it, with a 24-hour run timeout as backstop. The harness is a
+`canary_harness` build with its own policy and a `canary-harness` Profile, and the untagged binary
+has no override. Protecting the environment to `main` with reviewers is a stated precondition;
+the in-repo checks are defense in depth. .3 depends on .2; the endpoint is found with
+`ListNexusEndpoints` and checked for its target; exit statuses have a precedence and reconcile
+its own; the lease has its own unpolled queue and type; the early proof is .2 with .4's two-Run
+test; every task has a Touches line; preflight's `PreparedCase` is the one the controller runs.

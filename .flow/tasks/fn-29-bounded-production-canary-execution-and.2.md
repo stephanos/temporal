@@ -11,6 +11,7 @@ Record canary Cases in a registry of their own (`Registry.recordCanary` in the c
 `cd model && lake build umpire-case && cd .. && make canary-check-case && go test -count=1 -tags test_dep ./tools/canary/casebinding/`
 
 **Files:** `model/Temporal/Case/Syntax.lean`, `model/Temporal/Case/Registry.lean`, `model/Temporal/Tool/Testpilot.lean`, `Makefile`, `tools/canary/testdata/**`, `tools/canary/casebinding/**`
+**Touches:** `model/Temporal/Case/Syntax.lean`, `model/Temporal/Case/Registry.lean`, `model/Temporal/Tool/Testpilot.lean`, `Makefile`, `tools/canary/testdata/**`, `tools/canary/casebinding/**`
 
 ### Re-plan note (2026-09-23)
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
