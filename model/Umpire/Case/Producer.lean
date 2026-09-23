@@ -586,6 +586,65 @@ private def resolveEvidence
     throw (productionError source action.definitionId.value "evidence.action-unmapped")
   pure (resolved, gaps)
 
+/-! ### The results a witnessed row could have taken
+
+A Case that lifted only its witness's evidence could not see the platform take another result of
+a row: the event it records would be one the Program never reads, the obligation would stay
+pending, and the Run would end inconclusive rather than violated. So every result of a witnessed
+(state, action) pair declares its evidence too, each kind projected to the result whose fact
+records it, and the witness's step stays the one the Contract confirms. A kind the witness's step
+or another result of the same row already declares is projected once, to every result that records
+it; a kind two different rows would record is rejected by name, because the projection could not
+say which row an event of that kind confirms. An alternative confirms the silent steps before its
+row the way the witness's own step does: they are inferred from whichever result's evidence
+arrives. A Model whose every row has one result adds nothing here. -/
+
+/-- The rules the alternatives of the witnessed rows add to `resolved`, in witness order. `results`
+is the machine's own table, `catalog` the `evidence:` lines, `sources` the kinds the realization
+admits. -/
+def alternativeRules
+    (source : SourceLocation)
+    (sources : List EvidenceSource)
+    (results : ModelValue → ModelValue → List (Step ModelValue ModelValue ModelValue))
+    (catalog : List (String × String))
+    (initial : ModelValue)
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
+    (resolved : List ResolvedRule) : Except Error (List ResolvedRule) := do
+  let mut rules := resolved
+  let mut prior := initial
+  let mut silent : List (ModelValue × Step ModelValue ModelValue ModelValue) := []
+  for step in steps do
+    let taken : Step ModelValue ModelValue ModelValue :=
+      { «state» := step.state, «outcome» := step.outcome, «facts» := step.facts }
+    let action := step.selectedAction
+    -- The witness's rule for this step, when the step is observed: its steps end on the taken row.
+    let witnessRule := rules.find? fun rule => rule.2.getLast? == some (action, taken)
+    let before := match witnessRule with
+      | some rule => rule.2.dropLast
+      | none => silent
+    -- The kinds this row is known to record: the witness's, then each alternative's as it is added.
+    let mut rowKinds : List String := (witnessRule.map (·.1.source.eventKind)).toList
+    for result in results prior action do
+      if result == taken then continue
+      for fact in result.facts do
+        let some (_, kind) := catalog.find? fun entry => coversFact entry.1 fact.value | continue
+        match rules.findIdx? (·.1.source.eventKind == kind), rules.find? (·.1.source.eventKind == kind) with
+        | some index, some (rule : ResolvedRule) =>
+            unless rowKinds.contains kind do
+              throw (productionError source kind "evidence.kind-ambiguous")
+            unless rule.2.contains (action, result) do
+              rules := rules.set index (rule.1, rule.2 ++ [(action, result)])
+        | _, _ =>
+            let some admitted := sources.find? (·.eventKind == kind)
+              | throw (productionError source kind "evidence.kind-unknown")
+            rules := rules ++ [({ action, source := admitted }, before ++ [(action, result)])]
+            rowKinds := rowKinds ++ [kind]
+    match witnessRule with
+    | some _ => silent := []
+    | none => silent := silent ++ [(action, taken)]
+    prior := step.state
+  pure rules
+
 /-! ### Program assembly
 
 The path decides the order. Each action the path performs becomes the instruction its class binds,
@@ -992,8 +1051,13 @@ def produce {LawStatement : Law → Prop}
   -- `evidence:` lines imply along the witness.
   let evidence := if evidence.isEmpty then derivedEvidence evidenceCatalog selected.trace.steps
     else evidence
-  let (evidenceRules, silentGaps) ← resolveEvidence input.source realization selectedValues
+  let (witnessRules, silentGaps) ← resolveEvidence input.source realization selectedValues
     selected.trace.steps evidence
+  -- The rows the witness took can end otherwise; the Contract declares those results' evidence
+  -- too, or a Run that took one would be read as nothing rather than as a violation.
+  let evidenceRules ← alternativeRules input.source realization.sources
+    input.target.machine.steps evidenceCatalog selected.trace.initialState selected.trace.steps
+    witnessRules
   let correlatedRules ← input.property.clauses.mapM
     (scopedClauseOf input.source realization.scopeField realization.operationKey
       occurrences opening selected.trace.steps)
@@ -1035,7 +1099,7 @@ def produce {LawStatement : Law → Prop}
   let relations ← (input.relations.filter fun relation =>
     performed.contains (input.vocabulary.namedAction relation.action).definitionId).flatMapM
     fun relation => placements.mapM fun placement =>
-      lowerRelation input placement realization (evidenceRules.map (·.1)) relation
+      lowerRelation input placement realization (witnessRules.map (·.1)) relation
   let assembled ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
     program (some input.vocabulary) input.instances
   compile {
