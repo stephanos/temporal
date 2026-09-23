@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -67,13 +66,13 @@ func (s *script) invocation(t *testing.T, canary *policy.Policy, started time.Ti
 
 func (s *script) run(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	s.runs++
-	runID := fmt.Sprintf("testpilot.run.%d", s.runs)
-	if _, err := driver.Open(ctx, runID, testpilot.PreparedProgram{}); err != nil {
+	id := runID(s.runs)
+	if _, err := driver.Open(ctx, id, testpilot.PreparedProgram{}); err != nil {
 		return nil, nil, err
 	}
-	s.server.open(runID, time.Unix(3000, 0))
+	s.server.open(id, time.Unix(3000, 0))
 	if !s.leaveOpen {
-		s.server.finish(runID)
+		s.server.finish(id)
 	}
 	if s.between != nil {
 		s.between(s.runs)
@@ -81,7 +80,7 @@ func (s *script) run(ctx context.Context, driver testpilot.Driver) (*testpilotsp
 	if s.runErr != nil {
 		return nil, nil, s.runErr
 	}
-	return &testpilotspb.Run{RunId: runID}, &testpilotspb.Verdict{}, nil
+	return &testpilotspb.Run{RunId: id}, &testpilotspb.Verdict{}, nil
 }
 
 func (s *script) decide(*testpilotspb.Run, *testpilotspb.Verdict) Outcome {
@@ -114,7 +113,7 @@ func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	require.False(t, result.Unreconciled)
 	require.Equal(t, recovery.HeldTook, result.Lease.Held)
 	require.Len(t, result.Iterations, canary.Limits.Iterations)
-	require.Equal(t, []string{"testpilot.run.1", "testpilot.run.2"}, runIDs(result.Iterations))
+	require.Equal(t, []string{runID(1), runID(2)}, runIDs(result.Iterations))
 	for _, iteration := range result.Iterations {
 		require.Equal(t, StatusAccepted, iteration.Outcome.Status)
 		require.Equal(t, []byte("receipt-accepted"), iteration.Outcome.Receipt)
@@ -122,7 +121,7 @@ func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	require.Empty(t, result.Stopped)
 	require.Equal(t, 2, s.released, "each iteration releases its own Driver")
 
-	require.Equal(t, []string{"testpilot.run.1", "testpilot.run.2"}, result.Cleanup.Fenced)
+	require.Equal(t, []string{runID(1), runID(2)}, result.Cleanup.Fenced)
 	require.Equal(t, result.Cleanup.Fenced, result.Cleanup.Closed)
 	require.Empty(t, result.Cleanup.Unverified)
 	require.True(t, result.Cleanup.Released)
@@ -134,7 +133,7 @@ func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	record := store.Snapshot()
 	require.Equal(t, recovery.PhaseReleased, record.Phase)
 	require.Equal(t, result.Lease, record.Lease)
-	require.Equal(t, []recovery.Iteration{{RunID: "testpilot.run.1"}, {RunID: "testpilot.run.2"}}, record.Iterations)
+	require.Equal(t, []recovery.Iteration{{RunID: runID(1)}, {RunID: runID(2)}}, record.Iterations)
 	require.Contains(t, progress.String(), "cleanup released the lease")
 }
 
@@ -179,7 +178,7 @@ func TestRunStopsAfterTheFirstIterationNotAccepted(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, result.Iterations, 1)
 		require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
-		require.Equal(t, "testpilot.run.1", result.Iterations[0].RunID)
+		require.Equal(t, runID(1), result.Iterations[0].RunID)
 		require.Zero(t, s.decided, "an errored Run is never decided")
 		require.True(t, result.Cleanup.Released)
 	})
@@ -300,9 +299,9 @@ func TestCleanupClosesOnlyTheFencedWorkflows(t *testing.T) {
 	run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, []string{"testpilot.run.1", "testpilot.run.2"}, result.Cleanup.Closed)
+	require.Equal(t, []string{runID(1), runID(2)}, result.Cleanup.Closed)
 	require.True(t, result.Cleanup.Released)
-	require.Contains(t, s.server.calls, "terminate testpilot.run.1")
+	require.Contains(t, s.server.calls, "terminate "+runID(1))
 	require.NotContains(t, s.server.calls, "terminate customer-workflow")
 	closed, err := workflowClosed(t.Context(), target(s.server), "customer-workflow", time.Second, noWait)
 	require.NoError(t, err)
@@ -314,9 +313,9 @@ func TestCleanupClosesOnlyTheFencedWorkflows(t *testing.T) {
 func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T) {
 	canary := testPolicy(t)
 	for name, stick := range map[string]func(*fakeServer){
-		"a workflow that stays open": func(server *fakeServer) { server.terminal["testpilot.run.2"] = true },
+		"a workflow that stays open": func(server *fakeServer) { server.terminal[runID(2)] = true },
 		"a termination that fails": func(server *fakeServer) {
-			server.fail["terminate testpilot.run.2"] = serviceerror.NewUnavailable("down")
+			server.fail["terminate "+runID(2)] = serviceerror.NewUnavailable("down")
 		},
 		"an unreadable fence": func(server *fakeServer) {
 			server.fail["history "+canary.Lease.WorkflowID] = serviceerror.NewUnavailable("down")
@@ -338,7 +337,7 @@ func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T)
 			}
 			require.False(t, result.Cleanup.Released)
 			require.Error(t, result.Cleanup.Err)
-			require.Contains(t, result.Cleanup.Unverified, "testpilot.run.2")
+			require.Contains(t, result.Cleanup.Unverified, runID(2))
 			require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
 			delete(s.server.fail, "history "+canary.Lease.WorkflowID)
 			observed, err := leaseState(t.Context(), target(s.server), canary.Lease.WorkflowID)
@@ -367,8 +366,8 @@ func TestAStaleFenceStopsTheInvocation(t *testing.T) {
 	require.Equal(t, StatusAccepted, result.Iterations[0].Outcome.Status)
 	require.Equal(t, StatusUnconstructible, result.Iterations[1].Outcome.Status)
 	require.Empty(t, result.Iterations[1].RunID, "the second Run never opened")
-	require.Len(t, s.server.runs["testpilot.run.1"], 1)
-	require.NotContains(t, s.server.runs, "testpilot.run.2")
+	require.Len(t, s.server.runs[runID(1)], 1)
+	require.NotContains(t, s.server.runs, runID(2))
 	require.False(t, result.Cleanup.Released)
 	require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
 }
