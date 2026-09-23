@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // Class is what one Run says about the subject's violation: the admissible violated form with the

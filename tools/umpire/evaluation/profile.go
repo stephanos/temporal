@@ -91,7 +91,7 @@ func LoadProfile(name string) (*Profile, error) {
 	if err != nil {
 		return nil, err
 	}
-	profile, err := parseProfile(encoded)
+	profile, err := ParseProfile(encoded)
 	if err != nil {
 		return nil, fmt.Errorf("evaluation Profile %q: %w", name, err)
 	}
@@ -101,11 +101,11 @@ func LoadProfile(name string) (*Profile, error) {
 	return profile, nil
 }
 
-// parseProfile decodes a rendered Profile strictly and validates it as Lean checks a declaration,
+// ParseProfile decodes a rendered Profile strictly and validates it as Lean checks a declaration,
 // so an assessment only ever receives a valid Profile. Strict means the bytes are exactly the
 // canonical rendering of what they decode to: an unknown, repeated or case-folded key, other
 // spacing or another field order is refused.
-func parseProfile(encoded []byte) (*Profile, error) {
+func ParseProfile(encoded []byte) (*Profile, error) {
 	decoder := json.NewDecoder(bytes.NewReader(encoded))
 	decoder.DisallowUnknownFields()
 	var profile Profile

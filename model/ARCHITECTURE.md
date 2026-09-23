@@ -322,7 +322,7 @@ record names, and carrying the Case's IDs; `crossed` otherwise, and `incompatibl
 naming no Case), closed by the Monitor's stop with a violated Verdict, its supporting sequences
 naming the Run's events, prepared under the recorded Profile name with the recorded catalog and
 bindings (`stale` otherwise), and replayed offline to the recorded Verdict. The record's codec and
-the checks replay shares with qualification admission live in `tools/umpire/internal/recordedrun`. The
+the checks replay shares with qualification admission live in `tools/umpire/recordedrun`. The
 subject's identity is the canonical bytes' SHA-256; its violation key is Contract-relative and read
 in Definition IDs (the violated rules, their terminal states, their violating evidence as the
 evaluation names it), never the Case or Run identity, sequences, times or the Verdict's accumulated

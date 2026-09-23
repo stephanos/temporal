@@ -14,7 +14,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/internal/casefile"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // Caps are the admission caps a subject is admitted under, recorded in its receipt. They are the

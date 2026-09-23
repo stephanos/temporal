@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // ReceiptFormatVersion is the receipt format this package writes and reads.

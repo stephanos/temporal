@@ -17,7 +17,7 @@ func localEphemeral(t *testing.T) Profile {
 
 func localStrict(t *testing.T) Profile {
 	t.Helper()
-	profile, err := parseProfile(readTestProfile(t, "local-strict"))
+	profile, err := ParseProfile(readTestProfile(t, "local-strict"))
 	require.NoError(t, err)
 	return *profile
 }

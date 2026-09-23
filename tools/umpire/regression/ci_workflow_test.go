@@ -630,3 +630,23 @@ func TestMigrationLedgerAndGenericPromotionRemainClosed(t *testing.T) {
 	require.NotContains(t, combined, "Temporal"+".System")
 	require.Contains(t, string(promotion), "import Umpire.Search")
 }
+
+// Umpire's own boundary with the canary: the canary imports Umpire, never the reverse. No package
+// under tools/umpire or common/testing/testpilot, tests included, reaches tools/canary.
+func TestUmpireNeverImportsTheCanary(t *testing.T) {
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skipf("the Go toolchain is not on PATH: %v", err)
+	}
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	require.NoError(t, err)
+	command := exec.Command("go", "list", "-deps", "-test", "-tags", "test_dep",
+		"./tools/umpire/...", "./common/testing/testpilot/...")
+	command.Dir = repositoryRoot
+	listed, err := command.Output()
+	require.NoError(t, err)
+	for _, dependency := range strings.Split(strings.TrimSpace(string(listed)), "\n") {
+		importPath := strings.SplitN(dependency, " [", 2)[0]
+		require.False(t, hasImportPrefix(importPath, "go.temporal.io/server/tools/canary"),
+			"Umpire or Testpilot reaches the canary through %s", dependency)
+	}
+}

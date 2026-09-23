@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/protobuf/proto"
 )
 
