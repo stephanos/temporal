@@ -222,7 +222,13 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 	} else {
 		result.Stopped = "the recovery record could not be written: " + recordErr.Error()
 	}
-	cleanupCtx, cancelCleanup := context.WithTimeout(context.WithoutCancel(ctx), r.Policy.Limits.CleanupReserve())
+	// Cleanup's deadline is absolute: however late the iterations ended, the invocation is over by
+	// the limit plus the reserve, and a cleanup that runs out of time leaves the lease held.
+	cleanupDeadline := time.Now().Add(r.Policy.Limits.CleanupReserve())
+	if last := r.Started.Add(r.Policy.Limits.Invocation() + r.Policy.Limits.CleanupReserve()); last.Before(cleanupDeadline) {
+		cleanupDeadline = last
+	}
+	cleanupCtx, cancelCleanup := context.WithDeadline(context.WithoutCancel(ctx), cleanupDeadline)
 	defer cancelCleanup()
 	result.Cleanup = r.cleanup(cleanupCtx, fence, result.Iterations)
 	return result, nil
@@ -239,37 +245,50 @@ func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error)
 	return &Result{Lease: &found, Unreconciled: true}, nil
 }
 
-// runBound is what one Run may take: the Temporal Profile's duration and cleanup ceilings.
-func (r *invocation) runBound() time.Duration {
+// iterationBound is the longest one iteration can take: a Run spends its total duration running,
+// a cleanup window each on termination, cleanup and close, and its total duration again closing
+// its Verdict, the later steps under fresh contexts no invocation deadline reaches; then the Driver's
+// release. An iteration starts only when this much of the invocation limit is left, so a live
+// invocation never outlives the limit plus the cleanup reserve that reconcile's age guard assumes.
+func (r *invocation) iterationBound() time.Duration {
 	limits := r.Scope.Profile.ProgramLimits
-	return time.Duration(limits.GetMaxTotalDurationMilliseconds()+limits.GetMaxCleanupDurationMilliseconds()) * time.Millisecond
+	total := time.Duration(limits.GetMaxTotalDurationMilliseconds()) * time.Millisecond
+	cleanup := time.Duration(limits.GetMaxCleanupDurationMilliseconds()) * time.Millisecond
+	return 2*total + 3*cleanup + releaseTimeout
 }
 
 func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 	for index := range r.Policy.Limits.Iterations {
-		if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < r.runBound() {
+		if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < r.iterationBound() {
 			result.Stopped = "the invocation limit leaves too little time for another Run"
 			return
 		}
-		iteration := r.iteration(ctx, fence)
+		iteration, releaseErr := r.iteration(ctx, fence)
 		result.Iterations = append(result.Iterations, iteration)
 		r.logf("iteration %d: run %s %s", index+1, iteration.RunID, iteration.Outcome.Status)
 		if iteration.Outcome.Status != StatusAccepted {
 			result.Stopped = "iteration " + fmt.Sprint(index+1) + " was " + iteration.Outcome.Status
 			return
 		}
+		// No Driver starts beside one that may still hold workers or connections.
+		if releaseErr != nil {
+			result.Stopped = "iteration " + fmt.Sprint(index+1) + "'s Driver did not release: " + releaseErr.Error()
+			r.logf("iteration %d: the Driver did not release: %s", index+1, releaseErr)
+			return
+		}
 	}
 }
 
 // iteration runs the prepared Case once through a fresh fenced Driver and SDK client, releases
-// both, and decides the closed Run.
-func (r *invocation) iteration(ctx context.Context, fence Fence) Iteration {
+// both, and decides the closed Run. It returns the release's failure beside the iteration, and
+// turns a panic in the Run or in decide into an unconstructible iteration, so cleanup still runs.
+func (r *invocation) iteration(ctx context.Context, fence Fence) (Iteration, error) {
 	unconstructible := func(runID string, err error) Iteration {
 		return Iteration{RunID: runID, Outcome: Outcome{Status: StatusUnconstructible, Err: err}}
 	}
 	driver, release, err := r.openDriver()
 	if err != nil {
-		return unconstructible("", err)
+		return unconstructible("", err), nil
 	}
 	fenced := NewFencedDriver(driver, func(ctx context.Context, runID string) error {
 		if err := signalRunOpened(ctx, r.target, fence, runID); err != nil {
@@ -280,22 +299,37 @@ func (r *invocation) iteration(ctx context.Context, fence Fence) Iteration {
 			record.Iterations = append(record.Iterations, recovery.Iteration{RunID: runID})
 		})
 	})
-	run, verdict, runErr := r.runCase(ctx, fenced)
+	var run *testpilotspb.Run
+	var verdict *testpilotspb.Verdict
+	runErr := safely(func() (err error) {
+		run, verdict, err = r.runCase(ctx, fenced)
+		return err
+	})
 	releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
-	releaseErr := release(releaseCtx)
+	releaseErr := safely(func() error { return release(releaseCtx) })
 	cancel()
 	runID := fenced.Opened()
 	if runErr != nil {
-		return unconstructible(runID, fmt.Errorf("run the canary Case: %w", runErr))
+		return unconstructible(runID, errors.Join(fmt.Errorf("run the canary Case: %w", runErr), releaseErr)), releaseErr
 	}
-	if releaseErr != nil {
-		r.logf("iteration run %s: the Driver did not release: %s", runID, releaseErr)
+	var outcome Outcome
+	if err := safely(func() error { outcome = r.Decide(run, verdict); return nil }); err != nil {
+		outcome = Outcome{Status: StatusUnconstructible, Err: err}
 	}
-	outcome := r.Decide(run, verdict)
 	if !slices.Contains([]string{StatusAccepted, StatusRejected, StatusIncomplete, StatusUnconstructible}, outcome.Status) {
 		outcome = Outcome{Status: StatusUnconstructible, Err: fmt.Errorf("decide returned status %q", outcome.Status)}
 	}
-	return Iteration{RunID: runID, Outcome: outcome}
+	return Iteration{RunID: runID, Outcome: outcome}, releaseErr
+}
+
+// safely runs step and reports a panic in it as an error.
+func safely(step func() error) (err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("panic: %v", recovered)
+		}
+	}()
+	return step()
 }
 
 // cleanup closes exactly the workflows the fence names, and releases the lease only when every
