@@ -50,12 +50,9 @@ func (e *ConflictError) Error() string {
 // name, never expose a partial file; publishing again restores it. A leftover temporary file is
 // dot-prefixed and never ends in the final name's extension.
 func Publish(ctx context.Context, root, name string, contents []byte) (Publication, error) {
-	if name == "" || name == "." || name == ".." || name != filepath.Base(name) {
-		return Publication{}, fmt.Errorf("publication name %q is not a bare file name", name)
-	}
-	resolvedRoot, err := Resolve(root)
+	resolvedRoot, final, err := finalPath(root, name)
 	if err != nil {
-		return Publication{}, fmt.Errorf("publication root: %w", err)
+		return Publication{}, err
 	}
 	info, err := os.Stat(resolvedRoot)
 	if err != nil {
@@ -64,7 +61,6 @@ func Publish(ctx context.Context, root, name string, contents []byte) (Publicati
 	if !info.IsDir() {
 		return Publication{}, fmt.Errorf("publication root %s is not a directory", resolvedRoot)
 	}
-	final := filepath.Join(resolvedRoot, name)
 
 	temporary, err := os.CreateTemp(resolvedRoot, "."+name+".tmp-*")
 	if err != nil {
@@ -99,18 +95,25 @@ func Publish(ctx context.Context, root, name string, contents []byte) (Publicati
 	return Publication{Status: StatusAlreadyPublished, Path: final}, nil
 }
 
+// finalPath resolves root through its symlinks and names the final path of a bare name under it.
+func finalPath(root, name string) (resolvedRoot, final string, err error) {
+	if name == "" || name == "." || name == ".." || name != filepath.Base(name) {
+		return "", "", fmt.Errorf("publication name %q is not a bare file name", name)
+	}
+	if resolvedRoot, err = Resolve(root); err != nil {
+		return "", "", fmt.Errorf("publication root: %w", err)
+	}
+	return resolvedRoot, filepath.Join(resolvedRoot, name), nil
+}
+
 // Check reports whether contents could be published under root at name without conflict: nil when
 // the name is absent or already holds exactly the bytes, a ConflictError when it holds anything
 // else. It writes nothing, so a caller publishing several documents can refuse before the first.
 func Check(root, name string, contents []byte) error {
-	if name == "" || name == "." || name == ".." || name != filepath.Base(name) {
-		return fmt.Errorf("publication name %q is not a bare file name", name)
-	}
-	resolvedRoot, err := Resolve(root)
+	_, final, err := finalPath(root, name)
 	if err != nil {
-		return fmt.Errorf("publication root: %w", err)
+		return err
 	}
-	final := filepath.Join(resolvedRoot, name)
 	if _, err := os.Lstat(final); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
