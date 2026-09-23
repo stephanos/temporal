@@ -129,6 +129,33 @@ func TestReduceRetriesAnIndeterminateRunOnce(t *testing.T) {
 	require.Len(t, report.Candidates, 1, "nothing is handed out after an undecided edit")
 }
 
+// A pair that one conclusive Run already decides is not retried: a not-reproduced Run beside an
+// indeterminate one makes the pair not reproduced, and no Run is spent on the indeterminate one.
+func TestReduceDoesNotRetryADecidedPair(t *testing.T) {
+	r := newReduction(t, []attemptScript{nil, nil, runSatisfied, runIncomplete}, edit(0, "a"))
+	report, err := r.run(t.Context(), t)
+	require.NoError(t, err)
+	require.Equal(t, []Class{ClassNotReproduced, ClassIndeterminate}, report.Candidates[0].Classes)
+	require.Equal(t, ClassNotReproduced, report.Candidates[0].Class)
+	require.Equal(t, 4, report.Runs, "no retry for a decided pair")
+	require.Equal(t, "irreducible", report.Status)
+}
+
+// A sweep the bridge capped runs and ends incomplete at the edit cap, which the report names.
+func TestReduceNamesTheEditCapOfACappedSweep(t *testing.T) {
+	r := newReduction(t, nil, edit(0, "a"))
+	r.fake.capped = true
+	subjectReruns, err := Rerun(t.Context(), r.binder, r.subject.Target())
+	require.NoError(t, err)
+	admitted := r.reducer.Admitted
+	admitted.Capped = true
+	r.reducer.Admitted = admitted
+	report, err := r.reducer.Reduce(t.Context(), subjectReruns)
+	require.NoError(t, err)
+	require.Equal(t, LimitEdits, report.Limit)
+	require.Equal(t, "incomplete", report.Status)
+}
+
 // A candidate that does not prepare is reported rejected and never rerun.
 func TestReduceReportsAPreparationRejectionWithoutARun(t *testing.T) {
 	r := newReduction(t, nil, edit(0, "a"))
@@ -195,12 +222,16 @@ func TestReduceNamesTheCandidateLostToAStop(t *testing.T) {
 	subjectReruns, err := Rerun(ctx, r.binder, r.subject.Target())
 	require.NoError(t, err)
 	r.binder.onRun = cancel
+	binds := r.binder.binds
 	report, err := r.reducer.Reduce(ctx, subjectReruns)
 	require.NoError(t, err)
 	require.True(t, report.Stopped)
+	require.Empty(t, report.Failure, "a stop is not a failure")
 	require.Equal(t, "candidate-1", report.Lost)
 	require.Empty(t, report.Candidates, "a lost candidate is not settled")
 	require.Equal(t, "incomplete", report.Status)
+	require.Equal(t, binds+1, r.binder.binds, "no Run is dispatched after the stop")
+	require.Equal(t, 3, report.Runs, "the Run that closed after the stop is counted")
 }
 
 // A rerun that cannot release is a failure the report names, never a class.
@@ -212,7 +243,9 @@ func TestReduceNamesARerunFailure(t *testing.T) {
 	report, err := r.reducer.Reduce(t.Context(), subjectReruns)
 	require.NoError(t, err)
 	require.Contains(t, report.Failure, "namespace still held")
+	require.False(t, report.Stopped)
 	require.Equal(t, "incomplete", report.Status)
+	require.Equal(t, 3, report.Runs, "the Run that closed before the release failed is counted")
 }
 
 // The same inputs and classes give the same decisions and the same report bytes.
