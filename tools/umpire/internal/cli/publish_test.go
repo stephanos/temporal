@@ -91,14 +91,29 @@ func TestPublishRefusesBeforeWriting(t *testing.T) {
 	require.ErrorContains(t, err, "interrupted before publishing")
 	require.Equal(t, []string{"file"}, entries(t, root), "nothing is published and no temporary file is left")
 
-	// Cancelling after the link changes nothing: the bytes stand.
-	running, stop := context.WithCancel(t.Context())
-	publication, err := Publish(running, root, "a.json", []byte("x"))
+	// A context cancelled after its check before the link changes nothing: the bytes stand.
+	late := &cancelledAfter{Context: t.Context(), checks: 1}
+	publication, err := Publish(late, root, "a.json", []byte("x"))
 	require.NoError(t, err)
-	stop()
+	require.Equal(t, StatusPublished, publication.Status)
+	require.Error(t, late.Err(), "the context was cancelled by the time Publish returned")
 	stored, err := os.ReadFile(publication.Path)
 	require.NoError(t, err)
 	require.Equal(t, "x", string(stored))
+}
+
+// cancelledAfter is a context that reports cancellation once it has been checked checks times.
+type cancelledAfter struct {
+	context.Context
+	checks int
+}
+
+func (c *cancelledAfter) Err() error {
+	if c.checks > 0 {
+		c.checks--
+		return nil
+	}
+	return context.Canceled
 }
 
 // A root reached through a symlink is published into where it really is.

@@ -77,6 +77,9 @@ func TestReceiptsAreDeterministicAndPerProfile(t *testing.T) {
 	require.NotEqual(t, ReceiptIdentity(first), ReceiptIdentity(other))
 	_, err := Render(subject, local, Assess(subject, strict))
 	require.ErrorContains(t, err, "not made under this Profile")
+	violated := c.admitted(t, nil, nil)
+	_, err = Render(subject, local, Assess(violated, local))
+	require.ErrorContains(t, err, "not made on this subject")
 
 	// Published under their identities, the same receipt is already published the second time and
 	// the other Profile's receipt stands beside it.
