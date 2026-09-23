@@ -421,12 +421,26 @@ func TestRunWritesEachProposalUnderThePromotionRootOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, entries, 1, "one file per counterexample, nothing else")
 
-	code = Run(requiredFlags("--promotion-root", root), &stdoutAgain, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
+	// The same campaign under another root writes the same bytes and the same summary, but for
+	// the root it names.
+	rootAgain := filepath.Join(t.TempDir(), "proposals")
+	code = Run(requiredFlags("--promotion-root", rootAgain), &stdoutAgain, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
 	require.Equal(t, exitViolated, code, stderr.String())
-	require.Equal(t, stdoutOnce.String(), stdoutAgain.String(), "the same campaign writes the same summary bytes")
-	bytesAgain, err := os.ReadFile(written)
+	require.Equal(t, strings.ReplaceAll(stdoutOnce.String(), root, rootAgain), stdoutAgain.String(), "the same campaign writes the same summary bytes")
+	bytesAgain, err := os.ReadFile(filepath.Join(rootAgain, expected.PromotionSourcePath))
 	require.NoError(t, err)
 	require.Equal(t, bytesOnce, bytesAgain)
+
+	// Under the same root the proposal is never replaced: the write is refused and the file
+	// stays as it was.
+	var stdoutRefused bytes.Buffer
+	stderr.Reset()
+	code = Run(requiredFlags("--promotion-root", root), &stdoutRefused, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
+	require.Equal(t, exitToolingError, code)
+	require.Contains(t, stderr.String(), "file exists")
+	bytesKept, err := os.ReadFile(written)
+	require.NoError(t, err)
+	require.Equal(t, bytesOnce, bytesKept)
 }
 
 // --record-root writes each counterexample's Case, compact with one newline, and its recorded Run

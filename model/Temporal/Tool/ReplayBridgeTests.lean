@@ -176,6 +176,13 @@ private def checkControl : IO Unit := do
   require ((← stringField "finished" finished "retained") == subject) "the subject is what is retained"
   require ((← fatesOf "finished" finished "edits") == [("dropPrefixStep 0", "inapplicable")])
     "every edit's fate is reported"
+  let proposal ← field "finished" finished "proposal"
+  require ((← stringField "proposal" proposal "digest") == subject) "the subject's own proposal"
+  require ((← stringField "proposal" proposal "promotionSourcePath") == s!"{controlSet}-{subject}.lean")
+    "named by the retained digest"
+  require ((← stringField "proposal" proposal "promotionSourceSha256").startsWith "sha256:") "the source is sealed"
+  let source ← stringField "proposal" proposal "promotionSource"
+  require (contains source s!"regression-{subject}") "its names are keyed on the same digest"
 
 /-! ### A subject no set produces is crossed -/
 
@@ -233,6 +240,10 @@ private def checkCaller : IO Unit := do
   require ((← stringField "finished" finished "retained") == digest) "the retained candidate is reported"
   require ((← fatesOf "finished" finished "edits") ==
     [("dropPrefixStep 1", "retained"), ("dropPrefixStep 0", "inapplicable")]) "every fate, in order"
+  let proposal ← field "finished" finished "proposal"
+  require ((← stringField "proposal" proposal "digest") == digest) "the retained candidate is proposed"
+  require ((← stringField "proposal" proposal "promotionSourcePath") == s!"{callerSet}-{digest}.lean")
+    "the proposal, its file and the candidate's Case are keyed on one digest"
   -- Not reproduced: nothing is retained, irreducible.
   let notReproduced ← runScript (callerOpening identity ++
     [observe 3 callerSet digest "not-reproduced", plain "next" 4 callerSet, plain "finish" 5 callerSet])
@@ -248,6 +259,7 @@ private def checkCaller : IO Unit := do
   let finished ← frameAt undecided 4 "finished" 4
   require ((← stringField "finished" finished "status") == "incomplete") "an undecided edit is incomplete"
   require (contains (← stringField "finished" finished "reason") "dropPrefixStep 1") "naming the edit"
+  require ((← field "finished" finished "proposal") == .null) "an incomplete result proposes nothing"
   -- A preparation rejection is `rejected`, never rerun.
   let prepared ← runScript (callerOpening identity ++
     [s!"\{\"frame\":\"observe\",\"seq\":3,\"set\":\"{callerSet}\",\"candidate\":\"{digest}\",\"profile\":\"{profile}\",\"prepareRejected\":\"unsupported opcode\"}",

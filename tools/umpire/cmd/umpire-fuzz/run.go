@@ -283,48 +283,20 @@ func recorder(configuration config) campaign.Recorder {
 }
 
 // writeProposals writes each compiled proposal under the promotion root, at the path the bridge
-// named, and returns the written path by candidate. No root, no writing: the digests alone are
-// reported. Every path is checked before any file is written, so a path that would leave the
-// root writes nothing at all; a write that then fails returns what was written before it.
+// named, through the writer every umpire command shares: every path is checked before any file
+// is written, each file is created exclusively, and a failure returns what was written before it.
 func writeProposals(root string, finished *campaign.Finished) (map[string]string, error) {
 	if root == "" || finished == nil {
 		return nil, nil
 	}
-	paths := map[string]string{}
+	var proposals []cli.Proposal
 	for _, sample := range finished.Counterexamples {
 		if sample.PromotionSourceSHA256 == nil || sample.PromotionSourcePath == "" {
 			continue
 		}
-		relative := filepath.Clean(filepath.FromSlash(sample.PromotionSourcePath))
-		if filepath.IsAbs(relative) || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-			return nil, fmt.Errorf("proposal for %s names a path outside the promotion root: %q", sample.Candidate, sample.PromotionSourcePath)
-		}
-		paths[sample.Candidate] = filepath.Join(root, relative)
+		proposals = append(proposals, cli.Proposal{Candidate: sample.Candidate, Path: sample.PromotionSourcePath, Source: sample.PromotionSource})
 	}
-	written := map[string]string{}
-	for _, sample := range finished.Counterexamples {
-		path, ok := paths[sample.Candidate]
-		if !ok {
-			continue
-		}
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return written, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
-		}
-		if err := os.WriteFile(path, []byte(sample.PromotionSource), 0o644); err != nil {
-			return written, fmt.Errorf("write proposal for %s: %w", sample.Candidate, err)
-		}
-		written[sample.Candidate] = path
-	}
-	return written, nil
-}
-
-// within reports whether path is root or under it; both are absolute and clean.
-func within(root, path string) bool {
-	relative, err := filepath.Rel(root, path)
-	if err != nil {
-		return false
-	}
-	return relative == "." || (relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)))
+	return cli.WriteProposals(root, proposals)
 }
 
 // render is the canonical summary: one JSON document, keys in declaration order, one LF. The
@@ -462,15 +434,11 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 		if *root.path == "" {
 			continue
 		}
-		if *root.path, err = filepath.Abs(*root.path); err != nil {
-			cli.WriteLine(stderr, "%s: %s", root.flag, err)
-			return config{}, err
-		}
 		// A proposal is for review, never an installed regression, and a record is a replay's
-		// input: the model never receives either.
-		if within(modelRoot, *root.path) {
-			cli.WriteLine(stderr, "%s must not be under the model root %s", root.flag, modelRoot)
-			return config{}, errors.New("root under the model")
+		// input: the model never receives either, whatever symlink a root is reached through.
+		if *root.path, err = cli.OutsideModel(root.flag, *root.path, modelRoot); err != nil {
+			cli.WriteLine(stderr, "%s", err)
+			return config{}, err
 		}
 	}
 	return configuration, nil
