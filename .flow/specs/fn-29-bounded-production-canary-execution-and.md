@@ -365,6 +365,18 @@ review: NEEDS_WORK four times (limit rules and fence position; the invocation re
 IDs; an untested length relation and a copied Run ID form), then SHIP; its P3 notes applied, the
 canonical-UUID helper kept as the one check the fence needs.
 
+Task .7 (2026-09-23): the exclusive publisher moved whole into `tools/umpire/publish` (`Publish`,
+`ConflictError`, `Resolve`, `Within`, the no-follow open and their tests) with `Check`, a pre-check
+that writes nothing; `tools/umpire/internal/cli` keeps its names as aliases and wrappers.
+`tools/canary/publication.Publish` reads every item's receipt and provenance back, requires them to
+name each other, the same Run and the item's decision, and pre-checks both names before publishing
+any, so a crossed document or a conflicting, partial, symlinked or directory name changes nothing.
+It then publishes each receipt and its provenance in order, and a publication it cannot record is
+the named `publication-unreported` error, which nothing reruns. An unconstructible iteration
+publishes nothing, and any other status that is not a decision is refused. The .2 comment change on
+the canary case block had drifted `model/AUTHORING.md`'s quote; the walkthrough now quotes it as
+it reads. Implementation review: SHIP in one round; its four P3 notes applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
