@@ -22,7 +22,8 @@
     "fn-22-deterministic-replay-semantic.3": 0,
     "fn-22-deterministic-replay-semantic.4": 0,
     "fn-22-deterministic-replay-semantic.5": 0,
-    "fn-22-deterministic-replay-semantic.6": 1
+    "fn-22-deterministic-replay-semantic.6": 2,
+    "fn-22-deterministic-replay-semantic.7": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1595,6 +1596,35 @@
       "task": "fn-22-deterministic-replay-semantic.6",
       "timestamp": "2026-09-23T07:48:01.277093Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "ed0fa4d57d1c0f7cdb0ec3c14c980c8101f51263715fbd93146d27cf71b7f180",
+      "backend": "claude",
+      "base_sha": "d8f5b1e3c5cce994913b303870e092a1904c432a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f57408411f5b398ee9b28c49cd0364340308a972",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 5343,
+      "output_sha256": "95a6a1d9f460e065c6ec2cbd66e1d0b88f88b48274590d96e4d8a72a1220d8a7",
+      "reservation_id": "6b01a6413e644f0ca1cf4a7d772963ab",
+      "round_consumed": true,
+      "scope": "impl:fn-22-deterministic-replay-semantic.7",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.7",
+      "timestamp": "2026-09-23T08:03:33.501245Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1606,8 +1636,19 @@
     "plan": 2,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-22-deterministic-replay-semantic.6": 1
+  },
+  "review_reservations": {
+    "86c0101a94e7465cbb87c7f18ea0c5f9": {
+      "artifact_sha256": "cd8408e0c25cdd3adeb2a752f3c1fc0e34ed0cadea9bc0cbe3ad94ea1aee2986",
+      "counter_scope": "impl:fn-22-deterministic-replay-semantic.6",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-22-deterministic-replay-semantic.1": 0,
     "impl:fn-22-deterministic-replay-semantic.2": 0,
@@ -1615,6 +1656,7 @@
     "impl:fn-22-deterministic-replay-semantic.4": 0,
     "impl:fn-22-deterministic-replay-semantic.5": 0,
     "impl:fn-22-deterministic-replay-semantic.6": 1,
+    "impl:fn-22-deterministic-replay-semantic.7": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-22-deterministic-replay-semantic.md",
@@ -1631,5 +1673,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T07:48:01.278102Z"
+  "updated_at": "2026-09-23T08:24:03.442008Z"
 }
