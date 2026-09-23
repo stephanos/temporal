@@ -446,6 +446,24 @@ The first Run's record is the replay package's pin (`testdata/nexusCallerControl
 scaffolding outside the violated rules' support by instruction id. The control needed no
 scenario-specific Go and no revision of the plan.
 
+Implementation review of tasks .2 and .3 (`flowctl claude impl-review`, opus at high), round one:
+both NEEDS_WORK, all findings applied. Task .2 (three findings): two results of one row that
+record one kind appended a second row to one rule, which an obligation cannot release, so a result
+now declares one kind (the first its facts record, as the witness's step carries one) and a kind
+any rule already declares rejects as `evidence.kind-ambiguous` naming both rows; pinned on the
+lamp for two alternatives sharing a kind and for an alternative sharing the witness's kind;
+`ARCHITECTURE.md` states the rule the code applies. Its FYI notes are recorded and not applied:
+folding the walk into `resolveEvidence` would mix the witness's `evidence.action-repeated` check
+with the alternatives', and the Lean pin sits in `Umpire.Case.Tests.Producer` beside the
+Producer's other pins. Task .3 (five findings): `Control/Tests.lean` is now imported by
+`TemporalModelTests`, so its pins compile; the control set binds the caller and the handler only,
+because a set may bind only parties whose actions the Model's machine performs and the control's
+machine performs no network or worker action (the set declaration rejects `network` and `worker`
+there); `OutsideCore` checks membership without an order precondition; the key pin asserts the
+exact scaffolding set by sequence and instruction id; the replay tests share one preparer
+parameterized by names, and the live test prepares through `binding.Prepare`, the path
+`umpire-replay` takes.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

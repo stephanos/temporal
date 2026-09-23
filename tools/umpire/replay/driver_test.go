@@ -32,12 +32,17 @@ func loadCorpusCase(t testing.TB, class string) []byte {
 // with no deployment behind them.
 func preparer(t testing.TB) Preparer {
 	t.Helper()
+	return preparerIn(t, testpilotdriver.Environment{Namespace: "replay", TaskQueue: "replay-queue", NexusEndpoint: "replay-endpoint"})
+}
+
+// preparerIn prepares under the given names; the Profile identity is the preparer's argument.
+func preparerIn(t testing.TB, environment testpilotdriver.Environment) Preparer {
+	t.Helper()
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	return func(identity string, source *testpilotspb.Case) (*testpilot.PreparedCase, error) {
-		profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
-			Identity: identity, Namespace: "replay", TaskQueue: "replay-queue", NexusEndpoint: "replay-endpoint",
-		})
+		environment.Identity = identity
+		profile, err := testpilotdriver.DeriveProfile(source, catalog, environment)
 		if err != nil {
 			return nil, err
 		}
