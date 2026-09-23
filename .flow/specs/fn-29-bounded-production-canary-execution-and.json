@@ -17,9 +17,9 @@
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 3,
   "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-23T11:36:03.429988Z",
+  "plan_reviewed_at": "2026-09-23T11:42:49.057059Z",
   "ready": false,
   "review_attempts": [
     {
@@ -196,6 +196,35 @@
       "task": null,
       "timestamp": "2026-09-23T11:36:03.429476Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0bc33639053b50685c1ab7553b9f6f2111ddd3b05a1b0f62707883f3b256e477",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9cf82336eef92e6016257d8fda615e8407ba474b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 9532,
+      "output_sha256": "cb96d875e16eed074ed84a845a1003bc9b93acad23d8b9e6e232197d22b4e4b9",
+      "reservation_id": "f23b6018cdf54798802a597703181c2e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-23T11:42:49.056556Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -221,5 +250,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T11:36:03.429995Z"
+  "updated_at": "2026-09-23T11:42:49.057068Z"
 }
