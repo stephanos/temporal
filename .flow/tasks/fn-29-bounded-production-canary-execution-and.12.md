@@ -11,6 +11,7 @@ Complete the matrices across the canary Case binding, the canary Profile, the po
 `make umpire-check-regression; go test -count=1 -tags test_dep ./tools/canary/... ./tools/umpire/...; make lint-code-fast`
 
 **Files:** `model/Temporal/Evaluation/CanaryTests.lean`, `tools/canary/**`, `Makefile`
+**Touches:** `model/Temporal/Evaluation/CanaryTests.lean`, `tools/canary/**`, `Makefile`
 
 ### Re-plan note (2026-09-23)
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
