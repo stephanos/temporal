@@ -167,10 +167,10 @@ assembles a Case's Program and Contract from a checked Query's witness and a rea
 `Testpilot.Authoring`, and uses `Umpire.Case.Compiler` for source-bound rule validation, Case-local
 names and model value spellings, exact provenance rows, and final assembly from generated values. The
 Contract's evidence is the witness's, plus the evidence of every other result of each witnessed row
-(the alternatives, projected to their rows under the witness's silent prefix), so a Run that takes
-another result of an authorized row is read and judged against it rather than left unread; a
-result whose evidence kind is not declared, or is declared twice with different kinds on one row,
-is a production error. `Testpilot.ProtoJSON` delegates canonical
+(the alternatives, one kind each, projected to their rows under the witness's silent prefix), so a
+Run that takes another result of an authorized row is read and judged against it rather than left
+unread; a kind any other result or row already declares, or one the realization does not admit, is
+a production error. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 
 `Umpire.Case.Producer` is the one Producer: every checked-in functional Case is produced from a

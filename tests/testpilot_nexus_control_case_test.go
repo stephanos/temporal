@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	umpirebinding "go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/protobuf/proto"
 )
@@ -34,19 +34,16 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 	live := bindCase(t, env, caseSource, binding)
 	require.Empty(t, live.profile.Configuration, "the control is recorded without dynamic configuration")
 
-	// The replay prepares under the recorded Profile name with the deployment's names, as
-	// binding.Prepare does, and must arrive at the identity the live binding recorded.
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
+	// The replay prepares under the recorded Profile name with the deployment's names through
+	// binding.Prepare, the path umpire-replay takes, and must arrive at the identity the live
+	// binding recorded.
+	deployment := umpirebinding.Deployment{Namespace: binding.Namespace, TaskQueue: binding.TaskQueue, NexusEndpoint: binding.NexusEndpoint}
 	prepare := func(identity string, source *testpilotpb.Case) (*testpilot.PreparedCase, error) {
-		profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
-			Identity: identity, Namespace: binding.Namespace, TaskQueue: binding.TaskQueue,
-			HandlerTaskQueue: binding.TaskQueue + "-handler", NexusEndpoint: binding.NexusEndpoint,
-		})
+		prepared, err := umpirebinding.Prepare(deployment, umpirebinding.HandlerQueue(deployment), identity, source)
 		if err != nil {
 			return nil, err
 		}
-		return testpilot.Prepare(source, profile)
+		return prepared.Case, nil
 	}
 
 	// The first Run's record is the replay package's pin of the correlated key when
