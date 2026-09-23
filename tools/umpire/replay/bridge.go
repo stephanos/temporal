@@ -320,18 +320,8 @@ func (b *Bridge) open() error {
 }
 
 func (b *Bridge) exchange(ctx context.Context, frame bridgeRequest, profile string, check func(bridgeReply) error, kinds ...string) (bridgeReply, error) {
-	var answer bridgeReply
-	_, err := b.conn.Exchange(ctx, frame.Frame, func(seq int, set string) any {
+	return campaign.ExchangeJSON(ctx, b.conn, frame.Frame, func(seq int, set string) any {
 		frame.Seq, frame.Set = seq, set
 		return frame
-	}, profile, func(line []byte) error {
-		if err := json.Unmarshal(line, &answer); err != nil {
-			return fmt.Errorf("decode replay bridge reply to %s: %w", frame.Frame, err)
-		}
-		if check != nil {
-			return check(answer)
-		}
-		return nil
-	}, kinds...)
-	return answer, err
+	}, profile, check, kinds...)
 }

@@ -501,13 +501,20 @@ func (b *Bridge) open() error {
 // exchange sends one exploration frame over the transport and reads its reply into the
 // exploration shape, passing the kind's own check.
 func (b *Bridge) exchange(ctx context.Context, frame request, profile string, check func(reply) error, kinds ...string) (reply, error) {
-	var answer reply
-	_, err := b.conn.Exchange(ctx, frame.Frame, func(seq int, set string) any {
+	return ExchangeJSON(ctx, b.conn, frame.Frame, func(seq int, set string) any {
 		frame.Seq, frame.Set = seq, set
 		return frame
-	}, profile, func(line []byte) error {
+	}, profile, check, kinds...)
+}
+
+// ExchangeJSON is Exchange with the reply decoded into Reply and passed to check: what every
+// client of a Lean bridge does with a frame, whatever its frames mean.
+func ExchangeJSON[Reply any](ctx context.Context, conn *Conn, kind string, build func(seq int, set string) any,
+	profile string, check func(Reply) error, kinds ...string) (Reply, error) {
+	var answer Reply
+	err := conn.Exchange(ctx, kind, build, profile, func(line []byte) error {
 		if err := json.Unmarshal(line, &answer); err != nil {
-			return fmt.Errorf("decode bridge reply to %s: %w", frame.Frame, err)
+			return fmt.Errorf("decode bridge reply to %s: %w", kind, err)
 		}
 		if check != nil {
 			return check(answer)
@@ -518,70 +525,67 @@ func (b *Bridge) exchange(ctx context.Context, frame request, profile string, ch
 }
 
 // Exchange writes the frame build returns for the next sequence number and the scoped set, and
-// reads its reply, matched by sequence number, set and profile, of one of the kinds named, and
+// reads its reply, handing its bytes to check, matched by sequence number, set and profile, of one of the kinds named, and
 // passing check. A `rejected` reply is a RejectedError and leaves the sequence where it was, as a
 // bridge does. A frame that could not be written, a reply that could not be read or did not match,
 // or a context that ended mid-exchange breaks the transport: its stream is out of step, so every
 // later call returns the same failure without writing.
 func (c *Conn) Exchange(ctx context.Context, kind string, build func(seq int, set string) any, profile string,
-	check func(line []byte) error, kinds ...string) ([]byte, error) {
+	check func(line []byte) error, kinds ...string) error {
 	if c.broken != nil {
-		return nil, c.broken
+		return c.broken
 	}
 	seq := c.seq + 1
 	encoded, err := json.Marshal(build(seq, c.set))
 	if err != nil {
-		return nil, fmt.Errorf("encode %s frame: %w", kind, err)
+		return fmt.Errorf("encode %s frame: %w", kind, err)
 	}
 	if len(encoded)+1 > c.maxFrameBytes {
-		return nil, fmt.Errorf("%s frame of %d bytes: %w", kind, len(encoded), ErrFrameTooLarge)
+		return fmt.Errorf("%s frame of %d bytes: %w", kind, len(encoded), ErrFrameTooLarge)
 	}
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return err
 	}
-	line, err := c.transact(ctx, kind, seq, profile, encoded, kinds, check)
-	if err != nil {
+	if err := c.transact(ctx, kind, seq, profile, encoded, kinds, check); err != nil {
 		var rejected *RejectedError
 		if !errors.As(err, &rejected) {
 			c.broken = fmt.Errorf("%w: %w", ErrBroken, err)
 		}
-		return nil, err
+		return err
 	}
 	c.seq = seq
-	return line, nil
+	return nil
 }
 
 func (c *Conn) transact(ctx context.Context, kind string, seq int, profile string, encoded []byte, kinds []string,
-	check func(line []byte) error) ([]byte, error) {
+	check func(line []byte) error) error {
 	line, err := c.roundTrip(ctx, kind, append(encoded, '\n'))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var answer Envelope
 	if err := json.Unmarshal(line, &answer); err != nil {
-		return nil, fmt.Errorf("decode bridge reply to %s: %w", kind, err)
+		return fmt.Errorf("decode bridge reply to %s: %w", kind, err)
 	}
 	if answer.Seq != seq {
-		return nil, &ProtocolError{Expected: fmt.Sprintf("seq %d", seq), Actual: fmt.Sprintf("seq %d", answer.Seq)}
+		return &ProtocolError{Expected: fmt.Sprintf("seq %d", seq), Actual: fmt.Sprintf("seq %d", answer.Seq)}
 	}
 	if answer.Frame == "rejected" {
-		return nil, &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
+		return &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
 	}
 	if answer.Set != c.set {
-		return nil, &ProtocolError{Expected: "set " + c.set, Actual: "set " + answer.Set}
+		return &ProtocolError{Expected: "set " + c.set, Actual: "set " + answer.Set}
 	}
 	if answer.Profile != profile {
-		return nil, &ProtocolError{Expected: "profile " + profile, Actual: "profile " + answer.Profile}
+		return &ProtocolError{Expected: "profile " + profile, Actual: "profile " + answer.Profile}
 	}
 	if !slices.Contains(kinds, answer.Frame) {
-		return nil, &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
+		return &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
 	}
 	if check != nil {
-		if err := check(line); err != nil {
-			return nil, err
-		}
+		return check(line)
 	}
-	return line, nil
+	return nil
 }
 
 // roundTrip writes one frame and reads its reply within the byte cap. Both honour the context: a

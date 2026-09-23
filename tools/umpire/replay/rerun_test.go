@@ -35,7 +35,11 @@ type scriptedBound struct {
 	run      attemptScript
 }
 
-func (b *scriptedBinder) Bind(_ context.Context, identity string, source *testpilotspb.Case) (campaign.Bound, error) {
+func (b *scriptedBinder) Bind(ctx context.Context, identity string, source *testpilotspb.Case) (campaign.Bound, error) {
+	// The real binder dials the deployment on the context, which a stop has ended.
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if b.open {
 		return nil, errors.New("bound while the previous binding is held")
 	}
@@ -226,17 +230,13 @@ func TestRerunValueCarriesNoHistoryReplay(t *testing.T) {
 }
 
 // A Run stopped by the caller's cancellation still closes, and its binding is still released: the
-// release sees a context the cancellation does not reach.
+// release sees a context the cancellation does not reach. No attempt is bound after the stop.
 func TestRerunReleasesAfterCancellation(t *testing.T) {
 	subject, prepare := admittedSubject(t)
 	ctx, cancel := context.WithCancel(t.Context())
 	binder := &scriptedBinder{prepare: prepare, onRun: cancel}
-	reruns, err := Rerun(ctx, binder, subject.Target())
-	require.NoError(t, err)
-	require.Error(t, ctx.Err())
-	require.Len(t, binder.released, Attempts)
-	for _, released := range binder.released {
-		require.NoError(t, released, "the release ran on a live context")
-	}
-	require.Len(t, reruns.Attempts, Attempts)
+	_, err := Rerun(ctx, binder, subject.Target())
+	require.ErrorIs(t, err, context.Canceled)
+	require.Equal(t, 1, binder.binds, "nothing is bound after the stop")
+	require.Equal(t, []error{nil}, binder.released, "the release ran on a live context")
 }

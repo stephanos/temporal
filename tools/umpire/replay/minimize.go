@@ -14,10 +14,10 @@ import (
 )
 
 // Limits bound one reduction. Each is checked before the work it bounds: the edit cap at
-// admission, the Run budget before a candidate is asked for and before a retry, the wall time
-// before a candidate is asked for, the aggregate Case bytes and Run Events before a candidate is
-// asked for and the Case bytes again on the candidate that arrives, and the report bytes on the
-// rendered report. Zero leaves a cap unset, except Runs and Edits, which the first slice fixes.
+// admission (a sweep the bridge capped is recorded as ending at it); the wall time, the Run budget
+// and the aggregate Run Events before a candidate is asked for and before each Run is dispatched;
+// the aggregate Case bytes before a candidate is asked for and again on the one that arrives; and
+// the report bytes on the rendered report. Zero leaves a cap unset.
 type Limits struct {
 	Edits       int
 	Runs        int
@@ -100,18 +100,8 @@ type Reducer struct {
 	Progress io.Writer
 }
 
-// reduceState is where one reduction stands; each step moves it forward and none moves it back.
-type reduceState int
-
-const (
-	stateAsking reduceState = iota
-	stateRunning
-	stateDone
-)
-
 type minimizer struct {
 	Reducer
-	state     reduceState
 	deadline  time.Time
 	caseBytes int64
 	runEvents int64
@@ -121,8 +111,9 @@ type minimizer struct {
 // Reduce runs one sweep. It starts only when the subject's reruns reproduced its key; otherwise
 // the report says the reduction was not attempted, and the bridge is finished as stopped. For
 // each candidate the bridge hands out, it prepares the Case under the subject's Profile name (a
-// rejection is reported as `rejected`, never rerun), reruns it twice through Rerun, reruns an
-// indeterminate Run alone once, and reports the pair's class. It ends when the bridge's sweep is
+// rejection is reported as `rejected`, never rerun), dispatches two fresh Runs one at a time
+// through RerunOnce, reruns each indeterminate Run of an indeterminate pair alone once, and
+// reports the pair's class. It ends when the bridge's sweep is
 // exhausted, an edit is undecided, a limit is reached, the context is cancelled, or a rerun
 // cannot bind or release; the bridge's result says which edits were retained. A returned error is
 // one the bridge could not be told about; the report beside it holds what was decided.
@@ -154,11 +145,13 @@ func (r Reducer) Reduce(ctx context.Context, subjectReruns *Reruns) (Reduction, 
 		err = m.limit(ctx, LimitEdits)
 	default:
 		m.report.Attempted = true
-		for m.state == stateAsking {
-			var done bool
-			if done, err = m.ask(ctx); done {
-				break
-			}
+		if r.Admitted.Capped {
+			// The bridge enumerated the cap's worth of edits and no more: the sweep runs, and
+			// cannot end otherwise than incomplete at the edit cap.
+			m.report.Limit = LimitEdits
+		}
+		for done := false; !done; {
+			done, err = m.ask(ctx)
 		}
 	}
 	return m.report, err
@@ -177,20 +170,14 @@ func (m *minimizer) ask(ctx context.Context) (bool, error) {
 		m.report.Stopped = true
 		return true, m.finish(ctx, "stopped")
 	}
-	switch {
-	case m.Limits.WallTime > 0 && !m.Now().Before(m.deadline):
-		return true, m.limit(ctx, LimitWallTime)
-	case m.Limits.Runs > 0 && m.report.Runs+Attempts > m.Limits.Runs:
-		return true, m.limit(ctx, LimitRuns)
-	case m.Limits.CaseBytes > 0 && m.caseBytes >= m.Limits.CaseBytes:
+	if limit := m.beforeDispatch(Attempts); limit != "" {
+		return true, m.limit(ctx, limit)
+	}
+	if m.Limits.CaseBytes > 0 && m.caseBytes >= m.Limits.CaseBytes {
 		return true, m.limit(ctx, LimitCaseBytes)
-	case m.Limits.RunEvents > 0 && m.runEvents >= m.Limits.RunEvents:
-		return true, m.limit(ctx, LimitRunEvents)
-	default:
 	}
 	next, err := m.Bridge.Next(ctx)
 	if err != nil {
-		m.state = stateDone
 		return true, fmt.Errorf("next: %w", err)
 	}
 	for _, skipped := range next.Skipped {
@@ -199,12 +186,48 @@ func (m *minimizer) ask(ctx context.Context) (bool, error) {
 	if next.Exhausted {
 		return true, m.finish(ctx, "")
 	}
-	m.state = stateRunning
-	if done, err := m.candidate(ctx, next.Candidate); done {
-		return true, err
+	return m.candidate(ctx, next.Candidate)
+}
+
+// beforeDispatch names the limit that `runs` more Runs would cross, or nothing: the wall time,
+// the Run budget and the aggregate Run Events, each checked before a Run is dispatched.
+func (m *minimizer) beforeDispatch(runs int) string {
+	switch {
+	case m.Limits.WallTime > 0 && !m.Now().Before(m.deadline):
+		return LimitWallTime
+	case m.Limits.Runs > 0 && m.report.Runs+runs > m.Limits.Runs:
+		return LimitRuns
+	case m.Limits.RunEvents > 0 && m.runEvents >= m.Limits.RunEvents:
+		return LimitRunEvents
+	default:
+		return ""
 	}
-	m.state = stateAsking
-	return false, nil
+}
+
+// dispatch runs one fresh attempt of the target, after the stop and every limit that bounds a Run
+// are checked; the closed Run is counted whatever it says. stop says the reduction ended here.
+func (m *minimizer) dispatch(ctx context.Context, candidate *BridgeCandidate, target Target, dispatched bool) (Attempt, bool, error) {
+	if ctx.Err() != nil {
+		return Attempt{}, true, m.stop(ctx, candidate, dispatched)
+	}
+	if limit := m.beforeDispatch(1); limit != "" {
+		return Attempt{}, true, m.limit(ctx, limit)
+	}
+	attempt, err := RerunOnce(ctx, m.Binder, target)
+	if attempt.Run != nil {
+		m.report.Runs++
+		m.runEvents += int64(len(attempt.Run.GetEvents()))
+	}
+	if err != nil {
+		if ctx.Err() != nil {
+			return Attempt{}, true, m.stop(ctx, candidate, true)
+		}
+		return Attempt{}, true, m.fail(ctx, candidate, fmt.Sprintf("rerun: %s", err))
+	}
+	if ctx.Err() != nil {
+		return Attempt{}, true, m.stop(ctx, candidate, true)
+	}
+	return attempt, false, nil
 }
 
 // candidate takes one candidate through preparation, its Runs and the bridge.
@@ -220,42 +243,34 @@ func (m *minimizer) candidate(ctx context.Context, candidate *BridgeCandidate) (
 		return m.settle(ctx, candidate, entry, Decided{PrepareRejected: &rejection})
 	}
 	m.progress("candidate %s %s", candidate.Digest, candidate.Edit.Edit)
-	reruns, err := Rerun(ctx, m.Binder, target)
-	if err != nil {
-		return true, m.fail(ctx, candidate, fmt.Sprintf("rerun: %s", err))
-	}
-	m.report.Runs += len(reruns.Attempts)
-	m.count(reruns.Attempts)
-	if ctx.Err() != nil {
-		return true, m.lose(ctx, candidate)
-	}
-	// Each Run's class in the order it closed; an indeterminate Run is rerun alone once and its
-	// retry's class stands in the pair for it.
-	final := make([]Class, 0, len(reruns.Attempts))
-	for _, attempt := range reruns.Attempts {
+	// Each Run is dispatched on its own, so a stop or a limit between the two falls before the
+	// second Run rather than after it.
+	final := make([]Class, 0, Attempts)
+	for range Attempts {
+		attempt, done, err := m.dispatch(ctx, candidate, target, len(final) > 0)
+		if done {
+			return true, err
+		}
 		entry.Classes = append(entry.Classes, attempt.Class)
 		final = append(final, attempt.Class)
 	}
-	for index, class := range final {
-		if class != ClassIndeterminate {
-			continue
+	// Only a pair that is itself indeterminate is retried: a not-reproduced Run already decides
+	// the pair. Each indeterminate Run is rerun alone once, one Run apiece, and its retry's class
+	// stands in the pair for it.
+	if ClassifyPair(final...) == ClassIndeterminate {
+		for index, class := range final {
+			if class != ClassIndeterminate {
+				continue
+			}
+			retry, done, err := m.dispatch(ctx, candidate, target, true)
+			if done {
+				m.report.Candidates = append(m.report.Candidates, entry)
+				return true, err
+			}
+			m.progress("retried %s attempt %d %s", candidate.Digest, index+1, retry.Class)
+			entry.Classes = append(entry.Classes, retry.Class)
+			final[index] = retry.Class
 		}
-		if m.Limits.Runs > 0 && m.report.Runs+1 > m.Limits.Runs {
-			m.report.Candidates = append(m.report.Candidates, entry)
-			return true, m.limit(ctx, LimitRuns)
-		}
-		retry, err := RerunOnce(ctx, m.Binder, target)
-		if err != nil {
-			return true, m.fail(ctx, candidate, fmt.Sprintf("retry: %s", err))
-		}
-		m.report.Runs++
-		m.count([]Attempt{retry})
-		if ctx.Err() != nil {
-			return true, m.lose(ctx, candidate)
-		}
-		m.progress("retried %s attempt %d %s", candidate.Digest, index+1, retry.Class)
-		entry.Classes = append(entry.Classes, retry.Class)
-		final[index] = retry.Class
 	}
 	entry.Class = ClassifyPair(final...)
 	return m.settle(ctx, candidate, entry, Decided{Class: entry.Class})
@@ -278,19 +293,12 @@ func (m *minimizer) prepare(candidate *BridgeCandidate) (Target, string) {
 	return Target{Case: source, Prepared: prepared, Driver: prepared.Identity(), Key: m.Subject.Key}, ""
 }
 
-func (m *minimizer) count(attempts []Attempt) {
-	for _, attempt := range attempts {
-		m.runEvents += int64(len(attempt.Run.GetEvents()))
-	}
-}
-
 // settle tells the bridge what the candidate's Runs decided and records the fate it answers. An
 // undecided edit ends the reduction, as the bridge does.
 func (m *minimizer) settle(ctx context.Context, candidate *BridgeCandidate, entry CandidateReport, decided Decided) (bool, error) {
 	reply, err := m.Bridge.Observe(ctx, candidate.Digest, decided)
 	if err != nil {
 		m.report.Candidates = append(m.report.Candidates, entry)
-		m.state = stateDone
 		return true, fmt.Errorf("observe %s: %w", candidate.Digest, err)
 	}
 	entry.Fate, entry.Reason = reply.Fate, reply.Reason
@@ -310,12 +318,14 @@ func (m *minimizer) limit(ctx context.Context, limit string) error {
 	return m.finish(ctx, "limit-reached")
 }
 
-// lose ends the reduction on a stop that fell while a candidate's Runs were open: the candidate is
+// stop ends the reduction on a stop. When a Run of the candidate was dispatched, the candidate is
 // named as lost, never settled with a class its Runs did not finish deciding.
-func (m *minimizer) lose(ctx context.Context, candidate *BridgeCandidate) error {
+func (m *minimizer) stop(ctx context.Context, candidate *BridgeCandidate, dispatched bool) error {
 	m.report.Stopped = true
-	m.report.Lost = candidate.Digest
-	m.progress("lost %s", candidate.Digest)
+	if dispatched {
+		m.report.Lost = candidate.Digest
+		m.progress("lost %s", candidate.Digest)
+	}
 	return m.finish(ctx, "stopped")
 }
 
@@ -329,7 +339,6 @@ func (m *minimizer) fail(ctx context.Context, candidate *BridgeCandidate, failur
 // finish asks the bridge for the result. The bridge is asked on a context the caller's
 // cancellation does not reach, since its answer is what a stopped reduction still reports.
 func (m *minimizer) finish(ctx context.Context, status string) error {
-	m.state = stateDone
 	finished, err := m.Bridge.Finish(context.WithoutCancel(ctx), status)
 	if err != nil {
 		return fmt.Errorf("finish: %w", err)
