@@ -67,8 +67,12 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 	store, err := recovery.Create(filepath.Join(t.TempDir(), "recovery.json"), scope.InvocationID)
 	require.NoError(t, err)
 
+	// The controller starts an iteration only while one iteration's whole worst case fits in what
+	// is left, which is longer than a test context's ceiling; it gets the invocation limit instead.
+	runCtx, cancelRun := context.WithTimeout(context.Background(), canary.Limits.Invocation())
+	defer cancelRun()
 	var progress bytes.Buffer
-	result, err := controller.Run(ctx, controller.Config{
+	result, err := controller.Run(runCtx, controller.Config{
 		Policy: canary, Scope: scope, Namespace: coordinates.Namespace,
 		Transport: authority.Transport{Target: coordinates.GRPC, Credentials: insecure.NewCredentials()},
 		Redactor:  redactor, Service: env.FrontendClient(), Identity: "umpire-canary-lifecycle",
