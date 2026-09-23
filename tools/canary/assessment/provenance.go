@@ -102,6 +102,17 @@ func (p *Provenance) validate() error {
 	if p.Version != ProvenanceFormatVersion {
 		return fmt.Errorf("provenance format version %d, not %d", p.Version, ProvenanceFormatVersion)
 	}
+	for _, check := range []func() error{p.validateIdentities, p.validateScope, p.validateIteration} {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateIdentities checks what the provenance names: the receipt, the Profile, the authority
+// class and the workflow run.
+func (p *Provenance) validateIdentities() error {
 	if !isHexDigest(p.Receipt) {
 		return fmt.Errorf("receipt %q is not a receipt identity", p.Receipt)
 	}
@@ -117,6 +128,12 @@ func (p *Provenance) validate() error {
 	if number, err := strconv.ParseUint(p.Workflow.RunID, 10, 64); err != nil || number == 0 || strconv.FormatUint(number, 10) != p.Workflow.RunID {
 		return fmt.Errorf("workflow run ID %q is not a positive number", p.Workflow.RunID)
 	}
+	return nil
+}
+
+// validateScope checks the target and the lease are digests, the fence is named, the Limits are
+// positive and the isolation statement is the canary's.
+func (p *Provenance) validateScope() error {
 	coordinates := p.Coordinates
 	for name, digest := range map[string]string{
 		"grpc": coordinates.GRPC, "namespace": coordinates.Namespace, "taskQueue": coordinates.TaskQueue,
@@ -127,16 +144,29 @@ func (p *Provenance) validate() error {
 			return fmt.Errorf("%s is not a digest", name)
 		}
 	}
-	if p.Lease.Fence == "" || p.Invocation.ID == "" || p.Invocation.RunID == "" {
-		return errors.New("the provenance needs the fence, the invocation ID and the iteration's Run ID")
+	if p.Lease.Fence == "" {
+		return errors.New("the provenance names no fence")
 	}
 	limits := p.Limits
 	if limits.Iterations <= 0 || limits.InvocationSeconds <= 0 || limits.CleanupReserveSeconds <= 0 ||
 		limits.LeaseRunTimeoutSeconds <= 0 || limits.ProgressBytes <= 0 {
 		return errors.New("every limit is positive")
 	}
-	if p.Invocation.Iteration < 1 || p.Invocation.Iteration > limits.Iterations {
-		return fmt.Errorf("iteration %d is not one of the invocation's %d", p.Invocation.Iteration, limits.Iterations)
+	if p.Isolation != Isolation {
+		return errors.New("the isolation statement is not the canary's")
+	}
+	return nil
+}
+
+// validateIteration checks the iteration against its invocation: its number within the limit, its
+// Run among the fenced workflows, and both cleanups recorded ones.
+func (p *Provenance) validateIteration() error {
+	if p.Invocation.ID == "" || p.Invocation.RunID == "" {
+		return errors.New("the provenance needs the invocation ID and the iteration's Run ID")
+	}
+	iterations := p.Limits.Iterations
+	if p.Invocation.Iteration < 1 || p.Invocation.Iteration > iterations {
+		return fmt.Errorf("iteration %d is not one of the invocation's %d", p.Invocation.Iteration, iterations)
 	}
 	status, declared := testpilotspb.CleanupStatus_value[p.Cleanup.Iteration]
 	if !declared || status == int32(testpilotspb.CLEANUP_STATUS_UNSPECIFIED) {
@@ -144,9 +174,6 @@ func (p *Provenance) validate() error {
 	}
 	if p.Cleanup.Invocation != CleanupReleased && p.Cleanup.Invocation != CleanupUncertain {
 		return fmt.Errorf("the invocation's cleanup %q is neither %s nor %s", p.Cleanup.Invocation, CleanupReleased, CleanupUncertain)
-	}
-	if p.Isolation != Isolation {
-		return errors.New("the isolation statement is not the canary's")
 	}
 	if !slices.Contains(p.Fenced, p.Invocation.RunID) {
 		return errors.New("the iteration's Run is not one the lease fenced")
@@ -158,8 +185,8 @@ func (p *Provenance) validate() error {
 		}
 		seen[id] = true
 	}
-	if len(p.Fenced) > limits.Iterations {
-		return fmt.Errorf("the lease fenced %d workflows, more than the invocation's %d iterations", len(p.Fenced), limits.Iterations)
+	if len(p.Fenced) > iterations {
+		return fmt.Errorf("the lease fenced %d workflows, more than the invocation's %d iterations", len(p.Fenced), iterations)
 	}
 	return nil
 }
