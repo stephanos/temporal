@@ -58,6 +58,12 @@ func TestLiveReplayBridgeAdmitsTheControlByItsBytes(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "irreducible", finished.Status)
 	require.Equal(t, admitted.Subject, finished.Retained)
+	require.NotNil(t, finished.Proposal)
+	require.Equal(t, admitted.Subject, finished.Proposal.Digest)
+	root := filepath.Join(t.TempDir(), "proposals")
+	written := WriteProposal(root, finished.Proposal)
+	require.Equal(t, ProposalWritten, written.Status, written.Error)
+	require.Equal(t, filepath.Join(root, "nexusCallerControl-"+admitted.Subject+".lean"), written.Written)
 
 	crossed, err := StartBridge(t.Context(), campaign.Options{Executable: executable, Dir: modelRoot, Stderr: &stderr})
 	require.NoError(t, err)

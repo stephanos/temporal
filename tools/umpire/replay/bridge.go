@@ -98,14 +98,25 @@ type SettledReply struct {
 	Retained string
 }
 
-// BridgeFinished is the bridge's answer to finish: the result, the digest retained and every
-// edit's fate.
+// BridgeProposal is the retained candidate's review-only proposal as the bridge renders it: its
+// digest, and either the compiled source's SHA-256, path and bytes or why it did not compile.
+type BridgeProposal struct {
+	Digest string  `json:"digest"`
+	SHA256 *string `json:"promotionSourceSha256"`
+	Path   string  `json:"promotionSourcePath,omitempty"`
+	Source string  `json:"promotionSource,omitempty"`
+	Error  string  `json:"promotionError,omitempty"`
+}
+
+// BridgeFinished is the bridge's answer to finish: the result, the digest retained, every edit's
+// fate and, for a minimized or irreducible result, the retained candidate's proposal.
 type BridgeFinished struct {
 	Status   string
 	Reason   string
 	Subject  string
 	Retained string
 	Edits    []Settled
+	Proposal *BridgeProposal
 }
 
 type bridgeRequest struct {
@@ -140,6 +151,7 @@ type bridgeReply struct {
 	Fate      string          `json:"fate"`
 	Retained  string          `json:"retained"`
 	Status    string          `json:"status"`
+	Proposal  *BridgeProposal `json:"proposal"`
 }
 
 // Bridge is the client of one replay bridge process: one request outstanding, every reply
@@ -302,7 +314,7 @@ func (b *Bridge) Finish(ctx context.Context, status string) (BridgeFinished, err
 	}
 	return BridgeFinished{
 		Status: answer.Status, Reason: answer.Reason, Subject: answer.Subject,
-		Retained: answer.Retained, Edits: edits,
+		Retained: answer.Retained, Edits: edits, Proposal: answer.Proposal,
 	}, nil
 }
 

@@ -539,6 +539,15 @@ beside an indeterminate one decides the pair without a retry, which is the pair 
 enum is gone; the two clients share one generic `campaign.ExchangeJSON`; the scripted binder fails
 a bind on a stopped context, as the real one does.
 
+Task .7 (2026-09-23): the proposal compiler is `Umpire.Command.Promotion.propose`, which the
+exploration campaign and the replay bridge both call, keyed on the retained candidate's Plan
+checksum digest; the replay bridge proposes only on a `minimized` or `irreducible` result. The
+proposal writer is `tools/umpire/internal/cli.WriteProposals` beside `OutsideModel`: roots are
+resolved through their symlinks before the containment check, every path is checked before any
+write, and each file is created exclusively, which changes `umpire-fuzz`: a second run into the
+same promotion root is refused rather than rewriting the file. `replay.WriteProposal` reports what
+became of the proposal as its status, never a rerun.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

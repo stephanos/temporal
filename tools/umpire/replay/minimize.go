@@ -80,6 +80,9 @@ type Reduction struct {
 	Runs         int               `json:"runs"`
 	Edits        []Settled         `json:"edits"`
 	Candidates   []CandidateReport `json:"candidates"`
+	// Proposal is the bridge's proposal for a minimized or irreducible result, source bytes
+	// included, which WriteProposal writes; the report renders what became of it instead.
+	Proposal *BridgeProposal `json:"-"`
 }
 
 // ReductionNotAttempted is the status of a reduction that did not start.
@@ -346,7 +349,9 @@ func (m *minimizer) finish(ctx context.Context, status string) error {
 	m.report.Edits = finished.Edits
 	m.report.Retained = finished.Retained
 	m.report.Status, m.report.Reason = finished.Status, finished.Reason
+	m.report.Proposal = finished.Proposal
 	if !m.report.Attempted {
+		m.report.Proposal = nil
 		m.report.Status, m.report.Reason = ReductionNotAttempted, m.report.NotAttempted
 	}
 	rendered, err := json.Marshal(m.report)
