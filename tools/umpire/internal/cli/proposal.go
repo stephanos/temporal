@@ -3,10 +3,11 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"go.temporal.io/server/tools/umpire/publish"
 )
 
 // Proposal is one review-only regression source to write: the candidate it came from, the path
@@ -17,40 +18,12 @@ type Proposal struct {
 	Source    string
 }
 
-// Resolve makes path absolute and resolves every symlink along its existing part, keeping the part
-// that does not exist yet as written: a root is checked where it really is, not where its name
-// points before anything is created under it.
-func Resolve(path string) (string, error) {
-	absolute, err := filepath.Abs(path)
-	if err != nil {
-		return "", err
-	}
-	existing, rest := absolute, ""
-	for {
-		resolved, err := filepath.EvalSymlinks(existing)
-		if err == nil {
-			return filepath.Join(resolved, rest), nil
-		}
-		if !errors.Is(err, fs.ErrNotExist) {
-			return "", err
-		}
-		parent := filepath.Dir(existing)
-		if parent == existing {
-			return absolute, nil
-		}
-		rest = filepath.Join(filepath.Base(existing), rest)
-		existing = parent
-	}
-}
+// Resolve makes path absolute and resolves every symlink along its existing part; it is the
+// publisher's, kept here for the commands that name it.
+func Resolve(path string) (string, error) { return publish.Resolve(path) }
 
 // Within reports whether path is root or under it; both are absolute and clean.
-func Within(root, path string) bool {
-	relative, err := filepath.Rel(root, path)
-	if err != nil {
-		return false
-	}
-	return relative == "." || (relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)))
-}
+func Within(root, path string) bool { return publish.Within(root, path) }
 
 // OutsideModel resolves a root a command writes under and refuses one under the model root, both
 // resolved through their symlinks first: a proposal is for review and a record is a replay's

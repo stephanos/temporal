@@ -1,4 +1,4 @@
-package cli
+package publish
 
 import (
 	"context"
@@ -126,4 +126,21 @@ func TestPublishResolvesTheRoot(t *testing.T) {
 	resolved, err := Resolve(actual)
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(resolved, "a.json"), publication.Path)
+}
+
+// Check finds a conflict without writing: an absent name or the same bytes pass, anything else is
+// a ConflictError, and nothing is created.
+func TestCheckWritesNothing(t *testing.T) {
+	root := t.TempDir()
+	require.NoError(t, Check(root, "a.json", []byte("x")))
+	require.Empty(t, entries(t, root))
+	_, err := Publish(t.Context(), root, "a.json", []byte("x"))
+	require.NoError(t, err)
+	require.NoError(t, Check(root, "a.json", []byte("x")))
+	var conflict *ConflictError
+	require.ErrorAs(t, Check(root, "a.json", []byte("y")), &conflict)
+	require.NoError(t, os.Mkdir(filepath.Join(root, "dir.json"), 0o755))
+	require.ErrorAs(t, Check(root, "dir.json", []byte("y")), &conflict)
+	require.Error(t, Check(root, "../a.json", []byte("x")))
+	require.ElementsMatch(t, []string{"a.json", "dir.json"}, entries(t, root))
 }
