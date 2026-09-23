@@ -25,8 +25,7 @@ Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK 
 - [x] A Lean test pins, on a Model with an alternative result, that the alternative's kind is declared and projected to the row that records it, that a kind two rows would record is rejected by name, and that the alternative confirms the witness's silent prefix.
 ## Done summary
 `Umpire.Case.Producer.alternativeRules` walks the witness with its prior states and, for every result of a witnessed (state, action) pair other than the one taken, declares the evidence its facts imply under the machine's `evidence:` lines and projects it to that result's own row, inheriting the silent steps before the row; a kind the witness's step or another result of the same row records is projected once to every row that records it, a kind two different rows would record rejects as `evidence.kind-ambiguous` naming it, and a kind the realization does not admit as `evidence.kind-unknown`. The alternatives' rules feed the projection declaration, the Program's evidence declarations and its lifts; the witness's rules alone feed the field relations. Every existing Model's rows are deterministic, so every existing fixture and golden is byte-identical; pinned in `Umpire.Case.Tests.Producer` on a lamp whose toggle ends bright or stuck.
-
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 096434dca
+- Tests: cd model && lake build, LEAN_NUM_THREADS=1 make lint-model, make umpire-check-goldens umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-model-module-index umpire-check-exploration-bridge
 - PRs:
