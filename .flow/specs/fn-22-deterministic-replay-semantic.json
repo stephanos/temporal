@@ -24,7 +24,7 @@
     "fn-22-deterministic-replay-semantic.5": 0,
     "fn-22-deterministic-replay-semantic.6": 0,
     "fn-22-deterministic-replay-semantic.7": 0,
-    "fn-22-deterministic-replay-semantic.8": 1
+    "fn-22-deterministic-replay-semantic.8": 2
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1839,6 +1839,74 @@
       "task": "fn-22-deterministic-replay-semantic.8",
       "timestamp": "2026-09-23T08:40:41.248611Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "abd5d8397c421d85df0147faa7c8622521c256333212647832d7a711ea9d045b",
+      "backend": "claude",
+      "base_sha": "7d192aaf19bfa0b405ae679b1c737aada36e5f04",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ecaaed6c567b1062efc5c42d848130cb",
+            "classification": "introduced",
+            "findingId": "finding-ecaaed6c567b1062efc5c42d848130cb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a5c2a1fe82705778b9c256035a93a9fc",
+            "classification": "introduced",
+            "findingId": "finding-a5c2a1fe82705778b9c256035a93a9fc",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f4ccc75cbd3bac4fc63ec130bafcdd38",
+            "classification": "introduced",
+            "findingId": "finding-f4ccc75cbd3bac4fc63ec130bafcdd38",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6cbad93f2f681316ea6f77b0319f9c6b",
+            "classification": "introduced",
+            "findingId": "finding-6cbad93f2f681316ea6f77b0319f9c6b",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "34f5d9094c751c2e335ce85dd70c51252fb32322",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6878,
+      "output_sha256": "e0c05c08a229530cbbdb47cc69c8381ae575d5ec984383677e9c0e4b8dec6e30",
+      "reservation_id": "0a2f4cd787254159a6a3c37bae198d29",
+      "round_consumed": true,
+      "scope": "impl:fn-22-deterministic-replay-semantic.8",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.8",
+      "timestamp": "2026-09-23T08:44:29.956573Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1862,7 +1930,7 @@
     "impl:fn-22-deterministic-replay-semantic.5": 0,
     "impl:fn-22-deterministic-replay-semantic.6": 0,
     "impl:fn-22-deterministic-replay-semantic.7": 0,
-    "impl:fn-22-deterministic-replay-semantic.8": 1,
+    "impl:fn-22-deterministic-replay-semantic.8": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-22-deterministic-replay-semantic.md",
@@ -1879,5 +1947,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T08:40:41.249152Z"
+  "updated_at": "2026-09-23T08:44:29.963184Z"
 }

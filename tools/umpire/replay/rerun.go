@@ -59,7 +59,7 @@ func (s *Subject) Target() Target {
 // or arrives at another identity is an error, since preparation was decided at admission and a
 // deployment that prepares otherwise is not the subject's; a Run that errs is classed
 // indeterminate, as an incomplete Run is; a release that fails is an error, since the next attempt
-// would not be isolated from it.
+// would not be isolated from it. On an error the attempts that closed are returned with it.
 func Rerun(ctx context.Context, binder campaign.Binder, target Target) (*Reruns, error) {
 	if binder == nil || target.Case == nil || target.Prepared == nil {
 		return nil, errors.New("a binder and a prepared target are required")
@@ -68,7 +68,10 @@ func Rerun(ctx context.Context, binder campaign.Binder, target Target) (*Reruns,
 	for attempt := range Attempts {
 		result, err := rerunOnce(ctx, binder, target)
 		if err != nil {
-			return nil, fmt.Errorf("attempt %d: %w", attempt+1, err)
+			// The attempts that closed are returned beside the error, so a stop or a failure
+			// between the two never hides a Run that happened; the pair decides nothing.
+			reruns.Class = ClassIndeterminate
+			return reruns, fmt.Errorf("attempt %d: %w", attempt+1, err)
 		}
 		reruns.Attempts = append(reruns.Attempts, result)
 	}

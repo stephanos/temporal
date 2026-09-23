@@ -195,17 +195,17 @@ Dynamic-config declarations -+
                                         |
                                         v
                                       Result
-                                        |
-                                        v
-                          recorded Run (replay subject)
 ```
 
-The current bounded path now continues from deterministic `Plan` inspection through one
-local caller-closure execution and checked Run Evaluation. Replay is fn-22's: a violated Run is
-recorded beside its canonical Case and replayed, rerun and reduced by `umpire-replay run`, whose
-proposal is review-only. Other profiles and non-local Observation Evaluation remain separate
-implementations. The decomposition is an internal
-and artifact-level boundary, not a requirement to ship many unrelated binaries.
+That diagram is the v2 target as it was first drawn; its execution half (ExperimentRun, raw and
+semantic evidence, Result) is historical, and the separate Run Evaluation pipeline behind it is
+removed. The current path runs through the Case Runtime: a Model's Query is produced as a
+canonical `Case`, `testpilot.Prepare` prepares it under a Profile, `PreparedCase.Run` runs it
+against a Driver and closes one `Run` with its `Verdict`, and `umpire-run --record` or
+`umpire-fuzz --record-root` records a violated Run beside its Case. `umpire-replay run` (fn-22)
+replays that record offline, reruns it and reduces its Query, and its proposal is review-only.
+Other profiles and non-local observation remain separate implementations. The decomposition is an
+internal and artifact-level boundary, not a requirement to ship many unrelated binaries.
 
 ## 2. Artifact contracts
 

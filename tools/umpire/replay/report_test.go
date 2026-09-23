@@ -225,3 +225,52 @@ func TestExecuteNamesAnUnrecoveredQuery(t *testing.T) {
 	require.False(t, e.opened)
 	require.Equal(t, ExitToolingFailure, report.ExitCode())
 }
+
+// A stop before the reruns -- while the deployment opens -- is a stop, exit 2, and the bridge is
+// told; a stop that falls between the subject's two Runs keeps the Run that closed.
+func TestExecuteStopsBeforeAndDuringTheReruns(t *testing.T) {
+	e := newExecution(t, nil, edit(0, "a"))
+	ctx, cancel := context.WithCancel(t.Context())
+	opened := e.environment.OpenBinder
+	e.environment.OpenBinder = func(ctx context.Context) (campaign.Binder, func(context.Context) error, error) {
+		cancel()
+		_, _, _ = opened(ctx)
+		return nil, nil, ctx.Err()
+	}
+	report := Execute(ctx, e.request, e.environment)
+	require.Empty(t, report.Failure)
+	require.True(t, report.Reduction.Stopped)
+	require.Equal(t, ExitIndeterminate, report.ExitCode())
+	require.Equal(t, "finish", e.fake.frames[len(e.fake.frames)-1].Frame)
+
+	e = newExecution(t, nil, edit(0, "a"))
+	ctx, cancel = context.WithCancel(t.Context())
+	e.binder.onRun = cancel
+	report = Execute(ctx, e.request, e.environment)
+	require.Len(t, report.Reproduction.Reruns, 1, "the Run that closed before the stop is reported")
+	require.Equal(t, 1, report.Reduction.Runs)
+	require.Equal(t, ExitIndeterminate, report.ExitCode())
+}
+
+// A proposal that did not compile exits 3 with the rest of the report standing.
+func TestExecuteProposalNotCompiledExitsThree(t *testing.T) {
+	e := newExecution(t, nil, edit(0, "a"))
+	e.fake.proposalError = "nonFoundResult: no trace"
+	report := e.run(t)
+	require.Equal(t, "minimized", report.Reduction.Status)
+	require.Equal(t, ProposalNotCompiled, report.Proposal.Status)
+	require.Equal(t, "nonFoundResult: no trace", report.Proposal.Error)
+	require.Equal(t, ExitToolingFailure, report.ExitCode())
+}
+
+// A report over its cap turns an exit 0 into 2 and leaves every other exit as it was.
+func TestExitCodeWithinTheReportCap(t *testing.T) {
+	report := newExecution(t, nil, edit(0, "a")).run(t)
+	require.Equal(t, ExitReproduced, report.ExitCode())
+	rendered, err := report.Render()
+	require.NoError(t, err)
+	require.Equal(t, ExitReproduced, report.ExitCodeWithin(len(rendered), int64(len(rendered))))
+	require.Equal(t, ExitIndeterminate, report.ExitCodeWithin(len(rendered), int64(len(rendered)-1)))
+	rejected := Report{Admission: AdmissionReport{Status: StatusRejected}}
+	require.Equal(t, ExitToolingFailure, rejected.ExitCodeWithin(10, 1))
+}

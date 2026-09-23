@@ -75,14 +75,10 @@ func Run(arguments []string, stdout, stderr io.Writer, environment environmentFo
 		cli.WriteLine(stderr, "render report: %s", err)
 		return replay.ExitToolingFailure
 	}
-	code := report.ExitCode()
-	if limit := replay.DefaultLimits.ReportBytes; limit > 0 && int64(len(rendered)) > limit {
-		// The report is written whole, never truncated; over its cap, the replay did not complete
-		// within its limits, whatever else it says.
+	limit := replay.DefaultLimits.ReportBytes
+	code := report.ExitCodeWithin(len(rendered), limit)
+	if limit > 0 && int64(len(rendered)) > limit {
 		cli.WriteLine(stderr, "the report is %d bytes, over the cap of %d, and is written whole", len(rendered), limit)
-		if code == replay.ExitReproduced {
-			code = replay.ExitIndeterminate
-		}
 	}
 	if _, err := stdout.Write(rendered); err != nil {
 		cli.WriteLine(stderr, "write report: %s", err)

@@ -149,6 +149,10 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 		Proposal:       ProposalReport{Status: ProposalNone},
 	}
 	subject, err := Admit(ctx, request.Case, request.Run, environment.Prepare)
+	if err != nil && ctx.Err() != nil {
+		// A stop during the offline replay decides nothing about the subject.
+		return report.stopped("stopped during admission", "", nil)
+	}
 	if err != nil {
 		rejection, ok := IsRejection(err)
 		if !ok {
@@ -166,6 +170,9 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 
 	bridge, err := environment.StartBridge(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return report.stopped("stopped before the bridge started", "", nil)
+		}
 		report.Failure = fmt.Sprintf("start the replay bridge: %s", err)
 		return report
 	}
@@ -174,11 +181,14 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 		// Teardown runs on a context the caller's stop does not reach, each release bounded.
 		if err := binding.ReleaseAll(context.WithoutCancel(ctx), releases); err != nil {
 			report.Cleanup = CleanupReport{Status: StatusFailed, Detail: err.Error()}
-		} else if report.Cleanup.Status != StatusFailed {
+		} else {
 			report.Cleanup.Status = StatusReleased
 		}
 	}()
 	admitted, err := bridge.Admit(ctx, request.Set, subject.Driver.Profile, request.Named, subject.Identity)
+	if err != nil && ctx.Err() != nil {
+		return report.stopped("stopped during the bridge's admission", "", nil)
+	}
 	if err != nil {
 		var crossed *CrossedError
 		if errors.As(err, &crossed) {
@@ -197,6 +207,9 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 
 	binder, release, err := environment.OpenBinder(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return report.stopped("stopped while opening the deployment", admitted.Subject, bridge)
+		}
 		report.Failure = fmt.Sprintf("open the deployment: %s", err)
 		return report
 	}
@@ -208,17 +221,9 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 			return report
 		}
 		// A stop during the subject's reruns decides nothing: the subject is indeterminate, the
-		// reduction is not attempted, and the bridge is still told.
-		report.Reproduction = &ReproductionReport{Class: ClassIndeterminate, Reruns: []RerunReport{}}
-		report.Reduction = &Reduction{
-			NotAttempted: "stopped during the subject's reruns", Status: ReductionNotAttempted,
-			Reason: "stopped during the subject's reruns", Stopped: true,
-			Subject: admitted.Subject, Retained: admitted.Subject, Edits: []Settled{}, Candidates: []CandidateReport{},
-		}
-		if _, err := bridge.Finish(context.WithoutCancel(ctx), string(campaign.StatusStopped)); err != nil {
-			report.Failure = fmt.Sprintf("finish the bridge after a stop: %s", err)
-		}
-		return report
+		// Runs that closed are reported, the reduction is not attempted, and the bridge is told.
+		report.Reproduction = reproductionReport(reruns)
+		return report.stopped("stopped during the subject's reruns", admitted.Subject, bridge)
 	}
 	report.Reproduction = reproductionReport(reruns)
 	if environment.Progress != nil {
@@ -239,8 +244,32 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	return report
 }
 
+// stopped records a stop that fell before the reduction could start: the reduction is reported
+// not attempted and stopped, with the subject's Runs that closed, and a bridge that admitted the
+// subject is told, on a context the stop does not reach.
+func (r *Report) stopped(reason, subject string, bridge *Bridge) Report {
+	runs := 0
+	if r.Reproduction != nil {
+		runs = len(r.Reproduction.Reruns)
+	}
+	r.Reduction = &Reduction{
+		NotAttempted: reason, Status: ReductionNotAttempted, Reason: reason, Stopped: true,
+		Subject: subject, Retained: subject, Runs: runs, Edits: []Settled{}, Candidates: []CandidateReport{},
+	}
+	if bridge != nil {
+		if _, err := bridge.Finish(context.WithoutCancel(context.Background()), string(campaign.StatusStopped)); err != nil {
+			r.Failure = fmt.Sprintf("finish the bridge after a stop: %s", err)
+		}
+	}
+	return *r
+}
+
 func reproductionReport(reruns *Reruns) *ReproductionReport {
 	report := &ReproductionReport{Class: reruns.Class, Reruns: []RerunReport{}}
+	if reruns == nil {
+		report.Class = ClassIndeterminate
+		return report
+	}
 	for _, attempt := range reruns.Attempts {
 		entry := RerunReport{Class: attempt.Class, Detail: attempt.Detail}
 		if run := attempt.Run; run != nil {
@@ -263,11 +292,18 @@ func reproductionReport(reruns *Reruns) *ReproductionReport {
 }
 
 // ExitCode maps the report to the command's exit code: 3 for a tooling failure (a candidate's
-// rerun that could not bind or release included), a rejected subject or a proposal that did not
-// compile or could not be written; then 1 or 2 by the reruns' class
-// when the subject was not reproduced; then 2 for a reduction that did not complete; else 0.
+// rerun that could not bind or release included); 2 for a stop before the reduction started; 3
+// for a rejected subject or a proposal that did not compile or could not be written; then 1 or 2
+// by the reruns' class when the subject was not reproduced; then 2 for a reduction that did not
+// complete; else 0.
 func (r Report) ExitCode() int {
-	if r.Failure != "" || r.Admission.Status != StatusAdmitted {
+	if r.Failure != "" {
+		return ExitToolingFailure
+	}
+	if r.Reduction != nil && r.Reduction.Stopped && !r.Reduction.Attempted {
+		return ExitIndeterminate
+	}
+	if r.Admission.Status != StatusAdmitted {
 		return ExitToolingFailure
 	}
 	if r.Reduction != nil && r.Reduction.Failure != "" {
@@ -291,6 +327,17 @@ func (r Report) ExitCode() int {
 		return ExitIndeterminate
 	}
 	return ExitReproduced
+}
+
+// ExitCodeWithin is ExitCode for a report rendered to `rendered` bytes under a cap: a report over
+// the cap is written whole, never truncated, and a replay that would otherwise exit 0 did not
+// complete within its limits, so it exits 2.
+func (r Report) ExitCodeWithin(rendered int, limit int64) int {
+	code := r.ExitCode()
+	if limit > 0 && int64(rendered) > limit && code == ExitReproduced {
+		return ExitIndeterminate
+	}
+	return code
 }
 
 // Render is the report's canonical bytes: one JSON document and one LF.

@@ -592,6 +592,17 @@ failure or an undecided edit is what the report names when one ends it; a limit 
 retry is pinned (the candidate listed with its closed Runs' classes, nothing lost); `Exchange`'s
 comment says one step per clause.
 
+Implementation review of task .8, round two: NEEDS_WORK with one P2 and three P3 findings, all
+applied. The components doc no longer presents Run Evaluation as current: its v2 diagram is marked
+historical and the current path is told through the Case Runtime to `umpire-replay run`. A stop
+during admission, before the bridge starts, during the bridge's admission or while the deployment
+opens is reported as a stopped, unattempted reduction (exit 2), the bridge told when it admitted
+the subject; `Rerun` returns the attempts that closed beside its error, so a stop between the
+subject's two Runs keeps the Run that happened. The proposal-not-compiled exit and the report cap
+(`Report.ExitCodeWithin`, which the command calls) are pinned. The FYI tidy-ups are applied: the
+cleanup branch is a plain `else`, two rewrapped comments read whole, and the Run-budget check sits
+after preparation so a candidate that needs no Run never ends at a limit.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

@@ -15,8 +15,8 @@ import (
 
 // Limits bound one reduction. Each is checked before the work it bounds: the edit cap at
 // admission (a sweep the bridge capped is recorded as ending at it); the wall time, the Run budget
-// and the aggregate Run Events once a candidate is handed out, before it is prepared, and again
-// before each Run is dispatched; the aggregate Case bytes on each candidate that arrives; and the
+// and the aggregate Run Events once a candidate is handed out and prepared, and again before each
+// Run is dispatched; the aggregate Case bytes on each candidate that arrives; and the
 // report bytes on the rendered report. Zero leaves a cap
 // unset.
 type Limits struct {
@@ -231,11 +231,6 @@ func (m *minimizer) dispatch(ctx context.Context, candidate *BridgeCandidate, ta
 
 // candidate takes one candidate through preparation, its Runs and the bridge.
 func (m *minimizer) candidate(ctx context.Context, candidate *BridgeCandidate) (bool, error) {
-	// The limits that bound a candidate's Runs are checked once one is handed out and before it is
-	// prepared: a sweep with nothing left ends exhausted, never at a limit it would not reach.
-	if limit := m.beforeDispatch(Attempts); limit != "" {
-		return true, m.limit(ctx, limit)
-	}
 	m.caseBytes += int64(len(candidate.Case))
 	if m.Limits.CaseBytes > 0 && m.caseBytes > m.Limits.CaseBytes {
 		return true, m.limit(ctx, LimitCaseBytes)
@@ -245,6 +240,12 @@ func (m *minimizer) candidate(ctx context.Context, candidate *BridgeCandidate) (
 	if rejection != "" {
 		m.progress("candidate %s %s prepare-rejected %s", candidate.Digest, candidate.Edit.Edit, rejection)
 		return m.settle(ctx, candidate, entry, Decided{PrepareRejected: &rejection})
+	}
+	// The limits that bound a candidate's Runs are checked once it is handed out and prepared, before
+	// its first Run: a sweep with nothing left, or a candidate that needs no Run, never ends at a
+	// limit it would not reach.
+	if limit := m.beforeDispatch(Attempts); limit != "" {
+		return true, m.limit(ctx, limit)
 	}
 	m.progress("candidate %s %s", candidate.Digest, candidate.Edit.Edit)
 	// Each Run is dispatched on its own, so a stop or a limit between the two falls before the
