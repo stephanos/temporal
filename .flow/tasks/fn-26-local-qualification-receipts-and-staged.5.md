@@ -3,11 +3,18 @@ satisfies: [R5, R6, R7]
 ---
 
 # fn-26-local-qualification-receipts-and-staged.5 Expose the exact local assessment command
+
 ## Description
-Expose one thin offline local-assessment command and root Make target accepting only the canonical subject, fixed Profile name, and output root. Validate the complete receipt before one atomic immutable publication and report claim, tooling, and post-publication ambiguity separately.
+Add `umpire-assess run --case <case.json> --run <recorded-run.json> --profile <name> --receipt-root <dir>` (`tools/umpire/cmd/umpire-assess`): the Profile is one of the rendered Profiles by name, read from the checked-in directory; the receipt root lies outside the model (resolved through symlinks). It refuses the command line before reading anything, admits, assesses, renders, decodes the rendered receipt back as a check, publishes once, and writes one JSON summary to stdout (the receipt identity, the decision, the reasons, the publication status and path). Exit codes: 0 accepted and published (or already published with identical bytes), 1 rejected, 2 incomplete, 3 a rejected subject, a Profile that does not load, a publication conflict or failure, or a publication that succeeded but could not be reported, which names the ambiguity and is never retried automatically. `make umpire-assess` and `make umpire-assess-run` wrap it. No Driver, deployment, endpoint, credential, checker, policy or retry flag.
+
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-assess/`
 
 **Size:** M
-**Touches:** `tools/umpire/cmd/umpire-assess-local/**`, `Makefile`
+**Files:** `tools/umpire/cmd/umpire-assess/main.go`, `tools/umpire/cmd/umpire-assess/run.go`, `tools/umpire/cmd/umpire-assess/run_test.go`, `Makefile`
+
+### Re-plan note (2026-09-23)
+Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the shared command-edge helpers); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
 - [ ] Arguments, summary/error schema, exit statuses, cancellation, and reporting are closed and deterministic.
