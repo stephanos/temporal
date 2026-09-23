@@ -20,16 +20,25 @@ contract in what the tree now has:
   must be closed: a non-empty Run ID, at least one event, a terminal disposition, a cleanup
   outcome, a Verdict. It must be consistent:
   every supporting sequence names one event once, no rule of the closed Verdict is still `PENDING`
-  (the evaluator settles every obligation at close), and the Verdict's status agrees with its rules
-  and the disposition as the protocol defines it (violated when any rule is violated, and then the
-  disposition is `STOPPED_BY_MONITOR`; satisfied only when every rule is satisfied on a `COMPLETED`
-  Run). The recorded catalog fingerprint must be the tree's static catalog's
+  (the evaluator settles every obligation at close) or `UNSPECIFIED`, the Verdict status is not
+  `UNSPECIFIED`, and the Verdict's status agrees with its rules and the disposition both ways, as
+  the protocol defines it: violated exactly when some rule is violated, and a Run is
+  `STOPPED_BY_MONITOR` exactly when its Verdict is violated; satisfied exactly when every rule is
+  satisfied on a `COMPLETED` Run; inconclusive otherwise. Any other combination is `inconsistent`. The recorded catalog fingerprint must be the tree's static catalog's
   (`NewWorkflowServiceCatalog().Identity()`, which reads no Case): admission alone decides
-  staleness. The recorded Profile name and bindings fingerprint are bound into the receipt as
-  recorded. What replay admission and qualification admission share -- the recorded-Run codec,
+  staleness. The catalog fingerprint admission compares against is its parameter: the command
+  passes the tree's, and the receipt goldens pass a fixed one, so a catalog change never moves a
+  golden. Reading that fingerprint is the only use qualification makes of the Driver package
+  (`common/testing/testpilot/temporal`): it builds the method catalog and opens nothing. The
+  recorded Profile name and bindings fingerprint are bound into the receipt as recorded. The
+  recorded Run must be in its canonical form -- its bytes equal `EncodeRecordedRun`'s re-encoding of
+  what they decode to, else `noncanonical` -- and its identity, the SHA-256 of those bytes, is bound
+  into the receipt beside the Case identity, so a receipt names the one Run it assessed. The shared
+  codec rejects a duplicate or case-folded outer key (Go's decoder matches keys without case), for
+  replay admission too. What replay admission and qualification admission share -- the recorded-Run codec,
   reading the canonical Case, the Case and Program crossing, the supporting sequences, and the
-  violated-form rule (a violated Verdict only on a `STOPPED_BY_MONITOR` Run) -- moves to a
-  leaf package, `tools/umpire/internal/recordedrun`, that both import (replay keeps its names as
+  violated-form rule (a violated Verdict only on a `STOPPED_BY_MONITOR` Run, `ViolatedForm` in
+  `replay/form.go`, which `replay/rerun.go` also calls) -- moves to a leaf package, `tools/umpire/internal/recordedrun`, that both import (replay keeps its names as
   aliases), so qualification never imports the package that holds the replay bridge and the
   rerun environment. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
   most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB. These
@@ -56,7 +65,10 @@ contract in what the tree now has:
   declared Profile to canonical JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by
   a Makefile gate that `umpire-check-regression` runs; the Profile's identity is the SHA-256 of
   those bytes, written `sha256:<hex>` as every Lean fingerprint is (Case and receipt identities
-  stay bare hex, as fn-22's are). Go validates every Profile it loads as strictly as Lean checks a
+  stay bare hex, as fn-22's are). The cross-language contract is the Lean-rendered Profile
+  bytes: Go embeds them and pins their identity against Lean's. The receipt is Go's alone -- Go
+  renders it canonically and pins it with Go goldens; Lean never renders or reads one, which is how
+  R5's cross-language goldens are read here. Go validates every Profile it loads as strictly as Lean checks a
   declaration, so `Assess` only ever receives a valid one. `tools/umpire/evaluation`
   embeds that directory (`//go:embed`) and selects a Profile only by its exact name, so a Profile is
   never a path. A test-only second Profile lives in the Go tests, never in Lean or the embedded set.
@@ -66,7 +78,7 @@ contract in what the tree now has:
 - **The receipt is Go's canonical JSON.** `tools/umpire/evaluation` renders the receipt in one
   fixed key order and pins it with goldens; its identity is the SHA-256 of its bytes. It binds the
   Profile name and identity, the Case identity (SHA-256 of the canonical Case) and its Case,
-  Program and Contract IDs, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the
+  Program and Contract IDs, the Run identity, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the
   Verdict with each rule's status, terminal state and supporting sequences, the decision and every
   reason, the trust basis and the admission caps the subject was admitted under, the Known Gaps by kind and
   code, and the receipt format version. It carries no raw payload, event body, credential, path or
@@ -74,8 +86,12 @@ contract in what the tree now has:
 - **Publication is atomic, exclusive and idempotent.** `cli.Publish` writes the receipt to a
   temporary file in the target directory, syncs it, and hard-links it to
   `<root>/<receipt-identity>.json` (`os.Link` is atomic and fails if the name exists), then removes
-  the temporary file. An existing name with identical bytes is `already-published`; one with other
-  bytes is a conflict that is reported and never overwritten. A crash can leave only a temporary
+  the temporary file. On an existing name, publication `Lstat`s it and requires a regular file (a
+  symlink, FIFO, device or directory is a conflict), then reads it without following links through
+  a reader capped one byte past the receipt cap: identical bytes are `already-published`, anything
+  else a conflict that is reported and never overwritten. The directory is not synced after the
+  link: a crash then may lose the name, never expose a partial receipt, and publishing again
+  restores it. A crash can leave only a temporary
   file, never a partial receipt under its final name. The name is the content's hash, so no lock is
   needed. No path reruns anything.
 - **The command is `umpire-assess run`.** It takes `--case`, `--run`, `--profile <name>` (an exact
@@ -204,3 +220,17 @@ test, the identity written `sha256:<hex>`; an empty Run ID or a Run with no even
 leftover "pending" wording in .3 is gone. The duplication note is taken: the violated-form rule
 moves to the shared leaf package with the other shared checks.
 
+Round five (2026-09-23): NEEDS_WORK with one P1, five P2 and two P3 findings, all applied.
+Publication on an existing name `Lstat`s it, requires a regular file and reads it capped without
+following links, anything else a conflict (.4, .6). The receipt binds the Run's identity, the
+SHA-256 of its canonical recorded bytes, and admission requires the recorded Run in the form
+`EncodeRecordedRun` writes. Verdict consistency is two-way -- stopped exactly when violated,
+satisfied exactly when every rule is satisfied on a `COMPLETED` Run, inconclusive otherwise -- and an
+`UNSPECIFIED` rule or Verdict status is `inconsistent`. `replay/form.go` and `replay/rerun.go` are
+in .2's files, since `ViolatedForm` moves; .1 names `Temporal/Evaluation/LocalTests.lean` and the
+aggregator modules, so the module index covers every new module. R5's cross-language goldens are
+read as the Lean-rendered Profiles, the receipt being Go's. The shared codec rejects duplicate
+and case-folded outer keys; the test-only Profile fixture and its unexported parse path arrive in
+.2. The FYIs are taken: admission takes the catalog fingerprint as a parameter so the goldens
+never drift, its one use of the Driver package is building the catalog, and the unsynced directory
+after the link is stated.
