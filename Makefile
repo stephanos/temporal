@@ -598,6 +598,19 @@ umpire-check-goldens:
 			diff -ru "model/$$directory" "$$temporary/$$directory"; \
 		done
 
+umpire-gen-evaluation-profiles:
+	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles >/dev/null
+	@cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --output-dir ../tools/umpire/evaluation/profiles
+
+umpire-check-evaluation-profiles:
+	@printf $(COLOR) "Check rendered Umpire Evaluation Profiles..."
+	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests
+	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		temporary=$$(mktemp -d "$$temporary_root/umpire-evaluation-profiles.XXXXXX"); \
+		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
+		( cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --output-dir "$$temporary" ); \
+		diff -r tools/umpire/evaluation/profiles "$$temporary"
+
 umpire-gen-case-runtime-conformance:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
@@ -794,7 +807,7 @@ umpire-check-live-tests:
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
-umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
+umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 	@set -eu; \
@@ -912,7 +925,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

@@ -7,6 +7,7 @@ import Temporal.Feature.Workflow.Outage.Tests
 import Temporal.Feature.System.Info.Tests
 import Temporal.Feature.Nexus.Caller.Tests
 import Temporal.Feature.Nexus.Control.Tests
+import Temporal.Evaluation.LocalTests
 import Temporal.Feature.Nexus.Tests.Commands
 import Temporal.Feature.Nexus.Tests.Machines
 import Temporal.Feature.Nexus.Tests.SecondModel
