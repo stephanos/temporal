@@ -22,7 +22,8 @@ var (
 )
 
 // startWorkflowExecution is the one method that creates a workflow the fence must name.
-const startWorkflowExecution protoreflect.FullName = "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution"
+var startWorkflowExecution = workflowservice.File_temporal_api_workflowservice_v1_service_proto.
+	Services().ByName("WorkflowService").Methods().ByName("StartWorkflowExecution").FullName()
 
 // Fencer records a Run's ID on the lease before anything runs.
 type Fencer func(ctx context.Context, runID string) error
