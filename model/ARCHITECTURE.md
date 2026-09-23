@@ -206,7 +206,12 @@ canonical bytes are the subject's, answering `crossed` otherwise. `Umpire.Replay
 monotonic `Reduction`: each edited Query is re-admitted, one the Model does not admit is
 `inapplicable` and produces no Case, and an admitted one is handed out as one whole Case named by
 its Plan checksum. `observe` takes the coordinator's class for the candidate's Runs, never a Case
-edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every edit's fate.
+edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every edit's fate. A
+`minimized` or `irreducible` result carries the retained candidate's review-only proposal, compiled
+by `Umpire.Command.Promotion.propose` -- the compiler `Umpire.Exploration.Promotion` calls too --
+from its admitted Query and keyed on its Plan checksum digest; both commands write proposals
+through `tools/umpire/internal/cli`, outside the model, resolving symlinks and never replacing a
+file.
 
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
