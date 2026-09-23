@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	commonpb "go.temporal.io/api/common/v1"
@@ -244,6 +245,31 @@ func fencedIDs(ctx context.Context, target Target, fence Fence) ([]string, error
 			return ids, nil
 		}
 	}
+}
+
+// identityPrefix begins the identity every canary call carries, the invocation's ID after it.
+const identityPrefix = "umpire-canary "
+
+// leaseInvocation is the invocation that started a lease run, read from the identity its start
+// carries, or "" when the start names no canary invocation.
+func leaseInvocation(ctx context.Context, target Target, fence Fence) (string, error) {
+	page, err := target.Service.GetWorkflowExecutionHistory(ctx, &workflowservice.GetWorkflowExecutionHistoryRequest{
+		Namespace: target.Namespace, Execution: &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID},
+		MaximumPageSize: 1,
+	})
+	if err != nil {
+		return "", fmt.Errorf("read the canary lease's start: %w", err)
+	}
+	events := page.GetHistory().GetEvents()
+	if len(events) == 0 {
+		return "", nil
+	}
+	identity := events[0].GetWorkflowExecutionStartedEventAttributes().GetIdentity()
+	invocation, ok := strings.CutPrefix(identity, identityPrefix)
+	if !ok || strings.Contains(invocation, " ") {
+		return "", nil
+	}
+	return invocation, nil
 }
 
 // Wait pauses for d or until ctx ends.
