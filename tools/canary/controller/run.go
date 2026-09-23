@@ -423,12 +423,7 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 	outcome.Fenced = fenced
 	var failures []error
 	for _, id := range fenced {
-		closed, err := workflowClosed(ctx, r.target, id, r.notFoundPause(), r.wait)
-		if err == nil && !closed {
-			if err = terminate(ctx, r.target, &commonpb.WorkflowExecution{WorkflowId: id}, ReasonCleanup); err == nil {
-				closed, err = workflowClosed(ctx, r.target, id, r.notFoundPause(), r.wait)
-			}
-		}
+		closed, _, err := closeFenced(ctx, r.target, id, r.notFoundPause(), r.wait, ReasonCleanup)
 		switch {
 		case err != nil:
 			failures = append(failures, err)
