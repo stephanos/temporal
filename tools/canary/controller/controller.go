@@ -221,6 +221,8 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 		result.raise(StatusToolingFailure, ExitFailed, ran.Stopped)
 	case StopInterrupted:
 		result.raise(StatusInterrupted, ExitFailed, ran.Stopped)
+	default:
+		// A decision or the limit ended the loop; the iterations' own statuses say what it was.
 	}
 	publishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), publishTimeout)
 	defer cancel()
