@@ -49,9 +49,21 @@ func (e *UnreportedError) Error() string {
 
 func (e *UnreportedError) Unwrap() error { return e.Err }
 
+// StatusUnconstructible is an iteration with no receipt: its Run errored or fn-26 admission
+// refused its record. It publishes nothing.
+const StatusUnconstructible = "unconstructible"
+
 // decisions are the statuses that have a receipt.
 var decisions = map[string]bool{
 	evaluation.DecisionAccepted: true, evaluation.DecisionRejected: true, evaluation.DecisionIncomplete: true,
+}
+
+// named is an item with its documents' published names.
+type named struct {
+	Item
+	receiptName, provenanceName string
+	receiptIdentity             string
+	provenanceIdentity          string
 }
 
 // Publish checks every item before it publishes any, so a crossed or unreadable document, or a
@@ -60,45 +72,48 @@ var decisions = map[string]bool{
 // is a publish.ConflictError and is never overwritten; a recorded that fails is an
 // UnreportedError. It returns what it published.
 func Publish(ctx context.Context, root string, items []Item, recorded func(runID string) error) ([]Published, error) {
-	var publishable []Item
+	var publishable []named
 	for _, item := range items {
-		if !decisions[item.Status] {
+		if item.Status == StatusUnconstructible {
 			if item.Receipt != nil || item.Provenance != nil {
 				return nil, fmt.Errorf("iteration %s is %s and has no receipt to publish", item.RunID, item.Status)
 			}
 			continue
 		}
+		if !decisions[item.Status] {
+			return nil, fmt.Errorf("iteration %s has status %q, which is neither a decision nor %s", item.RunID, item.Status, StatusUnconstructible)
+		}
 		if err := check(item); err != nil {
 			return nil, fmt.Errorf("iteration %s: %w", item.RunID, err)
 		}
-		for _, document := range []struct {
-			name     string
-			contents []byte
-		}{
-			{evaluation.ReceiptIdentity(item.Receipt) + ".json", item.Receipt},
-			{assessment.ProvenanceIdentity(item.Provenance) + ProvenanceSuffix, item.Provenance},
-		} {
-			if err := publish.Check(root, document.name, document.contents); err != nil {
-				return nil, err
-			}
+		entry := named{
+			Item:               item,
+			receiptIdentity:    evaluation.ReceiptIdentity(item.Receipt),
+			provenanceIdentity: assessment.ProvenanceIdentity(item.Provenance),
 		}
-		publishable = append(publishable, item)
+		entry.receiptName = entry.receiptIdentity + ".json"
+		entry.provenanceName = entry.provenanceIdentity + ProvenanceSuffix
+		if err := publish.Check(root, entry.receiptName, item.Receipt); err != nil {
+			return nil, err
+		}
+		if err := publish.Check(root, entry.provenanceName, item.Provenance); err != nil {
+			return nil, err
+		}
+		publishable = append(publishable, entry)
 	}
 	var published []Published
 	for _, item := range publishable {
-		receiptIdentity := evaluation.ReceiptIdentity(item.Receipt)
-		provenanceIdentity := assessment.ProvenanceIdentity(item.Provenance)
-		receipt, err := publish.Publish(ctx, root, receiptIdentity+".json", item.Receipt)
+		receipt, err := publish.Publish(ctx, root, item.receiptName, item.Receipt)
 		if err != nil {
 			return published, err
 		}
-		provenance, err := publish.Publish(ctx, root, provenanceIdentity+ProvenanceSuffix, item.Provenance)
+		provenance, err := publish.Publish(ctx, root, item.provenanceName, item.Provenance)
 		if err != nil {
 			return published, err
 		}
 		published = append(published, Published{
 			RunID: item.RunID, Receipt: receipt, Provenance: provenance,
-			ReceiptIdentity: receiptIdentity, ProvenanceIdentity: provenanceIdentity,
+			ReceiptIdentity: item.receiptIdentity, ProvenanceIdentity: item.provenanceIdentity,
 		})
 		if recorded != nil {
 			if err := recorded(item.RunID); err != nil {
