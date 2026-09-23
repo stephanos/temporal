@@ -217,6 +217,9 @@ func testPolicy(t *testing.T) *policy.Policy {
 
 func noWait(context.Context, time.Duration) error { return nil }
 
+// runID is the nth Run ID in the form Testpilot chooses.
+func runID(n int) string { return fmt.Sprintf("testpilot.run.00000000-0000-4000-8000-%012d", n) }
+
 func TestLeaseStateReadsTheLatestRunAndItsCloseReason(t *testing.T) {
 	ctx := t.Context()
 	server := newFakeServer()
@@ -294,17 +297,17 @@ func TestTheFenceSignalsNameEveryRunOnce(t *testing.T) {
 	lease := testPolicy(t).Lease
 	fence, err := takeLease(ctx, target(server), lease, time.Hour, "request")
 	require.NoError(t, err)
-	for _, id := range []string{"run-a", "run-b", "run-a", "run-c"} {
+	for _, id := range []string{runID(1), runID(2), runID(1), runID(3)} {
 		require.NoError(t, signalRunOpened(ctx, target(server), fence, id))
 	}
 	ids, err := fencedIDs(ctx, target(server), fence)
 	require.NoError(t, err)
-	require.Equal(t, []string{"run-a", "run-b", "run-c"}, ids)
+	require.Equal(t, []string{runID(1), runID(2), runID(3)}, ids)
 
 	stale := Fence{WorkflowID: fence.WorkflowID, RunID: "run-stale"}
-	require.Error(t, signalRunOpened(ctx, target(server), stale, "run-d"), "a stale fence fails the signal")
+	require.Error(t, signalRunOpened(ctx, target(server), stale, runID(4)), "a stale fence fails the signal")
 	require.NoError(t, terminate(ctx, target(server), &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID}, ReasonReleased))
-	require.Error(t, signalRunOpened(ctx, target(server), fence, "run-d"), "a released fence fails the signal")
+	require.Error(t, signalRunOpened(ctx, target(server), fence, runID(4)), "a released fence fails the signal")
 
 	other, err := takeLease(ctx, target(server), lease, time.Hour, "next")
 	require.NoError(t, err)
@@ -317,7 +320,14 @@ func TestTheFenceSignalsNameEveryRunOnce(t *testing.T) {
 			}}})
 	server.mu.Unlock()
 	_, err = fencedIDs(ctx, target(server), other)
-	require.ErrorContains(t, err, "names no workflow ID", "a fence signal with no ID fails closed")
+	require.ErrorContains(t, err, "names no Testpilot Run", "a fence signal with no ID fails closed")
+
+	require.NoError(t, terminate(ctx, target(server), &commonpb.WorkflowExecution{WorkflowId: lease.WorkflowID, RunId: other.RunID}, ReasonReleased))
+	foreign, err := takeLease(ctx, target(server), lease, time.Hour, "foreign")
+	require.NoError(t, err)
+	require.NoError(t, signalRunOpened(ctx, target(server), foreign, "customer-workflow"))
+	_, err = fencedIDs(ctx, target(server), foreign)
+	require.ErrorContains(t, err, "names no Testpilot Run", "a signal naming anything but a Testpilot Run fails closed")
 }
 
 func TestFencedIDsStopAtTheEventBound(t *testing.T) {
@@ -325,7 +335,7 @@ func TestFencedIDsStopAtTheEventBound(t *testing.T) {
 	server := newFakeServer()
 	fence, err := takeLease(ctx, target(server), testPolicy(t).Lease, time.Hour, "request")
 	require.NoError(t, err)
-	input, err := converter.GetDefaultDataConverter().ToPayloads("run-a")
+	input, err := converter.GetDefaultDataConverter().ToPayloads(runID(1))
 	require.NoError(t, err)
 	run := server.find(&commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID})
 	for len(run.events) <= maxLeaseEvents {

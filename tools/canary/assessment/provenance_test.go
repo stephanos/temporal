@@ -106,10 +106,16 @@ func TestProvenanceRefusesEveryMutation(t *testing.T) {
 		"a workflow ref outside the workflows directory": func(p *Provenance) {
 			p.Workflow.Ref = "temporalio/temporal/scripts/canary.yml@refs/heads/main"
 		},
-		"iteration zero":                func(p *Provenance) { p.Invocation.Iteration = 0 },
-		"an iteration past the limit":   func(p *Provenance) { p.Invocation.Iteration = p.Limits.Iterations + 1 },
-		"a Run the lease did not fence": func(p *Provenance) { p.Invocation.RunID = "testpilot.run.other" },
-		"a repeated fenced ID":          func(p *Provenance) { p.Fenced[1] = p.Fenced[0] },
+		"iteration zero":              func(p *Provenance) { p.Invocation.Iteration = 0 },
+		"an iteration past the limit": func(p *Provenance) { p.Invocation.Iteration = p.Limits.Iterations + 1 },
+		"a Run the lease did not fence": func(p *Provenance) {
+			p.Invocation.RunID = "testpilot.run.9b8f3c2e-5d1a-4e6f-8a7b-0c9d2e1f3a4b"
+		},
+		"a fenced ID with no UUID":            func(p *Provenance) { p.Fenced[1] = "testpilot.run.canary-namespace-7c1" },
+		"a fenced ID with an upper-case UUID": func(p *Provenance) { p.Fenced[1] = strings.ToUpper(p.Fenced[1]) },
+		"a non-canonical fence":               func(p *Provenance) { p.Lease.Fence = "urn:uuid:" + p.Lease.Fence },
+		"an undashed fence":                   func(p *Provenance) { p.Lease.Fence = strings.ReplaceAll(p.Lease.Fence, "-", "") },
+		"a repeated fenced ID":                func(p *Provenance) { p.Fenced[1] = p.Fenced[0] },
 		"more fenced IDs than iterations": func(p *Provenance) {
 			p.Fenced = append(p.Fenced, "testpilot.run.third")
 		},
@@ -188,7 +194,8 @@ func TestProvenanceCapAtNAndNPlusOne(t *testing.T) {
 		provenance := sampleProvenance(t)
 		base, err := encodeProvenance(provenance)
 		require.NoError(t, err)
-		provenance.Fenced[1] += strings.Repeat("x", size-len(base))
+		// The workflow file's name is the one field with no bound of its own.
+		provenance.Workflow.Ref = strings.Replace(provenance.Workflow.Ref, ".yml@", strings.Repeat("x", size-len(base))+".yml@", 1)
 		return provenance
 	}
 	atCap := sized(t, MaxProvenanceBytes)
