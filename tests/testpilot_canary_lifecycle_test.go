@@ -5,6 +5,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -16,18 +17,22 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
+	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/controller"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
+	"go.temporal.io/server/tools/umpire/evaluation"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 // The canary's early proof: the pinned canary Case, prepared by preflight under the test cluster's
 // names, runs twice, serially, in-process through the real Driver, each Run fenced on one lease.
 // The test passes a plaintext transport directly, as only a test or the harness build may, and a
-// decide that accepts a satisfied Verdict. Both Runs close satisfied with distinct Run IDs that
+// decide that admits each Run through fn-26 in memory and assesses it under the canary's
+// Evaluation Profile. Both Runs close satisfied with distinct Run IDs that
 // the lease's signals name, cleanup verifies them closed and releases the lease, and progress
 // carries no raw coordinate.
 func TestTestpilotCanaryLifecycle(t *testing.T) {
@@ -71,17 +76,30 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 	// is left, which is longer than a test context's ceiling; it gets the invocation limit instead.
 	runCtx, cancelRun := context.WithTimeout(context.Background(), canary.Limits.Invocation())
 	defer cancelRun()
+	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
+	require.NoError(t, err)
+	recordedOnce := false
 	var progress bytes.Buffer
 	result, err := controller.Run(runCtx, controller.Config{
 		Policy: canary, Scope: scope, Namespace: coordinates.Namespace,
 		Transport: authority.Transport{Target: coordinates.GRPC, Credentials: insecure.NewCredentials()},
 		Redactor:  redactor, Service: env.FrontendClient(), Identity: "umpire-canary-lifecycle",
 		Dial: client.Dial,
-		Decide: func(run *testpilotpb.Run, verdict *testpilotpb.Verdict) controller.Outcome {
-			if run.GetDisposition() == testpilotpb.RUN_DISPOSITION_COMPLETED && verdict.GetStatus() == testpilotpb.VERDICT_STATUS_SATISFIED {
-				return controller.Outcome{Status: controller.StatusAccepted}
+		Decide: func(run *testpilotpb.Run, _ *testpilotpb.Verdict) controller.Outcome {
+			// The first Run's record is the admission tests' fixture when UMPIRE_CANARY_RECORD names
+			// the file to write; a test cluster's Run is the only one ever written.
+			if path := os.Getenv("UMPIRE_CANARY_RECORD"); path != "" && !recordedOnce {
+				recordedOnce = true
+				encoded, err := recordedrun.Encode(canary.CaseIdentity, scope.Prepared.Identity(), run)
+				require.NoError(t, err)
+				require.NoError(t, os.WriteFile(path, encoded, 0o644))
 			}
-			return controller.Outcome{Status: controller.StatusRejected}
+			subject, err := assessment.Admit(canary, scope.Prepared.Identity(), run)
+			if err != nil {
+				return controller.Outcome{Status: controller.StatusUnconstructible, Err: err}
+			}
+			decision := evaluation.Assess(subject, *profile)
+			return controller.Outcome{Status: decision.Outcome}
 		},
 		Recovery: store, Progress: &progress, Started: time.Now(),
 	})
