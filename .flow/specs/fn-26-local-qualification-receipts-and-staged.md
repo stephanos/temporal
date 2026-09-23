@@ -240,6 +240,13 @@ Implementation review: SHIP in one round; its five P3 notes applied (the caps ar
 undeclared statuses are `malformed`, a Verdict naming a rule twice says so, replay's `Admit` pins
 repeated and case-folded keys, a dead test field is gone).
 
+Task .3 (2026-09-23): `Assess` decides an admitted subject under a Profile from its recorded values
+alone, every holding reason listed in the table's order, the recorded facts kept as fields of their
+own. A rule is unsupported when the Verdict names it at a terminal state with no supporting event.
+Implementation review: SHIP in one round; its two P3 notes applied (a condition the reader cannot
+evaluate holds, so it never lets a subject through; the purity test compares the Known Gaps
+deeply).
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
