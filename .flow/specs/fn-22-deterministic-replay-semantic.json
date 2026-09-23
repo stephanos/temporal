@@ -18,8 +18,8 @@
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {
     "fn-22-deterministic-replay-semantic.1": 0,
-    "fn-22-deterministic-replay-semantic.2": 1,
-    "fn-22-deterministic-replay-semantic.3": 1
+    "fn-22-deterministic-replay-semantic.2": 2,
+    "fn-22-deterministic-replay-semantic.3": 2
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1206,8 +1206,28 @@
     "plan": 2,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-22-deterministic-replay-semantic.2": 1,
+    "impl:fn-22-deterministic-replay-semantic.3": 1
+  },
+  "review_reservations": {
+    "da4dde843ee24fb18da3090266c27906": {
+      "artifact_sha256": "992884d47b9e091175c732f8fb0826a49230b5a53657aae40bf36687d5bcc2f5",
+      "counter_scope": "impl:fn-22-deterministic-replay-semantic.3",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    },
+    "de7f647cc13f4bc1b134c2f180d89699": {
+      "artifact_sha256": "53baa0e62880cb88c7fd3da20d0cb0ede6fe8c4aa1296fe9e77f00b90033dc5e",
+      "counter_scope": "impl:fn-22-deterministic-replay-semantic.2",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-22-deterministic-replay-semantic.1": 0,
     "impl:fn-22-deterministic-replay-semantic.2": 0,
@@ -1228,5 +1248,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T00:11:23.538092Z"
+  "updated_at": "2026-09-23T06:25:37.859323Z"
 }

@@ -464,6 +464,14 @@ exact scaffolding set by sequence and instruction id; the replay tests share one
 parameterized by names, and the live test prepares through `binding.Prepare`, the path
 `umpire-replay` takes.
 
+Task .4 (2026-09-23): `replay.Rerun` binds a `Target` (the subject's own through
+`Subject.Target()`, or a candidate's Case and identity with the subject's key) fresh through an
+already-open `campaign.Binder` twice, releasing before the next bind, and classes each Run alone
+and the pair by precedence. A Run in the violated form derives its key offline through the
+target's prepared Case; one the offline replay does not reproduce, or one that errs, is
+indeterminate. Another identity, a failed bind or a failed release is an error, never a fourth
+class. `Reruns` and `Attempt` carry no history-replay field, pinned by reflection.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
