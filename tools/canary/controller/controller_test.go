@@ -59,7 +59,11 @@ type invokeFixture struct {
 	decide Decide
 	// between runs after each Run.
 	between func(index int)
-	runs    int
+	// release is each iteration's Driver release; nil releases cleanly.
+	release func(context.Context) error
+	// ctx is the invocation's context; nil is the test's.
+	ctx  context.Context
+	runs int
 }
 
 func newInvokeFixture(t *testing.T) *invokeFixture {
@@ -100,7 +104,11 @@ func (f *invokeFixture) seams() Seams {
 
 func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 	t.Helper()
-	return Invoke(t.Context(), Invocation{
+	ctx := f.ctx
+	if ctx == nil {
+		ctx = t.Context()
+	}
+	return Invoke(ctx, Invocation{
 		Seams: seams, Output: f.output, Recovery: f.recovery, Progress: &f.progress, Started: time.Now(),
 		Lookup: func(key string) (string, bool) { value, ok := f.env[key]; return value, ok },
 		service: func(*authority.Authority, string, io.Writer) (*lazyService, error) {
@@ -110,6 +118,9 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 			run.Wait = noWait
 			run.wait = noWait
 			run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
+				if f.release != nil {
+					return &stubDriver{}, f.release, nil
+				}
 				return &stubDriver{}, func(context.Context) error { return nil }, nil
 			}
 			run.runCase = func(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
@@ -342,6 +353,43 @@ func TestInvokeExitsThreeOnAPublicationConflict(t *testing.T) {
 	record, err := recovery.Read(f.recovery)
 	require.NoError(t, err)
 	require.Equal(t, recovery.PhasePublishing, record.Phase)
+}
+
+// A Driver that does not release after an accepted iteration stops the invocation as a tooling
+// failure, exit 3, and the accepted receipt is still published.
+func TestInvokeExitsThreeWhenADriverDoesNotRelease(t *testing.T) {
+	f := newInvokeFixture(t)
+	f.release = func(context.Context) error { return errors.New("the worker did not stop") }
+	summary, code := f.invoke(t, f.seams())
+	require.Equal(t, ExitFailed, code)
+	require.Equal(t, StatusToolingFailure, summary.Status)
+	require.Contains(t, summary.Detail, "did not release")
+	require.Len(t, summary.Iterations, 1)
+	require.Equal(t, StatusAccepted, summary.Iterations[0].Status)
+	require.Len(t, f.published(t), 2, "the decided receipt and its provenance are published")
+}
+
+// An interrupt ends the iterations, not the publication: every receipt already decided is published
+// after the cleanup attempt, and the invocation exits 3 as interrupted.
+func TestAnInterruptStillPublishesWhatWasDecided(t *testing.T) {
+	f := newInvokeFixture(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	f.ctx = ctx
+	f.between = func(index int) {
+		if index == 1 {
+			cancel()
+		}
+	}
+	summary, code := f.invoke(t, f.seams())
+	require.Equal(t, ExitFailed, code, "%+v", summary)
+	require.Equal(t, StatusInterrupted, summary.Status)
+	require.Len(t, summary.Iterations, 1, "no Run starts after the interrupt")
+	require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome, "cleanup runs under its own context")
+	require.Len(t, f.published(t), 2)
+	record, err := recovery.Read(f.recovery)
+	require.NoError(t, err)
+	require.Equal(t, []recovery.Iteration{{RunID: runID(1), Published: true}}, record.Iterations)
 }
 
 func TestOutcomeKeepsTheHighestExit(t *testing.T) {
