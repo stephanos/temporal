@@ -33,8 +33,19 @@ const (
 	AuthorityHarness           = "harness"
 )
 
-// AuthorityClasses is the one set of authority classes, which the provenance decoder also uses.
-var AuthorityClasses = []string{AuthorityProtectedWorkflow, AuthorityHarness}
+// AuthorityClasses is the one set of authority classes, which the provenance decoder also uses;
+// each call returns a fresh copy, so no importer can widen it.
+func AuthorityClasses() []string {
+	return []string{AuthorityProtectedWorkflow, AuthorityHarness}
+}
+
+// The ceilings each limit is held under, so a limit is always a sane duration and never overflows.
+const (
+	maxIterations    = 16
+	maxBoundSeconds  = 7 * 24 * 60 * 60
+	maxLeaseSeconds  = 30 * 24 * 60 * 60
+	maxProgressBytes = 16 << 20
+)
 
 // Coordinates are the digests of the target's names, each the hex SHA-256 of the whole
 // environment value (the gRPC one is the dial target, `host:port`), or Unconfigured.
@@ -168,8 +179,8 @@ func (p *Policy) validate() error {
 			return fmt.Errorf("%s is missing", field.name)
 		}
 	}
-	if !slices.Contains(AuthorityClasses, p.AuthorityClass) {
-		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(AuthorityClasses, ", "))
+	if !slices.Contains(AuthorityClasses(), p.AuthorityClass) {
+		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(AuthorityClasses(), ", "))
 	}
 	for _, coordinate := range p.coordinates() {
 		if coordinate.value != Unconfigured && !isDigest(coordinate.value) {
@@ -186,15 +197,20 @@ func (p *Policy) validate() error {
 		return fmt.Errorf("workflowPath %q is not a workflow file", p.WorkflowPath)
 	}
 	for _, limit := range []struct {
-		name  string
-		value int
+		name       string
+		value, max int
 	}{
-		{"iterations", p.Limits.Iterations}, {"invocationSeconds", p.Limits.InvocationSeconds},
-		{"cleanupReserveSeconds", p.Limits.CleanupReserveSeconds},
-		{"leaseRunTimeoutSeconds", p.Limits.LeaseRunTimeoutSeconds}, {"progressBytes", p.Limits.ProgressBytes},
+		{"iterations", p.Limits.Iterations, maxIterations},
+		{"invocationSeconds", p.Limits.InvocationSeconds, maxBoundSeconds},
+		{"cleanupReserveSeconds", p.Limits.CleanupReserveSeconds, maxBoundSeconds},
+		{"leaseRunTimeoutSeconds", p.Limits.LeaseRunTimeoutSeconds, maxLeaseSeconds},
+		{"progressBytes", p.Limits.ProgressBytes, maxProgressBytes},
 	} {
 		if limit.value <= 0 {
 			return fmt.Errorf("limit %s must be positive, is %d", limit.name, limit.value)
+		}
+		if limit.value > limit.max {
+			return fmt.Errorf("limit %s must be at most %d, is %d", limit.name, limit.max, limit.value)
 		}
 	}
 	if p.Limits.LeaseRunTimeoutSeconds <= p.Limits.InvocationSeconds+p.Limits.CleanupReserveSeconds {
