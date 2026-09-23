@@ -28,6 +28,7 @@ type fakeReplayBridge struct {
 	caseJSON json.RawMessage
 	sweep    []fakeEdit
 	crossed  bool
+	capped   bool
 
 	set, profile string
 	seq          int
@@ -100,7 +101,7 @@ func (f *fakeReplayBridge) answer(frame bridgeRequest) map[string]any {
 		}
 		f.retained = "subject-digest"
 		reply["frame"], reply["subject"], reply["caseId"], reply["fixture"] = "admitted", f.retained, f.caseID, "fixture"
-		reply["identity"], reply["edits"], reply["capped"] = frame.Identity, edits, false
+		reply["identity"], reply["edits"], reply["capped"] = frame.Identity, edits, f.capped
 	case "next":
 		if f.ended != "" {
 			f.seq--
@@ -150,6 +151,8 @@ func (f *fakeReplayBridge) answer(frame bridgeRequest) map[string]any {
 			}
 		}
 		switch {
+		case f.capped && f.ended == "" && f.outstanding == nil && frame.Status == "":
+			status, reason = "incomplete", "the sweep was capped at 8 edits"
 		case f.ended != "":
 			status, reason = "incomplete", f.ended
 		case f.outstanding != nil:
