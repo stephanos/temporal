@@ -17,7 +17,8 @@ contract in what the tree now has:
   rules -- `contract.rules` and `contract.correlated.rules` together, as the evaluator reports them
   -- each exactly once, whatever its status (a Run carries no Contract ID; the receipt takes the
   Contract ID from the Case). It
-  must be closed: a terminal disposition, a cleanup outcome, a Verdict. It must be consistent:
+  must be closed: a non-empty Run ID, at least one event, a terminal disposition, a cleanup
+  outcome, a Verdict. It must be consistent:
   every supporting sequence names one event once, no rule of the closed Verdict is still `PENDING`
   (the evaluator settles every obligation at close), and the Verdict's status agrees with its rules
   and the disposition as the protocol defines it (violated when any rule is violated, and then the
@@ -26,7 +27,8 @@ contract in what the tree now has:
   (`NewWorkflowServiceCatalog().Identity()`, which reads no Case): admission alone decides
   staleness. The recorded Profile name and bindings fingerprint are bound into the receipt as
   recorded. What replay admission and qualification admission share -- the recorded-Run codec,
-  reading the canonical Case, the Case and Program crossing, the supporting sequences -- moves to a
+  reading the canonical Case, the Case and Program crossing, the supporting sequences, and the
+  violated-form rule (a violated Verdict only on a `STOPPED_BY_MONITOR` Run) -- moves to a
   leaf package, `tools/umpire/internal/recordedrun`, that both import (replay keeps its names as
   aliases), so qualification never imports the package that holds the replay bridge and the
   rerun environment. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
@@ -53,7 +55,9 @@ contract in what the tree now has:
   verification is never proof, and never a failure either). A non-default `umpire-evaluation-profiles` executable renders every
   declared Profile to canonical JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by
   a Makefile gate that `umpire-check-regression` runs; the Profile's identity is the SHA-256 of
-  those bytes. `tools/umpire/evaluation`
+  those bytes, written `sha256:<hex>` as every Lean fingerprint is (Case and receipt identities
+  stay bare hex, as fn-22's are). Go validates every Profile it loads as strictly as Lean checks a
+  declaration, so `Assess` only ever receives a valid one. `tools/umpire/evaluation`
   embeds that directory (`//go:embed`) and selects a Profile only by its exact name, so a Profile is
   never a path. A test-only second Profile lives in the Go tests, never in Lean or the embedded set.
 - **Assessment decides before anything is rendered.** `Assess(subject, profile) Decision` is pure:
@@ -190,4 +194,13 @@ reads each input through a reader capped one byte past its cap. The FYI on the i
 taken: the shared recorded-Run code moves to a leaf package both admissions import. The FYI on
 trust is recorded: `local-ephemeral-cluster` is asserted, not checked against the recorded
 identity, which .6's docs state.
+
+Round four (2026-09-23): NEEDS_WORK with one P1, two P2 and one P3 finding, all applied. Go
+validates each loaded Profile as strictly as Lean declares one -- an unknown condition, decision or
+Known Gap kind, an empty table, an empty or duplicate reason, a repeated condition, and
+`known-gap-blocking` without blocking kinds or blocking kinds without it all reject -- and Lean adds
+the contradictory pair to its declaration checks; the Lean/Go Profile identity agreement is .2's
+test, the identity written `sha256:<hex>`; an empty Run ID or a Run with no events is `open`; the
+leftover "pending" wording in .3 is gone. The duplication note is taken: the violated-form rule
+moves to the shared leaf package with the other shared checks.
 
