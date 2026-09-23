@@ -20,9 +20,10 @@ var ErrLost = errors.New("a lost iteration has no recorded Run")
 // Admit records one iteration's closed Run under the pinned Case's identity and the Driver
 // identity the Case was prepared under, and admits it with fn-26 against the tree's catalog. The
 // record is held in memory for this call only: it carries whole history events, so it is never
-// written. The Driver identity must carry the policy's Profile name, and the subject's must be the
-// one the Run was recorded under. The recorded Verdict, disposition and cleanup are the subject's
-// unchanged; authority, isolation and cleanup facts enter only the provenance.
+// written. The Driver identity is the prepared Case's, which Testpilot already required the opened
+// Driver to report; here it must carry the policy's Profile name, and it must survive the record
+// unchanged. The recorded Verdict, disposition and cleanup are the subject's unchanged; authority,
+// isolation and cleanup facts enter only the provenance.
 func Admit(canary *policy.Policy, driver testpilot.DriverIdentity, run *testpilotspb.Run) (*evaluation.Subject, error) {
 	if canary == nil {
 		return nil, errors.New("a canary policy is required")
