@@ -15,7 +15,9 @@ contract in what the tree now has:
   replays. Because it never prepares, the recorded Run must name the Case it ran: the recorded-Run
   format gains `case`, the SHA-256 of the canonical Case bytes the Run was prepared from, computed
   by one helper, `recordedrun.CaseIdentity(bytes)` (`casefile.Canonical`, then SHA-256), which every
-  writer and both admissions call. `umpire-fuzz --record-root` already compacts its Case;
+  writer and both admissions call; replay exports it as `replay.CaseIdentity` and
+  `replay.WriteRecordedRun` takes the Case bytes and computes it, because the live suite (package
+  `tests`) may import `replay` but not a `tools/umpire/internal` package. `umpire-fuzz --record-root` already compacts its Case;
   `umpire-run` computes the identity from its fixture while parsing its configuration, and with
   `--record` a fixture that is not in a canonical form is refused before anything runs (exit 3),
   so a live Run is never lost to a record it cannot write; the live suite's `runRecording` takes
@@ -24,8 +26,13 @@ contract in what the tree now has:
   record is re-encoded with it (deterministic, its pinned sequences unchanged). The binding couples
   that record to the control Case's exact bytes: a change to the control's definitions makes it
   `crossed` until it is recorded again live, which `key_test.go` and .6's docs say. Admission
-  checks run in a fixed order: the input caps, decoding, `incompatible` (format version, a record
-  without `case`), `noncanonical`, then crossing, `open`, `inconsistent`, `malformed` and `stale`. IDs are names, not hashes, so a regenerated Case with the same IDs
+  checks run in a fixed order. The Case: its byte cap (`oversized`), its canonical form
+  (`noncanonical`), decoding (`malformed`), its format version (`incompatible`). The recorded Run:
+  its byte cap (`oversized`), decoding (`malformed`), its event cap (`oversized`), the `case` field
+  (`incompatible`, so a legacy record is never `noncanonical`), its re-encoding (`noncanonical`).
+  Then the pair: `open` (an empty Run ID, no events, a disposition or cleanup status that is absent
+  or `UNSPECIFIED`, no Verdict), `crossed` (reached only with a Verdict present), `inconsistent`,
+  `malformed` (Known Gap kinds) and `stale`. IDs are names, not hashes, so a regenerated Case with the same IDs
   never inherits an older Run. The Case must be format version 1.0. The Run must be the Case's: its `case_id` and
   `program_id` are the Case's, and the set of rule IDs its Verdict names equals the Contract's
   rules -- `contract.rules` and `contract.correlated.rules` together, as the evaluator reports them
@@ -121,7 +128,10 @@ contract in what the tree now has:
   capped one byte past the receipt cap: identical bytes are `already-published`, anything
   else a conflict that is reported and never overwritten. The directory is not synced after the
   link: a crash then may lose the name, never expose a partial receipt, and publishing again
-  restores it. The receipt root must already exist (as `umpire-run --record`'s directory must), and
+  restores it. `Publish` takes a context and checks it immediately before `os.Link`: cancelled before
+  the link, nothing is published and the temporary file is removed; after it, the receipt stands
+  and is reported. The receipt is chmod'ed 0644 before the link, as the other writers' files are.
+  The receipt root must already exist (as `umpire-run --record`'s directory must), and
   the name must be a bare base name, neither `.` nor `..`. A crash can leave only a temporary
   file, never a partial receipt under its final name. The name is the content's hash, so no lock is
   needed. No path reruns anything.
@@ -291,3 +301,14 @@ list the test files the signature changes touch. The FYIs are taken: the pinned 
 re-encoded, not re-recorded, and its coupling to the control's bytes is documented; the embedded
 Profiles live under `profiles/`, not `testdata/`; the existing name is opened non-blocking and
 re-checked after `Lstat`.
+
+Round eight (2026-09-23): NEEDS_WORK with one P1, two P2 and one P3 findings, all applied. The
+live suite may not import `tools/umpire/internal`, so replay exports `CaseIdentity` and its
+`WriteRecordedRun` takes the Case bytes; .2's quick commands vet `./tests/` under the integration
+tags. The admission order is stated per input and then for the pair, so a Run with no Verdict is
+`open`, never `crossed`, a decode failure is `malformed`, the event cap follows decoding, and an
+`UNSPECIFIED` cleanup or disposition is `open`. Cancellation is testable: `umpire-assess` runs
+under `cli.Interruptible` and `Publish` checks its context immediately before the link, both sides
+pinned. The FYIs are taken: receipts are 0644, a summary stdout cannot take goes to stderr, and
+replay's reason classes are unchanged by rebuilding `ViolatedForm` on `Agreement`, its tests
+pinning them. R1's "Limits" read as the admission caps the receipt records, as round three settled.
