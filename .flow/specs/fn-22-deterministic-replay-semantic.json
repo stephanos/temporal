@@ -18,8 +18,9 @@
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {
     "fn-22-deterministic-replay-semantic.1": 0,
-    "fn-22-deterministic-replay-semantic.2": 2,
-    "fn-22-deterministic-replay-semantic.3": 2
+    "fn-22-deterministic-replay-semantic.2": 0,
+    "fn-22-deterministic-replay-semantic.3": 2,
+    "fn-22-deterministic-replay-semantic.4": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1199,29 +1200,183 @@
       "task": "fn-22-deterministic-replay-semantic.2",
       "timestamp": "2026-09-23T00:11:23.533867Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "53baa0e62880cb88c7fd3da20d0cb0ede6fe8c4aa1296fe9e77f00b90033dc5e",
+      "backend": "claude",
+      "base_sha": "e633fa7f006fc1a527ddc71b0cc651c6167cd812",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dca192113751e53f4aed7246ac4ea5d3ae05e254",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "de7f647cc13f4bc1b134c2f180d89699",
+      "round_consumed": false,
+      "scope": "impl:fn-22-deterministic-replay-semantic.2",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.2",
+      "timestamp": "2026-09-23T06:27:15.260841Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "dfb6b55e900cf6ca421463d0b612895e6fd1e0ff458787eccff3964f99f25877",
+      "backend": "claude",
+      "base_sha": "dca192113751e53f4aed7246ac4ea5d3ae05e254",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-32a2a5b52702d4e0530898c643798e8b",
+            "classification": "introduced",
+            "findingId": "finding-32a2a5b52702d4e0530898c643798e8b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d40315ac1c6c4559453d21fca3bec50c",
+            "classification": "introduced",
+            "findingId": "finding-d40315ac1c6c4559453d21fca3bec50c",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f28e0fbf64dee4bd2efbc459d05fc5930cf95af8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4082,
+      "output_sha256": "6a8c8f14b4f9ae251098a0097972afd48cf572ee5a33586b2c12d1d5ed821193",
+      "reservation_id": "b75d280ee8bf4883b641418ae51c00e3",
+      "round_consumed": true,
+      "scope": "impl:fn-22-deterministic-replay-semantic.4",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.4",
+      "timestamp": "2026-09-23T06:28:16.026993Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "992884d47b9e091175c732f8fb0826a49230b5a53657aae40bf36687d5bcc2f5",
+      "backend": "claude",
+      "base_sha": "096434dca93f6435dc11b3b996f91d3c973f3f98",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dca192113751e53f4aed7246ac4ea5d3ae05e254",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "da4dde843ee24fb18da3090266c27906",
+      "round_consumed": false,
+      "scope": "impl:fn-22-deterministic-replay-semantic.3",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.3",
+      "timestamp": "2026-09-23T06:28:29.747144Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b70fbb79ad0e1cc23da6e436d217e4af57e68e545c7d01e08968028eb23c0350",
+      "backend": "claude",
+      "base_sha": "e633fa7f006fc1a527ddc71b0cc651c6167cd812",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-24177c5ce774d14ea4b94b5249ebb608",
+            "classification": "introduced",
+            "findingId": "finding-24177c5ce774d14ea4b94b5249ebb608",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e4ec3574bc538155c9e4cf07176b2991",
+            "classification": "introduced",
+            "findingId": "finding-e4ec3574bc538155c9e4cf07176b2991",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f28e0fbf64dee4bd2efbc459d05fc5930cf95af8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4661,
+      "output_sha256": "74d6097754e040c13411a633073ab159595ab1a7a0ad99cecf73f235eccf16d9",
+      "reservation_id": "f8333e28edd9499baff3ebe778267489",
+      "round_consumed": true,
+      "scope": "impl:fn-22-deterministic-replay-semantic.2",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.2",
+      "timestamp": "2026-09-23T06:30:04.159175Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-22-deterministic-replay-semantic.1": 1,
+    "impl:fn-22-deterministic-replay-semantic.2": 1,
     "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {
-    "impl:fn-22-deterministic-replay-semantic.2": 1,
     "impl:fn-22-deterministic-replay-semantic.3": 1
   },
   "review_reservations": {
-    "da4dde843ee24fb18da3090266c27906": {
-      "artifact_sha256": "992884d47b9e091175c732f8fb0826a49230b5a53657aae40bf36687d5bcc2f5",
+    "95fb92f643154f729f28bed133959669": {
+      "artifact_sha256": "f0255314e0e88c2a5fcf2df2971705c754db8ee60b6036ea010c7f090e20ec2e",
       "counter_scope": "impl:fn-22-deterministic-replay-semantic.3",
-      "epoch": 0,
-      "exclusive": false,
-      "forced": false,
-      "review_type": "impl"
-    },
-    "de7f647cc13f4bc1b134c2f180d89699": {
-      "artifact_sha256": "53baa0e62880cb88c7fd3da20d0cb0ede6fe8c4aa1296fe9e77f00b90033dc5e",
-      "counter_scope": "impl:fn-22-deterministic-replay-semantic.2",
       "epoch": 0,
       "exclusive": false,
       "forced": false,
@@ -1231,7 +1386,8 @@
   "review_transport_failures": {
     "impl:fn-22-deterministic-replay-semantic.1": 0,
     "impl:fn-22-deterministic-replay-semantic.2": 0,
-    "impl:fn-22-deterministic-replay-semantic.3": 0,
+    "impl:fn-22-deterministic-replay-semantic.3": 1,
+    "impl:fn-22-deterministic-replay-semantic.4": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-22-deterministic-replay-semantic.md",
@@ -1248,5 +1404,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T06:25:37.859323Z"
+  "updated_at": "2026-09-23T06:40:58.191499Z"
 }
