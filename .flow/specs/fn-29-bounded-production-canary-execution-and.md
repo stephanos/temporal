@@ -27,11 +27,14 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   identity (SHA-256 of its canonical bytes), the Profile name the Case is prepared under
   (`production-canary`), the Evaluation Profile name, the authority class (`protected-workflow`;
   the harness's is `harness`), the SHA-256 digests of the target's gRPC
-  and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
+  host name, namespace, task queue, handler queue and Nexus endpoint (no HTTP coordinate: the
+  system callback serves only asynchronous completion, and the canary runs `syncCompletion`) (the raw
   coordinates live only in the protected environment), the lease's workflow ID, type and task
-  queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
-  invocation, a 2-minute cleanup reserve, a 24-hour lease run timeout, and 64 KiB of progress. A
-  limit cannot be raised by a flag. The Run's own RPC, worker, duration and event ceilings are the
+  queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 10 minutes per invocation, a
+  2-minute cleanup reserve, a 24-hour lease run timeout (rejected unless longer than the invocation
+  limit plus the reserve), and 64 KiB of progress. A limit cannot be raised by a flag. A Run's own
+  duration is bounded by the Temporal Profile (30 seconds, and 20 of cleanup), so the policy sets
+  no per-Run limit of its own. The Run's own RPC, worker, duration and event ceilings are the
   Temporal Profile's (`testpilotdriver.DefaultCeilings`, which `DeriveProfile` applies), and the
   evidence ceilings are fn-26's admission caps; together with the policy's they are every limit R4
   names. The recorded-Run and receipt caps are fn-26's (`evaluation.AdmissionCaps()`), recorded in
@@ -96,8 +99,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   its own job `took` it reconciles at once, since the process that took it has exited; a lease its
   job `found` it refuses while that lease run is younger than the invocation limit plus the
   cleanup reserve (a live invocation cannot be older), exiting 2 with the status `lease-in-use`; verifies or terminates exactly the workflow IDs that run's
-  `run-opened` signals name (a workflow the server reports not found never started, and counts as
-  closed), then closes the scope -- terminating the lease run if it is still open, or, when it had
+  `run-opened` signals name (a workflow the server reports not found on two reads an RPC timeout
+  apart never started, and counts as closed), then closes the scope -- terminating the lease run if it is still open, or, when it had
   closed any non-canary way (timed out, or terminated by hand with another reason), starting and
   at once terminating a fresh lease run with the reconciled reason -- or leaves it and reports the
   scope uncertain. A lease ID the server does not find at all is a clean scope (the first run ever,
@@ -123,21 +126,22 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   cleanup outcome, `uncertain` included; a process lost before publication leaves its iterations unpublished, which
   reconcile reports as lost. A lost or unconstructible iteration has no receipt. `releaseEligibility`
   is a constant `false` the provenance decoder rejects any other value of.
-- **What is retained is secret-free; what is not stays on the runner.** A recorded Run holds the
+- **What is retained is secret-free; recorded Runs are never written.** A recorded Run holds the
   observed history events whole -- the task queue and endpoint names, the operation's payloads,
-  error text -- so it is never uploaded: recorded Runs live in a runner-local directory the job
-  removes. The uploaded artifact holds only receipts, provenance documents, the summary and the
+  error text -- so the canary encodes it only in memory, for admission, and never writes it. The uploaded artifact holds only receipts, provenance documents, the summary and the
   progress log, and credentials and raw coordinates never appear in any of them (receipts carry
   identities, IDs, statuses and sequence numbers; provenance carries digests). The Redactor
   applies to progress, the summary and logs; a recorded Run is never rewritten.
 - **The command is `umpire-canary`.** `tools/canary/cmd/umpire-canary` has two closed modes, `run` and
   `reconcile`, with no Case, target, Driver, checker, retry, executable, endpoint, credential or
-  release flag; each takes only the retained-output directory, the runner-local directory and the
-  recovery-file path. `run` exits by precedence 3 > 2 > 1 > 0: 3 for a preflight, tooling or
-  unreported publication (each with a named status), 2 when cleanup is uncertain or the lease
-  could not be released, 1 when an iteration is rejected or incomplete, 0 when every iteration's
-  receipt is accepted. `reconcile` exits 0 when the scope is closed and the lease released, 2 when
-  it is uncertain, 3 for a tooling failure. Each writes one bounded JSON summary on stdout.
+  release flag; each takes only `--output <dir>` and `--recovery <file>`. `run` exits by precedence
+  3 > 2 > 1 > 0: 3 for a preflight, tooling or unreported publication (each with a named status),
+  2 for `lease-unreconciled` or when cleanup is uncertain and the lease stays held, 1 when an
+  iteration is rejected or incomplete, 0 when every iteration's receipt is accepted. `reconcile`
+  exits 0 when the scope is closed and the lease released, or with status `nothing-to-reconcile`
+  when its job wrote no recovery file (preflight refused before any lease); 2 when it is uncertain
+  or `lease-in-use`; 3 for a tooling failure. The untagged build requires a credential (a TLS pair
+  or an API key); plaintext transport exists only in the harness build. Each writes one bounded JSON summary on stdout.
 - **The harness is a separate build.** A `canary_harness` build tag compiles a policy and hook
   provider into a harness binary only: it reads a test policy (the test cluster's digests, the
   `canary-harness` Evaluation Profile, which Lean declares beside `production-canary` but renders
@@ -320,3 +324,16 @@ publisher moves whole into `tools/umpire/publish` (`Resolve`, `Within` and the n
 it), `cli` delegating; `run` names `lease-unreconciled` (exit 2). The tree's one regression gate
 runs the canary's checks, which the spec now says instead of claiming Umpire's suite keeps only its
 own rule.
+
+Round five (2026-09-23): NEEDS_WORK with two P1, two P2 and three P3 findings, all applied. The
+recovery record (its type, 0600 write, updates and strict decode) moves to .4, where the lease and
+the loop first write it; .9 keeps only reconcile and the workflow. .4's two-Run early proof runs
+the loop against the test cluster through the real Driver -- the Case's worker and handler
+entrypoints need reservations no scripted Driver grants -- and decides each iteration with an
+injected function that .8 wires to fn-26. The untagged build requires a credential; plaintext is
+the harness's alone. Reconcile with no recovery file exits 0 as `nothing-to-reconcile`, and both
+modes take the same two flags. The HTTP coordinate is dropped (the canary runs a synchronous
+Case), recorded Runs stay in memory, `cli` keeps aliases for every publisher type and constant its
+callers use, the policy sets no per-Run limit (the Temporal Profile bounds a Run) and rejects a
+lease timeout no longer than an invocation, and reconcile reads a not-found workflow twice before
+counting it never started. `umpire-check-regression`'s Go test line gains `./tools/canary/...`.
