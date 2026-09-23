@@ -28,14 +28,15 @@ func TestMainRefusesEveryOtherCommandLine(t *testing.T) {
 	recovery := filepath.Join(t.TempDir(), "recovery.json")
 	valid := []string{"--output", output, "--recovery", recovery}
 	cases := map[string][]string{
-		"no mode":             nil,
-		"another mode":        append([]string{"assess"}, valid...),
-		"a positional":        append(append([]string{"run"}, valid...), "extra"),
-		"no output":           {"run", "--recovery", recovery},
-		"no recovery":         {"run", "--output", output},
-		"a missing output":    {"run", "--output", filepath.Join(output, "absent"), "--recovery", recovery},
-		"a recovery uploaded": {"run", "--output", output, "--recovery", filepath.Join(output, "recovery.json")},
-		"a recovery nowhere":  {"run", "--output", output, "--recovery", filepath.Join(t.TempDir(), "absent", "recovery.json")},
+		"no mode":                nil,
+		"another mode":           append([]string{"assess"}, valid...),
+		"a reconcile positional": append(append([]string{"reconcile"}, valid...), "extra"),
+		"a positional":           append(append([]string{"run"}, valid...), "extra"),
+		"no output":              {"run", "--recovery", recovery},
+		"no recovery":            {"run", "--output", output},
+		"a missing output":       {"run", "--output", filepath.Join(output, "absent"), "--recovery", recovery},
+		"a recovery uploaded":    {"run", "--output", output, "--recovery", filepath.Join(output, "recovery.json")},
+		"a recovery nowhere":     {"run", "--output", output, "--recovery", filepath.Join(t.TempDir(), "absent", "recovery.json")},
 	}
 	for _, forbidden := range []string{"case", "target", "driver", "checker", "retry", "executable", "endpoint", "credential", "release", "profile", "policy", "grpc", "namespace"} {
 		cases["--"+forbidden] = append(append([]string{"run"}, valid...), "--"+forbidden, "x")
@@ -79,4 +80,17 @@ func TestTheUntaggedBuildNeedsACredential(t *testing.T) {
 	require.Contains(t, stderr.String(), controller.StatusAuthorityUnavailable)
 	_, err := os.Stat(recovery)
 	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+// Reconcile with no recovery record has nothing to reconcile and needs no credential; the report
+// is its one document on stdout.
+func TestReconcileWithNoRecordIsNothingToReconcile(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Main([]string{"reconcile", "--output", t.TempDir(), "--recovery", filepath.Join(t.TempDir(), "recovery.json")},
+		&stdout, &stderr, noEnvironment, seams())
+	require.Equal(t, controller.ExitAccepted, code)
+	var reconciled controller.Report
+	require.NoError(t, json.Unmarshal(stdout.Bytes(), &reconciled))
+	require.Equal(t, controller.StatusNothingToReconcile, reconciled.Status)
+	require.Contains(t, stderr.String(), "umpire-canary reconcile: "+controller.StatusNothingToReconcile)
 }
