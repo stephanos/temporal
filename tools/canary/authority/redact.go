@@ -16,6 +16,14 @@ import (
 // Redacted is what every credential and coordinate becomes in written text.
 const Redacted = "[redacted]"
 
+const (
+	// minLineSecret is the shortest line of a multi-line value redacted on its own.
+	minLineSecret = 16
+	// maxPending bounds what a Writer holds while it waits for a newline. Past it the held text is
+	// written, redacted, so a writer that never ends a line cannot grow without bound.
+	maxPending = 64 << 10
+)
+
 // Redactor removes every credential and raw coordinate it was built with from text. A multi-line
 // value, a PEM block, is also removed line by line, so a value re-encoded with escaped newlines or
 // split across lines is still removed; a `host:port` value is also removed by its host.
@@ -40,8 +48,9 @@ func NewRedactor(values ...string) *Redactor {
 			for line := range strings.SplitSeq(value, "\n") {
 				line = strings.TrimSpace(line)
 				// A PEM armour line names the block's type, which is not a secret, and would redact
-				// every other PEM block's armour with it.
-				if !strings.HasPrefix(line, "-----") {
+				// every other PEM block's armour with it; a short last body line alone is no secret
+				// and would redact unrelated text.
+				if !strings.HasPrefix(line, "-----") && len(line) >= minLineSecret {
 					add(line)
 				}
 			}
@@ -89,8 +98,11 @@ func (w *Writer) Write(p []byte) (int, error) {
 	defer w.mu.Unlock()
 	w.pending = append(w.pending, p...)
 	end := bytes.LastIndexByte(w.pending, '\n')
-	if end < 0 {
+	if end < 0 && len(w.pending) <= maxPending {
 		return len(p), nil
+	}
+	if end < 0 {
+		end = len(w.pending) - 1
 	}
 	lines := string(w.pending[:end+1])
 	w.pending = append(w.pending[:0], w.pending[end+1:]...)
