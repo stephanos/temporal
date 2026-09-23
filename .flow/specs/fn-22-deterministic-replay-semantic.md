@@ -548,6 +548,14 @@ write, and each file is created exclusively, which changes `umpire-fuzz`: a seco
 same promotion root is refused rather than rewriting the file. `replay.WriteProposal` reports what
 became of the proposal as its status, never a rerun.
 
+Implementation review of task .7, round one: NEEDS_WORK with three findings, all applied. The
+tests compare against symlink-resolved temporary roots, since the writer reports resolved paths
+(a temporary root is itself a symlink on some systems); `writeExclusive` resolves a directory's
+existing part and checks containment before creating anything, pinned with a nested path through
+a symlink into the model; the reduction's `Proposal` comment says what the field carries. Its FYI
+notes are recorded and not applied: the exploration wrappers keep that module's API, and the
+replay bridge's digest helpers agree by construction.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
