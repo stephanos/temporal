@@ -224,8 +224,7 @@ Task .1 (2026-09-23): `Umpire.Evaluation` declares the checked, Temporal-free Ev
 and `Temporal.Evaluation.Local` the `local-ephemeral` Profile with the plan's table;
 `umpire-evaluation-profiles` renders them under `tools/umpire/evaluation/profiles/`, checked by
 `umpire-check-evaluation-profiles` within `umpire-check-regression`. The identity is pinned in
-`Temporal/Evaluation/LocalTests.lean`. The error type is `ProfileError`, since `DeclarationError`
-is retired vocabulary. Implementation review: SHIP in one round; its two P3 notes applied (blocking
+`Temporal/Evaluation/LocalTests.lean`. The error type is `ProfileError`: the name the plan gave it is retired vocabulary. Implementation review: SHIP in one round; its two P3 notes applied (blocking
 kinds sort by the derived kind order; the renderer reuses the declaration's duplicate check), and
 the FYI taken: a Profile has no structural equality, since two declarations can render the same
 bytes.

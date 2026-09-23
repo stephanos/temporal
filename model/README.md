@@ -415,6 +415,32 @@ make umpire-replay-run CASE=case.json RUN=run.json SET=nexusCallerControl QUERY=
   UMPIRE_REPLAY_FLAGS='--promotion-root /tmp/proposals'
 ```
 
+`umpire-assess run` assesses one recorded Run offline under one Evaluation Profile: the subject is
+a canonical Case (`--case`) and the Run recorded against it (`--run`), the Profile an exact name
+from the ones the model declares (`--profile local-ephemeral`; Lean renders them to
+`tools/umpire/evaluation/profiles/`, which `make umpire-check-evaluation-profiles` checks and the
+command embeds), and the receipt goes under `--receipt-root`, an existing directory outside the
+model. It admits the pair strictly (the record must name this Case's canonical bytes and the tree's
+catalog), reads the recorded Verdict, disposition, cleanup, Known Gaps and supporting sequences
+against the Profile's reason table, and publishes one canonical Evaluation Receipt named by its
+SHA-256, by hard link, never overwriting: the same subject under the same Profile is
+`already-published`, another Profile is another receipt. It takes no address, so it can neither
+create nor replay a Run. Exit 0 is accepted, 1 rejected, 2 incomplete, 3 anything else, with a
+named status in the one-line JSON summary on stdout.
+
+The claim a `local-ephemeral` receipt makes is exactly its Profile's: the Case's Contract held for
+one closed Run against an ephemeral local test cluster, under the recorded Driver identity. The
+trust basis, `local-ephemeral-cluster`, is asserted by the Profile and not checked against the
+recorded identity, and a receipt is not self-authenticating: its identity says which bytes it is,
+not who wrote them. Publication needs a filesystem with hard links and fails closed (exit 3)
+without one. The Case Runtime's Verdict and the offline Claim Assessment stay separate: assessment
+never re-derives a Verdict, and the receipt records the Verdict beside the decision. No CI, remote,
+canary, production or release claim is made, and no receipt authorizes anything.
+
+```sh
+make umpire-assess-run CASE=case.json RUN=run.json PROFILE=local-ephemeral RECEIPT_ROOT=/tmp/receipts
+```
+
 The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both
 environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
 the same satisfied Contract result. Its binding fingerprints and Driver identities differ because
