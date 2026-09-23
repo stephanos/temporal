@@ -1,8 +1,8 @@
 // Package replay turns one admitted violated Run of a produced Case into separate answers: whether
 // its Contract-relative violation recurs, which prefix steps one sweep can drop, and what expected
 // behavior to propose. This file is the recorded Run, the file shape every writer of a closed Run
-// shares, which lives in internal/recordedrun so that qualification admission reads it without
-// importing the replay bridge; replay keeps its names.
+// shares, which lives in tools/umpire/recordedrun so that qualification admission and the canary
+// read it without importing the replay bridge; replay keeps its names.
 package replay
 
 import (
@@ -12,7 +12,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // RecordedIdentity is the Profile identity a Run was prepared under.
