@@ -85,15 +85,18 @@ func rerunOnce(ctx context.Context, binder campaign.Binder, target Target) (Atte
 	if err != nil {
 		return Attempt{}, fmt.Errorf("bind %s: %w", target.Driver.Profile, err)
 	}
+	// Release on a context the caller's cancellation does not reach, as the campaign does: a Run
+	// stopped by cancellation still closes, and its binding must still be torn down.
+	release := func() error { return bound.Release(context.WithoutCancel(ctx)) }
 	identity := bound.Identity()
 	if identity != target.Driver {
-		releaseErr := bound.Release(ctx)
+		releaseErr := release()
 		return Attempt{}, errors.Join(fmt.Errorf("the deployment prepared %s as %s/%s/%s, not the target's %s/%s/%s",
 			target.Driver.Profile, identity.Profile, identity.Catalog, identity.Bindings,
 			target.Driver.Profile, target.Driver.Catalog, target.Driver.Bindings), releaseErr)
 	}
 	run, verdict, runErr := bound.Run(ctx)
-	if err := bound.Release(ctx); err != nil {
+	if err := release(); err != nil {
 		return Attempt{}, fmt.Errorf("release: %w", err)
 	}
 	attempt := Attempt{Run: run, Verdict: verdict, Identity: identity}

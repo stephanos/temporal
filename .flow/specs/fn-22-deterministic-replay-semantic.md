@@ -472,6 +472,14 @@ target's prepared Case; one the offline replay does not reproduce, or one that e
 indeterminate. Another identity, a failed bind or a failed release is an error, never a fourth
 class. `Reruns` and `Attempt` carry no history-replay field, pinned by reflection.
 
+Implementation review of task .4, round one: NEEDS_WORK with two findings, both applied. A binding
+is released on `context.WithoutCancel` of the caller's context, as the campaign releases, so a Run
+stopped by cancellation still tears down its binding (pinned by cancelling from inside the scripted
+Run); the test's scripted attempt is one named type. Its two FYI notes are recorded and not
+applied: a Run returned beside a recorder error is classed `indeterminate`, the conservative class;
+and opening the binder after admission is the caller's contract, which tasks .6 and .7 keep.
+Implementation review of task .2, round two: SHIP.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
