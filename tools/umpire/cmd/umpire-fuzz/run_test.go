@@ -405,7 +405,7 @@ func TestRunWritesEachProposalUnderThePromotionRootOnly(t *testing.T) {
 		PromotionSourceSHA256: expected.PromotionSourceSHA256, PromotionSourcePath: expected.PromotionSourcePath}, withoutRoot.Counterexamples[0])
 	require.NotContains(t, stdout.String(), "-- proposal", "the source bytes are never in the summary")
 
-	root := filepath.Join(t.TempDir(), "proposals")
+	root := filepath.Join(resolvedTemp(t), "proposals")
 	var stdoutOnce, stdoutAgain bytes.Buffer
 	code = Run(requiredFlags("--promotion-root", root), &stdoutOnce, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
 	require.Equal(t, exitViolated, code, stderr.String())
@@ -423,7 +423,7 @@ func TestRunWritesEachProposalUnderThePromotionRootOnly(t *testing.T) {
 
 	// The same campaign under another root writes the same bytes and the same summary, but for
 	// the root it names.
-	rootAgain := filepath.Join(t.TempDir(), "proposals")
+	rootAgain := filepath.Join(resolvedTemp(t), "proposals")
 	code = Run(requiredFlags("--promotion-root", rootAgain), &stdoutAgain, &stderr, scriptedOpener(t, violated(), sampleCandidates(), nil))
 	require.Equal(t, exitViolated, code, stderr.String())
 	require.Equal(t, strings.ReplaceAll(stdoutOnce.String(), root, rootAgain), stdoutAgain.String(), "the same campaign writes the same summary bytes")
@@ -475,7 +475,7 @@ func TestRunRecordsEachCounterexampleUnderTheRecordRoot(t *testing.T) {
 // A proposal path that would leave the promotion root is refused: the campaign's findings stand
 // in the summary, the file is not written, and the command exits as a tooling failure.
 func TestRunRefusesAProposalPathOutsideThePromotionRoot(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "proposals")
+	root := filepath.Join(resolvedTemp(t), "proposals")
 	binder := &scriptedBinder{verdicts: []testpilotspb.VerdictStatus{testpilotspb.VERDICT_STATUS_SATISFIED, testpilotspb.VERDICT_STATUS_VIOLATED}}
 	var stdout, stderr bytes.Buffer
 	code := Run(requiredFlags("--promotion-root", root), &stdout, &stderr,
@@ -492,7 +492,7 @@ func TestRunRefusesAProposalPathOutsideThePromotionRoot(t *testing.T) {
 // Every proposal path is checked before any file is written: one path that would leave the root
 // leaves the root empty, whatever came before it in the summary.
 func TestWriteProposalsWritesNothingWhenAnyPathEscapes(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "proposals")
+	root := filepath.Join(resolvedTemp(t), "proposals")
 	first := proposalFor(firstIdentity, "")
 	first.Candidate = firstIdentity
 	escaping := proposalFor(secondIdentity, "../escaped.lean")
@@ -867,4 +867,13 @@ cat >/dev/null
 	require.NoError(t, err)
 	require.Equal(t, "exhausted", finished.Status)
 	require.NoError(t, opened.release(t.Context()))
+}
+
+// resolvedTemp is a temporary directory with its symlinks resolved, as the proposal writer reports
+// paths: on some systems the temporary root itself is reached through a symlink.
+func resolvedTemp(t *testing.T) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	return resolved
 }
