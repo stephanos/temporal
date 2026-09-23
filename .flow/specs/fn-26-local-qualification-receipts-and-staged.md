@@ -27,8 +27,9 @@ contract in what the tree now has:
   that record to the control Case's exact bytes: a change to the control's definitions makes it
   `crossed` until it is recorded again live, which `key_test.go` and .6's docs say. Admission
   checks run in a fixed order. The Case: its byte cap (`oversized`), its canonical form
-  (`noncanonical`), decoding (`malformed`), its format version (`incompatible`). The recorded Run:
-  its byte cap (`oversized`), decoding (`malformed`), its event cap (`oversized`), the `case` field
+  (`noncanonical`, a Case that is not JSON at all included, as replay classes it), decoding (`malformed`), its format version (`incompatible`). The recorded Run:
+  its byte cap (`oversized`), decoding (`malformed`, a duplicate or case-folded outer key included, in both
+  admissions), its event cap (`oversized`), the `case` field
   (`incompatible`, so a legacy record is never `noncanonical`), its re-encoding (`noncanonical`).
   Then the pair: `open` (an empty Run ID, no events, a disposition or cleanup status that is absent
   or `UNSPECIFIED`, no Verdict), `crossed` (reached only with a Verdict present), `inconsistent`,
@@ -318,3 +319,13 @@ round's findings were real and applied, and their severity fell (rounds six to e
 blocking issue each, all in the recorded-Run `case` binding round six introduced). That binding
 changes the recorded-Run format fn-22 shipped, which is a re-plan of the subject contract, so the
 counter was reset with `flowctl spec reset-review-rounds` and review continued from round nine.
+
+Round nine (2026-09-23): **SHIP**, its one P2 and three P3 notes folded into the plan. A
+duplicate or case-folded outer key is a decoding failure, `malformed`, in both admissions; a Case
+that is not JSON is `noncanonical`, as replay classes it; `umpire-assess` runs under
+`cli.Interruptible` with a fixed one-minute timeout, whose expiry before the link reports
+`interrupted` as an interrupt does; `model/ARCHITECTURE.md`'s replay-admission paragraph is .2's
+to update. The FYIs are taken: .1 reuses `Umpire.KnownGap.KnownGapKind` rather than declaring the
+kinds again; .6's docs say publication needs hard links and fails closed without them. The older
+Contracts prose naming "Limits" and "claim strength" in the Profile is read through the re-plan:
+the receipt records the admission caps, and the claim is the Profile's claim text.
