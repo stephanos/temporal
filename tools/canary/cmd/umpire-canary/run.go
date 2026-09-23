@@ -24,46 +24,66 @@ const statusUsage = "usage"
 // modelRoot is the model package, which never receives the canary's output.
 const modelRoot = "model"
 
-const usage = "usage: umpire-canary run --output <dir> --recovery <file>"
+const usage = "usage: umpire-canary run|reconcile --output <dir> --recovery <file>"
 
-// options are the only things a caller names: where the artifact goes and where the job's
-// recovery record lives.
+// The two closed modes.
+const (
+	modeRun       = "run"
+	modeReconcile = "reconcile"
+)
+
+// options are the only things a caller names: the mode, where the artifact goes and where the
+// job's recovery record lives.
 type options struct {
+	Mode     string
 	Output   string
 	Recovery string
 }
 
-// Main is the whole command: parse the closed mode and its two flags, invoke, and write the one
-// summary on stdout. It returns the exit code.
+// usageSummary is the one document a refused command line writes.
+type usageSummary struct {
+	Status string `json:"status"`
+	Detail string `json:"detail"`
+}
+
+// Main is the whole command: parse the closed mode and its two flags, run the mode, and write its
+// one document on stdout. It returns the exit code.
 func Main(arguments []string, stdout, stderr io.Writer, lookup authority.Lookup, seams controller.Seams) int {
 	parsed, err := parse(arguments, stderr)
 	if err != nil {
-		return report(stdout, stderr, controller.Summary{Status: statusUsage, Detail: err.Error(), Iterations: []controller.SummaryIteration{}}, controller.ExitFailed)
+		return report(stdout, stderr, "umpire-canary", statusUsage, usageSummary{Status: statusUsage, Detail: err.Error()}, controller.ExitFailed)
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if parsed.Mode == modeReconcile {
+		// The report goes to stdout only: the workflow keeps it beside the artifact.
+		reconciled, code := controller.Reconcile(ctx, controller.Reconciliation{
+			Seams: seams, Lookup: lookup, Recovery: parsed.Recovery, Progress: stderr, Now: time.Now(),
+		})
+		return report(stdout, stderr, "umpire-canary reconcile", reconciled.Status, reconciled, code)
+	}
 	summary, code := controller.Invoke(ctx, controller.Invocation{
 		Seams: seams, Lookup: lookup, Output: parsed.Output, Recovery: parsed.Recovery,
 		Progress: stderr, Started: time.Now(),
 	})
-	return report(stdout, stderr, summary, code)
+	return report(stdout, stderr, "umpire-canary run", summary.Status, summary, code)
 }
 
 func parse(arguments []string, stderr io.Writer) (options, error) {
-	if len(arguments) == 0 || arguments[0] != "run" {
+	if len(arguments) == 0 || (arguments[0] != modeRun && arguments[0] != modeReconcile) {
 		_, _ = fmt.Fprintln(stderr, usage)
-		return options{}, errors.New("the mode is run")
+		return options{}, errors.New("the mode is run or reconcile")
 	}
-	var parsed options
-	flags := flag.NewFlagSet("umpire-canary run", flag.ContinueOnError)
+	parsed := options{Mode: arguments[0]}
+	flags := flag.NewFlagSet("umpire-canary "+parsed.Mode, flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.StringVar(&parsed.Output, "output", "", "an existing directory outside the model for receipts and provenance")
-	flags.StringVar(&parsed.Recovery, "recovery", "", "the job's recovery record, created by this run")
+	flags.StringVar(&parsed.Recovery, "recovery", "", "the job's recovery record: run creates it, reconcile reads it")
 	if err := flags.Parse(arguments[1:]); err != nil {
 		return options{}, err
 	}
 	if flags.NArg() != 0 {
-		return options{}, errors.New("umpire-canary run accepts no positional arguments")
+		return options{}, fmt.Errorf("umpire-canary %s accepts no positional arguments", parsed.Mode)
 	}
 	if parsed.Output == "" || parsed.Recovery == "" {
 		return options{}, errors.New(usage)
@@ -92,21 +112,22 @@ func parse(arguments []string, stderr io.Writer) (options, error) {
 	if info, err := os.Stat(filepath.Dir(recovery)); err != nil || !info.IsDir() {
 		return options{}, errors.New("--recovery: its directory does not exist")
 	}
-	return options{Output: output, Recovery: recovery}, nil
+	parsed.Output, parsed.Recovery = output, recovery
+	return parsed, nil
 }
 
-// report writes the summary on stdout and one line on stderr, and returns the code. A summary
+// report writes the document on stdout and one line on stderr, and returns the code. A document
 // stdout cannot take goes to stderr, and the exit is 3.
-func report(stdout, stderr io.Writer, summary controller.Summary, code int) int {
-	encoded, err := json.Marshal(summary)
+func report(stdout, stderr io.Writer, command, status string, document any, code int) int {
+	encoded, err := json.Marshal(document)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "umpire-canary: encode the summary: %s\n", err)
+		_, _ = fmt.Fprintf(stderr, "%s: encode the summary: %s\n", command, err)
 		return controller.ExitFailed
 	}
 	if _, err := stdout.Write(append(encoded, '\n')); err != nil {
 		_, _ = fmt.Fprintf(stderr, "%s\n", encoded)
 		return controller.ExitFailed
 	}
-	_, _ = fmt.Fprintf(stderr, "umpire-canary run: %s\n", summary.Status)
+	_, _ = fmt.Fprintf(stderr, "%s: %s\n", command, status)
 	return code
 }
