@@ -2,14 +2,13 @@ package replay
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/internal/casefile"
+	"go.temporal.io/server/tools/umpire/internal/recordedrun"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -26,6 +25,7 @@ func (r *Rejection) Error() string { return r.Reason + ": " + r.Detail }
 const (
 	ReasonNoncanonical = "noncanonical"
 	ReasonCrossed      = "crossed"
+	ReasonIncompatible = "incompatible"
 	ReasonStale        = "stale"
 	ReasonIncomplete   = "incomplete"
 	ReasonMalformed    = "malformed"
@@ -69,7 +69,8 @@ type Subject struct {
 }
 
 // Admit reads one Case and one recorded Run and admits them as a subject or rejects them with a
-// reason, before any target effect: the Case must be canonical, the Run must be the Case's and in
+// reason, before any target effect: the Case must be canonical, the Run must be the Case's (recorded
+// from these canonical Case bytes, with the Case's IDs; a record naming no Case is incompatible) and in
 // the admissible violated form with every supporting sequence naming one event, the Case must
 // prepare under the recorded Profile name with the recorded catalog and bindings, and the recorded
 // Run replayed offline must give the recorded Verdict. The key is derived from that replay.
@@ -85,22 +86,32 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 	if err != nil {
 		return nil, reject(ReasonNoncanonical, "the Case does not decode: %s", err)
 	}
-	driver, run, err := DecodeRecordedRun(recordedInput)
+	decoded, err := DecodeRecordedRun(recordedInput)
+	if errors.Is(err, ErrRecordNamesNoCase) {
+		return nil, reject(ReasonIncompatible, "%s", err)
+	}
 	if err != nil {
 		return nil, reject(ReasonMalformed, "%s", err)
 	}
-	if run.GetCaseId() != source.GetCaseId() {
-		return nil, reject(ReasonCrossed, "the Run names Case %q, the Case is %q", run.GetCaseId(), source.GetCaseId())
+	driver, run := decoded.Driver, decoded.Run
+	identity := recordedrun.Digest(canonical)
+	// IDs are names, not hashes: a Case regenerated under the same IDs is another Case, and a Run
+	// of the older one is not its Run.
+	if decoded.Case != identity {
+		return nil, reject(ReasonCrossed, "the Run was recorded from Case %s, the Case is %s", decoded.Case, identity)
 	}
-	if run.GetProgramId() != source.GetProgram().GetProgramId() {
-		return nil, reject(ReasonCrossed, "the Run names Program %q, the Case's is %q", run.GetProgramId(), source.GetProgram().GetProgramId())
+	if crossed := recordedrun.Crossed(source, run); crossed != "" {
+		return nil, reject(ReasonCrossed, "%s", crossed)
 	}
 	verdict := run.GetVerdict()
 	if ok, class, detail := ViolatedForm(run, verdict); !ok {
 		return nil, reject(class, "%s", detail)
 	}
-	if err := checkSupport(run, verdict); err != nil {
-		return nil, err
+	if problem := recordedrun.CheckSupport(run, verdict); problem != nil {
+		if problem.Problem == recordedrun.SupportRepeated {
+			return nil, reject(ReasonDuplicate, "%s", problem)
+		}
+		return nil, reject(ReasonUnsupported, "%s", problem)
 	}
 	prepared, err := prepare(driver.Profile, source)
 	if err != nil {
@@ -111,9 +122,9 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 		}
 		return nil, fmt.Errorf("prepare the subject's Case: %w", err)
 	}
-	if identity := prepared.Identity(); identity != driver {
+	if under := prepared.Identity(); under != driver {
 		return nil, reject(ReasonStale, "the Case prepares under %s/%s/%s, the Run was recorded under %s/%s/%s",
-			identity.Profile, identity.Catalog, identity.Bindings, driver.Profile, driver.Catalog, driver.Bindings)
+			under.Profile, under.Catalog, under.Bindings, driver.Profile, driver.Catalog, driver.Bindings)
 	}
 	replayed, evaluation, err := prepared.Evaluate(ctx, run)
 	if err != nil {
@@ -122,37 +133,9 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 	if !proto.Equal(replayed, verdict) {
 		return nil, reject(ReasonReplay, "the recorded Run replays to %s, its recorded Verdict is %s", replayed.GetStatus(), verdict.GetStatus())
 	}
-	digest := sha256.Sum256(canonical)
 	return &Subject{
-		Identity: hex.EncodeToString(digest[:]), Canonical: canonical, Case: source,
+		Identity: identity, Canonical: canonical, Case: source,
 		Run: run, Verdict: verdict, Driver: driver, Prepared: prepared, Replay: evaluation,
 		Key: KeyOf(source, verdict, evaluation),
 	}, nil
-}
-
-// checkSupport requires every supporting sequence, of the Verdict and of each rule, to name one
-// event of the Run, once.
-func checkSupport(run *testpilotspb.Run, verdict *testpilotspb.Verdict) error {
-	check := func(owner string, sequences []int64) error {
-		seen := map[int64]bool{}
-		for _, sequence := range sequences {
-			if sequence <= 0 || sequence > int64(len(run.GetEvents())) || run.GetEvents()[sequence-1].GetSequence() != sequence {
-				return reject(ReasonUnsupported, "%s names supporting event %d, which the Run does not carry", owner, sequence)
-			}
-			if seen[sequence] {
-				return reject(ReasonDuplicate, "%s names supporting event %d twice", owner, sequence)
-			}
-			seen[sequence] = true
-		}
-		return nil
-	}
-	if err := check("the Verdict", verdict.GetSupportingEventSequences()); err != nil {
-		return err
-	}
-	for _, rule := range verdict.GetRules() {
-		if err := check("rule "+rule.GetRuleId(), rule.GetSupportingEventSequences()); err != nil {
-			return err
-		}
-	}
-	return nil
 }

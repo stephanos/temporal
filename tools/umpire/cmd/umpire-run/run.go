@@ -64,10 +64,19 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		return exitFailed
 	}
 
-	source, err := readCase(configuration.CasePath)
+	encoded, source, err := readCase(configuration.CasePath)
 	if err != nil {
 		cli.WriteLine(stderr, "%s", err)
 		return exitFailed
+	}
+	if configuration.RecordPath != "" {
+		// The record names the Case by its canonical bytes' identity, which a fixture in no
+		// canonical form does not have; refusing it now keeps a Run from happening that its record
+		// would then lose.
+		if _, err := replay.CaseIdentity(encoded); err != nil {
+			cli.WriteLine(stderr, "--record: Case fixture %q is not in a canonical form: %v", configuration.CasePath, err)
+			return exitFailed
+		}
 	}
 
 	ctx, cancel := cli.Interruptible(context.Background(), configuration.Timeout)
@@ -91,7 +100,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		// The Run is reported and its Verdict decides the exit code whatever happens to its
 		// record; a record that could not be written after all is said on stderr, since the path
 		// was checked before anything ran and only a race or the disk can fail it now.
-		if err := replay.WriteRecordedRun(configuration.RecordPath, bound.identity, run); err != nil {
+		if err := replay.WriteRecordedRun(configuration.RecordPath, encoded, bound.identity, run); err != nil {
 			cli.WriteLine(stderr, "%s", err)
 		}
 	}
@@ -146,16 +155,16 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	return configuration, nil
 }
 
-func readCase(path string) (*testpilotspb.Case, error) {
+func readCase(path string) ([]byte, *testpilotspb.Case, error) {
 	encoded, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read Case fixture: %w", err)
+		return nil, nil, fmt.Errorf("read Case fixture: %w", err)
 	}
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	if err != nil {
-		return nil, fmt.Errorf("decode Case fixture %q: %w", path, err)
+		return nil, nil, fmt.Errorf("decode Case fixture %q: %w", path, err)
 	}
-	return source, nil
+	return encoded, source, nil
 }
 
 // describeFailure names a static admission rejection by its category, because "typed fixture" and

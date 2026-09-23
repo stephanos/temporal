@@ -109,11 +109,11 @@ func TestExecuteRejectsBeforeOpeningAnything(t *testing.T) {
 	require.Equal(t, ExitToolingFailure, report.ExitCode())
 
 	e = newExecution(t, nil, edit(0, "a"))
-	driver, run, err := DecodeRecordedRun(e.request.Run)
+	decoded, err := DecodeRecordedRun(e.request.Run)
 	require.NoError(t, err)
-	disagreeing := proto.CloneOf(run)
+	disagreeing := proto.CloneOf(decoded.Run)
 	disagreeing.Verdict.Rules[0].TerminalStateId = "elsewhere"
-	e.request.Run, err = EncodeRecordedRun(driver, disagreeing)
+	e.request.Run, err = EncodeRecordedRun(decoded.Case, decoded.Driver, disagreeing)
 	require.NoError(t, err)
 	report = e.run(t)
 	require.Equal(t, ReasonReplay, report.Admission.Reason)
