@@ -1,4 +1,5 @@
 import Umpire.Evaluation
+import Temporal.Evaluation.Local
 
 /-!
 # The canary Evaluation Profiles
@@ -21,16 +22,11 @@ namespace Temporal.Evaluation.Canary
 
 open Umpire Umpire.Evaluation
 
-/-- The reason table both canary Profiles share, in `local-ephemeral`'s order. -/
-def canaryReasons : List Reason := [
-  { name := "verdict-violated", condition := .verdictViolated, decision := .rejected },
-  { name := "monitor-stopped", condition := .dispositionStopped, decision := .rejected },
-  { name := "verdict-inconclusive", condition := .verdictInconclusive, decision := .incomplete },
-  { name := "run-incomplete", condition := .dispositionIncomplete, decision := .incomplete },
-  { name := "cleanup-unclosed", condition := .cleanupUnclosed, decision := .incomplete },
-  { name := "known-gap-blocking", condition := .knownGapBlocking, decision := .incomplete },
-  { name := "rule-unsupported", condition := .unsupportedRule, decision := .rejected }
-]
+/-- The reason table both canary Profiles share: `local-ephemeral`'s, row for row, except that an
+unsupported rule rejects. Derived rather than copied, so the two tables cannot drift apart. -/
+def canaryReasons : List Reason :=
+  Temporal.Evaluation.Local.localEphemeralDeclaration.reasons.map fun reason =>
+    if reason.condition == .unsupportedRule then { reason with decision := .rejected } else reason
 
 /-- Every Known Gap kind blocks a canary. -/
 def canaryBlockingGaps : List KnownGapKind := [.capability, .input, .interpretation, .claim]

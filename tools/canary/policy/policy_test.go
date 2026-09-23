@@ -50,6 +50,8 @@ func TestDecodeRejectsEachMalformation(t *testing.T) {
 		"no iterations":               {mutate(`"iterations": 2`, `"iterations": 0`), "limit iterations"},
 		"a negative reserve":          {mutate(`"cleanupReserveSeconds": 120`, `"cleanupReserveSeconds": -1`), "limit cleanupReserveSeconds"},
 		"a lease that expires early":  {mutate(`"leaseRunTimeoutSeconds": 86400`, `"leaseRunTimeoutSeconds": 720`), "must exceed"},
+		"an overflowing invocation":   {mutate(`"invocationSeconds": 600`, `"invocationSeconds": 9223372036854775807`), "at most"},
+		"too many iterations":         {mutate(`"iterations": 2`, `"iterations": 17`), "at most"},
 		"an unknown key":              {mutate(`"version": 1,`, `"version": 1, "override": true,`), "unknown field"},
 		"a case-folded key":           {mutate(`"trustedRef"`, `"TrustedRef"`), "canonical form"},
 		"a repeated key":              {mutate(`"repository": "temporalio/temporal",`, `"repository": "evil/fork", "repository": "temporalio/temporal",`), "canonical form"},
@@ -61,4 +63,10 @@ func TestDecodeRejectsEachMalformation(t *testing.T) {
 			require.ErrorContains(t, err, probe.detail)
 		})
 	}
+}
+
+func TestAuthorityClassesCannotBeWidened(t *testing.T) {
+	classes := AuthorityClasses()
+	classes[0] = "anyone"
+	require.Equal(t, []string{AuthorityProtectedWorkflow, AuthorityHarness}, AuthorityClasses())
 }
