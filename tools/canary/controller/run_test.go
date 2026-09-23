@@ -283,7 +283,10 @@ type raced struct {
 
 func (r raced) DescribeWorkflowExecution(ctx context.Context, request *workflowservice.DescribeWorkflowExecutionRequest, options ...grpc.CallOption) (*workflowservice.DescribeWorkflowExecutionResponse, error) {
 	response, err := r.fakeServer.DescribeWorkflowExecution(ctx, request, options...)
-	if request.GetExecution().GetWorkflowId() == r.leaseID && len(r.runs[r.leaseID]) == 0 {
+	r.mu.Lock()
+	first := request.GetExecution().GetWorkflowId() == r.leaseID && len(r.runs[r.leaseID]) == 0
+	r.mu.Unlock()
+	if first {
 		r.open(r.leaseID, time.Unix(1, 0))
 	}
 	return response, err
@@ -337,10 +340,10 @@ func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T)
 			require.Error(t, result.Cleanup.Err)
 			require.Contains(t, result.Cleanup.Unverified, "testpilot.run.2")
 			require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
-			observed, err := leaseState(t.Context(), Target{Service: s.server, Namespace: testNamespace}, canary.Lease.WorkflowID)
-			if err == nil {
-				require.Equal(t, LeaseOpen, observed.State, "the lease stays held")
-			}
+			delete(s.server.fail, "history "+canary.Lease.WorkflowID)
+			observed, err := leaseState(t.Context(), target(s.server), canary.Lease.WorkflowID)
+			require.NoError(t, err)
+			require.Equal(t, LeaseOpen, observed.State, "the lease stays held")
 		})
 	}
 }
