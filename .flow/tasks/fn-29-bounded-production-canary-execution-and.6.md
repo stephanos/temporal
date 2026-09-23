@@ -17,14 +17,13 @@ Add `tools/canary/assessment/provenance.go`: one `Provenance` document in a fixe
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Its bytes and identity are pinned by goldens; it carries no credential, raw coordinate or payload.
-- [ ] Every version, identity, status, relation, key and N+1 mutation is rejected by the decoder.
-- [ ] `releaseEligibility` is `false` by construction and cannot be decoded or rendered otherwise.
+- [x] Its bytes and identity are pinned by goldens; it carries no credential, raw coordinate or payload.
+- [x] Every version, identity, status, relation, key and N+1 mutation is rejected by the decoder.
+- [x] `releaseEligibility` is `false` by construction and cannot be decoded or rendered otherwise.
 
 ## Done summary
-TBD
-
+`tools/canary/assessment/provenance.go`: `Provenance` (version 1, fixed key order) names the fn-26 receipt identity, the Evaluation Profile identity, the authority class, the workflow ref and Actions run, the coordinate digests, the lease ID digest and fence, the invocation, iteration and Run, the Limits, the iteration's recorded cleanup and the invocation's cleanup outcome, the isolation statement, the fenced workflow IDs, and `releaseEligibility`, whose type renders and decodes only `false`. `RenderProvenance` writes one compact document with a trailing newline, `ProvenanceIdentity` is its SHA-256, and `DecodeProvenance` reads only the canonical rendering up to 64 KiB, refusing every version, identity, status, relation, key and N+1 mutation. Goldens pin the released and uncertain documents. Outside the task's files: `policy.Limits.Validate` and `policy.IsDigest` are exported and shared, Testpilot exports `RunIDPrefix`/`IsRunID`, the fenced Driver and the controller's fence reader refuse non-Testpilot IDs, and preflight and the policy accept only what provenance renders. Implementation review: NEEDS_WORK four times, then SHIP; P3 notes applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 25121d10262568bbe9df5cd6ca15960fb719a74e, c6a1238716a461a2a8ce21b18fc8538986313114, 7920df968ce34c0e89c79868627f5fb0310a718e, 02b145c10f594fe2f4f5c95851157c0070faa4ae, a4300438d535c969b954849cce5cd275fa1211e3, 0c67ff61fcc53e8d8e78053a88415e811439c688, 70b97b900ca447546603b7ad6221544058e3a00e
+- Tests: go test -count=1 -tags test_dep ./tools/canary/... ./common/testing/testpilot/..., go test -count=1 -tags 'test_dep integration' ./tests/ -run '^TestTestpilotCanaryLifecycle$', GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:

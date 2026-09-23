@@ -348,6 +348,23 @@ Run, recorded by the lifecycle test when `UMPIRE_CANARY_RECORD` names the file, 
 control fixture is; a catalog or Case change requires re-recording it. Implementation review: SHIP
 in one round; its P3 note (no test failure inside the controller's decide) applied.
 
+Task .6 (2026-09-23): `assessment.Provenance` is one compact document in a fixed key order: the
+fn-26 receipt identity, the Evaluation Profile identity, the authority class, the workflow ref and
+Actions run, the coordinate digests, the lease ID's digest and fence, the invocation, iteration and
+its Run, the policy's Limits, both cleanups, the isolation statement, the fenced workflow IDs and
+`releaseEligibility`, a type that has no value but `false`. The decoder reads only the canonical
+rendering, at most 64 KiB, and refuses every relation the controller guarantees: the invocation is
+an attempt of the workflow run, iteration N's Run is the lease's Nth fenced workflow, the fence is a
+canonical run ID, every fenced ID is a Testpilot Run ID, and the Limits obey the policy's rules
+(`policy.Limits.Validate`, now shared). Testpilot exports its Run ID form (`RunIDPrefix`,
+`IsRunID`); the fenced Driver refuses any other ID before it signals, and the controller's fence
+reader fails closed on a signal naming anything else, so cleanup never terminates a workflow the
+canary did not start. Preflight and the policy were tightened to accept only what provenance
+renders. Goldens pin the released and uncertain documents' bytes and identities. Implementation
+review: NEEDS_WORK four times (limit rules and fence position; the invocation relation; canonical
+IDs; an untested length relation and a copied Run ID form), then SHIP; its P3 notes applied, the
+canonical-UUID helper kept as the one check the fence needs.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
