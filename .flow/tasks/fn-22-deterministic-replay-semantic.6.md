@@ -19,13 +19,12 @@ Implement the Go client of the replay bridge (one request outstanding, exact ech
 ### Re-plan note (2026-09-22)
 Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
-- [ ] Edit, Run, wall-time, Case-byte, event and report limits are enforced before the work they bound, and `incomplete` names the limit or the undecided edit.
-- [ ] Compile or preparation rejection (counted as inapplicable), not-reproduced, indeterminate (retried once, then incomplete), cancellation and limit exhaustion stay distinct in the report, and no applicable edit is skipped or counted as non-reproducing without two conclusive Runs; `minimized` is the one-pass sweep's answer.
-- [ ] The same inputs and classes give the same reduction decisions and report bytes; a retained candidate never reintroduces a dropped step.
+- [x] Edit, Run, wall-time, Case-byte, event and report limits are enforced before the work they bound, and `incomplete` names the limit or the undecided edit.
+- [x] Compile or preparation rejection (counted as inapplicable), not-reproduced, indeterminate (retried once, then incomplete), cancellation and limit exhaustion stay distinct in the report, and no applicable edit is skipped or counted as non-reproducing without two conclusive Runs; `minimized` is the one-pass sweep's answer.
+- [x] The same inputs and classes give the same reduction decisions and report bytes; a retained candidate never reintroduces a dropped step.
 ## Done summary
-TBD
-
+`campaign.Conn` is the transport fn-33's exploration client and the replay client now share (one process or stream pair, one request outstanding, replies matched by sequence number, set and profile, the byte cap, the broken state, `Close`); `campaign.Bridge` is rebuilt on it with its tests green. `replay.Bridge` is the replay bridge's client (`Admit`, which returns a `*CrossedError` when the set does not produce the subject's bytes; `Next`; `Observe` with a class or a preparation rejection; `Finish`), with the same guards before any frame is written. `replay.Reducer.Reduce` starts only on a subject whose reruns are `reproduced` (otherwise the report is `not-attempted` and the bridge is finished as stopped); for each candidate it checks the Case bytes, decodes and prepares it under the subject's Profile name (a failure is reported `rejected`, never rerun), reruns it twice through `Rerun`, reruns each indeterminate Run alone once through `RerunOnce` (one Run each from the budget), reports the pair's class, and ends on the bridge's exhaustion, an undecided edit, a limit (edits at admission; Runs, wall time, aggregate Case bytes and Run Events before each candidate; the Case bytes again on arrival; the report bytes on the rendered report), a stop (the candidate whose Runs were open is named `lost`), or a rerun that cannot bind or release (`failure`). The report holds the bridge's result and every edit's fate, each candidate's Run classes, the Runs spent, the limit, the stop and the failure, and no time, so the same scripted classes render the same bytes. Pinned over a scripted fake bridge and the scripted binder, and against the real `umpire-replay-bridge` (the Go identity of the control's fixture is the Lean bridge's), which `make umpire-check-replay-bridge` now runs.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8876e5ff3adaa67713721fa2226af7c38d6fe6a5
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/replay/ ./tools/umpire/campaign/ ./tools/umpire/cmd/umpire-fuzz/, go test -count=1 -tags test_dep ./tests/testcore/testpilot -run ^TestExplorationBridge, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
