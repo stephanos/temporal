@@ -26,13 +26,18 @@ type Caps struct {
 	ReceiptBytes int `json:"receiptBytes"`
 }
 
-// AdmissionCaps are the fixed caps: a 4 MiB Case, a recorded Run as large as the bridge frame cap
-// with at most 65,536 events, and a 1 MiB receipt.
-var AdmissionCaps = Caps{
-	CaseBytes:    4 << 20,
-	RunBytes:     16 << 20,
-	RunEvents:    65536,
-	ReceiptBytes: 1 << 20,
+// The fixed caps: a 4 MiB Case, a recorded Run as large as the bridge frame cap with at most
+// 65,536 events, and a 1 MiB receipt.
+const (
+	MaxCaseBytes    = 4 << 20
+	MaxRunBytes     = 16 << 20
+	MaxRunEvents    = 65536
+	MaxReceiptBytes = 1 << 20
+)
+
+// AdmissionCaps are the fixed caps as a receipt records them.
+func AdmissionCaps() Caps {
+	return Caps{CaseBytes: MaxCaseBytes, RunBytes: MaxRunBytes, RunEvents: MaxRunEvents, ReceiptBytes: MaxReceiptBytes}
 }
 
 // The rejection reasons, each its own class.
@@ -94,7 +99,7 @@ type Subject struct {
 // the recorded identity must carry: the command passes the tree's static catalog's. The checks
 // run in a fixed order, the Case's first, then the recorded Run's, then the pair's.
 func Admit(caseInput, recordedInput []byte, catalog string) (*Subject, error) {
-	caps := AdmissionCaps
+	caps := AdmissionCaps()
 	if len(caseInput) > caps.CaseBytes {
 		return nil, reject(ReasonOversized, "the Case is %d bytes, over the %d-byte cap", len(caseInput), caps.CaseBytes)
 	}
@@ -123,6 +128,11 @@ func Admit(caseInput, recordedInput []byte, catalog string) (*Subject, error) {
 	}
 	if err != nil {
 		return nil, reject(ReasonIncompatible, "%s", err)
+	}
+	// protojson reads an enum's number as readily as its name, and a number the proto does not
+	// declare re-encodes to itself; such a value is no status at all.
+	if detail := undeclaredStatus(run); detail != "" {
+		return nil, reject(ReasonMalformed, "%s", detail)
 	}
 	reencoded, err := recordedrun.Encode(decoded.Case, decoded.Driver, run)
 	if err != nil {
@@ -210,13 +220,33 @@ func ruleSetCrossed(contract *testpilotspb.Contract, verdict *testpilotspb.Verdi
 	for _, rule := range verdict.GetRules() {
 		named = append(named, rule.GetRuleId())
 	}
+	if duplicate := firstRepeated(named); duplicate != "" {
+		return fmt.Sprintf("the Verdict names rule %q twice", duplicate)
+	}
 	slices.Sort(expected)
 	slices.Sort(named)
 	if !slices.Equal(expected, named) {
 		return fmt.Sprintf("the Verdict names rules %v, the Contract's are %v", named, expected)
 	}
-	if duplicate := firstRepeated(named); duplicate != "" {
-		return fmt.Sprintf("the Verdict names rule %q twice", duplicate)
+	return ""
+}
+
+// undeclaredStatus names a disposition, cleanup, Verdict or rule status the proto does not declare,
+// or returns "".
+func undeclaredStatus(run *testpilotspb.Run) string {
+	if _, ok := testpilotspb.RunDisposition_name[int32(run.GetDisposition())]; !ok {
+		return fmt.Sprintf("the Run's disposition %d is not a declared disposition", run.GetDisposition())
+	}
+	if _, ok := testpilotspb.CleanupStatus_name[int32(run.GetCleanup().GetStatus())]; !ok {
+		return fmt.Sprintf("the Run's cleanup status %d is not a declared status", run.GetCleanup().GetStatus())
+	}
+	if _, ok := testpilotspb.VerdictStatus_name[int32(run.GetVerdict().GetStatus())]; !ok {
+		return fmt.Sprintf("the Verdict's status %d is not a declared status", run.GetVerdict().GetStatus())
+	}
+	for _, rule := range run.GetVerdict().GetRules() {
+		if _, ok := testpilotspb.RuleVerdictStatus_name[int32(rule.GetStatus())]; !ok {
+			return fmt.Sprintf("rule %s has status %d, which is not a declared status", rule.GetRuleId(), rule.GetStatus())
+		}
 	}
 	return ""
 }

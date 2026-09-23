@@ -15,7 +15,8 @@
   ],
   "id": "fn-26-local-qualification-receipts-and-staged",
   "impl_review_rounds": {
-    "fn-26-local-qualification-receipts-and-staged.1": 0
+    "fn-26-local-qualification-receipts-and-staged.1": 0,
+    "fn-26-local-qualification-receipts-and-staged.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -776,10 +777,40 @@
       "task": "fn-26-local-qualification-receipts-and-staged.1",
       "timestamp": "2026-09-23T09:57:11.209820Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "96438234c5956c64f430472f2f3dd4cadce99ebfdd7e48a6f0612872e4e275f9",
+      "backend": "claude",
+      "base_sha": "432271e2376b673ea5cd8c3290d0ff554a241731",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aa54559aa16d0e9d2d6b504cb46fd6ec8015219b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6569,
+      "output_sha256": "6a92b6f8cdaec38a9c257808aad01049731e3223a4ed85760b076c5c2573affc",
+      "reservation_id": "d5cd169a6b874f7bbb1827412d3284c8",
+      "round_consumed": true,
+      "scope": "impl:fn-26-local-qualification-receipts-and-staged.2",
+      "superseded_by": null,
+      "task": "fn-26-local-qualification-receipts-and-staged.2",
+      "timestamp": "2026-09-23T10:12:29.443854Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-26-local-qualification-receipts-and-staged.1": 1,
+    "impl:fn-26-local-qualification-receipts-and-staged.2": 1,
     "plan": 3,
     "plan#completion": 1
   },
@@ -787,6 +818,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-26-local-qualification-receipts-and-staged.1": 0,
+    "impl:fn-26-local-qualification-receipts-and-staged.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-26-local-qualification-receipts-and-staged.md",
@@ -803,5 +835,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T09:57:11.213624Z"
+  "updated_at": "2026-09-23T10:12:29.448406Z"
 }

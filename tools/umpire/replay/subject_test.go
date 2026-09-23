@@ -159,15 +159,17 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 		reason    string
 		detail    string
 	}{
-		"noncanonical whitespace": {[]byte(strings.Replace(string(persisted), "  ", "    ", 1)), recorded, ReasonNoncanonical, "canonical"},
-		"not a Case":              {[]byte(`{"nonsense":1}`), recorded, ReasonNoncanonical, "does not decode"},
-		"crossed Case":            {caseBytes, edited(func(r *testpilotspb.Run) { r.CaseId = "temporal.case.other" }), ReasonCrossed, "names Case"},
-		"another Case's record":   {caseBytes, otherCase, ReasonCrossed, "recorded from Case"},
-		"a record naming no Case": {caseBytes, legacy, ReasonIncompatible, "names no Case"},
-		"crossed Program":         {caseBytes, edited(func(r *testpilotspb.Run) { r.ProgramId = "other.program" }), ReasonCrossed, "names Program"},
-		"stale catalog":           {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: "other-catalog", Bindings: driver.Bindings}), ReasonStale, "recorded under"},
-		"stale bindings":          {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: "other-bindings"}), ReasonStale, "recorded under"},
-		"incomplete":              {caseBytes, edited(func(r *testpilotspb.Run) { r.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }), ReasonIncomplete, "Incomplete"},
+		"noncanonical whitespace":  {[]byte(strings.Replace(string(persisted), "  ", "    ", 1)), recorded, ReasonNoncanonical, "canonical"},
+		"not a Case":               {[]byte(`{"nonsense":1}`), recorded, ReasonNoncanonical, "does not decode"},
+		"crossed Case":             {caseBytes, edited(func(r *testpilotspb.Run) { r.CaseId = "temporal.case.other" }), ReasonCrossed, "names Case"},
+		"another Case's record":    {caseBytes, otherCase, ReasonCrossed, "recorded from Case"},
+		"a record naming no Case":  {caseBytes, legacy, ReasonIncompatible, "names no Case"},
+		"a repeated record key":    {caseBytes, []byte(strings.Replace(string(recorded), `{"case":`, `{"case":"x","case":`, 1)), ReasonMalformed, "twice"},
+		"a case-folded record key": {caseBytes, []byte(strings.Replace(string(recorded), `"identity":`, `"Identity":`, 1)), ReasonMalformed, "unknown field"},
+		"crossed Program":          {caseBytes, edited(func(r *testpilotspb.Run) { r.ProgramId = "other.program" }), ReasonCrossed, "names Program"},
+		"stale catalog":            {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: "other-catalog", Bindings: driver.Bindings}), ReasonStale, "recorded under"},
+		"stale bindings":           {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: "other-bindings"}), ReasonStale, "recorded under"},
+		"incomplete":               {caseBytes, edited(func(r *testpilotspb.Run) { r.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }), ReasonIncomplete, "Incomplete"},
 		"completed beside satisfied rules": {caseBytes, edited(func(r *testpilotspb.Run) {
 			r.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED
 			r.Verdict.Status = testpilotspb.VERDICT_STATUS_SATISFIED
