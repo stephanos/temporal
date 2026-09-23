@@ -5,9 +5,6 @@ package assessment
 
 import (
 	"embed"
-	"fmt"
-	"path"
-	"strings"
 
 	"go.temporal.io/server/tools/umpire/evaluation"
 )
@@ -18,22 +15,7 @@ import (
 //go:embed profiles/*.json
 var embeddedProfiles embed.FS
 
-// LoadProfile loads an embedded canary Profile by its exact name through fn-26's strict parse.
+// LoadProfile loads an embedded canary Profile by its exact name through fn-26's loader.
 func LoadProfile(name string) (*evaluation.Profile, error) {
-	// A Profile is a name, never a path.
-	if name == "" || strings.ContainsAny(name, `/\.`) {
-		return nil, fmt.Errorf("%w: %q", evaluation.ErrUnknownProfile, name)
-	}
-	encoded, err := embeddedProfiles.ReadFile(path.Join("profiles", name+".json"))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %q", evaluation.ErrUnknownProfile, name)
-	}
-	profile, err := evaluation.ParseProfile(encoded)
-	if err != nil {
-		return nil, fmt.Errorf("canary Evaluation Profile %q: %w", name, err)
-	}
-	if profile.Name != name {
-		return nil, fmt.Errorf("the canary Evaluation Profile file %q names Profile %q", name, profile.Name)
-	}
-	return profile, nil
+	return evaluation.LoadProfileIn(embeddedProfiles, name)
 }

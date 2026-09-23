@@ -80,14 +80,25 @@ func ProfileNames() ([]string, error) {
 
 // LoadProfile selects an embedded Profile by its exact name, never a path, and validates it.
 func LoadProfile(name string) (*Profile, error) {
-	names, err := ProfileNames()
+	return LoadProfileIn(embeddedProfiles, name)
+}
+
+// LoadProfileIn selects a Profile by its exact name from a set of rendered Profiles laid out as
+// `profiles/<name>.json`, never by a path, and validates it; the canary loads its own set this way.
+func LoadProfileIn(profiles fs.FS, name string) (*Profile, error) {
+	entries, err := fs.ReadDir(profiles, "profiles")
 	if err != nil {
 		return nil, err
 	}
+	var names []string
+	for _, entry := range entries {
+		names = append(names, strings.TrimSuffix(entry.Name(), ".json"))
+	}
+	slices.Sort(names)
 	if !slices.Contains(names, name) {
 		return nil, fmt.Errorf("%w: %q; the Profiles are %s", ErrUnknownProfile, name, strings.Join(names, ", "))
 	}
-	encoded, err := embeddedProfiles.ReadFile(path.Join("profiles", name+".json"))
+	encoded, err := fs.ReadFile(profiles, path.Join("profiles", name+".json"))
 	if err != nil {
 		return nil, err
 	}
