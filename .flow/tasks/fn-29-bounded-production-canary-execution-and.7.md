@@ -2,17 +2,23 @@
 satisfies: [R7, R10]
 ---
 
-# fn-29-bounded-production-canary-execution-and.7 Implement immutable canary receipt publication
-## Description
-Publish each valid fn-26-derived canary receipt with exact source closure and secret-free provenance through a canary-owned retained-artifact channel. Preserve source Case Runtime values byte-for-byte and make same-content retry idempotent.
+# fn-29-bounded-production-canary-execution-and.7 Publish each receipt and its provenance immutably
 
-**Size:** M
-**Touches:** `tools/canary/publication/**`, `tools/canary/assessment/receipt_test.go`
+## Description
+Export the exclusive publisher as `tools/umpire/publish` (`cli.Publish` delegates to it). Add `tools/canary/publication`: for each admitted iteration, publish the fn-26 receipt bytes unchanged under `<receipt identity>.json` and then the provenance under `<provenance identity>.provenance.json` in the retained-output directory, each exclusive and idempotent; a conflict on either is reported and never overwritten; a lost or unconstructible iteration publishes nothing. A publication that succeeded but could not be reported is the named ambiguity and never reruns anything.
+
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/canary/publication/ ./tools/umpire/...`
+
+**Files:** `tools/umpire/publish/**`, `tools/umpire/internal/cli/publish.go`, `tools/canary/publication/**`
+
+### Re-plan note (2026-09-23)
+Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Accepted, rejected, and incomplete receipts publish honestly; lost or unconstructible iterations do not fabricate receipts.
-- [ ] Conflicting content, alias/symlink drift, partial output, or crossed subject fails closed.
-- [ ] Reporting ambiguity after successful publication forbids automatic rerun.
+- [ ] Accepted, rejected and incomplete receipts publish with their provenance; lost or unconstructible iterations publish nothing.
+- [ ] A conflicting name, a symlink, a partial file or a crossed provenance fails closed and changes nothing.
+- [ ] Publishing the same content again is already published; a reporting failure after publication is named and never reruns.
 
 ## Done summary
 TBD

@@ -11,6 +11,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.2.md",
   "status": "todo",
-  "title": "Bind the fixed Lean-produced canary Case",
+  "title": "Pin the fixed canary Case the Lean model produces",
   "updated_at": "2026-09-04T18:37:25.882315Z"
 }
