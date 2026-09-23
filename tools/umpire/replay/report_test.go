@@ -181,3 +181,47 @@ func TestExecuteExitsOnIncompleteReductionsAndProposalFailures(t *testing.T) {
 	require.Nil(t, report.Reproduction)
 	require.Equal(t, ExitToolingFailure, report.ExitCode())
 }
+
+// A stop during the subject's reruns is a stop, not a tooling failure: the subject is
+// indeterminate, the reduction is not attempted, and the command exits 2.
+func TestExecuteStoppedDuringTheSubjectsReruns(t *testing.T) {
+	e := newExecution(t, nil, edit(0, "a"))
+	ctx, cancel := context.WithCancel(t.Context())
+	e.binder.onRun = cancel
+	report := Execute(ctx, e.request, e.environment)
+	require.Empty(t, report.Failure)
+	require.Equal(t, ClassIndeterminate, report.Reproduction.Class)
+	require.True(t, report.Reduction.Stopped)
+	require.False(t, report.Reduction.Attempted)
+	require.Equal(t, ExitIndeterminate, report.ExitCode())
+	require.Equal(t, "finish", e.fake.frames[len(e.fake.frames)-1].Frame, "the bridge is still told")
+}
+
+// A candidate rerun that cannot release is a tooling failure, exit 3, as the subject's would be.
+func TestExecuteCandidateRerunFailureExitsThree(t *testing.T) {
+	e := newExecution(t, nil, edit(0, "a"))
+	opened := e.environment.OpenBinder
+	e.environment.OpenBinder = func(ctx context.Context) (campaign.Binder, func(context.Context) error, error) {
+		binder, release, err := opened(ctx)
+		e.binder.onRun = func() {
+			if e.binder.binds > Attempts {
+				e.binder.release = errors.New("namespace still held")
+			}
+		}
+		return binder, release, err
+	}
+	report := e.run(t)
+	require.Contains(t, report.Reduction.Failure, "namespace still held")
+	require.Equal(t, ExitToolingFailure, report.ExitCode())
+}
+
+// A Query the bridge cannot recover is unrecovered, not crossed.
+func TestExecuteNamesAnUnrecoveredQuery(t *testing.T) {
+	e := newExecution(t, nil, edit(0, "a"))
+	e.fake.rejectAdmit = "set set has no Query q"
+	report := e.run(t)
+	require.Equal(t, StatusRejected, report.Admission.Status)
+	require.Equal(t, ReasonUnrecovered, report.Admission.Reason)
+	require.False(t, e.opened)
+	require.Equal(t, ExitToolingFailure, report.ExitCode())
+}

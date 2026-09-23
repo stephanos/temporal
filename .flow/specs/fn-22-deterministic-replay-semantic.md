@@ -575,6 +575,16 @@ budget, wall time and Run Events are now checked once a candidate is handed out 
 prepared, so a sweep with nothing left ends exhausted rather than at a limit it would not reach.
 Implementation review of task .7, round two: SHIP.
 
+Implementation review of task .8, round one: NEEDS_WORK with six findings, all applied. A stop
+during the subject's reruns reports the subject indeterminate and the reduction not attempted and
+stopped, tells the bridge, and exits 2; a candidate's rerun that cannot bind or release exits 3,
+as the subject's does; a bridge that cannot recover the named Query rejects admission as
+`unrecovered`, keeping `crossed` for a produced Case that differs; admission starts `undecided`
+and reads `rejected` only when a rejection was observed; teardown is `binding.ReleaseAll`, each
+release bounded; one test helper builds both commands. Its FYI notes are recorded: a failed
+release is reported in `cleanup` without changing the exit code, as `umpire-fuzz` does; a complete
+reduction whose bridge sends no proposal reports `none`, which only a misbehaving bridge produces.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

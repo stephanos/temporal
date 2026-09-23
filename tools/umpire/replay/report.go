@@ -8,6 +8,7 @@ import (
 	"io"
 	"time"
 
+	"go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/campaign"
 	"go.temporal.io/server/tools/umpire/internal/cli"
 )
@@ -112,8 +113,13 @@ type Report struct {
 	Failure        string               `json:"failure,omitempty"`
 }
 
+// ReasonUnrecovered is a subject the bridge could not recover a Query for: an unknown set, Query
+// or target. Unlike crossed, the bridge never produced a Case to compare.
+const ReasonUnrecovered = "unrecovered"
+
 // The statuses a report's fields take beside the classes and the proposal's.
 const (
+	StatusUndecided  = "undecided"
 	StatusAdmitted   = "admitted"
 	StatusRejected   = "rejected"
 	StatusReproduced = "reproduced"
@@ -136,7 +142,7 @@ func limitsReport(limits Limits) LimitsReport {
 // reduction and its proposal follow. Everything opened is released before it returns.
 func Execute(ctx context.Context, request Request, environment Environment) (report Report) {
 	report = Report{
-		Admission:      AdmissionReport{Status: StatusRejected},
+		Admission:      AdmissionReport{Status: StatusUndecided},
 		SemanticReplay: SemanticReplayReport{Status: StatusNotRun},
 		Limits:         limitsReport(environment.Limits),
 		Cleanup:        CleanupReport{Status: StatusNothing},
@@ -149,7 +155,7 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 			report.Failure = err.Error()
 			return report
 		}
-		report.Admission.Reason, report.Admission.Detail = rejection.Reason, rejection.Detail
+		report.Admission = AdmissionReport{Status: StatusRejected, Reason: rejection.Reason, Detail: rejection.Detail}
 		if rejection.Reason == ReasonReplay {
 			report.SemanticReplay = SemanticReplayReport{Status: StatusRejected, Detail: rejection.Detail}
 		}
@@ -163,11 +169,10 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 		report.Failure = fmt.Sprintf("start the replay bridge: %s", err)
 		return report
 	}
-	var releases []func(context.Context) error
-	releases = append(releases, func(context.Context) error { return bridge.Close() })
+	releases := []func(context.Context) error{func(context.Context) error { return bridge.Close() }}
 	defer func() {
-		// Teardown runs on a context the caller's stop does not reach.
-		if err := binding(releases).release(context.WithoutCancel(ctx)); err != nil {
+		// Teardown runs on a context the caller's stop does not reach, each release bounded.
+		if err := binding.ReleaseAll(context.WithoutCancel(ctx), releases); err != nil {
 			report.Cleanup = CleanupReport{Status: StatusFailed, Detail: err.Error()}
 		} else if report.Cleanup.Status != StatusFailed {
 			report.Cleanup.Status = StatusReleased
@@ -177,12 +182,12 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	if err != nil {
 		var crossed *CrossedError
 		if errors.As(err, &crossed) {
-			report.Admission.Reason, report.Admission.Detail = ReasonCrossed, crossed.Reason
+			report.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonCrossed, Detail: crossed.Reason}
 			return report
 		}
 		var rejected *campaign.RejectedError
 		if errors.As(err, &rejected) {
-			report.Admission.Reason, report.Admission.Detail = ReasonCrossed, rejected.Reason
+			report.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonUnrecovered, Detail: rejected.Reason}
 			return report
 		}
 		report.Failure = fmt.Sprintf("admit the subject on the bridge: %s", err)
@@ -198,7 +203,21 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	releases = append(releases, release)
 	reruns, err := Rerun(ctx, binder, subject.Target())
 	if err != nil {
-		report.Failure = fmt.Sprintf("rerun the subject: %s", err)
+		if ctx.Err() == nil {
+			report.Failure = fmt.Sprintf("rerun the subject: %s", err)
+			return report
+		}
+		// A stop during the subject's reruns decides nothing: the subject is indeterminate, the
+		// reduction is not attempted, and the bridge is still told.
+		report.Reproduction = &ReproductionReport{Class: ClassIndeterminate, Reruns: []RerunReport{}}
+		report.Reduction = &Reduction{
+			NotAttempted: "stopped during the subject's reruns", Status: ReductionNotAttempted,
+			Reason: "stopped during the subject's reruns", Stopped: true,
+			Subject: admitted.Subject, Retained: admitted.Subject, Edits: []Settled{}, Candidates: []CandidateReport{},
+		}
+		if _, err := bridge.Finish(context.WithoutCancel(ctx), string(campaign.StatusStopped)); err != nil {
+			report.Failure = fmt.Sprintf("finish the bridge after a stop: %s", err)
+		}
 		return report
 	}
 	report.Reproduction = reproductionReport(reruns)
@@ -218,19 +237,6 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	}
 	report.Proposal = WriteProposal(environment.PromotionRoot, reduction.Proposal)
 	return report
-}
-
-// binding is the releases a replay opened, released in reverse order.
-type binding []func(context.Context) error
-
-func (b binding) release(ctx context.Context) error {
-	var errs []error
-	for index := len(b) - 1; index >= 0; index-- {
-		if err := b[index](ctx); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
 }
 
 func reproductionReport(reruns *Reruns) *ReproductionReport {
@@ -256,11 +262,15 @@ func reproductionReport(reruns *Reruns) *ReproductionReport {
 	return report
 }
 
-// ExitCode maps the report to the command's exit code: 3 for a tooling failure, a rejected subject
-// or a proposal that did not compile or could not be written; then 1 or 2 by the reruns' class
+// ExitCode maps the report to the command's exit code: 3 for a tooling failure (a candidate's
+// rerun that could not bind or release included), a rejected subject or a proposal that did not
+// compile or could not be written; then 1 or 2 by the reruns' class
 // when the subject was not reproduced; then 2 for a reduction that did not complete; else 0.
 func (r Report) ExitCode() int {
 	if r.Failure != "" || r.Admission.Status != StatusAdmitted {
+		return ExitToolingFailure
+	}
+	if r.Reduction != nil && r.Reduction.Failure != "" {
 		return ExitToolingFailure
 	}
 	if r.Proposal.Status == ProposalNotCompiled || r.Proposal.Status == ProposalWriteFailed {

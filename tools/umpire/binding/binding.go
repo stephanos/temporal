@@ -219,7 +219,7 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 		return nil, errors.Join(err, ReleaseAll(context.WithoutCancel(ctx), bound.releases))
 	}
 	// The SDK's default logger writes to stdout, where a command writes its one report; its
-	// worker lines go to stderr with the rest of the progress.
+	// warnings and errors go to stderr with the rest of the progress, and its info lines nowhere.
 	caseClient, err := sdkclient.DialContext(ctx, sdkclient.Options{
 		HostPort: c.deployment.GRPCAddress, Namespace: c.deployment.Namespace,
 		Logger: sdklog.NewStructuredLogger(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))),
