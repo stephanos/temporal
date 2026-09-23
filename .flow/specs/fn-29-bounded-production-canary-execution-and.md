@@ -398,3 +398,14 @@ round eight, one blocking issue in each of the last four). Several rounds change
 contracts -- fencing through a wrapping Driver, the lease as the server-side guard, the harness
 as a separate build, the hand-authored Driver Profile -- which is re-planning, so the counter was
 reset with `flowctl spec reset-review-rounds` and review continued from round nine.
+
+Round nine (2026-09-23): **SHIP**, its one P2 and four P3 notes folded into the plan. The recovery
+record keeps each iteration's publication, so reconcile reports an iteration lost only when its
+own job knows it was not published; on the `found` path it reports the fenced IDs as publication
+unknown, pointing at the earlier invocation's artifact. The digested gRPC coordinate is the whole
+`UMPIRE_CANARY_GRPC` value (`host:port`); the policy names the repository and preflight matches
+`GITHUB_WORKFLOW_REF` as `<repository>/<workflow path>@<ref>` exactly; the workflow redirects each
+mode's stdout and stderr into named files in the uploaded directory; the age guard applies only to
+an open lease run. The suppressed notes are taken: the live gate's Go test gains an explicit
+30-minute `-timeout`, and the runbook adds the endpoint's allowed-caller-namespace setting where the
+deployment has one. `canary-check-case` joins `umpire-check-regression` once, in .2.

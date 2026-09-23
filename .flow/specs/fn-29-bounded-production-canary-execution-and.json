@@ -18,8 +18,8 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-23T12:18:01.959069Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-23T12:24:57.216959Z",
   "ready": false,
   "review_attempts": [
     {
@@ -370,10 +370,39 @@
       "task": null,
       "timestamp": "2026-09-23T12:18:01.958429Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "088195e972c7e2b8a277aa6aee744246437635a3c4c151bf3c658b178324e938",
+      "backend": "claude",
+      "base_sha": "78d80b0599df2d262ce61fabe86043faa1390540",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "e8508c09441d453a1f27525d2cc22cf9377336c5",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6845,
+      "output_sha256": "cf3d6ab65918a2957000dbca9dc65cb6a21b21a83684662723501ab5c927990e",
+      "reservation_id": "9b8306c0c8f146d0a057cb45a30637a7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-23T12:24:57.216441Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -395,5 +424,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T12:19:06.342610Z"
+  "updated_at": "2026-09-23T12:24:57.216985Z"
 }
