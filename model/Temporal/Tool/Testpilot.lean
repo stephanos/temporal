@@ -1,5 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus.Caller.Model
+import Temporal.Feature.Nexus.Control.Model
 import Temporal.Feature.Nexus.Pair.Model
 import Temporal.Feature.System.Info.Model
 import Temporal.Feature.Workflow.Outage.Model
