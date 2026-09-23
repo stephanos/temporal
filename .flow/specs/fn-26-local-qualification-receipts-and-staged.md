@@ -12,14 +12,22 @@ contract in what the tree now has:
   `tools/umpire/internal/casefile` decides) and a recorded Run (`replay.RecordedRun`: the Run with
   its Verdict and the `DriverIdentity` it was prepared under, as `umpire-run --record` and
   `umpire-fuzz --record-root` write it). Admission reads both strictly and never prepares, runs or
-  replays. The Case must be format version 1.0. The Run must be the Case's: its `case_id` and
+  replays. Because it never prepares, the recorded Run must name the Case it ran: the recorded-Run
+  format gains `case`, the SHA-256 of the canonical Case bytes the Run was prepared from, which
+  every writer (`umpire-run --record`, `umpire-fuzz --record-root`, the live suite's recording
+  helper) already holds. A Run whose `case` is not the admitted Case's identity is `crossed`, and a
+  record without it `incompatible`; replay admission checks it too, and the pinned negative-control
+  record is re-recorded with it. IDs are names, not hashes, so a regenerated Case with the same IDs
+  never inherits an older Run. The Case must be format version 1.0. The Run must be the Case's: its `case_id` and
   `program_id` are the Case's, and the set of rule IDs its Verdict names equals the Contract's
   rules -- `contract.rules` and `contract.correlated.rules` together, as the evaluator reports them
   -- each exactly once, whatever its status (a Run carries no Contract ID; the receipt takes the
   Contract ID from the Case). It
   must be closed: a non-empty Run ID, at least one event, a terminal disposition, a cleanup
   outcome, a Verdict. It must be consistent:
-  every supporting sequence names one event once, no rule of the closed Verdict is still `PENDING`
+  every supporting sequence names one event once, every Known Gap the Case's provenance declares
+  has a declared, non-`UNSPECIFIED` kind (proto3 enums are open, so an unknown number decodes;
+  either is `malformed`), no rule of the closed Verdict is still `PENDING`
   (the evaluator settles every obligation at close) or `UNSPECIFIED`, the Verdict status is not
   `UNSPECIFIED`, and the Verdict's status agrees with its rules and the disposition both ways, as
   the protocol defines it: violated exactly when some rule is violated, and a Run is
@@ -37,11 +45,19 @@ contract in what the tree now has:
   codec rejects a duplicate or case-folded outer key (Go's decoder matches keys without case), for
   replay admission too. What replay admission and qualification admission share -- the recorded-Run codec,
   reading the canonical Case, the Case and Program crossing, the supporting sequences, and the
-  violated-form rule (a violated Verdict only on a `STOPPED_BY_MONITOR` Run, `ViolatedForm` in
-  `replay/form.go`, which `replay/rerun.go` also calls) -- moves to a leaf package, `tools/umpire/internal/recordedrun`, that both import (replay keeps its names as
+  two-way agreement of disposition and Verdict (`recordedrun.Agreement`: violated exactly when
+  `STOPPED_BY_MONITOR`, satisfied exactly when every rule is satisfied on a `COMPLETED` Run) -- moves
+  to a leaf package, `tools/umpire/internal/recordedrun`, that both import (replay keeps its names as
   aliases), so qualification never imports the package that holds the replay bridge and the
-  rerun environment. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
-  most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB. These
+  rerun environment. Replay's `ViolatedForm` (`replay/form.go`, which `replay/rerun.go` also
+  calls) stays in replay, rebuilt on `Agreement`: its cleanup, incomplete and non-violated gates are
+  replay's admissible-subject test, not qualification's. Qualification admits a violated, stopped
+  Run whose cleanup failed or timed out, which `local-ephemeral` then rejects with
+  `cleanup-unclosed` among its reasons (the conformance fixture
+  `cleanup-failure-after-proved-violation` has that shape). The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
+  most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB. A receipt over its cap -- reachable only near the event cap,
+  since it lists every rule's supporting sequences -- is a tooling failure with its own summary
+  (`receipt-oversized`), never a decision and never published. These
   constants are the only enforcement: the command reads each input through a reader capped one
   byte past its cap, so an oversized input is refused before it is held in memory, and the receipt
   records the caps it was admitted under.
@@ -84,14 +100,16 @@ contract in what the tree now has:
   code, and the receipt format version. It carries no raw payload, event body, credential, path or
   endpoint.
 - **Publication is atomic, exclusive and idempotent.** `cli.Publish` writes the receipt to a
-  temporary file in the target directory, syncs it, and hard-links it to
+  temporary file in the target directory (dot-prefixed and not ending in `.json`, so a leftover
+  never looks like a receipt), syncs it, and hard-links it to
   `<root>/<receipt-identity>.json` (`os.Link` is atomic and fails if the name exists), then removes
   the temporary file. On an existing name, publication `Lstat`s it and requires a regular file (a
   symlink, FIFO, device or directory is a conflict), then reads it without following links through
   a reader capped one byte past the receipt cap: identical bytes are `already-published`, anything
   else a conflict that is reported and never overwritten. The directory is not synced after the
   link: a crash then may lose the name, never expose a partial receipt, and publishing again
-  restores it. A crash can leave only a temporary
+  restores it. The receipt root must already exist (as `umpire-run --record`'s directory must), and
+  the name must be a bare base name, neither `.` nor `..`. A crash can leave only a temporary
   file, never a partial receipt under its final name. The name is the content's hash, so no lock is
   needed. No path reruns anything.
 - **The command is `umpire-assess run`.** It takes `--case`, `--run`, `--profile <name>` (an exact
@@ -234,3 +252,18 @@ and case-folded outer keys; the test-only Profile fixture and its unexported par
 .2. The FYIs are taken: admission takes the catalog fingerprint as a parameter so the goldens
 never drift, its one use of the Driver package is building the catalog, and the unsynced directory
 after the link is stated.
+
+Round six (2026-09-23): NEEDS_WORK with one P0, one P1, two P2 and one P3 findings, all applied.
+The recorded Run now names its Case: the recorded-Run format carries the canonical Case's
+SHA-256, which every writer holds, so a regenerated Case with the same IDs is `crossed` against an
+older Run rather than inheriting it (P0; a record without it is `incompatible`, and the pinned
+control is re-recorded). Only the two-way disposition/Verdict agreement is shared; `ViolatedForm`'s
+cleanup and non-violated gates stay replay's, and a violated, stopped Run with a failed cleanup is
+an admissible subject that `local-ephemeral` rejects. A Known Gap of an `UNSPECIFIED` or
+undeclared kind is `malformed`. A receipt over its cap is the named tooling failure
+`receipt-oversized`, tested at N and N+1. Publication requires an existing root and a bare name,
+and its temporary file is dot-prefixed and never ends in `.json`. The FYIs: the Case's canonical
+check is whitespace only, as fn-22 left it (a Case in another field spelling is another identity,
+and its recorded Run then names that identity, so nothing crosses); the evaluation tests import
+the history types their fixtures' `Any` values need; the Go identity test pins the same literal
+Lean's test does, beside the Makefile byte gate.
