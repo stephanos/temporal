@@ -20,7 +20,8 @@
     "fn-29-bounded-production-canary-execution-and.2": 0,
     "fn-29-bounded-production-canary-execution-and.3": 0,
     "fn-29-bounded-production-canary-execution-and.4": 0,
-    "fn-29-bounded-production-canary-execution-and.5": 0
+    "fn-29-bounded-production-canary-execution-and.5": 0,
+    "fn-29-bounded-production-canary-execution-and.6": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -847,6 +848,598 @@
       "task": "fn-29-bounded-production-canary-execution-and.5",
       "timestamp": "2026-09-23T14:10:25.615058Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ebd98f1b9be447e5ef6d829c92d86f173cfe984a93a7dd50a0ed8eeb54802140",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "classification": "introduced",
+            "findingId": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "classification": "introduced",
+            "findingId": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "classification": "introduced",
+            "findingId": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72d5b86948662392d6d9ee310ad50784",
+            "classification": "introduced",
+            "findingId": "finding-72d5b86948662392d6d9ee310ad50784",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c6a1238716a461a2a8ce21b18fc8538986313114",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 5688,
+      "output_sha256": "c3c6bda8280e84a74df8ce53fc626b16f46f2a5a6ec4a2d85ea0d95a4136ee8f",
+      "reservation_id": "7b6e7c4dec1c4640af61bd24a22d79c9",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:15:55.737807Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "12d8a67407256705dae8a0dafcd530f3d98dde6545b663adc27bb335b4d609de",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7920df968ce34c0e89c79868627f5fb0310a718e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "a3d488767d894a8d80bcb3c1ca23bd95",
+      "round_consumed": false,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:18:43.263237Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "12d8a67407256705dae8a0dafcd530f3d98dde6545b663adc27bb335b4d609de",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "classification": "introduced",
+            "findingId": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "classification": "introduced",
+            "findingId": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "classification": "introduced",
+            "findingId": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "classification": "introduced",
+            "findingId": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72d5b86948662392d6d9ee310ad50784",
+            "classification": "introduced",
+            "findingId": "finding-72d5b86948662392d6d9ee310ad50784",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7920df968ce34c0e89c79868627f5fb0310a718e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4458,
+      "output_sha256": "cfaef6c4393c1ec14f5fe79362033f5fb5201e61994afddc6ab40fcfe8c96cf0",
+      "reservation_id": "7e0476736fcc4115805ad2b633c6ce75",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:20:46.083953Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2f7d64ff4e0691b328743f0bf144a23eb3c328931f7505145aa3732c654664f5",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "02b145c10f594fe2f4f5c95851157c0070faa4ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "c89ac4785cf44cc794e58ebfded5bd1a",
+      "round_consumed": false,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:23:16.362016Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "2f7d64ff4e0691b328743f0bf144a23eb3c328931f7505145aa3732c654664f5",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "classification": "introduced",
+            "findingId": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "classification": "introduced",
+            "findingId": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "classification": "introduced",
+            "findingId": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "classification": "introduced",
+            "findingId": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "classification": "introduced",
+            "findingId": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72d5b86948662392d6d9ee310ad50784",
+            "classification": "introduced",
+            "findingId": "finding-72d5b86948662392d6d9ee310ad50784",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6375cb329800d78d96db9e757454576b",
+            "classification": "introduced",
+            "findingId": "finding-6375cb329800d78d96db9e757454576b",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "02b145c10f594fe2f4f5c95851157c0070faa4ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4482,
+      "output_sha256": "40813ab0e485131e87775b329c93223d6dcfdd4f29253a6cd32afb6fff659dbb",
+      "reservation_id": "345dcc52b3c3463ca3febe11a32ed27e",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:24:44.312989Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c6a26c32ac50144b9b7e470e83f3af1622a7fed93e309130534111ddc4a65be7",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "timeout",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a4300438d535c969b954849cce5cd275fa1211e3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "fa7571678403464dad57af97176627d5",
+      "round_consumed": false,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:56:46.141690Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "c6a26c32ac50144b9b7e470e83f3af1622a7fed93e309130534111ddc4a65be7",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "classification": "introduced",
+            "findingId": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-43ae4d0d44deeeca4fa61233ecc6e3cc",
+            "classification": "introduced",
+            "findingId": "finding-43ae4d0d44deeeca4fa61233ecc6e3cc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "classification": "introduced",
+            "findingId": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "classification": "introduced",
+            "findingId": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "classification": "introduced",
+            "findingId": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "classification": "introduced",
+            "findingId": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72d5b86948662392d6d9ee310ad50784",
+            "classification": "introduced",
+            "findingId": "finding-72d5b86948662392d6d9ee310ad50784",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6375cb329800d78d96db9e757454576b",
+            "classification": "introduced",
+            "findingId": "finding-6375cb329800d78d96db9e757454576b",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f89de5a3a628daa6cf9eb8abc1e5209d",
+            "classification": "introduced",
+            "findingId": "finding-f89de5a3a628daa6cf9eb8abc1e5209d",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a4300438d535c969b954849cce5cd275fa1211e3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4813,
+      "output_sha256": "61191ea8b187185903f1e9a9996ddb568c876cfab3d49fa58baef18c4954d31c",
+      "reservation_id": "dd9d50c3d1024c05a14bba9aaad8861e",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T14:58:34.666696Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3e8080d33ebb80e7b427fbd0b618fdccf674b32836e6de1700019ab9a413d226",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c67ff61fcc53e8d8e78053a88415e811439c688",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "4996fba9c8394c7c9b290f4abbca7db6",
+      "round_consumed": false,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T15:02:20.995792Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "3e8080d33ebb80e7b427fbd0b618fdccf674b32836e6de1700019ab9a413d226",
+      "backend": "claude",
+      "base_sha": "0a10a657643d2c217133705d3b3bc18c04275551",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "classification": "introduced",
+            "findingId": "finding-f08cf618d99dfa275ce0199af6e8d078",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-43ae4d0d44deeeca4fa61233ecc6e3cc",
+            "classification": "introduced",
+            "findingId": "finding-43ae4d0d44deeeca4fa61233ecc6e3cc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "classification": "introduced",
+            "findingId": "finding-66aa2738dd2b4a3e87435120cc66ac5e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "classification": "introduced",
+            "findingId": "finding-6b588e9a6e7b7da13f3ed72e886a0763",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "classification": "introduced",
+            "findingId": "finding-fbfdd3dce46875c5d99f00a7bb09c21c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "classification": "introduced",
+            "findingId": "finding-732cec269551fb8eb5b5fdc11dbe89b6",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72d5b86948662392d6d9ee310ad50784",
+            "classification": "introduced",
+            "findingId": "finding-72d5b86948662392d6d9ee310ad50784",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6375cb329800d78d96db9e757454576b",
+            "classification": "introduced",
+            "findingId": "finding-6375cb329800d78d96db9e757454576b",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a8e806edf7857716e209087824fef4e0",
+            "classification": "introduced",
+            "findingId": "finding-a8e806edf7857716e209087824fef4e0",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f89de5a3a628daa6cf9eb8abc1e5209d",
+            "classification": "introduced",
+            "findingId": "finding-f89de5a3a628daa6cf9eb8abc1e5209d",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d8ba92b738637356afee4183820e74e8",
+            "classification": "introduced",
+            "findingId": "finding-d8ba92b738637356afee4183820e74e8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b3feeee9f60779799e31256adfd6e74f",
+            "classification": "introduced",
+            "findingId": "finding-b3feeee9f60779799e31256adfd6e74f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c67ff61fcc53e8d8e78053a88415e811439c688",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4881,
+      "output_sha256": "2c63c9cd6ba1130b092aa3075158eb8ba851f669ef2cce611312941c5c50bf82",
+      "reservation_id": "c848a792d1e3467a95ce58816d4f68d3",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.6",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.6",
+      "timestamp": "2026-09-23T15:04:26.770688Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -855,6 +1448,7 @@
     "impl:fn-29-bounded-production-canary-execution-and.3": 1,
     "impl:fn-29-bounded-production-canary-execution-and.4": 1,
     "impl:fn-29-bounded-production-canary-execution-and.5": 1,
+    "impl:fn-29-bounded-production-canary-execution-and.6": 1,
     "plan": 3,
     "plan#completion": 1
   },
@@ -866,6 +1460,7 @@
     "impl:fn-29-bounded-production-canary-execution-and.3": 0,
     "impl:fn-29-bounded-production-canary-execution-and.4": 0,
     "impl:fn-29-bounded-production-canary-execution-and.5": 0,
+    "impl:fn-29-bounded-production-canary-execution-and.6": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-29-bounded-production-canary-execution-and.md",
@@ -882,5 +1477,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T14:10:25.618987Z"
+  "updated_at": "2026-09-23T15:04:26.776459Z"
 }
