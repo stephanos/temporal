@@ -16,9 +16,8 @@ import (
 // Limits bound one reduction. Each is checked before the work it bounds: the edit cap at
 // admission (a sweep the bridge capped is recorded as ending at it); the wall time, the Run budget
 // and the aggregate Run Events once a candidate is handed out and prepared, and again before each
-// Run is dispatched; the aggregate Case bytes on each candidate that arrives; and the
-// report bytes on the rendered report. Zero leaves a cap
-// unset.
+// Run is dispatched; the aggregate Case bytes on each candidate that arrives; and the report bytes
+// on the rendered report. Zero leaves a cap unset.
 type Limits struct {
 	Edits       int
 	Runs        int

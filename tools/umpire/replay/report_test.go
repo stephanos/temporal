@@ -269,8 +269,12 @@ func TestExitCodeWithinTheReportCap(t *testing.T) {
 	require.Equal(t, ExitReproduced, report.ExitCode())
 	rendered, err := report.Render()
 	require.NoError(t, err)
-	require.Equal(t, ExitReproduced, report.ExitCodeWithin(len(rendered), int64(len(rendered))))
-	require.Equal(t, ExitIndeterminate, report.ExitCodeWithin(len(rendered), int64(len(rendered)-1)))
-	rejected := Report{Admission: AdmissionReport{Status: StatusRejected}}
-	require.Equal(t, ExitToolingFailure, rejected.ExitCodeWithin(10, 1))
+	report.Limits.ReportBytes = int64(len(rendered))
+	require.False(t, report.OverCap(len(rendered)))
+	require.Equal(t, ExitReproduced, report.ExitCodeWithin(len(rendered)))
+	report.Limits.ReportBytes = int64(len(rendered) - 1)
+	require.True(t, report.OverCap(len(rendered)))
+	require.Equal(t, ExitIndeterminate, report.ExitCodeWithin(len(rendered)))
+	rejected := Report{Admission: AdmissionReport{Status: StatusRejected}, Limits: LimitsReport{ReportBytes: 1}}
+	require.Equal(t, ExitToolingFailure, rejected.ExitCodeWithin(10))
 }

@@ -147,6 +147,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	runPath := filepath.Join(t.TempDir(), "run.json")
 	record := exec.CommandContext(ctx, runBinary, append([]string{"--case", casePath, "--record", runPath, "--timeout", "2m"}, deployment...)...)
 	output, err := record.CombinedOutput()
+	require.NotNil(t, record.ProcessState, "umpire-run did not start: %v", err)
 	require.Equal(t, 1, record.ProcessState.ExitCode(), "umpire-run records a violated Run: %v %s", err, output)
 	require.FileExists(t, runPath)
 

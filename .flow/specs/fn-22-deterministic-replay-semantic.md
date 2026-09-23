@@ -603,6 +603,14 @@ subject's two Runs keeps the Run that happened. The proposal-not-compiled exit a
 cleanup branch is a plain `else`, two rewrapped comments read whole, and the Run-budget check sits
 after preparation so a candidate that needs no Run never ends at a limit.
 
+Implementation review of task .8, round three: SHIP, its three P3 notes and the cheap FYIs applied
+as polish: `reproductionReport` checks for a nil set of reruns before reading it; the stderr summary
+says "stopped" for a stop before the reduction; the report cap is the one the replay ran under
+(`Report.OverCap`, `ExitCodeWithin`), checked in one place; a non-stop rerun failure still reports
+the subject's Runs that closed, and a Run whose release failed is kept among them; the bridge's
+finish after a stop is bounded; the live test checks the recording process started before reading
+its exit code.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
