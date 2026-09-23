@@ -17,14 +17,13 @@ Add `tools/canary/assessment/admission.go`: each completed iteration's Run is en
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Crossed, stale, open, noncanonical, lost or foreign-identity iterations are never accepted; each is rejected by fn-26 admission or has no subject at all.
-- [ ] Authority, isolation and cleanup facts change the assessment only through the provenance and the Profile; the recorded Verdict is never rewritten.
-- [ ] No Run Evaluation, second evaluator, internal evidence reader or synthetic fact is introduced.
+- [x] Crossed, stale, open, noncanonical, lost or foreign-identity iterations are never accepted; each is rejected by fn-26 admission or has no subject at all.
+- [x] Authority, isolation and cleanup facts change the assessment only through the provenance and the Profile; the recorded Verdict is never rewritten.
+- [x] No Run Evaluation, second evaluator, internal evidence reader or synthetic fact is introduced.
 
 ## Done summary
-TBD
-
+`tools/canary/assessment/admission.go`: `Admit(policy, driver identity, run)` encodes the closed Run with `recordedrun.Encode` in memory only, under the pinned Case's identity and the prepared Case's Driver identity, and admits it with fn-26's `evaluation.Admit` against the tree's catalog. A nil Run is `ErrLost` and has no subject; a Profile name other than the policy's, or a policy naming another Case, is `crossed`; everything else is fn-26's own rejection (stale catalog, crossed Case, open, inconsistent Verdict, oversized). The recorded Verdict, disposition and cleanup reach the subject unchanged. The lifecycle proof decides with `Admit` and `Assess` under `production-canary`, and both live Runs are accepted; its first Run is the tests' fixture when `UMPIRE_CANARY_RECORD` is set. Implementation review: SHIP in one round; its P3 note applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 99e9936e029bbe7299b1742e37a67058266b5f1e, 50a278dfd44bd533d0d657069d43a777dc12d32f
+- Tests: go test -count=1 -tags test_dep ./tools/canary/..., go test -count=1 -tags 'test_dep integration' ./tests/ -run '^TestTestpilotCanaryLifecycle$', GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
