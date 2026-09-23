@@ -75,10 +75,30 @@ type Result struct {
 	Lease        *recovery.Lease
 	Unreconciled bool
 	Iterations   []Iteration
-	// Stopped says why fewer than the policy's iterations ran, or is empty.
-	Stopped string
-	Cleanup *Cleanup
+	// Stopped says why fewer than the policy's iterations ran, or is empty; StoppedBy says so as a
+	// kind, so a tooling stop is told apart from a decision or the limit.
+	Stopped   string
+	StoppedBy StopKind
+	Cleanup   *Cleanup
 }
+
+// StopKind is why the loop ended before the policy's iterations.
+type StopKind int
+
+const (
+	// StopNone: every iteration the policy allows ran.
+	StopNone StopKind = iota
+	// StopDecision: an iteration was not accepted.
+	StopDecision
+	// StopLimit: too little of the invocation limit was left for another iteration.
+	StopLimit
+	// StopInterrupted: the invocation was cancelled.
+	StopInterrupted
+	// StopRelease: an iteration's Driver did not release.
+	StopRelease
+	// StopRecord: the recovery record could not be written.
+	StopRecord
+)
 
 // Config is one invocation's inputs. The transport is a value: the untagged binary's comes from
 // authority, and only a test or the harness build passes a plaintext one.
@@ -148,8 +168,17 @@ func Run(ctx context.Context, config Config) (*Result, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
+	return runWith(ctx, config, nil)
+}
+
+// runWith is Run, with prepare given the invocation before it starts; a unit test scripts the
+// iterations through it.
+func runWith(ctx context.Context, config Config, prepare func(*invocation)) (*Result, error) {
 	run := newInvocation(config)
 	defer func() { _ = run.progress.Close() }()
+	if prepare != nil {
+		prepare(run)
+	}
 	return run.run(ctx)
 }
 
@@ -239,7 +268,7 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 	if recordErr == nil {
 		r.iterate(invocationCtx, fence, result)
 	} else {
-		result.Stopped = "the recovery record could not be written: " + recordErr.Error()
+		result.Stopped, result.StoppedBy = "the recovery record could not be written: "+recordErr.Error(), StopRecord
 	}
 	// Cleanup's deadline is absolute: however late the iterations ended, the invocation is over by
 	// the limit plus the reserve, and a cleanup that runs out of time leaves the lease held.
@@ -285,8 +314,12 @@ func (r *invocation) iterationBound() time.Duration {
 
 func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 	for index := range r.Policy.Limits.Iterations {
+		if err := ctx.Err(); err != nil {
+			result.Stopped, result.StoppedBy = "the invocation was interrupted: "+err.Error(), StopInterrupted
+			return
+		}
 		if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < r.iterationBound() {
-			result.Stopped = "the invocation limit leaves too little time for another Run"
+			result.Stopped, result.StoppedBy = "the invocation limit leaves too little time for another Run", StopLimit
 			return
 		}
 		iteration, releaseErr := r.iteration(ctx, fence)
@@ -294,12 +327,12 @@ func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 		r.phase(PhaseIterationClosed)
 		r.logf("iteration %d: run %s %s", index+1, iteration.RunID, iteration.Outcome.Status)
 		if iteration.Outcome.Status != StatusAccepted {
-			result.Stopped = "iteration " + fmt.Sprint(index+1) + " was " + iteration.Outcome.Status
+			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+" was "+iteration.Outcome.Status, StopDecision
 			return
 		}
 		// No Driver starts beside one that may still hold workers or connections.
 		if releaseErr != nil {
-			result.Stopped = "iteration " + fmt.Sprint(index+1) + "'s Driver did not release: " + releaseErr.Error()
+			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+"'s Driver did not release: "+releaseErr.Error(), StopRelease
 			r.logf("iteration %d: the Driver did not release: %s", index+1, releaseErr)
 			return
 		}

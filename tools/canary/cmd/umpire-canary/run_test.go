@@ -35,7 +35,7 @@ func TestMainRefusesEveryOtherCommandLine(t *testing.T) {
 		"no recovery":         {"run", "--output", output},
 		"a missing output":    {"run", "--output", filepath.Join(output, "absent"), "--recovery", recovery},
 		"a recovery uploaded": {"run", "--output", output, "--recovery", filepath.Join(output, "recovery.json")},
-		"a recovery nowhere":  {"run", "--output", output, "--recovery", filepath.Join(output, "absent", "recovery.json")},
+		"a recovery nowhere":  {"run", "--output", output, "--recovery", filepath.Join(t.TempDir(), "absent", "recovery.json")},
 	}
 	for _, forbidden := range []string{"case", "target", "driver", "checker", "retry", "executable", "endpoint", "credential", "release", "profile", "policy", "grpc", "namespace"} {
 		cases["--"+forbidden] = append(append([]string{"run"}, valid...), "--"+forbidden, "x")
