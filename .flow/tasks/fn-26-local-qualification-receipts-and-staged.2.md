@@ -17,17 +17,16 @@ Add `tools/umpire/evaluation/admission.go`: `Admit(caseBytes, recordedRun []byte
 Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the shared command-edge helpers) and revised by plan review round one; the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Missing, extra, crossed (a correlated-only Case included), stale, incompatible, open (an empty Run ID or no events included), inconsistent (each direction of the Verdict agreement and an `UNSPECIFIED` status included), noncanonical (a re-spaced recorded Run and a Case that is not JSON included), or malformed (a duplicate or case-folded outer key included, in both admissions) subjects reject.
-- [ ] `umpire-run --record` with a fixture in no canonical form is refused before anything runs.
-- [ ] A record whose `case` is another Case's identity is `crossed`, one without it `incompatible`, in both admissions; a Known Gap of an `UNSPECIFIED` or undeclared kind is `malformed`; a violated, stopped Run with a failed cleanup is admitted.
-- [ ] The Subject's Run identity is the SHA-256 of the canonical recorded bytes; replay admission still passes its tests over the shared leaf package.
-- [ ] A Profile with an unknown condition, decision or Known Gap kind, an empty table, a duplicate reason or condition, or a contradictory Known Gap policy fails to load; the embedded Profile's identity matches the one pinned in Lean.
-- [ ] Admission cannot prepare or execute a Case, and qualification never imports the package that holds the replay bridge.
+- [x] Missing, extra, crossed (a correlated-only Case included), stale, incompatible, open (an empty Run ID or no events included), inconsistent (each direction of the Verdict agreement and an `UNSPECIFIED` status included), noncanonical (a re-spaced recorded Run and a Case that is not JSON included), or malformed (a duplicate or case-folded outer key included, in both admissions) subjects reject.
+- [x] `umpire-run --record` with a fixture in no canonical form is refused before anything runs.
+- [x] A record whose `case` is another Case's identity is `crossed`, one without it `incompatible`, in both admissions; a Known Gap of an `UNSPECIFIED` or undeclared kind is `malformed`; a violated, stopped Run with a failed cleanup is admitted.
+- [x] The Subject's Run identity is the SHA-256 of the canonical recorded bytes; replay admission still passes its tests over the shared leaf package.
+- [x] A Profile with an unknown condition, decision or Known Gap kind, an empty table, a duplicate reason or condition, or a contradictory Known Gap policy fails to load; the embedded Profile's identity matches the one pinned in Lean.
+- [x] Admission cannot prepare or execute a Case, and qualification never imports the package that holds the replay bridge.
 
 ## Done summary
-TBD
-
+The recorded Run moved to the leaf package `tools/umpire/internal/recordedrun` (codec, `CaseIdentity`, `Crossed`, `CheckSupport`, the two-way `Agreement`), which replay and qualification both import; replay keeps its names as aliases and its `ViolatedForm` gates, rebuilt on `Agreement`. The record now names the canonical Case it ran (`case`, its SHA-256): `umpire-run --record` refuses a fixture in no canonical form before running, `umpire-fuzz --record-root` and the live suite pass the Case bytes, replay admission rejects another Case's record as `crossed` and a record naming none as `incompatible`, and the pinned control record was re-encoded (its Run bytes unchanged). The codec refuses repeated and case-folded keys. `tools/umpire/evaluation` admits a Case and recorded Run without preparing, running or replaying (fixed order: Case caps, canonical form, decoding, version; record caps, decoding, event cap, `case`, undeclared statuses, re-encoding; then open, crossed, inconsistent, Known Gap kinds, stale) and loads the embedded Lean-rendered Profiles by exact name, validated as Lean declares them; the test-only `local-strict` Profile is a fixture outside the embedded set. Implementation review: SHIP in one round, its five P3 notes applied as polish.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aa54559aa16d0e9d2d6b504cb46fd6ec8015219b, c8f055f3755f276d3192309d54e3afd2f4b7c8a9
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/..., go test -count=1 -tags "test_dep integration" ./tests/ -run TestTestpilotNexusControl, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:

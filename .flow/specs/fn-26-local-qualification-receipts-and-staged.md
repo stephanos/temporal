@@ -230,6 +230,16 @@ kinds sort by the derived kind order; the renderer reuses the declaration's dupl
 the FYI taken: a Profile has no structural equality, since two declarations can render the same
 bytes.
 
+Task .2 (2026-09-23): the recorded Run lives in `tools/umpire/internal/recordedrun` and names the
+canonical Case it ran; replay admission rejects another Case's record as `crossed` and a record
+naming none as `incompatible`, and the pinned control record was re-encoded with its Case identity,
+its Run bytes unchanged. `tools/umpire/evaluation` admits a subject without executing anything and
+loads the embedded Profiles by exact name. Undeclared enum numbers are `malformed`: protojson reads
+a number as readily as a name, and one the proto does not declare re-encodes to itself.
+Implementation review: SHIP in one round; its five P3 notes applied (the caps are constants,
+undeclared statuses are `malformed`, a Verdict naming a rule twice says so, replay's `Admit` pins
+repeated and case-folded keys, a dead test field is gone).
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
