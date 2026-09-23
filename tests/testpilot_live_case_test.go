@@ -17,6 +17,7 @@ import (
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"go.temporal.io/server/tests/testcore"
+	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -100,6 +101,17 @@ func newTestpilotLiveCase(
 		frozen.EnvironmentBindings[index].Value = "mutated-after-freeze"
 	}
 	return testpilotLiveCase{profile: expectedProfile, prepared: prepared, client: caseClient, driver: driver}
+}
+
+// runRecording runs the bound Case once and records the closed Run with the identity it was
+// prepared under at path, in the recorded-Run shape a replay reads; the control test alone uses
+// it, since a Run recorded under switch configuration is stale to a replay by design.
+func (live testpilotLiveCase) runRecording(t *testing.T, ctx context.Context, path string) (*testpilotpb.Run, *testpilotpb.Verdict) {
+	t.Helper()
+	run, verdict, err := live.prepared.Run(ctx, live.driver)
+	require.NoError(t, err)
+	require.NoError(t, replay.WriteRecordedRun(path, live.prepared.Identity(), run))
+	return run, verdict
 }
 
 // runEventAt resolves one recorded Run Event by its one-based sequence, which is the only place

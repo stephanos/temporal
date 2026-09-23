@@ -93,7 +93,7 @@ recorded here so `.13`'s closure can decide which become `gap:` lines and which 
 | `result-value` | a workflow-result observation on the `workflow` entity (section 4: an observation from a second catalog) |
 | `handler-links`, `callback-links` | link fields on the handler reply's schema, once a Driver sets them |
 | `mutable-state` | out of scope: admin state is not recorded data |
-| `completion-authorization` | fn-86's negative Cases, if a forged completion becomes a class |
+| `completion-authorization` | the negative control (`Temporal.Feature.Nexus.Control`, fn-22): a forged completion is a second result of the non-retryable error's row, which the platform contradicts; it is a control for the replay, not a claim about the platform, and enters no set of this Model |
 | `duplicate-completion` | a Scenario performing `complete (succeeded)` twice; Search reaches the `notFound` row today |
 | `reset` | section 4's reset row |
 | `sdk-error` | failure fields exposed as evidence fields of the failed event's declaration |
