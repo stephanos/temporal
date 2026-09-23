@@ -706,6 +706,19 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 Nothing in this section exists in the tree. Every rule below is a design commitment whose owning
 spec is named, and each is enforceable only once that spec delivers it.
 
+- **Claim Assessment (`Umpire.Evaluation`, `tools/umpire/evaluation`).** *Amendment (drafted by
+  fn-26; awaiting GOV-02 approval.)* Deciding, offline, what one closed Run of one canonical Case
+  supports under one *Evaluation Profile*: a Lean-declared, Temporal-free policy of a claim, an
+  asserted trust basis, the Known Gap kinds that block acceptance and an ordered reason table,
+  each reason naming one status-specific condition and forcing `rejected` or `incomplete`; with
+  no reason holding the subject is `accepted`. The subject is admitted strictly and never
+  prepared, run or replayed; verification is the recorded Verdict's status and evidence each
+  rule's supporting sequences, never re-derived. The decision is an *Evaluation Receipt*,
+  canonical bytes named by their SHA-256 and published exclusively, that binds the Profile, the
+  Case and recorded Run identities, the recorded Driver identity, the Verdict with its evidence
+  links, the decision and every reason, the Known Gaps and the admission caps. A receipt is not
+  self-authenticating and authorizes nothing; `local-ephemeral` is the one declared Profile.
+
 - **`Temporal.Verify`.** Optional Temporal-specific checker integration. It does not define
   behavior. *(planned: fn-24-lean-native-verification-receipts-and)*
 - **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes
@@ -750,6 +763,10 @@ spec is named, and each is enforceable only once that spec delivers it.
   and limits on possible impact.
 - **QLF-03 — Complete claims.** Every claim made from a Run MUST expose its environment, Evidence
   policy, Limits, the basis of the claim, Known Gaps, cleanup outcome, and Behavior Fingerprints.
+  *Amendment (drafted by fn-26; awaiting GOV-02 approval.)* An Evaluation Receipt exposes these
+  as its Profile's trust basis and reason table, the admission caps, the recorded Verdict, the
+  Case's Known Gaps and the Run's cleanup; the Behavior Fingerprints are carried by the canonical
+  Case the receipt names by identity, whose provenance records them.
 - **QLF-05 — Per-Run decisions.** A Testpilot decision MUST retain Run disposition, cleanup
   status, and Verdict separately. A satisfied Verdict does not hide operational or cleanup failure;
   a proved violated Verdict remains violated after later cleanup failure; every unresolved Contract
