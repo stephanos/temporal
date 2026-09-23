@@ -103,6 +103,9 @@ func Render(subject *Subject, profile Profile, decision Decision) ([]byte, error
 	if decision.ProfileIdentity != profile.Identity || decision.ProfileName != profile.Name {
 		return nil, errors.New("the Decision was not made under this Profile")
 	}
+	if decision.Verdict != subject.Verdict.GetStatus() || decision.Disposition != subject.Disposition || decision.Cleanup != subject.Cleanup {
+		return nil, errors.New("the Decision was not made on this subject")
+	}
 	receipt := Receipt{
 		Version: ReceiptFormatVersion,
 		Profile: ReceiptProfile{Name: profile.Name, Identity: profile.Identity, Claim: profile.Claim, Trust: profile.Trust},
