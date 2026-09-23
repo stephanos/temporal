@@ -62,8 +62,12 @@ type invokeFixture struct {
 	// release is each iteration's Driver release; nil releases cleanly.
 	release func(context.Context) error
 	// ctx is the invocation's context; nil is the test's.
-	ctx  context.Context
-	runs int
+	ctx context.Context
+	// started is when the invocation started; zero is now.
+	started time.Time
+	// runErr fails each scripted Run after its Driver opens.
+	runErr error
+	runs   int
 }
 
 func newInvokeFixture(t *testing.T) *invokeFixture {
@@ -109,7 +113,7 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 		ctx = t.Context()
 	}
 	return Invoke(ctx, Invocation{
-		Seams: seams, Output: f.output, Recovery: f.recovery, Progress: &f.progress, Started: time.Now(),
+		Seams: seams, Output: f.output, Recovery: f.recovery, Progress: &f.progress, Started: f.startedAt(),
 		Lookup: func(key string) (string, bool) { value, ok := f.env[key]; return value, ok },
 		service: func(*authority.Authority, string, io.Writer) (*lazyService, error) {
 			return &lazyService{direct: f.server}, nil
@@ -138,6 +142,9 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 				if f.between != nil {
 					f.between(f.runs)
 				}
+				if f.runErr != nil {
+					return nil, nil, f.runErr
+				}
 				return recorded, recorded.GetVerdict(), nil
 			}
 			if f.decide != nil {
@@ -145,6 +152,13 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 			}
 		},
 	})
+}
+
+func (f *invokeFixture) startedAt() time.Time {
+	if f.started.IsZero() {
+		return time.Now()
+	}
+	return f.started
 }
 
 func (f *invokeFixture) published(t *testing.T) []string {
@@ -390,6 +404,52 @@ func TestAnInterruptStillPublishesWhatWasDecided(t *testing.T) {
 	record, err := recovery.Read(f.recovery)
 	require.NoError(t, err)
 	require.Equal(t, []recovery.Iteration{{RunID: runID(1), Published: true}}, record.Iterations)
+}
+
+// The other named failures, each exit 3: a Run that errors (unconstructible, no receipt), no
+// iteration at all within the limit, a publication that fails, and a Driver that does not release
+// after an iteration that was not accepted.
+func TestInvokeNamesEveryOtherFailure(t *testing.T) {
+	t.Run("a Run that errors", func(t *testing.T) {
+		f := newInvokeFixture(t)
+		f.runErr = errors.New("the Run could not complete")
+		summary, code := f.invoke(t, f.seams())
+		require.Equal(t, ExitFailed, code)
+		require.Equal(t, StatusUnconstructible, summary.Status)
+		require.Contains(t, summary.Detail, "could not complete")
+		require.Empty(t, f.published(t))
+	})
+	t.Run("no iteration within the limit", func(t *testing.T) {
+		f := newInvokeFixture(t)
+		f.started = time.Now().Add(-f.policy.Limits.Invocation() + time.Minute)
+		summary, code := f.invoke(t, f.seams())
+		require.Equal(t, ExitFailed, code)
+		require.Equal(t, StatusNoIteration, summary.Status)
+		require.Zero(t, f.runs)
+		require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome, "the lease taken is released")
+	})
+	t.Run("a publication that fails", func(t *testing.T) {
+		f := newInvokeFixture(t)
+		seams := f.seams()
+		seams.Hook = func(phase string) {
+			if phase == PhaseCleaned {
+				require.NoError(t, os.RemoveAll(f.output))
+			}
+		}
+		summary, code := f.invoke(t, seams)
+		require.Equal(t, ExitFailed, code)
+		require.Equal(t, StatusPublicationFailed, summary.Status)
+	})
+	t.Run("a Driver that does not release after a rejection", func(t *testing.T) {
+		f := newInvokeFixture(t)
+		f.decide = decidedAs(t, f.policy, func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED })
+		f.release = func(context.Context) error { return errors.New("the worker did not stop") }
+		summary, code := f.invoke(t, f.seams())
+		require.Equal(t, ExitFailed, code, "a tooling failure outranks the rejection")
+		require.Equal(t, StatusToolingFailure, summary.Status)
+		require.Contains(t, f.progress.String(), "did not release")
+		require.Len(t, f.published(t), 2, "the rejected receipt is still published")
+	})
 }
 
 func TestOutcomeKeepsTheHighestExit(t *testing.T) {
