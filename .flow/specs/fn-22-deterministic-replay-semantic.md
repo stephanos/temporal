@@ -585,6 +585,13 @@ release bounded; one test helper builds both commands. Its FYI notes are recorde
 release is reported in `cleanup` without changing the exit code, as `umpire-fuzz` does; a complete
 reduction whose bridge sends no proposal reports `none`, which only a misbehaving bridge produces.
 
+Implementation review of task .6, round three: SHIP, its four P3 notes applied as polish: the Case
+bytes are checked only on the candidate that arrives, so bytes landing exactly on the cap never end
+an exhausted sweep; a capped sweep records the edit cap only when it ends exhausted, so a stop, a
+failure or an undecided edit is what the report names when one ends it; a limit reached at a
+retry is pinned (the candidate listed with its closed Runs' classes, nothing lost); `Exchange`'s
+comment says one step per clause.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

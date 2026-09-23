@@ -141,6 +141,31 @@ func TestReduceDoesNotRetryADecidedPair(t *testing.T) {
 	require.Equal(t, "irreducible", report.Status)
 }
 
+// A limit reached at a candidate's retry ends the reduction there: the candidate is listed with the
+// classes of its closed Runs and no fate, and nothing is lost.
+func TestReduceStopsAtTheRunBudgetBeforeARetry(t *testing.T) {
+	r := newReduction(t, []attemptScript{nil, nil, runIncomplete, nil}, edit(0, "a"))
+	r.reducer.Limits.Runs = 4
+	report, err := r.run(t.Context(), t)
+	require.NoError(t, err)
+	require.Equal(t, LimitRuns, report.Limit)
+	require.Len(t, report.Candidates, 1)
+	require.Equal(t, []Class{ClassIndeterminate, ClassReproduced}, report.Candidates[0].Classes)
+	require.Empty(t, report.Candidates[0].Fate)
+	require.Empty(t, report.Lost)
+	require.Equal(t, 4, report.Runs)
+}
+
+// Case bytes that land exactly on the cap end nothing: a sweep with nothing left ends exhausted.
+func TestReduceCaseBytesOnTheCapEndExhausted(t *testing.T) {
+	r := newReduction(t, nil, edit(0, "a"))
+	r.reducer.Limits.CaseBytes = int64(len(r.subject.Canonical))
+	report, err := r.run(t.Context(), t)
+	require.NoError(t, err)
+	require.Empty(t, report.Limit)
+	require.Equal(t, "minimized", report.Status)
+}
+
 // A sweep the bridge capped runs and ends incomplete at the edit cap, which the report names.
 func TestReduceNamesTheEditCapOfACappedSweep(t *testing.T) {
 	r := newReduction(t, nil, edit(0, "a"))
