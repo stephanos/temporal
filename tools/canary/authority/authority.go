@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/sdk/client"
 	sdklog "go.temporal.io/sdk/log"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
@@ -58,6 +59,11 @@ func (c Coordinates) Driver() testpilotdriver.Environment {
 		Namespace: c.Namespace, TaskQueue: c.TaskQueue,
 		HandlerTaskQueue: c.HandlerQueue, NexusEndpoint: c.NexusEndpoint,
 	}
+}
+
+// Digests are the coordinates as the policy records them.
+func (c Coordinates) Digests() policy.Coordinates {
+	return policy.DigestsOf(c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint)
 }
 
 func (c Coordinates) values() []string {
@@ -180,14 +186,3 @@ func (bearer) RequireTransportSecurity() bool { return true }
 
 // String keeps the token out of any formatted value.
 func (bearer) String() string { return "bearer(redacted)" }
-
-// Validate refuses a transport with no target or no transport credentials.
-func (t Transport) Validate() error {
-	if t.Target == "" {
-		return errors.New("the canary transport has no target")
-	}
-	if t.Credentials == nil {
-		return errors.New("the canary transport has no transport credentials")
-	}
-	return nil
-}

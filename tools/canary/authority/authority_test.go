@@ -91,7 +91,6 @@ func TestLoadBuildsATLSTransportFromEachCredential(t *testing.T) {
 			loaded, err := Load(environment(credential))
 			require.NoError(t, err)
 			transport := loaded.Transport
-			require.NoError(t, transport.Validate())
 			require.Equal(t, "tls", transport.Credentials.Info().SecurityProtocol)
 			require.NotNil(t, transport.ClientTLS)
 			require.GreaterOrEqual(t, transport.ClientTLS.MinVersion, uint16(0x0303))
@@ -226,6 +225,23 @@ func TestTheRedactorRemovesEveryPlantedValue(t *testing.T) {
 	for _, value := range values {
 		requireNoneOf(t, logged.String(), value)
 	}
+}
+
+// A writer that never ends a line holds at most maxPending bytes; past that it writes them, redacted.
+func TestTheWriterHoldsABoundedLine(t *testing.T) {
+	var written bytes.Buffer
+	writer := NewRedactor(testAPIKey).Writer(&written)
+	line := []byte(testAPIKey + strings.Repeat("x", maxPending))
+	_, err := writer.Write(line)
+	require.NoError(t, err)
+	require.Equal(t, Redacted+strings.Repeat("x", maxPending), written.String())
+	require.Empty(t, writer.pending)
+}
+
+// A short last line of a PEM block is not redacted on its own.
+func TestTheRedactorKeepsShortPEMLines(t *testing.T) {
+	redactor := NewRedactor("-----BEGIN KEY-----\nABCDEFGHIJKLMNOPQRSTUVWX\nQUJD\n-----END KEY-----\n")
+	require.Equal(t, Redacted+" QUJD", redactor.Redact("ABCDEFGHIJKLMNOPQRSTUVWX QUJD"))
 }
 
 // The longest value is removed first, so a coordinate that contains another is removed whole.
