@@ -167,13 +167,7 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 	if dial == nil {
 		dial = client.Dial
 	}
-	connect := invocation.service
-	if connect == nil {
-		connect = func(loaded *authority.Authority, namespace string, progress io.Writer) (*lazyService, error) {
-			return connectLazily(dial, loaded, namespace, progress), nil
-		}
-	}
-	service, err := connect(loaded, loaded.Coordinates.Namespace, progress)
+	service, err := openService(invocation.service, dial, loaded, progress)
 	if err != nil {
 		result.raise(StatusToolingFailure, ExitFailed, err.Error())
 		return finish()
@@ -395,6 +389,16 @@ func truncate(detail string) string {
 		return detail
 	}
 	return detail[:maxDetailBytes] + "..."
+}
+
+// openService is the target a mode acts on: a unit test's fake when it supplies one, or the SDK
+// client dialed on first use.
+func openService(fake func(*authority.Authority, string, io.Writer) (*lazyService, error), dial func(client.Options) (client.Client, error),
+	loaded *authority.Authority, progress io.Writer) (*lazyService, error) {
+	if fake != nil {
+		return fake(loaded, loaded.Coordinates.Namespace, progress)
+	}
+	return connectLazily(dial, loaded, loaded.Coordinates.Namespace, progress), nil
 }
 
 // connectLazily is the real lease service: an SDK client for the canary namespace, dialed on its

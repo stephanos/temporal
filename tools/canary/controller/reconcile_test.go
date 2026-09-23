@@ -211,6 +211,16 @@ func TestReconcileRecordsAClosedLeaseReconciled(t *testing.T) {
 		require.Equal(t, LeaseOpen, observed.State, "the later run is left alone")
 	})
 
+	t.Run("a recorded lease run gone under an unreconciled later run", func(t *testing.T) {
+		f := newReconcileFixture(t)
+		f.server.open(f.policy.Lease.WorkflowID, time.Unix(5000, 0))
+		f.record(t, &recovery.Lease{WorkflowID: f.policy.Lease.WorkflowID, RunID: "00000000-0000-4000-9000-000000000099", Held: recovery.HeldTook})
+		report, code := f.reconcile(t, f.seams())
+		require.Equal(t, ExitUncertain, code, "%+v", report)
+		require.Equal(t, StatusReconcileUncertain, report.Status)
+		require.Contains(t, report.Detail, "latest run")
+	})
+
 	t.Run("a lease the server does not find", func(t *testing.T) {
 		f := newReconcileFixture(t)
 		f.record(t, &recovery.Lease{WorkflowID: f.policy.Lease.WorkflowID, RunID: "00000000-0000-4000-9000-000000000099", Held: recovery.HeldTook})
@@ -229,6 +239,9 @@ func TestReconcileLeavesAnUncertainScopeHeld(t *testing.T) {
 		"a termination that fails": func(f *reconcileFixture) {
 			f.server.fail["terminate "+runID(1)] = serviceerror.NewUnavailable("down")
 		},
+		"an unreadable fence": func(f *reconcileFixture) {
+			f.server.fail["history "+f.policy.Lease.WorkflowID] = serviceerror.NewUnavailable("down")
+		},
 		"a foreign signal on the lease": func(f *reconcileFixture) {
 			fence := Fence{WorkflowID: f.policy.Lease.WorkflowID, RunID: f.server.latest(f.policy.Lease.WorkflowID).runID}
 			require.NoError(t, signalRunOpened(t.Context(), target(f.server), fence, "customer-workflow"))
@@ -238,10 +251,12 @@ func TestReconcileLeavesAnUncertainScopeHeld(t *testing.T) {
 			f := newReconcileFixture(t)
 			fence := f.took(t, map[string]bool{runID(1): true}, runID(1))
 			stick(f)
-			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook})
+			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}, recovery.Iteration{RunID: runID(1)})
 			report, code := f.reconcile(t, f.seams())
 			require.Equal(t, ExitUncertain, code, "%+v", report)
 			require.Equal(t, StatusReconcileUncertain, report.Status)
+			require.Contains(t, report.Unverified, runID(1), "the report names what an operator must close")
+			delete(f.server.fail, "history "+f.policy.Lease.WorkflowID)
 			require.Equal(t, LeaseOpen, f.leaseState(t).State, "the lease stays held")
 		})
 	}
