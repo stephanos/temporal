@@ -703,8 +703,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 
 ### Verification and claim concepts
 
-Nothing in this section exists in the tree. Every rule below is a design commitment whose owning
-spec is named, and each is enforceable only once that spec delivers it.
+Claim Assessment exists in the tree; nothing else in this section does. Every other rule below is a
+design commitment whose owning spec is named, and each is enforceable only once that spec delivers
+it.
 
 - **Claim Assessment (`Umpire.Evaluation`, `tools/umpire/evaluation`).** *Amendment (drafted by
   fn-26; awaiting GOV-02 approval.)* Deciding, offline, what one closed Run of one canonical Case
@@ -718,7 +719,6 @@ spec is named, and each is enforceable only once that spec delivers it.
   Case and recorded Run identities, the recorded Driver identity, the Verdict with its evidence
   links, the decision and every reason, the Known Gaps and the admission caps. A receipt is not
   self-authenticating and authorizes nothing; `local-ephemeral` is the one declared Profile.
-
 - **`Temporal.Verify`.** Optional Temporal-specific checker integration. It does not define
   behavior. *(planned: fn-24-lean-native-verification-receipts-and)*
 - **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes

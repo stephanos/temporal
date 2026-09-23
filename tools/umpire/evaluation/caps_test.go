@@ -10,16 +10,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// padded is a canonical Case of exactly size bytes: the control with its producer version padded.
-func (c control) padded(t *testing.T, size int) *testpilotspb.Case {
+// paddingFor is the producer version that makes the control Case exactly size canonical bytes.
+func (c control) paddingFor(t *testing.T, size int) string {
 	t.Helper()
 	source := proto.CloneOf(c.source)
 	source.Provenance.ProducerVersion = "x"
 	base := len(compactCase(t, source))
 	require.Less(t, base, size)
-	source.Provenance.ProducerVersion = strings.Repeat("x", 1+size-base)
-	require.Len(t, compactCase(t, source), size)
-	return source
+	return strings.Repeat("x", 1+size-base)
 }
 
 // Every admission cap admits a subject exactly at it and rejects one a unit over it as oversized:
@@ -42,9 +40,9 @@ func TestAdmissionCapsAtNAndNPlusOne(t *testing.T) {
 			size     int
 			admitted bool
 		}{{MaxCaseBytes, true}, {MaxCaseBytes + 1, false}} {
-			source := c.padded(t, probe.size)
+			padding := c.paddingFor(t, probe.size)
 			caseBytes, recorded := c.pair(t, func(edited *testpilotspb.Case) {
-				edited.Provenance.ProducerVersion = source.Provenance.ProducerVersion
+				edited.Provenance.ProducerVersion = padding
 			}, nil)
 			require.Len(t, caseBytes, probe.size)
 			if probe.admitted {
