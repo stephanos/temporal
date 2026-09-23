@@ -150,6 +150,6 @@ classes it binds, and the Producer declares the failed event's evidence beside t
 for the witnessed row. -/
 case nexusCallerControlCases
   realizes nexusCallerControl
-  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+  as nexusCallerCases.realization
 
 end Temporal.Feature.Nexus.Control
