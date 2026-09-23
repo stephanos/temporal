@@ -104,7 +104,7 @@ func TestAdmitTheControlRecord(t *testing.T) {
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, subject.Disposition)
 	require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, subject.Cleanup)
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, subject.Verdict.GetStatus())
-	require.Equal(t, AdmissionCaps, subject.Caps)
+	require.Equal(t, AdmissionCaps(), subject.Caps)
 }
 
 // Admission compares the recorded catalog with the one it is given; the command gives the tree's,
@@ -152,7 +152,7 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 		return append(document, '\n')
 	}()
 	manyEvents := func(run *testpilotspb.Run) {
-		for len(run.Events) <= AdmissionCaps.RunEvents {
+		for len(run.Events) <= AdmissionCaps().RunEvents {
 			run.Events = append(run.Events, &testpilotspb.RunEvent{Sequence: int64(len(run.Events) + 1)})
 		}
 	}
@@ -162,33 +162,28 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 	for name, probe := range map[string]struct {
 		caseBytes []byte
 		recorded  []byte
-		catalog   string
 		reason    string
 		detail    string
 	}{
-		"an oversized Case":           {bytes.Repeat([]byte(" "), AdmissionCaps.CaseBytes+1), c.recorded, "", ReasonOversized, "Case is"},
-		"a re-spaced Case":            {respaced(compactCase(t, c.source)), c.recorded, "", ReasonNoncanonical, "canonical"},
-		"a Case that is not JSON":     {[]byte("{"), c.recorded, "", ReasonNoncanonical, ""},
-		"a Case that does not decode": {[]byte(`{"nonsense":1}`), c.recorded, "", ReasonMalformed, "does not decode"},
+		"an oversized Case":           {bytes.Repeat([]byte(" "), AdmissionCaps().CaseBytes+1), c.recorded, ReasonOversized, "Case is"},
+		"a re-spaced Case":            {respaced(compactCase(t, c.source)), c.recorded, ReasonNoncanonical, "canonical"},
+		"a Case that is not JSON":     {[]byte("{"), c.recorded, ReasonNoncanonical, ""},
+		"a Case that does not decode": {[]byte(`{"nonsense":1}`), c.recorded, ReasonMalformed, "does not decode"},
 		"a Case of another version": {compactCase(t, func() *testpilotspb.Case {
 			source := proto.CloneOf(c.source)
 			source.Version.Minor = 1
 			return source
-		}()), c.recorded, "", ReasonIncompatible, "1.1"},
-		"an oversized record":       {c.caseBytes, bytes.Repeat([]byte(" "), AdmissionCaps.RunBytes+1), "", ReasonOversized, "recorded Run is"},
-		"a record that is not JSON": {c.caseBytes, []byte("{"), "", ReasonMalformed, ""},
-		"a repeated record key":     {c.caseBytes, []byte(strings.Replace(string(c.recorded), `{"case":`, `{"case":"x","case":`, 1)), "", ReasonMalformed, "twice"},
-		"a case-folded record key":  {c.caseBytes, []byte(strings.Replace(string(c.recorded), `"identity":`, `"Identity":`, 1)), "", ReasonMalformed, "unknown field"},
-		"too many events":           {manyCase, manyRecorded, "", ReasonOversized, "events"},
-		"a record naming no Case":   {c.caseBytes, legacy, "", ReasonIncompatible, "names no Case"},
-		"a re-spaced record":        {c.caseBytes, respaced(c.recorded), "", ReasonNoncanonical, "form its writer produces"},
+		}()), c.recorded, ReasonIncompatible, "1.1"},
+		"an oversized record":       {c.caseBytes, bytes.Repeat([]byte(" "), AdmissionCaps().RunBytes+1), ReasonOversized, "recorded Run is"},
+		"a record that is not JSON": {c.caseBytes, []byte("{"), ReasonMalformed, ""},
+		"a repeated record key":     {c.caseBytes, []byte(strings.Replace(string(c.recorded), `{"case":`, `{"case":"x","case":`, 1)), ReasonMalformed, "twice"},
+		"a case-folded record key":  {c.caseBytes, []byte(strings.Replace(string(c.recorded), `"identity":`, `"Identity":`, 1)), ReasonMalformed, "unknown field"},
+		"too many events":           {manyCase, manyRecorded, ReasonOversized, "events"},
+		"a record naming no Case":   {c.caseBytes, legacy, ReasonIncompatible, "names no Case"},
+		"a re-spaced record":        {c.caseBytes, respaced(c.recorded), ReasonNoncanonical, "form its writer produces"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			catalog := probe.catalog
-			if catalog == "" {
-				catalog = controlCatalog
-			}
-			subject, err := Admit(probe.caseBytes, probe.recorded, catalog)
+			subject, err := Admit(probe.caseBytes, probe.recorded, controlCatalog)
 			require.Nil(t, subject)
 			rejection, ok := IsRejection(err)
 			require.True(t, ok, "not a rejection: %v", err)
@@ -217,10 +212,14 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 		}, ReasonCrossed, "the Contract's are"},
 		"a rule named twice": {nil, func(run *testpilotspb.Run) {
 			run.Verdict.Rules[1].RuleId = run.Verdict.Rules[0].RuleId
-		}, ReasonCrossed, ""},
-		"an unknown supporting event": {nil, func(run *testpilotspb.Run) { run.Verdict.Rules[0].SupportingEventSequences = []int64{99999} }, ReasonInconsistent, "does not carry"},
-		"a supporting event twice":    {nil, func(run *testpilotspb.Run) { run.Verdict.SupportingEventSequences = []int64{9, 9} }, ReasonInconsistent, "twice"},
-		"violated but completed":      {nil, func(run *testpilotspb.Run) { run.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED }, ReasonInconsistent, "disposition"},
+		}, ReasonCrossed, "twice"},
+		"an undeclared disposition":    {nil, func(run *testpilotspb.Run) { run.Disposition = 99 }, ReasonMalformed, "disposition 99"},
+		"an undeclared cleanup status": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = 99 }, ReasonMalformed, "cleanup status 99"},
+		"an undeclared Verdict status": {nil, func(run *testpilotspb.Run) { run.Verdict.Status = 99 }, ReasonMalformed, "Verdict's status 99"},
+		"an undeclared rule status":    {nil, func(run *testpilotspb.Run) { run.Verdict.Rules[0].Status = 99 }, ReasonMalformed, "status 99"},
+		"an unknown supporting event":  {nil, func(run *testpilotspb.Run) { run.Verdict.Rules[0].SupportingEventSequences = []int64{99999} }, ReasonInconsistent, "does not carry"},
+		"a supporting event twice":     {nil, func(run *testpilotspb.Run) { run.Verdict.SupportingEventSequences = []int64{9, 9} }, ReasonInconsistent, "twice"},
+		"violated but completed":       {nil, func(run *testpilotspb.Run) { run.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED }, ReasonInconsistent, "disposition"},
 		"stopped but satisfied": {nil, func(run *testpilotspb.Run) {
 			satisfy(run)
 			run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
