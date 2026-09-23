@@ -13,6 +13,8 @@ import (
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var testCoordinates = authority.Coordinates{
@@ -25,11 +27,7 @@ func configured(t *testing.T) *policy.Policy {
 	t.Helper()
 	canary, err := policy.Embedded()
 	require.NoError(t, err)
-	canary.Coordinates = policy.Coordinates{
-		GRPC: policy.Digest(testCoordinates.GRPC), Namespace: policy.Digest(testCoordinates.Namespace),
-		TaskQueue: policy.Digest(testCoordinates.TaskQueue), HandlerQueue: policy.Digest(testCoordinates.HandlerQueue),
-		NexusEndpoint: policy.Digest(testCoordinates.NexusEndpoint),
-	}
+	canary.Coordinates = testCoordinates.Digests()
 	return canary
 }
 
@@ -163,6 +161,9 @@ func TestCheckRefusesEachMismatchByName(t *testing.T) {
 		}, true},
 		"an unreachable frontend": {StatusNamespaceUnavailable, func(_ *policy.Policy, _ map[string]string, _ *authority.Coordinates, n *namespaces) {
 			n.err = serviceerror.NewUnavailable("dial " + testCoordinates.GRPC + ": connection refused")
+		}, true},
+		"a namespace a raw gRPC stub does not find": {StatusNamespaceMissing, func(_ *policy.Policy, _ map[string]string, _ *authority.Coordinates, n *namespaces) {
+			n.err = status.Error(codes.NotFound, "namespace not found")
 		}, true},
 		"a credential the namespace refuses": {StatusNamespaceUnavailable, func(_ *policy.Policy, _ map[string]string, _ *authority.Coordinates, n *namespaces) {
 			n.err = serviceerror.NewPermissionDenied("not a writer on "+testCoordinates.Namespace, "")

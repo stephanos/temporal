@@ -22,6 +22,8 @@ import (
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // The named refusals. Each is decided before any mutation, and creates no Run or receipt.
@@ -85,8 +87,9 @@ type Input struct {
 }
 
 // Scope is what preflight proved: the invocation's ID, the coordinates as the policy's digests,
-// and the pinned Case prepared for them, which is the one the controller runs. It holds no raw
-// coordinate and no credential.
+// and the pinned Case prepared for them, which is the one the controller runs. The ID and the
+// digests are safe to write; the prepared Case binds the raw coordinates, so nothing of it is
+// written except through the Redactor.
 type Scope struct {
 	InvocationID string
 	Coordinates  policy.Coordinates
@@ -99,8 +102,8 @@ func Check(ctx context.Context, input Input) (*Scope, error) {
 	if input.Policy == nil || input.Lookup == nil || input.Redactor == nil || input.Namespaces == nil {
 		return nil, errors.New("preflight needs a policy, an environment, a Redactor and a namespace read")
 	}
-	refuse := func(status, format string, arguments ...any) (*Scope, error) {
-		return nil, &Refusal{Status: status, Detail: input.Redactor.Redact(fmt.Sprintf(format, arguments...))}
+	refuse := func(named, format string, arguments ...any) (*Scope, error) {
+		return nil, &Refusal{Status: named, Detail: input.Redactor.Redact(fmt.Sprintf(format, arguments...))}
 	}
 	canary := input.Policy
 	invocationID, err := workflowContext(canary, input.Lookup)
@@ -110,21 +113,9 @@ func Check(ctx context.Context, input Input) (*Scope, error) {
 	if !canary.Configured() {
 		return refuse(StatusPolicyUnconfigured, "the policy's coordinate digests are not committed yet")
 	}
-	digests := policy.Coordinates{
-		GRPC: policy.Digest(input.Coordinates.GRPC), Namespace: policy.Digest(input.Coordinates.Namespace),
-		TaskQueue: policy.Digest(input.Coordinates.TaskQueue), HandlerQueue: policy.Digest(input.Coordinates.HandlerQueue),
-		NexusEndpoint: policy.Digest(input.Coordinates.NexusEndpoint),
-	}
-	for _, coordinate := range []struct{ name, got, want string }{
-		{"grpc", digests.GRPC, canary.Coordinates.GRPC},
-		{"namespace", digests.Namespace, canary.Coordinates.Namespace},
-		{"taskQueue", digests.TaskQueue, canary.Coordinates.TaskQueue},
-		{"handlerQueue", digests.HandlerQueue, canary.Coordinates.HandlerQueue},
-		{"nexusEndpoint", digests.NexusEndpoint, canary.Coordinates.NexusEndpoint},
-	} {
-		if coordinate.got != coordinate.want {
-			return refuse(StatusCoordinateMismatch, "the %s coordinate's digest is not the policy's", coordinate.name)
-		}
+	digests := input.Coordinates.Digests()
+	if name, differs := digests.Mismatch(canary.Coordinates); differs {
+		return refuse(StatusCoordinateMismatch, "the %s coordinate's digest is not the policy's", name)
 	}
 	bound, err := casebinding.Bind(canary, input.Coordinates.Driver())
 	if err != nil {
@@ -137,7 +128,7 @@ func Check(ctx context.Context, input Input) (*Scope, error) {
 	var notFound *serviceerror.NamespaceNotFound
 	var missing *serviceerror.NotFound
 	switch {
-	case errors.As(err, &notFound) || errors.As(err, &missing):
+	case errors.As(err, &notFound) || errors.As(err, &missing) || status.Code(err) == codes.NotFound:
 		return refuse(StatusNamespaceMissing, "the canary namespace does not exist")
 	case err != nil:
 		return refuse(StatusNamespaceUnavailable, "describe the canary namespace: %s", err)

@@ -70,3 +70,21 @@ func TestAuthorityClassesCannotBeWidened(t *testing.T) {
 	classes[0] = "anyone"
 	require.Equal(t, []string{AuthorityProtectedWorkflow, AuthorityHarness}, AuthorityClasses())
 }
+
+func TestCoordinatesMismatchNamesTheFirstDifference(t *testing.T) {
+	ours := DigestsOf("grpc:7233", "namespace", "queue", "handler", "endpoint")
+	require.Equal(t, Digest("namespace"), ours.Namespace)
+	_, differs := ours.Mismatch(ours)
+	require.False(t, differs)
+	for name, theirs := range map[string]Coordinates{
+		"grpc":          DigestsOf("other:7233", "namespace", "queue", "handler", "endpoint"),
+		"namespace":     DigestsOf("grpc:7233", "other", "queue", "handler", "endpoint"),
+		"taskQueue":     DigestsOf("grpc:7233", "namespace", "other", "handler", "endpoint"),
+		"handlerQueue":  DigestsOf("grpc:7233", "namespace", "queue", "other", "endpoint"),
+		"nexusEndpoint": DigestsOf("grpc:7233", "namespace", "queue", "handler", "other"),
+	} {
+		named, differs := ours.Mismatch(theirs)
+		require.True(t, differs)
+		require.Equal(t, name, named)
+	}
+}

@@ -122,7 +122,7 @@ func isDigest(value string) bool {
 
 // Configured reports whether every coordinate has a committed digest.
 func (p *Policy) Configured() bool {
-	for _, coordinate := range p.coordinates() {
+	for _, coordinate := range p.Coordinates.named() {
 		if coordinate.value == Unconfigured {
 			return false
 		}
@@ -132,11 +132,31 @@ func (p *Policy) Configured() bool {
 
 type namedCoordinate struct{ name, value string }
 
-func (p *Policy) coordinates() []namedCoordinate {
+// named is the one list of coordinates, in the policy's order, with their JSON names.
+func (c Coordinates) named() []namedCoordinate {
 	return []namedCoordinate{
-		{"grpc", p.Coordinates.GRPC}, {"namespace", p.Coordinates.Namespace},
-		{"taskQueue", p.Coordinates.TaskQueue}, {"handlerQueue", p.Coordinates.HandlerQueue},
-		{"nexusEndpoint", p.Coordinates.NexusEndpoint},
+		{"grpc", c.GRPC}, {"namespace", c.Namespace},
+		{"taskQueue", c.TaskQueue}, {"handlerQueue", c.HandlerQueue},
+		{"nexusEndpoint", c.NexusEndpoint},
+	}
+}
+
+// Mismatch names the first coordinate whose digest differs from other's, or reports that none does.
+func (c Coordinates) Mismatch(other Coordinates) (string, bool) {
+	theirs := other.named()
+	for index, coordinate := range c.named() {
+		if coordinate.value != theirs[index].value {
+			return coordinate.name, true
+		}
+	}
+	return "", false
+}
+
+// DigestsOf is the policy form of raw coordinates: each one's Digest.
+func DigestsOf(grpc, namespace, taskQueue, handlerQueue, nexusEndpoint string) Coordinates {
+	return Coordinates{
+		GRPC: Digest(grpc), Namespace: Digest(namespace), TaskQueue: Digest(taskQueue),
+		HandlerQueue: Digest(handlerQueue), NexusEndpoint: Digest(nexusEndpoint),
 	}
 }
 
@@ -182,7 +202,7 @@ func (p *Policy) validate() error {
 	if !slices.Contains(AuthorityClasses(), p.AuthorityClass) {
 		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(AuthorityClasses(), ", "))
 	}
-	for _, coordinate := range p.coordinates() {
+	for _, coordinate := range p.Coordinates.named() {
 		if coordinate.value != Unconfigured && !isDigest(coordinate.value) {
 			return fmt.Errorf("coordinate %s is neither a hex SHA-256 nor %q", coordinate.name, Unconfigured)
 		}
