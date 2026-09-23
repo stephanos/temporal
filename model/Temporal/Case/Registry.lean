@@ -8,9 +8,8 @@ Two environment extensions: a `case` block records the declaration that produces
 a functional set's in one and a canary set's in the other, so the renderer enumerates every
 checked-in Case, and every admitted canary Case, without a table anyone maintains. The two are kept
 apart because a canary Case is rendered only on request, for the canary that pins it, and never as
-a fixture of the functional suites. It holds names and plain
-data only -- never a closure -- because it is written to the `.olean` and read back in another
-module's elaboration.
+a fixture of the functional suites. Each holds names and plain data only -- never a closure --
+because it is written to the `.olean` and read back in another module's elaboration.
 
 What a `case` block needs to know about the Scenario and Query it names lives in
 `Umpire.Command.Registry`, because those are the Model commands' own declarations.
