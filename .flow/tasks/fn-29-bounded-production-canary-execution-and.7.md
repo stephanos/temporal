@@ -5,13 +5,13 @@ satisfies: [R7, R10]
 # fn-29-bounded-production-canary-execution-and.7 Publish each receipt and its provenance immutably
 
 ## Description
-Export the exclusive publisher as `tools/umpire/publish` (`cli.Publish` delegates to it). Add `tools/canary/publication`: after the cleanup attempt, whatever its outcome, for each admitted iteration in order, publish the fn-26 receipt bytes unchanged under `<receipt identity>.json` and then the provenance under `<provenance identity>.provenance.json` in the output directory that is uploaded, each exclusive and idempotent; a conflict on either is reported and never overwritten; a lost or unconstructible iteration publishes nothing, and a process lost before publication leaves its iterations for reconcile to report as lost. A publication that succeeded but could not be reported is the named ambiguity and never reruns anything.
+Move the exclusive publisher whole into `tools/umpire/publish`: `Publish`, `ConflictError`, `Resolve`, `Within` and the no-follow open with its platform files and tests; `tools/umpire/internal/cli` imports it, keeping `cli.Publish`, `cli.Resolve` and `cli.Within` as thin delegates for its current callers, so nothing is duplicated and no cycle forms. Add `tools/canary/publication`: after the cleanup attempt, whatever its outcome, for each admitted iteration in order, publish the fn-26 receipt bytes unchanged under `<receipt identity>.json` and then the provenance under `<provenance identity>.provenance.json` in the output directory that is uploaded, each exclusive and idempotent; a conflict on either is reported and never overwritten; a lost or unconstructible iteration publishes nothing, and a process lost before publication leaves its iterations for reconcile to report as lost. A publication that succeeded but could not be reported is the named ambiguity and never reruns anything.
 
 ### Quick commands
 `go test -count=1 -tags test_dep ./tools/canary/publication/ ./tools/umpire/...`
 
-**Files:** `tools/umpire/publish/**`, `tools/umpire/internal/cli/publish.go`, `tools/canary/publication/**`
-**Touches:** `tools/umpire/publish/**`, `tools/umpire/internal/cli/publish.go`, `tools/canary/publication/**`
+**Files:** `tools/umpire/publish/**`, `tools/umpire/internal/cli/publish.go`, `tools/umpire/internal/cli/publish_test.go`, `tools/umpire/internal/cli/publish_unix_test.go`, `tools/umpire/internal/cli/publish_nofollow_unix.go`, `tools/umpire/internal/cli/publish_nofollow_other.go`, `tools/umpire/internal/cli/proposal.go`, `tools/canary/publication/**`
+**Touches:** `tools/umpire/publish/**`, `tools/umpire/internal/cli/publish.go`, `tools/umpire/internal/cli/publish_test.go`, `tools/umpire/internal/cli/publish_unix_test.go`, `tools/umpire/internal/cli/publish_nofollow_unix.go`, `tools/umpire/internal/cli/publish_nofollow_other.go`, `tools/umpire/internal/cli/proposal.go`, `tools/canary/publication/**`
 
 ### Re-plan note (2026-09-23)
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
