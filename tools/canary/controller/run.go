@@ -37,9 +37,9 @@ const (
 	workerStopTimeout = 10 * time.Second
 	// releaseTimeout bounds each iteration's Driver and client release, under its own context.
 	releaseTimeout = 30 * time.Second
-	// notFoundPause is the pause between the two reads that decide a fenced workflow never
-	// started: longer than one RPC's timeout, so a start still in flight has landed.
-	notFoundPause = 10 * time.Second
+	// notFoundMargin is how much longer than one RPC's timeout the pause between the two reads
+	// that decide a fenced workflow never started is, so a start still in flight has landed.
+	notFoundMargin = time.Second
 )
 
 // Outcome is what decide made of one iteration: its status, its rendered receipt (none for an
@@ -213,7 +213,8 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 	took := recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}
 	result := &Result{Lease: &took}
 	recordErr := r.Recovery.Update(func(record *recovery.Record) {
-		record.Lease = &took
+		recorded := took
+		record.Lease = &recorded
 		record.Phase = recovery.PhaseRunning
 	})
 	r.logf("lease taken: run %s", fence.RunID)
@@ -236,13 +237,19 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 
 func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error) {
 	if err := r.Recovery.Update(func(record *recovery.Record) {
-		record.Lease = &found
+		recorded := found
+		record.Lease = &recorded
 		record.Phase = recovery.PhaseRefused
 	}); err != nil {
 		return nil, err
 	}
 	r.logf("lease unreconciled (%s): run %s", state, found.RunID)
 	return &Result{Lease: &found, Unreconciled: true}, nil
+}
+
+// notFoundPause is one RPC's timeout, the Profile's instruction default, plus a margin.
+func (r *invocation) notFoundPause() time.Duration {
+	return time.Duration(r.Scope.Profile.InstructionDefaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
 }
 
 // iterationBound is the longest one iteration can take: a Run spends its total duration running,
@@ -359,10 +366,10 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 	outcome.Fenced = fenced
 	var failures []error
 	for _, id := range fenced {
-		closed, err := workflowClosed(ctx, r.target, id, notFoundPause, r.wait)
+		closed, err := workflowClosed(ctx, r.target, id, r.notFoundPause(), r.wait)
 		if err == nil && !closed {
 			if err = terminate(ctx, r.target, &commonpb.WorkflowExecution{WorkflowId: id}, ReasonCleanup); err == nil {
-				closed, err = workflowClosed(ctx, r.target, id, notFoundPause, r.wait)
+				closed, err = workflowClosed(ctx, r.target, id, r.notFoundPause(), r.wait)
 			}
 		}
 		switch {

@@ -136,23 +136,29 @@ func Decode(encoded []byte) (*Record, error) {
 }
 
 // Read reads the record at path, refusing one whose mode is not 0600 or that is not a regular
-// file. A missing record is fs.ErrNotExist, which reconcile reports as nothing to reconcile.
+// file. The checks are made on the opened file and matched with the path's own entry, so a path
+// swapped for a symlink between the two is refused. A missing record is fs.ErrNotExist, which
+// reconcile reports as nothing to reconcile.
 func Read(path string) (*Record, error) {
-	info, err := os.Lstat(path)
+	entry, err := os.Lstat(path)
 	if err != nil {
 		return nil, err
-	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("the recovery record %s is not a regular file", filepath.Base(path))
-	}
-	if info.Mode().Perm() != fileMode {
-		return nil, fmt.Errorf("the recovery record's mode is %#o, not %#o", info.Mode().Perm(), fileMode)
 	}
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = file.Close() }()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !entry.Mode().IsRegular() || !info.Mode().IsRegular() || !os.SameFile(entry, info) {
+		return nil, fmt.Errorf("the recovery record %s is not a regular file", filepath.Base(path))
+	}
+	if info.Mode().Perm() != fileMode {
+		return nil, fmt.Errorf("the recovery record's mode is %#o, not %#o", info.Mode().Perm(), fileMode)
+	}
 	encoded, err := io.ReadAll(io.LimitReader(file, maxRecordBytes+1))
 	if err != nil {
 		return nil, err
