@@ -129,6 +129,9 @@ lean_exe «umpire-replay-bridge-tests» where
 lean_exe «umpire-goldens» where
   root := `Temporal.Tool.Goldens
 
+lean_exe «umpire-evaluation-profiles» where
+  root := `Temporal.Tool.EvaluationProfiles
+
 lean_exe «umpire-correlated-fixtures» where
   root := `Umpire.Case.Tests.CorrelatedFixtureMain
 
