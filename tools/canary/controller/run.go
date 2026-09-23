@@ -183,11 +183,10 @@ func runWith(ctx context.Context, config Config, prepare func(*invocation)) (*Re
 }
 
 func newInvocation(config Config) *invocation {
-	bounded := &boundedWriter{out: config.Progress, remaining: config.Policy.Limits.ProgressBytes}
 	run := &invocation{
 		Config:   config,
 		target:   Target{Service: config.Service, Namespace: config.Namespace, Identity: config.Identity},
-		progress: config.Redactor.Writer(bounded),
+		progress: progressWriter(config.Redactor, config.Progress, config.Policy.Limits.ProgressBytes),
 		wait:     config.Wait,
 	}
 	if run.wait == nil {
@@ -314,7 +313,7 @@ func (r *invocation) iterationBound() time.Duration {
 
 func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 	for index := range r.Policy.Limits.Iterations {
-		if err := ctx.Err(); err != nil {
+		if err := ctx.Err(); errors.Is(err, context.Canceled) {
 			result.Stopped, result.StoppedBy = "the invocation was interrupted: "+err.Error(), StopInterrupted
 			return
 		}
@@ -326,14 +325,15 @@ func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 		result.Iterations = append(result.Iterations, iteration)
 		r.phase(PhaseIterationClosed)
 		r.logf("iteration %d: run %s %s", index+1, iteration.RunID, iteration.Outcome.Status)
-		if iteration.Outcome.Status != StatusAccepted {
-			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+" was "+iteration.Outcome.Status, StopDecision
-			return
-		}
-		// No Driver starts beside one that may still hold workers or connections.
+		// A Driver that did not release is a tooling failure whatever the iteration decided, and no
+		// Driver starts beside one that may still hold workers or connections.
 		if releaseErr != nil {
 			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+"'s Driver did not release: "+releaseErr.Error(), StopRelease
 			r.logf("iteration %d: the Driver did not release: %s", index+1, releaseErr)
+			return
+		}
+		if iteration.Outcome.Status != StatusAccepted {
+			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+" was "+iteration.Outcome.Status, StopDecision
 			return
 		}
 	}
@@ -461,6 +461,18 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 	}
 	r.logf("cleanup released the lease; %d fenced workflows closed", len(outcome.Closed))
 	return outcome
+}
+
+// capped is progress already capped at the policy's limit and redacted; it is used as it is.
+type capped struct{ *authority.Writer }
+
+// progressWriter caps out at limit bytes and redacts it, once: a writer that is already capped is
+// returned as it is.
+func progressWriter(redactor *authority.Redactor, out io.Writer, limit int) *authority.Writer {
+	if already, ok := out.(capped); ok {
+		return already.Writer
+	}
+	return redactor.Writer(&boundedWriter{out: out, remaining: limit})
 }
 
 // boundedWriter writes at most remaining bytes and drops the rest, so progress never grows past
