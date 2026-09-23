@@ -504,6 +504,18 @@ already holds at the schedule step and the Producer rejects that as vacuous
 (`property.clause-early-response`), so every candidate the campaign can run is a one-step shortest
 path, with no prefix to reduce.
 
+Task .6 (2026-09-23): the exploration client's transport is lifted into `campaign.Conn`, and both
+clients (`campaign.Bridge`, `replay.Bridge`) exchange frames through it. `replay.Reducer.Reduce`
+is the bounded sweep over the bridge: not attempted on a subject whose reruns did not reproduce;
+each candidate prepared under the subject's Profile name (a rejection reported `rejected`, never
+rerun), rerun twice, each indeterminate Run rerun alone once, and the pair's class reported; ended
+by the bridge's exhaustion, an undecided edit, a named limit checked before the work it bounds, a
+stop that names the candidate lost, or a rerun failure. One reading of the plan is decided here:
+when both Runs of a candidate are indeterminate, each is rerun once, one Run apiece, since the
+rule's "its indeterminate Run alone" names a Run, not a pair. The report carries no time, so the
+same classes render the same bytes. The Go SHA-256 of the control fixture's canonical bytes is
+proved to be the identity the Lean bridge admits.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
