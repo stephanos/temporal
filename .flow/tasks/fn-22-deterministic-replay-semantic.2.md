@@ -20,11 +20,11 @@ Change the Producer so that each witnessed row declares the evidence of every re
 ### Re-plan note (2026-09-22)
 Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
-- [ ] Every result of a witnessed row has its evidence kind declared and projected to its own row; the witness's step is the confirmed one; a Case with no alternative results is byte-identical to before.
-- [ ] Goldens and functional fixtures are regenerated, the conformance check passes, and every fixture still prepares.
-- [ ] A Lean test pins, on a Model with an alternative result, that the alternative's kind is declared and projected to the row that records it, that a kind two rows would record is rejected by name, and that the alternative confirms the witness's silent prefix.
+- [x] Every result of a witnessed row has its evidence kind declared and projected to its own row; the witness's step is the confirmed one; a Case with no alternative results is byte-identical to before.
+- [x] Goldens and functional fixtures are regenerated, the conformance check passes, and every fixture still prepares.
+- [x] A Lean test pins, on a Model with an alternative result, that the alternative's kind is declared and projected to the row that records it, that a kind two rows would record is rejected by name, and that the alternative confirms the witness's silent prefix.
 ## Done summary
-TBD
+`Umpire.Case.Producer.alternativeRules` walks the witness with its prior states and, for every result of a witnessed (state, action) pair other than the one taken, declares the evidence its facts imply under the machine's `evidence:` lines and projects it to that result's own row, inheriting the silent steps before the row; a kind the witness's step or another result of the same row records is projected once to every row that records it, a kind two different rows would record rejects as `evidence.kind-ambiguous` naming it, and a kind the realization does not admit as `evidence.kind-unknown`. The alternatives' rules feed the projection declaration, the Program's evidence declarations and its lifts; the witness's rules alone feed the field relations. Every existing Model's rows are deterministic, so every existing fixture and golden is byte-identical; pinned in `Umpire.Case.Tests.Producer` on a lamp whose toggle ends bright or stuck.
 
 ## Evidence
 - Commits:
