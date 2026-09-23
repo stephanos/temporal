@@ -13,11 +13,19 @@ contract in what the tree now has:
   its Verdict and the `DriverIdentity` it was prepared under, as `umpire-run --record` and
   `umpire-fuzz --record-root` write it). Admission reads both strictly and never prepares, runs or
   replays. Because it never prepares, the recorded Run must name the Case it ran: the recorded-Run
-  format gains `case`, the SHA-256 of the canonical Case bytes the Run was prepared from, which
-  every writer (`umpire-run --record`, `umpire-fuzz --record-root`, the live suite's recording
-  helper) already holds. A Run whose `case` is not the admitted Case's identity is `crossed`, and a
+  format gains `case`, the SHA-256 of the canonical Case bytes the Run was prepared from, computed
+  by one helper, `recordedrun.CaseIdentity(bytes)` (`casefile.Canonical`, then SHA-256), which every
+  writer and both admissions call. `umpire-fuzz --record-root` already compacts its Case;
+  `umpire-run` computes the identity from its fixture while parsing its configuration, and with
+  `--record` a fixture that is not in a canonical form is refused before anything runs (exit 3),
+  so a live Run is never lost to a record it cannot write; the live suite's `runRecording` takes
+  the Case bytes, which its one caller already reads. A Run whose `case` is not the admitted Case's identity is `crossed`, and a
   record without it `incompatible`; replay admission checks it too, and the pinned negative-control
-  record is re-recorded with it. IDs are names, not hashes, so a regenerated Case with the same IDs
+  record is re-encoded with it (deterministic, its pinned sequences unchanged). The binding couples
+  that record to the control Case's exact bytes: a change to the control's definitions makes it
+  `crossed` until it is recorded again live, which `key_test.go` and .6's docs say. Admission
+  checks run in a fixed order: the input caps, decoding, `incompatible` (format version, a record
+  without `case`), `noncanonical`, then crossing, `open`, `inconsistent`, `malformed` and `stale`. IDs are names, not hashes, so a regenerated Case with the same IDs
   never inherits an older Run. The Case must be format version 1.0. The Run must be the Case's: its `case_id` and
   `program_id` are the Case's, and the set of rule IDs its Verdict names equals the Contract's
   rules -- `contract.rules` and `contract.correlated.rules` together, as the evaluator reports them
@@ -57,7 +65,10 @@ contract in what the tree now has:
   `cleanup-failure-after-proved-violation` has that shape). The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
   most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB. A receipt over its cap -- reachable only near the event cap,
   since it lists every rule's supporting sequences -- is a tooling failure with its own summary
-  (`receipt-oversized`), never a decision and never published. These
+  (`receipt-oversized`), never a decision and never published. Every tooling failure -- an
+  unreadable input, a catalog that does not build, `receipt-oversized`, a rendered receipt that
+  does not decode back -- exits 3 with its own named summary status, beside the rejected subject,
+  the unknown Profile and the publication conflict or failure. These
   constants are the only enforcement: the command reads each input through a reader capped one
   byte past its cap, so an oversized input is refused before it is held in memory, and the receipt
   records the caps it was admitted under.
@@ -78,8 +89,9 @@ contract in what the tree now has:
   `disposition-incomplete`, `cleanup-unclosed`, `known-gap-blocking` (every
   `capability` and `interpretation` gap) and `unsupported-rule` leave it `incomplete` (absent
   verification is never proof, and never a failure either). A non-default `umpire-evaluation-profiles` executable renders every
-  declared Profile to canonical JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by
-  a Makefile gate that `umpire-check-regression` runs; the Profile's identity is the SHA-256 of
+  declared Profile to canonical JSON under `tools/umpire/evaluation/profiles/`, checked by
+  a Makefile gate that `umpire-check-regression` runs (the directory is `profiles/`, not `testdata/`, since the
+  command ships them); the Profile's identity is the SHA-256 of
   those bytes, written `sha256:<hex>` as every Lean fingerprint is (Case and receipt identities
   stay bare hex, as fn-22's are). The cross-language contract is the Lean-rendered Profile
   bytes: Go embeds them and pins their identity against Lean's. The receipt is Go's alone -- Go
@@ -104,8 +116,9 @@ contract in what the tree now has:
   never looks like a receipt), syncs it, and hard-links it to
   `<root>/<receipt-identity>.json` (`os.Link` is atomic and fails if the name exists), then removes
   the temporary file. On an existing name, publication `Lstat`s it and requires a regular file (a
-  symlink, FIFO, device or directory is a conflict), then reads it without following links through
-  a reader capped one byte past the receipt cap: identical bytes are `already-published`, anything
+  symlink, FIFO, device or directory is a conflict), then opens it with `O_NOFOLLOW|O_NONBLOCK` (so a FIFO swapped in after the
+  `Lstat` never blocks) and re-checks it is a regular file before reading it through a reader
+  capped one byte past the receipt cap: identical bytes are `already-published`, anything
   else a conflict that is reported and never overwritten. The directory is not synced after the
   link: a crash then may lose the name, never expose a partial receipt, and publishing again
   restores it. The receipt root must already exist (as `umpire-run --record`'s directory must), and
@@ -267,3 +280,14 @@ check is whitespace only, as fn-22 left it (a Case in another field spelling is 
 and its recorded Run then names that identity, so nothing crosses); the evaluation tests import
 the history types their fixtures' `Any` values need; the Go identity test pins the same literal
 Lean's test does, beside the Makefile byte gate.
+
+Round seven (2026-09-23): NEEDS_WORK with one P1, one P2 and two P3 findings, all applied. Only
+the fuzz writer held canonical Case bytes, so one helper, `recordedrun.CaseIdentity`, computes the
+recorded `case` for every writer and both admissions; `umpire-run --record` refuses a
+non-canonical fixture before anything runs, and `runRecording` takes the Case bytes. Every tooling
+failure, `receipt-oversized` among them, exits 3 with a named summary status (.5). Admission's
+checks run in a fixed order, so a legacy record is `incompatible`, not `noncanonical`. .2's Files
+list the test files the signature changes touch. The FYIs are taken: the pinned control record is
+re-encoded, not re-recorded, and its coupling to the control's bytes is documented; the embedded
+Profiles live under `profiles/`, not `testdata/`; the existing name is opened non-blocking and
+re-checked after `Lstat`.
