@@ -465,11 +465,14 @@ func TestRunRecordsEachCounterexampleUnderTheRecordRoot(t *testing.T) {
 	require.Equal(t, string(sampleCandidates()[1].Case)+"\n", string(caseBytes), "the Case as the bridge handed it out, compact, one newline")
 	recorded, err := os.ReadFile(filepath.Join(root, names[1]))
 	require.NoError(t, err)
-	identity, run, err := replay.DecodeRecordedRun(recorded)
+	decoded, err := replay.DecodeRecordedRun(recorded)
 	require.NoError(t, err)
-	require.Equal(t, binder.Identity(), identity)
-	require.Equal(t, "temporal.case.set.2", run.GetCaseId())
-	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
+	require.Equal(t, binder.Identity(), decoded.Driver)
+	caseIdentity, err := replay.CaseIdentity(caseBytes)
+	require.NoError(t, err)
+	require.Equal(t, caseIdentity, decoded.Case, "the record names the Case written beside it")
+	require.Equal(t, "temporal.case.set.2", decoded.Run.GetCaseId())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, decoded.Run.GetVerdict().GetStatus())
 }
 
 // A proposal path that would leave the promotion root is refused: the campaign's findings stand
