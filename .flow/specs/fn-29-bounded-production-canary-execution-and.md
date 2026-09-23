@@ -29,15 +29,18 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
   coordinates live only in the protected environment), the lease's workflow ID, type and task
   queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
-  invocation, a 2-minute cleanup reserve, and 64 KiB of progress. A limit cannot be raised by a
-  flag. The recorded-Run and receipt caps are fn-26's (`evaluation.AdmissionCaps()`), recorded in
+  invocation, a 2-minute cleanup reserve, a 24-hour lease run timeout, and 64 KiB of progress. A
+  limit cannot be raised by a flag. The Run's own RPC, worker, duration and event ceilings are the
+  Temporal Profile's (`testpilotdriver.DefaultCeilings`, which `DeriveProfile` applies), and the
+  evidence ceilings are fn-26's admission caps; together with the policy's they are every limit R4
+  names. The recorded-Run and receipt caps are fn-26's (`evaluation.AdmissionCaps()`), recorded in
   each receipt, and are not restated in the policy.
 - **The Evaluation Profile is Lean's, the provenance is canary's.** `Temporal.Evaluation.Canary`
   declares the `production-canary` Evaluation Profile with `Umpire.Evaluation`: trust
   `dedicated-production-canary`, every Known Gap kind blocking, and `local-ephemeral`'s table
   except that `unsupported-rule` rejects (a production claim with a rule nothing supports is a
   failed claim, not a missing one). `umpire-evaluation-profiles` renders each group of declared
-  Profiles into the directory its flag names (`--local-dir`, `--canary-dir`), so no Profile
+  Profiles into the directory its flag names (`--local-dir`, `--canary-dir`, `--harness-dir`), so no Profile
   carries a path and this one lands in `tools/canary/assessment/profiles/`, never in the set
   `umpire-assess` embeds. `tools/umpire/evaluation` exports `ParseProfile` (its strict parse and
   validation), which the canary uses on its embedded copy. Everything canary-specific -- authority
@@ -53,10 +56,15 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   `GITHUB_EVENT_NAME` `workflow_dispatch`; the digests of the environment's coordinates to equal
   the policy's; the canonical Case to be the pinned one (fn-83's `provision` package creates the
   resources in the harness, never in the canary); and the
-  catalog to be the tree's. The namespace must exist (`DescribeNamespace`), and the Nexus endpoint,
-  found by name with `ListNexusEndpoints`, must target that namespace and the handler queue (task
-  queues are created lazily, so their existence proves nothing). Any mismatch performs no mutation
-  and creates no Run or receipt; the `PreparedCase` preflight makes is the one the controller runs.
+  catalog to be the tree's. The namespace must exist (`DescribeNamespace`). The credential is a
+  namespace writer on the canary namespace and nothing else: every call the canary makes (the
+  Case's own, the lease's start, signal, termination and history reads, `DescribeNamespace`) is
+  namespace-scoped, and the canary never lists or reads Nexus endpoints, which needs cluster
+  admin. The endpoint's route is proved by the Run itself: the Case observes the handler's reply
+  publicly, so a wrong route is a Run that is not accepted, never a mutation. Any mismatch performs
+  no mutation and creates no Run or receipt; the `PreparedCase` preflight makes is the one the
+  controller runs. The coordinate digests are unsalted, so for a guessable name they confirm a
+  guess: the coordinates are not secrets, the credential is.
 - **One lease, one fence, one Run at a time.** The lease is a workflow with the policy's fixed ID and
   type (`umpire-canary-lease`) on a lease task queue no worker polls (`umpire-canary-lease`, in
   the policy), started with `WORKFLOW_ID_CONFLICT_POLICY_FAIL` and a 24-hour run timeout, a
@@ -77,10 +85,13 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   terminates it with reason `umpire-canary: released`, reconcile with `umpire-canary:
   reconciled`), means unreconciled -- a lost process, or a lease that reached its 24-hour timeout
   -- and `run` refuses before taking a new lease, recording that lease's ID and run ID in its
-  recovery file. Only `umpire-canary reconcile` clears it, and it acts on exactly the `(lease ID,
-  run ID)` its own job's recovery file names, never on whatever lease happens to be live: it
-  refuses a lease run younger than the invocation limit plus the cleanup reserve (a live
-  invocation cannot be older), verifies or terminates exactly the workflow IDs that run's
+  recovery file as `found`. Both read the lease's close event from its history, since a describe
+  reports `TERMINATED` without the reason, through one predicate, `leaseState`, the controller and
+  reconcile share. Only `umpire-canary reconcile` clears it, and it acts on exactly the `(lease ID,
+  run ID)` its own job's recovery file names, never on whatever lease happens to be live: a lease
+  its own job `took` it reconciles at once, since the process that took it has exited; a lease its
+  job `found` it refuses while that lease run is younger than the invocation limit plus the
+  cleanup reserve (a live invocation cannot be older), exiting 2 with the status `lease-in-use`; verifies or terminates exactly the workflow IDs that run's
   `run-opened` signals name (a workflow the server reports not found never started, and counts as
   closed), then closes the scope -- terminating the lease run if it is still open, or starting and
   at once terminating a fresh lease run with the reconciled reason when it had timed out -- or
@@ -93,12 +104,13 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   found, the current Run ID and phase) lives only for its job.
 - **Assessment is fn-26's, verbatim, and publication comes last.** Each completed iteration is
   encoded as a recorded Run (`tools/umpire/recordedrun`, exported from
-  `tools/umpire/internal/recordedrun` so the canary imports it), admitted with `evaluation.Admit`
+  `tools/umpire/internal/recordedrun` in .1 so the canary can also compute a Case's identity), admitted with `evaluation.Admit`
   against the tree's catalog, assessed with `evaluation.Assess` under the policy's Evaluation
-  Profile and rendered with `evaluation.Render`, all held in memory. After cleanup and the lease's
-  release, each iteration's receipt is published with the exclusive publisher fn-26 built
-  (exported as `tools/umpire/publish`), then its provenance, which now carries the invocation's
-  cleanup outcome; a process lost before publication leaves its iterations unpublished, which
+  Profile and rendered with `evaluation.Render`, all held in memory. After the cleanup attempt,
+  whatever its outcome (released, or uncertain with the lease held), each iteration's receipt is
+  published with the exclusive publisher fn-26 built
+  (exported as `tools/umpire/publish`), then its provenance, which carries the invocation's
+  cleanup outcome, `uncertain` included; a process lost before publication leaves its iterations unpublished, which
   reconcile reports as lost. A lost or unconstructible iteration has no receipt. `releaseEligibility`
   is a constant `false` the provenance decoder rejects any other value of.
 - **What is retained is secret-free; what is not stays on the runner.** A recorded Run holds the
@@ -135,10 +147,14 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   permission, a job timeout, `umpire-canary run`, then `umpire-canary reconcile` under
   `if: always()`, then the receipts, provenance, summaries and progress uploaded under
   `if: always()`; preflight re-checks the ref. A regression test in `tools/umpire/regression` pins
-  the file's properties.
+  the file's properties. The job's timeout is 30 minutes (build, the 10-minute invocation, the
+  reserve and reconcile). The workflow's regression test and the check that the untagged build has
+  no override path live in `tools/canary`, not in Umpire; Umpire's regression suite keeps only its
+  own rule that nothing under it imports `tools/canary`.
 - **The early proof is .2 with .4's two-Run test.** .2 pins and prepares the canary Case under the
   canary's names with no canary policy in Umpire, and .4 runs the prepared Case twice, serially,
-  through a fenced in-process Driver, before any authority or participant work; a finding there
+  through a fenced scripted Driver (answering the Program's instructions deterministically, as
+  replay's tests do), before any participant work; a finding there
   that canary policy must enter Umpire stops the spec.
 
 Tasks .1 to .13 are rewritten below on these contracts in their existing order and dependencies.
@@ -259,3 +275,19 @@ the receipt, not restated in the policy; `casebinding` takes the Driver environm
 test names in .2 and given the environment's coordinates in .3; the `canary-harness` Profile is
 rendered and embedded only in the harness build. The FYIs are taken: a fenced workflow the server
 does not find never started, and the runbook says how an operator clears an uncertain scope.
+
+Round three (2026-09-23): NEEDS_WORK with three P1, three P2 and four P3 findings, all applied.
+Listing Nexus endpoints needs cluster admin, so the canary's credential is a namespace writer on
+the canary namespace alone and the endpoint's route is proved by the Run's own public observation
+of the handler's reply, never by a preflight read. The recovery file records whether its job took
+or found the lease, and only a found lease is held back by the age guard, with its own status
+`lease-in-use`; the job's own lease is reconciled at once. The recorded-Run export, with the Case
+identity it computes, moves to .1, so .2 never re-implements the canonical form. Publication
+follows the cleanup attempt whatever its outcome and provenance records `uncertain`; the lease run
+timeout is a policy limit the harness can shorten; every R4 limit is named with its source (the
+policy, the Temporal Profile's `DefaultCeilings`, fn-26's caps). Cleanup closes the iteration's
+Driver; the lease's close reason is read from its history through one shared predicate; the
+renderer's three directory flags agree; the early proof precedes participant work, not
+authority. The FYIs are taken: the workflow test and the untagged-build check move to
+`tools/canary`, unsalted digests are stated as confirming a guess, and the job timeout is 30
+minutes.
