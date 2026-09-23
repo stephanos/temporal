@@ -255,6 +255,16 @@ Implementation review: SHIP in one round; its P3 applied (a context cancelled af
 before the link is pinned to leave the receipt published) and two FYIs taken (`Render` refuses a
 Decision made on another subject; the no-follow open retries on `EINTR`).
 
+Task .5 (2026-09-23): `umpire-assess run` is the command. Beyond the statuses the plan lists, an
+embedded Profile that does not load is `profile-unreadable` (only a name outside the set is
+`unknown-profile`), and a broken internal invariant (an admission error that is no rejection, a
+Decision rendered against another Profile or subject) is `internal-error`; both exit 3. The
+self-check and the publisher are fields of the command's environment beside the catalog and the
+context, so a test reaches the failures no real subject or root produces. Implementation review:
+round one NEEDS_WORK with one P2 (the receipt-unreadable, publication-failed and deadline paths
+were not pinned) and three P3 findings, all applied; round two SHIP after one transport timeout
+was re-dispatched, its three P3 notes applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
