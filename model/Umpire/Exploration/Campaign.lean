@@ -122,8 +122,19 @@ def admissionFailure (target : String) : AdmissionError → Option ToolingFailur
   | .admission diagnostic => some { target, reason := "admission: " ++ (repr diagnostic).pretty }
   | .instances reason => some { target, reason := "instances: " ++ reason }
 
-def queryKeyFor (set : SetDeclaration) (target : CoverageTarget) : String :=
+private def queryKeyFor (set : SetDeclaration) (target : CoverageTarget) : String :=
   set.name ++ "." ++ (targetKey target).replace ":" "."
+
+/-- The Query the campaign plans for one target: its key and its Property and Scenario authors,
+or `none` when no path reaches the target's row within the limits. A replay that recovers an
+exploration subject plans it through this same function. -/
+def planTarget (model : DeclaredModel Setup State Action Outcome Fact) (set : SetDeclaration)
+    (limits : Limits) (target : CoverageTarget) :
+    Option (String × (ModelVocabulary → Property) × (ModelVocabulary → Scenario)) :=
+  (chooseRow model limits.steps.value target).map fun (lead, final) =>
+    let queryKey := queryKeyFor set target
+    let (propertyAuthor, behaviorAuthor) := targetAuthors model queryKey lead final
+    (queryKey, propertyAuthor, behaviorAuthor)
 
 /-- Plan the first pending target. A target no path reaches, or whose Query selects nothing, is
 marked unreachable and the next pending target is tried; any other admission error, a candidate
@@ -138,11 +149,9 @@ def nextWith : Nat → Campaign model → Next model
     match campaign.ledger.nextPending with
     | none => .exhausted campaign
     | some target =>
-      match chooseRow model campaign.limits.steps.value target with
+      match planTarget model campaign.set campaign.limits target with
       | none => nextWith fuel { campaign with ledger := campaign.ledger.markUnreachable target }
-      | some (lead, final) =>
-          let queryKey := queryKeyFor campaign.set target
-          let (propertyAuthor, behaviorAuthor) := targetAuthors model queryKey lead final
+      | some (queryKey, propertyAuthor, behaviorAuthor) =>
           match checkAdmitted model queryKey campaign.limits propertyAuthor behaviorAuthor with
           | .error error =>
               match admissionFailure (targetKey target) error with

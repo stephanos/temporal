@@ -28,13 +28,14 @@ listing, every edit the Model does not admit (`inapplicable`) or whose Case the 
 decided about the outstanding candidate's Runs, a class (`reproduced`, `not-reproduced` or
 `indeterminate`, after the one retry) or the fact that its preparation was rejected, and answers
 `settled`. `finish` reports the result -- `minimized`, `irreducible` or `incomplete` -- the digest
-retained, and every edit's fate.
+retained, and every edit's fate, an edit never settled being `not-tried` (or `unsettled`, with its
+candidate's digest, when its candidate was outstanding at the end).
 
 Frames are exact, as the exploration bridge's are: each kind admits a closed set of keys, so the
 coordinator cannot name an edit, a coordinate or a Case. A frame out of sequence or duplicated, one
 naming another set or Profile, an `observe` for a candidate that is not outstanding or was already
 settled, a `next` while a candidate is outstanding or after the reduction ended, and a line longer
-than the bridge reads are rejected before any Query is admitted, and leave the reduction as it was.
+than the bridge parses are rejected before any Query is admitted, and leave the reduction as it was.
 Go receives whole Cases and returns classes; it never edits a Case.
 -/
 
@@ -151,11 +152,9 @@ def Bound.exploratory (binding : Temporal.Tool.ExplorationBridge.Binding model) 
           match binding.set.targets.find? (Umpire.Exploration.targetKey · == key) with
           | none => .error s!"set {binding.set.name} has no target {key}"
           | some target =>
-              match Umpire.Exploration.chooseRow model binding.limits.steps.value target with
+              match Umpire.Exploration.Campaign.planTarget model binding.set binding.limits target with
               | none => .error s!"target {key} is unreachable within the set's limits"
-              | some (lead, final) =>
-                  let queryKey := Umpire.Exploration.Campaign.queryKeyFor binding.set target
-                  let (property, behavior) := Umpire.Exploration.targetAuthors model queryKey lead final
+              | some (queryKey, property, behavior) =>
                   recoverSource binding.set.name
                     ({ key := queryKey, limits := binding.limits, property, behavior } : QuerySource model)
                     none
@@ -252,6 +251,17 @@ def parseFrame (line : String) : Except String (Except (Nat × String) Frame) :=
 
 /-! ### Rendering -/
 
+/-- One candidate as `next` hands it out: its edit, its digest (the edited Query's Plan checksum),
+its Case identity, its Case checksum and its canonical bytes. -/
+structure Candidate where
+  edit : Edit
+  digest : String
+  caseId : String
+  fixture : String
+  identity : String
+  encoded : String
+
+
 def renderRejected (seq : Nat) (reason : String) : String :=
   Temporal.Tool.Bridge.renderRejected seq reason
 
@@ -282,15 +292,15 @@ def renderAdmitted (seq : Nat) (setName profile : String) (recovered : Recovered
 def renderCrossed (seq : Nat) (setName profile reason : String) : String :=
   jsonObject (header "crossed" seq setName profile ++ [("reason", jsonString reason)])
 
-def renderCandidate (seq : Nat) (setName profile : String) (edit : Edit) (digest caseId fixture
-    identity : String) (skipped : List Settled) (encodedCase : String) : String :=
-  jsonObject (header "candidate" seq setName profile ++ [("candidate", jsonString digest)] ++
-    editMembers edit ++ [
-    ("caseId", jsonString caseId),
-    ("fixture", jsonString fixture),
-    ("identity", jsonString identity),
+def renderCandidate (seq : Nat) (setName profile : String) (candidate : Candidate)
+    (skipped : List Settled) : String :=
+  jsonObject (header "candidate" seq setName profile ++ [("candidate", jsonString candidate.digest)] ++
+    editMembers candidate.edit ++ [
+    ("caseId", jsonString candidate.caseId),
+    ("fixture", jsonString candidate.fixture),
+    ("identity", jsonString candidate.identity),
     ("skipped", settledRows skipped),
-    ("case", encodedCase)])
+    ("case", candidate.encoded)])
 
 def renderExhausted (seq : Nat) (setName profile : String) (skipped : List Settled) : String :=
   jsonObject (header "exhausted" seq setName profile ++ [("skipped", settledRows skipped)])
@@ -305,14 +315,26 @@ def renderSettled (seq : Nat) (setName profile : String) (settled : Settled) (re
     ("reason", jsonString settled.fate.reason),
     ("retained", jsonString retained)])
 
+/-- An edit the sweep never settled: the one whose candidate was outstanding when the reduction
+ended is `unsettled` with that candidate's digest; the rest are `not-tried`. -/
+private def unsettledRow (outstanding : Option (Edit × String)) (edit : Edit) : String :=
+  let (fate, candidate) := match outstanding with
+    | some (pending, digest) => if pending == edit then ("unsettled", jsonString digest) else ("not-tried", "null")
+    | none => ("not-tried", "null")
+  jsonObject (editMembers edit ++ [("fate", jsonString fate), ("reason", jsonString ""),
+    ("candidate", candidate)])
+
+/-- The result, with every edit of the sweep: each settled edit's fate in the order it was
+settled, then each edit the sweep never settled. -/
 def renderFinished (seq : Nat) (setName profile : String) (result : Result) (subject retained : String)
-    (settled : List Settled) : String :=
+    (reduction : Reduction) (outstanding : Option (Edit × String)) : String :=
   jsonObject (header "finished" seq setName profile ++ [
     ("status", jsonString result.name),
     ("reason", jsonString result.reason),
     ("subject", jsonString subject),
     ("retained", jsonString retained),
-    ("edits", settledRows settled)])
+    ("edits", jsonArray (reduction.settled.map settledRow ++
+      reduction.pending.map (unsettledRow outstanding)))])
 
 /-! ### The protocol -/
 
@@ -375,7 +397,7 @@ def caseIdentity (encoded : String) : String := Umpire.Fingerprint.sha256Hex enc
 
 /-- Hand out the next candidate, passing over and recording every edit that produces no Case. -/
 def advance (reduction : Reduction) (recovered : Recovered) :
-    IO (Reduction × List Settled × Option (Edit × String × String × String × String × String)) := do
+    IO (Reduction × List Settled × Option Candidate) := do
   let mut reduction := reduction
   let mut skipped : List Settled := []
   for _ in [0:reduction.pending.length] do
@@ -398,7 +420,8 @@ def advance (reduction : Reduction) (recovered : Recovered) :
             reduction := reduction.settle edit fate (some digest)
             skipped := skipped ++ [({ edit, fate, candidate := some digest } : Settled)]
         | .ok encoded =>
-            return (reduction, skipped, some (edit, digest, caseId, fixture, caseIdentity encoded, encoded))
+            return (reduction, skipped,
+              some { edit, digest, caseId, fixture, identity := caseIdentity encoded, encoded })
   pure (reduction, skipped, none)
 
 /-- Apply one in-order frame. -/
@@ -452,12 +475,10 @@ def step (effects : Temporal.Tool.Bridge.Effects) (bound : List Bound) (state : 
       | none =>
           return accepted (renderExhausted seq state.setName state.profile skipped)
             { state with phase := .ended, reduction, seen }
-      | some (edit, digest, caseId, fixture, identity, encoded) =>
-          effects.writeProgress s!"candidate {digest} {edit.name}"
-          return accepted
-            (renderCandidate seq state.setName state.profile edit digest caseId fixture identity
-              skipped encoded)
-            { state with reduction, seen, outstanding := some (edit, digest) }
+      | some candidate =>
+          effects.writeProgress s!"candidate {candidate.digest} {candidate.edit.name}"
+          return accepted (renderCandidate seq state.setName state.profile candidate skipped)
+            { state with reduction, seen, outstanding := some (candidate.edit, candidate.digest) }
   | .observe _ _ decided =>
       let some (edit, digest) := state.outstanding
         | return .reply (renderRejected seq "no candidate is outstanding") state
@@ -480,7 +501,7 @@ def step (effects : Temporal.Tool.Bridge.Effects) (bound : List Bound) (state : 
         | none, none => state.reduction
       let subject := (state.recovered.map (·.digest)).getD ""
       return .finished (renderFinished seq state.setName state.profile reduction.result subject
-        state.retained reduction.settled)
+        state.retained reduction state.outstanding)
 
 /-- The diagnostic prefix every failure outside a frame carries. -/
 def diagnosticPrefix : String := "umpire-replay:"
