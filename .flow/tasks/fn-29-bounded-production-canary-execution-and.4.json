@@ -12,6 +12,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.4.md",
   "status": "todo",
-  "title": "Implement fenced serial Run and cleanup lifecycle",
+  "title": "Hold one lease, fence every Run and clean up exactly",
   "updated_at": "2026-09-04T18:37:26.539444Z"
 }

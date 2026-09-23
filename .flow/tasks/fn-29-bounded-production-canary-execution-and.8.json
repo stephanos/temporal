@@ -13,6 +13,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.8.md",
   "status": "todo",
-  "title": "Compose the external canary controller and run mode",
+  "title": "Compose the canary controller and its run mode",
   "updated_at": "2026-09-04T18:37:27.856367Z"
 }

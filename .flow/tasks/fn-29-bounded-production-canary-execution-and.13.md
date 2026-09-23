@@ -2,17 +2,23 @@
 satisfies: [R9, R10]
 ---
 
-# fn-29-bounded-production-canary-execution-and.13 Publish the canary runbook and roadmap status
-## Description
-Document protected invocation, preflight, limits, Run/Verdict interpretation, lost iterations, reconciliation, cleanup, receipt trust, retained-artifact handling, and the absence of release authority. Reconcile component and delivery-order status with the implemented external ownership.
+# fn-29-bounded-production-canary-execution-and.13 Write the canary runbook and reconcile the roadmap
 
-**Size:** S
-**Touches:** `docs/**`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `tools/canary/README.md`
+## Description
+Write `tools/canary/README.md`: protected invocation, what preflight checks, the Limits, how to read each iteration's Verdict, receipt and provenance, lost iterations and reconciliation, cleanup outcomes, that receipts are not self-authenticating and always carry `releaseEligibility: false`, how the retained artifact is handled, and that nothing here authorizes a release. Update `.plans/UMPIRE4_COMPONENTS.md` and `.plans/UMPIRE4_ORDER.md` to the implemented ownership.
+
+### Quick commands
+`make umpire-check-retired-vocabulary`
+
+**Files:** `tools/canary/README.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`
+
+### Re-plan note (2026-09-23)
+Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Operators can distinguish accepted, rejected, incomplete, lost, cleanup-uncertain, published, and reporting-ambiguous states.
-- [ ] Docs state that receipts are not self-authenticating and always have `releaseEligibility:false`.
-- [ ] No default schedule, automatic rerun, rollout, customer-traffic, or release-authorization guidance is added.
+- [ ] An operator can tell accepted, rejected, incomplete, lost, cleanup-uncertain, published and reporting-ambiguous states apart from the runbook.
+- [ ] The docs state that receipts are not self-authenticating and always carry `releaseEligibility: false`.
+- [ ] No schedule, automatic rerun, rollout, customer-traffic or release-authorization guidance is added.
 
 ## Done summary
 TBD

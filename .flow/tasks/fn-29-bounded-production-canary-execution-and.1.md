@@ -2,17 +2,23 @@
 satisfies: [R1, R10]
 ---
 
-# fn-29-bounded-production-canary-execution-and.1 Define the canary Assessment Profile outside Umpire
-## Description
-Define the domain-neutral assessment vocabulary needed by fn-26 and one canary-owned fixed policy under `tools/canary`. Bind environment, authority, isolation, evidence, cleanup, trust, Limits, Known Gaps, claim strength, and structural `releaseEligibility:false` without adding canary policy to Umpire.
+# fn-29-bounded-production-canary-execution-and.1 Declare the canary Evaluation Profile and the canary policy outside Umpire
 
-**Size:** M
-**Touches:** `tools/canary/assessment/profile.go`, `tools/canary/assessment/profile_test.go`, `model/Umpire/Evaluation.lean`
+## Description
+Add `Temporal.Evaluation.Canary` declaring the `production-canary` Evaluation Profile with `Umpire.Evaluation`: claim text naming one serial Run of the pinned canary Case against the dedicated production-canary namespace and route, trust `dedicated-production-canary`, blocking Known Gap kinds `capability`, `input`, `interpretation` and `claim`, and `local-ephemeral`'s table in its order except that `unsupported-rule` forces `rejected`; its identity pinned in `Temporal/Evaluation/CanaryTests.lean`. Change `umpire-evaluation-profiles` to take `--local-dir <dir> --canary-dir <dir>` and render `Temporal.Evaluation.Local.declared` and `Temporal.Evaluation.Canary.declared` into them; `umpire-gen-evaluation-profiles`/`umpire-check-evaluation-profiles` pass `tools/umpire/evaluation/profiles` and `tools/canary/assessment/profiles`. Export `evaluation.ParseProfile` (the existing strict parse and validation). Add `tools/canary/policy`: `production-canary.json` embedded and decoded strictly into `Policy` (canary Case identity, Case Profile name, Evaluation Profile name, SHA-256 digests of the gRPC and HTTP host names, namespace, task queue, handler queue and Nexus endpoint, trusted ref and workflow path, and the Limits: iterations 2, Run 2m, invocation 10m, cleanup reserve 2m, progress 64 KiB), rejecting unknown, repeated or case-folded keys, a missing field, another version, a zero or negative limit, and a non-digest; and `tools/canary/assessment/profile.go` loading the embedded canary Profile through `evaluation.ParseProfile`. Extend the dependency rule in `tools/umpire/regression` so no package under `tools/umpire`, `common/testing/testpilot` or `model` tooling imports `tools/canary`.
+
+### Quick commands
+`cd model && lake build Temporal.Evaluation.CanaryTests umpire-evaluation-profiles && cd .. && make umpire-check-evaluation-profiles && go test -count=1 -tags test_dep ./tools/canary/... ./tools/umpire/evaluation/ ./tools/umpire/regression/`
+
+**Files:** `model/Temporal/Evaluation/Canary.lean`, `model/Temporal/Evaluation/CanaryTests.lean`, `model/Temporal.lean`, `model/TemporalModelTests.lean`, `model/Temporal/Tool/EvaluationProfiles.lean`, `Makefile`, `tools/canary/assessment/profiles/**`, `tools/canary/assessment/profile.go`, `tools/canary/assessment/profile_test.go`, `tools/canary/policy/**`, `tools/umpire/evaluation/profile.go`, `tools/umpire/regression/ci_workflow_test.go`
+
+### Re-plan note (2026-09-23)
+Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Unknown, duplicate, contradictory, broadened, secret-bearing, or N+1 policy rejects.
-- [ ] Reusable Umpire types contain no Temporal target, credential, lease, workflow, or canary authority.
-- [ ] Package/import tests prove Umpire does not import `tools/canary`.
+- [ ] The canary Profile declares and renders only into the canary directory; `umpire-assess` cannot select it, and its identity is pinned in Lean and matched in Go.
+- [ ] An unknown, repeated or case-folded policy key, a missing field, another version, a non-positive limit or a non-digest coordinate rejects, each by name.
+- [ ] No Umpire, Testpilot or model-tooling package imports `tools/canary`, pinned by the dependency rule; the canary Profile and policy carry no credential or raw coordinate.
 
 ## Done summary
 TBD
