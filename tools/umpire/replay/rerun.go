@@ -80,6 +80,15 @@ func Rerun(ctx context.Context, binder campaign.Binder, target Target) (*Reruns,
 	return reruns, nil
 }
 
+// RerunOnce binds, runs, releases and classes one fresh attempt of the target: the retry a pair
+// with an indeterminate Run spends one Run on.
+func RerunOnce(ctx context.Context, binder campaign.Binder, target Target) (Attempt, error) {
+	if binder == nil || target.Case == nil || target.Prepared == nil {
+		return Attempt{}, errors.New("a binder and a prepared target are required")
+	}
+	return rerunOnce(ctx, binder, target)
+}
+
 func rerunOnce(ctx context.Context, binder campaign.Binder, target Target) (Attempt, error) {
 	bound, err := binder.Bind(ctx, target.Driver.Profile, target.Case)
 	if err != nil {
