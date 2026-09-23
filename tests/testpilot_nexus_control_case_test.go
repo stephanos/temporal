@@ -63,7 +63,7 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 		if path == "" {
 			path = filepath.Join(dir, attempt+"-run.json")
 		}
-		run, verdict := live.runRecording(t, env.Context(), path)
+		run, verdict := live.runRecording(t, env.Context(), caseBytes, path)
 		require.Equal(t, testpilotpb.RUN_DISPOSITION_STOPPED_BY_MONITOR, run.GetDisposition(), "diagnostics: %v", run.GetDiagnostics())
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
