@@ -17,14 +17,13 @@ Add `tools/canary/recovery`: the in-job mode-0600 record (invocation ID, the lea
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] A lease collision, a lease whose latest run timed out or closed without a canary termination, a stale fence, a second concurrent Run, a duplicate dispatch, a workflow ID the lease's signals do not name and an iteration past the limit each fail closed.
-- [ ] A tenfold request is capped by the policy's iteration, invocation and progress limits, the Temporal Profile's `DefaultCeilings` (RPC, worker, duration, events) and fn-26's caps, never by added concurrency or unbounded retained state.
-- [ ] Cleanup touches only the workflow IDs the lease's signals name, releases the lease only when each is verified closed, and records a failure or uncertainty apart from the Verdict.
+- [x] A lease collision, a lease whose latest run timed out or closed without a canary termination, a stale fence, a second concurrent Run, a duplicate dispatch, a workflow ID the lease's signals do not name and an iteration past the limit each fail closed.
+- [x] A tenfold request is capped by the policy's iteration, invocation and progress limits, the Temporal Profile's `DefaultCeilings` (RPC, worker, duration, events) and fn-26's caps, never by added concurrency or unbounded retained state.
+- [x] Cleanup touches only the workflow IDs the lease's signals name, releases the lease only when each is verified closed, and records a failure or uncertainty apart from the Verdict.
 
 ## Done summary
-TBD
-
+`tools/canary/recovery` is the in-job record (invocation, lease took or found, current Run and phase, each iteration's Run and publication), created exclusively at 0600, rewritten atomically, and decoded strictly (unknown, repeated or case-folded keys, another version, spacing, mode or a symlink refused). `tools/canary/controller` adds `leaseState` and `workflowClosed`, the lease taken with the fail conflict policy on its unpolled queue, `FencedDriver` (signal `run-opened` to the exact fence run before Open, one Run per Driver, no workflow start outside the fenced Run ID), and `Run`: serial iterations through fresh fenced Drivers, stopping on the first non-accepted iteration, the policy's iterations, the invocation limit (one iteration's worst case must fit) or a Driver that does not release, with panics as unconstructible. Cleanup runs on every exit after the lease is held, under an absolute deadline, closes exactly the fenced IDs, and releases the lease only when each is verified closed, otherwise leaving it held and the record uncertain. Unit tests cover every lease and fence edge against a fake server; `TestTestpilotCanaryLifecycle` runs two satisfied Runs through the real Driver on one lease and releases it. Implementation review: NEEDS_WORK, then SHIP; its P3 notes and FYIs applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 67ee8b9f6ff1108e8a66bfe7063fc63305b0c2d9, e271b106663b37cebad0dd19990fad8c5c171beb, 57ba34e7896e852f734a124db0938b590104ecac, 7bf3e981d8af68e2cf68466cb5b65128c3d733b5
+- Tests: go test -count=1 -race -tags test_dep ./tools/canary/..., go test -count=1 -tags 'test_dep integration' ./tests/ -run '^TestTestpilotCanaryLifecycle$', GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
