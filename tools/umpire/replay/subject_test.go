@@ -2,6 +2,8 @@ package replay
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -178,9 +180,26 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 			require.Contains(t, rejection.Detail, probe.detail)
 		})
 	}
+	// A Case that no longer prepares statically is stale; any other preparation error is not a
+	// rejection of the subject.
+	staticRejection := func(string, *testpilotspb.Case) (*testpilot.PreparedCase, error) {
+		return nil, fmt.Errorf("derive Profile: %w", &testpilot.PreparationError{Category: testpilot.PreparationUnknown, Path: "program", Detail: "gone"})
+	}
+	_, err = Admit(t.Context(), caseBytes, recorded, staticRejection)
+	rejection, ok := IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, ReasonStale, rejection.Reason)
+	require.Contains(t, rejection.Detail, "no longer prepares")
+	toolingFailure := func(string, *testpilotspb.Case) (*testpilot.PreparedCase, error) {
+		return nil, errors.New("the handler queue flag disagrees")
+	}
+	_, err = Admit(t.Context(), caseBytes, recorded, toolingFailure)
+	require.Error(t, err)
+	_, ok = IsRejection(err)
+	require.False(t, ok)
 	// A recorded Run that is not one is malformed; an unknown field is another protocol.
 	_, err = Admit(t.Context(), caseBytes, []byte(`{"identity":{},"run":{},"extra":1}`), prepare)
-	rejection, ok := IsRejection(err)
+	rejection, ok = IsRejection(err)
 	require.True(t, ok)
 	require.Equal(t, ReasonMalformed, rejection.Reason)
 }

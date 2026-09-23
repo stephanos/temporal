@@ -104,6 +104,11 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 	}
 	prepared, err := prepare(driver.Profile, source)
 	if err != nil {
+		// The Case's own static rejection is the model having moved since the Run was recorded;
+		// anything else, a deployment flag disagreeing with the Case included, is a tooling failure.
+		if rejection := (*testpilot.PreparationError)(nil); errors.As(err, &rejection) {
+			return nil, reject(ReasonStale, "the Case no longer prepares under Profile %s: %s", driver.Profile, err)
+		}
 		return nil, fmt.Errorf("prepare the subject's Case: %w", err)
 	}
 	if identity := prepared.Identity(); identity != driver {
