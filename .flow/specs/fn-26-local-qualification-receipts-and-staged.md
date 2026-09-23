@@ -12,36 +12,62 @@ contract in what the tree now has:
   `tools/umpire/internal/casefile` decides) and a recorded Run (`replay.RecordedRun`: the Run with
   its Verdict and the `DriverIdentity` it was prepared under, as `umpire-run --record` and
   `umpire-fuzz --record-root` write it). Admission reads both strictly and never prepares, runs or
-  replays: the Run must be the Case's (Case, Program and Contract IDs), closed (a terminal
-  disposition, a cleanup outcome, a Verdict), and self-consistent (every supporting sequence names
-  one event once, every violated or satisfied rule is a rule of the Contract). The recorded catalog
-  fingerprint is compared with the tree's static catalog (`testpilot.Catalog.Identity()` over
-  `NewWorkflowServiceCatalog`), which reads no Case; the Profile name and the bindings fingerprint
-  are bound into the receipt as recorded, and an Evaluation Profile may require them.
+  replays. The Run must be the Case's: its `case_id` and `program_id` are the Case's, and the set of
+  rule IDs its Verdict names equals the set of the Contract's rules, each exactly once, whatever
+  its status (a Run carries no Contract ID; the receipt takes the Contract ID from the Case). It
+  must be closed: a terminal disposition, a cleanup outcome, a Verdict. It must be consistent:
+  every supporting sequence names one event once, and the Verdict's status agrees with its rules
+  and the disposition as the protocol defines it (violated when any rule is violated, and then the
+  disposition is `STOPPED_BY_MONITOR`; satisfied only when every rule is satisfied on a `COMPLETED`
+  Run). The recorded catalog fingerprint must be the tree's static catalog's
+  (`NewWorkflowServiceCatalog().Identity()`, which reads no Case): admission alone decides
+  staleness. The recorded Profile name and bindings fingerprint are bound into the receipt as
+  recorded. The checks shared with replay admission (the Case and Program crossing, the supporting
+  sequences) are exported from `tools/umpire/replay` once and called by both, each with its own
+  reason vocabulary. The caps are named constants: a Case of at most 4 MiB, a recorded Run of at
+  most 16 MiB (the bridge frame cap) and 65,536 events, a receipt of at most 1 MiB.
+- **Evidence and verification are the recorded Verdict's.** *Verification* is the recorded Verdict
+  status; it is never re-derived. *Evidence* is each rule's supporting sequences: a rule the
+  Verdict names at a terminal state with no supporting sequence is unsupported. A Profile may
+  require support; an unsupported rule then keeps the decision below `accepted`. The receipt
+  carries each rule's supporting sequences as its evidence links, never an event body.
 - **Lean owns the Evaluation Profile, Go assesses.** `Umpire.Evaluation` (Temporal-free) declares a
   checked Evaluation Profile as data: the claim, the dispositions, Verdict statuses and cleanup
-  outcomes it accepts, the Known Gap kinds that block acceptance, the trust basis, the Limits, and
-  an ordered reason table. `Temporal.Evaluation.Local` declares the one `local-ephemeral` Profile.
-  A non-default `umpire-evaluation-profiles` executable renders every declared Profile to canonical
-  JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by a Makefile gate; the
-  Profile's identity is the SHA-256 of those bytes. Go reads the rendered Profile and never defines
-  policy of its own.
+  outcomes it accepts, the Known Gap kinds that block acceptance, whether rule support is
+  required, the trust basis, and an ordered reason table. It carries no catalog, endpoint,
+  credential, path or execution authority. `Temporal.Evaluation.Local` declares the one
+  `local-ephemeral` Profile. A non-default `umpire-evaluation-profiles` executable renders every
+  declared Profile to canonical JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by
+  a Makefile gate; the Profile's identity is the SHA-256 of those bytes. `tools/umpire/evaluation`
+  embeds that directory (`//go:embed`) and selects a Profile only by its exact name, so a Profile is
+  never a path. A test-only second Profile lives in the Go tests, never in Lean or the embedded set.
+- **Assessment decides before anything is rendered.** `Assess(subject, profile) Decision` is pure:
+  the decision, every reason that holds in the table's order, and the fields it read. The receipt
+  renders a Decision.
 - **The receipt is Go's canonical JSON.** `tools/umpire/evaluation` renders the receipt in one
   fixed key order and pins it with goldens; its identity is the SHA-256 of its bytes. It binds the
-  Profile identity, the Case identity (SHA-256 of the canonical Case) and its Case, Program and
-  Contract IDs, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the Verdict with
-  each rule's status, terminal state and supporting sequences, the decision and every reason, the
-  Known Gaps and the Limits. It carries no raw payload, event body, credential, path or endpoint.
-- **Publication is exclusive and idempotent.** A receipt is written once at
-  `<root>/<receipt-identity>.json` through `tools/umpire/internal/cli`, created exclusively: an
-  existing file with identical bytes is `already-published`, never rewritten; one with other bytes
-  is a publication conflict that is reported and never overwritten. No path reruns anything.
-- **The command is `umpire-assess run`.** It takes `--case`, `--run`, `--profile <name>` (one of the
-  rendered Profiles, by name) and `--receipt-root`, and exposes no Driver, deployment, endpoint,
-  credential, checker or policy flag.
+  Profile name and identity, the Case identity (SHA-256 of the canonical Case) and its Case,
+  Program and Contract IDs, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the
+  Verdict with each rule's status, terminal state and supporting sequences, the decision and every
+  reason, the Known Gaps by kind and code. It carries no raw payload, event body, credential, path
+  or endpoint.
+- **Publication is atomic, exclusive and idempotent.** `cli.Publish` writes the receipt to a
+  temporary file in the target directory, syncs it, and hard-links it to
+  `<root>/<receipt-identity>.json` (`os.Link` is atomic and fails if the name exists), then removes
+  the temporary file. An existing name with identical bytes is `already-published`; one with other
+  bytes is a conflict that is reported and never overwritten. A crash can leave only a temporary
+  file, never a partial receipt under its final name. The name is the content's hash, so no lock is
+  needed. No path reruns anything.
+- **The command is `umpire-assess run`.** It takes `--case`, `--run`, `--profile <name>` (an exact
+  name from the embedded set), `--receipt-root` and `--model-root` (default `model`, resolved like
+  `umpire-replay`'s, so a receipt root under the model is refused), and exposes no Driver,
+  deployment, endpoint, credential, checker or policy flag.
 
-Tasks .1 to .6 are rewritten below on these contracts. The requirements R1–R8, the failure
-behavior and the boundaries stand.
+Tasks .1 to .6 are rewritten below on these contracts: .1 the Lean Profiles and their rendering,
+.2 admission and the embedded Profiles, .3 assessment, .4 the receipt and its publication, .5 the
+command, .6 the matrices, the live proof and the docs. The requirements R1–R8, the failure
+behavior and the boundaries stand, R3's "exact local Driver" read as the recorded identity bound
+into the receipt with a current catalog, and R4's "verification" as the recorded Verdict status.
 
 ## Umpire4 Case Runtime reconciliation
 
@@ -111,3 +137,18 @@ No CI, remote, staging, canary, production, release authorization, automatic exe
 | R6 | `.4`, `.5` |
 | R7 | `.1`–`.6` |
 | R8 | `.6` |
+
+## Plan review
+
+Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
+five P1 and three P2 findings, all applied. A Run carries no Contract ID, so Contract crossing is
+the Verdict's rule IDs equalling the Contract's, each once; the catalog fingerprint is admission's
+alone and leaves the Profile; publication is a synced temporary file hard-linked to its final name,
+so a crash never leaves a partial receipt and no lock is needed; assessment returns a Decision in
+.3 and .4 renders it, so the receipt's goldens come from `Assess`; the Profiles are embedded and
+selected by exact name, and the command takes `--model-root` like `umpire-replay`; evidence is
+each rule's supporting sequences and verification the recorded Verdict status, a Profile may
+require support; admission checks the Verdict's aggregation against its rules and disposition;
+the caps are named constants. The suppressed note is applied too: the test-only Profile lives in
+the Go tests, never in the embedded set.
+
