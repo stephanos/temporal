@@ -1,5 +1,48 @@
 # Local qualification receipts and staged profile contract
 
+## Re-plan on fn-85 and fn-22 (2026-09-23)
+
+The first plan (SHIP, 2026-08-26) was written before the Case Runtime settled and before fn-22
+delivered a recorded Run. It named paths that no longer exist (`api/umpire/**`,
+`tools/umpire/artifact/**`, `Temporal.System.Evaluation`) and an admission that re-derived the
+preparation identity. This re-plan keeps its intent, requirements and boundaries and grounds every
+contract in what the tree now has:
+
+- **The subject is fn-22's.** A qualification subject is a canonical Case (the form
+  `tools/umpire/internal/casefile` decides) and a recorded Run (`replay.RecordedRun`: the Run with
+  its Verdict and the `DriverIdentity` it was prepared under, as `umpire-run --record` and
+  `umpire-fuzz --record-root` write it). Admission reads both strictly and never prepares, runs or
+  replays: the Run must be the Case's (Case, Program and Contract IDs), closed (a terminal
+  disposition, a cleanup outcome, a Verdict), and self-consistent (every supporting sequence names
+  one event once, every violated or satisfied rule is a rule of the Contract). The recorded catalog
+  fingerprint is compared with the tree's static catalog (`testpilot.Catalog.Identity()` over
+  `NewWorkflowServiceCatalog`), which reads no Case; the Profile name and the bindings fingerprint
+  are bound into the receipt as recorded, and an Evaluation Profile may require them.
+- **Lean owns the Evaluation Profile, Go assesses.** `Umpire.Evaluation` (Temporal-free) declares a
+  checked Evaluation Profile as data: the claim, the dispositions, Verdict statuses and cleanup
+  outcomes it accepts, the Known Gap kinds that block acceptance, the trust basis, the Limits, and
+  an ordered reason table. `Temporal.Evaluation.Local` declares the one `local-ephemeral` Profile.
+  A non-default `umpire-evaluation-profiles` executable renders every declared Profile to canonical
+  JSON under `tools/umpire/evaluation/testdata/profiles/`, checked by a Makefile gate; the
+  Profile's identity is the SHA-256 of those bytes. Go reads the rendered Profile and never defines
+  policy of its own.
+- **The receipt is Go's canonical JSON.** `tools/umpire/evaluation` renders the receipt in one
+  fixed key order and pins it with goldens; its identity is the SHA-256 of its bytes. It binds the
+  Profile identity, the Case identity (SHA-256 of the canonical Case) and its Case, Program and
+  Contract IDs, the recorded `DriverIdentity`, the Run ID, disposition and cleanup, the Verdict with
+  each rule's status, terminal state and supporting sequences, the decision and every reason, the
+  Known Gaps and the Limits. It carries no raw payload, event body, credential, path or endpoint.
+- **Publication is exclusive and idempotent.** A receipt is written once at
+  `<root>/<receipt-identity>.json` through `tools/umpire/internal/cli`, created exclusively: an
+  existing file with identical bytes is `already-published`, never rewritten; one with other bytes
+  is a publication conflict that is reported and never overwritten. No path reruns anything.
+- **The command is `umpire-assess run`.** It takes `--case`, `--run`, `--profile <name>` (one of the
+  rendered Profiles, by name) and `--receipt-root`, and exposes no Driver, deployment, endpoint,
+  credential, checker or policy flag.
+
+Tasks .1 to .6 are rewritten below on these contracts. The requirements R1–R8, the failure
+behavior and the boundaries stand.
+
 ## Umpire4 Case Runtime reconciliation
 
 This spec performs offline Claim Assessment over fn-64 Case Runtime outputs. It binds claims to `Case`, preparation Profile/catalog identity, `Run`, and `Verdict`; it does not consume or recreate Run Evaluation Results.
@@ -21,7 +64,7 @@ flowchart LR
   Q --> X[Evaluation Receipt]
 ```
 
-`Umpire.Evaluation` is a Temporal-free deep module containing inert checked Evaluation Profiles, decisions, reasons, Limits, Known Gaps, and receipt projections. A Temporal-owned leaf defines the sole initial `local-ephemeral` profile. `tools/umpire/evaluation` performs transport, exact admission, offline assessment, and immutable publication only.
+`Umpire.Evaluation` is a Temporal-free deep module containing inert checked Evaluation Profiles, decisions, reasons, Limits and Known Gap policy, rendered to canonical JSON. A Temporal-owned leaf (`Temporal.Evaluation.Local`) defines the sole initial `local-ephemeral` profile. `tools/umpire/evaluation` performs exact admission of fn-22's recorded subject, offline assessment against a rendered Profile, receipt rendering and immutable publication only.
 
 ## Contracts
 
@@ -52,7 +95,7 @@ Malformed, noncanonical, stale, crossed, duplicate, oversized, or open Run/Verdi
 
 ## Early proof point
 
-Admit one fn-64 async Nexus-success Case with its exact local preparation identity and closed Run/Verdict, then deterministically produce the same receipt twice without constructing a Driver or Run. Reject one crossed Profile and one crossed Verdict before codec and CLI work.
+Admit the caller Model's `asyncCompletion` Case with a Run recorded by `umpire-run --record` against the test cluster, and produce the same receipt twice, byte for byte, without constructing a Driver or Run; the negative control's recorded Run (`tools/umpire/replay/testdata`) is admitted and assessed `rejected` for its violated Verdict. Reject one crossed Case and one stale catalog before the codec and command work.
 
 ## Boundaries
 
