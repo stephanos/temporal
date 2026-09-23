@@ -386,6 +386,7 @@ goes to stdout.
 
 ```sh
 make umpire-check-exploration-bridge   # builds umpire-explore, runs its tests and the Go Prepare proof
+make umpire-check-replay-bridge        # builds umpire-replay-bridge and runs its frame-level tests
 printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration","profile":"dev"}' \
   '{"frame":"next","seq":2,"set":"nexusCallerExploration"}' \
   '{"frame":"finish","seq":3,"set":"nexusCallerExploration"}' | model/.lake/build/bin/umpire-explore

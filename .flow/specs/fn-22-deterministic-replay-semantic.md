@@ -487,6 +487,23 @@ distinct. Its FYI notes are recorded: the pin's handler queue repeats the `-hand
 change would fail loudly; `UMPIRE_CONTROL_RECORD` writes the pin where it names, never replacing a
 file.
 
+Task .5 (2026-09-23): `Umpire.Replay` owns the edits and the reduction: `dropPrefixStep i` over the
+Scenario's exact action sequence, last prefix step first, at most eight per sweep; the edited Query
+is re-admitted through its `QuerySource`, which the `query` command now emits beside every
+one-instance Query, and one the Model does not admit is `inapplicable`; `Reduction.settle` only
+shrinks the retained positions and the pending edits (proved). `Temporal.Tool.Bridge` lifts the
+exploration bridge's framing, rejections, Profile echo and effects, and both bridges serve through
+it. `umpire-replay-bridge` recovers a subject's Query from its binding table, admits only when the
+SHA-256 of the re-produced compact canonical bytes is the subject's (`crossed` otherwise), hands out
+whole candidate Cases named by their Plan checksums, takes classes back and reports every edit's
+fate. The pins: the control is irreducible at once (its one prefix step is the schedule); the
+caller's `scheduleToStartTimeout` reduces by dropping the worker stop, and dropping the schedule
+is inapplicable; an exploration subject is irreducible at once. An observation for fn-33: an
+exploration candidate longer than one step does not produce today, because its outcome clause
+already holds at the schedule step and the Producer rejects that as vacuous
+(`property.clause-early-response`), so every candidate the campaign can run is a one-step shortest
+path, with no prefix to reduce.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

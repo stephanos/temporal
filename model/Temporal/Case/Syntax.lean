@@ -265,6 +265,17 @@ elab "case" name:ident
     let caseName := mkIdentFrom name (name.getId ++ Name.mkSimple short)
     let identityName := mkIdentFrom name (caseName.getId ++ `identity)
     let evidenceName := mkIdentFrom name (caseName.getId ++ `evidence)
+    -- The claims, catalog and relations are named beside the Case, so a replay that re-produces
+    -- the Query with its Scenario edited produces under exactly what this Case was produced under.
+    let claimsName := mkIdentFrom name (caseName.getId ++ `claims)
+    let catalogName := mkIdentFrom name (caseName.getId ++ `catalog)
+    let relationsName := mkIdentFrom name (caseName.getId ++ `relations)
+    elabCommand (← `(command|
+      def $claimsName : List Umpire.Case.Producer.ClassClaim := $claims))
+    elabCommand (← `(command|
+      def $catalogName : List (String × String) := $catalog))
+    elabCommand (← `(command|
+      def $relationsName : List Umpire.Case.Producer.FieldRelation := [$relationRefs,*]))
     elabCommand (← `(command|
       def $identityName : Umpire.Case.Producer.Identity :=
         { caseId := $(Lean.quote caseId), fixture := $(Lean.quote fixtureName) }))
@@ -276,8 +287,8 @@ elab "case" name:ident
       def $caseName : Except Umpire.Case.Compiler.Error
           temporal.server.api.testpilot.v1.Case :=
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
-          $evidenceName (claims := $claims) (evidenceCatalog := $catalog)
-          (relations := [$relationRefs,*])))
+          $evidenceName (claims := $claimsName) (evidenceCatalog := $catalogName)
+          (relations := $relationsName)))
     -- A canary's Case is produced to be read, not rendered: a white-box gap on it is a step a
     -- deployment cannot close, and the block rejects naming the Query and the gap. A functional
     -- set's Case is registered for the renderer instead.

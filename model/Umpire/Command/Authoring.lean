@@ -628,6 +628,28 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     authoredDefinition).map (·.checked)
 
 
+/-- What one `query` block admits, as values: its key, its limits, the Property and Scenario
+authors, its Known Gaps and its form. `admit` over it is the block's own admission, so a caller
+holding the source re-admits the Query with nothing re-authored -- a replay does so with the
+Scenario edited, and every other field as the block wrote it. -/
+structure QuerySource [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) where
+  key : String
+  limits : Limits
+  property : ModelVocabulary → Property
+  behavior : ModelVocabulary → Scenario
+  knownGaps : List KnownGap := []
+  form : QueryFormKind := .selectWitness
+
+/-- The Query's admission, as `check` evaluates it, with the admission kept. -/
+def QuerySource.admit [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Fact]
+    {model : DeclaredModel Setup State Action Outcome Fact} (source : QuerySource model) :
+    Except AdmissionError (AdmittedModel model) :=
+  checkAdmitted model source.key source.limits source.property source.behavior source.knownGaps
+    source.form
+
 /-! ### What one action's rows say
 
 A relation's operands are read under the members of the step the claim is about: an observation

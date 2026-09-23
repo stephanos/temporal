@@ -770,6 +770,27 @@ private def checkTerm (modelRef : Ident) (instances : Nat) (queryKey : Term)
     `(Umpire.Command.checkInstances ($modelRef) $count $queryKey ($limitsRef)
       ($propertyNames) ($scenarioNames) (knownGaps := $knownGaps) (form := $form))
 
+/-- The Query's source as values, emitted beside the Query for one instance: its key, limits,
+authors, Known Gaps and form, so that a replay re-admits it with the Scenario edited. A Query over
+several instances is checked through the product and has no one-instance source. -/
+private def sourceCommand (name modelRef : Ident) (queryKey : Term)
+    (limitsRef propertyRef scenarioRef : Ident) (knownGaps : Term) (form : Option Term)
+    (lifted : Option Name) : CommandElabM Unit := do
+  let form ← match form with
+    | some form => pure form
+    | none => `(QueryFormKind.selectWitness)
+  let sourceName := mkIdentFrom name (name.getId ++ `source)
+  let property ← match lifted with
+    | some refined =>
+        let propertyNames := mkIdent (propertyRef.getId ++ `names)
+        `(term| fun values =>
+          Umpire.Command.refinedProperty ($modelRef) ($(mkIdent refined)) values $propertyNames)
+    | none => `(term| $propertyRef)
+  elabCommand (← `(command|
+    def $sourceName : Umpire.Command.QuerySource ($modelRef) :=
+      { key := $queryKey, limits := $limitsRef, property := $property, behavior := $scenarioRef,
+        knownGaps := $knownGaps, form := $form }))
+
 /-! ### Admission runs while the Model file compiles
 
 A `query` block defines a value nothing in the Model file evaluates, so every authoring mistake
@@ -1085,6 +1106,9 @@ elab queryKeyword name:ident
       knownGaps none target.lifted
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
+    if target.instances == 1 then
+      sourceCommand name modelRef queryKey limitsRef propertyRef scenarioRef knownGaps none
+        target.lifted
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef findKeyword name
 
@@ -1100,6 +1124,9 @@ elab queryKeyword name:ident
       knownGaps (some (← `(QueryFormKind.verifyClaim))) target.lifted
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) := $admission))
+    if target.instances == 1 then
+      sourceCommand name modelRef queryKey limitsRef propertyRef scenarioRef knownGaps
+        (some (← `(QueryFormKind.verifyClaim))) target.lifted
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef verifyKeyword name
 

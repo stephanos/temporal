@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Caller.Model
+import Temporal.Tool.Bridge
 import Testpilot.ProtoJSON
 import Umpire.Exploration
 
@@ -54,6 +55,7 @@ namespace Temporal.Tool.ExplorationBridge
 
 open Umpire Umpire.Exploration
 open Umpire.Command (DeclaredModel SetDeclaration)
+open Temporal.Tool.Bridge (jsonString jsonObject jsonArray jsonStrings header Envelope)
 
 /-! ### What produces a candidate's Case -/
 
@@ -373,71 +375,43 @@ def admittedKeys : String → List String
 coordinator stopped it, or a campaign counter of its own tripped. -/
 def stopStatuses : List String := ["stopped", "limit-reached"]
 
-/-- Read one line as a frame. A line that is not a JSON object is no frame at all; an object that
-is not a well-formed frame is a frame to reject, under the sequence number it carries where it
-carries one, so the coordinator can match the rejection to what it sent. -/
+/-- Read one line as a frame, through the envelope every bridge reads. -/
 def parseFrame (line : String) : Except String (Except (Nat × String) Frame) := do
-  let json ← match Lean.Json.parse line with
-    | .ok json => pure json
-    | .error reason => throw s!"not JSON: {reason}"
-  let .obj members := json | throw "not a JSON object"
-  let seqOf : Nat := (json.getObjValAs? Nat "seq").toOption.getD 0
-  let frameOf : Except String Frame := do
-    let kind ← (json.getObjValAs? String "frame").mapError fun _ => "frame names no `frame`"
-    let seq ← (json.getObjValAs? Nat "seq").mapError fun _ => "frame names no `seq`"
-    let set ← (json.getObjValAs? String "set").mapError fun _ => "frame names no `set`"
-    let admitted := admittedKeys kind
-    if admitted.isEmpty then throw s!"unknown frame `{kind}`"
-    for (key, _) in members.toList do
-      unless admitted.contains key do
-        throw s!"`{kind}` admits no `{key}`; its keys are {admitted}"
-    let profileOf : Except String String :=
-      (json.getObjValAs? String "profile").mapError fun _ => s!"`{kind}` names no `profile`"
-    let request ← match kind with
-      | "initialize" => pure (.initialize (← profileOf))
+  let envelope? ← Temporal.Tool.Bridge.parseEnvelope admittedKeys line
+  pure <| envelope?.bind fun (envelope : Envelope) =>
+    let request : Except String Request := do
+      match envelope.kind with
+      | "initialize" => pure (.initialize (← envelope.string "profile"))
       | "next" => pure .next
       | "observe" =>
-          let candidate ← (json.getObjValAs? String "candidate").mapError fun _ =>
+          let candidate ← (envelope.string "candidate").mapError fun _ =>
             "observe names no `candidate`"
-          let profile ← profileOf
-          match json.getObjVal? "run", json.getObjVal? "prepareRejected" with
+          let profile ← envelope.string "profile"
+          match envelope.json.getObjVal? "run", envelope.json.getObjVal? "prepareRejected" with
           | .ok run, .error _ => pure (.observe candidate profile (.run run))
           | .error _, .ok (.str detail) => pure (.observe candidate profile (.prepareRejected detail))
           | .ok _, .ok _ => throw "observe carries both `run` and `prepareRejected`"
           | _, _ => throw "observe carries neither `run` nor a `prepareRejected` string"
       | "finish" =>
-          match json.getObjVal? "status" with
+          match envelope.json.getObjVal? "status" with
           | .error _ => pure (.finish none)
           | .ok (.str status) =>
               if stopStatuses.contains status then pure (.finish (some status))
               else throw s!"finish names status `{status}`; one of {stopStatuses}"
           | .ok _ => throw "finish `status` is not a string"
       | other => throw s!"unknown frame `{other}`"
-    pure { seq, setName := set, request }
-  pure (frameOf.mapError fun reason => (seqOf, reason))
+    match request with
+    | .ok request => .ok { seq := envelope.seq, setName := envelope.setName, request }
+    | .error reason => .error (envelope.seq, reason)
 
 /-! ### Rendering -/
-
-private def jsonString (value : String) : String := Lean.Json.compress (.str value)
-
-private def jsonObject (members : List (String × String)) : String :=
-  "{" ++ ",".intercalate (members.map fun (name, rendered) => jsonString name ++ ":" ++ rendered) ++ "}"
-
-private def jsonArray (items : List String) : String :=
-  "[" ++ ",".intercalate items ++ "]"
-
-private def jsonStrings (items : List String) : String := jsonArray (items.map jsonString)
 
 private def statusRows (statuses : List (String × TargetStatus)) : String :=
   jsonArray (statuses.map fun (target, status) =>
     jsonObject [("target", jsonString target), ("status", jsonString status.name)])
 
-private def header (kind : String) (seq : Nat) (setName profile : String) : List (String × String) :=
-  [("frame", jsonString kind), ("seq", toString seq), ("set", jsonString setName),
-    ("profile", jsonString profile)]
-
 def renderRejected (seq : Nat) (reason : String) : String :=
-  jsonObject [("frame", jsonString "rejected"), ("seq", toString seq), ("reason", jsonString reason)]
+  Temporal.Tool.Bridge.renderRejected seq reason
 
 def renderInitialized (seq : Nat) (bound : Bound) (profile : String) : String :=
   jsonObject (header "initialized" seq bound.name profile ++ [
@@ -550,23 +524,15 @@ structure State where
 
 /-- What one accepted frame produces: the frame to write and the state after, and whether the
 protocol is complete. -/
-inductive Outcome where
-  | reply (line : String) (state : State)
-  | finished (line : String)
+abbrev Outcome := Temporal.Tool.Bridge.Outcome State
 
 /-- The effects the bridge runs under, injected so a test measures what reached each stream. -/
-structure Effects where
-  readLine : IO (Option String)
-  writeFrame : String → IO Unit
-  writeProgress : String → IO Unit
-  writeError : String → IO Unit
+abbrev Effects := Temporal.Tool.Bridge.Effects
 
 /-- The reason a frame is rejected, or none when it is in order. Checked before any campaign call. -/
 def rejection (state : State) (frame : Frame) : Option String :=
-  if frame.seq != state.expected then
-    if frame.seq + 1 == state.expected then some s!"duplicate frame: seq {frame.seq} was already accepted"
-    else some s!"out-of-order frame: expected seq {state.expected}, got {frame.seq}"
-  else match state.phase, frame.request with
+  (Temporal.Tool.Bridge.sequenceRejection state.expected frame.seq) <|>
+  match state.phase, frame.request with
     | .closed, .initialize _ => none
     | .closed, _ => some "no campaign is open; send `initialize` first"
     | _, .initialize _ => some s!"campaign over {state.setName} is already open"
@@ -586,9 +552,8 @@ def rejection (state : State) (frame : Frame) : Option String :=
               | none => none
         | .observe candidate profile _ =>
             ended <|>
-              if profile != state.profile then
-                some s!"crossed profile: the campaign runs under {state.profile}, not {profile}"
-              else match state.outstanding with
+              (Temporal.Tool.Bridge.profileRejection state.profile profile) <|>
+              match state.outstanding with
               | none =>
                   if state.seen.any (·.render == candidate) then
                     some s!"stale observe: candidate {candidate} was already observed"
@@ -618,13 +583,13 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
   match frame.request with
   | .initialize profile =>
       if profile.isEmpty then
-        pure (Outcome.reply (renderRejected seq "initialize names an empty `profile`") state)
+        pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq "initialize names an empty `profile`") state)
       else match bound.find? (·.name == frame.setName) with
       | none =>
-          pure (Outcome.reply (renderRejected seq s!"unknown set {frame.setName}; the bridge binds {bound.map (·.name)}") state)
+          pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq s!"unknown set {frame.setName}; the bridge binds {bound.map (·.name)}") state)
       | some found =>
           match found.campaign () with
-          | .error error => pure (Outcome.reply (renderRejected seq s!"set {frame.setName} is not a campaign: {error.render}") state)
+          | .error error => pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq s!"set {frame.setName} is not a campaign: {error.render}") state)
           | .ok runner =>
               pure (accepted (renderInitialized seq found profile)
                 { state with phase := .running, setName := found.name, profile, runner })
@@ -640,7 +605,7 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
       let seen := state.seen ++ skipped.map (·.identity)
       match step with
       | .outstanding =>
-          pure (Outcome.reply (renderRejected seq "a candidate is outstanding") state)
+          pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq "a candidate is outstanding") state)
       | .exhausted skipped runner =>
           pure (accepted (renderExhausted seq state.setName state.profile skipped)
             { state with phase := .exhausted, runner, seen })
@@ -661,7 +626,7 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
                     { state with runner, outstanding := some view, seen })
   | .observe candidate _ result =>
       let some view := state.outstanding
-        | pure (Outcome.reply (renderRejected seq "no candidate is outstanding") state)
+        | pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq "no candidate is outstanding") state)
       -- A Run the bridge cannot read is no observation: the frame is rejected and the candidate
       -- stays outstanding, so a garbled frame spends nothing.
       let read : Except String (Observation × String) ← match result with
@@ -674,54 +639,35 @@ def step (effects : Effects) (bound : List Bound) (state : State) (frame : Frame
                   pure (.error "run names no `runId` or no `caseId`")
                 else pure (.ok (readRun view.caseId run))
       match read with
-      | .error reason => pure (Outcome.reply (renderRejected seq reason) state)
+      | .error reason => pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq reason) state)
       | .ok (observation, detail) =>
           match state.runner.observe view.identity observation with
           | .rejected =>
-              pure (Outcome.reply (renderRejected seq s!"candidate {candidate} is not the outstanding candidate") state)
+              pure (Temporal.Tool.Bridge.Outcome.reply (renderRejected seq s!"candidate {candidate} is not the outstanding candidate") state)
           | .credited covered statuses runner =>
               effects.writeProgress s!"observed {view.identity.render} {observation.name}"
               pure (accepted (renderCredited seq state.setName state.profile view.identity observation
                   detail covered statuses)
                 { state with runner, outstanding := none, seen := state.seen ++ [view.identity] })
   | .finish requested =>
-      pure (Outcome.finished (renderFinished seq state.setName state.profile (finishStatus state requested)
+      pure (Temporal.Tool.Bridge.Outcome.finished (renderFinished seq state.setName state.profile (finishStatus state requested)
         state.runner.summary state.runner.ledger state.runner.proposals))
 
 /-- The diagnostic prefix every failure outside a frame carries. -/
 def diagnosticPrefix : String := "umpire-explore:"
 
+/-- The exploration protocol over the sets the bridge binds. -/
+def protocol (effects : Effects) (bound : List Bound) : Temporal.Tool.Bridge.Protocol State Frame :=
+  { diagnosticPrefix
+    parse := parseFrame
+    seqOf := (·.seq)
+    reject := rejection
+    step := step effects bound }
+
 /-- Serve frames until `finish`. A line that is no frame, or stdin closing before `finish`, is a
 failure outside the protocol: a diagnostic on stderr and a non-zero exit. -/
-partial def serve (effects : Effects) (bound : List Bound) : IO UInt32 := do
-  let rec loop (state : State) : IO UInt32 := do
-    match ← effects.readLine with
-    | none =>
-        effects.writeError s!"{diagnosticPrefix} stdin closed before `finish`\n"
-        pure 1
-    | some line =>
-        if line.all Char.isWhitespace then loop state
-        else match parseFrame line with
-          | .error reason =>
-              effects.writeError s!"{diagnosticPrefix} line is not a frame: {reason}\n"
-              pure 1
-          | .ok (.error (seq, reason)) =>
-              effects.writeFrame (renderRejected seq reason)
-              loop state
-          | .ok (.ok frame) =>
-              match rejection state frame with
-              | some reason =>
-                  effects.writeFrame (renderRejected frame.seq reason)
-                  loop state
-              | none =>
-                  match ← step effects bound state frame with
-                  | .reply line next =>
-                      effects.writeFrame line
-                      loop next
-                  | .finished line =>
-                      effects.writeFrame line
-                      pure 0
-  loop {}
+def serve (effects : Effects) (bound : List Bound) : IO UInt32 :=
+  Temporal.Tool.Bridge.serve effects (protocol effects bound) {}
 
 /-! ### The sets the bridge binds -/
 
@@ -740,18 +686,7 @@ def nexusCallerBinding : Binding Temporal.Feature.Nexus.Caller.nexusProtocol :=
 /-- Every set the bridge opens. -/
 def boundSets : List Bound := [Bound.of nexusCallerBinding]
 
-/-- The effects of the process boundary: frames on stdout, flushed one at a time because the
-coordinator waits on each; progress and diagnostics on stderr. -/
-def processEffects : IO Effects := do
-  let stdin ← IO.getStdin
-  let stdout ← IO.getStdout
-  let stderr ← IO.getStderr
-  pure {
-    readLine := do
-      let line ← stdin.getLine
-      pure (if line.isEmpty then none else some line)
-    writeFrame := fun line => do stdout.putStr (line ++ "\n"); stdout.flush
-    writeProgress := fun line => do stderr.putStr (line ++ "\n"); stderr.flush
-    writeError := fun text => do stderr.putStr text; stderr.flush }
+/-- The effects of the process boundary. -/
+def processEffects : IO Effects := Temporal.Tool.Bridge.processEffects
 
 end Temporal.Tool.ExplorationBridge

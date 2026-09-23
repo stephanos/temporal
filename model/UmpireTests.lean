@@ -35,6 +35,7 @@ import Umpire.Exploration.Tests.Campaign
 import Umpire.Exploration.Tests.Classed
 import Umpire.Exploration.Tests.Scale
 import Umpire.Exploration.Tests.Results
+import Umpire.Replay.Tests
 import Umpire.Case.CompilerTests
 import Umpire.Case.LocalNamesTests
 import Umpire.Case.Tests.FieldLowering
