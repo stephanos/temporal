@@ -556,6 +556,16 @@ a symlink into the model; the reduction's `Proposal` comment says what the field
 notes are recorded and not applied: the exploration wrappers keep that module's API, and the
 replay bridge's digest helpers agree by construction.
 
+Task .8 (2026-09-23): `umpire-replay run` and `replay.Execute` close the slice. Admission and the
+offline semantic replay run before anything is opened; the bridge's recovery (`crossed`) before the
+deployment opens; the report keeps each answer in its own field, pins its field set and has no
+history-replay field; every exit code is pinned. The live proof runs the negative control through
+`umpire-run --record` and `umpire-replay run` against the test cluster, reproduced twice and
+irreducible, its proposal written under a scratch root. Two findings of the live proof are fixed
+here: a Driver that outlives its Run keeps polling its queues, so the proof records through the
+`umpire-run` process rather than an in-test Driver; and the SDK client's default logger wrote to
+stdout, which `binding.Bind` now routes to stderr for both commands.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
