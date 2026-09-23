@@ -16,8 +16,8 @@ import (
 // Limits bound one reduction. Each is checked before the work it bounds: the edit cap at
 // admission (a sweep the bridge capped is recorded as ending at it); the wall time, the Run budget
 // and the aggregate Run Events once a candidate is handed out, before it is prepared, and again
-// before each Run is dispatched; the aggregate Case bytes before a candidate is asked for and
-// again on the one that arrives; and the report bytes on the rendered report. Zero leaves a cap
+// before each Run is dispatched; the aggregate Case bytes on each candidate that arrives; and the
+// report bytes on the rendered report. Zero leaves a cap
 // unset.
 type Limits struct {
 	Edits       int
@@ -149,11 +149,6 @@ func (r Reducer) Reduce(ctx context.Context, subjectReruns *Reruns) (Reduction, 
 		err = m.limit(ctx, LimitEdits)
 	default:
 		m.report.Attempted = true
-		if r.Admitted.Capped {
-			// The bridge enumerated the cap's worth of edits and no more: the sweep runs, and
-			// cannot end otherwise than incomplete at the edit cap.
-			m.report.Limit = LimitEdits
-		}
 		for done := false; !done; {
 			done, err = m.ask(ctx)
 		}
@@ -174,9 +169,6 @@ func (m *minimizer) ask(ctx context.Context) (bool, error) {
 		m.report.Stopped = true
 		return true, m.finish(ctx, string(campaign.StatusStopped))
 	}
-	if m.Limits.CaseBytes > 0 && m.caseBytes >= m.Limits.CaseBytes {
-		return true, m.limit(ctx, LimitCaseBytes)
-	}
 	next, err := m.Bridge.Next(ctx)
 	if err != nil {
 		return true, fmt.Errorf("next: %w", err)
@@ -185,6 +177,11 @@ func (m *minimizer) ask(ctx context.Context) (bool, error) {
 		m.progress("skipped %s %s %s", skipped.Edit.Edit, skipped.Fate, skipped.Reason)
 	}
 	if next.Exhausted {
+		if m.Admitted.Capped {
+			// The bridge enumerated the cap's worth of edits and no more: a sweep that ran them
+			// all ends incomplete at the edit cap.
+			m.report.Limit = LimitEdits
+		}
 		return true, m.finish(ctx, "")
 	}
 	return m.candidate(ctx, next.Candidate)

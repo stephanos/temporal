@@ -1810,6 +1810,35 @@
       "task": "fn-22-deterministic-replay-semantic.6",
       "timestamp": "2026-09-23T08:38:22.419265Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a4c90c2668b70a02b7576f15ecc0bc1c0c1aceb0cda7462c38c3cbbf73b0722a",
+      "backend": "claude",
+      "base_sha": "7d192aaf19bfa0b405ae679b1c737aada36e5f04",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "empty_output",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1aa7676690fafb71c7f441ef15dc018bec1fab7d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "96fd46cd23064cc2878cbccc06bcfe7e",
+      "round_consumed": false,
+      "scope": "impl:fn-22-deterministic-replay-semantic.8",
+      "superseded_by": null,
+      "task": "fn-22-deterministic-replay-semantic.8",
+      "timestamp": "2026-09-23T08:40:41.248611Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -1833,7 +1862,7 @@
     "impl:fn-22-deterministic-replay-semantic.5": 0,
     "impl:fn-22-deterministic-replay-semantic.6": 0,
     "impl:fn-22-deterministic-replay-semantic.7": 0,
-    "impl:fn-22-deterministic-replay-semantic.8": 0,
+    "impl:fn-22-deterministic-replay-semantic.8": 1,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-22-deterministic-replay-semantic.md",
@@ -1850,5 +1879,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T08:38:22.424918Z"
+  "updated_at": "2026-09-23T08:40:41.249152Z"
 }
