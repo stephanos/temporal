@@ -9,6 +9,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.1.md",
   "status": "todo",
-  "title": "Define the canary Assessment Profile outside Umpire",
+  "title": "Declare the canary Evaluation Profile and the canary policy outside Umpire",
   "updated_at": "2026-09-04T18:37:24.232446Z"
 }
