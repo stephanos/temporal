@@ -107,17 +107,21 @@ type Bound struct {
 // environment's coordinates and the tree's catalog, with no connection. Its Profile name is the
 // policy's, whatever the environment names.
 func Bind(canary *policy.Policy, environment testpilotdriver.Environment) (*Bound, error) {
+	return bind(pinned, canary, environment)
+}
+
+func bind(caseBytes []byte, canary *policy.Policy, environment testpilotdriver.Environment) (*Bound, error) {
 	if canary == nil {
 		return nil, errors.New("a canary policy is required")
 	}
-	identity, err := Identity()
+	identity, err := recordedrun.CaseIdentity(caseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("the pinned canary Case has no identity: %w", err)
 	}
 	if identity != canary.CaseIdentity {
 		return nil, fmt.Errorf("the pinned canary Case is %s, the policy's is %s", identity, canary.CaseIdentity)
 	}
-	source, err := testpilot.DecodeCaseProtoJSON(pinned)
+	source, err := testpilot.DecodeCaseProtoJSON(caseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("decode the pinned canary Case: %w", err)
 	}
