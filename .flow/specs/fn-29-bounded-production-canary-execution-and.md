@@ -284,6 +284,17 @@ No customer traffic, rollout, deployment/config mutation, automatic schedule, re
 | R9 | `.9`–`.13` |
 | R10 | `.1`–`.13` |
 
+## Implementation
+
+Task .1 (2026-09-23): `Temporal.Evaluation.Canary` declares `production-canary` and
+`canary-harness`, the table derived from `local-ephemeral`'s so they cannot drift; the renderer
+writes each group into the directory that embeds it. `tools/umpire/internal/recordedrun` moved to
+`tools/umpire/recordedrun` and its importers followed it, rather than keeping an alias package.
+`evaluation` exports `ParseProfile` and `LoadProfileIn`, which the canary's loader uses.
+`tools/canary/policy` is committed unconfigured. Implementation review: SHIP in one round; its four
+P3 notes applied (limit ceilings against overflow, the derived table, one loader, the authority
+classes returned fresh).
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
