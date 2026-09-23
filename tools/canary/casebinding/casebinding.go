@@ -33,6 +33,13 @@ const (
 	getWorkflowExecutionHistory = "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 )
 
+// The roles the Driver serves: the workflow-service endpoint the Case's RPCs go to, and the worker
+// that performs its workflow and Nexus handler entrypoints.
+const (
+	EndpointRole = "temporal.workflow-service"
+	WorkerRole   = "temporal.worker"
+)
+
 // Case is the pinned Case's canonical bytes.
 func Case() []byte { return bytes.Clone(pinned) }
 
@@ -48,7 +55,7 @@ func ProfileSpec(canary *policy.Policy, catalog *testpilot.Catalog, environment 
 		Catalog:  catalog,
 		Roles: []testpilot.RolePolicy{
 			{
-				ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				ID: EndpointRole, Kind: testpilotspb.ROLE_KIND_ENDPOINT,
 				Methods: []string{startWorkflowExecution, getWorkflowExecutionHistory},
 				ReservationCarriers: []testpilot.ReservationCarrierPolicy{{
 					Method: startWorkflowExecution,
@@ -58,7 +65,7 @@ func ProfileSpec(canary *policy.Policy, catalog *testpilot.Catalog, environment 
 					},
 				}},
 			},
-			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+			{ID: WorkerRole, Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "temporal.task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "temporal.handler-task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "temporal.nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},

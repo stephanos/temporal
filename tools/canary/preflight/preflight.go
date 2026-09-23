@@ -87,13 +87,14 @@ type Input struct {
 }
 
 // Scope is what preflight proved: the invocation's ID, the coordinates as the policy's digests,
-// and the pinned Case prepared for them, which is the one the controller runs. The ID and the
-// digests are safe to write; the prepared Case binds the raw coordinates, so nothing of it is
-// written except through the Redactor.
+// and the pinned Case prepared for them under the canary's Driver Profile, which are the Case and
+// Profile the controller runs. The ID and the digests are safe to write; the prepared Case and the
+// Profile bind the raw coordinates, so nothing of them is written except through the Redactor.
 type Scope struct {
 	InvocationID string
 	Coordinates  policy.Coordinates
 	Prepared     *testpilot.PreparedCase
+	Profile      testpilot.ProfileSpec
 }
 
 // Check runs every check in order, the ones that need no connection first, and returns the Scope
@@ -137,7 +138,7 @@ func Check(ctx context.Context, input Input) (*Scope, error) {
 	case described.GetNamespaceInfo().GetState() != enumspb.NAMESPACE_STATE_REGISTERED:
 		return refuse(StatusNamespaceUnavailable, "the canary namespace is %s, not registered", described.GetNamespaceInfo().GetState())
 	}
-	return &Scope{InvocationID: invocationID, Coordinates: digests, Prepared: bound.Prepared}, nil
+	return &Scope{InvocationID: invocationID, Coordinates: digests, Prepared: bound.Prepared, Profile: bound.Profile}, nil
 }
 
 // workflowContext requires a manual dispatch of the policy's workflow file on its trusted ref in
