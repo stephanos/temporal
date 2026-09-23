@@ -643,6 +643,13 @@ canary-check-case:
 		( cd model && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
 		diff $(CANARY_CASE_FIXTURE) "$$temporary"
 
+# The production canary's one binary. The untagged build is the only one the protected workflow
+# runs; the harness build is the live tests' own.
+canary-build:
+	@printf $(COLOR) "Build the production canary..."
+	@mise exec -- go build -o ./.build/umpire-canary ./tools/canary/cmd/umpire-canary
+	@printf 'Built ./.build/umpire-canary\n'
+
 umpire-gen-case-runtime-conformance:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
@@ -973,7 +980,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

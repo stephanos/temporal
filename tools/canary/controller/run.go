@@ -100,6 +100,23 @@ type Config struct {
 	Started time.Time
 	// Wait is the pause workflowClosed takes; nil is a real one.
 	Wait Wait
+	// Hook is told each phase the invocation reaches; nil in the untagged build, where nothing
+	// but the harness's crash hook would use it.
+	Hook func(phase string)
+}
+
+// The phases Hook is told of.
+const (
+	PhaseLeased          = "leased"
+	PhaseRunOpened       = "run-opened"
+	PhaseIterationClosed = "iteration-closed"
+	PhaseCleaned         = "cleaned"
+)
+
+func (c *Config) phase(name string) {
+	if c.Hook != nil {
+		c.Hook(name)
+	}
 }
 
 func (c *Config) validate() error {
@@ -218,6 +235,7 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 		record.Phase = recovery.PhaseRunning
 	})
 	r.logf("lease taken: run %s", fence.RunID)
+	r.phase(PhaseLeased)
 	if recordErr == nil {
 		r.iterate(invocationCtx, fence, result)
 	} else {
@@ -232,6 +250,7 @@ func (r *invocation) run(ctx context.Context) (*Result, error) {
 	cleanupCtx, cancelCleanup := context.WithDeadline(context.WithoutCancel(ctx), cleanupDeadline)
 	defer cancelCleanup()
 	result.Cleanup = r.cleanup(cleanupCtx, fence, result.Iterations)
+	r.phase(PhaseCleaned)
 	return result, nil
 }
 
@@ -272,6 +291,7 @@ func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 		}
 		iteration, releaseErr := r.iteration(ctx, fence)
 		result.Iterations = append(result.Iterations, iteration)
+		r.phase(PhaseIterationClosed)
 		r.logf("iteration %d: run %s %s", index+1, iteration.RunID, iteration.Outcome.Status)
 		if iteration.Outcome.Status != StatusAccepted {
 			result.Stopped = "iteration " + fmt.Sprint(index+1) + " was " + iteration.Outcome.Status
@@ -301,10 +321,14 @@ func (r *invocation) iteration(ctx context.Context, fence Fence) (Iteration, err
 		if err := signalRunOpened(ctx, r.target, fence, runID); err != nil {
 			return err
 		}
-		return r.Recovery.Update(func(record *recovery.Record) {
+		if err := r.Recovery.Update(func(record *recovery.Record) {
 			record.CurrentRunID = runID
 			record.Iterations = append(record.Iterations, recovery.Iteration{RunID: runID})
-		})
+		}); err != nil {
+			return err
+		}
+		r.phase(PhaseRunOpened)
+		return nil
 	})
 	var run *testpilotspb.Run
 	var verdict *testpilotspb.Verdict
