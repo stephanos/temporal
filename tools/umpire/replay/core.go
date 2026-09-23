@@ -21,10 +21,14 @@ func EvidenceCore(verdict *testpilotspb.Verdict) []int64 {
 	return slices.Compact(core)
 }
 
-// OutsideCore is every instruction event of the Run that the core does not name: the realization's
-// own scaffolding, which supports no violated rule. Each is named by its sequence and its
-// instruction id, so a proof can say which labeled event the core omits.
+// OutsideCore is every instruction event of the Run that the core does not name, in any order:
+// the realization's own scaffolding, which supports no violated rule. Each is named by its
+// sequence and its instruction id, so a proof can say which labeled event the core omits.
 func OutsideCore(run *testpilotspb.Run, core []int64) []OutsideEvent {
+	named := make(map[int64]bool, len(core))
+	for _, sequence := range core {
+		named[sequence] = true
+	}
 	var outside []OutsideEvent
 	for _, event := range run.GetEvents() {
 		switch event.GetKind() {
@@ -32,7 +36,7 @@ func OutsideCore(run *testpilotspb.Run, core []int64) []OutsideEvent {
 		default:
 			continue
 		}
-		if _, named := slices.BinarySearch(core, event.GetSequence()); named {
+		if named[event.GetSequence()] {
 			continue
 		}
 		outside = append(outside, OutsideEvent{Sequence: event.GetSequence(), InstructionID: event.GetCoordinates().GetInstructionId(), Kind: event.GetKind()})
