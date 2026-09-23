@@ -34,7 +34,7 @@ const (
 	statusRejectedSubject       = "rejected-subject"
 	statusUnknownProfile        = "unknown-profile"
 	statusProfileUnreadable     = "profile-unreadable"
-	statusAdmissionFailed       = "admission-failed"
+	statusInternalError         = "internal-error"
 	statusUnreadableInput       = "unreadable-input"
 	statusCatalogUnavailable    = "catalog-unavailable"
 	statusReceiptOversized      = "receipt-oversized"
@@ -54,18 +54,14 @@ type config struct {
 	ReceiptRoot string
 }
 
-// The self-check and the publisher; a test replaces them to reach the failures no real subject or
-// root produces.
-var (
-	decodeReceipt = evaluation.DecodeReceipt
-	publish       = cli.Publish
-)
-
-// environment is what the command reads beyond its arguments: the tree's catalog fingerprint, and
-// the context an assessment runs under. A test supplies its own.
+// environment is what the command reads beyond its arguments: the tree's catalog fingerprint, the
+// context publication runs under, and the receipt's self-check and publisher. A test supplies its
+// own, to reach failures no real subject or root produces; a nil field is the real one.
 type environment struct {
 	Catalog func() (string, error)
 	Context func() (context.Context, context.CancelFunc)
+	Decode  func([]byte) (*evaluation.Receipt, error)
+	Publish func(ctx context.Context, root, name string, contents []byte) (cli.Publication, error)
 }
 
 // summary is the one JSON document on stdout, in a fixed key order.
@@ -87,7 +83,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 		return report(stdout, stderr, summary{Status: status, Detail: fmt.Sprintf(format, arguments...)}, exitFailed)
 	}
 	configuration, err := parseConfig(arguments, stderr)
-	var unknown *unknownProfileError
+	var unknown *profileError
 	if errors.As(err, &unknown) {
 		if errors.Is(unknown.err, evaluation.ErrUnknownProfile) {
 			return failed(statusUnknownProfile, "%s", unknown.err)
@@ -113,7 +109,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 	if err != nil {
 		rejection, ok := evaluation.IsRejection(err)
 		if !ok {
-			return failed(statusAdmissionFailed, "%s", err)
+			return failed(statusInternalError, "admission returned no rejection: %s", err)
 		}
 		return report(stdout, stderr, summary{Status: statusRejectedSubject, Rejection: rejection.Reason, Detail: rejection.Detail}, exitFailed)
 	}
@@ -124,16 +120,16 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 		return failed(statusReceiptOversized, "%s", err)
 	}
 	if err != nil {
-		return failed(statusReceiptUnreadable, "render the receipt: %s", err)
+		return failed(statusInternalError, "render the receipt: %s", err)
 	}
-	if _, err := decodeReceipt(rendered); err != nil {
+	if _, err := env.decode(rendered); err != nil {
 		return failed(statusReceiptUnreadable, "the rendered receipt does not read back: %s", err)
 	}
 
 	identity := evaluation.ReceiptIdentity(rendered)
 	ctx, cancel := env.context()
 	defer cancel()
-	publication, err := publish(ctx, configuration.ReceiptRoot, identity+".json", rendered)
+	publication, err := env.publish(ctx, configuration.ReceiptRoot, identity+".json", rendered)
 	var conflict *cli.ConflictError
 	switch {
 	case errors.As(err, &conflict):
@@ -159,6 +155,20 @@ func (env environment) context() (context.Context, context.CancelFunc) {
 		return env.Context()
 	}
 	return cli.Interruptible(context.Background(), assessTimeout)
+}
+
+func (env environment) decode(rendered []byte) (*evaluation.Receipt, error) {
+	if env.Decode != nil {
+		return env.Decode(rendered)
+	}
+	return evaluation.DecodeReceipt(rendered)
+}
+
+func (env environment) publish(ctx context.Context, root, name string, contents []byte) (cli.Publication, error) {
+	if env.Publish != nil {
+		return env.Publish(ctx, root, name, contents)
+	}
+	return cli.Publish(ctx, root, name, contents)
 }
 
 func exitCode(outcome string) int {
@@ -187,7 +197,10 @@ func report(stdout, stderr io.Writer, result summary, code int) int {
 		if result.Publication != "" {
 			result = summary{Status: statusPublicationUnreported, Receipt: result.Receipt, Publication: result.Publication, Path: result.Path,
 				Detail: fmt.Sprintf("the receipt is %s but its summary could not be written: %s", result.Publication, err)}
-			encoded, _ = json.Marshal(result)
+			if encoded, err = json.Marshal(result); err != nil {
+				cli.WriteLine(stderr, "umpire-assess: encode the summary: %s", err)
+				return exitFailed
+			}
 		}
 		cli.WriteLine(stderr, "%s", encoded)
 		return exitFailed
@@ -246,7 +259,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	}
 	loaded, err := evaluation.LoadProfile(profile)
 	if err != nil {
-		return config{}, &unknownProfileError{err: err}
+		return config{}, &profileError{err: err}
 	}
 	configuration.Profile = loaded
 	// A receipt is an assessment's output, never model input: the model never receives one,
@@ -262,8 +275,8 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	return configuration, nil
 }
 
-// unknownProfileError says --profile names no loadable Profile: refused before anything is read,
-// and reported as an unknown name or as an embedded Profile that does not load.
-type unknownProfileError struct{ err error }
+// profileError says --profile names no loadable Profile: refused before anything is read, and
+// reported as an unknown name or as an embedded Profile that does not load.
+type profileError struct{ err error }
 
-func (e *unknownProfileError) Error() string { return "--profile: " + e.err.Error() }
+func (e *profileError) Error() string { return "--profile: " + e.err.Error() }

@@ -178,7 +178,7 @@ func TestAssessRefusesTheCommandLine(t *testing.T) {
 		code, result, _ := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return controlCatalog, nil }})
 		require.Equal(t, exitFailed, code)
 		require.Equal(t, statusUnknownProfile, result.Status, profile)
-		require.Contains(t, result.Detail, "no Evaluation Profile is named")
+		require.Contains(t, result.Detail, "no such Evaluation Profile")
 		require.False(t, catalogRead)
 	}
 	listed, err := os.ReadDir(root)
@@ -322,11 +322,9 @@ func TestAssessNamesAPublicationItCouldNotReport(t *testing.T) {
 func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 	casePath, runPath := subjectFiles(t, nil, satisfy)
 	t.Run("a receipt that does not read back", func(t *testing.T) {
-		original := decodeReceipt
-		t.Cleanup(func() { decodeReceipt = original })
-		decodeReceipt = func([]byte) (*evaluation.Receipt, error) { return nil, errors.New("not canonical") }
+		unreadable := func([]byte) (*evaluation.Receipt, error) { return nil, errors.New("not canonical") }
 		root := resolvedTemp(t)
-		code, result, _ := run(t, flags(casePath, runPath, root), environment{})
+		code, result, _ := run(t, flags(casePath, runPath, root), environment{Decode: unreadable})
 		require.Equal(t, exitFailed, code)
 		require.Equal(t, statusReceiptUnreadable, result.Status)
 		require.Contains(t, result.Detail, "does not read back")
@@ -335,12 +333,10 @@ func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 		require.Empty(t, listed)
 	})
 	t.Run("a publication that fails", func(t *testing.T) {
-		original := publish
-		t.Cleanup(func() { publish = original })
-		publish = func(context.Context, string, string, []byte) (cli.Publication, error) {
+		failing := func(context.Context, string, string, []byte) (cli.Publication, error) {
 			return cli.Publication{}, errors.New("disk full")
 		}
-		code, result, _ := run(t, flags(casePath, runPath, resolvedTemp(t)), environment{})
+		code, result, _ := run(t, flags(casePath, runPath, resolvedTemp(t)), environment{Publish: failing})
 		require.Equal(t, exitFailed, code)
 		require.Equal(t, statusPublicationFailed, result.Status)
 		require.Contains(t, result.Detail, "disk full")
