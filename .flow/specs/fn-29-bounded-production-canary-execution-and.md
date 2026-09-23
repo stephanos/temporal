@@ -393,6 +393,24 @@ output; `make canary-build` builds it. Progress is capped and redacted once for 
 both SDK clients. Implementation review: NEEDS_WORK (a release failure reported as success; an
 interrupt losing decided receipts; an uncapped client log), then SHIP; its P3 notes applied.
 
+Task .9 (2026-09-23): `umpire-canary reconcile --output --recovery` reads its job's record (strict,
+0600, and refused unless it names this job's invocation), and with none, or one naming no lease,
+reports `nothing-to-reconcile` without a credential. Otherwise, after checking the policy, the
+coordinates and the lease ID, it acts only on the recorded lease run: a `took` lease at once, a
+`found` open one only once it is older than the invocation limit plus the reserve (`lease-in-use`
+before), verifying or terminating exactly the fenced workflows through `closeFenced`, which cleanup
+now shares. It then terminates the lease run as reconciled, or, for a run closed any other way that
+is still the latest, starts and at once terminates a fresh one; a later run is another invocation's
+and is left alone. Its report on stdout names the fenced, closed, terminated and unverified
+workflows, the iterations lost (unpublished, unless its run finished publishing), and on the found
+path the publication-unknown Runs with the earlier invocation and artifact read from the lease's
+start. `.github/workflows/umpire-production-canary.yml` is manual, one non-cancelling concurrency
+group, main only, the `production-canary` environment, read-only, 30 minutes, pinned actions,
+secrets-only environment, `make canary-build`, `run`, `reconcile` and the upload under `always()`,
+each mode's output redirected into the uploaded directory; `tools/canary/workflow_test.go` pins it
+all, the artifact name included. Implementation review: NEEDS_WORK (the found path's pointer; a
+finished run's unconstructible iteration reported lost), then SHIP; its P3 notes applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
