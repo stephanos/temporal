@@ -16,10 +16,11 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   `umpire-case --render-canary <case-id>` mode; `make canary-gen-case` writes
   `tools/canary/testdata/nexusCallerCanary-syncCompletion-case.json` and `canary-check-case`
   diffs a fresh render, in `umpire-check-regression`. The Case reaches its Verdict only from the
-  public server observations its Contract names; the handler it observes is performed by a
-  canary-owned handler worker on the dedicated handler queue, a separate authority from the
-  Case's Driver, which completes the operation synchronously with the fixed result the Case
-  expects.
+  public server observations its Contract names. The produced Case carries its own Nexus handler
+  entrypoint (the realization is the functional set's; `handler: observed` changes what the
+  verifier reads, not the Program), so the Driver's worker authority performs the handler's
+  synchronous reply under its own reservation, and the canary adds no handler of its own: a
+  second poller on the handler queue would race the Case's.
 - **The canary policy is data under `tools/canary`, never in Umpire.** One file,
   `tools/canary/policy/production-canary.json`, embedded and decoded strictly (unknown, repeated
   or case-folded keys, a missing field or another version reject), holds: the canary Case's
@@ -28,8 +29,9 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
   coordinates live only in the protected environment), the lease's workflow ID, type and task
   queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
-  invocation, a 2-minute cleanup reserve, the recorded-Run and receipt caps fn-26 fixes, and 64 KiB
-  of progress. A limit cannot be raised by a flag.
+  invocation, a 2-minute cleanup reserve, and 64 KiB of progress. A limit cannot be raised by a
+  flag. The recorded-Run and receipt caps are fn-26's (`evaluation.AdmissionCaps()`), recorded in
+  each receipt, and are not restated in the policy.
 - **The Evaluation Profile is Lean's, the provenance is canary's.** `Temporal.Evaluation.Canary`
   declares the `production-canary` Evaluation Profile with `Umpire.Evaluation`: trust
   `dedicated-production-canary`, every Known Gap kind blocking, and `local-ephemeral`'s table
@@ -70,16 +72,25 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   rejected or incomplete one. Cleanup runs under a fresh context bounded by the reserve on every
   exit after the lease is held, and the controller terminates the lease only after every fenced
   workflow is verified closed.
-- **Recovery never dispatches, and the guard is on the server.** A lost process leaves the lease
-  held, so the next `run` collides on the lease's ID and refuses, naming the scope as
-  unreconciled; only `umpire-canary reconcile` releases it. Reconcile reads the lease by its fixed
-  ID, verifies or terminates exactly the workflow IDs its `run-opened` signals name, and
-  terminates the lease once each is verified closed, or leaves it held and reports the scope
-  uncertain; it prepares, runs, assesses and publishes nothing, and writes only its own bounded
-  reconciliation report (the lost iterations, what it closed, what it could not verify). The
-  runner is a fresh GitHub-hosted runner per dispatch, so nothing is kept on it between jobs; a
-  mode-0600 recovery file written in the job (invocation ID, fence, the current Run ID and phase)
-  only lets the same job's `reconcile` step name what was in flight before it reads the lease.
+- **Recovery never dispatches, and the guard is on the server.** The lease's latest run says whether
+  the scope is clean: open, or closed any way other than a canary termination (the controller
+  terminates it with reason `umpire-canary: released`, reconcile with `umpire-canary:
+  reconciled`), means unreconciled -- a lost process, or a lease that reached its 24-hour timeout
+  -- and `run` refuses before taking a new lease, recording that lease's ID and run ID in its
+  recovery file. Only `umpire-canary reconcile` clears it, and it acts on exactly the `(lease ID,
+  run ID)` its own job's recovery file names, never on whatever lease happens to be live: it
+  refuses a lease run younger than the invocation limit plus the cleanup reserve (a live
+  invocation cannot be older), verifies or terminates exactly the workflow IDs that run's
+  `run-opened` signals name (a workflow the server reports not found never started, and counts as
+  closed), then closes the scope -- terminating the lease run if it is still open, or starting and
+  at once terminating a fresh lease run with the reconciled reason when it had timed out -- or
+  leaves it and reports the scope uncertain. It prepares, runs, assesses and publishes nothing, and
+  writes only its own bounded reconciliation report (the lost and unpublished iterations, what it
+  closed, what it could not verify). An uncertain scope is cleared by an operator who closes the
+  listed workflows by hand and runs the workflow again, whose reconcile then verifies them; the
+  runbook says so. The runner is a fresh GitHub-hosted runner per dispatch, so nothing is kept on
+  it between jobs; the mode-0600 recovery file (invocation ID, the lease ID and run ID it took or
+  found, the current Run ID and phase) lives only for its job.
 - **Assessment is fn-26's, verbatim, and publication comes last.** Each completed iteration is
   encoded as a recorded Run (`tools/umpire/recordedrun`, exported from
   `tools/umpire/internal/recordedrun` so the canary imports it), admitted with `evaluation.Admit`
@@ -107,17 +118,20 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   it is uncertain, 3 for a tooling failure. Each writes one bounded JSON summary on stdout.
 - **The harness is a separate build.** A `canary_harness` build tag compiles a policy and hook
   provider into a harness binary only: it reads a test policy (the test cluster's digests, the
-  `canary-harness` Evaluation Profile Lean declares beside `production-canary`, and a
-  `harness` authority class) and a crash hook from the environment. The untagged binary has one
-  policy, the embedded one, and one Profile, `production-canary`; a regression test pins that the
-  untagged build has no override path, so a harness receipt is never a production receipt.
+  `canary-harness` Evaluation Profile, which Lean declares beside `production-canary` but renders
+  into `tools/canary/testharness/profiles/`, embedded only by the harness build, and a `harness`
+  authority class) and a crash hook from the environment. The untagged binary has one policy, the
+  embedded one, which selects `production-canary`, and embeds no other Profile; a regression test
+  pins that the untagged build has no override path, so a harness receipt is never a production
+  receipt.
 - **The workflow is manual and protected, and the protection is the environment's.** A
   `workflow_dispatch` runs the workflow file and code of whatever branch it is dispatched on, so the
   guarantee that only `main` receives the credentials is a precondition on the repository's
   `production-canary` environment: deployment branches restricted to `main` and required
   reviewers, which the runbook states and an operator configures. The in-repo checks are defense
   in depth: `.github/workflows/umpire-production-canary.yml` runs on `workflow_dispatch` only, in
-  that environment, only when the ref is `refs/heads/main`, with `contents: read` and no other
+  one `concurrency` group (`umpire-production-canary`, never cancelling one in progress) so no two
+  jobs overlap, in that environment, only when the ref is `refs/heads/main`, with `contents: read` and no other
   permission, a job timeout, `umpire-canary run`, then `umpire-canary reconcile` under
   `if: always()`, then the receipts, provenance, summaries and progress uploaded under
   `if: always()`; preflight re-checks the ref. A regression test in `tools/umpire/regression` pins
@@ -233,3 +247,15 @@ the in-repo checks are defense in depth. .3 depends on .2; the endpoint is found
 `ListNexusEndpoints` and checked for its target; exit statuses have a precedence and reconcile
 its own; the lease has its own unpolled queue and type; the early proof is .2 with .4's two-Run
 test; every task has a Touches line; preflight's `PreparedCase` is the one the controller runs.
+
+Round two (2026-09-23): NEEDS_WORK with two P0, one P1, two P2 and one P3 findings, all applied.
+The produced canary Case carries its own handler entrypoint and the Driver's worker performs it,
+so the canary adds no handler worker (P0). Reconcile acts only on the `(lease ID, run ID)` its own
+job recorded, refuses a lease run younger than an invocation could be, and the workflow runs in
+one non-cancelling concurrency group, so no job ever ends another's Run (P0). A lease that timed
+out, or closed any way but a canary termination, is unreconciled: `run` refuses and reconcile
+closes its orphans and then records the scope reconciled (P1). The caps are fn-26's, recorded in
+the receipt, not restated in the policy; `casebinding` takes the Driver environment, tested with
+test names in .2 and given the environment's coordinates in .3; the `canary-harness` Profile is
+rendered and embedded only in the harness build. The FYIs are taken: a fenced workflow the server
+does not find never started, and the runbook says how an operator clears an uncertain scope.
