@@ -320,6 +320,25 @@ round; its two P3 notes and four FYIs applied (one digest helper and mismatch li
 doc, gRPC NotFound, a floor on PEM line secrets, a bounded writer, and the unenforced transport
 check removed).
 
+Task .4 (2026-09-23): `tools/canary/recovery` is the strict, canonical, mode-0600 record, created
+exclusively and rewritten atomically. `tools/canary/controller` reads the lease through
+`leaseState` (describe, then the close event for its reason) and `workflowClosed` (not found on two
+reads an RPC timeout apart is never started), takes the lease with the fail conflict policy, and
+fences each Run: `FencedDriver` signals `run-opened` to the exact fence run before it opens, opens
+one Run only, and its Session refuses any workflow start but the fenced Run ID. The loop runs the
+prepared Case serially through a fresh Driver per iteration, stops after the first iteration not
+accepted, at the policy's iterations, when less than one iteration's worst case (two total
+durations, three cleanup windows and the release) is left, or when a Driver does not release; a
+panic is an unconstructible iteration. Cleanup, under an absolute deadline of the invocation limit
+plus the reserve, closes exactly the fenced IDs and releases the lease only when each is verified
+closed. `TestTestpilotCanaryLifecycle` runs the pinned Case twice through the real Driver against
+the test cluster: two satisfied Runs, both fenced on one lease, verified closed, lease released.
+The controller gets its own context of the invocation limit there, since a test context's ceiling
+is shorter than one iteration's bound. Implementation review: NEEDS_WORK (the invocation could
+outlive reconcile's age guard; testifylint forms; a dropped release error), then SHIP; its three
+P3 notes and the test FYIs applied. A lease run that starts and times out between the read and the
+take is a race the server's reuse policies cannot close; the window is the length of one RPC.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
