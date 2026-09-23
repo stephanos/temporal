@@ -1,5 +1,104 @@
 # Bounded production canary execution and qualification
 
+## Re-plan on fn-85, fn-83, fn-22 and fn-26 (2026-09-23)
+
+The first plan (SHIP, 2026-08-26) was written before the Case Runtime settled, before fn-85 gave
+the model a canary set, before fn-83 delivered provisioning, and before fn-26 delivered Claim
+Assessment. It named paths that no longer exist (`api/umpire/**`, `Temporal.System.Case`) and an
+assessment surface that is now concrete. This re-plan keeps the intent, the requirements R1–R10,
+the boundaries and the thirteen task slots, and grounds every contract in what the tree has:
+
+- **The fixed Case is fn-85's.** The Caller Model's `nexusCallerCanary` set (purpose `canary`,
+  handler `observed`) produces `syncCompletion` and `asyncCompletion` Cases that fn-85 admits only
+  when no white-box Known Gap remains; they are produced and registered nowhere. The canary runs
+  `nexusCallerCanary.syncCompletion`. The renderer gains a canary registry beside the functional
+  one (`Registry.recordCanary`, recorded in the canary branch of the `case` block) and an
+  `umpire-case --render-canary <case-id>` mode; `make canary-gen-case` writes
+  `tools/canary/testdata/nexusCallerCanary-syncCompletion-case.json` and `canary-check-case`
+  diffs a fresh render, in `umpire-check-regression`. The Case reaches its Verdict only from the
+  public server observations its Contract names; the handler it observes is performed by a
+  canary-owned handler worker on the dedicated handler queue, a separate authority from the
+  Case's Driver, which completes the operation synchronously with the fixed result the Case
+  expects.
+- **The canary policy is data under `tools/canary`, never in Umpire.** One file,
+  `tools/canary/policy/production-canary.json`, embedded and decoded strictly (unknown, repeated
+  or case-folded keys, a missing field or another version reject), holds: the canary Case's
+  identity (SHA-256 of its canonical bytes), the Profile name the Case is prepared under
+  (`production-canary`), the Evaluation Profile name, the SHA-256 digests of the target's gRPC
+  and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
+  coordinates live only in the protected environment), the trusted ref (`refs/heads/main`) and
+  workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
+  invocation, a 2-minute cleanup reserve, the recorded-Run and receipt caps fn-26 fixes, and 64 KiB
+  of progress. A limit cannot be raised by a flag.
+- **The Evaluation Profile is Lean's, the provenance is canary's.** `Temporal.Evaluation.Canary`
+  declares the `production-canary` Evaluation Profile with `Umpire.Evaluation`: trust
+  `dedicated-production-canary`, every Known Gap kind blocking, and `local-ephemeral`'s table
+  except that `unsupported-rule` rejects (a production claim with a rule nothing supports is a
+  failed claim, not a missing one). `umpire-evaluation-profiles` renders each group of declared
+  Profiles into the directory its flag names (`--local-dir`, `--canary-dir`), so no Profile
+  carries a path and this one lands in `tools/canary/assessment/profiles/`, never in the set
+  `umpire-assess` embeds. `tools/umpire/evaluation` exports `ParseProfile` (its strict parse and
+  validation), which the canary uses on its embedded copy. Everything canary-specific -- authority
+  class, workflow context, target digests, lease and fence, limits, isolation, cleanup and
+  reconciliation outcome, and `releaseEligibility: false` -- is the canary provenance document,
+  never an Umpire type.
+- **Authority and preflight are the protected workflow's.** Credentials (a TLS client certificate
+  and key, or an API key) arrive only as environment variables of the protected
+  `production-canary` GitHub environment; `tools/canary/authority` turns them into gRPC transport
+  and per-RPC credentials for the Driver's server endpoint and the SDK client, and a redacting
+  writer keeps them out of every output. Preflight, before any mutation, requires
+  `GITHUB_REF` to be the trusted ref, `GITHUB_WORKFLOW_REF` the canary workflow on it,
+  `GITHUB_EVENT_NAME` `workflow_dispatch`; the digests of the environment's coordinates to equal
+  the policy's; the canonical Case to be the pinned one; the namespace, both queues' routing and
+  the Nexus endpoint to exist exactly as the policy names them (Describe calls only, fn-83's
+  `provision` package is used by the harness to create them, never by the canary); and the
+  catalog to be the tree's. Any mismatch performs no mutation and creates no Run or receipt.
+- **One lease, one fence, one Run at a time.** The lease is a workflow with a fixed ID in the canary
+  namespace, started with `WORKFLOW_ID_CONFLICT_POLICY_FAIL` and a run timeout equal to the
+  invocation limit; its run ID is the fence. Every Run the canary creates carries the fence in its
+  workflow IDs (the Profile's identity scope), so cleanup and reconciliation touch only exact
+  fenced resources. Runs are serial: the controller prepares the Case once with
+  `testpilot.Prepare` and runs the prepared Case for each iteration against a fresh Driver.
+  Cleanup runs under a fresh context bounded by the reserve on every exit after the lease is held,
+  and the lease is terminated last.
+- **Recovery never dispatches.** A mode-0600 recovery record holds only the invocation ID, the lease
+  workflow ID and fence, the active Run's ID prefix, the dispatch phase, the cleanup reserve and the
+  expiry. A process lost after a Run started leaves that iteration `lost`. `umpire-canary
+  reconcile` reads the record, terminates or verifies only workflows carrying its fence, releases
+  the lease and marks the scope closed or uncertain; it prepares, runs, assesses and publishes
+  nothing. A later invocation starts only after the record is closed or explicitly marked
+  uncertain by `reconcile`; nothing reruns automatically.
+- **Assessment is fn-26's, verbatim.** Each completed iteration is written as a recorded Run
+  (`tools/umpire/recordedrun`, exported from `tools/umpire/internal/recordedrun` so the canary
+  imports it) and admitted with `evaluation.Admit` against the tree's catalog, assessed with
+  `evaluation.Assess` under the `production-canary` Profile, rendered with `evaluation.Render`,
+  and published with the receipt root publisher fn-26 built (exported as
+  `tools/umpire/publish`). A lost or unconstructible iteration has no receipt. The canary
+  provenance document binds the receipt's identity and is published beside it under its own
+  identity; `releaseEligibility` is a constant `false` its decoder rejects any other value of.
+- **The command is `umpire-canary`.** `tools/canary/cmd/umpire-canary` has two closed modes, `run` and
+  `reconcile`, with no Case, target, Driver, checker, retry, executable, endpoint, credential or
+  release flag; `run` takes only the retained-output directory and the recovery-record path. It
+  exits 0 when every iteration's receipt is accepted, 1 when any is rejected or incomplete, 2 for
+  a lost iteration or cleanup uncertainty, and 3 for a tooling or preflight failure, with one
+  bounded JSON summary on stdout.
+- **The workflow is manual and protected.** `.github/workflows/umpire-production-canary.yml` runs
+  on `workflow_dispatch` only, in the `production-canary` environment, only when the ref is
+  `refs/heads/main`, with `contents: read` and no other permission, a job timeout, `umpire-canary
+  run`, then `umpire-canary reconcile` under `if: always()`, then the retained receipts,
+  provenance and progress uploaded as an artifact. A regression test in `tools/umpire/regression`
+  pins those properties the way the CI workflow test pins its own.
+
+Tasks .1 to .13 are rewritten below on these contracts in their existing order and dependencies.
+The requirements R1–R10 and the boundaries stand. R1's "canary Assessment Profile" is the Lean
+Evaluation Profile plus the canary provenance; R2's "fixed canary Profile/catalog" is the policy's
+Profile name and the tree's catalog; R7's "fn-26-derived receipts" are fn-26's receipt bytes
+unchanged, beside the provenance; R9's `^TestUmpire` integration selection is kept for the
+harness (`TestUmpireCanary*`). Nothing here can be run against production from this repository's
+tests: the harness proves every contract against the test cluster with no production credential,
+and the production run itself is an operator's manual dispatch.
+
+
 ## Umpire4 Case Runtime reconciliation
 
 This spec is an external consumer of fn-64 and fn-26. It prepares one canonical Case once, executes repeated isolated Runs through the public Go API, and assesses their closed Run/Verdict values. It does not restore `PortableTestPlan`, UmpireExecutor gRPC, Run Evaluation, caller closure, or a canary-specific Umpire command.
@@ -78,3 +177,7 @@ No customer traffic, rollout, deployment/config mutation, automatic schedule, re
 | R8 | `.8`–`.11` |
 | R9 | `.9`–`.13` |
 | R10 | `.1`–`.13` |
+
+## Plan review
+
+The re-plan awaits its first plan review.
