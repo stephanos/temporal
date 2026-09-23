@@ -628,19 +628,19 @@ CANARY_CASE_ID := temporal.case.nexusCallerCanary.syncCompletion
 CANARY_CASE_FIXTURE := tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json
 
 canary-gen-case:
-	@cd model && $(LEAN_LAKE) build umpire-case >/dev/null
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@set -eu; mkdir -p $$(dirname $(CANARY_CASE_FIXTURE)); \
 		temporary=$$(mktemp "$$(dirname $(CANARY_CASE_FIXTURE))/.case.XXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe umpire-case --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
+		( cd model && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
 		chmod 0644 "$$temporary"; \
 		mv -f "$$temporary" $(CANARY_CASE_FIXTURE)
 
 canary-check-case:
 	@printf $(COLOR) "Check the production canary's pinned Case..."
-	@cd model && $(LEAN_LAKE) build umpire-case >/dev/null
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@set -eu; temporary=$$(mktemp); trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe umpire-case --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
+		( cd model && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
 		diff $(CANARY_CASE_FIXTURE) "$$temporary"
 
 umpire-gen-case-runtime-conformance:
