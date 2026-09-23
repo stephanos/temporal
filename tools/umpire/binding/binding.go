@@ -13,11 +13,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	sdkclient "go.temporal.io/sdk/client"
+	sdklog "go.temporal.io/sdk/log"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
@@ -215,8 +218,11 @@ func (c *Campaign) Bind(ctx context.Context, identity string, source *testpilots
 	fail := func(err error) (*Bound, error) {
 		return nil, errors.Join(err, ReleaseAll(context.WithoutCancel(ctx), bound.releases))
 	}
+	// The SDK's default logger writes to stdout, where a command writes its one report; its
+	// worker lines go to stderr with the rest of the progress.
 	caseClient, err := sdkclient.DialContext(ctx, sdkclient.Options{
 		HostPort: c.deployment.GRPCAddress, Namespace: c.deployment.Namespace,
+		Logger: sdklog.NewStructuredLogger(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))),
 	})
 	if err != nil {
 		return fail(fmt.Errorf("open SDK client: %w", err))

@@ -165,6 +165,13 @@ func (f *fakeReplayBridge) answer(frame bridgeRequest) map[string]any {
 		}
 		reply["frame"], reply["status"], reply["reason"], reply["subject"], reply["retained"], reply["edits"] =
 			"finished", status, reason, "subject-digest", f.retained, f.settled
+		reply["proposal"] = nil
+		if status == "minimized" || status == "irreducible" {
+			reply["proposal"] = map[string]any{
+				"digest": f.retained, "promotionSourceSha256": "sha256:" + f.retained,
+				"promotionSourcePath": f.set + "-" + f.retained + ".lean", "promotionSource": "-- proposal " + f.retained,
+			}
+		}
 	default:
 		return map[string]any{"frame": "rejected", "seq": frame.Seq, "reason": "unknown frame"}
 	}

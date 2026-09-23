@@ -705,6 +705,33 @@ umpire-fuzz-run:
 		$${UMPIRE_FUZZ_CREATE:+--create} \
 		$(UMPIRE_FUZZ_FLAGS)
 
+umpire-replay:
+	@printf $(COLOR) "Build the Umpire replay runner..."
+	@mise exec -- go build -o ./.build/umpire-replay ./tools/umpire/cmd/umpire-replay
+	@printf 'Built ./.build/umpire-replay\n'
+
+# One replay of a recorded violated Run: CASE and RUN name the subject's files, SET and QUERY (or
+# TARGET) the Query the bridge recovers it by, UMPIRE_REPLAY_GRPC/UMPIRE_REPLAY_HTTP the frontend,
+# UMPIRE_REPLAY_NAMESPACE/UMPIRE_REPLAY_TASK_QUEUE/UMPIRE_REPLAY_NEXUS_ENDPOINT the resources the
+# Run was recorded against, UMPIRE_REPLAY_FLAGS any further flags such as --promotion-root. The
+# replay bridge is built first.
+umpire-replay-run:
+	@test -n "$(CASE)" || { printf 'CASE=<case.json> is required\n'; exit 3; }
+	@test -n "$(RUN)" || { printf 'RUN=<recorded run.json> is required\n'; exit 3; }
+	@test -n "$(SET)" || { printf 'SET=<set> is required\n'; exit 3; }
+	@test -n "$(QUERY)$(TARGET)" || { printf 'QUERY=<query> or TARGET=<target key> is required\n'; exit 3; }
+	@for required in UMPIRE_REPLAY_GRPC UMPIRE_REPLAY_HTTP UMPIRE_REPLAY_NAMESPACE UMPIRE_REPLAY_TASK_QUEUE; do \
+		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
+	done
+	@$(MAKE) --no-print-directory umpire-replay
+	@cd model && $(LEAN_LAKE) -q build umpire-replay-bridge
+	@./.build/umpire-replay run --case "$(CASE)" --run "$(RUN)" --set "$(SET)" \
+		$(if $(QUERY),--query "$(QUERY)") $(if $(TARGET),--target "$(TARGET)") \
+		--grpc "$$UMPIRE_REPLAY_GRPC" --http "$$UMPIRE_REPLAY_HTTP" \
+		--namespace "$$UMPIRE_REPLAY_NAMESPACE" --task-queue "$$UMPIRE_REPLAY_TASK_QUEUE" \
+		$${UMPIRE_REPLAY_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_REPLAY_NEXUS_ENDPOINT"} \
+		$(UMPIRE_REPLAY_FLAGS)
+
 umpire-export-model-module-index:
 	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index
 
@@ -739,6 +766,7 @@ umpire-check-replay-bridge:
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/replay -run '^TestLiveReplayBridge'
 
 umpire-check-live-tests:
+	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
@@ -884,7 +912,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
