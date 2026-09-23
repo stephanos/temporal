@@ -3,11 +3,18 @@ satisfies: [R2, R3, R4, R6]
 ---
 
 # fn-26-local-qualification-receipts-and-staged.4 Implement offline local Claim Assessment
+
 ## Description
-Implement the deep offline assessor over one admitted subject and one compiled Profile. Apply the complete reason table, preserve absent evidence and Known Gaps, and construct a receipt in memory without Driver construction, target I/O, Contract evaluation, or caller-defined policy.
+Add `tools/umpire/evaluation/assess.go`: `Assess(subject *Subject, profile Profile) Receipt`, pure: read the rendered Profile (`LoadProfile`, strict), evaluate every condition the reason table names against the subject's recorded fields -- disposition, cleanup, Verdict status, the Known Gap kinds present, the recorded Profile name and bindings fingerprint when the Profile requires them, the Limits -- accumulate every reason that holds in the table's order, and decide `rejected` if any rejecting reason holds, else `incomplete` if any incomplete reason holds, else `accepted`. A satisfied Verdict alone never accepts: an unclosed cleanup, a blocking Known Gap or an unmet requirement keeps the decision below `accepted`. The receipt keeps disposition, Verdict, cleanup, Known Gaps and trust as their own fields, never folded into the decision. No Driver, deployment, preparation, Run or Contract evaluation.
+
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/umpire/evaluation/ -run Assess`
 
 **Size:** M
-**Touches:** `tools/umpire/evaluation/assess.go`, `tools/umpire/evaluation/assess_test.go`
+**Files:** `tools/umpire/evaluation/assess.go`, `tools/umpire/evaluation/assess_test.go`, `tools/umpire/evaluation/profile.go`, `tools/umpire/evaluation/profile_test.go`
+
+### Re-plan note (2026-09-23)
+Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the shared command-edge helpers); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
 - [ ] Accepted, rejected, and incomplete decisions accumulate all reasons deterministically.
