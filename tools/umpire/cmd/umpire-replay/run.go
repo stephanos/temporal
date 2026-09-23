@@ -75,10 +75,9 @@ func Run(arguments []string, stdout, stderr io.Writer, environment environmentFo
 		cli.WriteLine(stderr, "render report: %s", err)
 		return replay.ExitToolingFailure
 	}
-	limit := replay.DefaultLimits.ReportBytes
-	code := report.ExitCodeWithin(len(rendered), limit)
-	if limit > 0 && int64(len(rendered)) > limit {
-		cli.WriteLine(stderr, "the report is %d bytes, over the cap of %d, and is written whole", len(rendered), limit)
+	code := report.ExitCodeWithin(len(rendered))
+	if report.OverCap(len(rendered)) {
+		cli.WriteLine(stderr, "the report is %d bytes, over the cap of %d, and is written whole", len(rendered), report.Limits.ReportBytes)
 	}
 	if _, err := stdout.Write(rendered); err != nil {
 		cli.WriteLine(stderr, "write report: %s", err)
@@ -95,6 +94,8 @@ func describe(report replay.Report) string {
 		return "failed: " + report.Failure
 	case report.Reduction != nil && report.Reduction.Failure != "":
 		return "failed: " + report.Reduction.Failure
+	case report.Reduction != nil && report.Reduction.Stopped && !report.Reduction.Attempted:
+		return "stopped: " + report.Reduction.NotAttempted
 	case report.Admission.Status != replay.StatusAdmitted:
 		return fmt.Sprintf("rejected (%s): %s", report.Admission.Reason, report.Admission.Detail)
 	case report.Reproduction == nil:

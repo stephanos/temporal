@@ -70,6 +70,9 @@ func Rerun(ctx context.Context, binder campaign.Binder, target Target) (*Reruns,
 		if err != nil {
 			// The attempts that closed are returned beside the error, so a stop or a failure
 			// between the two never hides a Run that happened; the pair decides nothing.
+			if result.Run != nil {
+				reruns.Attempts = append(reruns.Attempts, result)
+			}
 			reruns.Class = ClassIndeterminate
 			return reruns, fmt.Errorf("attempt %d: %w", attempt+1, err)
 		}
