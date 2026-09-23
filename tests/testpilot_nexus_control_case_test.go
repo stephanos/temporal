@@ -51,6 +51,7 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 	dir := t.TempDir()
 	paths := map[string]string{"first": os.Getenv("UMPIRE_CONTROL_RECORD")}
 	var keys []replay.ViolationKey
+	var runIDs []string
 	for _, attempt := range []string{"first", "second"} {
 		path := paths[attempt]
 		if path == "" {
@@ -62,6 +63,8 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 		require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))
 		before := proto.CloneOf(run)
+		require.NotContains(t, runIDs, run.GetRunId(), "each Run is its own")
+		runIDs = append(runIDs, run.GetRunId())
 
 		recorded, err := os.ReadFile(path)
 		require.NoError(t, err)
