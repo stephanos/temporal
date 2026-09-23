@@ -29,7 +29,10 @@ decided about the outstanding candidate's Runs, a class (`reproduced`, `not-repr
 `indeterminate`, after the one retry) or the fact that its preparation was rejected, and answers
 `settled`. `finish` reports the result -- `minimized`, `irreducible` or `incomplete` -- the digest
 retained, and every edit's fate, an edit never settled being `not-tried` (or `unsettled`, with its
-candidate's digest, when its candidate was outstanding at the end).
+candidate's digest, when its candidate was outstanding at the end); a `minimized` or `irreducible`
+result carries the retained candidate's review-only proposal, compiled by
+`Umpire.Command.Promotion.propose` from its admitted Query and named `<set>-<digest>.lean` by its
+digest, or why it did not compile. The proposal renders the Model's expected trace, never a Run.
 
 Frames are exact, as the exploration bridge's are: each kind admits a closed set of keys, so the
 coordinator cannot name an edit, a coordinate or a Case. A frame out of sequence or duplicated, one
@@ -83,6 +86,9 @@ structure Recovered where
   produced : Except String temporal.server.api.testpilot.v1.Case
   reduction : Reduction
   attempt : List Nat → Attempt
+  /-- The review-only proposal of the candidate that keeps `kept`, compiled from its admitted
+  Query and named by its digest. -/
+  propose : List Nat → Except String Umpire.Command.Promotion.Proposal
 
 /-- One set the bridge can admit a subject of. -/
 structure Bound where
@@ -128,7 +134,12 @@ def recoverSource (setName : String) (source : QuerySource model)
       | .ok candidate =>
           let named := candidateIdentity setName candidate.digest
           .produced candidate.digest named.caseId named.fixture
-            ((candidate.produce named production).mapError productionReason) }
+            ((candidate.produce named production).mapError productionReason)
+    propose := fun kept => do
+      let retained ← admitKept source kept
+      let location := Umpire.Command.Promotion.location setName retained.digest "umpire-replay"
+      (Umpire.Command.Promotion.propose retained.admitted retained.plan location).mapError
+        fun error => s!"{repr error.kind}: {error.detail}" }
 
 /-- Bind one functional set: `admit` names one of its Queries. -/
 def Bound.functional (binding : FunctionalBinding model) : Bound :=
@@ -324,17 +335,36 @@ private def unsettledRow (outstanding : Option (Edit × String)) (edit : Edit) :
   jsonObject (editMembers edit ++ [("fate", jsonString fate), ("reason", jsonString ""),
     ("candidate", candidate)])
 
-/-- The result, with every edit of the sweep: each settled edit's fate in the order it was
-settled, then each edit the sweep never settled. -/
+/-- The proposal member: the retained candidate's compiled source with its SHA-256 and path, or
+why it did not compile, or `null` when the result was incomplete and nothing is proposed. -/
+private def proposalMember (retained : String)
+    (proposal : Option (Except String Umpire.Command.Promotion.Proposal)) : String :=
+  match proposal with
+  | none => "null"
+  | some (.ok compiled) => jsonObject [
+      ("digest", jsonString retained),
+      ("promotionSourceSha256", jsonString compiled.sha256),
+      ("promotionSourcePath", jsonString compiled.spec.sourceLocation.path),
+      ("promotionSource", jsonString compiled.bytes)]
+  | some (.error reason) => jsonObject [
+      ("digest", jsonString retained),
+      ("promotionSourceSha256", "null"),
+      ("promotionError", jsonString reason)]
+
+/-- The result, with every edit of the sweep -- each settled edit's fate in the order it was
+settled, then each edit the sweep never settled -- and, for a `minimized` or `irreducible` result,
+the retained candidate's proposal. -/
 def renderFinished (seq : Nat) (setName profile : String) (result : Result) (subject retained : String)
-    (reduction : Reduction) (outstanding : Option (Edit × String)) : String :=
+    (reduction : Reduction) (outstanding : Option (Edit × String))
+    (proposal : Option (Except String Umpire.Command.Promotion.Proposal)) : String :=
   jsonObject (header "finished" seq setName profile ++ [
     ("status", jsonString result.name),
     ("reason", jsonString result.reason),
     ("subject", jsonString subject),
     ("retained", jsonString retained),
     ("edits", jsonArray (reduction.settled.map settledRow ++
-      reduction.pending.map (unsettledRow outstanding)))])
+      reduction.pending.map (unsettledRow outstanding))),
+    ("proposal", proposalMember retained proposal)])
 
 /-! ### The protocol -/
 
@@ -500,8 +530,14 @@ def step (effects : Temporal.Tool.Bridge.Effects) (bound : List Bound) (state : 
         | none, some status => state.reduction.stop status
         | none, none => state.reduction
       let subject := (state.recovered.map (·.digest)).getD ""
-      return .finished (renderFinished seq state.setName state.profile reduction.result subject
-        state.retained reduction state.outstanding)
+      let result := reduction.result
+      -- Only a finished sweep proposes: an incomplete one retained a candidate nobody may review
+      -- as the reduction's answer.
+      let proposal := match result with
+        | .minimized | .irreducible => state.recovered.map (·.propose reduction.kept)
+        | .incomplete _ => none
+      return .finished (renderFinished seq state.setName state.profile result subject
+        state.retained reduction state.outstanding proposal)
 
 /-- The diagnostic prefix every failure outside a frame carries. -/
 def diagnosticPrefix : String := "umpire-replay:"
