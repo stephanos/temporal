@@ -528,6 +528,17 @@ when its candidate was outstanding. Its FYI notes are recorded: `sourceCommand` 
 dropping different occurrences of one action could share a Plan, which no bound Query has; the
 duplicated digest helpers predate this change.
 
+Implementation review of task .6, round one: NEEDS_WORK with seven findings, all applied. Each
+Run of a candidate is dispatched on its own through `RerunOnce`, after the stop and every limit
+that bounds a Run (wall time, Run budget, aggregate Run Events) are checked, so a stop between the
+two Runs dispatches nothing more and names the candidate lost rather than failed, and every Run
+that closed is counted, one closed before a release failure included (`rerunOnce` returns it
+beside the error); only a pair that is itself indeterminate is retried, so a not-reproduced Run
+beside an indeterminate one decides the pair without a retry, which is the pair rule's reading of
+"two conclusive Runs"; a sweep the bridge capped is recorded as ending at the edit cap; the state
+enum is gone; the two clients share one generic `campaign.ExchangeJSON`; the scripted binder fails
+a bind on a stopped context, as the real one does.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven

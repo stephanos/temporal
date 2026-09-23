@@ -32,7 +32,7 @@ func replayBridgeExecutable(t *testing.T) (executable, modelRoot string) {
 // subject whose identity is not the fixture's is crossed.
 func TestLiveReplayBridgeAdmitsTheControlByItsBytes(t *testing.T) {
 	executable, modelRoot := replayBridgeExecutable(t)
-	fixture, err := os.ReadFile(filepath.Join("..", "..", "..", controlCasePath[len("../../../"):]))
+	fixture, err := os.ReadFile(controlCasePath)
 	require.NoError(t, err)
 	canonical, err := casefile.Canonical(fixture)
 	require.NoError(t, err)
@@ -48,6 +48,7 @@ func TestLiveReplayBridgeAdmitsTheControlByItsBytes(t *testing.T) {
 	admitted, err := bridge.Admit(t.Context(), "nexusCallerControl", "live-replay", Named{Query: "forgedCompletion"}, identity)
 	require.NoError(t, err, "stderr: %s", stderr.String())
 	require.Equal(t, source.GetCaseId(), admitted.CaseID)
+	require.Len(t, admitted.Edits, 1)
 	require.Equal(t, []Edit{{Edit: "dropPrefixStep 0", Index: 0, Action: admitted.Edits[0].Action}}, admitted.Edits)
 	next, err := bridge.Next(t.Context())
 	require.NoError(t, err)

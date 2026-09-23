@@ -105,10 +105,12 @@ func rerunOnce(ctx context.Context, binder campaign.Binder, target Target) (Atte
 			target.Driver.Profile, target.Driver.Catalog, target.Driver.Bindings), releaseErr)
 	}
 	run, verdict, runErr := bound.Run(ctx)
-	if err := release(); err != nil {
-		return Attempt{}, fmt.Errorf("release: %w", err)
-	}
 	attempt := Attempt{Run: run, Verdict: verdict, Identity: identity}
+	if err := release(); err != nil {
+		// The Run closed and is returned beside the error, so it is counted; it is not classed,
+		// since the next attempt would not be isolated from what the binding still holds.
+		return attempt, fmt.Errorf("release: %w", err)
+	}
 	if runErr != nil {
 		attempt.Class, attempt.Detail = ClassIndeterminate, "the Run did not close: "+runErr.Error()
 		return attempt, nil
