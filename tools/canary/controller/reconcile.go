@@ -54,14 +54,22 @@ type Report struct {
 	Invocation string          `json:"invocation,omitempty"`
 	Lease      *recovery.Lease `json:"lease,omitempty"`
 	Fenced     []string        `json:"fenced"`
-	Closed     []string        `json:"closed"`
-	Unverified []string        `json:"unverified"`
+	// Closed are the fenced workflows verified closed; Terminated are those reconcile closed.
+	Closed     []string `json:"closed"`
+	Terminated []string `json:"terminated"`
+	Unverified []string `json:"unverified"`
 	// Lost are the iterations the job's own record shows opened and never published.
 	Lost []string `json:"lost"`
 	// PublicationUnknown are a found lease's fenced Runs, whose publication belongs to the earlier
-	// invocation's artifact.
+	// invocation's artifact, which FoundArtifact names when the lease's start says whose it was.
 	PublicationUnknown []string `json:"publicationUnknown"`
+	FoundInvocation    string   `json:"foundInvocation,omitempty"`
+	FoundArtifact      string   `json:"foundArtifact,omitempty"`
 }
+
+// ArtifactPrefix begins the name the workflow uploads an invocation's output under, its
+// invocation ID after it.
+const ArtifactPrefix = "umpire-production-canary-"
 
 // Reconcile acts only on the (lease ID, run ID) its job's recovery record names. It never
 // prepares, dispatches, assesses, or writes a receipt or provenance: it verifies or terminates
@@ -69,7 +77,7 @@ type Report struct {
 // lease held and reports the scope uncertain. It returns the report and the exit: 0 reconciled or
 // nothing to reconcile, 2 uncertain or the lease in use, 3 a tooling failure.
 func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int) {
-	report := Report{Fenced: []string{}, Closed: []string{}, Unverified: []string{}, Lost: []string{}, PublicationUnknown: []string{}}
+	report := Report{Fenced: []string{}, Closed: []string{}, Terminated: []string{}, Unverified: []string{}, Lost: []string{}, PublicationUnknown: []string{}}
 	redactor := authority.NewRedactor()
 	done := func(status string, code int, detail string) (Report, int) {
 		report.Status, report.Detail = status, truncate(redactor.Redact(detail))
@@ -86,6 +94,13 @@ func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int)
 	if record.Lease == nil {
 		return done(StatusNothingToReconcile, ExitAccepted,
 			"the job's record names no lease; one may be held, and the next dispatch finds and refuses it until it is reconciled")
+	}
+	// The record is this job's: a fresh runner's temporary directory holds no other, and one that
+	// names another invocation is refused rather than acted on.
+	runID, _ := reconciliation.Lookup(preflight.VariableRunID)
+	attempt, _ := reconciliation.Lookup(preflight.VariableRunAttempt)
+	if record.InvocationID != runID+"-"+attempt {
+		return done(StatusRecoveryUnreadable, ExitFailed, "the recovery record is not this job's invocation's")
 	}
 	canary, _, err := reconciliation.Seams.Policy()
 	if err != nil {
@@ -123,7 +138,7 @@ func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int)
 	ctx, cancel := context.WithTimeout(ctx, reconcileTimeout)
 	defer cancel()
 	r := reconciler{
-		target: Target{Service: service, Namespace: loaded.Coordinates.Namespace, Identity: "umpire-canary reconcile " + record.InvocationID},
+		target: Target{Service: service, Namespace: loaded.Coordinates.Namespace, Identity: identityPrefix + record.InvocationID},
 		policy: canary, record: record, report: &report, wait: wait, now: reconciliation.Now,
 		logf: func(format string, arguments ...any) { _, _ = fmt.Fprintf(progress, format+"\n", arguments...) },
 	}
@@ -179,9 +194,18 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
 	}
 	r.report.Fenced = nonNil(fenced)
-	r.lostOrUnknown(fenced)
+	if err := r.lostOrUnknown(ctx, fence, fenced); err != nil {
+		return StatusReconcileUncertain, ExitUncertain, err.Error()
+	}
+	// One RPC's timeout is the canary Profile's instruction default, as the run's cleanup reads it.
+	defaults := casebinding.ProfileSpec(r.policy, nil, testpilotdriver.Environment{}).InstructionDefaults
+	pause := time.Duration(defaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
 	for _, id := range fenced {
-		if r.close(ctx, id) {
+		closed, terminated := r.close(ctx, id, pause)
+		if terminated {
+			r.report.Terminated = append(r.report.Terminated, id)
+		}
+		if closed {
 			r.report.Closed = append(r.report.Closed, id)
 		} else {
 			r.report.Unverified = append(r.report.Unverified, id)
@@ -198,36 +222,48 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 	return StatusReconciled, ExitAccepted, ""
 }
 
-// lostOrUnknown reports the job's iterations: on its own lease, those its record shows unpublished
-// are lost; on a found lease, the fenced Runs' publication is the earlier invocation's to show.
-func (r *reconciler) lostOrUnknown(fenced []string) {
+// lostOrUnknown reports the job's iterations: on its own lease, those its record shows opened and
+// unpublished are lost, unless its run finished publishing, when an unpublished one was
+// unconstructible and had no receipt to lose; on a found lease, the fenced Runs' publication is the
+// earlier invocation's to show, in the artifact its lease's start names.
+func (r *reconciler) lostOrUnknown(ctx context.Context, fence Fence, fenced []string) error {
 	if r.record.Lease.Held == recovery.HeldFound {
 		r.report.PublicationUnknown = nonNil(fenced)
-		return
+		invocation, err := leaseInvocation(ctx, r.target, fence)
+		if err != nil {
+			return err
+		}
+		if invocation != "" {
+			r.report.FoundInvocation, r.report.FoundArtifact = invocation, ArtifactPrefix+invocation
+		}
+		return nil
+	}
+	if r.record.Phase == recovery.PhaseFinished {
+		return nil
 	}
 	for _, iteration := range r.record.Iterations {
 		if !iteration.Published {
 			r.report.Lost = append(r.report.Lost, iteration.RunID)
 		}
 	}
+	return nil
 }
 
-// close verifies one fenced workflow closed, terminating it first when it is open.
-func (r *reconciler) close(ctx context.Context, id string) bool {
-	// One RPC's timeout is the canary Profile's instruction default, as the run's cleanup reads it.
-	defaults := casebinding.ProfileSpec(r.policy, nil, testpilotdriver.Environment{}).InstructionDefaults
-	pause := time.Duration(defaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
+// close verifies one fenced workflow closed, terminating it first when it is open, and says
+// whether it is closed and whether reconcile terminated it.
+func (r *reconciler) close(ctx context.Context, id string, pause time.Duration) (closed, terminated bool) {
 	closed, err := workflowClosed(ctx, r.target, id, pause, r.wait)
 	if err == nil && !closed {
 		if err = terminate(ctx, r.target, &commonpb.WorkflowExecution{WorkflowId: id}, ReasonReconciled); err == nil {
+			terminated = true
 			closed, err = workflowClosed(ctx, r.target, id, pause, r.wait)
 		}
 	}
 	if err != nil {
 		r.logf("fenced workflow %s: %s", id, err)
-		return false
+		return false, terminated
 	}
-	return closed
+	return closed, terminated
 }
 
 // release records the scope reconciled: the lease run terminated with the reconciled reason when

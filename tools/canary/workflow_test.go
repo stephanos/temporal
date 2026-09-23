@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/canary/authority"
+	"go.temporal.io/server/tools/canary/controller"
 	"go.temporal.io/server/tools/canary/policy"
 	"gopkg.in/yaml.v3"
 )
@@ -103,6 +104,8 @@ func TestTheProductionCanaryWorkflowIsManualAndProtected(t *testing.T) {
 			uploads++
 			require.Equal(t, "always()", step.If)
 			require.Equal(t, "canary-output/", step.With["path"])
+			require.Equal(t, controller.ArtifactPrefix+"${{ github.run_id }}-${{ github.run_attempt }}", step.With["name"],
+				"the artifact is named by the invocation, as reconcile points at it")
 		case step.Run != "":
 			require.Equal(t, "make canary-build", step.Run, "the only other command builds the untagged binary")
 		default:
@@ -114,7 +117,9 @@ func TestTheProductionCanaryWorkflowIsManualAndProtected(t *testing.T) {
 
 func requireOnlyTheClosedFlags(t *testing.T, command, mode string) {
 	t.Helper()
-	line := strings.TrimSpace(command[strings.Index(command, "./.build/umpire-canary "+mode):])
+	start := strings.Index(command, "./.build/umpire-canary "+mode)
+	require.NotEqual(t, -1, start, "the step runs the binary make canary-build builds")
+	line := strings.TrimSpace(command[start:])
 	line = strings.SplitN(line, " >", 2)[0]
 	require.Equal(t, "./.build/umpire-canary "+mode+` --output canary-output --recovery "$RUNNER_TEMP/umpire-canary-recovery.json"`, line)
 	require.NotContains(t, command, "canary_harness", "the workflow never builds or runs the harness")

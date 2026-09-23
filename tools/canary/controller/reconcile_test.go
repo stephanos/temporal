@@ -44,7 +44,9 @@ func (f *reconcileFixture) record(t *testing.T, lease *recovery.Lease, iteration
 // closed.
 func (f *reconcileFixture) took(t *testing.T, open map[string]bool, runs ...string) Fence {
 	t.Helper()
-	fence, err := takeLease(t.Context(), target(f.server), f.policy.Lease, time.Hour, "request")
+	// The lease is started as an earlier invocation's, whose identity its start carries.
+	earlier := Target{Service: f.server, Namespace: testNamespace, Identity: identityPrefix + "7654321-2"}
+	fence, err := takeLease(t.Context(), earlier, f.policy.Lease, time.Hour, "request")
 	require.NoError(t, err)
 	for _, id := range runs {
 		require.NoError(t, signalRunOpened(t.Context(), target(f.server), fence, id))
@@ -115,6 +117,7 @@ func TestReconcileClosesTheJobsOwnLease(t *testing.T) {
 	require.Equal(t, []string{runID(1), runID(2)}, report.Closed)
 	require.Empty(t, report.Unverified)
 	require.Equal(t, []string{runID(2)}, report.Lost, "the unpublished iteration is lost, with no receipt")
+	require.Equal(t, []string{runID(2)}, report.Terminated, "only the open fenced workflow is terminated")
 	require.Empty(t, report.PublicationUnknown)
 	require.Contains(t, f.server.calls, "terminate "+runID(2))
 	require.NotContains(t, f.server.calls, "terminate "+runID(1), "a closed fenced workflow is only verified")
@@ -123,6 +126,26 @@ func TestReconcileClosesTheJobsOwnLease(t *testing.T) {
 	entries, err := os.ReadDir(f.output)
 	require.NoError(t, err)
 	require.Empty(t, entries, "reconcile writes no receipt or provenance")
+}
+
+// A run that finished publishing lost nothing: an iteration its record shows unpublished was
+// unconstructible, and had no receipt.
+func TestReconcileAfterAFinishedRunLosesNothing(t *testing.T) {
+	f := newReconcileFixture(t)
+	fence := f.took(t, nil, runID(1))
+	require.NoError(t, terminate(t.Context(), target(f.server), &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID}, ReasonReleased))
+	finished, err := recovery.Create(f.recovery, "1234567-1")
+	require.NoError(t, err)
+	require.NoError(t, finished.Update(func(record *recovery.Record) {
+		record.Phase = recovery.PhaseFinished
+		record.Lease = &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}
+		record.Iterations = []recovery.Iteration{{RunID: runID(1)}}
+	}))
+	report, code := f.reconcile(t, f.seams())
+	require.Equal(t, ExitAccepted, code, "%+v", report)
+	require.Equal(t, StatusReconciled, report.Status)
+	require.Empty(t, report.Lost)
+	require.Empty(t, report.Terminated)
 }
 
 // A lease its job found open is left alone while it is younger than an invocation can be, and
@@ -144,6 +167,8 @@ func TestReconcileGuardsAFoundLeaseByItsAge(t *testing.T) {
 	require.Equal(t, ExitAccepted, code, "%+v", report)
 	require.Equal(t, StatusReconciled, report.Status)
 	require.Equal(t, []string{runID(1)}, report.PublicationUnknown)
+	require.Equal(t, "7654321-2", report.FoundInvocation, "the earlier invocation, read from its lease's start")
+	require.Equal(t, ArtifactPrefix+"7654321-2", report.FoundArtifact)
 	require.Empty(t, report.Lost)
 	require.Equal(t, LeaseReleased, f.leaseState(t).State)
 }
@@ -230,6 +255,15 @@ func TestReconcileRefusesAnotherScope(t *testing.T) {
 		report, code := f.reconcile(t, f.seams())
 		require.Equal(t, ExitFailed, code)
 		require.Equal(t, StatusRecoveryUnreadable, report.Status)
+	})
+	t.Run("another invocation's record", func(t *testing.T) {
+		f := newReconcileFixture(t)
+		f.record(t, &recovery.Lease{WorkflowID: f.policy.Lease.WorkflowID, RunID: "run", Held: recovery.HeldTook})
+		f.env[preflight.VariableRunAttempt] = "2"
+		report, code := f.reconcile(t, f.seams())
+		require.Equal(t, ExitFailed, code)
+		require.Equal(t, StatusRecoveryUnreadable, report.Status)
+		require.Empty(t, f.server.calls)
 	})
 	t.Run("a record readable by others", func(t *testing.T) {
 		f := newReconcileFixture(t)

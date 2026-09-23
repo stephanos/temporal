@@ -199,7 +199,7 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 
 	config := Config{
 		Policy: canary, Scope: scope, Namespace: loaded.Coordinates.Namespace, Transport: loaded.Transport,
-		Redactor: redactor, Service: service, Identity: "umpire-canary " + scope.InvocationID, Dial: dial,
+		Redactor: redactor, Service: service, Identity: identityPrefix + scope.InvocationID, Dial: dial,
 		Decide: func(run *testpilotspb.Run, _ *testpilotspb.Verdict) Outcome {
 			return decide(canary, profile, scope, run)
 		},
