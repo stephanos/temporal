@@ -197,12 +197,14 @@ Dynamic-config declarations -+
                                       Result
                                         |
                                         v
-                                  replay bundle
+                          recorded Run (replay subject)
 ```
 
 The current bounded path now continues from deterministic `Plan` inspection through one
-local caller-closure execution and checked Run Evaluation. Replay, promotion, other profiles, and
-non-local Observation Evaluation remain separate implementations. The decomposition is an internal
+local caller-closure execution and checked Run Evaluation. Replay is fn-22's: a violated Run is
+recorded beside its canonical Case and replayed, rerun and reduced by `umpire-replay run`, whose
+proposal is review-only. Other profiles and non-local Observation Evaluation remain separate
+implementations. The decomposition is an internal
 and artifact-level boundary, not a requirement to ship many unrelated binaries.
 
 ## 2. Artifact contracts
@@ -221,7 +223,7 @@ These artifacts are the seams between components:
 | Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | The v2 Lean model contract remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Semantic evidence | Lean-defined interpretation of raw facts | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
-| Replay bundle | Plan, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
+| Replay bundle | Retired | Superseded by fn-22: a replay's subject is a canonical Case and a Run recorded with its Profile identity (`umpire-run --record`, `umpire-fuzz --record-root`), replayed by `umpire-replay run`; no bundle format exists. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlanResult` results, not a verification receipt. |
 

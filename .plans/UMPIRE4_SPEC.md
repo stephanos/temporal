@@ -654,6 +654,21 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   regression source under fresh names keyed by the candidate's digest (`Umpire.Exploration.Promotion`);
   the summary carries the source's digest and bytes, the same for the same counterexample every
   run, and nothing installs it.
+- **Replay (`Umpire.Replay`, `tools/umpire/replay`).** *Amendment (drafted by fn-22; awaiting
+  GOV-02 approval.)* Taking one violated Run of one produced Case -- its subject -- back through
+  three classes of replay, reported apart. *Semantic replay* re-evaluates the recorded Run through
+  the same prepared Contract offline and must reproduce the recorded Verdict before anything else
+  runs. *Concrete rerun* prepares the same canonical Case under the exact recorded Profile identity
+  and runs it fresh; two reruns, each classed `reproduced`, `not-reproduced` or `indeterminate`,
+  decide the subject by precedence. *SDK history replay* is diagnostic only and proves nothing. A
+  violation is compared by its *key* -- the violated rules, the terminal state each reached and
+  its violating evidence, all in Definition IDs -- never by the Case's identity (the SHA-256 of
+  its canonical bytes), which is reported beside it. A reproduced subject's Query is reduced in
+  one sweep of `dropPrefixStep` edits, each re-admitted by the Model before any Case is produced
+  and each retained only when two fresh Runs reproduce the key; the sweep ends `minimized`,
+  `irreducible` or `incomplete`, and only a finished sweep compiles the retained candidate's
+  review-only proposal through `Umpire.Promotion`. A negative control whose one claim the platform
+  contradicts proves the mechanism, and its proposal is never reviewed into a Regression.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of Exploration Limits.
 - **Promotion (`Umpire.Promotion`).** Re-answering a Query against the Behavior Model using exactly
@@ -678,6 +693,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **EXP-05 — Reviewed promotion.** Before human review for promotion to a permanent Lean Regression,
   a discovered failure MUST be reproduced at runtime, minimized in model terms, and re-answered
   against the Behavior Model through `Umpire.Promotion` using its exact referenced identities.
+  *Amendment (drafted by fn-22; awaiting GOV-02 approval.)* Reproduced means the subject's
+  recorded Verdict replays offline and two fresh Runs under its recorded Profile identity reproduce
+  its Contract-relative key; minimized means one bounded sweep of Model-admitted prefix edits in
+  which every retained edit reproduced the key twice. A Run lost to a stop, a limit, or an
+  undecided edit leaves the reduction incomplete and proposes nothing.
 
 ## Verification, CLI, and claims
 
