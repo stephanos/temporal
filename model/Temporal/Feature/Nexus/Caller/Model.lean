@@ -703,8 +703,9 @@ case nexusCallerCases
   realizes nexusCallerTests
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
-/- The canary's Cases are produced under the same realization and registered nowhere: the block
-reads each for a white-box gap and admits the set when there is none. -/
+/- The canary's Cases are produced under the same realization: the block reads each for a white-box
+gap, admits the set when there is none, and registers each apart from the functional fixtures, for
+the production canary that pins `syncCompletion`. -/
 case nexusCallerCanaryCases
   realizes nexusCallerCanary
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")

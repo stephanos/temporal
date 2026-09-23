@@ -13,9 +13,9 @@ A Model file's last block, and the one part of the command surface Temporal owns
 whose Queries it realizes and the realization that runs them, and, for a machine that declares no
 `evidence:` catalog, the recorded history event that confirms each Action the set's Queries select.
 The commands it sits beside are `Umpire.Command`'s. A functional set's Cases are registered for the
-renderer; a canary set's are produced the same way and registered nowhere, because what admits a
-canary is that a deployment can close every gap its Cases carry, which only the produced Case
-says. An exploratory set has no Queries to produce Cases for at elaboration: its block emits what
+renderer; a canary set's are produced the same way and, once admitted, registered apart, for the
+canary that pins them and never as a functional fixture, because what admits a canary is that a
+deployment can close every gap its Cases carry, which only the produced Case says. An exploratory set has no Queries to produce Cases for at elaboration: its block emits what
 the exploration bridge produces each candidate's Case with -- the realization and the machine's
 claims, evidence catalog and field relations -- and registers nothing.
 
@@ -289,9 +289,10 @@ elab "case" name:ident
         Umpire.Command.produceCase $(mkIdent queryName) $identityName $realizationName
           $evidenceName (claims := $claimsName) (evidenceCatalog := $catalogName)
           (relations := $relationsName)))
-    -- A canary's Case is produced to be read, not rendered: a white-box gap on it is a step a
-    -- deployment cannot close, and the block rejects naming the Query and the gap. A functional
-    -- set's Case is registered for the renderer instead.
+    -- A canary's Case is read before it is registered: a white-box gap on it is a step a
+    -- deployment cannot close, and the block rejects naming the Query and the gap; an admitted one
+    -- is registered apart, rendered only on request. A functional set's Case is registered for the
+    -- renderer.
     if canary then
       let gapsName := mkIdentFrom name (caseName.getId ++ `whiteBoxGaps)
       elabCommand (← `(command|
@@ -301,6 +302,8 @@ elab "case" name:ident
         if kind == "production" then
           throwErrorAt setRef (canaryProductionMessage queryName.toString code)
         throwErrorAt setRef (whiteBoxGapMessage queryName.toString kind code)
+      liftCoreM (Registry.recordCanary {
+        declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
     else
       liftCoreM (Registry.recordCase {
         declName := (← getCurrNamespace) ++ caseName.getId, caseId, fixture := fixtureName })
