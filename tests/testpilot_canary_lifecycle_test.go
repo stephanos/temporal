@@ -79,6 +79,7 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
 	recordedOnce := false
+	var recordErr error
 	var progress bytes.Buffer
 	result, err := controller.Run(runCtx, controller.Config{
 		Policy: canary, Scope: scope, Namespace: coordinates.Namespace,
@@ -88,11 +89,18 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 		Decide: func(run *testpilotpb.Run, _ *testpilotpb.Verdict) controller.Outcome {
 			// The first Run's record is the admission tests' fixture when UMPIRE_CANARY_RECORD names
 			// the file to write; a test cluster's Run is the only one ever written.
+			// A failure is kept for after the Run, since failing the test inside the controller would
+			// skip its cleanup.
 			if path := os.Getenv("UMPIRE_CANARY_RECORD"); path != "" && !recordedOnce {
 				recordedOnce = true
 				encoded, err := recordedrun.Encode(canary.CaseIdentity, scope.Prepared.Identity(), run)
-				require.NoError(t, err)
-				require.NoError(t, os.WriteFile(path, encoded, 0o644))
+				if err == nil {
+					err = os.WriteFile(path, encoded, 0o644)
+				}
+				if err != nil {
+					recordErr = err
+					return controller.Outcome{Status: controller.StatusUnconstructible, Err: err}
+				}
 			}
 			subject, err := assessment.Admit(canary, scope.Prepared.Identity(), run)
 			if err != nil {
@@ -104,6 +112,7 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 		Recovery: store, Progress: &progress, Started: time.Now(),
 	})
 	require.NoError(t, err)
+	require.NoError(t, recordErr)
 	require.False(t, result.Unreconciled)
 	require.Len(t, result.Iterations, canary.Limits.Iterations, "progress: %s", progress.String())
 	var runIDs []string
