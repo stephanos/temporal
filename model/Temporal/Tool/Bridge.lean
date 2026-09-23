@@ -11,7 +11,7 @@ object that is not a well-formed frame, or carries a key its kind does not admit
 reject under the sequence number it carries; a frame whose sequence number is not the next one is
 rejected as a duplicate or out of order before anything else reads it; a frame naming another
 Profile than the one the session opened under is crossed; a line longer than the bridge admits is
-rejected unread. What each bridge does with an accepted frame is its own.
+rejected unparsed, measured without its line feed. What each bridge does with an accepted frame is its own.
 -/
 
 namespace Temporal.Tool.Bridge
@@ -128,7 +128,8 @@ inductive Outcome (State : Type) where
 call and leaves the state as it was. -/
 structure Protocol (State Frame : Type) where
   diagnosticPrefix : String
-  /-- The longest line the bridge reads, in bytes; a longer one is rejected unread. -/
+  /-- The longest line the bridge parses, in bytes without its line feed; a longer one is
+  rejected unparsed. -/
   maxLineBytes : Option Nat := none
   parse : String → Except String (Except (Nat × String) Frame)
   seqOf : Frame → Nat
@@ -145,10 +146,11 @@ partial def serve {State Frame : Type} (effects : Effects) (protocol : Protocol 
         effects.writeError s!"{protocol.diagnosticPrefix} stdin closed before `finish`\n"
         pure 1
     | some line =>
+        let measured := line.utf8ByteSize - (if line.endsWith "\n" then 1 else 0)
         if line.all Char.isWhitespace then loop state
-        else if protocol.maxLineBytes.any (line.utf8ByteSize > ·) then
+        else if protocol.maxLineBytes.any (measured > ·) then
           effects.writeFrame (renderRejected 0
-            s!"oversized frame: {line.utf8ByteSize} bytes exceeds {protocol.maxLineBytes.getD 0}")
+            s!"oversized frame: {measured} bytes exceeds {protocol.maxLineBytes.getD 0}")
           loop state
         else match protocol.parse line with
           | .error reason =>

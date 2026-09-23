@@ -516,6 +516,18 @@ rule's "its indeterminate Run alone" names a Run, not a pair. The report carries
 same classes render the same bytes. The Go SHA-256 of the control fixture's canonical bytes is
 proved to be the identity the Lean bridge admits.
 
+Implementation review of task .5, round one: SHIP, with one P2 and three P3 notes applied as
+polish. The campaign's planning of a target is one function, `Campaign.planTarget`, which the
+campaign and the replay bridge both call (`queryKeyFor` is private again), and the exploration
+subject's identity in the bridge tests is the SHA-256 of the Case `umpire-explore` hands out for
+its first candidate, so admission compares the two bridges; a candidate is one named structure;
+an oversized line is measured without its line feed and rejected unparsed; `finished` lists every
+edit of the sweep, an edit never settled as `not-tried`, or `unsettled` with its candidate's digest
+when its candidate was outstanding. Its FYI notes are recorded: `sourceCommand` repeats
+`checkTerm`'s default form (the fixture-byte comparison guards the two from drifting); two edits
+dropping different occurrences of one action could share a Plan, which no bound Query has; the
+duplicated digest helpers predate this change.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
