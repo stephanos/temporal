@@ -391,3 +391,10 @@ policy source, a transport source, a phase hook that is nil in the untagged buil
 harness build fills. `decide` returns the iteration's outcome (status, receipt bytes, error),
 which .4 keeps per iteration. The FYIs are taken: the invocation deadline runs from `run`'s start,
 and the canary's CI checks run in a job of their own with a 30-minute timeout.
+
+Round cap (2026-09-23): the eighth round reached flowctl's cap of eight plan-review rounds. Every
+round's findings were real and applied, and they narrowed (twelve findings in round one, five in
+round eight, one blocking issue in each of the last four). Several rounds changed the plan's core
+contracts -- fencing through a wrapping Driver, the lease as the server-side guard, the harness
+as a separate build, the hand-authored Driver Profile -- which is re-planning, so the counter was
+reset with `flowctl spec reset-review-rounds` and review continued from round nine.
