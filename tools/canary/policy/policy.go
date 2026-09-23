@@ -214,7 +214,8 @@ func (p *Policy) validate() error {
 	if !strings.HasPrefix(p.TrustedRef, "refs/heads/") || p.TrustedRef == "refs/heads/" {
 		return fmt.Errorf("trustedRef %q is not a branch ref", p.TrustedRef)
 	}
-	if !strings.HasPrefix(p.WorkflowPath, ".github/workflows/") || !strings.HasSuffix(p.WorkflowPath, ".yml") {
+	if file, ok := strings.CutPrefix(p.WorkflowPath, ".github/workflows/"); !ok || !strings.HasSuffix(file, ".yml") ||
+		file == ".yml" || strings.Contains(file, "/") {
 		return fmt.Errorf("workflowPath %q is not a workflow file", p.WorkflowPath)
 	}
 	return p.Limits.Validate()

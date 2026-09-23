@@ -158,7 +158,7 @@ func workflowContext(canary *policy.Policy, lookup authority.Lookup) (string, er
 	var parts [2]string
 	for index, variable := range []string{VariableRunID, VariableRunAttempt} {
 		value, _ := lookup(variable)
-		if number, err := strconv.ParseUint(value, 10, 64); err != nil || number == 0 {
+		if number, err := strconv.ParseUint(value, 10, 64); err != nil || number == 0 || strconv.FormatUint(number, 10) != value {
 			return "", fmt.Errorf("%s is %q, not a positive number", variable, value)
 		}
 		parts[index] = value

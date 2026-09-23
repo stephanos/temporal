@@ -123,6 +123,9 @@ func TestCheckRefusesEachMismatchByName(t *testing.T) {
 		"no run ID": {StatusWorkflowContext, func(_ *policy.Policy, e map[string]string, _ *authority.Coordinates, _ *namespaces) {
 			delete(e, VariableRunID)
 		}, false},
+		"a padded run ID": {StatusWorkflowContext, func(_ *policy.Policy, e map[string]string, _ *authority.Coordinates, _ *namespaces) {
+			e[VariableRunID] = "01234567"
+		}, false},
 		"a run attempt of zero": {StatusWorkflowContext, func(_ *policy.Policy, e map[string]string, _ *authority.Coordinates, _ *namespaces) {
 			e[VariableRunAttempt] = "0"
 		}, false},
