@@ -140,8 +140,13 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   iteration is rejected or incomplete, 0 when every iteration's receipt is accepted. `reconcile`
   exits 0 when the scope is closed and the lease released, or with status `nothing-to-reconcile`
   when its job wrote no recovery file (preflight refused before any lease); 2 when it is uncertain
-  or `lease-in-use`; 3 for a tooling failure. The untagged build requires a credential (a TLS pair
-  or an API key); plaintext transport exists only in the harness build. Each writes one bounded JSON summary on stdout.
+  or `lease-in-use`; 3 for a tooling failure; a recovery file that records no lease (the process died between
+  starting the lease and recording it) is also `nothing-to-reconcile`, reported as a lease that may
+  be held, which the next dispatch's `found` path recovers. A publication conflict is a `run`
+  exit 3 (`publication-conflict`). The controller takes its transport as a value; the untagged
+  binary's only transport source is `authority`, which requires a credential (a TLS pair or an
+  API key), and a test that needs plaintext passes it directly, as the harness build's source
+  does. Each writes one bounded JSON summary on stdout.
 - **The harness is a separate build.** A `canary_harness` build tag compiles a policy and hook
   provider into a harness binary only: it reads a test policy (the test cluster's digests, the
   `canary-harness` Evaluation Profile, which Lean declares beside `production-canary` but renders
@@ -337,3 +342,14 @@ Case), recorded Runs stay in memory, `cli` keeps aliases for every publisher typ
 callers use, the policy sets no per-Run limit (the Temporal Profile bounds a Run) and rejects a
 lease timeout no longer than an invocation, and reconcile reads a not-found workflow twice before
 counting it never started. `umpire-check-regression`'s Go test line gains `./tools/canary/...`.
+
+Round six (2026-09-23): NEEDS_WORK with one P1, three P2 and two P3 findings, all applied. The
+controller takes its transport as a value, so the untagged binary's only transport source is
+`authority`, which requires a credential, while the in-process lifecycle test passes plaintext
+directly; `build_test.go` pins that no untagged, non-test package builds a plaintext transport
+(P1). .4's Run bound is the Temporal Profile's; the harness source's refusals are compiled and run
+by a `canary_harness`-tagged test line and a live case with a production-naming policy; .12 edits
+the CI workflow and its regression test so CI runs the canary's unit tests and checks, the new path
+appended to the pinned command. .2 updates the comments that said canary Cases are registered
+nowhere; reconcile's status for a recovery file with no lease, and a publication conflict's place
+in `run`'s precedence, are named; the authority-class set is defined once, in the policy package.
