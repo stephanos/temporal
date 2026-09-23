@@ -591,13 +591,15 @@ private def resolveEvidence
 A Case that lifted only its witness's evidence could not see the platform take another result of
 a row: the event it records would be one the Program never reads, the obligation would stay
 pending, and the Run would end inconclusive rather than violated. So every result of a witnessed
-(state, action) pair declares its evidence too, each kind projected to the result whose fact
-records it, and the witness's step stays the one the Contract confirms. A kind the witness's step
-or another result of the same row already declares is projected once, to every result that records
-it; a kind two different rows would record is rejected by name, because the projection could not
-say which row an event of that kind confirms. An alternative confirms the silent steps before its
-row the way the witness's own step does: they are inferred from whichever result's evidence
-arrives. A Model whose every row has one result adds nothing here. -/
+(state, action) pair declares its evidence too, one kind per result, projected to the result whose
+fact records it, and the witness's step stays the one the Contract confirms. A result declares the
+first kind its facts record under the machine's `evidence:` lines, as the witness's step carries
+one kind: a rule is one sequence of rows released by one event, and an obligation cannot apply a
+row twice. A kind any rule already declares, whether the witness's step's, another result of the
+same row's or another row's, is rejected by name with both rows, because one event of that kind
+could not say which result happened; a kind the realization does not admit is rejected too. An
+alternative confirms the silent steps before its row the way the witness's own step does: they are
+inferred from whichever result's evidence arrives. A Model whose every row has one result adds nothing here. -/
 
 /-- The rules the alternatives of the witnessed rows add to `resolved`, in witness order. `results`
 is the machine's own table, `catalog` the `evidence:` lines, `sources` the kinds the realization
@@ -622,23 +624,22 @@ def alternativeRules
     let before := match witnessRule with
       | some rule => rule.2.dropLast
       | none => silent
-    -- The kinds this row is known to record: the witness's, then each alternative's as it is added.
-    let mut rowKinds : List String := (witnessRule.map (·.1.source.eventKind)).toList
     for result in results prior action do
       if result == taken then continue
-      for fact in result.facts do
-        let some (_, kind) := catalog.find? fun entry => coversFact entry.1 fact.value | continue
-        match rules.findIdx? (·.1.source.eventKind == kind), rules.find? (·.1.source.eventKind == kind) with
-        | some index, some (rule : ResolvedRule) =>
-            unless rowKinds.contains kind do
-              throw (productionError source kind "evidence.kind-ambiguous")
-            unless rule.2.contains (action, result) do
-              rules := rules.set index (rule.1, rule.2 ++ [(action, result)])
-        | _, _ =>
-            let some admitted := sources.find? (·.eventKind == kind)
-              | throw (productionError source kind "evidence.kind-unknown")
-            rules := rules ++ [({ action, source := admitted }, before ++ [(action, result)])]
-            rowKinds := rowKinds ++ [kind]
+      let some kind := result.facts.findSome? fun fact =>
+          (catalog.find? fun entry => coversFact entry.1 fact.value).map (·.2)
+        | continue
+      if let some (rule : ResolvedRule) := rules.find? (·.1.source.eventKind == kind) then
+        let held := match rule.2.getLast? with
+          | some (heldAction, heldResult) =>
+              s!"{heldAction.definitionId.value} -> {heldResult.state.definitionId.value}"
+          | none => rule.1.action.definitionId.value
+        throw (productionError source
+          s!"{kind}: {held}, {action.definitionId.value} -> {result.state.definitionId.value}"
+          "evidence.kind-ambiguous")
+      let some admitted := sources.find? (·.eventKind == kind)
+        | throw (productionError source kind "evidence.kind-unknown")
+      rules := rules ++ [({ action, source := admitted }, before ++ [(action, result)])]
     match witnessRule with
     | some _ => silent := []
     | none => silent := silent ++ [(action, taken)]

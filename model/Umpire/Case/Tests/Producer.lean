@@ -151,7 +151,8 @@ private def lampStep (stateName outcomeName : String) (facts : List String) :
     «facts» := facts.map lampFact }
 
 private def bright := lampStep "bright" "changed" ["high"]
-private def stuck := lampStep "stuck" "held" ["low"]
+private def stuck := lampStep "stuck" "held" ["low", "warm"]
+private def broken := lampStep "broken" "held" ["low"]
 private def warmed := lampStep "warm" "warmed" []
 private def dimmed := lampStep "dim" "changed" ["low"]
 
@@ -178,17 +179,28 @@ private def witnessRule : ResolvedRule :=
 
 private def lampSourceLocation : SourceLocation := { path := "lamp.lean" }
 
-private def alternatives (sources : List EvidenceSource)
+/-- The lamp whose `toggle` from `warm` can also end `broken`, recording `low` as `stuck` does. -/
+private def lampResultsShared (prior action : ModelValue) :
+    List (Step ModelValue ModelValue ModelValue) :=
+  if action == lampAction "toggle" && prior == lampState "warm" then [bright, stuck, broken]
+  else lampResults prior action
+
+private def alternativesOf
+    (results : ModelValue → ModelValue → List (Step ModelValue ModelValue ModelValue))
+    (sources : List EvidenceSource)
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
     (resolved : List ResolvedRule) : Except Umpire.Case.Compiler.Error (List ResolvedRule) :=
-  alternativeRules lampSourceLocation sources lampResults lampCatalog (lampState "dim") steps resolved
+  alternativeRules lampSourceLocation sources results lampCatalog (lampState "dim") steps resolved
+
+private def alternatives := alternativesOf lampResults
 
 private def rendered (rules : List ResolvedRule) : List (String × String × List (String × String)) :=
   rules.map fun rule => (rule.1.source.eventKind, rule.1.action.value,
     rule.2.map fun (action, result) => (action.value, result.state.value))
 
 /-! The alternative's kind is declared once more, projected to its own row, after the witness's own
-rule, and it confirms the same silent step before the row. -/
+rule, and it confirms the same silent step before the row. `stuck` records `low` and `warm`, and
+declares the first alone: one kind per result. -/
 #guard (alternatives lampSources witnessSteps [witnessRule]).toOption.map rendered ==
   some [("completed", "toggle", [("warm", "warm"), ("toggle", "bright")]),
         ("failed", "toggle", [("warm", "warm"), ("toggle", "stuck")])]
@@ -199,6 +211,26 @@ rule, and it confirms the same silent step before the row. -/
 private def constructOf : Except Umpire.Case.Compiler.Error (List ResolvedRule) → Option String
   | .error error => some error.construct
   | .ok _ => none
+
+private def subjectOf : Except Umpire.Case.Compiler.Error (List ResolvedRule) → Option String
+  | .error error => some error.sourceDefinitionId
+  | .ok _ => none
+
+/-! Two results of the witnessed row recording one kind reject by name, with both rows: an event
+of that kind could not say whether the lamp stuck or broke. -/
+#guard constructOf (alternativesOf lampResultsShared lampSources witnessSteps [witnessRule]) ==
+  some "evidence.kind-ambiguous"
+#guard subjectOf (alternativesOf lampResultsShared lampSources witnessSteps [witnessRule]) ==
+  some "failed: lamp.action.toggle -> lamp.state.stuck, lamp.action.toggle -> lamp.state.broken"
+
+/-! A kind the witness's own step records, taken by another result of its row, rejects the same
+way: `high` from a second bright result would confirm the witness's row twice. -/
+#guard constructOf (alternativesOf
+    (fun prior action =>
+      if action == lampAction "toggle" && prior == lampState "warm" then
+        [bright, lampStep "glowing" "changed" ["high"]]
+      else lampResults prior action)
+    lampSources witnessSteps [witnessRule]) == some "evidence.kind-ambiguous"
 
 /-! A kind two rows would record rejects by name: when the witness also takes the toggle from
 bright, whose one result records `low`, the `failed` kind would confirm both rows. -/

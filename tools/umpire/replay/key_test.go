@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 )
 
@@ -26,18 +25,10 @@ const (
 // identity's bindings fingerprint is reached again.
 func controlPreparer(t testing.TB) Preparer {
 	t.Helper()
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
-	return func(identity string, source *testpilotspb.Case) (*testpilot.PreparedCase, error) {
-		profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
-			Identity: identity, Namespace: "umpire-control", TaskQueue: "umpire-control-queue",
-			HandlerTaskQueue: "umpire-control-queue-handler", NexusEndpoint: "umpire-control-endpoint",
-		})
-		if err != nil {
-			return nil, err
-		}
-		return testpilot.Prepare(source, profile)
-	}
+	return preparerIn(t, testpilotdriver.Environment{
+		Namespace: "umpire-control", TaskQueue: "umpire-control-queue",
+		HandlerTaskQueue: "umpire-control-queue-handler", NexusEndpoint: "umpire-control-endpoint",
+	})
 }
 
 // The recorded control Run pins the correlated key: it admits under its recorded identity, replays
@@ -59,21 +50,21 @@ func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	require.Equal(t, controlKey, subject.Key.String())
 
 	// The core is the two events the correlated rules read, the scheduled event's lift and the
-	// history read that carries the failed event; the scaffolding around them, from the start
-	// of the workflow to the handler's reply, supports no violated rule and is named by
-	// instruction id.
+	// history read that carries the failed event. Every other instruction event is scaffolding
+	// the core omits: the workflow's start, the wait for the close, and the other events the
+	// same two instructions lifted, named by instruction id.
 	core := EvidenceCore(subject.Verdict)
-	require.Len(t, core, 2)
-	for _, sequence := range core {
-		require.Equal(t, "controller", subject.Run.GetEvents()[sequence-1].GetCoordinates().GetEntrypointId())
-	}
-	outside := OutsideCore(subject.Run, core)
-	require.NotEmpty(t, outside)
-	instructions := map[string]bool{}
-	for _, event := range outside {
+	require.Equal(t, []int64{9, 19}, core)
+	outside := map[int64]string{}
+	for _, event := range OutsideCore(subject.Run, core) {
 		require.NotContains(t, core, event.Sequence)
-		require.NotEmpty(t, event.InstructionID)
-		instructions[event.InstructionID] = true
+		outside[event.Sequence] = event.InstructionID
 	}
-	require.Greater(t, len(instructions), 1, "more than one scaffolding instruction lies outside the core: %v", instructions)
+	require.Equal(t, map[int64]string{
+		3: "start-workflow", 4: "start-workflow",
+		5: "await-scheduled", 8: "await-scheduled",
+		10: "await-close", 11: "await-close",
+		12: "history", 13: "history", 14: "history", 15: "history", 16: "history", 17: "history", 18: "history",
+		20: "history", 21: "history", 22: "history", 23: "history",
+	}, outside)
 }
