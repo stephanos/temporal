@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-08-26T15:31:39.830554Z",
   "depends_on": [
-    "fn-29-bounded-production-canary-execution-and.1"
+    "fn-29-bounded-production-canary-execution-and.1",
+    "fn-29-bounded-production-canary-execution-and.2"
   ],
   "id": "fn-29-bounded-production-canary-execution-and.3",
   "priority": null,
