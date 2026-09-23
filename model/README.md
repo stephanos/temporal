@@ -211,6 +211,12 @@ Two authored examples carry this end to end:
   scheduled event is an earlier step's, so each instance's rule captures its own -- selected by
   the operation name its schedule command assigned -- and matches the completion's reference
   against the retained event's id.
+- [`Temporal/Feature/Nexus/Control/Model.lean`](Temporal/Feature/Nexus/Control/Model.lean) (the
+  negative control, fn-22 .3) keeps the caller Model's real reply rows and adds one row the
+  platform never takes, a non-retryable handler error completing the operation as succeeded; its
+  one Query selects that row, so every Run of `nexusCallerControl-forgedCompletion` is violated
+  and the replay has a subject to record, admit and rerun. It enters no set of the caller Model
+  and no regression view, and nothing reads it as a claim about the platform.
 
 Environment binding stays outside the model. Namespaces, task queues and named Nexus endpoints are
 symbolic in the Program and supplied by the Profile; a semantic relationship that involves one is

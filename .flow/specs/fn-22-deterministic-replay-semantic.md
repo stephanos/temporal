@@ -423,6 +423,29 @@ Round two: SHIP. Its one note, that `PreparedCase` finds its evaluator by an int
 on the Monitor factory where a typed field would make the check static, is recorded and not
 applied: the factory field is the execution package's contract and stays as it is.
 
+Task .2 (2026-09-23): `Umpire.Case.Producer.alternativeRules` walks the witness with its prior
+states and, for every result of a witnessed (state, action) row other than the one taken, declares
+the evidence its facts imply and projects it to that result's own row under the witness's silent
+prefix; a kind two different rows would record is `evidence.kind-ambiguous`, one the realization
+does not admit is `evidence.kind-unknown`. The alternatives' rules feed the Program's evidence
+declarations, the projection and the lifts; the witness's rules alone feed the field relations.
+Every existing Model's rows are deterministic, so every fixture and golden is byte-identical;
+pinned in `Umpire.Case.Tests.Producer` on a lamp whose toggle ends bright or stuck.
+
+Task .3 (2026-09-23): `Temporal.Feature.Nexus.Control` keeps the caller Model's real reply rows
+and adds the forged one, its Query `forgedCompletion` selects it, and the caller realization
+produces `temporal.case.nexusCallerControl.forgedCompletion`, rendered to
+`tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json` by the
+conformance generator; `Control/Tests.lean` pins that the produced Case declares and projects the
+real row's `evidence.failed` before any live Run. Live, the fixture bound without dynamic
+configuration is violated on both Runs in the admissible form, each admits and replays offline to
+its Verdict, and the two share one key:
+`temporal.nexus.control.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.nexus.caller.evidence.failed];…state-succeeded@…`.
+The first Run's record is the replay package's pin (`testdata/nexusCallerControl-forgedCompletion-run.json`,
+`TestControlRecordPinsTheCorrelatedKey`), and `replay.EvidenceCore`/`OutsideCore` name the
+scaffolding outside the violated rules' support by instruction id. The control needed no
+scenario-specific Go and no revision of the plan.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
