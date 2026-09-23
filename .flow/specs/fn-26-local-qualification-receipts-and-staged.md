@@ -272,6 +272,14 @@ the claim, the asserted trust, the lack of self-authentication and the retained 
 live gate passes with 32 identities. Implementation review: SHIP in one round, its two P3 notes
 applied.
 
+Completion review (2026-09-23, `flowctl claude completion-review`, opus at high): SHIP, every
+requirement met. Its two P3 notes applied: the README says whether support is required is the
+Profile's choice and that `local-ephemeral` keeps an unsupported rule `incomplete`; and the one
+tightening rebuilding `ViolatedForm` on `Agreement` made in replay is recorded and pinned -- a
+violated Verdict that still carries a pending or unspecified rule is now `malformed` rather than
+admitted, and a Run with no violated rule is classed by that before its disposition. The spec is
+closed.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
