@@ -256,36 +256,42 @@ private def checkCaller : IO Unit := do
   require ((← stringField "settled" settled "fate") == "rejected") "a rejected preparation is rejected"
   let finished ← frameAt prepared 4 "finished" 5
   require ((← stringField "finished" finished "status") == "irreducible") "a rejected edit retains nothing"
-  -- Stopped early with a candidate outstanding: incomplete.
+  -- Stopped early with a candidate outstanding: incomplete, and every edit is still listed.
   let stopped ← runScript (callerOpening identity ++ [plain "finish" 3 callerSet])
   let finished ← frameAt stopped 2 "finished" 3
   require ((← stringField "finished" finished "status") == "incomplete") "an unsettled candidate is incomplete"
+  require ((← fatesOf "finished" finished "edits") ==
+    [("dropPrefixStep 1", "unsettled"), ("dropPrefixStep 0", "not-tried")]) "every edit's fate, even untried"
+  let unsettled := (← arrayField "finished" finished "edits")[0]!
+  require ((← stringField "edit" unsettled "candidate") == digest) "the outstanding candidate is named"
 
 /-! ### An exploration candidate is irreducible at once -/
 
 private def checkExploration : IO Unit := do
+  -- The subject is the exploration bridge's own first candidate: its target key, and the SHA-256
+  -- of the Case `umpire-explore` hands out for it, so admission compares the two bridges.
   let binding := Temporal.Tool.ExplorationBridge.nexusCallerBinding
-  let keys := binding.set.targets.map Umpire.Exploration.targetKey
-  -- The first target whose Case produces. A longer planned path's outcome clause already holds
-  -- at the schedule step, which the Producer rejects as vacuous, so every candidate the campaign
-  -- can run today is one step long: a shortest path with no prefix at all.
-  let bound := Bound.exploratory binding
-  let mut chosen : Option (String × Recovered) := none
-  for key in keys do
-    if chosen.isNone then
-      if let .ok recovered := bound.recover (.target key) then
-        if recovered.produced.toOption.isSome then chosen := some (key, recovered)
-  let some (key, recovered) := chosen | fail "no exploration target's Case produces"
-  let encoded ← match recovered.produced with
+  let some campaign := (Umpire.Exploration.Campaign.check
+      Temporal.Feature.Nexus.Caller.nexusProtocol binding.set binding.limits).toOption
+    | fail "the caller's exploratory set is not a campaign"
+  let runner := Temporal.Tool.ExplorationBridge.Runner.ofSession binding
+    (Umpire.Exploration.Session.begin campaign)
+  let .candidate view _ _ := runner.next | fail "the exploration campaign hands out no candidate"
+  let key := view.target
+  let encoded ← match view.produced with
     | .ok value =>
         match ← Testpilot.ProtoJSON.canonical value with
         | .ok encoded => pure encoded
         | .error error => fail s!"encoding: {error}"
-    | .error reason => fail s!"production: {reason}"
+    | .error error => fail s!"production: {error.construct}"
+  let some recovered := (Bound.exploratory binding).recover (.target key) |>.toOption
+    | fail s!"the replay bridge does not recover target {key}"
   let captured ← runScript [admitTarget 1 explorationSet key (caseIdentity encoded),
     plain "next" 2 explorationSet, plain "finish" 3 explorationSet]
   let admitted ← frameAt captured 0 "admitted" 1
   let subject ← stringField "admitted" admitted "subject"
+  require ((← stringField "admitted" admitted "caseId") == view.caseId)
+    "the exploration subject is the Case the exploration bridge hands out"
   require ((← stringField "admitted" admitted "caseId") == s!"temporal.case.{explorationSet}.{subject}")
     "an exploration subject is named by its own digest"
   let exhausted ← frameAt captured 1 "exhausted" 2
@@ -316,7 +322,7 @@ private def checkRejections : IO Unit := do
     "{\"frame\":\"next\",\"seq\":3,\"set\":\"nexusCallerTests\",\"edit\":\"dropPrefixStep 0\"}",
     "{\"frame\":\"observe\",\"seq\":3,\"set\":\"nexusCallerTests\",\"candidate\":\"x\",\"profile\":\"p\",\"class\":\"maybe\"}",
     "{\"frame\":\"admit\",\"seq\":3,\"set\":\"s\",\"profile\":\"p\",\"query\":\"q\",\"identity\":\"ABC\"}",
-    String.ofList (List.replicate (maxLineBytes + 1) ' ') ++ "x",
+    String.ofList (List.replicate maxLineBytes ' ') ++ "x",
     plain "finish" 3 callerSet]
   require (captured.status == 0) s!"exited {captured.status}: {captured.errors}"
   requireRejected captured 0 1 "send `admit` first"
