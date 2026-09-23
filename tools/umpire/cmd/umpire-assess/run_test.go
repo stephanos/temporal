@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -193,6 +194,9 @@ func TestAssessNamesEveryFailure(t *testing.T) {
 		cancel()
 		return ctx, cancel
 	}
+	expired := func() (context.Context, context.CancelFunc) {
+		return context.WithDeadline(context.Background(), time.Unix(0, 0))
+	}
 	for name, probe := range map[string]struct {
 		casePath, runPath string
 		env               environment
@@ -204,6 +208,7 @@ func TestAssessNamesEveryFailure(t *testing.T) {
 		"no catalog":         {casePath, runPath, environment{Catalog: func() (string, error) { return "", errors.New("no descriptors") }}, statusCatalogUnavailable, "no descriptors"},
 		"a stale Run":        {casePath, runPath, environment{Catalog: func() (string, error) { return "another-catalog", nil }}, statusRejectedSubject, "catalog"},
 		"interrupted":        {casePath, runPath, environment{Context: cancelled}, statusInterrupted, "interrupted before publishing"},
+		"past its deadline":  {casePath, runPath, environment{Context: expired}, statusInterrupted, "deadline exceeded"},
 		"a Run of another Case": {casePath, func() string {
 			_, other := subjectFiles(t, func(source *testpilotspb.Case) { source.CaseId = "temporal.case.other" }, nil)
 			return other
@@ -309,4 +314,35 @@ func TestAssessNamesAPublicationItCouldNotReport(t *testing.T) {
 	require.Equal(t, cli.StatusPublished, result.Publication)
 	_, err := os.Stat(result.Path)
 	require.NoError(t, err, "the receipt stands")
+}
+
+// The failures no real subject or root produces are reached through the self-check and the
+// publisher: a rendered receipt that does not read back, and a publication that fails, each exit 3
+// with its own status and publish nothing.
+func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
+	casePath, runPath := subjectFiles(t, nil, satisfy)
+	t.Run("a receipt that does not read back", func(t *testing.T) {
+		original := decodeReceipt
+		t.Cleanup(func() { decodeReceipt = original })
+		decodeReceipt = func([]byte) (*evaluation.Receipt, error) { return nil, errors.New("not canonical") }
+		root := resolvedTemp(t)
+		code, result, _ := run(t, flags(casePath, runPath, root), environment{})
+		require.Equal(t, exitFailed, code)
+		require.Equal(t, statusReceiptUnreadable, result.Status)
+		require.Contains(t, result.Detail, "does not read back")
+		listed, err := os.ReadDir(root)
+		require.NoError(t, err)
+		require.Empty(t, listed)
+	})
+	t.Run("a publication that fails", func(t *testing.T) {
+		original := publish
+		t.Cleanup(func() { publish = original })
+		publish = func(context.Context, string, string, []byte) (cli.Publication, error) {
+			return cli.Publication{}, errors.New("disk full")
+		}
+		code, result, _ := run(t, flags(casePath, runPath, resolvedTemp(t)), environment{})
+		require.Equal(t, exitFailed, code)
+		require.Equal(t, statusPublicationFailed, result.Status)
+		require.Contains(t, result.Detail, "disk full")
+	})
 }
