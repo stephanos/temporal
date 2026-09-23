@@ -264,6 +264,14 @@ round one NEEDS_WORK with one P2 (the receipt-unreadable, publication-failed and
 were not pinned) and three P3 findings, all applied; round two SHIP after one transport timeout
 was re-dispatched, its three P3 notes applied.
 
+Task .6 (2026-09-23): the live suite records the caller Model's asyncCompletion Case with
+`umpire-run --record` and assesses it twice with `umpire-assess run` (accepted, then already
+published, the recorded Run unchanged), and rejects the negative control's pinned record; neither
+assessment is given an address. Each admission cap admits at N and rejects at N+1. The docs state
+the claim, the asserted trust, the lack of self-authentication and the retained exclusions. The
+live gate passes with 32 identities. Implementation review: SHIP in one round, its two P3 notes
+applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
