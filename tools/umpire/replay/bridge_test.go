@@ -32,6 +32,8 @@ type fakeReplayBridge struct {
 	// rejectAdmit, when set, rejects admit with this reason, as the bridge rejects a set, Query or
 	// target it cannot recover.
 	rejectAdmit string
+	// proposalError, when set, is the finished frame's proposal error in place of a compiled one.
+	proposalError string
 
 	set, profile string
 	seq          int
@@ -172,7 +174,9 @@ func (f *fakeReplayBridge) answer(frame bridgeRequest) map[string]any {
 		reply["frame"], reply["status"], reply["reason"], reply["subject"], reply["retained"], reply["edits"] =
 			"finished", status, reason, "subject-digest", f.retained, f.settled
 		reply["proposal"] = nil
-		if status == "minimized" || status == "irreducible" {
+		if (status == "minimized" || status == "irreducible") && f.proposalError != "" {
+			reply["proposal"] = map[string]any{"digest": f.retained, "promotionSourceSha256": nil, "promotionError": f.proposalError}
+		} else if status == "minimized" || status == "irreducible" {
 			reply["proposal"] = map[string]any{
 				"digest": f.retained, "promotionSourceSha256": "sha256:" + f.retained,
 				"promotionSourcePath": f.set + "-" + f.retained + ".lean", "promotionSource": "-- proposal " + f.retained,
