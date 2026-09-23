@@ -217,6 +217,8 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	reruns, err := Rerun(ctx, binder, subject.Target())
 	if err != nil {
 		if ctx.Err() == nil {
+			// The Runs that closed before the failure are still reported.
+			report.Reproduction = reproductionReport(reruns)
 			report.Failure = fmt.Sprintf("rerun the subject: %s", err)
 			return report
 		}
@@ -257,7 +259,9 @@ func (r *Report) stopped(reason, subject string, bridge *Bridge) Report {
 		Subject: subject, Retained: subject, Runs: runs, Edits: []Settled{}, Candidates: []CandidateReport{},
 	}
 	if bridge != nil {
-		if _, err := bridge.Finish(context.WithoutCancel(context.Background()), string(campaign.StatusStopped)); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), campaign.CloseTimeout)
+		defer cancel()
+		if _, err := bridge.Finish(ctx, string(campaign.StatusStopped)); err != nil {
 			r.Failure = fmt.Sprintf("finish the bridge after a stop: %s", err)
 		}
 	}
@@ -265,11 +269,10 @@ func (r *Report) stopped(reason, subject string, bridge *Bridge) Report {
 }
 
 func reproductionReport(reruns *Reruns) *ReproductionReport {
-	report := &ReproductionReport{Class: reruns.Class, Reruns: []RerunReport{}}
 	if reruns == nil {
-		report.Class = ClassIndeterminate
-		return report
+		return &ReproductionReport{Class: ClassIndeterminate, Reruns: []RerunReport{}}
 	}
+	report := &ReproductionReport{Class: reruns.Class, Reruns: []RerunReport{}}
 	for _, attempt := range reruns.Attempts {
 		entry := RerunReport{Class: attempt.Class, Detail: attempt.Detail}
 		if run := attempt.Run; run != nil {
@@ -329,12 +332,18 @@ func (r Report) ExitCode() int {
 	return ExitReproduced
 }
 
-// ExitCodeWithin is ExitCode for a report rendered to `rendered` bytes under a cap: a report over
-// the cap is written whole, never truncated, and a replay that would otherwise exit 0 did not
-// complete within its limits, so it exits 2.
-func (r Report) ExitCodeWithin(rendered int, limit int64) int {
+// OverCap says whether a report rendered to `rendered` bytes is over the report cap the replay ran
+// under.
+func (r Report) OverCap(rendered int) bool {
+	return r.Limits.ReportBytes > 0 && int64(rendered) > r.Limits.ReportBytes
+}
+
+// ExitCodeWithin is ExitCode for a report rendered to `rendered` bytes: a report over its cap is
+// written whole, never truncated, and a replay that would otherwise exit 0 did not complete within
+// its limits, so it exits 2.
+func (r Report) ExitCodeWithin(rendered int) int {
 	code := r.ExitCode()
-	if limit > 0 && int64(rendered) > limit && code == ExitReproduced {
+	if r.OverCap(rendered) && code == ExitReproduced {
 		return ExitIndeterminate
 	}
 	return code
