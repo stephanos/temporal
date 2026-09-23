@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -52,8 +51,11 @@ func newFakeServer() *fakeServer {
 	return &fakeServer{runs: map[string][]*fakeRun{}, fail: map[string]error{}, terminal: map[string]bool{}}
 }
 
-func (s *fakeServer) failing(method, workflowID string) error {
+func (s *fakeServer) failing(ctx context.Context, method, workflowID string) error {
 	s.calls = append(s.calls, method+" "+workflowID)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	return s.fail[method+" "+workflowID]
 }
 
@@ -100,10 +102,10 @@ func (s *fakeServer) timeOut(workflowID string) {
 	s.latest(workflowID).close(enumspb.WORKFLOW_EXECUTION_STATUS_TIMED_OUT, &historypb.HistoryEvent{EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT})
 }
 
-func (s *fakeServer) StartWorkflowExecution(_ context.Context, request *workflowservice.StartWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.StartWorkflowExecutionResponse, error) {
+func (s *fakeServer) StartWorkflowExecution(ctx context.Context, request *workflowservice.StartWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.StartWorkflowExecutionResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := s.failing("start", request.GetWorkflowId()); err != nil {
+	if err := s.failing(ctx, "start", request.GetWorkflowId()); err != nil {
 		return nil, err
 	}
 	if latest := s.latest(request.GetWorkflowId()); latest != nil && latest.status == enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING {
@@ -116,10 +118,10 @@ func (s *fakeServer) StartWorkflowExecution(_ context.Context, request *workflow
 	return &workflowservice.StartWorkflowExecutionResponse{RunId: run.runID, Started: true}, nil
 }
 
-func (s *fakeServer) SignalWorkflowExecution(_ context.Context, request *workflowservice.SignalWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.SignalWorkflowExecutionResponse, error) {
+func (s *fakeServer) SignalWorkflowExecution(ctx context.Context, request *workflowservice.SignalWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.SignalWorkflowExecutionResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := s.failing("signal", request.GetWorkflowExecution().GetWorkflowId()); err != nil {
+	if err := s.failing(ctx, "signal", request.GetWorkflowExecution().GetWorkflowId()); err != nil {
 		return nil, err
 	}
 	run := s.find(request.GetWorkflowExecution())
@@ -135,10 +137,10 @@ func (s *fakeServer) SignalWorkflowExecution(_ context.Context, request *workflo
 	return &workflowservice.SignalWorkflowExecutionResponse{}, nil
 }
 
-func (s *fakeServer) TerminateWorkflowExecution(_ context.Context, request *workflowservice.TerminateWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.TerminateWorkflowExecutionResponse, error) {
+func (s *fakeServer) TerminateWorkflowExecution(ctx context.Context, request *workflowservice.TerminateWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.TerminateWorkflowExecutionResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := s.failing("terminate", request.GetWorkflowExecution().GetWorkflowId()); err != nil {
+	if err := s.failing(ctx, "terminate", request.GetWorkflowExecution().GetWorkflowId()); err != nil {
 		return nil, err
 	}
 	run := s.find(request.GetWorkflowExecution())
@@ -158,10 +160,10 @@ func (s *fakeServer) TerminateWorkflowExecution(_ context.Context, request *work
 	return &workflowservice.TerminateWorkflowExecutionResponse{}, nil
 }
 
-func (s *fakeServer) DescribeWorkflowExecution(_ context.Context, request *workflowservice.DescribeWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.DescribeWorkflowExecutionResponse, error) {
+func (s *fakeServer) DescribeWorkflowExecution(ctx context.Context, request *workflowservice.DescribeWorkflowExecutionRequest, _ ...grpc.CallOption) (*workflowservice.DescribeWorkflowExecutionResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := s.failing("describe", request.GetExecution().GetWorkflowId()); err != nil {
+	if err := s.failing(ctx, "describe", request.GetExecution().GetWorkflowId()); err != nil {
 		return nil, err
 	}
 	run := s.find(request.GetExecution())
@@ -174,10 +176,10 @@ func (s *fakeServer) DescribeWorkflowExecution(_ context.Context, request *workf
 	}}, nil
 }
 
-func (s *fakeServer) GetWorkflowExecutionHistory(_ context.Context, request *workflowservice.GetWorkflowExecutionHistoryRequest, _ ...grpc.CallOption) (*workflowservice.GetWorkflowExecutionHistoryResponse, error) {
+func (s *fakeServer) GetWorkflowExecutionHistory(ctx context.Context, request *workflowservice.GetWorkflowExecutionHistoryRequest, _ ...grpc.CallOption) (*workflowservice.GetWorkflowExecutionHistoryResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := s.failing("history", request.GetExecution().GetWorkflowId()); err != nil {
+	if err := s.failing(ctx, "history", request.GetExecution().GetWorkflowId()); err != nil {
 		return nil, err
 	}
 	run := s.find(request.GetExecution())
@@ -281,7 +283,7 @@ func TestTakeLeaseFailsOnAnyOpenRun(t *testing.T) {
 	server.fail["start "+lease.WorkflowID] = serviceerror.NewUnavailable("down")
 	_, err = takeLease(ctx, target(server), lease, time.Hour, "third")
 	require.Error(t, err)
-	require.False(t, errors.As(err, &held))
+	require.NotErrorAs(t, err, &held)
 }
 
 // The fence's signals are the list cleanup acts on: sent to the exact fence run, so a stale fence

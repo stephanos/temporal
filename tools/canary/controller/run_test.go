@@ -189,8 +189,10 @@ func TestRunStopsAfterTheFirstIterationNotAccepted(t *testing.T) {
 func TestRunStartsNoRunPastTheInvocationLimit(t *testing.T) {
 	canary := testPolicy(t)
 	s := &script{server: newFakeServer()}
-	started := time.Now().Add(-canary.Limits.Invocation() + 10*time.Second)
-	run, _ := s.invocation(t, canary, started, &bytes.Buffer{})
+	run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
+	// One second short of an iteration's whole bound, which is longer than the Run's own limits.
+	run.Started = time.Now().Add(-canary.Limits.Invocation() + run.iterationBound() - time.Second)
+	require.Greater(t, run.iterationBound(), 2*time.Minute)
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
 	require.Empty(t, result.Iterations)
@@ -362,7 +364,7 @@ func TestAStaleFenceStopsTheInvocation(t *testing.T) {
 	require.Equal(t, StatusAccepted, result.Iterations[0].Outcome.Status)
 	require.Equal(t, StatusUnconstructible, result.Iterations[1].Outcome.Status)
 	require.Empty(t, result.Iterations[1].RunID, "the second Run never opened")
-	require.Equal(t, 1, len(s.server.runs["testpilot.run.1"]))
+	require.Len(t, s.server.runs["testpilot.run.1"], 1)
 	require.NotContains(t, s.server.runs, "testpilot.run.2")
 	require.False(t, result.Cleanup.Released)
 	require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
@@ -387,6 +389,78 @@ func TestProgressIsRedactedAndBounded(t *testing.T) {
 	require.NoError(t, run.progress.Close())
 	require.LessOrEqual(t, progress.Len(), 40)
 	require.True(t, strings.HasPrefix(progress.String(), "lease taken"))
+}
+
+// Cleanup's deadline is absolute: an invocation whose iterations ran past its limit and reserve
+// cleans up nothing more and leaves the lease held, rather than outliving what reconcile assumes.
+func TestCleanupEndsAtTheInvocationLimitPlusTheReserve(t *testing.T) {
+	canary := testPolicy(t)
+	s := &script{server: newFakeServer()}
+	run, store := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
+	s.between = func(index int) {
+		if index == 1 {
+			run.Started = time.Now().Add(-canary.Limits.Invocation() - canary.Limits.CleanupReserve())
+		}
+	}
+	result, err := run.run(t.Context())
+	require.NoError(t, err)
+	require.False(t, result.Cleanup.Released)
+	require.ErrorIs(t, result.Cleanup.Err, context.DeadlineExceeded)
+	require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
+	observed, err := leaseState(t.Context(), target(s.server), canary.Lease.WorkflowID)
+	require.NoError(t, err)
+	require.Equal(t, LeaseOpen, observed.State, "the lease stays held for reconcile")
+}
+
+// A Driver that does not release stops the loop, so no Driver starts beside it, and a release that
+// fails after an errored Run is reported with it.
+func TestADriverThatDoesNotReleaseStopsTheLoop(t *testing.T) {
+	stuck := errors.New("the worker did not stop")
+	s := &script{server: newFakeServer()}
+	run, _ := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
+	run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
+		return &stubDriver{}, func(context.Context) error { return stuck }, nil
+	}
+	result, err := run.run(t.Context())
+	require.NoError(t, err)
+	require.Len(t, result.Iterations, 1)
+	require.Equal(t, StatusAccepted, result.Iterations[0].Outcome.Status, "the Run's own outcome stands")
+	require.Contains(t, result.Stopped, "did not release")
+	require.True(t, result.Cleanup.Released)
+
+	s = &script{server: newFakeServer(), runErr: errors.New("the Run failed")}
+	run, _ = s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
+	run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
+		return &stubDriver{}, func(context.Context) error { return stuck }, nil
+	}
+	result, err = run.run(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
+	require.ErrorIs(t, result.Iterations[0].Outcome.Err, stuck)
+}
+
+// A panic in the Run or in decide is an unconstructible iteration, and cleanup still runs.
+func TestAPanicIsUnconstructibleAndCleanupStillRuns(t *testing.T) {
+	s := &script{server: newFakeServer()}
+	run, store := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
+	run.Decide = func(*testpilotspb.Run, *testpilotspb.Verdict) Outcome { panic("decide broke") }
+	result, err := run.run(t.Context())
+	require.NoError(t, err)
+	require.Len(t, result.Iterations, 1)
+	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
+	require.ErrorContains(t, result.Iterations[0].Outcome.Err, "decide broke")
+	require.True(t, result.Cleanup.Released)
+	require.Equal(t, recovery.PhaseReleased, store.Snapshot().Phase)
+
+	s = &script{server: newFakeServer()}
+	run, _ = s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
+	run.runCase = func(context.Context, testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+		panic("run broke")
+	}
+	result, err = run.run(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
+	require.True(t, result.Cleanup.Released)
 }
 
 func TestRunRequiresEveryInput(t *testing.T) {

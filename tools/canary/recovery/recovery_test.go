@@ -1,7 +1,6 @@
 package recovery
 
 import (
-	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -122,5 +121,5 @@ func TestReadRefusesAnythingButTheCanonicalRecord(t *testing.T) {
 	require.ErrorContains(t, err, "exceeds")
 
 	_, err = Read(filepath.Join(dir, "absent.json"))
-	require.True(t, errors.Is(err, fs.ErrNotExist), "a missing record is nothing to reconcile")
+	require.ErrorIs(t, err, fs.ErrNotExist, "a missing record is nothing to reconcile")
 }
