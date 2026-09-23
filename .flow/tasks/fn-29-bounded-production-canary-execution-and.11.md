@@ -5,7 +5,7 @@ satisfies: [R3, R4, R5, R7, R8, R9, R10]
 # fn-29-bounded-production-canary-execution-and.11 Run the adversarial authority and containment matrices
 
 ## Description
-Exercise, against the controller in-process and the harness: target and routing drift, a credential planted in every output path, a lease collision and a stale fence, a duplicate dispatch, a Run crossing (another Case, another fence), a scope escape (an identity outside the fence), a crash at each phase, a lease that timed out, a second dispatch during a live Run, a stale or tampered recovery record, cleanup uncertainty, an iteration past the limit and a tenfold request, a publication conflict and a reporting failure. Race-enabled unit tests prove no state leaks between iterations or leases.
+Exercise, against the controller in-process and the harness: target and routing drift, a credential planted in every output path, a lease collision and a stale fence, a duplicate dispatch, a Run crossing (another Case, another fence), a scope escape (an identity outside the fence), a crash at each phase, a lease that timed out, a second dispatch during a live Run, a stale or tampered recovery record, cleanup uncertainty, an iteration past the limit and a tenfold request (capped by the policy, `DefaultCeilings` and fn-26's caps, each pinned), a publication conflict and a reporting failure. Race-enabled unit tests prove no state leaks between iterations or leases.
 
 ### Quick commands
 `go test -race -count=1 -tags test_dep ./tools/canary/...; go test -count=1 -tags "test_dep integration" ./tests/ -run '^TestUmpireCanary'`
