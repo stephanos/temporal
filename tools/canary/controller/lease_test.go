@@ -12,6 +12,7 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
+	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -84,7 +85,7 @@ func (s *fakeServer) open(workflowID string, started time.Time) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.next++
-	run := &fakeRun{runID: fmt.Sprintf("run-%d", s.next), status: enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, started: started,
+	run := &fakeRun{runID: fmt.Sprintf("00000000-0000-4000-9000-%012d", s.next), status: enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, started: started,
 		events: []*historypb.HistoryEvent{{EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED}}}
 	s.runs[workflowID] = append(s.runs[workflowID], run)
 	return run.runID
@@ -112,7 +113,7 @@ func (s *fakeServer) StartWorkflowExecution(ctx context.Context, request *workfl
 		return nil, serviceerror.NewWorkflowExecutionAlreadyStarted("already started", request.GetRequestId(), latest.runID)
 	}
 	s.next++
-	run := &fakeRun{runID: fmt.Sprintf("run-%d", s.next), status: enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, started: time.Unix(1000, 0),
+	run := &fakeRun{runID: fmt.Sprintf("00000000-0000-4000-9000-%012d", s.next), status: enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, started: time.Unix(1000, 0),
 		events: []*historypb.HistoryEvent{{EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED}}}
 	s.runs[request.GetWorkflowId()] = append(s.runs[request.GetWorkflowId()], run)
 	return &workflowservice.StartWorkflowExecutionResponse{RunId: run.runID, Started: true}, nil
@@ -173,6 +174,21 @@ func (s *fakeServer) DescribeWorkflowExecution(ctx context.Context, request *wor
 	return &workflowservice.DescribeWorkflowExecutionResponse{WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
 		Execution: &commonpb.WorkflowExecution{WorkflowId: request.GetExecution().GetWorkflowId(), RunId: run.runID},
 		Status:    run.status, StartTime: timestamppb.New(run.started),
+	}}, nil
+}
+
+// DescribeNamespace answers for the one registered namespace the fake serves.
+func (s *fakeServer) DescribeNamespace(ctx context.Context, request *workflowservice.DescribeNamespaceRequest, _ ...grpc.CallOption) (*workflowservice.DescribeNamespaceResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := s.failing(ctx, "describe-namespace", request.GetNamespace()); err != nil {
+		return nil, err
+	}
+	if request.GetNamespace() != testNamespace {
+		return nil, serviceerror.NewNamespaceNotFound(request.GetNamespace())
+	}
+	return &workflowservice.DescribeNamespaceResponse{NamespaceInfo: &namespacepb.NamespaceInfo{
+		Name: testNamespace, State: enumspb.NAMESPACE_STATE_REGISTERED,
 	}}, nil
 }
 
