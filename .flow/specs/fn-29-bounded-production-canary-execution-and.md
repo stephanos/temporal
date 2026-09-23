@@ -377,6 +377,22 @@ publishes nothing, and any other status that is not a decision is refused. The .
 the canary case block had drifted `model/AUTHORING.md`'s quote; the walkthrough now quotes it as
 it reads. Implementation review: SHIP in one round; its four P3 notes applied.
 
+Task .8 (2026-09-23): `controller.Invoke` composes one `run` from three seams (the policy with its
+Evaluation Profile, the authority, a phase hook), whose untagged values are `ProductionSeams`: the
+embedded policy and Profile, the credential-requiring `authority.Load`, and no hook. Preflight
+runs over a lazily dialed SDK client, so its connection-free refusals never reach the target; the
+recovery record is created only after preflight passes; the loop decides each iteration with
+fn-26's `Admit`, `Assess` and `Render` in memory; publication runs after the cleanup attempt under
+its own context, so an interrupt still publishes what was decided. Exit precedence is 3 (a
+refusal, `authority-unavailable`, `policy-unavailable`, `tooling-failure` including a Driver that
+did not release, `interrupted`, `unconstructible`, `no-iteration`, `publication-conflict`,
+`-unreported`, `-failed`) > 2 (`lease-unreconciled`, `cleanup-uncertain`) > 1 (rejected,
+incomplete) > 0 (accepted). `umpire-canary run --output <dir> --recovery <file>` is the one mode,
+refusing any other argument, an output under the model and a recovery record under the uploaded
+output; `make canary-build` builds it. Progress is capped and redacted once for the invocation and
+both SDK clients. Implementation review: NEEDS_WORK (a release failure reported as success; an
+interrupt losing decided receipts; an uncapped client log), then SHIP; its P3 notes applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
