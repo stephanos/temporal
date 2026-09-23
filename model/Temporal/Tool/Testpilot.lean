@@ -97,4 +97,5 @@ def main (arguments : List String) : IO Unit :=
   | ["conformance-cross-run-isolation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCrossRunIsolationCase
   | [fixture] => renderRegisteredFixture fixture
-  | _ => throw (IO.userError "expected --list, --render <case-id>, or a Case fixture name")
+  | _ => throw (IO.userError
+      "expected --list, --render <case-id>, --render-canary <case-id>, or a Case fixture name")

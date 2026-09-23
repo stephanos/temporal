@@ -3,6 +3,7 @@ package casebinding
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -79,10 +80,19 @@ func TestTheHandAuthoredProfileIsTheDerivedOne(t *testing.T) {
 }
 
 // The Case asks only for the public surface: two public WorkflowService methods, no fault, no
-// system callback, one workflow command, and no Known Gap to close.
+// system callback, one workflow command, and no Known Gap to close. The Case itself is read, not
+// only the hand-authored Profile, so a Case that names another method fails here.
 func TestThePinnedCaseStaysOnThePublicSurface(t *testing.T) {
 	source := mustSource(t)
 	require.Empty(t, source.GetProvenance().GetKnownGaps())
+	var document any
+	require.NoError(t, json.Unmarshal(Case(), &document))
+	methods := casedMethods(document)
+	require.NotEmpty(t, methods)
+	for _, method := range methods {
+		require.Contains(t, []string{startWorkflowExecution, getWorkflowExecutionHistory}, method)
+	}
+	require.Equal(t, []string{"history", "source.scheduled"}, source.GetContract().GetCorrelated().GetSources())
 	profile := ProfileSpec(committed(t), nil, testEnvironment)
 	require.Equal(t, []string{startWorkflowExecution, getWorkflowExecutionHistory}, profile.Roles[0].Methods)
 	require.NotContains(t, profile.Opcodes, testpilot.InjectFault)
@@ -157,6 +167,26 @@ func TestThePreparedCaseRefusesACrossedDriverBeforeAuthority(t *testing.T) {
 			require.False(t, driver.validated || driver.opened, "nothing is validated or opened for a crossed Driver")
 		})
 	}
+}
+
+// casedMethods is every "method" value anywhere in a decoded Case.
+func casedMethods(node any) []string {
+	var methods []string
+	switch value := node.(type) {
+	case map[string]any:
+		for key, child := range value {
+			if method, ok := child.(string); ok && key == "method" {
+				methods = append(methods, method)
+				continue
+			}
+			methods = append(methods, casedMethods(child)...)
+		}
+	case []any:
+		for _, child := range value {
+			methods = append(methods, casedMethods(child)...)
+		}
+	}
+	return methods
 }
 
 func mustSource(t *testing.T) *testpilotspb.Case {
