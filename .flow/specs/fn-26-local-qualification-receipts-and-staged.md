@@ -247,6 +247,14 @@ Implementation review: SHIP in one round; its two P3 notes applied (a condition 
 evaluate holds, so it never lets a subject through; the purity test compares the Known Gaps
 deeply).
 
+Task .4 (2026-09-23): `Render` and `DecodeReceipt` give the canonical receipt and read only it
+back; goldens produced by `Assess` pin an accepted, a rejected and an incomplete receipt.
+`cli.Publish` publishes by hard link, exclusively and idempotently. It reads an existing name at
+most one byte past the bytes it would publish, which is never more than the receipt cap.
+Implementation review: SHIP in one round; its P3 applied (a context cancelled after the check
+before the link is pinned to leave the receipt published) and two FYIs taken (`Render` refuses a
+Decision made on another subject; the no-follow open retries on `EINTR`).
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
