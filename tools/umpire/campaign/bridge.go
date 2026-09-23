@@ -524,12 +524,13 @@ func ExchangeJSON[Reply any](ctx context.Context, conn *Conn, kind string, build
 	return answer, err
 }
 
-// Exchange writes the frame build returns for the next sequence number and the scoped set, and
-// reads its reply, handing its bytes to check, matched by sequence number, set and profile, of one of the kinds named, and
-// passing check. A `rejected` reply is a RejectedError and leaves the sequence where it was, as a
-// bridge does. A frame that could not be written, a reply that could not be read or did not match,
-// or a context that ended mid-exchange breaks the transport: its stream is out of step, so every
-// later call returns the same failure without writing.
+// Exchange sends one frame and reads its reply. It writes the frame build returns for the next
+// sequence number and the scoped set; it reads the reply and matches it by sequence number, set,
+// profile and one of the kinds named; then it hands the reply's bytes to check. A `rejected`
+// reply is a RejectedError and leaves the sequence where it was, as a bridge does. A frame that
+// could not be written, a reply that could not be read or did not match, or a context that ended
+// mid-exchange breaks the transport: its stream is out of step, so every later call returns the
+// same failure without writing.
 func (c *Conn) Exchange(ctx context.Context, kind string, build func(seq int, set string) any, profile string,
 	check func(line []byte) error, kinds ...string) error {
 	if c.broken != nil {
