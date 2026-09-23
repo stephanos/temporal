@@ -3,13 +3,19 @@
 package tests
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	umpirebinding "go.temporal.io/server/tools/umpire/binding"
 	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/protobuf/proto"
@@ -97,4 +103,84 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 	}
 	require.True(t, keys[0].Equal(keys[1]), "two Runs of the control share one key: %s / %s", keys[0], keys[1])
 	t.Logf("control key: %s", keys[0])
+}
+
+// The negative control end to end through the commands, the replay's live proof: the test
+// provisions its own namespace, queues and endpoint with no Driver of its own, `umpire-run
+// --record` records one Run against them, and `umpire-replay run` is invoked while they are still
+// held, with the same names and without `--create`, so the recorded identity is the one the replay
+// prepares under. The subject is admitted, replayed offline, reproduced on two fresh Runs, found
+// irreducible (its one prefix step is the schedule), and its proposal is compiled and written under
+// a scratch root -- proving the mechanism only, since the control's expected trace is the row the
+// platform never takes. The Lean replay bridge is required: without it the test fails.
+func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(modelRoot, ".lake", "build", "bin", "umpire-replay-bridge"))
+	require.NoError(t, err, "the replay bridge is not built; make umpire-check-live-tests builds it")
+	runBinary := buildUmpireRun(t)
+	replayBinary := buildUmpireReplay(t)
+
+	name := "nexusCallerControl-forgedCompletion"
+	casePath := filepath.Join("testcore", "testpilot", "testdata", name+"-case.json")
+	env := newTestpilotTestEnvironment(t)
+	namespace, taskQueue, endpoint := "umpire-control-replay", "umpire-control-replay-queue", "umpire-control-replay-endpoint"
+	release, err := provision.Create(env.Context(), provision.Clients{
+		Workflow: env.FrontendClient(), Operator: env.OperatorClient(),
+	}, provision.Resources{
+		Namespace: namespace, TaskQueue: taskQueue, NexusEndpoint: endpoint, NexusTaskQueue: taskQueue + "-handler",
+		RetainNamespace: true,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
+		defer cancel()
+		require.NoError(t, release(ctx))
+	})
+	deployment := []string{
+		"--grpc", env.FrontendGRPCAddress(), "--http", env.HttpAPIAddress(),
+		"--namespace", namespace, "--task-queue", taskQueue, "--nexus-endpoint", endpoint,
+	}
+
+	ctx, cancel := context.WithTimeout(env.Context(), 5*time.Minute)
+	defer cancel()
+	runPath := filepath.Join(t.TempDir(), "run.json")
+	record := exec.CommandContext(ctx, runBinary, append([]string{"--case", casePath, "--record", runPath, "--timeout", "2m"}, deployment...)...)
+	output, err := record.CombinedOutput()
+	require.Equal(t, 1, record.ProcessState.ExitCode(), "umpire-run records a violated Run: %v %s", err, output)
+	require.FileExists(t, runPath)
+
+	root := filepath.Join(t.TempDir(), "proposals")
+	command := exec.CommandContext(ctx, replayBinary, append([]string{"run",
+		"--case", casePath, "--run", runPath,
+		"--set", "nexusCallerControl", "--query", "forgedCompletion",
+		"--model-root", modelRoot, "--promotion-root", root, "--timeout", "5m",
+	}, deployment...)...)
+	var stdout, stderr bytes.Buffer
+	command.Stdout, command.Stderr = &stdout, &stderr
+	require.NoError(t, command.Run(), "umpire-replay exited %d: %s\n%s", command.ProcessState.ExitCode(), stderr.String(), stdout.String())
+
+	var report replay.Report
+	require.NoError(t, json.Unmarshal(stdout.Bytes(), &report), stdout.String())
+	require.Equal(t, replay.StatusAdmitted, report.Admission.Status)
+	require.Equal(t, replay.StatusReproduced, report.SemanticReplay.Status)
+	require.Contains(t, report.Key, "temporal.nexus.control.property.forgedSuccess")
+	require.Len(t, report.Identity, 64)
+	require.Equal(t, replay.ClassReproduced, report.Reproduction.Class, "reruns: %+v", report.Reproduction.Reruns)
+	require.Equal(t, "irreducible", report.Reduction.Status)
+	require.Equal(t, replay.ProposalWritten, report.Proposal.Status, report.Proposal.Error)
+	require.FileExists(t, report.Proposal.Written)
+	require.Equal(t, replay.StatusReleased, report.Cleanup.Status)
+}
+
+// buildUmpireReplay builds the replay command the way a developer would, so the live proof runs the
+// real binary rather than an in-process call.
+func buildUmpireReplay(t *testing.T) string {
+	t.Helper()
+	binary := filepath.Join(t.TempDir(), "umpire-replay")
+	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/umpire-replay")
+	build.Env = os.Environ()
+	output, err := build.CombinedOutput()
+	require.NoError(t, err, "build umpire-replay: %s", output)
+	return binary
 }

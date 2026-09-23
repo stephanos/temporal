@@ -392,6 +392,28 @@ printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration","pro
   '{"frame":"finish","seq":3,"set":"nexusCallerExploration"}' | model/.lake/build/bin/umpire-explore
 ```
 
+`umpire-replay run` replays one violated Run: the subject is a canonical Case (`--case`) and the
+Run recorded against it with its Profile identity (`--run`, as `umpire-run --record` or
+`umpire-fuzz --record-root` writes it), named by `--set` and `--query` (or an exploratory set's
+`--target`), against the deployment flags `umpire-run` takes, without `--create`: the replay
+prepares under the recorded identity, so the resources must be the ones the Run was recorded
+against. It admits and replays the subject offline before anything is opened, recovers its Query
+through `umpire-replay-bridge` (a subject the set does not produce is `crossed`), reruns it twice,
+reduces its Query under fixed limits (eight edits, twelve Runs, 25 minutes), and writes the
+retained candidate's review-only proposal under `--promotion-root`, outside the model. One JSON
+report goes to stdout, with admission, the offline semantic replay, the key and the Case identity,
+the reruns, the reduction, the limits, cleanup and the proposal apart; SDK history replay has no
+field. Exit 0 is reproduced with a complete reduction (and the proposal written when a root is
+named), 1 not reproduced, 2 indeterminate, incomplete or stopped, 3 a tooling failure, a rejected
+subject or a proposal that did not compile or could not be written.
+
+```sh
+make umpire-replay-run CASE=case.json RUN=run.json SET=nexusCallerControl QUERY=forgedCompletion \
+  UMPIRE_REPLAY_GRPC=127.0.0.1:7233 UMPIRE_REPLAY_HTTP=127.0.0.1:7243 \
+  UMPIRE_REPLAY_NAMESPACE=ns UMPIRE_REPLAY_TASK_QUEUE=tq UMPIRE_REPLAY_NEXUS_ENDPOINT=ep \
+  UMPIRE_REPLAY_FLAGS='--promotion-root /tmp/proposals'
+```
+
 The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both
 environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
 the same satisfied Contract result. Its binding fingerprints and Driver identities differ because
