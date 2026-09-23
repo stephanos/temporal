@@ -17,14 +17,13 @@ Add `tools/umpire/evaluation/assess.go`: `Assess(subject *Subject, profile Profi
 Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the shared command-edge helpers) and revised by plan review round one; the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Accepted, rejected, and incomplete decisions accumulate every reason that holds, in the table's order, deterministically.
-- [ ] A violated Verdict or a stopped Run is rejected; an inconclusive Verdict, an incomplete Run, an unclosed cleanup, a blocking Known Gap or an unsupported rule is incomplete; none of them is ever accepted.
-- [ ] Repeated or different-Profile assessments create no Run and leave the subject unchanged.
+- [x] Accepted, rejected, and incomplete decisions accumulate every reason that holds, in the table's order, deterministically.
+- [x] A violated Verdict or a stopped Run is rejected; an inconclusive Verdict, an incomplete Run, an unclosed cleanup, a blocking Known Gap or an unsupported rule is incomplete; none of them is ever accepted.
+- [x] Repeated or different-Profile assessments create no Run and leave the subject unchanged.
 
 ## Done summary
-TBD
-
+`tools/umpire/evaluation/assess.go`: `Assess(subject, profile) Decision` reads only the admitted subject's recorded values (Verdict status, disposition, cleanup, Known Gap kinds, each rule's support at its terminal state) against the Profile's reason table, lists every reason that holds in the table's order, and decides rejected if a rejecting reason holds, else incomplete if any reason holds, else accepted. The Verdict, disposition, cleanup, Known Gaps, unsupported rules, Profile name and identity, claim and trust stay fields of their own. Tests cover every condition of `local-ephemeral`, their accumulation, purity, and the test-only `local-strict` Profile deciding the same subject differently. Implementation review: SHIP in one round; its two P3 notes applied (an unevaluable condition holds rather than passes, pinned by a test that every condition is evaluated; the purity test compares Known Gaps deeply), and the FYI taken (a Decision's reasons are the Profile's own rows).
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 46cc657aa90fc4f8163a8e359d9574314712e77f, 68ee3a6bdb1aa97501842e3cea49df117bcdd5c6
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/evaluation/, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
