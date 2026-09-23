@@ -12,6 +12,7 @@ import Umpire.Promotion
 import Umpire.Variations
 import Umpire.Exploration
 import Umpire.Replay
+import Umpire.Evaluation
 import Umpire.Evidence
 import Umpire.Case.Projection
 import Umpire.Case.Projection.Correlated
