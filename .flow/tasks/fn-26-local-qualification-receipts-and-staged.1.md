@@ -17,15 +17,14 @@ Add `Umpire.Evaluation`, Temporal-free: a checked `EvaluationProfile` (name, cla
 Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the shared command-edge helpers) and revised by plan review round one; the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] An empty table, an empty or duplicate reason name, a condition named twice, and a contradictory Known Gap policy fail to declare, each by name.
-- [ ] No endpoint, credential, path, catalog, Limit, Driver, execution authority, or Temporal value enters reusable Umpire.
-- [ ] Same Profile bytes yield the same identity, pinned in Lean; a different Profile remains an independent assessment.
-- [ ] Every new module is imported by its aggregator and the module-index check passes.
+- [x] An empty table, an empty or duplicate reason name, a condition named twice, and a contradictory Known Gap policy fail to declare, each by name.
+- [x] No endpoint, credential, path, catalog, Limit, Driver, execution authority, or Temporal value enters reusable Umpire.
+- [x] Same Profile bytes yield the same identity, pinned in Lean; a different Profile remains an independent assessment.
+- [x] Every new module is imported by its aggregator and the module-index check passes.
 
 ## Done summary
-TBD
-
+`Umpire.Evaluation` declares a checked, Temporal-free Evaluation Profile (name, claim, trust basis, blocking Known Gap kinds as `KnownGapKind`, an ordered reason table over seven status-specific conditions forcing `rejected` or `incomplete`); `Profile.declare` rejects an invalid name, an empty claim, trust or table, an empty or duplicate reason, a repeated condition, a duplicate blocking kind and either half of a contradictory Known Gap policy, each by name. `Temporal.Evaluation.Local` declares `local-ephemeral` with the plan's table; `umpire-evaluation-profiles` renders every declared Profile to compact canonical JSON under `tools/umpire/evaluation/profiles/`, and `umpire-check-evaluation-profiles` (in `umpire-check-regression`) diffs a fresh render. The identity `sha256:2803afa2…174c` is pinned in `Temporal/Evaluation/LocalTests.lean`. Implementation review: SHIP in one round, its two P3 notes applied as polish.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d012aff02f21f9bedb5680e07b3456d900071de, 4052acf58138672eef097019fe90d34af9792701
+- Tests: cd model && lake build, make umpire-check-evaluation-profiles, make umpire-check-model-module-index umpire-check-inventory, make umpire-check-retired-vocabulary, LEAN_NUM_THREADS=1 make lint-model (baseline: 163 + 1 errors, none in the new modules)
 - PRs:
