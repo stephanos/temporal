@@ -307,6 +307,19 @@ another catalog or other bindings refuse before the Driver validates or opens an
 Implementation review: NEEDS_WORK twice (the ignored fixture, then refusal coverage), SHIP on the
 third round; its three P3 notes applied.
 
+Task .3 (2026-09-23): `tools/canary/authority` reads the coordinates and the credential only
+through an injected lookup and builds a TLS transport for the Driver's endpoint and the SDK client
+(an API key rides as a bearer token that requires TLS; the endpoint carries the namespace header).
+Its Redactor removes every credential and coordinate, a PEM's body lines and a target's host
+included, through `Redact`, a bounded line-buffered writer and an SDK logger. `tools/canary/preflight`
+checks the workflow context, the policy's configuration, the coordinate digests and the pinned Case
+before any connection, then makes one read, `DescribeNamespace`, through an interface with no
+mutating method. It returns a `Scope` of the invocation ID (the Actions run and attempt), the
+digests and the prepared Case, or a named, redacted refusal. Implementation review: SHIP in one
+round; its two P3 notes and four FYIs applied (one digest helper and mismatch list, the Scope's
+doc, gRPC NotFound, a floor on PEM line secrets, a bounded writer, and the unenforced transport
+check removed).
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
