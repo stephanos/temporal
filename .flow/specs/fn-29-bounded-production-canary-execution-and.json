@@ -17,7 +17,7 @@
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 8,
+  "plan_review_rounds": 0,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-09-23T12:18:01.959069Z",
   "ready": false,
@@ -373,8 +373,8 @@
     }
   ],
   "review_hash_epoch": {
-    "plan": 1,
-    "plan#completion": 0
+    "plan": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -395,5 +395,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T12:18:01.959081Z"
+  "updated_at": "2026-09-23T12:19:06.342610Z"
 }
