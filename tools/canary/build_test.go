@@ -35,13 +35,13 @@ func TestTheUntaggedBuildHasNoHarnessAndNoPlaintext(t *testing.T) {
 	harness := goList(t, "-tags", "canary_harness", "-deps", commandPackage)
 	require.Contains(t, harness, harnessPackage)
 
-	for _, line := range goList(t, "-e", "-f", "{{.ImportPath}}|{{join .Imports \",\"}}", "./tools/canary/...") {
+	for _, line := range goList(t, "-f", "{{.ImportPath}}|{{join .Imports \",\"}}", "./tools/canary/...") {
 		name, imports, _ := strings.Cut(line, "|")
 		require.False(t, slices.Contains(strings.Split(imports, ","), plaintextPackage),
 			"%s builds a plaintext transport in the untagged build", name)
 	}
 	var importsPlaintext []string
-	for _, line := range goList(t, "-e", "-tags", "canary_harness", "-f", "{{.ImportPath}}|{{join .Imports \",\"}}", "./tools/canary/...") {
+	for _, line := range goList(t, "-tags", "canary_harness", "-f", "{{.ImportPath}}|{{join .Imports \",\"}}", "./tools/canary/...") {
 		name, imports, _ := strings.Cut(line, "|")
 		if slices.Contains(strings.Split(imports, ","), plaintextPackage) {
 			importsPlaintext = append(importsPlaintext, name)

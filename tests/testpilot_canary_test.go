@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
-	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tools/canary/assessment"
@@ -28,7 +28,6 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"go.temporal.io/server/tools/canary/testharness"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // canaryHarness is one test cluster namespace the canary's harness build runs against as a
@@ -174,7 +173,10 @@ func (h *canaryHarness) reconcile(t *testing.T, job canaryJob) (int, controller.
 // leaseClose is the lease's latest run's close reason, or "" while it is open.
 func (h *canaryHarness) leaseClose(t *testing.T) (string, enumspb.WorkflowExecutionStatus) {
 	t.Helper()
-	described, err := h.env.FrontendClient().DescribeWorkflowExecution(h.env.Context(), &workflowservice.DescribeWorkflowExecutionRequest{
+	// Its own context: a lease left to time out outlives the test environment's context.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	described, err := h.env.FrontendClient().DescribeWorkflowExecution(ctx, &workflowservice.DescribeWorkflowExecutionRequest{
 		Namespace: h.coordinates.Namespace, Execution: &commonpb.WorkflowExecution{WorkflowId: h.policy.Lease.WorkflowID},
 	})
 	require.NoError(t, err)
@@ -182,11 +184,12 @@ func (h *canaryHarness) leaseClose(t *testing.T) (string, enumspb.WorkflowExecut
 	if info.GetStatus() == enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		return "", info.GetStatus()
 	}
-	closing, err := h.env.FrontendClient().GetWorkflowExecutionHistory(h.env.Context(), &workflowservice.GetWorkflowExecutionHistoryRequest{
+	closing, err := h.env.FrontendClient().GetWorkflowExecutionHistory(ctx, &workflowservice.GetWorkflowExecutionHistoryRequest{
 		Namespace: h.coordinates.Namespace, Execution: info.GetExecution(), HistoryEventFilterType: enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT,
 	})
 	require.NoError(t, err)
 	events := closing.GetHistory().GetEvents()
+	require.NotEmpty(t, events)
 	return events[len(events)-1].GetWorkflowExecutionTerminatedEventAttributes().GetReason(), info.GetStatus()
 }
 
@@ -233,6 +236,13 @@ func TestTestpilotCanaryHarnessEndToEnd(t *testing.T) {
 	}
 	reason, _ := h.leaseClose(t)
 	require.Equal(t, controller.ReasonReleased, reason)
+	for _, runID := range summary.Cleanup.Fenced {
+		described, err := h.env.FrontendClient().DescribeWorkflowExecution(h.env.Context(), &workflowservice.DescribeWorkflowExecutionRequest{
+			Namespace: h.coordinates.Namespace, Execution: &commonpb.WorkflowExecution{WorkflowId: runID},
+		})
+		require.NoError(t, err)
+		require.Equal(t, enumspb.WORKFLOW_EXECUTION_STATUS_COMPLETED, described.GetWorkflowExecutionInfo().GetStatus(), "the server says the fenced workflow closed")
+	}
 
 	code, report := h.reconcile(t, job)
 	require.Equal(t, controller.ExitAccepted, code, "%+v", report)
@@ -320,21 +330,30 @@ func TestTestpilotCanaryHarnessLeavesALiveInvocationAlone(t *testing.T) {
 	require.Len(t, published(t, first), 4)
 }
 
-// A lease left to time out is refused by the next dispatch until that job's reconcile records the
-// scope reconciled; the dispatch after it proceeds.
+// A lease left to time out after its process was lost during a Run is refused by the next
+// dispatch until that job's reconcile closes its orphans -- the lost Run it fenced -- and records the
+// scope reconciled with a fresh lease run; the dispatch after it proceeds. The harness policy
+// shortens the lease run timeout to just over the shortest invocation that still fits one
+// iteration's worst case.
 func TestTestpilotCanaryHarnessRecoversATimedOutLease(t *testing.T) {
-	h := newCanaryHarness(t, "canary-timeout", nil)
-	_, err := h.env.FrontendClient().StartWorkflowExecution(h.env.Context(), &workflowservice.StartWorkflowExecutionRequest{
-		Namespace: h.coordinates.Namespace, WorkflowId: h.policy.Lease.WorkflowID,
-		WorkflowType:       &commonpb.WorkflowType{Name: h.policy.Lease.WorkflowType},
-		TaskQueue:          &taskqueuepb.TaskQueue{Name: h.policy.Lease.TaskQueue, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		WorkflowRunTimeout: durationpb.New(time.Second), RequestId: "a lease left to time out",
+	// The lease's run timeout is longer than a test's default; the test context allows for it.
+	testcontext.For(t, testcontext.WithTimeout(6*time.Minute))
+	h := newCanaryHarness(t, "canary-timeout", func(p *policy.Policy) {
+		p.Limits.InvocationSeconds = 151
+		p.Limits.CleanupReserveSeconds = 1
+		p.Limits.LeaseRunTimeoutSeconds = 153
 	})
+	lost := h.job(t)
+	code, _ := h.run(t, lost, map[string]string{testharness.VariableCrash: controller.PhaseRunOpened})
+	require.Equal(t, testharness.CrashExit, code)
+	record, err := recovery.Read(lost.recovery)
 	require.NoError(t, err)
+	require.Len(t, record.Iterations, 1)
+	orphan := record.Iterations[0].RunID
 	require.Eventually(t, func() bool {
 		_, status := h.leaseClose(t)
 		return status == enumspb.WORKFLOW_EXECUTION_STATUS_TIMED_OUT
-	}, time.Minute, 100*time.Millisecond)
+	}, 4*time.Minute, time.Second, "the lost process's lease reaches its run timeout")
 
 	refused := h.job(t)
 	code, summary := h.run(t, refused, nil)
@@ -343,6 +362,10 @@ func TestTestpilotCanaryHarnessRecoversATimedOutLease(t *testing.T) {
 	code, report := h.reconcile(t, refused)
 	require.Equal(t, controller.ExitAccepted, code, "%+v", report)
 	require.Equal(t, controller.StatusReconciled, report.Status)
+	require.Equal(t, []string{orphan}, report.Fenced, "the timed-out lease's fence names the lost Run")
+	require.Equal(t, []string{orphan}, report.Closed)
+	require.Equal(t, []string{orphan}, report.PublicationUnknown)
+	require.Equal(t, "1001-1", report.FoundInvocation)
 	reason, _ := h.leaseClose(t)
 	require.Equal(t, controller.ReasonReconciled, reason)
 
