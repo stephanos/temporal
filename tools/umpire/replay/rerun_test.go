@@ -12,13 +12,18 @@ import (
 	"go.temporal.io/server/tools/umpire/campaign"
 )
 
+// attemptScript is what one scripted attempt's Run returns.
+type attemptScript func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+
 // scriptedBinder binds the Case through the preparer and runs it through the scripted Driver, or
 // answers with what its script says for that attempt; it records the order of binds and releases.
 type scriptedBinder struct {
 	prepare  Preparer
-	script   []func(prepared *testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+	script   []attemptScript
 	identity func(testpilot.DriverIdentity) testpilot.DriverIdentity
 	release  error
+	released []error
+	onRun    func()
 	binds    int
 	events   []string
 	open     bool
@@ -27,7 +32,7 @@ type scriptedBinder struct {
 type scriptedBound struct {
 	binder   *scriptedBinder
 	prepared *testpilot.PreparedCase
-	run      func(prepared *testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+	run      attemptScript
 }
 
 func (b *scriptedBinder) Bind(_ context.Context, identity string, source *testpilotspb.Case) (campaign.Bound, error) {
@@ -40,9 +45,9 @@ func (b *scriptedBinder) Bind(_ context.Context, identity string, source *testpi
 	}
 	b.open = true
 	b.events = append(b.events, "bind")
-	run := func(prepared *testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+	run := attemptScript(func(prepared *testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 		return prepared.Run(context.Background(), &scriptedDriver{identity: prepared.Identity()})
-	}
+	})
 	if b.binds < len(b.script) && b.script[b.binds] != nil {
 		run = b.script[b.binds]
 	}
@@ -52,10 +57,14 @@ func (b *scriptedBinder) Bind(_ context.Context, identity string, source *testpi
 
 func (b *scriptedBound) Run(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	b.binder.events = append(b.binder.events, "run")
+	if b.binder.onRun != nil {
+		b.binder.onRun()
+	}
 	return b.run(b.prepared)
 }
 
-func (b *scriptedBound) Release(context.Context) error {
+func (b *scriptedBound) Release(ctx context.Context) error {
+	b.binder.released = append(b.binder.released, ctx.Err())
 	b.binder.open = false
 	b.binder.events = append(b.binder.events, "release")
 	return b.binder.release
@@ -109,7 +118,7 @@ func TestRerunClassesEveryOutcomeWithoutAFourth(t *testing.T) {
 	subject, prepare := admittedSubject(t)
 	opened := []*testpilotspb.RunEvent{{Sequence: 1, Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED}}
 	closed := &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}
-	scripted := func(run *testpilotspb.Run, verdict *testpilotspb.Verdict, err error) func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+	scripted := func(run *testpilotspb.Run, verdict *testpilotspb.Verdict, err error) attemptScript {
 		return func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 			return run, verdict, err
 		}
@@ -134,16 +143,16 @@ func TestRerunClassesEveryOutcomeWithoutAFourth(t *testing.T) {
 	}
 
 	for name, probe := range map[string]struct {
-		script  []func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+		script  []attemptScript
 		classes []Class
 		pair    Class
 		detail  string
 	}{
-		"satisfied then reproduced":      {[]func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error){satisfied, nil}, []Class{ClassNotReproduced, ClassReproduced}, ClassNotReproduced, "satisfied"},
-		"incomplete then satisfied":      {[]func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error){incomplete, satisfied}, []Class{ClassIndeterminate, ClassNotReproduced}, ClassNotReproduced, "incomplete"},
-		"reproduced then unclosed":       {[]func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error){nil, unclosed}, []Class{ClassReproduced, ClassIndeterminate}, ClassIndeterminate, "not closed"},
-		"errored then reproduced":        {[]func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error){errored, nil}, []Class{ClassIndeterminate, ClassReproduced}, ClassIndeterminate, "went away"},
-		"forged verdict then reproduced": {[]func(*testpilot.PreparedCase) (*testpilotspb.Run, *testpilotspb.Verdict, error){forged, nil}, []Class{ClassIndeterminate, ClassReproduced}, ClassIndeterminate, "offline replay"},
+		"satisfied then reproduced":      {[]attemptScript{satisfied, nil}, []Class{ClassNotReproduced, ClassReproduced}, ClassNotReproduced, "satisfied"},
+		"incomplete then satisfied":      {[]attemptScript{incomplete, satisfied}, []Class{ClassIndeterminate, ClassNotReproduced}, ClassNotReproduced, "incomplete"},
+		"reproduced then unclosed":       {[]attemptScript{nil, unclosed}, []Class{ClassReproduced, ClassIndeterminate}, ClassIndeterminate, "not closed"},
+		"errored then reproduced":        {[]attemptScript{errored, nil}, []Class{ClassIndeterminate, ClassReproduced}, ClassIndeterminate, "went away"},
+		"forged verdict then reproduced": {[]attemptScript{forged, nil}, []Class{ClassIndeterminate, ClassReproduced}, ClassIndeterminate, "offline replay"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			binder := &scriptedBinder{prepare: prepare, script: probe.script}
@@ -214,4 +223,20 @@ func TestRerunValueCarriesNoHistoryReplay(t *testing.T) {
 	}
 	require.Equal(t, []string{"Key", "Attempts", "Class"}, fields(Reruns{}))
 	require.Equal(t, []string{"Class", "Detail", "Key", "Run", "Verdict", "Identity"}, fields(Attempt{}))
+}
+
+// A Run stopped by the caller's cancellation still closes, and its binding is still released: the
+// release sees a context the cancellation does not reach.
+func TestRerunReleasesAfterCancellation(t *testing.T) {
+	subject, prepare := admittedSubject(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	binder := &scriptedBinder{prepare: prepare, onRun: cancel}
+	reruns, err := Rerun(ctx, binder, subject.Target())
+	require.NoError(t, err)
+	require.Error(t, ctx.Err())
+	require.Len(t, binder.released, Attempts)
+	for _, released := range binder.released {
+		require.NoError(t, released, "the release ran on a live context")
+	}
+	require.Len(t, reruns.Attempts, Attempts)
 }
