@@ -13,7 +13,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   when no white-box Known Gap remains; they are produced and registered nowhere. The canary runs
   `nexusCallerCanary.syncCompletion`. The renderer gains a canary registry beside the functional
   one (`Registry.recordCanary`, recorded in the canary branch of the `case` block) and an
-  `umpire-case --render-canary <case-id>` mode; `make canary-gen-case` writes
+  `umpire-case --render-canary <case-id>` mode; `make canary-gen-case` writes its output, the
+  canonical compact form, to
   `tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json`, which
   `casebinding` embeds, and `canary-check-case`
   diffs a fresh render, in `umpire-check-regression`. The Case reaches its Verdict only from the
@@ -22,6 +23,15 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   verifier reads, not the Program), so the Driver's worker authority performs the handler's
   synchronous reply under its own reservation, and the canary adds no handler of its own: a
   second poller on the handler queue would race the Case's.
+- **The canary's Driver Profile is hand-authored.** fn-80 decided that a canary keeps a
+  hand-authored Profile, since a Profile is an authorization snapshot (QLF-01) and a derived one
+  would let a change to `DeriveProfile`, `DefaultCeilings` or `DefaultInstructionLimits` silently
+  widen what the production credential may do. `tools/canary/casebinding` therefore holds the
+  canary's `ProfileSpec` as explicit literals -- roles, methods and opcodes, command types, binding
+  IDs, the Program, Contract and correlated limits, the instruction defaults -- with only the
+  environment's coordinates filled in at run time, and a test that it equals `DeriveProfile`'s
+  output for the pinned Case under the same environment, so drift on either side fails review
+  rather than changing production's authority.
 - **The canary policy is data under `tools/canary`, never in Umpire.** One file,
   `tools/canary/policy/production-canary.json`, embedded and decoded strictly (unknown, repeated
   or case-folded keys, a missing field or another version reject), holds: the canary Case's
@@ -370,3 +380,14 @@ invocation and exits 3. The rule that a workflow not found on two reads an RPC t
 started is one predicate, `workflowClosed`, beside `leaseState`, shared by cleanup and reconcile;
 `run-opened` is signalled to the exact lease ID and fence run ID; .4's quick commands run the
 lifecycle test.
+
+Round eight (2026-09-23): NEEDS_WORK with one P1, three P2 and one P3 findings, all applied. The
+canary's Driver Profile is hand-authored, as fn-80 decided, and a test holds it equal to
+`DeriveProfile`'s output for the pinned Case, so drift fails review instead of widening what the
+production credential may do (P1). The pinned Case is the renderer's canonical output, compared by
+a plain diff. Every SDK client the canary builds logs through the Redactor, and the harness scans
+the process's whole stdout and stderr for planted coordinates. .8 defines the injection seams (a
+policy source, a transport source, a phase hook that is nil in the untagged build) that .10's
+harness build fills. `decide` returns the iteration's outcome (status, receipt bytes, error),
+which .4 keeps per iteration. The FYIs are taken: the invocation deadline runs from `run`'s start,
+and the canary's CI checks run in a job of their own with a 30-minute timeout.
