@@ -745,6 +745,22 @@ umpire-replay-run:
 		$${UMPIRE_REPLAY_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_REPLAY_NEXUS_ENDPOINT"} \
 		$(UMPIRE_REPLAY_FLAGS)
 
+umpire-assess:
+	@printf $(COLOR) "Build the Umpire assessment command..."
+	@mise exec -- go build -o ./.build/umpire-assess ./tools/umpire/cmd/umpire-assess
+	@printf 'Built ./.build/umpire-assess\n'
+
+# One offline assessment of a recorded Run: CASE and RUN name the subject's files, PROFILE an
+# Evaluation Profile by its exact name, RECEIPT_ROOT an existing directory outside the model. It
+# creates and replays no Run.
+umpire-assess-run:
+	@test -n "$(CASE)" || { printf 'CASE=<case.json> is required\n'; exit 3; }
+	@test -n "$(RUN)" || { printf 'RUN=<recorded run.json> is required\n'; exit 3; }
+	@test -n "$(PROFILE)" || { printf 'PROFILE=<name> is required\n'; exit 3; }
+	@test -n "$(RECEIPT_ROOT)" || { printf 'RECEIPT_ROOT=<dir> is required\n'; exit 3; }
+	@$(MAKE) --no-print-directory umpire-assess
+	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
+
 umpire-export-model-module-index:
 	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index
 
@@ -925,7 +941,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
