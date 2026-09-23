@@ -2,6 +2,8 @@ package casebinding
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -89,18 +91,72 @@ func TestThePinnedCaseStaysOnThePublicSurface(t *testing.T) {
 	require.NotEmpty(t, source.GetContract().GetCorrelated().GetRules(), "the Contract decides from correlated public observations")
 }
 
-// A Case other than the policy's refuses before anything is prepared.
+// A Case other than the policy's refuses before anything is prepared: a policy naming another
+// identity, or pinned bytes changed by one byte.
 func TestBindRefusesAnotherCase(t *testing.T) {
 	canary := *committed(t)
-	canary.CaseIdentity = "0000000000000000000000000000000000000000000000000000000000000000"
-	_, err := Bind(&canary, testEnvironment)
+	other := canary
+	other.CaseIdentity = "0000000000000000000000000000000000000000000000000000000000000000"
+	_, err := Bind(&other, testEnvironment)
 	require.ErrorContains(t, err, "the policy's is")
 	_, err = Bind(nil, testEnvironment)
 	require.Error(t, err)
+
+	changed := Case()
+	changed = bytes.Replace(changed, []byte(`"producerVersion":"1"`), []byte(`"producerVersion":"2"`), 1)
+	require.False(t, bytes.Equal(changed, pinned))
+	_, err = bind(changed, &canary, testEnvironment)
+	require.ErrorContains(t, err, "the policy's is", "a changed Case is another identity")
+}
+
+func TestCaseReturnsACopy(t *testing.T) {
 	require.True(t, bytes.Equal(Case(), pinned))
 	clone := Case()
 	clone[0] = ' '
-	require.False(t, bytes.Equal(clone, pinned), "Case returns a copy")
+	require.False(t, bytes.Equal(clone, pinned))
+}
+
+// identityDriver answers only Identity; a Run that reaches Validate or Open has already acquired
+// the authority it must not.
+type identityDriver struct {
+	identity          testpilot.DriverIdentity
+	validated, opened bool
+}
+
+func (d *identityDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
+	return d.identity, nil
+}
+
+func (d *identityDriver) Validate(context.Context, testpilot.PreparedProgram) error {
+	d.validated = true
+	return nil
+}
+
+func (d *identityDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+	d.opened = true
+	return nil, errors.New("not opened")
+}
+
+// The prepared Case refuses a Driver that carries a crossed Profile name, another catalog or other
+// bindings before it validates or opens anything, so no authority is acquired for a crossed Case.
+func TestThePreparedCaseRefusesACrossedDriverBeforeAuthority(t *testing.T) {
+	bound, err := Bind(committed(t), testEnvironment)
+	require.NoError(t, err)
+	prepared := bound.Prepared.Identity()
+	for name, identity := range map[string]testpilot.DriverIdentity{
+		"a crossed Profile name": {Profile: testEnvironment.Identity, Catalog: prepared.Catalog, Bindings: prepared.Bindings},
+		"another catalog":        {Profile: prepared.Profile, Catalog: "another-catalog", Bindings: prepared.Bindings},
+		"other bindings":         {Profile: prepared.Profile, Catalog: prepared.Catalog, Bindings: "other-bindings"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			driver := &identityDriver{identity: identity}
+			run, verdict, err := bound.Prepared.Run(t.Context(), driver)
+			require.Error(t, err)
+			require.Nil(t, run)
+			require.Nil(t, verdict)
+			require.False(t, driver.validated || driver.opened, "nothing is validated or opened for a crossed Driver")
+		})
+	}
 }
 
 func mustSource(t *testing.T) *testpilotspb.Case {
