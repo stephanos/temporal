@@ -11,7 +11,8 @@ import Testpilot.ProtoJSON
 /-!
 Render the checked-in Cases. Every Case a `case` block declares is enumerated from the Lean
 environment rather than from a table maintained here: `--list` prints what exists,
-`--render <case-id>` prints its canonical bytes.
+`--render <case-id>` prints its canonical bytes; `--render-canary <case-id>` prints an admitted
+canary Case's, which is never a fixture of the functional suites.
 
 The synthetic and conformance Cases stay reachable by their own argument. They carry no Model and
 the Go conformance builder names them by expected Verdict, which the registry does not model.
@@ -19,6 +20,9 @@ the Go conformance builder names them by expected Verdict, which the registry do
 
 /-- Every registered Case, sorted by Case ID. -/
 def registered : List Temporal.Case.Registry.Materialized := registeredCases%
+
+/-- Every admitted canary Case, sorted by Case ID; rendered only by `--render-canary`. -/
+def canaries : List Temporal.Case.Registry.Materialized := registeredCanaryCases%
 
 private def renderTestpilot
     (compiled : Except Umpire.Case.Compiler.Error
@@ -46,6 +50,12 @@ private def renderRegisteredCase (caseId : String) : IO Unit :=
   | some entry => renderTestpilot entry.value
   | none => throw (IO.userError s!"unknown Case '{caseId}'; known: {knownCaseIds}")
 
+private def renderCanaryCase (caseId : String) : IO Unit :=
+  match canaries.find? (·.caseId == caseId) with
+  | some entry => renderTestpilot entry.value
+  | none => throw (IO.userError
+      s!"unknown canary Case '{caseId}'; known: {", ".intercalate (canaries.map (·.caseId))}")
+
 private def renderRegisteredFixture (fixture : String) : IO Unit :=
   match registered.find? (·.fixture == fixture) with
   | some entry => renderTestpilot entry.value
@@ -55,6 +65,7 @@ def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["--list"] => registered.forM fun entry => IO.println s!"{entry.caseId} {entry.fixture}"
   | ["--render", caseId] => renderRegisteredCase caseId
+  | ["--render-canary", caseId] => renderCanaryCase caseId
   | ["synthetic"] => renderSynthetic
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase
