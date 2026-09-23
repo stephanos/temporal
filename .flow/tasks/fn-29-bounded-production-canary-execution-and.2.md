@@ -17,14 +17,13 @@ Record canary Cases in a registry of their own (`Registry.recordCanary` in the c
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Lean and Go agree on the canary Case bytes and identity, and the policy pins the same identity.
-- [ ] A changed Case, a crossed Profile name, another catalog or an unregistered canary Case rejects before authority acquisition.
-- [ ] The Contract reaches its Verdict only from the public server observations it names; the canary Case carries no Known Gap.
+- [x] Lean and Go agree on the canary Case bytes and identity, and the policy pins the same identity.
+- [x] A changed Case, a crossed Profile name, another catalog or an unregistered canary Case rejects before authority acquisition.
+- [x] The Contract reaches its Verdict only from the public server observations it names; the canary Case carries no Known Gap.
 
 ## Done summary
-TBD
-
+Canary Cases are recorded in their own Lean registry, and `umpire-case --render-canary <case-id>` renders only a registered one (an unregistered ID refuses by name). `make canary-gen-case` writes the pinned `nexusCallerCanary.syncCompletion` Case to `tools/canary/casebinding/testdata/`, `canary-check-case` diffs a fresh render and runs in `umpire-check-regression`, and the policy pins its identity. `tools/canary/casebinding` embeds the Case, checks its identity against the policy's, and `Bind` prepares it under the hand-authored `ProfileSpec`, held equal to `DeriveProfile`'s output by test. Tests pin the Case to the two public WorkflowService methods and the history and scheduled-source correlations, with no Known Gap, and pin that a changed Case, a crossed Profile name, another catalog or other bindings refuse before any Driver validation or open. Implementation review: SHIP on round three; its three P3 notes applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 14de78e3c18d9c25b002b619d923a0046716c464, 09420f6d6cdf818244e6b5c7d9e67aa898ca6553, e648abf86e2f94eaca5facbee56477677a95c2b0, 8856a29ce15cf6b4910344b7b6f84c850b04c43b
+- Tests: cd model && lake build umpire-case, make canary-check-case, go test -count=1 -tags test_dep ./tools/canary/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:

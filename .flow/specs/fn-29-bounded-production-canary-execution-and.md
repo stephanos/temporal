@@ -295,6 +295,18 @@ writes each group into the directory that embeds it. `tools/umpire/internal/reco
 P3 notes applied (limit ceilings against overflow, the derived table, one loader, the authority
 classes returned fresh).
 
+Task .2 (2026-09-23): canary Cases are recorded in their own registry (`Registry.recordCanary`,
+called from the canary branch of the `case` block after the white-box-gap check), and
+`umpire-case --render-canary <case-id>` renders only a registered one. `make canary-gen-case`
+writes the pinned Case to `tools/canary/casebinding/testdata/`, which `.gitignore` now admits, and
+`canary-check-case` joins `umpire-check-regression`. The policy pins the Case's identity.
+`casebinding.Bind` prepares the pinned Case under the hand-authored `ProfileSpec`, which a test holds
+equal to `DeriveProfile`'s output. Tests pin that the Case names only the two public methods and
+correlates only history and the scheduled source, and that a changed Case, a crossed Profile name,
+another catalog or other bindings refuse before the Driver validates or opens anything.
+Implementation review: NEEDS_WORK twice (the ignored fixture, then refusal coverage), SHIP on the
+third round; its three P3 notes applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
