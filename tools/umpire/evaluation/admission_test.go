@@ -13,7 +13,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/tools/umpire/internal/recordedrun"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -271,7 +271,7 @@ func TestEvaluationLinksNothingThatExecutes(t *testing.T) {
 	listed, err := exec.Command("go", "list", "-deps", ".").Output()
 	require.NoError(t, err)
 	dependencies := strings.Split(strings.TrimSpace(string(listed)), "\n")
-	require.Contains(t, dependencies, "go.temporal.io/server/tools/umpire/internal/recordedrun")
+	require.Contains(t, dependencies, "go.temporal.io/server/tools/umpire/recordedrun")
 	for _, forbidden := range []string{
 		"go.temporal.io/server/tools/umpire/replay",
 		"go.temporal.io/server/tools/umpire/campaign",
