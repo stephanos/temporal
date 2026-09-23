@@ -84,18 +84,28 @@ func TestProvenanceGoldens(t *testing.T) {
 // the renderer where it can be expressed and by the decoder in any case.
 func TestProvenanceRefusesEveryMutation(t *testing.T) {
 	for name, edit := range map[string]func(*Provenance){
-		"another version":               func(p *Provenance) { p.Version = 2 },
-		"a receipt that is no identity": func(p *Provenance) { p.Receipt = "receipt" },
-		"a Profile that is no identity": func(p *Provenance) { p.EvaluationProfile = strings.TrimPrefix(p.EvaluationProfile, "sha256:") },
-		"another authority class":       func(p *Provenance) { p.AuthorityClass = "operator-laptop" },
-		"a workflow ref with no ref":    func(p *Provenance) { p.Workflow.Ref = "temporalio/temporal/.github/workflows/x.yml" },
-		"a workflow run ID of zero":     func(p *Provenance) { p.Workflow.RunID = "0" },
-		"a padded workflow run ID":      func(p *Provenance) { p.Workflow.RunID = "01234567" },
-		"a raw coordinate":              func(p *Provenance) { p.Coordinates.Namespace = plantedCoordinates[1] },
-		"an unconfigured coordinate":    func(p *Provenance) { p.Coordinates.GRPC = policy.Unconfigured },
-		"a raw lease ID":                func(p *Provenance) { p.Lease.WorkflowIDDigest = "umpire-canary-lease" },
-		"no fence":                      func(p *Provenance) { p.Lease.Fence = "" },
-		"no invocation":                 func(p *Provenance) { p.Invocation.ID = "" },
+		"another version":                       func(p *Provenance) { p.Version = 2 },
+		"a receipt that is no identity":         func(p *Provenance) { p.Receipt = "receipt" },
+		"a Profile that is no identity":         func(p *Provenance) { p.EvaluationProfile = strings.TrimPrefix(p.EvaluationProfile, "sha256:") },
+		"another authority class":               func(p *Provenance) { p.AuthorityClass = "operator-laptop" },
+		"a workflow ref with no ref":            func(p *Provenance) { p.Workflow.Ref = "temporalio/temporal/.github/workflows/x.yml" },
+		"a workflow run ID of zero":             func(p *Provenance) { p.Workflow.RunID = "0" },
+		"a padded workflow run ID":              func(p *Provenance) { p.Workflow.RunID = "01234567" },
+		"a raw coordinate":                      func(p *Provenance) { p.Coordinates.Namespace = plantedCoordinates[1] },
+		"an unconfigured coordinate":            func(p *Provenance) { p.Coordinates.GRPC = policy.Unconfigured },
+		"a raw lease ID":                        func(p *Provenance) { p.Lease.WorkflowIDDigest = "umpire-canary-lease" },
+		"no fence":                              func(p *Provenance) { p.Lease.Fence = "" },
+		"no invocation":                         func(p *Provenance) { p.Invocation.ID = "" },
+		"an invocation of another workflow run": func(p *Provenance) { p.Invocation.ID = "7654321-1" },
+		"an invocation with no attempt":         func(p *Provenance) { p.Invocation.ID = "1234567" },
+		"an invocation of attempt zero":         func(p *Provenance) { p.Invocation.ID = "1234567-0" },
+		"a fence that is no run ID":             func(p *Provenance) { p.Lease.Fence = "umpire-canary-lease" },
+		"a fenced ID that is no Testpilot Run": func(p *Provenance) {
+			p.Fenced[1] = "customer-workflow"
+		},
+		"a workflow ref outside the workflows directory": func(p *Provenance) {
+			p.Workflow.Ref = "temporalio/temporal/scripts/canary.yml@refs/heads/main"
+		},
 		"iteration zero":                func(p *Provenance) { p.Invocation.Iteration = 0 },
 		"an iteration past the limit":   func(p *Provenance) { p.Invocation.Iteration = p.Limits.Iterations + 1 },
 		"a Run the lease did not fence": func(p *Provenance) { p.Invocation.RunID = "testpilot.run.other" },

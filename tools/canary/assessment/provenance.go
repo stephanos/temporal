@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/umpire/recordedrun"
@@ -26,6 +27,10 @@ const (
 	CleanupReleased  = "released"
 	CleanupUncertain = "uncertain"
 )
+
+// testpilotRunPrefix begins every Run ID Testpilot chooses, and so every workflow ID the fence
+// names, since the canary Case's workflow ID is its Run ID.
+const testpilotRunPrefix = "testpilot.run."
 
 // Isolation is the one isolation statement a canary provenance makes: what the scope is, not a
 // claim about the rest of production.
@@ -118,14 +123,26 @@ func (p *Provenance) validateIdentities() error {
 	if !slices.Contains(policy.AuthorityClasses(), p.AuthorityClass) {
 		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(policy.AuthorityClasses(), ", "))
 	}
-	if repositoryAndPath, ref, ok := strings.Cut(p.Workflow.Ref, "@"); !ok || repositoryAndPath == "" ||
+	repositoryAndPath, ref, ok := strings.Cut(p.Workflow.Ref, "@")
+	repository, path, _ := strings.Cut(repositoryAndPath, "/.github/workflows/")
+	if !ok || repository == "" || !strings.HasSuffix(path, ".yml") || strings.Contains(path, "/") ||
 		!strings.HasPrefix(ref, "refs/heads/") || ref == "refs/heads/" {
-		return fmt.Errorf("workflow ref %q is not <repository>/<path>@<branch ref>", p.Workflow.Ref)
+		return fmt.Errorf("workflow ref %q is not <repository>/.github/workflows/<file>.yml@<branch ref>", p.Workflow.Ref)
 	}
-	if number, err := strconv.ParseUint(p.Workflow.RunID, 10, 64); err != nil || number == 0 || strconv.FormatUint(number, 10) != p.Workflow.RunID {
+	if !positiveNumber(p.Workflow.RunID) {
 		return fmt.Errorf("workflow run ID %q is not a positive number", p.Workflow.RunID)
 	}
+	// The invocation is the workflow run's attempt, as preflight names it.
+	if attempt, ok := strings.CutPrefix(p.Invocation.ID, p.Workflow.RunID+"-"); !ok || !positiveNumber(attempt) {
+		return fmt.Errorf("invocation %q is not an attempt of workflow run %s", p.Invocation.ID, p.Workflow.RunID)
+	}
 	return nil
+}
+
+// positiveNumber reports whether value is a positive decimal number written canonically.
+func positiveNumber(value string) bool {
+	number, err := strconv.ParseUint(value, 10, 64)
+	return err == nil && number > 0 && strconv.FormatUint(number, 10) == value
 }
 
 // validateScope checks the target and the lease are digests, the fence is named, the Limits are
@@ -141,8 +158,8 @@ func (p *Provenance) validateScope() error {
 			return fmt.Errorf("%s is not a digest", digest.name)
 		}
 	}
-	if p.Lease.Fence == "" {
-		return errors.New("the provenance names no fence")
+	if _, err := uuid.Parse(p.Lease.Fence); err != nil {
+		return errors.New("the fence is not a lease run ID")
 	}
 	if err := p.Limits.Validate(); err != nil {
 		return err
@@ -156,9 +173,7 @@ func (p *Provenance) validateScope() error {
 // validateIteration checks the iteration against its invocation: its number within the limit, its
 // Run the fence's in that position, and both cleanups recorded ones.
 func (p *Provenance) validateIteration() error {
-	if p.Invocation.ID == "" || p.Invocation.RunID == "" {
-		return errors.New("the provenance needs the invocation ID and the iteration's Run ID")
-	}
+
 	iterations := p.Limits.Iterations
 	if p.Invocation.Iteration < 1 || p.Invocation.Iteration > iterations {
 		return fmt.Errorf("iteration %d is not one of the invocation's %d", p.Invocation.Iteration, iterations)
@@ -177,8 +192,8 @@ func (p *Provenance) validateIteration() error {
 	}
 	seen := map[string]bool{}
 	for _, id := range p.Fenced {
-		if id == "" || seen[id] {
-			return errors.New("the fenced workflow IDs are not distinct and non-empty")
+		if !strings.HasPrefix(id, testpilotRunPrefix) || id == testpilotRunPrefix || seen[id] {
+			return errors.New("the fenced workflow IDs are not distinct Testpilot Run IDs")
 		}
 		seen[id] = true
 	}
