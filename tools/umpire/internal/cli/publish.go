@@ -1,6 +1,10 @@
 package cli
 
-import "go.temporal.io/server/tools/umpire/publish"
+import (
+	"context"
+
+	"go.temporal.io/server/tools/umpire/publish"
+)
 
 // The publisher is tools/umpire/publish; these are the names the commands use.
 const (
@@ -14,4 +18,6 @@ type (
 )
 
 // Publish is publish.Publish.
-var Publish = publish.Publish
+func Publish(ctx context.Context, root, name string, contents []byte) (Publication, error) {
+	return publish.Publish(ctx, root, name, contents)
+}

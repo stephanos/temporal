@@ -83,7 +83,7 @@ func TestPublishWritesEachDecisionWithItsProvenance(t *testing.T) {
 			first := item(t, 1, runs[0], runs[:1], edit)
 			require.Equal(t, name, first.Status)
 			var recorded []string
-			published, err := Publish(t.Context(), root, []Item{first, {RunID: runs[1], Status: "unconstructible"}}, func(runID string) error {
+			published, err := Publish(t.Context(), root, []Item{first, {RunID: runs[1], Status: StatusUnconstructible}}, func(runID string) error {
 				recorded = append(recorded, runID)
 				return nil
 			})
@@ -170,7 +170,9 @@ func TestPublishRefusesACrossedIteration(t *testing.T) {
 		"a decision the receipt differs": {RunID: runs[0], Status: evaluation.DecisionRejected, Receipt: good.Receipt, Provenance: good.Provenance},
 		"an unreadable receipt":          {RunID: runs[0], Status: good.Status, Receipt: []byte("{}\n"), Provenance: good.Provenance},
 		"an unreadable provenance":       {RunID: runs[0], Status: good.Status, Receipt: good.Receipt, Provenance: []byte("{}\n")},
-		"an unconstructible receipt":     {RunID: runs[0], Status: "unconstructible", Receipt: good.Receipt},
+		"an unconstructible receipt":     {RunID: runs[0], Status: StatusUnconstructible, Receipt: good.Receipt},
+		"no status":                      {RunID: runs[0]},
+		"a mislabelled status":           {RunID: runs[0], Status: "acepted"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
