@@ -312,3 +312,9 @@ under `cli.Interruptible` and `Publish` checks its context immediately before th
 pinned. The FYIs are taken: receipts are 0644, a summary stdout cannot take goes to stderr, and
 replay's reason classes are unchanged by rebuilding `ViolatedForm` on `Agreement`, its tests
 pinning them. R1's "Limits" read as the admission caps the receipt records, as round three settled.
+
+Round cap (2026-09-23): the eighth round reached flowctl's cap of eight plan-review rounds. Each
+round's findings were real and applied, and their severity fell (rounds six to eight found one
+blocking issue each, all in the recorded-Run `case` binding round six introduced). That binding
+changes the recorded-Run format fn-22 shipped, which is a re-plan of the subject contract, so the
+counter was reset with `flowctl spec reset-review-rounds` and review continued from round nine.
