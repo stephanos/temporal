@@ -480,6 +480,13 @@ applied: a Run returned beside a recorder error is classed `indeterminate`, the 
 and opening the binder after admission is the caller's contract, which tasks .6 and .7 keep.
 Implementation review of task .2, round two: SHIP.
 
+Implementation review of task .3, round two: SHIP; of task .4, round two: SHIP. Task .3's two P3
+notes are applied as polish: the control's `case` block realizes `nexusCallerCases.realization`
+by reference (the fixture's bytes are unchanged), and the live test asserts the two Runs are
+distinct. Its FYI notes are recorded: the pin's handler queue repeats the `-handler` rule, which a
+change would fail loudly; `UMPIRE_CONTROL_RECORD` writes the pin where it names, never replacing a
+file.
+
 ## Plan review
 
 Round one (2026-09-22, `flowctl claude plan-review`, opus at high): NEEDS_WORK with eleven
