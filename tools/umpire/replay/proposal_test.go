@@ -24,7 +24,9 @@ func TestWriteProposalReportsEveryStatus(t *testing.T) {
 	require.Equal(t, ProposalCompiled, compiled.Status)
 	require.Empty(t, compiled.Written)
 
-	root := filepath.Join(t.TempDir(), "proposals")
+	temporary, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	root := filepath.Join(temporary, "proposals")
 	written := WriteProposal(root, proposal)
 	require.Equal(t, ProposalWritten, written.Status)
 	require.Equal(t, filepath.Join(root, "set-d.lean"), written.Written)

@@ -81,7 +81,7 @@ type Reduction struct {
 	Edits        []Settled         `json:"edits"`
 	Candidates   []CandidateReport `json:"candidates"`
 	// Proposal is the bridge's proposal for a minimized or irreducible result, source bytes
-	// included, which WriteProposal writes; the report renders what became of it instead.
+	// included, carried for WriteProposal; the reduction's JSON leaves it out.
 	Proposal *BridgeProposal `json:"-"`
 }
 

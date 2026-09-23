@@ -104,16 +104,18 @@ func WriteProposals(root string, proposals []Proposal) (map[string]string, error
 }
 
 func writeExclusive(root, path, source string) error {
+	// The directory is resolved through its existing part and checked before anything is created,
+	// so a symlink under the root never gets a directory made on its far side.
 	directory := filepath.Dir(path)
-	if err := os.MkdirAll(directory, 0o755); err != nil {
-		return err
-	}
-	resolved, err := filepath.EvalSymlinks(directory)
+	resolved, err := Resolve(directory)
 	if err != nil {
 		return err
 	}
 	if !Within(root, resolved) {
 		return fmt.Errorf("%s resolves outside the promotion root", directory)
+	}
+	if err := os.MkdirAll(resolved, 0o755); err != nil {
+		return err
 	}
 	file, err := os.OpenFile(filepath.Join(resolved, filepath.Base(path)), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 	if err != nil {
