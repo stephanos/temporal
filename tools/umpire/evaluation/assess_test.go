@@ -125,6 +125,10 @@ func TestAssessIsPureAndProfilesAreIndependent(t *testing.T) {
 	})
 	before := *subject
 	verdict := proto.CloneOf(subject.Verdict)
+	var gaps []*testpilotspb.KnownGap
+	for _, gap := range subject.KnownGaps {
+		gaps = append(gaps, proto.CloneOf(gap))
+	}
 
 	local := Assess(subject, localEphemeral(t))
 	require.Equal(t, local, Assess(subject, localEphemeral(t)))
@@ -135,6 +139,28 @@ func TestAssessIsPureAndProfilesAreIndependent(t *testing.T) {
 	require.Equal(t, local, Assess(subject, localEphemeral(t)), "assessing under another Profile changed nothing")
 
 	require.True(t, proto.Equal(verdict, subject.Verdict))
-	subject.Verdict = before.Verdict
+	require.Len(t, subject.KnownGaps, len(gaps))
+	for index, gap := range gaps {
+		require.True(t, proto.Equal(gap, subject.KnownGaps[index]))
+	}
 	require.Equal(t, before, *subject)
+}
+
+// The reader evaluates every condition a Profile can name, and a condition it could not evaluate
+// would hold rather than let a subject through.
+func TestAssessEvaluatesEveryConditionAndFailsClosed(t *testing.T) {
+	holds := conditionsHolding(Decision{}, false)
+	var known []string
+	for condition := range holds {
+		known = append(known, condition)
+	}
+	require.ElementsMatch(t, conditions, known)
+
+	c := loadControl(t)
+	subject := c.admitted(t, nil, satisfy)
+	profile := localEphemeral(t)
+	profile.Reasons = append(profile.Reasons, Reason{Name: "future", Condition: "a-condition-from-the-future", Decision: DecisionIncomplete})
+	decision := Assess(subject, profile)
+	require.Equal(t, DecisionIncomplete, decision.Outcome)
+	require.Equal(t, []string{"future"}, reasonNames(decision))
 }
