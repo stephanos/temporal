@@ -29,6 +29,9 @@ type fakeReplayBridge struct {
 	sweep    []fakeEdit
 	crossed  bool
 	capped   bool
+	// rejectAdmit, when set, rejects admit with this reason, as the bridge rejects a set, Query or
+	// target it cannot recover.
+	rejectAdmit string
 
 	set, profile string
 	seq          int
@@ -83,6 +86,9 @@ func (f *fakeReplayBridge) digest(edit Edit) string { return fmt.Sprintf("candid
 func (f *fakeReplayBridge) answer(frame bridgeRequest) map[string]any {
 	if frame.Seq != f.seq+1 {
 		return map[string]any{"frame": "rejected", "seq": frame.Seq, "reason": "out-of-order frame"}
+	}
+	if frame.Frame == "admit" && f.rejectAdmit != "" {
+		return map[string]any{"frame": "rejected", "seq": frame.Seq, "reason": f.rejectAdmit}
 	}
 	if frame.Frame == "admit" {
 		f.set, f.profile = frame.Set, frame.Profile
