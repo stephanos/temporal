@@ -160,12 +160,18 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 	}
 	redactor = loaded.Redactor
 	// One capped, redacting writer for everything the invocation and its SDK clients write.
-	progress := redactor.Writer(&boundedWriter{out: invocation.Progress, remaining: canary.Limits.ProgressBytes})
+	progress := progressWriter(redactor, invocation.Progress, canary.Limits.ProgressBytes)
 	defer func() { _ = progress.Close() }()
 
+	dial := invocation.dial
+	if dial == nil {
+		dial = client.Dial
+	}
 	connect := invocation.service
 	if connect == nil {
-		connect = invocation.connect
+		connect = func(loaded *authority.Authority, namespace string, progress io.Writer) (*lazyService, error) {
+			return connectLazily(dial, loaded, namespace, progress), nil
+		}
 	}
 	service, err := connect(loaded, loaded.Coordinates.Namespace, progress)
 	if err != nil {
@@ -191,17 +197,13 @@ func Invoke(ctx context.Context, invocation Invocation) (Summary, int) {
 		return finish()
 	}
 
-	dial := invocation.dial
-	if dial == nil {
-		dial = client.Dial
-	}
 	config := Config{
 		Policy: canary, Scope: scope, Namespace: loaded.Coordinates.Namespace, Transport: loaded.Transport,
 		Redactor: redactor, Service: service, Identity: "umpire-canary " + scope.InvocationID, Dial: dial,
 		Decide: func(run *testpilotspb.Run, _ *testpilotspb.Verdict) Outcome {
 			return decide(canary, profile, scope, run)
 		},
-		Recovery: store, Progress: progress, Started: invocation.Started, Hook: invocation.Seams.Hook,
+		Recovery: store, Progress: capped{progress}, Started: invocation.Started, Hook: invocation.Seams.Hook,
 	}
 	if err := config.validate(); err != nil {
 		result.raise(StatusToolingFailure, ExitFailed, err.Error())
@@ -395,16 +397,12 @@ func truncate(detail string) string {
 	return detail[:maxDetailBytes] + "..."
 }
 
-// connect is the real lease service: an SDK client for the canary namespace, dialed on its first
-// use, so preflight's connection-free checks refuse before anything reaches the target.
-func (invocation Invocation) connect(loaded *authority.Authority, namespace string, progress io.Writer) (*lazyService, error) {
-	dial := invocation.dial
-	if dial == nil {
-		dial = client.Dial
-	}
+// connectLazily is the real lease service: an SDK client for the canary namespace, dialed on its
+// first use, so preflight's connection-free checks refuse before anything reaches the target.
+func connectLazily(dial func(client.Options) (client.Client, error), loaded *authority.Authority, namespace string, progress io.Writer) *lazyService {
 	return &lazyService{dial: func() (client.Client, error) {
 		return dial(loaded.Transport.ClientOptions(namespace, loaded.Redactor.Logger(progress)))
-	}}, nil
+	}}
 }
 
 // lazyService is the WorkflowService the lease, cleanup and preflight's read use, over one SDK
