@@ -339,6 +339,15 @@ outlive reconcile's age guard; testifylint forms; a dropped release error), then
 P3 notes and the test FYIs applied. A lease run that starts and times out between the read and the
 take is a race the server's reuse policies cannot close; the window is the length of one RPC.
 
+Task .5 (2026-09-23): `assessment.Admit` encodes an iteration's closed Run in memory under the
+pinned Case's identity and the prepared Case's Driver identity and admits it with fn-26 against the
+tree's catalog; a nil Run is `ErrLost` with no subject, and a Profile name other than the policy's
+is `crossed`. The lifecycle proof now decides each iteration through `Admit` and fn-26's `Assess`
+under `production-canary`, and both Runs are accepted. The admission tests read a test cluster's
+Run, recorded by the lifecycle test when `UMPIRE_CANARY_RECORD` names the file, as the replay's
+control fixture is; a catalog or Case change requires re-recording it. Implementation review: SHIP
+in one round; its P3 note (no test failure inside the controller's decide) applied.
+
 ## Plan review
 
 Round one of the re-plan (`flowctl claude plan-review`, opus at high, 2026-09-23): NEEDS_WORK with
