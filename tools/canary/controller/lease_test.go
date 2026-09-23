@@ -114,7 +114,12 @@ func (s *fakeServer) StartWorkflowExecution(ctx context.Context, request *workfl
 	}
 	s.next++
 	run := &fakeRun{runID: fmt.Sprintf("00000000-0000-4000-9000-%012d", s.next), status: enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, started: time.Unix(1000, 0),
-		events: []*historypb.HistoryEvent{{EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED}}}
+		events: []*historypb.HistoryEvent{{
+			EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED,
+			Attributes: &historypb.HistoryEvent_WorkflowExecutionStartedEventAttributes{WorkflowExecutionStartedEventAttributes: &historypb.WorkflowExecutionStartedEventAttributes{
+				Identity: request.GetIdentity(),
+			}},
+		}}}
 	s.runs[request.GetWorkflowId()] = append(s.runs[request.GetWorkflowId()], run)
 	return &workflowservice.StartWorkflowExecutionResponse{RunId: run.runID, Started: true}, nil
 }
