@@ -94,10 +94,6 @@ func (*releaseEligibility) UnmarshalJSON(encoded []byte) error {
 	return nil
 }
 
-func isHexDigest(value string) bool {
-	return len(value) == 64 && strings.Trim(value, "0123456789abcdef") == ""
-}
-
 func (p *Provenance) validate() error {
 	if p.Version != ProvenanceFormatVersion {
 		return fmt.Errorf("provenance format version %d, not %d", p.Version, ProvenanceFormatVersion)
@@ -113,17 +109,18 @@ func (p *Provenance) validate() error {
 // validateIdentities checks what the provenance names: the receipt, the Profile, the authority
 // class and the workflow run.
 func (p *Provenance) validateIdentities() error {
-	if !isHexDigest(p.Receipt) {
+	if !policy.IsDigest(p.Receipt) {
 		return fmt.Errorf("receipt %q is not a receipt identity", p.Receipt)
 	}
-	if identity, ok := strings.CutPrefix(p.EvaluationProfile, "sha256:"); !ok || !isHexDigest(identity) {
+	if identity, ok := strings.CutPrefix(p.EvaluationProfile, "sha256:"); !ok || !policy.IsDigest(identity) {
 		return fmt.Errorf("evaluationProfile %q is not a Profile identity", p.EvaluationProfile)
 	}
 	if !slices.Contains(policy.AuthorityClasses(), p.AuthorityClass) {
 		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(policy.AuthorityClasses(), ", "))
 	}
-	if repositoryAndPath, ref, ok := strings.Cut(p.Workflow.Ref, "@"); !ok || repositoryAndPath == "" || !strings.HasPrefix(ref, "refs/") {
-		return fmt.Errorf("workflow ref %q is not <repository>/<path>@<ref>", p.Workflow.Ref)
+	if repositoryAndPath, ref, ok := strings.Cut(p.Workflow.Ref, "@"); !ok || repositoryAndPath == "" ||
+		!strings.HasPrefix(ref, "refs/heads/") || ref == "refs/heads/" {
+		return fmt.Errorf("workflow ref %q is not <repository>/<path>@<branch ref>", p.Workflow.Ref)
 	}
 	if number, err := strconv.ParseUint(p.Workflow.RunID, 10, 64); err != nil || number == 0 || strconv.FormatUint(number, 10) != p.Workflow.RunID {
 		return fmt.Errorf("workflow run ID %q is not a positive number", p.Workflow.RunID)
@@ -135,22 +132,20 @@ func (p *Provenance) validateIdentities() error {
 // positive and the isolation statement is the canary's.
 func (p *Provenance) validateScope() error {
 	coordinates := p.Coordinates
-	for name, digest := range map[string]string{
-		"grpc": coordinates.GRPC, "namespace": coordinates.Namespace, "taskQueue": coordinates.TaskQueue,
-		"handlerQueue": coordinates.HandlerQueue, "nexusEndpoint": coordinates.NexusEndpoint,
-		"lease.workflowIdDigest": p.Lease.WorkflowIDDigest,
+	for _, digest := range []struct{ name, value string }{
+		{"grpc", coordinates.GRPC}, {"namespace", coordinates.Namespace}, {"taskQueue", coordinates.TaskQueue},
+		{"handlerQueue", coordinates.HandlerQueue}, {"nexusEndpoint", coordinates.NexusEndpoint},
+		{"lease.workflowIdDigest", p.Lease.WorkflowIDDigest},
 	} {
-		if !isHexDigest(digest) {
-			return fmt.Errorf("%s is not a digest", name)
+		if !policy.IsDigest(digest.value) {
+			return fmt.Errorf("%s is not a digest", digest.name)
 		}
 	}
 	if p.Lease.Fence == "" {
 		return errors.New("the provenance names no fence")
 	}
-	limits := p.Limits
-	if limits.Iterations <= 0 || limits.InvocationSeconds <= 0 || limits.CleanupReserveSeconds <= 0 ||
-		limits.LeaseRunTimeoutSeconds <= 0 || limits.ProgressBytes <= 0 {
-		return errors.New("every limit is positive")
+	if err := p.Limits.Validate(); err != nil {
+		return err
 	}
 	if p.Isolation != Isolation {
 		return errors.New("the isolation statement is not the canary's")
@@ -159,7 +154,7 @@ func (p *Provenance) validateScope() error {
 }
 
 // validateIteration checks the iteration against its invocation: its number within the limit, its
-// Run among the fenced workflows, and both cleanups recorded ones.
+// Run the fence's in that position, and both cleanups recorded ones.
 func (p *Provenance) validateIteration() error {
 	if p.Invocation.ID == "" || p.Invocation.RunID == "" {
 		return errors.New("the provenance needs the invocation ID and the iteration's Run ID")
@@ -175,8 +170,10 @@ func (p *Provenance) validateIteration() error {
 	if p.Cleanup.Invocation != CleanupReleased && p.Cleanup.Invocation != CleanupUncertain {
 		return fmt.Errorf("the invocation's cleanup %q is neither %s nor %s", p.Cleanup.Invocation, CleanupReleased, CleanupUncertain)
 	}
-	if !slices.Contains(p.Fenced, p.Invocation.RunID) {
-		return errors.New("the iteration's Run is not one the lease fenced")
+	// Each iteration fences its one Run before it opens it, and a fence that fails ends the
+	// invocation, so iteration N's Run is the Nth the lease fenced.
+	if len(p.Fenced) < p.Invocation.Iteration || p.Fenced[p.Invocation.Iteration-1] != p.Invocation.RunID {
+		return fmt.Errorf("iteration %d's Run is not the lease's %d fenced workflow", p.Invocation.Iteration, p.Invocation.Iteration)
 	}
 	seen := map[string]bool{}
 	for _, id := range p.Fenced {

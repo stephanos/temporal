@@ -116,7 +116,8 @@ func Digest(value string) string {
 	return hex.EncodeToString(digest[:])
 }
 
-func isDigest(value string) bool {
+// IsDigest reports whether value is a lower-case hex SHA-256, as Digest writes one.
+func IsDigest(value string) bool {
 	return len(value) == sha256.Size*2 && strings.Trim(value, "0123456789abcdef") == ""
 }
 
@@ -187,7 +188,7 @@ func (p *Policy) validate() error {
 	if p.Version != Version {
 		return fmt.Errorf("canary policy format version %d, not %d", p.Version, Version)
 	}
-	if !isDigest(p.CaseIdentity) {
+	if !IsDigest(p.CaseIdentity) {
 		return fmt.Errorf("caseIdentity %q is not a hex SHA-256", p.CaseIdentity)
 	}
 	for _, field := range []struct{ name, value string }{
@@ -203,7 +204,7 @@ func (p *Policy) validate() error {
 		return fmt.Errorf("authorityClass %q is not one of %s", p.AuthorityClass, strings.Join(AuthorityClasses(), ", "))
 	}
 	for _, coordinate := range p.Coordinates.named() {
-		if coordinate.value != Unconfigured && !isDigest(coordinate.value) {
+		if coordinate.value != Unconfigured && !IsDigest(coordinate.value) {
 			return fmt.Errorf("coordinate %s is neither a hex SHA-256 nor %q", coordinate.name, Unconfigured)
 		}
 	}
@@ -216,15 +217,21 @@ func (p *Policy) validate() error {
 	if !strings.HasPrefix(p.WorkflowPath, ".github/workflows/") || !strings.HasSuffix(p.WorkflowPath, ".yml") {
 		return fmt.Errorf("workflowPath %q is not a workflow file", p.WorkflowPath)
 	}
+	return p.Limits.Validate()
+}
+
+// Validate holds each limit positive and under its ceiling, and the lease run timeout longer than
+// the invocation limit plus the cleanup reserve.
+func (l Limits) Validate() error {
 	for _, limit := range []struct {
 		name       string
 		value, max int
 	}{
-		{"iterations", p.Limits.Iterations, maxIterations},
-		{"invocationSeconds", p.Limits.InvocationSeconds, maxBoundSeconds},
-		{"cleanupReserveSeconds", p.Limits.CleanupReserveSeconds, maxBoundSeconds},
-		{"leaseRunTimeoutSeconds", p.Limits.LeaseRunTimeoutSeconds, maxLeaseSeconds},
-		{"progressBytes", p.Limits.ProgressBytes, maxProgressBytes},
+		{"iterations", l.Iterations, maxIterations},
+		{"invocationSeconds", l.InvocationSeconds, maxBoundSeconds},
+		{"cleanupReserveSeconds", l.CleanupReserveSeconds, maxBoundSeconds},
+		{"leaseRunTimeoutSeconds", l.LeaseRunTimeoutSeconds, maxLeaseSeconds},
+		{"progressBytes", l.ProgressBytes, maxProgressBytes},
 	} {
 		if limit.value <= 0 {
 			return fmt.Errorf("limit %s must be positive, is %d", limit.name, limit.value)
@@ -233,9 +240,9 @@ func (p *Policy) validate() error {
 			return fmt.Errorf("limit %s must be at most %d, is %d", limit.name, limit.max, limit.value)
 		}
 	}
-	if p.Limits.LeaseRunTimeoutSeconds <= p.Limits.InvocationSeconds+p.Limits.CleanupReserveSeconds {
+	if l.LeaseRunTimeoutSeconds <= l.InvocationSeconds+l.CleanupReserveSeconds {
 		return fmt.Errorf("leaseRunTimeoutSeconds %d must exceed the invocation limit plus the cleanup reserve (%d)",
-			p.Limits.LeaseRunTimeoutSeconds, p.Limits.InvocationSeconds+p.Limits.CleanupReserveSeconds)
+			l.LeaseRunTimeoutSeconds, l.InvocationSeconds+l.CleanupReserveSeconds)
 	}
 	return nil
 }
