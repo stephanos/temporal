@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -132,18 +133,24 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 	driver, run, recorded := recordedRunOf(t, prepare, profileName, caseBytes)
 	satisfiedBytes := loadCorpusCase(t, "satisfied")
 	_, _, satisfiedRecorded := recordedRunOf(t, prepare, profileName, satisfiedBytes)
+	caseIdentity, err := CaseIdentity(caseBytes)
+	require.NoError(t, err)
 	edited := func(edit func(run *testpilotspb.Run)) []byte {
 		copied := proto.CloneOf(run)
 		edit(copied)
-		document, err := EncodeRecordedRun(driver, copied)
+		document, err := EncodeRecordedRun(caseIdentity, driver, copied)
 		require.NoError(t, err)
 		return document
 	}
 	withIdentity := func(identity testpilot.DriverIdentity) []byte {
-		document, err := EncodeRecordedRun(identity, run)
+		document, err := EncodeRecordedRun(caseIdentity, identity, run)
 		require.NoError(t, err)
 		return document
 	}
+	legacy, err := json.Marshal(map[string]any{"identity": RecordedIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: driver.Bindings}, "run": json.RawMessage(mustProtoJSON(t, run))})
+	require.NoError(t, err)
+	otherCase, err := EncodeRecordedRun(strings.Repeat("0", 64), driver, run)
+	require.NoError(t, err)
 	persisted, err := casefile.Persisted(caseBytes)
 	require.NoError(t, err)
 	for name, probe := range map[string]struct {
@@ -155,6 +162,8 @@ func TestAdmitRejectsEachClassBeforeAnyTargetEffect(t *testing.T) {
 		"noncanonical whitespace": {[]byte(strings.Replace(string(persisted), "  ", "    ", 1)), recorded, ReasonNoncanonical, "canonical"},
 		"not a Case":              {[]byte(`{"nonsense":1}`), recorded, ReasonNoncanonical, "does not decode"},
 		"crossed Case":            {caseBytes, edited(func(r *testpilotspb.Run) { r.CaseId = "temporal.case.other" }), ReasonCrossed, "names Case"},
+		"another Case's record":   {caseBytes, otherCase, ReasonCrossed, "recorded from Case"},
+		"a record naming no Case": {caseBytes, legacy, ReasonIncompatible, "names no Case"},
 		"crossed Program":         {caseBytes, edited(func(r *testpilotspb.Run) { r.ProgramId = "other.program" }), ReasonCrossed, "names Program"},
 		"stale catalog":           {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: "other-catalog", Bindings: driver.Bindings}), ReasonStale, "recorded under"},
 		"stale bindings":          {caseBytes, withIdentity(testpilot.DriverIdentity{Profile: driver.Profile, Catalog: driver.Catalog, Bindings: "other-bindings"}), ReasonStale, "recorded under"},
@@ -248,11 +257,15 @@ func TestRecordedRunRoundTripsAndNeverReplacesAFile(t *testing.T) {
 	driver, run, recorded := recordedRunOf(t, prepare, profileName, loadCorpusCase(t, "violated"))
 	var document map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(recorded, &document))
-	require.Equal(t, []string{"identity", "run"}, sortedKeys(document))
-	identity, decoded, err := DecodeRecordedRun(recorded)
+	require.Equal(t, []string{"case", "identity", "run"}, sortedKeys(document))
+	caseBytes := loadCorpusCase(t, "violated")
+	caseIdentity, err := CaseIdentity(caseBytes)
 	require.NoError(t, err)
-	require.Equal(t, driver, identity)
-	require.True(t, proto.Equal(run, decoded))
+	decoded, err := DecodeRecordedRun(recorded)
+	require.NoError(t, err)
+	require.Equal(t, caseIdentity, decoded.Case)
+	require.Equal(t, driver, decoded.Driver)
+	require.True(t, proto.Equal(run, decoded.Run))
 	expected, err := protojson.Marshal(run)
 	require.NoError(t, err)
 	var compactExpected, compactRecorded map[string]any
@@ -261,14 +274,35 @@ func TestRecordedRunRoundTripsAndNeverReplacesAFile(t *testing.T) {
 	require.Equal(t, compactExpected, compactRecorded)
 
 	path := t.TempDir() + "/run.json"
-	require.NoError(t, WriteRecordedRun(path, driver, run))
-	require.ErrorContains(t, WriteRecordedRun(path, driver, run), "exist")
-	_, _, err = DecodeRecordedRun(nil)
+	require.NoError(t, WriteRecordedRun(path, caseBytes, driver, run))
+	written, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.Equal(t, string(recorded), string(written), "writing is encoding under the Case's identity")
+	require.ErrorContains(t, WriteRecordedRun(path, caseBytes, driver, run), "exist")
+	require.ErrorContains(t, WriteRecordedRun(t.TempDir()+"/run.json", []byte(" {}"), driver, run), "no identity")
+	_, err = DecodeRecordedRun(nil)
 	require.Error(t, err)
-	_, _, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), recorded...))
+	_, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), recorded...))
 	require.ErrorContains(t, err, "after the document")
-	_, _, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), []byte("trailing")...))
+	_, err = DecodeRecordedRun(append(append([]byte(nil), recorded...), []byte("trailing")...))
 	require.ErrorContains(t, err, "after the document")
+	// Go's decoder matches keys without case and keeps the last of a repeated key; the record
+	// refuses both, so two documents never decode to one record.
+	_, err = DecodeRecordedRun([]byte(strings.Replace(string(recorded), `"case"`, `"Case"`, 1)))
+	require.ErrorContains(t, err, `unknown field "Case"`)
+	_, err = DecodeRecordedRun([]byte(strings.Replace(string(recorded), `"profile"`, `"PROFILE"`, 1)))
+	require.ErrorContains(t, err, `unknown field "PROFILE"`)
+	_, err = DecodeRecordedRun([]byte(strings.Replace(string(recorded), `{"case":`, `{"case":"x","case":`, 1)))
+	require.ErrorContains(t, err, `"case" appears twice`)
+	var withoutCase map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(recorded, &withoutCase))
+	delete(withoutCase, "case")
+	legacy, err := json.Marshal(withoutCase)
+	require.NoError(t, err)
+	_, err = DecodeRecordedRun(legacy)
+	require.ErrorIs(t, err, ErrRecordNamesNoCase)
+	_, err = DecodeRecordedRun([]byte(strings.Replace(string(recorded), caseIdentity, "not-a-digest", 1)))
+	require.ErrorContains(t, err, "not a hex SHA-256")
 }
 
 func TestClassifyAndThePairRule(t *testing.T) {
@@ -312,4 +346,11 @@ func sortedKeys(document map[string]json.RawMessage) []string {
 		}
 	}
 	return keys
+}
+
+func mustProtoJSON(t testing.TB, run *testpilotspb.Run) []byte {
+	t.Helper()
+	encoded, err := protojson.Marshal(run)
+	require.NoError(t, err)
+	return encoded
 }

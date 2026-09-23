@@ -1,68 +1,54 @@
 // Package replay turns one admitted violated Run of a produced Case into separate answers: whether
 // its Contract-relative violation recurs, which prefix steps one sweep can drop, and what expected
 // behavior to propose. This file is the recorded Run, the file shape every writer of a closed Run
-// shares: the Run with its Verdict and the Profile identity it was prepared under, which the Run
-// proto itself does not carry.
+// shares, which lives in internal/recordedrun so that qualification admission reads it without
+// importing the replay bridge; replay keeps its names.
 package replay
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/encoding/protojson"
+	"go.temporal.io/server/tools/umpire/internal/recordedrun"
 )
 
-// RecordedIdentity is the Profile identity a Run was prepared under: the Profile's name, the
-// catalog fingerprint and the environment-binding fingerprint, none of them secret.
-type RecordedIdentity struct {
-	Profile  string `json:"profile"`
-	Catalog  string `json:"catalog"`
-	Bindings string `json:"bindings"`
+// RecordedIdentity is the Profile identity a Run was prepared under.
+type RecordedIdentity = recordedrun.Identity
+
+// RecordedRun is one closed Run with the identity of the canonical Case it ran and the Profile
+// identity it was prepared under.
+type RecordedRun = recordedrun.Record
+
+// DecodedRun is a recorded Run read back.
+type DecodedRun = recordedrun.Decoded
+
+// ErrRecordNamesNoCase says a recorded Run names no Case identity: a record from before the
+// identity was recorded.
+var ErrRecordNamesNoCase = recordedrun.ErrNoCase
+
+// CaseIdentity is the hex SHA-256 of a Case's canonical bytes, recovered from its canonical or
+// persisted form: what a recorded Run names the Case it ran by.
+func CaseIdentity(input []byte) (string, error) {
+	return recordedrun.CaseIdentity(input)
 }
 
-// RecordedRun is one closed Run with its Verdict and the identity it was prepared under, as
-// umpire-run --record, umpire-fuzz --record-root and the live suite write it: a local file, not an
-// artifact family.
-type RecordedRun struct {
-	Identity RecordedIdentity `json:"identity"`
-	Run      json.RawMessage  `json:"run"`
+// EncodeRecordedRun renders a closed Run with the identity of the Case it ran and the Profile
+// identity it was prepared under, one JSON document ended with a newline.
+func EncodeRecordedRun(caseIdentity string, identity testpilot.DriverIdentity, run *testpilotspb.Run) ([]byte, error) {
+	return recordedrun.Encode(caseIdentity, identity, run)
 }
 
-// EncodeRecordedRun renders a closed Run with the identity it was prepared under, one JSON
-// document ended with a newline. The Run is canonical ProtoJSON, deterministic across writers.
-func EncodeRecordedRun(identity testpilot.DriverIdentity, run *testpilotspb.Run) ([]byte, error) {
-	if run == nil {
-		return nil, errors.New("closed Run required")
-	}
-	encoded, err := protojson.MarshalOptions{UseProtoNames: false}.Marshal(run)
+// WriteRecordedRun writes the recorded Run of a Case, given in its canonical or persisted form, to
+// path, creating it exclusively: an existing file is never replaced.
+func WriteRecordedRun(path string, caseBytes []byte, identity testpilot.DriverIdentity, run *testpilotspb.Run) error {
+	caseIdentity, err := CaseIdentity(caseBytes)
 	if err != nil {
-		return nil, fmt.Errorf("encode Run: %w", err)
+		return fmt.Errorf("write recorded Run: the Case has no identity: %w", err)
 	}
-	// protojson's spacing is deliberately unstable; the record carries the compact form.
-	var compact bytes.Buffer
-	if err := json.Compact(&compact, encoded); err != nil {
-		return nil, fmt.Errorf("compact Run: %w", err)
-	}
-	document, err := json.Marshal(RecordedRun{
-		Identity: RecordedIdentity{Profile: identity.Profile, Catalog: identity.Catalog, Bindings: identity.Bindings},
-		Run:      json.RawMessage(compact.Bytes()),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return append(document, '\n'), nil
-}
-
-// WriteRecordedRun writes EncodeRecordedRun's document to path, creating it exclusively: an
-// existing file is never replaced.
-func WriteRecordedRun(path string, identity testpilot.DriverIdentity, run *testpilotspb.Run) error {
-	document, err := EncodeRecordedRun(identity, run)
+	document, err := EncodeRecordedRun(caseIdentity, identity, run)
 	if err != nil {
 		return err
 	}
@@ -76,29 +62,8 @@ func WriteRecordedRun(path string, identity testpilot.DriverIdentity, run *testp
 	return file.Close()
 }
 
-// DecodeRecordedRun reads a recorded Run: the identity, and the Run decoded strictly (an unknown
-// field is a different protocol, not a Run to admit).
-func DecodeRecordedRun(document []byte) (testpilot.DriverIdentity, *testpilotspb.Run, error) {
-	if len(document) == 0 {
-		return testpilot.DriverIdentity{}, nil, errors.New("recorded Run is required")
-	}
-	decoder := json.NewDecoder(bytes.NewReader(document))
-	decoder.DisallowUnknownFields()
-	var recorded RecordedRun
-	if err := decoder.Decode(&recorded); err != nil {
-		return testpilot.DriverIdentity{}, nil, fmt.Errorf("decode recorded Run: %w", err)
-	}
-	// One document and nothing after it: a second document or trailing bytes are not a record.
-	if err := decoder.Decode(new(json.RawMessage)); !errors.Is(err, io.EOF) {
-		return testpilot.DriverIdentity{}, nil, errors.New("decode recorded Run: bytes after the document")
-	}
-	if len(recorded.Run) == 0 {
-		return testpilot.DriverIdentity{}, nil, errors.New("recorded Run carries no Run")
-	}
-	run := new(testpilotspb.Run)
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(recorded.Run, run); err != nil {
-		return testpilot.DriverIdentity{}, nil, fmt.Errorf("decode recorded Run: %w", err)
-	}
-	identity := testpilot.DriverIdentity{Profile: recorded.Identity.Profile, Catalog: recorded.Identity.Catalog, Bindings: recorded.Identity.Bindings}
-	return identity, run, nil
+// DecodeRecordedRun reads a recorded Run strictly: exactly spelled keys, each once, no unknown
+// field, one document. A record naming no Case is ErrRecordNamesNoCase.
+func DecodeRecordedRun(document []byte) (DecodedRun, error) {
+	return recordedrun.Decode(document)
 }

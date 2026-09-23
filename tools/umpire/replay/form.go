@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/tools/umpire/internal/recordedrun"
 )
 
 // Class is what one Run says about the subject's violation: the admissible violated form with the
@@ -41,15 +42,19 @@ func ViolatedForm(run *testpilotspb.Run, verdict *testpilotspb.Verdict) (ok bool
 	if verdict.GetStatus() != testpilotspb.VERDICT_STATUS_VIOLATED {
 		return false, ReasonNonViolated, fmt.Sprintf("verdict %s, not violated", verdict.GetStatus())
 	}
-	if run.GetDisposition() != testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR {
-		return false, ReasonMalformed, fmt.Sprintf("disposition %s beside a violated Verdict", run.GetDisposition())
-	}
+	violatedRule := false
 	for _, rule := range verdict.GetRules() {
-		if rule.GetStatus() == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
-			return true, "", ""
-		}
+		violatedRule = violatedRule || rule.GetStatus() == testpilotspb.RULE_VERDICT_STATUS_VIOLATED
 	}
-	return false, ReasonNonViolated, "a violated Verdict naming no violated rule"
+	if !violatedRule {
+		return false, ReasonNonViolated, "a violated Verdict naming no violated rule"
+	}
+	// What remains is the agreement qualification admission checks too: a violated Verdict only on
+	// a Run its Monitor stopped, and no rule left unsettled.
+	if ok, detail := recordedrun.Agreement(run, verdict); !ok {
+		return false, ReasonMalformed, detail
+	}
+	return true, "", ""
 }
 
 // Classify reads one Run against the subject's key: the admissible violated form with that key is

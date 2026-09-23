@@ -107,9 +107,15 @@ func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
 	require.Equal(t, exitViolated, code, stderr.String())
 	recorded, err := os.ReadFile(path)
 	require.NoError(t, err)
-	decodedIdentity, run, err := replay.DecodeRecordedRun(recorded)
+	decoded, err := replay.DecodeRecordedRun(recorded)
 	require.NoError(t, err)
-	require.Equal(t, identity, decodedIdentity)
+	require.Equal(t, identity, decoded.Driver)
+	fixture, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
+	require.NoError(t, err)
+	caseIdentity, err := replay.CaseIdentity(fixture)
+	require.NoError(t, err)
+	require.Equal(t, caseIdentity, decoded.Case, "the record names the fixture's canonical Case")
+	run := decoded.Run
 	require.Equal(t, "run-1", run.GetRunId())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
 
@@ -461,3 +467,27 @@ func TestUmpireRunLinksNoTestClusterAndNoNewServerService(t *testing.T) {
 }
 
 var _ testpilot.Driver = refusingDriver{}
+
+// A record names the Case by its canonical bytes' identity, so with --record a fixture in no
+// canonical form is refused before anything is opened; without --record it still runs.
+func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
+	fixture, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
+	require.NoError(t, err)
+	respaced := filepath.Join(t.TempDir(), "respaced-case.json")
+	require.NoError(t, os.WriteFile(respaced, []byte(strings.Replace(string(fixture), "  ", "   ", 1)), 0o644))
+	flags := requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json")
+	flags[1] = respaced
+	opened := false
+	refusing := func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		opened = true
+		return nil, errors.New("not opened")
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run(append(flags, "--record", filepath.Join(t.TempDir(), "run.json")), &stdout, &stderr, refusing)
+	require.Equal(t, exitFailed, code)
+	require.False(t, opened, "nothing runs for a record that could not name its Case")
+	require.Contains(t, stderr.String(), "not in a canonical form")
+	stderr.Reset()
+	require.Equal(t, exitFailed, Run(flags, &stdout, &stderr, refusing))
+	require.True(t, opened, "without --record the fixture's form does not matter")
+}

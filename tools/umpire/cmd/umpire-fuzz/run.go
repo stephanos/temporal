@@ -278,7 +278,7 @@ func recorder(configuration config) campaign.Recorder {
 		if err := file.Close(); err != nil {
 			return err
 		}
-		return replay.WriteRecordedRun(stem+"-run.json", record.Driver, record.Run)
+		return replay.WriteRecordedRun(stem+"-run.json", compact, record.Driver, record.Run)
 	}
 }
 

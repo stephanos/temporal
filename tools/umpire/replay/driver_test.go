@@ -109,7 +109,9 @@ func recordedRunOf(t testing.TB, prepare Preparer, identity string, caseBytes []
 	run, verdict, err := prepared.Run(t.Context(), &scriptedDriver{identity: prepared.Identity()})
 	require.NoError(t, err)
 	require.True(t, proto.Equal(verdict, run.GetVerdict()))
-	recorded, err := EncodeRecordedRun(prepared.Identity(), run)
+	caseIdentity, err := CaseIdentity(caseBytes)
+	require.NoError(t, err)
+	recorded, err := EncodeRecordedRun(caseIdentity, prepared.Identity(), run)
 	require.NoError(t, err)
 	return prepared.Identity(), run, recorded
 }

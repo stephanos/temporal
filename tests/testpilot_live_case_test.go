@@ -103,14 +103,15 @@ func newTestpilotLiveCase(
 	return testpilotLiveCase{profile: expectedProfile, prepared: prepared, client: caseClient, driver: driver}
 }
 
-// runRecording runs the bound Case once and records the closed Run with the identity it was
-// prepared under at path, in the recorded-Run shape a replay reads; the control test alone uses
-// it, since a Run recorded under switch configuration is stale to a replay by design.
-func (live testpilotLiveCase) runRecording(t *testing.T, ctx context.Context, path string) (*testpilotpb.Run, *testpilotpb.Verdict) {
+// runRecording runs the bound Case once and records the closed Run, with the identity of caseBytes
+// (the Case it was bound from) and the Profile identity it was prepared under, at path, in the
+// recorded-Run shape a replay reads; the control test alone uses it, since a Run recorded under
+// switch configuration is stale to a replay by design.
+func (live testpilotLiveCase) runRecording(t *testing.T, ctx context.Context, caseBytes []byte, path string) (*testpilotpb.Run, *testpilotpb.Verdict) {
 	t.Helper()
 	run, verdict, err := live.prepared.Run(ctx, live.driver)
 	require.NoError(t, err)
-	require.NoError(t, replay.WriteRecordedRun(path, live.prepared.Identity(), run))
+	require.NoError(t, replay.WriteRecordedRun(path, caseBytes, live.prepared.Identity(), run))
 	return run, verdict
 }
 

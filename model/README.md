@@ -300,8 +300,9 @@ the SDK and never the test cluster. `umpire-run` runs one checked-in Case: it re
 derives the Profile the Case implies, binds it to the namespace, task queue and Nexus endpoint the
 caller names (creating and removing them with `--create`), runs once, reports the Run, cleanup and
 Verdict, and exits 0 satisfied, 1 violated, 2 inconclusive, 3 when nothing ran; `--record <path>`
-writes the closed Run beside the Profile identity it was prepared under (the *recorded Run*, a
-local JSON file `tools/umpire/replay` reads as a replay subject; the file must not exist). `umpire-fuzz run`
+writes the closed Run beside the Profile identity it was prepared under and the identity of the
+canonical Case it ran (the *recorded Run*, a local JSON file `tools/umpire/replay` reads as a replay
+subject; the file must not exist, and a fixture in no canonical form is refused before the Run). `umpire-fuzz run`
 runs one exploration campaign: it opens the exploration bridge over the set it names, takes each
 candidate's Case through the same binding (`tools/umpire/binding`, campaign-scoped once and
 candidate-scoped per Case), one Run and cleanup, hands the closed Run back to the bridge, and stops
