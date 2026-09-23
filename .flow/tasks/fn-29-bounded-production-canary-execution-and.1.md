@@ -17,14 +17,13 @@ Add `Temporal.Evaluation.Canary` declaring the `production-canary` Evaluation Pr
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] The canary Profile declares and renders only into the canary directory; `umpire-assess` cannot select it, and its identity is pinned in Lean and matched in Go.
-- [ ] An unknown, repeated or case-folded policy key, a missing field, another version, a non-positive limit or a non-digest coordinate rejects, each by name.
-- [ ] No Umpire, Testpilot or model-tooling package imports `tools/canary`, pinned by the dependency rule; the canary Profile and policy carry no credential or raw coordinate.
+- [x] The canary Profile declares and renders only into the canary directory; `umpire-assess` cannot select it, and its identity is pinned in Lean and matched in Go.
+- [x] An unknown, repeated or case-folded policy key, a missing field, another version, a non-positive limit or a non-digest coordinate rejects, each by name.
+- [x] No Umpire, Testpilot or model-tooling package imports `tools/canary`, pinned by the dependency rule; the canary Profile and policy carry no credential or raw coordinate.
 
 ## Done summary
-TBD
-
+`Temporal.Evaluation.Canary` declares `production-canary` (trust `dedicated-production-canary`, every Known Gap kind blocking, `local-ephemeral`'s table derived row for row with `unsupported-rule` rejecting) and `canary-harness` (the same under `test-cluster-harness`), identities pinned in `CanaryTests.lean`. `umpire-evaluation-profiles` takes `--local-dir`, `--canary-dir` and `--harness-dir`, and `umpire-check-evaluation-profiles` diffs all three groups. The recorded-Run package is now public (`tools/umpire/recordedrun`), `evaluation` exports `ParseProfile` and `LoadProfileIn`, and `tools/canary/policy` is the strict, canonical, committed policy (coordinates `unconfigured`, all-zero Case identity until .2, limits with ceilings, one set of authority classes). `tools/canary/assessment` loads the canary Profile through fn-26's loader; `umpire-assess` cannot select it. `TestUmpireNeverImportsTheCanary` pins that no Umpire or Testpilot package, tests included, reaches `tools/canary`. Implementation review: SHIP in one round; its four P3 notes applied.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 84ed8b50776cae61224adfa06dfee157662d0ea6, ac649ed491a7144a2c61b4dc4d8c4bb6a92cfc54
+- Tests: cd model && lake build, make umpire-check-evaluation-profiles, make umpire-check-model-module-index umpire-check-retired-vocabulary, LEAN_NUM_THREADS=1 make lint-model (baseline 163 + 1), go test -count=1 -tags test_dep ./tools/umpire/... ./tools/canary/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:
