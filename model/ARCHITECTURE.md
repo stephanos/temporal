@@ -195,6 +195,19 @@ and `Umpire.Exploration.Promotion` compiles it through `Umpire.Promotion` into a
 regression source under fresh names keyed by the candidate's digest; the `finished` frame carries
 the source's digest, path and bytes (or why it did not compile), and the bridge writes no file.
 
+`Temporal.Tool.ReplayBridge` (`umpire-replay-bridge`, non-default) is the run-time counterpart for
+a replay subject. Both bridges read, reject, echo and serve frames through `Temporal.Tool.Bridge`.
+`admit` names a set and its Query (or an exploratory set's target key) with the subject's Case
+identity; the bridge recovers the Query's source from its binding table (`<query>.source`, which
+the `query` command emits for a one-instance Query, and the claims, catalog and relations the
+`case` block names beside each Case), re-produces the Case and admits only when its compact
+canonical bytes are the subject's, answering `crossed` otherwise. `Umpire.Replay` owns the edits
+(`dropPrefixStep i`, last prefix step first, over the Scenario's exact action sequence) and the
+monotonic `Reduction`: each edited Query is re-admitted, one the Model does not admit is
+`inapplicable` and produces no Case, and an admitted one is handed out as one whole Case named by
+its Plan checksum. `observe` takes the coordinator's class for the candidate's Runs, never a Case
+edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every edit's fate.
+
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
 closed set they form; a resource-free Program references none. These references

@@ -120,6 +120,12 @@ lean_exe «umpire-explore» where
 lean_exe «umpire-explore-tests» where
   root := `Temporal.Tool.ExplorationBridgeTests
 
+lean_exe «umpire-replay-bridge» where
+  root := `Temporal.Tool.ReplayBridgeMain
+
+lean_exe «umpire-replay-bridge-tests» where
+  root := `Temporal.Tool.ReplayBridgeTests
+
 lean_exe «umpire-goldens» where
   root := `Temporal.Tool.Goldens
 

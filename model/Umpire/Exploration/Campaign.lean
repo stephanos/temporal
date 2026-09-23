@@ -122,7 +122,7 @@ def admissionFailure (target : String) : AdmissionError → Option ToolingFailur
   | .admission diagnostic => some { target, reason := "admission: " ++ (repr diagnostic).pretty }
   | .instances reason => some { target, reason := "instances: " ++ reason }
 
-private def queryKeyFor (set : SetDeclaration) (target : CoverageTarget) : String :=
+def queryKeyFor (set : SetDeclaration) (target : CoverageTarget) : String :=
   set.name ++ "." ++ (targetKey target).replace ":" "."
 
 /-- Plan the first pending target. A target no path reaches, or whose Query selects nothing, is
