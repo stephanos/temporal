@@ -9,7 +9,6 @@ import (
 
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/tools/canary/assessment"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -59,7 +58,7 @@ func (f *FencedDriver) Open(ctx context.Context, runID string, program testpilot
 	if f.opened != "" {
 		return nil, ErrSecondOpen
 	}
-	if !assessment.IsTestpilotRunID(runID) {
+	if !testpilot.IsRunID(runID) {
 		return nil, errors.New("a fenced canary Run needs a Testpilot Run ID")
 	}
 	if err := f.fence(ctx, runID); err != nil {
