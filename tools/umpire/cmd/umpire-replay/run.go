@@ -97,6 +97,8 @@ func describe(report replay.Report) string {
 	switch {
 	case report.Failure != "":
 		return "failed: " + report.Failure
+	case report.Reduction != nil && report.Reduction.Failure != "":
+		return "failed: " + report.Reduction.Failure
 	case report.Admission.Status != replay.StatusAdmitted:
 		return fmt.Sprintf("rejected (%s): %s", report.Admission.Reason, report.Admission.Detail)
 	case report.Reproduction == nil:

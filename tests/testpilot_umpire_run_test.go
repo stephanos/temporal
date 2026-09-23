@@ -85,10 +85,17 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 // rather than an in-process call.
 func buildUmpireRun(t *testing.T) string {
 	t.Helper()
-	binary := filepath.Join(t.TempDir(), "umpire-run")
-	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/umpire-run")
+	return buildUmpireCommand(t, "umpire-run")
+}
+
+// buildUmpireCommand builds one command under tools/umpire/cmd into the test's temporary
+// directory.
+func buildUmpireCommand(t *testing.T, name string) string {
+	t.Helper()
+	binary := filepath.Join(t.TempDir(), name)
+	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/"+name)
 	build.Env = os.Environ()
 	output, err := build.CombinedOutput()
-	require.NoError(t, err, "build umpire-run: %s", output)
+	require.NoError(t, err, "build %s: %s", name, output)
 	return binary
 }
