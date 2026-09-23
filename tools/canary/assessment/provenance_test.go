@@ -103,8 +103,24 @@ func TestProvenanceRefusesEveryMutation(t *testing.T) {
 		"more fenced IDs than iterations": func(p *Provenance) {
 			p.Fenced = append(p.Fenced, "testpilot.run.third")
 		},
-		"no fenced IDs":                    func(p *Provenance) { p.Fenced = nil },
-		"a non-positive limit":             func(p *Provenance) { p.Limits.ProgressBytes = 0 },
+		"no fenced IDs":        func(p *Provenance) { p.Fenced = nil },
+		"a non-positive limit": func(p *Provenance) { p.Limits.ProgressBytes = 0 },
+		"iterations past the policy ceiling": func(p *Provenance) {
+			p.Limits.Iterations = 17
+		},
+		"a lease timeout no longer than the invocation and reserve": func(p *Provenance) {
+			p.Limits.LeaseRunTimeoutSeconds = p.Limits.InvocationSeconds + p.Limits.CleanupReserveSeconds
+		},
+		"an iteration naming another fenced Run": func(p *Provenance) { p.Invocation.Iteration = 2 },
+		"the fenced Runs out of order":           func(p *Provenance) { p.Fenced[0], p.Fenced[1] = p.Fenced[1], p.Fenced[0] },
+		"an iteration past the fenced Runs": func(p *Provenance) {
+			p.Invocation.Iteration = 2
+			p.Invocation.RunID = p.Fenced[1]
+			p.Fenced = p.Fenced[:1]
+		},
+		"a workflow ref on a tag": func(p *Provenance) {
+			p.Workflow.Ref = strings.Replace(p.Workflow.Ref, "refs/heads/main", "refs/tags/v1", 1)
+		},
 		"an unspecified iteration cleanup": func(p *Provenance) { p.Cleanup.Iteration = "CLEANUP_STATUS_UNSPECIFIED" },
 		"an unknown iteration cleanup":     func(p *Provenance) { p.Cleanup.Iteration = "cleaned" },
 		"an unknown invocation cleanup":    func(p *Provenance) { p.Cleanup.Invocation = "released-probably" },
