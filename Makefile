@@ -736,6 +736,7 @@ umpire-check-replay-bridge:
 	@printf $(COLOR) "Check the replay bridge..."
 	@cd model && $(LEAN_LAKE) -q build umpire-replay-bridge umpire-replay-bridge-tests
 	@cd model && $(LEAN_LAKE) -q exe umpire-replay-bridge-tests
+	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/replay -run '^TestLiveReplayBridge'
 
 umpire-check-live-tests:
 	@set -eu; \

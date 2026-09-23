@@ -216,10 +216,11 @@ type reply struct {
 	Ledger          []TargetStatus   `json:"ledger"`
 }
 
-// Bridge is one campaign's client of the bridge process. One request is outstanding at a time,
-// every reply is matched to its request by sequence number, set and profile, and a candidate's
-// Case is with the caller until Observe returns.
-type Bridge struct {
+// Conn is the frame transport every client of a Lean bridge shares: one process (or a pair of
+// streams), one request outstanding, every reply matched to its request by sequence number, set
+// and profile, a byte cap in either direction, and a broken state after which nothing is written.
+// What the frames mean is the client's.
+type Conn struct {
 	stdin         io.Writer
 	stdout        *bufio.Reader
 	closeStdin    func() error
@@ -227,13 +228,30 @@ type Bridge struct {
 	kill          func() error
 	maxFrameBytes int
 
-	set         string
+	set      string
+	seq      int
+	finished bool
+	broken   error
+}
+
+// Envelope is what every reply carries, whatever its kind.
+type Envelope struct {
+	Frame   string `json:"frame"`
+	Seq     int    `json:"seq"`
+	Set     string `json:"set"`
+	Profile string `json:"profile"`
+	Reason  string `json:"reason"`
+}
+
+// Bridge is one campaign's client of the bridge process. One request is outstanding at a time,
+// every reply is matched to its request by sequence number, set and profile, and a candidate's
+// Case is with the caller until Observe returns.
+type Bridge struct {
+	conn *Conn
+
 	profile     string
-	seq         int
 	initialized bool
-	finished    bool
 	outstanding *Candidate
-	broken      error
 }
 
 // Options configure a bridge process.
@@ -250,10 +268,10 @@ type Options struct {
 	MaxFrameBytes int
 }
 
-// Start spawns the bridge process in a process group of its own. Close ends it. The context
-// bounds the process's life: a caller whose campaign context may be cancelled while the bridge's
-// summary is still wanted starts it on a context that outlives the campaign and lets Close end it.
-func Start(ctx context.Context, options Options) (*Bridge, error) {
+// StartConn spawns a bridge process in a process group of its own. Close ends it. The context
+// bounds the process's life: a caller whose work may be cancelled while the bridge's last answer
+// is still wanted starts it on a context that outlives the work and lets Close end it.
+func StartConn(ctx context.Context, options Options) (*Conn, error) {
 	if options.Executable == "" {
 		return nil, errors.New("bridge executable is required")
 	}
@@ -272,24 +290,24 @@ func Start(ctx context.Context, options Options) (*Bridge, error) {
 	if err := command.Start(); err != nil {
 		return nil, fmt.Errorf("start bridge %q: %w", options.Executable, err)
 	}
-	bridge := New(stdin, stdout, options.MaxFrameBytes)
-	bridge.closeStdin = stdin.Close
-	bridge.wait = command.Wait
-	bridge.kill = func() error {
+	conn := NewConn(stdin, stdout, options.MaxFrameBytes)
+	conn.closeStdin = stdin.Close
+	conn.wait = command.Wait
+	conn.kill = func() error {
 		if command.Process == nil {
 			return nil
 		}
 		return command.Process.Kill()
 	}
-	return bridge, nil
+	return conn, nil
 }
 
-// New is a bridge over already-open streams: a test's fake, or a process a caller manages.
-func New(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
+// NewConn is a transport over already-open streams: a test's fake, or a process a caller manages.
+func NewConn(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Conn {
 	if maxFrameBytes <= 0 {
 		maxFrameBytes = DefaultMaxFrameBytes
 	}
-	return &Bridge{
+	return &Conn{
 		stdin:         stdin,
 		stdout:        bufio.NewReaderSize(stdout, 64<<10),
 		closeStdin:    func() error { return nil },
@@ -299,44 +317,78 @@ func New(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
 	}
 }
 
+// Start spawns the exploration bridge process. Close ends it.
+func Start(ctx context.Context, options Options) (*Bridge, error) {
+	conn, err := StartConn(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	return &Bridge{conn: conn}, nil
+}
+
+// New is an exploration bridge over already-open streams.
+func New(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
+	return &Bridge{conn: NewConn(stdin, stdout, maxFrameBytes)}
+}
+
 // Outstanding is the candidate whose Case is with the caller, or nil.
 func (b *Bridge) Outstanding() *Candidate { return b.outstanding }
 
-// Close ends the bridge. A finished bridge is given its stdin's EOF and CloseTimeout to exit; a
-// bridge that is broken or was never finished may be stuck in a search and not reading stdin, so
-// it is killed and then waited for. A process that had to be killed reports its exit status.
-func (b *Bridge) Close() error {
-	closeErr := b.closeStdin()
-	if b.broken != nil || !b.finished {
-		return errors.Join(closeErr, b.kill(), b.wait())
+// Close ends the bridge process.
+func (b *Bridge) Close() error { return b.conn.Close() }
+
+// Close ends the bridge process. A finished bridge is given its stdin's EOF and CloseTimeout to
+// exit; a bridge that is broken or was never finished may be stuck in a search and not reading
+// stdin, so it is killed and then waited for. A process that had to be killed reports its exit
+// status.
+func (c *Conn) Close() error {
+	closeErr := c.closeStdin()
+	if c.broken != nil || !c.finished {
+		return errors.Join(closeErr, c.kill(), c.wait())
 	}
 	waited := make(chan error, 1)
-	go func() { waited <- b.wait() }()
+	go func() { waited <- c.wait() }()
 	select {
 	case err := <-waited:
 		return errors.Join(closeErr, err)
 	case <-time.After(CloseTimeout):
-		return errors.Join(closeErr, b.kill(), <-waited)
+		return errors.Join(closeErr, c.kill(), <-waited)
 	}
 }
 
+// Scope names the set every later frame carries; empty clears it.
+func (c *Conn) Scope(set string) { c.set = set }
+
+// Set is the set the transport's frames carry.
+func (c *Conn) Set() string { return c.set }
+
+// Finish marks the protocol complete: the bridge exits on its own, and nothing more is sent.
+func (c *Conn) Finish() { c.finished = true }
+
+// Finished says the protocol is complete.
+func (c *Conn) Finished() bool { return c.finished }
+
+// Broken is the failure after which the transport can no longer be trusted, or nil.
+func (c *Conn) Broken() error { return c.broken }
+
 // Initialize opens the campaign over one set under one Profile identity.
 func (b *Bridge) Initialize(ctx context.Context, set, profile string) (Initialized, error) {
-	if b.broken != nil {
-		return Initialized{}, b.broken
+	if err := b.conn.Broken(); err != nil {
+		return Initialized{}, err
 	}
 	if b.initialized {
-		return Initialized{}, fmt.Errorf("campaign over %s is already initialized", b.set)
+		return Initialized{}, fmt.Errorf("campaign over %s is already initialized", b.conn.Set())
 	}
 	if set == "" || profile == "" {
 		return Initialized{}, errors.New("set and profile identity are required")
 	}
-	b.set, b.profile = set, profile
-	answer, err := b.exchange(ctx, request{Frame: "initialize", Profile: profile}, nil, "initialized")
+	b.conn.Scope(set)
+	answer, err := b.exchange(ctx, request{Frame: "initialize", Profile: profile}, profile, nil, "initialized")
 	if err != nil {
-		b.set, b.profile = "", ""
+		b.conn.Scope("")
 		return Initialized{}, err
 	}
+	b.profile = profile
 	b.initialized = true
 	return Initialized{
 		Set: answer.Set, Profile: answer.Profile, Machine: answer.Machine, Budget: answer.Budget,
@@ -358,7 +410,7 @@ func (b *Bridge) Next(ctx context.Context) (Next, error) {
 		}
 		return nil
 	}
-	answer, err := b.exchange(ctx, request{Frame: "next"}, whole, "candidate", "exhausted", "toolingFailure")
+	answer, err := b.exchange(ctx, request{Frame: "next"}, b.profile, whole, "candidate", "exhausted", "toolingFailure")
 	if err != nil {
 		return Next{}, err
 	}
@@ -402,7 +454,7 @@ func (b *Bridge) Observe(ctx context.Context, identity string, result Result) (C
 	answer, err := b.exchange(ctx, request{
 		Frame: "observe", Profile: b.profile, Candidate: identity,
 		Run: result.Run, PrepareRejected: result.PrepareRejected,
-	}, same, "credited")
+	}, b.profile, same, "credited")
 	if err != nil {
 		return Credited{}, err
 	}
@@ -419,11 +471,11 @@ func (b *Bridge) Finish(ctx context.Context, status string) (Finished, error) {
 	if err := b.open(); err != nil {
 		return Finished{}, err
 	}
-	answer, err := b.exchange(ctx, request{Frame: "finish", Status: status}, nil, "finished")
+	answer, err := b.exchange(ctx, request{Frame: "finish", Status: status}, b.profile, nil, "finished")
 	if err != nil {
 		return Finished{}, err
 	}
-	b.finished = true
+	b.conn.Finish()
 	return Finished{
 		Status: answer.Status, Summary: answer.Summary,
 		Counterexamples: answer.Counterexamples, Ledger: answer.Ledger,
@@ -431,111 +483,131 @@ func (b *Bridge) Finish(ctx context.Context, status string) (Finished, error) {
 }
 
 // Broken is the failure after which the bridge can no longer be trusted, or nil.
-func (b *Bridge) Broken() error { return b.broken }
+func (b *Bridge) Broken() error { return b.conn.Broken() }
 
 func (b *Bridge) open() error {
-	if b.broken != nil {
-		return b.broken
+	if err := b.conn.Broken(); err != nil {
+		return err
 	}
 	if !b.initialized {
 		return ErrNotInitialized
 	}
-	if b.finished {
+	if b.conn.Finished() {
 		return ErrFinished
 	}
 	return nil
 }
 
-// exchange writes one frame and reads its reply, matched by sequence number, set and profile, of
-// one of the kinds named, and passing the kind's own check. A `rejected` reply is a RejectedError
-// and leaves the sequence where it was, as the bridge does. A frame that could not be written, a
-// reply that could not be read or did not match, or a context that ended mid-exchange breaks the
-// bridge: its stream is out of step, so every later call returns the same failure without writing.
-func (b *Bridge) exchange(ctx context.Context, frame request, check func(reply) error, kinds ...string) (reply, error) {
-	frame.Seq = b.seq + 1
-	frame.Set = b.set
-	encoded, err := json.Marshal(frame)
-	if err != nil {
-		return reply{}, fmt.Errorf("encode %s frame: %w", frame.Frame, err)
+// exchange sends one exploration frame over the transport and reads its reply into the
+// exploration shape, passing the kind's own check.
+func (b *Bridge) exchange(ctx context.Context, frame request, profile string, check func(reply) error, kinds ...string) (reply, error) {
+	var answer reply
+	_, err := b.conn.Exchange(ctx, frame.Frame, func(seq int, set string) any {
+		frame.Seq, frame.Set = seq, set
+		return frame
+	}, profile, func(line []byte) error {
+		if err := json.Unmarshal(line, &answer); err != nil {
+			return fmt.Errorf("decode bridge reply to %s: %w", frame.Frame, err)
+		}
+		if check != nil {
+			return check(answer)
+		}
+		return nil
+	}, kinds...)
+	return answer, err
+}
+
+// Exchange writes the frame build returns for the next sequence number and the scoped set, and
+// reads its reply, matched by sequence number, set and profile, of one of the kinds named, and
+// passing check. A `rejected` reply is a RejectedError and leaves the sequence where it was, as a
+// bridge does. A frame that could not be written, a reply that could not be read or did not match,
+// or a context that ended mid-exchange breaks the transport: its stream is out of step, so every
+// later call returns the same failure without writing.
+func (c *Conn) Exchange(ctx context.Context, kind string, build func(seq int, set string) any, profile string,
+	check func(line []byte) error, kinds ...string) ([]byte, error) {
+	if c.broken != nil {
+		return nil, c.broken
 	}
-	if len(encoded)+1 > b.maxFrameBytes {
-		return reply{}, fmt.Errorf("%s frame of %d bytes: %w", frame.Frame, len(encoded), ErrFrameTooLarge)
+	seq := c.seq + 1
+	encoded, err := json.Marshal(build(seq, c.set))
+	if err != nil {
+		return nil, fmt.Errorf("encode %s frame: %w", kind, err)
+	}
+	if len(encoded)+1 > c.maxFrameBytes {
+		return nil, fmt.Errorf("%s frame of %d bytes: %w", kind, len(encoded), ErrFrameTooLarge)
 	}
 	if err := ctx.Err(); err != nil {
-		return reply{}, err
+		return nil, err
 	}
-	answer, err := b.transact(ctx, frame, encoded, kinds, check)
+	line, err := c.transact(ctx, kind, seq, profile, encoded, kinds, check)
 	if err != nil {
 		var rejected *RejectedError
 		if !errors.As(err, &rejected) {
-			b.broken = fmt.Errorf("%w: %w", ErrBroken, err)
+			c.broken = fmt.Errorf("%w: %w", ErrBroken, err)
 		}
-		return reply{}, err
+		return nil, err
 	}
-	b.seq = frame.Seq
-	return answer, nil
+	c.seq = seq
+	return line, nil
 }
 
-func (b *Bridge) transact(ctx context.Context, frame request, encoded []byte, kinds []string, check func(reply) error) (reply, error) {
-	line, err := b.roundTrip(ctx, frame.Frame, append(encoded, '\n'))
+func (c *Conn) transact(ctx context.Context, kind string, seq int, profile string, encoded []byte, kinds []string,
+	check func(line []byte) error) ([]byte, error) {
+	line, err := c.roundTrip(ctx, kind, append(encoded, '\n'))
 	if err != nil {
-		return reply{}, err
+		return nil, err
 	}
-	var answer reply
+	var answer Envelope
 	if err := json.Unmarshal(line, &answer); err != nil {
-		return reply{}, fmt.Errorf("decode bridge reply to %s: %w", frame.Frame, err)
+		return nil, fmt.Errorf("decode bridge reply to %s: %w", kind, err)
 	}
-	if answer.Seq != frame.Seq {
-		return reply{}, &ProtocolError{Expected: fmt.Sprintf("seq %d", frame.Seq), Actual: fmt.Sprintf("seq %d", answer.Seq)}
+	if answer.Seq != seq {
+		return nil, &ProtocolError{Expected: fmt.Sprintf("seq %d", seq), Actual: fmt.Sprintf("seq %d", answer.Seq)}
 	}
 	if answer.Frame == "rejected" {
-		return reply{}, &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
+		return nil, &RejectedError{Seq: answer.Seq, Reason: answer.Reason}
 	}
-	if answer.Set != b.set {
-		return reply{}, &ProtocolError{Expected: "set " + b.set, Actual: "set " + answer.Set}
-	}
-	profile := b.profile
-	if frame.Frame == "initialize" {
-		profile = frame.Profile
+	if answer.Set != c.set {
+		return nil, &ProtocolError{Expected: "set " + c.set, Actual: "set " + answer.Set}
 	}
 	if answer.Profile != profile {
-		return reply{}, &ProtocolError{Expected: "profile " + profile, Actual: "profile " + answer.Profile}
+		return nil, &ProtocolError{Expected: "profile " + profile, Actual: "profile " + answer.Profile}
 	}
 	if !slices.Contains(kinds, answer.Frame) {
-		return reply{}, &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
+		return nil, &ProtocolError{Expected: "one of " + strings.Join(kinds, ", "), Actual: answer.Frame}
 	}
 	if check != nil {
-		if err := check(answer); err != nil {
-			return reply{}, err
+		if err := check(line); err != nil {
+			return nil, err
 		}
 	}
-	return answer, nil
+	return line, nil
 }
 
 // roundTrip writes one frame and reads its reply within the byte cap. Both honour the context: a
-// bridge that neither reads nor answers is abandoned at the deadline, which breaks the bridge,
+// bridge that neither reads nor answers is abandoned at the deadline, which breaks the transport,
 // and Close kills it.
-func (b *Bridge) roundTrip(ctx context.Context, kind string, encoded []byte) ([]byte, error) {
+func (c *Conn) roundTrip(ctx context.Context, kind string, encoded []byte) ([]byte, error) {
 	type read struct {
 		line []byte
 		err  error
 	}
 	done := make(chan read, 1)
 	go func() {
-		if _, err := b.stdin.Write(encoded); err != nil {
+		if _, err := c.stdin.Write(encoded); err != nil {
 			done <- read{nil, fmt.Errorf("write %s frame: %w", kind, err)}
 			return
 		}
 		var line bytes.Buffer
 		for {
-			fragment, isPrefix, err := b.stdout.ReadLine()
+			fragment, isPrefix, err := c.stdout.ReadLine()
 			if err != nil {
 				done <- read{nil, fmt.Errorf("read bridge frame: %w", err)}
 				return
 			}
 			line.Write(fragment)
-			if line.Len() > b.maxFrameBytes {
-				done <- read{nil, fmt.Errorf("bridge frame over %d bytes: %w", b.maxFrameBytes, ErrFrameTooLarge)}
+			if line.Len() > c.maxFrameBytes {
+				done <- read{nil, fmt.Errorf("bridge frame over %d bytes: %w", c.maxFrameBytes, ErrFrameTooLarge)}
 				return
 			}
 			if !isPrefix {
