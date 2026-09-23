@@ -17,7 +17,7 @@ Add `tools/canary/authority`: read the credentials from the environment only (`U
 Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded Run) and fn-26 (Claim Assessment); the spec's **Re-plan** section states the contracts.
 
 ## Acceptance
-- [ ] Any ref, event, workflow, coordinate digest, namespace, queue, endpoint route, Case or catalog mismatch performs no mutation and creates no Run or receipt; each refusal is named.
+- [ ] Any ref, event, workflow, coordinate digest, namespace, Case or catalog mismatch performs no mutation and creates no Run or receipt; each refusal is named. The endpoint's route is not read (it needs cluster admin): it is an operator precondition the Run itself proves, a repointed endpoint yielding a Run that is not accepted.
 - [ ] Credentials and raw coordinates never reach a receipt, provenance document, summary, progress line or log: the Redactor is applied to every written text and a test plants each credential and coordinate and finds none; recorded Runs, which hold whole history events, are never uploaded (.5, .9).
 - [ ] Preflight proves the exact canary scope and claims nothing about the rest of production.
 
