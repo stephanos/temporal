@@ -211,7 +211,11 @@ edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every
 by `Umpire.Command.Promotion.propose` -- the compiler `Umpire.Exploration.Promotion` calls too --
 from its admitted Query and keyed on its Plan checksum digest; both commands write proposals
 through `tools/umpire/internal/cli`, outside the model, resolving symlinks and never replacing a
-file.
+file. `umpire-replay run` is the Go side: `tools/umpire/replay` admits the subject and replays it
+offline through `PreparedCase.Evaluate` before anything is opened, derives the Contract-relative
+key, reruns the subject twice under its recorded Profile identity, drives the bounded reduction
+over the bridge through the transport the exploration client shares (`campaign.Conn`), and
+renders one report with each answer in its own field.
 
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
