@@ -121,14 +121,15 @@ def ProfileError.render : ProfileError → String
 structure Profile where
   private mk ::
   private declaration : Declaration
-  deriving BEq, Repr
+  deriving Repr
 
 private def validName (name : String) : Bool :=
   let characters := name.toList
   !characters.isEmpty && characters.head? != some '-' && characters.getLast? != some '-' &&
     characters.all fun character => character.isLower || character.isDigit || character == '-'
 
-private def firstDuplicate [BEq α] : List α → Option α
+/-- The first item that occurs again later in the list. -/
+def firstDuplicate [BEq α] : List α → Option α
   | [] => none
   | item :: rest => if rest.contains item then some item else firstDuplicate rest
 
@@ -165,15 +166,9 @@ def trust (profile : Profile) : String := profile.declaration.trust
 /-- The reason table, in precedence order. -/
 def reasons (profile : Profile) : List Reason := profile.declaration.reasons
 
-private def kindRank : KnownGapKind → Nat
-  | .capability => 0
-  | .input => 1
-  | .interpretation => 2
-  | .claim => 3
-
 /-- The blocking Known Gap kinds in the fixed kind order, whatever order they were declared in. -/
 def blockingGaps (profile : Profile) : List KnownGapKind :=
-  profile.declaration.blockingGaps.mergeSort fun left right => kindRank left ≤ kindRank right
+  profile.declaration.blockingGaps.mergeSort fun left right => compare left right != .gt
 
 /-- The rendered Profile format version; a reader rejects any other. -/
 def formatVersion : Nat := 1

@@ -15,8 +15,7 @@ none. -/
 def rendered : Except String (List (String × String)) := do
   let profiles ← Temporal.Evaluation.Local.declared.mapM fun declared =>
     declared.mapError ProfileError.render
-  let names := profiles.map (·.name)
-  if let some name := names.find? fun name => (names.filter (· == name)).length > 1 then
+  if let some name := firstDuplicate (profiles.map (·.name)) then
     throw s!"Profile '{name}' is declared twice"
   pure (profiles.map fun profile => (profile.name ++ ".json", profile.render))
 
