@@ -25,7 +25,8 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   `tools/canary/policy/production-canary.json`, embedded and decoded strictly (unknown, repeated
   or case-folded keys, a missing field or another version reject), holds: the canary Case's
   identity (SHA-256 of its canonical bytes), the Profile name the Case is prepared under
-  (`production-canary`), the Evaluation Profile name, the SHA-256 digests of the target's gRPC
+  (`production-canary`), the Evaluation Profile name, the authority class (`protected-workflow`;
+  the harness's is `harness`), the SHA-256 digests of the target's gRPC
   and HTTP host names, namespace, task queue, handler queue and Nexus endpoint (the raw
   coordinates live only in the protected environment), the lease's workflow ID, type and task
   queue, the trusted ref (`refs/heads/main`) and workflow path, and the Limits: 2 iterations per invocation, 2 minutes per Run, 10 minutes per
@@ -59,11 +60,14 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   catalog to be the tree's. The namespace must exist (`DescribeNamespace`). The credential is a
   namespace writer on the canary namespace and nothing else: every call the canary makes (the
   Case's own, the lease's start, signal, termination and history reads, `DescribeNamespace`) is
-  namespace-scoped, and the canary never lists or reads Nexus endpoints, which needs cluster
-  admin. The endpoint's route is proved by the Run itself: the Case observes the handler's reply
-  publicly, so a wrong route is a Run that is not accepted, never a mutation. Any mismatch performs
-  no mutation and creates no Run or receipt; the `PreparedCase` preflight makes is the one the
-  controller runs. The coordinate digests are unsalted, so for a guessable name they confirm a
+  namespace-scoped apart from the SDK client's `GetSystemInfo` on dial, and the canary never lists
+  or reads Nexus endpoints, which needs cluster admin. The endpoint's target (the canary
+  namespace and handler queue) is therefore an operator-maintained precondition, like the
+  environment's protection, which the runbook states; it is proved after the fact by the Run
+  itself, whose Case observes the handler's reply publicly, so a repointed endpoint is a Run that
+  is not accepted and publishes a rejected or incomplete receipt. Every other mismatch preflight
+  checks performs no mutation and creates no Run or receipt; the `PreparedCase` preflight makes is
+  the one the controller runs. The coordinate digests are unsalted, so for a guessable name they confirm a
   guess: the coordinates are not secrets, the credential is.
 - **One lease, one fence, one Run at a time.** The lease is a workflow with the policy's fixed ID and
   type (`umpire-canary-lease`) on a lease task queue no worker polls (`umpire-canary-lease`, in
@@ -93,9 +97,15 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   job `found` it refuses while that lease run is younger than the invocation limit plus the
   cleanup reserve (a live invocation cannot be older), exiting 2 with the status `lease-in-use`; verifies or terminates exactly the workflow IDs that run's
   `run-opened` signals name (a workflow the server reports not found never started, and counts as
-  closed), then closes the scope -- terminating the lease run if it is still open, or starting and
-  at once terminating a fresh lease run with the reconciled reason when it had timed out -- or
-  leaves it and reports the scope uncertain. It prepares, runs, assesses and publishes nothing, and
+  closed), then closes the scope -- terminating the lease run if it is still open, or, when it had
+  closed any non-canary way (timed out, or terminated by hand with another reason), starting and
+  at once terminating a fresh lease run with the reconciled reason -- or leaves it and reports the
+  scope uncertain. A lease ID the server does not find at all is a clean scope (the first run ever,
+  or one whose history aged out). Because a closed lease's history ages out with the namespace's
+  retention, and the Case's workflows set no timeout, the canary namespace's retention must exceed
+  the longest gap an operator lets pass before reconciling (the runbook states 30 days); every
+  published provenance and every reconciliation report also lists the workflow IDs its lease
+  fenced, so they outlive retention. It prepares, runs, assesses and publishes nothing, and
   writes only its own bounded reconciliation report (the lost and unpublished iterations, what it
   closed, what it could not verify). An uncertain scope is cleared by an operator who closes the
   listed workflows by hand and runs the workflow again, whose reconcile then verifies them; the
@@ -146,11 +156,13 @@ the boundaries and the thirteen task slots, and grounds every contract in what t
   jobs overlap, in that environment, only when the ref is `refs/heads/main`, with `contents: read` and no other
   permission, a job timeout, `umpire-canary run`, then `umpire-canary reconcile` under
   `if: always()`, then the receipts, provenance, summaries and progress uploaded under
-  `if: always()`; preflight re-checks the ref. A regression test in `tools/umpire/regression` pins
-  the file's properties. The job's timeout is 30 minutes (build, the 10-minute invocation, the
-  reserve and reconcile). The workflow's regression test and the check that the untagged build has
-  no override path live in `tools/canary`, not in Umpire; Umpire's regression suite keeps only its
-  own rule that nothing under it imports `tools/canary`.
+  `if: always()`; preflight re-checks the ref. The job's timeout is 30 minutes (build, the
+  10-minute invocation, the reserve and reconcile). The workflow's regression test and the check
+  that the untagged build has no override path live in `tools/canary`. The tree has one
+  regression gate, so `umpire-check-regression` also runs the canary's checks -- the canary Case
+  render (`canary-check-case`), the canary Profiles' render, and the canary's live tests, which
+  follow the live suite's convention (`tests/testpilot_canary_test.go`, `TestTestpilotCanary*`)
+  so `umpire-check-live-tests` selects them -- while no Umpire package imports `tools/canary`.
 - **The early proof is .2 with .4's two-Run test.** .2 pins and prepares the canary Case under the
   canary's names with no canary policy in Umpire, and .4 runs the prepared Case twice, serially,
   through a fenced scripted Driver (answering the Program's instructions deterministically, as
@@ -161,8 +173,9 @@ Tasks .1 to .13 are rewritten below on these contracts in their existing order a
 The requirements R1–R10 and the boundaries stand. R1's "canary Assessment Profile" is the Lean
 Evaluation Profile plus the canary provenance; R2's "fixed canary Profile/catalog" is the policy's
 Profile name and the tree's catalog; R7's "fn-26-derived receipts" are fn-26's receipt bytes
-unchanged, beside the provenance; R9's `^TestUmpire` integration selection is kept for the
-harness (`TestUmpireCanary*`). Nothing here can be run against production from this repository's
+unchanged, beside the provenance; R9's integration selection is the live suite's `^TestTestpilot`,
+which picks the harness up as `TestTestpilotCanary*`; R3's routing is proved by the Run, the
+endpoint's target being an operator precondition, since reading it needs cluster admin. Nothing here can be run against production from this repository's
 tests: the harness proves every contract against the test cluster with no production credential,
 and the production run itself is an operator's manual dispatch.
 
@@ -201,7 +214,7 @@ One exclusive lease/fence bounds one active Run and dedicated canary-owned resou
 
 The external controller owns a mode-0600 recovery record containing only invocation identity, lease/fence, active Run identity, dispatch phase, cleanup reserve, and expiry. If the process dies after Run creation, that iteration is `lost`; reconciliation may terminate or verify only exact fenced resources and may never fabricate a Run closure, Verdict, or receipt. Reconciliation cannot dispatch. A later operator-authorized invocation may begin a fresh iteration only after reconciliation closes or explicitly marks the previous scope uncertain; there is no automatic redispatch.
 
-Cleanup runs under a fresh bounded context on every post-lease exit, stops worker/controller resources, closes only exact fenced Runs/resources, verifies terminal state and routing, and preserves uncertainty. Server-side timeouts are the last backstop.
+Cleanup runs under a fresh bounded context on every post-lease exit, stops worker/controller resources, closes only exact fenced Runs/resources, verifies terminal state and routing, and preserves uncertainty. *(Re-plan: the lease's run timeout is the only server-side timeout; the Case's workflows set none, so reconcile is the only thing that closes an orphan.)*
 
 ## Assessment and publication
 
@@ -291,3 +304,19 @@ renderer's three directory flags agree; the early proof precedes participant wor
 authority. The FYIs are taken: the workflow test and the untagged-build check move to
 `tools/canary`, unsalted digests are stated as confirming a guess, and the job timeout is 30
 minutes.
+
+Round four (2026-09-23): NEEDS_WORK with two P1, four P2 and two P3 findings, all applied. The
+endpoint's target is an operator-maintained precondition, proved after the fact by the Run's own
+observation of the handler's reply, and R3 is read that way: a repointed endpoint is a Run that is
+not accepted, with a receipt, while every mismatch preflight does check creates nothing (P1). The
+harness follows the live suite's convention, `TestTestpilotCanary*` in
+`tests/testpilot_canary_test.go`, so `umpire-check-live-tests` runs it (P1). The authority class
+is a policy field copied into the provenance, whose decoder accepts exactly `protected-workflow`
+and `harness`; the harness policy source rejects any Profile but `canary-harness` and any class
+but `harness`. A lease closed any non-canary way, a manual termination included, is closed by a
+fresh reconciled lease run; a lease not found is clean; the namespace's retention floor is an
+operator precondition and every provenance and report lists the fenced workflow IDs. The
+publisher moves whole into `tools/umpire/publish` (`Resolve`, `Within` and the no-follow open with
+it), `cli` delegating; `run` names `lease-unreconciled` (exit 2). The tree's one regression gate
+runs the canary's checks, which the spec now says instead of claiming Umpire's suite keeps only its
+own rule.
