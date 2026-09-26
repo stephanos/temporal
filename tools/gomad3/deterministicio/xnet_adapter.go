@@ -14,16 +14,20 @@ const (
 	xnetModulePath                       = "golang.org/x/net"
 	xnetVersion                          = "v0.57.0"
 	xnetSum                              = "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="
-	xnetOriginalSourceInventorySHA256    = "sha256:f58ae09eeed3e297521e4057277d53ad2ff03a4c6ce80029a6db584cc213baba"
+	xnetOriginalSourceInventorySHA256    = "sha256:d051f8968e08d1993e05caeec7c7bcac8bb76765550512cb54b2ef47d7451a5f"
 	xnetSocketSourceSHA256               = "sha256:facf54b3bc8b1e36552241cdf5bf3f5cd1010cf864f995cb0cf2ed3830036d6c"
 	xnetEmptySourceSHA256                = "sha256:0d09f2c52fc60c2d411818b538de77927fbf43ad530214066e26315922f5bdd6"
 	xnetSocketReplacementSHA256          = "sha256:f7469c5b887c0c443d55bf7e03add926e55bacd5cfed76870c180635ca9d2bb8"
 	xnetEmptyReplacementSHA256           = "sha256:061172228faecc3a10af82b3bb3fdb88cbc5ae4bb712c36f915c49787ceaa455"
-	xnetReplacementSourceInventorySHA256 = "sha256:bca9285d07d302281304f53e96a9352f7c656a4b91c8d408cb9d4089f7991883"
-	xnetPreparedSocketSourceSetSHA256    = "sha256:10df56ce136dff1eca6c15283ddee843f7ef016fb994fa915d321dca77566c97"
+	xnetReplacementSourceInventorySHA256 = "sha256:6c1a1ec510ddd95a65370b95fe1e66a1cf128658d213b7269adbbaa7194e3dd3"
 	xnetSocketPath                       = "internal/socket/sys_unix.go"
 	xnetEmptyPath                        = "internal/socket/empty.s"
 )
+
+var xnetPreparedSocketSourceSetSHA256 = hostPin(map[string]string{
+	"darwin/arm64": "sha256:10df56ce136dff1eca6c15283ddee843f7ef016fb994fa915d321dca77566c97",
+	"linux/amd64":  "sha256:7d3ac65eecd5e8382e01cfa8723957449b7970d3073295635a33ee726403bcc1",
+})
 
 func prepareXNet(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	if identity.Module != xnetModulePath || identity.Version != xnetVersion || identity.Sum != xnetSum {

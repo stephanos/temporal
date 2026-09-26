@@ -28,7 +28,7 @@ func TestPinnedGRPCModuleInventory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const want = "sha256:8b2fee8f36a0554c6652dccb95641983d2bf57c2efaa7af584c0ecc08ce6c1aa"
+	const want = "sha256:898dbcb51623418375c8e521c4ef8a8f8ebf146ce81be290f3894267f0edf554"
 	if got != want {
 		t.Fatalf("gRPC module inventory = %q, want %q", got, want)
 	}
