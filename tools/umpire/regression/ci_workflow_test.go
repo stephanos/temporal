@@ -102,8 +102,10 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 		},
 		Jobs: map[string]ciWorkflowJob{
 			"portability": {
-				RunsOn:         "ubuntu-24.04",
-				TimeoutMinutes: 15,
+				RunsOn: "ubuntu-24.04",
+				// Longer than the live suite's own 30-minute Go timeout, so a hang ends in Go's
+				// goroutine dump and the gate's failure message rather than a killed job.
+				TimeoutMinutes: 40,
 				Steps: append(setup(),
 					ciWorkflowStep{Name: "Run package-local Testpilot and Umpire Producer tests", Run: packageLocalTestCommand},
 					ciWorkflowStep{Name: "Run the live Umpire tests", Run: liveTestTargetCommand},
