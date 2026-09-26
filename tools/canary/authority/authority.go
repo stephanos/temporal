@@ -66,8 +66,8 @@ func (c Coordinates) Digests() policy.Coordinates {
 	return policy.DigestsOf(c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint)
 }
 
-// Redactor removes every coordinate and each given secret. It is the one list of what a canary
-// redacts, so no build can redact a coordinate the other writes.
+// Redactor removes every coordinate and each given secret. It is the one list of coordinates a
+// canary redacts, so neither build can leave a coordinate unredacted that the other redacts.
 func (c Coordinates) Redactor(secrets ...string) *Redactor {
 	return NewRedactor(append([]string{c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint}, secrets...)...)
 }
