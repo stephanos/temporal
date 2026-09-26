@@ -17,6 +17,7 @@
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {
     "fn-29-bounded-production-canary-execution-and.1": 0,
+    "fn-29-bounded-production-canary-execution-and.10": 0,
     "fn-29-bounded-production-canary-execution-and.2": 0,
     "fn-29-bounded-production-canary-execution-and.3": 0,
     "fn-29-bounded-production-canary-execution-and.4": 0,
@@ -1677,10 +1678,71 @@
       "task": "fn-29-bounded-production-canary-execution-and.9",
       "timestamp": "2026-09-23T15:46:32.759606Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b36f61f9ab513bce9ab3347742e9f53b036569e666990dc84cde0212591cae8f",
+      "backend": "claude",
+      "base_sha": "8fd97233b064ab780fb8bba237ac3ebbbd12f8de",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-246e6c3a47186a6f8b54ee17c369d6b8",
+            "classification": "introduced",
+            "findingId": "finding-246e6c3a47186a6f8b54ee17c369d6b8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-45d4f4b25e3f6dca4f21b8dc25844791",
+            "classification": "introduced",
+            "findingId": "finding-45d4f4b25e3f6dca4f21b8dc25844791",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-252208236ad8be162b774c1c3259d9e9",
+            "classification": "introduced",
+            "findingId": "finding-252208236ad8be162b774c1c3259d9e9",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9d96a0d8042d98314b44ea0e4aee0ee140d77df6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6016,
+      "output_sha256": "cc36af642a5b41d4566809a6f26e357b20efb4c17c28d664f88ed0573b42e02e",
+      "reservation_id": "cca716e086294d139344df2a6e6e3653",
+      "round_consumed": true,
+      "scope": "impl:fn-29-bounded-production-canary-execution-and.10",
+      "superseded_by": null,
+      "task": "fn-29-bounded-production-canary-execution-and.10",
+      "timestamp": "2026-09-26T19:13:03.165332Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-29-bounded-production-canary-execution-and.1": 1,
+    "impl:fn-29-bounded-production-canary-execution-and.10": 1,
     "impl:fn-29-bounded-production-canary-execution-and.2": 1,
     "impl:fn-29-bounded-production-canary-execution-and.3": 1,
     "impl:fn-29-bounded-production-canary-execution-and.4": 1,
@@ -1696,6 +1758,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-29-bounded-production-canary-execution-and.1": 0,
+    "impl:fn-29-bounded-production-canary-execution-and.10": 0,
     "impl:fn-29-bounded-production-canary-execution-and.2": 0,
     "impl:fn-29-bounded-production-canary-execution-and.3": 0,
     "impl:fn-29-bounded-production-canary-execution-and.4": 0,
@@ -1720,5 +1783,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T15:46:32.765958Z"
+  "updated_at": "2026-09-26T19:13:03.170128Z"
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/canary/authority"
@@ -96,11 +97,14 @@ func TestThePauseHookWaitsForItsFile(t *testing.T) {
 		hooked("leased")
 		close(done)
 	}()
-	select {
-	case <-done:
-		t.Fatal("the pause returned before its file existed")
-	default:
-	}
+	require.Never(t, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	}, 200*time.Millisecond, 10*time.Millisecond, "the pause returned before its file existed")
 	require.NoError(t, os.WriteFile(release, nil, 0o600))
 	<-done
 }
