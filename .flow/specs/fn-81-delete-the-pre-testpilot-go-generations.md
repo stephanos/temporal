@@ -11,7 +11,6 @@ partly CI-wired code. Nothing in the current Umpire, Testpilot, or Temporal mode
 
 | Tree | Go lines | Still wired into |
 | --- | --- | --- |
-| gomad, gomad1, gomad2 | 96,900 | `gomad-prototype` Makefile targets, two nested go.mod files, gomad1 compiled inside the root module, a root go.mod `replace` |
 | umpire1, umpire2, umpire3 | 92,700 | umpire3 and umpire-model-verification workflows, two Makefile variable blocks and about 70 targets, a second Lake project under umpire3 (677 MB on disk) |
 | common/testing/umpire and the testcore monitor | 26,400 | instrumentation in the history workflow cache, observer comments in six other history files, the functional test harness monitor and gRPC interceptor |
 | agentworkflow | 11,200 | Makefile, its own go.mod |
@@ -30,14 +29,6 @@ carry comments that point the reader at that observer, and every functional test
 the umpire2 monitor and its gRPC fault-injector interceptor. That seam has no consumer that
 produces a Verdict, so this spec removes it and restores the cache file to upstream shape.
 
-This revision also narrows the gomad deletion. Gomad v3 (`tools/gomad3`, `tools/gomad3sim`,
-`tools/gomad3integration`, 112,000 lines) and its functional probe `tests/gomadfunctional` stay,
-because [GOMAD_MILESTONES](../../.plans/GOMAD_MILESTONES.md) makes them the only path to running
-Temporal functional tests deterministically, and its F0 step is this carve-out. The gomad3
-workflow's trigger on go.mod and Makefile changes is that plan's F7 concern. Gomad v3's parity
-manifest reads source paths under `tools/gomad2`, so deleting gomad2 retires that manifest in the
-same commit.
-
 The Lean previous generations (Nexus v1, Nexus2, Umpire Artifact, Space, Exploration) are out of
 scope. They are imported by live modules or reserved by open specs (fn-22, fn-33, fn-79, fn-80)
 and need a roadmap decision, not a sweep.
@@ -47,13 +38,8 @@ and need a roadmap decision, not a sweep.
 
 ### Deletion set
 
-- Go trees: `tools/gomad`, `tools/gomad1`, `tools/gomad2`, `tools/umpire1`, `tools/umpire2`,
-  `tools/umpire3`, `tools/agentworkflow`, and `cmd/umpire-genmodels`, including their nested
-  go.mod and go.sum files. The root go.mod `require` and `replace` for
-  `github.com/temporalio/gomad` go with `tools/gomad2`, together with the Gomad v3 parity
-  manifest package `tools/gomad3/simulation/parity`, the parity assertions in
-  `tools/gomad3integration/simulation_contract_test.go`, and the parity references in
-  `tools/gomad3/README.md` and `tools/gomad3/internal/gomadtool/validation/script_policy.go`.
+- Go trees: `tools/umpire1`, `tools/umpire2`, `tools/umpire3`, `tools/agentworkflow`, and
+  `cmd/umpire-genmodels`, including their nested go.mod and go.sum files.
 - The legacy white-box seam: `common/testing/umpire` with every subpackage, the
   `tests/testcore/monitor` package, the monitor factory, purge, and interceptor wiring in the
   functional test base and test environment, the fact-adapter instrumentation in the history
@@ -68,8 +54,6 @@ and need a roadmap decision, not a sweep.
   the `develop/umpire` install script that only serve `cmd/umpire-genmodels`; CODEOWNERS rows
   for deleted paths; `.gitignore` entries for deleted paths.
 - Makefile: every variable, target, and `.PHONY` entry whose only purpose is a deleted tree.
-  For gomad that is the `gomad-prototype` block (`gomad-test`, `gomad-formal`,
-  `gomad-formal-veil`); every `gomad3*` variable, target, and prune clause stays.
 - The `umpire-check-live-tests` expected-failure list.
 
 ### Retention set
@@ -81,11 +65,6 @@ and need a roadmap decision, not a sweep.
   other directory not named above stay untouched apart from reference edits.
 - The `tools/umpire/regression` CI workflow test keeps asserting the retained commands and is
   updated to the new gate.
-- `tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`, `tests/gomadfunctional`, the
-  `gomad3*` Makefile variables, targets, and prune clauses, the `gomad3` workflow, the `.gomad/`
-  ignore entry, and the `.gitattributes` and yamlfmt entries for `tools/gomad3`, per
-  [GOMAD_MILESTONES](../../.plans/GOMAD_MILESTONES.md) F0. Their only edit here is the parity-manifest
-  retirement.
 
 ### Evidence rule
 
@@ -121,13 +100,10 @@ The seam and the umpire trees form one dependency cycle: the history service imp
    instrumentation, every monitor API in the functional test base and test environment, the
    testcore monitor package, `common/testing/umpire`, the three trees, and the retired-vocabulary
    test fixture path repoint.
-4. `tools/gomad`, `tools/gomad1`, `tools/gomad2`, the root go.mod require and replace, and the
-   Gomad v3 parity manifest retirement, in one commit, followed by the tidy verification.
-   `go vet -tags test_dep,gomad3_integration ./tools/gomad3integration` must still pass.
-5. agentworkflow.
-6. Makefile, workflows, live-test gate, and the CI workflow test, in one commit.
-7. CODEOWNERS, ignore files, attributes, yamlfmt.
-8. Documentation notes, `.plans/index.json` relabel, roadmap entry, flow record sync.
+4. agentworkflow.
+5. Makefile, workflows, live-test gate, and the CI workflow test, in one commit.
+6. CODEOWNERS, ignore files, attributes, yamlfmt.
+7. Documentation notes, `.plans/index.json` relabel, roadmap entry, flow record sync.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -159,7 +135,6 @@ CGO_ENABLED=0 go test -tags test_dep ./tools/... ./common/testing/testpilot/... 
 make lint-code
 make umpire-check-regression
 go run ./tools/planindex
-git grep -n -E 'umpire[123]|gomad[12]?([^0-9a-z]|$)|temporalio/gomad|agentworkflow|umpire-genmodels|common/testing/umpire' -- . ':!.plans' ':!.flow' ':!.turbo' ':!docs'
 ```
 
 ## Acceptance Criteria
@@ -170,10 +145,8 @@ git grep -n -E 'umpire[123]|gomad[12]?([^0-9a-z]|$)|temporalio/gomad|agentworkfl
   the fairsim and planindex retentions with their reasons, and captures the dependency closure
   and package-set baselines, before any deletion lands. Errors: a root with an unclassified live
   consumer blocks deletion of that root.
-- **R2:** The Go trees, nested modules, `cmd/umpire-genmodels`, the root go.mod require and
-  replace for the gomad module, the mise tasks, and the install script are deleted; the tagged
-  build and vet pass; `go vet -tags test_dep,gomad3_integration ./tools/gomad3integration` passes
-  after the parity-manifest retirement; tidy removes only modules absent from the retained dependency closure; the
+- **R2:** The Go trees, nested modules, `cmd/umpire-genmodels`, mise tasks, and install script are
+  deleted; tidy removes only modules absent from the retained dependency closure; the
   package set after is a subset of the package set before. Errors: a build, vet, or subset check
   failure blocks; a tidy diff that drops a module present in the closure blocks.
 - **R3:** The legacy tests, the two workflows, every Makefile variable, target, and `.PHONY`
@@ -212,8 +185,6 @@ git grep -n -E 'umpire[123]|gomad[12]?([^0-9a-z]|$)|temporalio/gomad|agentworkfl
 - No refactoring of retained code beyond removing the seam and editing references.
 - No deletion of `tools/fairsim`, `cmd/tools/fairsim`, or `tools/planindex`.
 - No replacement monitor. The functional harness loses the seam rather than gaining a no-op.
-- No deletion of `tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`, or
-  `tests/gomadfunctional`. Their delivery order is [GOMAD_MILESTONES](../../.plans/GOMAD_MILESTONES.md).
 
 ## Decision Context
 <!-- scope: both -->
@@ -241,13 +212,6 @@ belongs in a later consolidation spec.
 The declined ledger entry on generated API drift verification is unaffected: this spec adds no
 drift gate and no CI workflow.
 
-Retaining Gomad v3 reverses the first revision. The 2026-09-08 assessment found it is the only
-tree that can run an unchanged Temporal functional test under a deterministic runtime, and
-[GOMAD_MILESTONES](../../.plans/GOMAD_MILESTONES.md) orders the work that turns that into a checked
-claim. gomad1 and gomad2 are not revived: gomad1 needed hand-written overlays of Temporal source
-to survive its scaled clock, gomad2 was never pointed at Temporal, and gomad is a formal-model
-demonstrator with no link to v3.
-
 ## Early proof point
 
 Task fn-81-delete-the-pre-testpilot-go-generations.2 validates the core approach: the seam comes
@@ -266,5 +230,4 @@ before deleting any tree.
 | R5 | Gates and measurements | .5 | — |
 | R6 | White-box seam removal | .2 | — |
 | R7 | Docs, index relabel, roadmap, flow record sync | .5 | — |
-
 

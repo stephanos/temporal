@@ -10,115 +10,6 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/GOMAD3_CMPR.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_NEXT.md",
-      "lifecycle": "active",
-      "authority": "architecture",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_NEXT_BUG_FINDING.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_NEXT_COMPATIBILITY.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_NEXT_PRODUCTIONIZATION.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_NEXT_SIM.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_OS.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD3_SUMMARY.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/GOMAD_CMP.md",
-      "lifecycle": "historical",
-      "authority": "historical",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": [
-        {
-          "target": "tools/gomad1/transformer/transform.go",
-          "reason": "Gomad v1 source removed by fn-81; the comparison it documents is historical.",
-          "anchor": null
-        },
-        {
-          "target": "tools/gomad2/docs/design.md",
-          "reason": "Gomad v2 source removed by fn-81; the comparison it documents is historical.",
-          "anchor": null
-        }
-      ]
-    },
-    {
-      "path": ".plans/GOMAD_MILESTONES.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/GOMAD3_NEXT.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
       "path": ".plans/LEAN_GUIDELINES.md",
       "lifecycle": "active",
       "authority": "scoped-contract",
@@ -216,6 +107,16 @@
           "anchor": null
         }
       ]
+    },
+    {
+      "path": ".plans/UMPIRE4_DIRECTION.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
     },
     {
       "path": ".plans/UMPIRE4_DSL.md",

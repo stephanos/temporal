@@ -1563,7 +1563,6 @@ into one marketing score.
 2. Mark their limitations explicitly: no project qualification and no generic backend guarantee.
 3. Introduce new public `Run`, `Resume`, and `Inspect` operations beside them.
 4. Add a reader for existing `agentworkflow.stage-result/v1` records.
-5. Migrate the Gomad prototype or its successor to the new high-level API as the first real client.
 6. Delete compatibility operations only after all callers migrate and retained v1 artifacts remain
    inspectable through the store.
 
@@ -1703,15 +1702,8 @@ evidence.
 - Current engine and storage prototype: `tools/agentworkflow/agentworkflow.go`.
 - Current tests: `tools/agentworkflow/agentworkflow_test.go`.
 - Nested module: `tools/agentworkflow/go.mod`.
-- Repository test hook and Gomad prototype target: `Makefile` (`gomad-test`).
 - Evidence, trust, observation, and result vocabulary precedent: `.plans/UMPIRE3.md`.
 - Developer-facing deep-facade precedent: `.plans/UMPIRE.md`.
-- Durable store, bounded journal, recovery, and identity precedent:
-  `.plans/GOMAD3_NEXT_PRODUCTIONIZATION.md`.
-- Fail-closed compatibility and capability-reporting precedent:
-  `.plans/GOMAD3_NEXT_COMPATIBILITY.md`.
-- Bounded exploration, replay, and honest coverage precedent:
-  `.plans/GOMAD3_NEXT_BUG_FINDING.md`.
 
 These documents provide architectural precedent. The agent workflow remains a generic tool and must
-not import Umpire or Gomad implementation packages merely to reuse their vocabulary.
+not import Umpire implementation packages merely to reuse its vocabulary.

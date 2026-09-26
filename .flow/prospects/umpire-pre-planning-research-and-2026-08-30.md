@@ -155,7 +155,6 @@ strategy: scanned: none (no STRATEGY.md signal)
 - Research staging harness and profile readiness — duplicates-open-epic: Establishing staging authority, isolation, limits, and cleanup is core readiness work already assigned to fn-28.
 - Research black-box Nexus evidence sufficiency — duplicates-open-epic: Determining sufficient black-box Nexus evidence materially overlaps the execution and qualification contract of fn-28.
 - Build a semantic coverage-coordinate glossary — duplicates-open-epic: Selecting and defining semantic coverage coordinates is a central design responsibility of fn-17.
-- Mine GOMAD exploration and reduction lessons for Umpire — duplicates-open-epic: Translating exploration, replay, coverage, and minimization lessons into Umpire decisions materially overlaps fn-17 and fn-22.
 - Generate agent context packs per prototype track — insufficient-signal: No grounding evidence shows agents are blocked by missing context packs, and the proposed packs would duplicate 19 actively maintained specs.
 - Plan a documentation link and path drift gate — insufficient-signal: The prospect snapshot does not establish enough current-path drift to justify a dedicated gate before classifying historical documents.
 - Review deep-module hotspots before parallel refactors — duplicates-open-epic: Reviewing missing semantic APIs in Property and Behavior authoring materially overlaps the deepening work already tracked by fn-43.

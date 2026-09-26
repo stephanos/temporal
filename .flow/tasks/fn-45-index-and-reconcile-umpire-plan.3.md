@@ -7,13 +7,15 @@ satisfies: [R2, R6]
 Synchronize active/reference documentation with the registry for R6 and make historical exceptions explicit.
 
 **Size:** M
-**Files:** `.plans/GOMAD3_CMPR.md`, `.plans/GOMAD3_NEXT.md`, `.plans/GOMAD3_OS.md`, `.plans/UMPIRE2.md`, `.plans/UMPIRE3.md`, `.plans/UMPIRE4_DSL.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`, `tools/planindex/check_test.go`
-**Touches:** [.plans/GOMAD3_CMPR.md, .plans/GOMAD3_NEXT.md, .plans/GOMAD3_OS.md, .plans/UMPIRE2.md, .plans/UMPIRE3.md, .plans/UMPIRE4_DSL.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, .plans/index.json, tools/planindex/check_test.go]
+**Files:** `.plans/UMPIRE2.md`, `.plans/UMPIRE3.md`, `.plans/UMPIRE4_DSL.md`,
+`.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`,
+`tools/planindex/check_test.go`
+**Touches:** [.plans/UMPIRE2.md, .plans/UMPIRE3.md, .plans/UMPIRE4_DSL.md,
+.plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, .plans/index.json,
+tools/planindex/check_test.go]
 
 ### Approach
 - Repair stale U4 links where the intended successor is unambiguous and preserve historical wording/comments.
-- Repair the three moved GOMAD choice schema, toolchain patch, and trace links to their current repository paths.
-- Repair the stale SIM-0 through SIM-5 anchors in active/reference Gomad plans to the current `-complete` heading anchors.
 - Mark `UMPIRE4_COMPONENTS.md` descriptive, remove stale authority/status implications, and point to the current normative/order/architecture documents.
 - Remove completed fn-42 and fn-50 delivery entries from `UMPIRE4_ORDER.md` while preserving its remaining-work-only intent, retained simplicity dependencies, and prototype decision gate.
 - Record genuinely historical missing targets in `allowedMissingLinks` rather than inventing replacement content.
@@ -26,8 +28,6 @@ Synchronize active/reference documentation with the registry for R6 and make his
 - `.plans/UMPIRE2.md:15-17` — stale vision/DSL links.
 - `.plans/UMPIRE3.md:7-9` — historical missing links.
 - `.plans/UMPIRE4_DSL.md:12-13` — active stale links.
-- `.plans/GOMAD3_CMPR.md:24-29` — moved choice schema, toolchain patch, and trace targets.
-- `.plans/GOMAD3_NEXT.md:84-180` and `.plans/GOMAD3_OS.md:66` — stale anchors for completed SIM-0 through SIM-5 headings.
 - `.plans/UMPIRE4_COMPONENTS.md:3-7,51-68,818` — authority/status drift and missing targets.
 - `.plans/UMPIRE4_SPEC_COMPS.md:7-16` — current architecture authority statement.
 
@@ -42,9 +42,8 @@ Synchronize active/reference documentation with the registry for R6 and make his
 - [ ] `TestRepositoryPlanLinks` executes against the production root, observes the pre-repair link findings as RED, and cannot pass via `[no tests to run]`.
 - [ ] Focused repository-link tests pass; the full check has zero document/link findings and zero unexpected Flow findings, with any remaining failure limited to the dependency and readiness drift owned by tasks .5 and .6.
 ## Done summary
-Added a production-root repository-link regression, repaired the registered Umpire and Gomad links, made the historical missing synthesis explicit, and reduced `UMPIRE4_ORDER.md` to remaining delivery work while retaining completed prerequisites. R2/R6 are covered by the focused production-link test and the full registry check's zero document findings.
-
-Baseline: the original task Quick exited 0 with `[no tests to run]`; the supported replan added `TestRepositoryPlanLinks`, whose test-only commit then observed the required production-link RED before document repair. Provenance from base `1590bf134d676c1f3cdce572e56b732a07d26f17`: conductor-owned contract reconciliation `cd72d4740`, RED test `771390283`, conductor-owned Gomad ownership reconciliation `be4941cc7`, GREEN implementation `60cb2be49`, and Codex SHIP review metadata `5478baf2b`.
+Added a production-root repository-link regression, repaired the registered Umpire links, made
+historical missing targets explicit, and reduced `UMPIRE4_ORDER.md` to remaining delivery work.
 
 Verification: the exact focused Quick, all `tools/planindex` tests, package vet, JSON parsing, diff checks, and `flowctl validate --all --json` pass. `make umpire-check-plan-index` retains only task .5 dependency and task .6 readiness drift, with zero document/link or unexpected findings. Task-scoped no-fix lint reports zero golangci issues before the unchanged inherited `tools/umpire/runtime/errors.go:60` errortype finding keeps the wrapper red.
 

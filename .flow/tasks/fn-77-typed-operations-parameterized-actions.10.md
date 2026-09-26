@@ -113,10 +113,8 @@ declares that as a Known Gap rather than letting the recorded Property imply an 
   are now pinned by `#guard`).
 
 Concurrent local edits this run swept in that this task did not author: the user committed a `wip`
-snapshot (`b8c30e29`) mid-run that already contained an early version of these files together with
-the parallel session's `fn-81`/`fn-82` spec and task files, `.plans/GOMAD_MILESTONES.md`,
-`.plans/UMPIRE4_ORDER.md` and regenerated `tools/gomad3` wire tables; that commit is inside this
-task's evidence range because it precedes both of this task's own commits.
+snapshot (`b8c30e29`) mid-run that already contained an early version of these files. That commit
+is inside this task's evidence range because it precedes both of this task's own commits.
 
 stage: impl-review - ran [round 1 SHIP (claude/claude-fable-5-1, high)]; one P2 and four P3 findings,
 the P2 (model-only window unrecorded) and two P3s (over-claimed derived-Contract wording, unpinned

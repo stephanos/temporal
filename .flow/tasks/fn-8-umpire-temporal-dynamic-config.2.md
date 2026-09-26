@@ -20,7 +20,6 @@ Build the discovery and canonical projection core for R2, R3, and the Go-produce
 ### Investigation targets
 **Required** (read before coding):
 - `cmd/tools/genleanmodeldescriptors/main.go:105-190` — package inventory, helper, and runtime registry pattern
-- `tools/gomad2/internal/translate/main.go:71-90` — existing `go/packages` loading conventions
 - `common/dynamicconfig/collection.go:314-377` — real precedence/default interleaving
 - `cmd/tools/gendynamicconfig/main.go:60-118` — current policy order authority
 - `chasm/lib/callback/config.go:17-83` — representative namespace, destination, and custom settings

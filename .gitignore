@@ -1,7 +1,6 @@
 .tmp/
 .bin/
 .stamp/
-.gomad/
 
 .idea/
 .vscode/settings.json
