@@ -374,13 +374,27 @@ func TestTestpilotCanaryHarnessRecoversATimedOutLease(t *testing.T) {
 	require.Equal(t, controller.ExitAccepted, code, "%+v", summary)
 }
 
-// The harness refuses a policy that names production's Evaluation Profile, before anything else.
+// The harness refuses a policy that names production's Evaluation Profile or authority class,
+// before anything else, and names what it refused.
 func TestTestpilotCanaryHarnessRefusesAProductionPolicy(t *testing.T) {
-	h := newCanaryHarness(t, "canary-production", func(p *policy.Policy) { p.EvaluationProfile = "production-canary" })
-	job := h.job(t)
-	code, summary := h.run(t, job, nil)
-	require.Equal(t, controller.ExitFailed, code)
-	require.Equal(t, controller.StatusPolicyUnavailable, summary.Status)
-	_, err := os.Stat(job.recovery)
-	require.ErrorIs(t, err, os.ErrNotExist)
+	for name, production := range map[string]struct {
+		named string
+		edit  func(*policy.Policy)
+	}{
+		"profile":   {"production-canary", func(p *policy.Policy) { p.EvaluationProfile = "production-canary" }},
+		"authority": {policy.AuthorityProtectedWorkflow, func(p *policy.Policy) { p.AuthorityClass = policy.AuthorityProtectedWorkflow }},
+	} {
+		t.Run(name, func(t *testing.T) {
+			h := newCanaryHarness(t, "canary-production-"+name, production.edit)
+			job := h.job(t)
+			code, summary := h.run(t, job, nil)
+			require.Equal(t, controller.ExitFailed, code)
+			require.Equal(t, controller.StatusPolicyUnavailable, summary.Status)
+			require.Contains(t, summary.Detail, strconv.Quote(production.named))
+			require.Empty(t, summary.Iterations)
+			_, err := os.Stat(job.recovery)
+			require.ErrorIs(t, err, os.ErrNotExist)
+			require.Empty(t, published(t, job))
+		})
+	}
 }
