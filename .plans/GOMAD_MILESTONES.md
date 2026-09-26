@@ -99,8 +99,12 @@ The assessment that produced this document verified the following on the working
 - **Evidence over narration.** A milestone is done when its command produces the stated
   report on a clean checkout. A passing local run that depends on untracked state does not
   count.
-- **Platform.** Milestones F0 through F6 are qualified on `darwin/arm64` only. Linux is
-  milestone F7 and gates CI, never the determinism claim.
+- **Platform.** The boundary manifest qualifies `darwin/arm64` and `linux/amd64` (added
+  2026-09-26 as one manifest with a per-platform declaration override, not a second bundle).
+  Each platform is its own qualification and artifacts replay only where they were produced.
+  The modernc libc adapter, its compatibility packs, the macOS sandbox test, and the DTrace
+  clock audit remain `darwin/arm64` only, so the libc and SQLite core workloads are expected
+  unsupported on Linux until COMPAT-5 gives the adapter a Linux target.
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters
@@ -149,17 +153,32 @@ reads `gomad3.qualification-set/v3` and the core corpus moved to it; the root wr
 the conformance `exec.sh`; the `tagged` wrapper fixture exists; and the runtime-tier fixture
 corpus is authored under `internal/gomadtool/conformance/testdata` as module `gomad3.test`:
 `activation`, `activation_io`, `automatic_gc`, `channels`, `choice_exploration`, `choice_replay`,
-`clock`, `clock_bench`, `clock_cgo`, `clock_deadlock`, `clock_gotest`, `clock_race`,
-`clock_spin`, `clock_synctest`, `gotest`, `maps`, `preemption`, `random`, `runqueue`,
-`scheduler`, `scheduler_min`, `select`, `sync`, the `intercept` package, and the nine
-`interceptfail` packages named by `compiler-tests.json`. Their unseeded behaviour was checked
-under stock Go on `linux/amd64`; their seeded behaviour has not run under the patched toolchain,
-which builds only on `darwin/arm64`. Still missing, each with the test that drives it:
-`clock_io` (`runtime_clocks.go`), `io_filesystem`, `io_net`, `io_signal`, `io_user`,
-`libc_adapter`, and `sqlite_adapter` (`runner/internal/execution/io_*_toolchain_test.go`),
-`io_net_races`, `io_entropy`, `io_ro_mount`, `io_fd5`, `io_failure`, and
-`io_ro_mount_failure` (the remaining `*_toolchain_test.go` and `replay_io_integration_test.go`).
-Nothing references a `compatibilitypack/testdata/v041` fixture any more.
+`clock`, `clock_bench`, `clock_cgo`, `clock_deadlock`, `clock_gotest`, `clock_io`,
+`clock_race`, `clock_spin`, `clock_synctest`, `gotest`, `io_fd5`, `maps`, `preemption`,
+`random`, `runqueue`, `scheduler`, `scheduler_min`, `select`, `sync`, the `intercept` package,
+and the nine `interceptfail` packages named by `compiler-tests.json`. Once `linux/amd64`
+became a qualified platform (below) the patched toolchain was built here and the builder,
+live-capability, interception, upstream, overlay, and world tiers passed; the runtime tier
+passed every clock, linking, scheduling, perturbation, host-load, map-family, oracle, and
+activation check and then found a same-seed divergence in the repeatability sweep: about 0.3
+to 1 percent of runs of the allocation-heavy fixtures (`channels`, `sync`, `automatic_gc`,
+`scheduler`) print a different interleaving for one seed, with `NumGC == 0`, a different
+`HeapAlloc`, and no divergence under `GOGC=off`. That is the GC-dimension risk this document
+names and is the top open Gomad defect. Still missing, each with the test that drives it:
+`io_filesystem`, `io_net`, `io_signal`, `io_user`, `libc_adapter`, and `sqlite_adapter`
+(`runner/internal/execution/io_*_toolchain_test.go`), `io_net_races`, `io_entropy`,
+`io_ro_mount`, `io_failure`, and `io_ro_mount_failure` (the remaining `*_toolchain_test.go`
+and `replay_io_integration_test.go`). Nothing references a `compatibilitypack/testdata/v041`
+fixture any more. Three more defects surfaced while qualifying on Linux: the run-queue choice
+decision kept two 8 KiB candidate buffers on the system stack, which Linux sizes at 16 KiB for
+non-main threads, so every seeded run with choice tracing died with `morestack on g0` (the
+buffers now live in static scheduler scratch); the adapters' source-inventory pins were
+recorded with the pre-rename `gomadv3.` digest header and had been stale on every platform
+since 2026-08-23 (re-pinned); and the root module rebuilt on upstream
+`951c5516e` carries `golang.org/x/net v0.58.0` and `google.golang.org/grpc v1.83.2` while the
+adapters pin `v0.57.0` and `v1.80.0`, so every Temporal-corpus analysis fails with
+"unsupported golang.org/x/net version" until the adapters are re-pinned (COMPAT-5 upgrade
+flow; the two rewritten x/net files are byte-identical between the versions).
 
 **Details.**
 
@@ -399,9 +418,13 @@ gate run in CI.
   test lands with a default expectation of `qualified` and fails the set if it is not.
 - Split the set into shards with `gomad plan` and `execute-shard` so a full run fits the
   90-minute CI budget. Merge with `gomad merge`.
-- Build the `linux/amd64` platform bundle per COMPAT-7 with its own boundary manifest,
-  adapters, and publication primitives. Artifacts replay only on the bundle that produced them,
-  so the Linux run is a second qualification, never a replay of the Mac one.
+- ~~Build the `linux/amd64` platform bundle per COMPAT-7 with its own boundary manifest,
+  adapters, and publication primitives.~~ Done ahead of order on 2026-09-26: the toolchain,
+  compiler, linker, and deterministic I/O profile accept `linux/amd64`, and the `core-linux` CI
+  job builds the toolchain and runs the conformance tiers and the core corpus on Linux.
+  Artifacts replay only on the platform that produced them, so the Linux run is a second
+  qualification, never a replay of the Mac one. Still open for Linux: the modernc libc adapter
+  and packs, a host-clock escape audit to replace DTrace, and the `./tests` closure.
 - Move the Temporal qualification from weekly cron to a required check on changes under
   `tools/gomad3`, `tests`, `tests/testcore`, `go.mod`, and any server package the closure
   review names.
