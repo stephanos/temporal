@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -67,6 +68,16 @@ type Workload struct {
 	ExecutionTimeout     string                `json:"execution_timeout,omitempty"`
 	OverallTimeout       string                `json:"overall_timeout,omitempty"`
 	Expectation          WorkloadExpectation   `json:"expectation"`
+	// PlatformExpectations replaces Expectation on the named GOOS/GOARCH hosts,
+	// so one manifest can state where a workload's support boundary differs.
+	PlatformExpectations map[string]WorkloadExpectation `json:"platform_expectations,omitempty"`
+}
+
+func (workload Workload) expectationFor(platform string) WorkloadExpectation {
+	if expectation, found := workload.PlatformExpectations[platform]; found {
+		return expectation
+	}
+	return workload.Expectation
 }
 
 type Mount struct {
@@ -292,10 +303,11 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 	for index, seed := range manifest.Seeds {
 		report.Seeds[index] = record.Uint64String(seed)
 	}
+	hostPlatform := runtime.GOOS + "/" + runtime.GOARCH
 	for index, workload := range manifest.Suites {
 		report.Workloads[index] = WorkloadReport{
 			ID: workload.ID, Name: workload.Name, Tier: workload.Tier, Invariant: workload.Invariant,
-			Expected: workload.Expectation, Seeds: []SeedReport{}, Blockers: []capabilityanalysis.Blocker{},
+			Expected: workload.expectationFor(hostPlatform), Seeds: []SeedReport{}, Blockers: []capabilityanalysis.Blocker{},
 			Choice: emptyChoiceCoverage(), CapabilityMode: workload.CapabilityMode,
 		}
 	}
@@ -330,7 +342,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 				failed = append(failed, workload.ID)
 			} else if analysis.Classification == capabilityanalysis.ClassificationUnsupported {
 				workloadReport.Classification = "unsupported_target"
-				workloadReport.ExpectationMet = matchesUnsupportedAnalysis(workload.Expectation, analysis)
+				workloadReport.ExpectationMet = matchesUnsupportedAnalysis(workloadReport.Expected, analysis)
 				report.Completed++
 				report.Unsupported++
 				if !workloadReport.ExpectationMet {
@@ -415,7 +427,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 			}
 			report.Completed++
 			report.Workloads[index].Choice = coverage
-			report.Workloads[index].ExpectationMet = matchesSupportedExpectation(workload.Expectation, report.Workloads[index])
+			report.Workloads[index].ExpectationMet = matchesSupportedExpectation(report.Workloads[index].Expected, report.Workloads[index])
 			if !report.Workloads[index].ExpectationMet {
 				failed = append(failed, workload.ID)
 			}
@@ -539,6 +551,14 @@ func validateManifest(manifest Manifest) error {
 		}
 		if err := validateExpectation(workload.Expectation); err != nil {
 			return fmt.Errorf("qualification workload %s: %w", workload.ID, err)
+		}
+		for platform, expectation := range workload.PlatformExpectations {
+			if goos, goarch, ok := strings.Cut(platform, "/"); !ok || goos == "" || goarch == "" {
+				return fmt.Errorf("qualification workload %s platform expectation key is invalid: %q", workload.ID, platform)
+			}
+			if err := validateExpectation(expectation); err != nil {
+				return fmt.Errorf("qualification workload %s on %s: %w", workload.ID, platform, err)
+			}
 		}
 	}
 	return nil

@@ -86,6 +86,13 @@
       "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
+      },
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/remyoudompheng/bigfft",
+          "capability": "linkname:arith_decl.go"
+        }
       }
     },
     {
@@ -105,6 +112,13 @@
       "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
+      },
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/remyoudompheng/bigfft",
+          "capability": "linkname:arith_decl.go"
+        }
       }
     }
   ]
