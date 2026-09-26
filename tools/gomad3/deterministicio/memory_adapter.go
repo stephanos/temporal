@@ -14,13 +14,17 @@ const (
 	memoryModulePath                       = "modernc.org/memory"
 	memoryVersion                          = "v1.11.0"
 	memorySum                              = "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="
-	memoryOriginalSourceInventorySHA256    = "sha256:4d829c24cc1718026fee9455b47449cfa15d8e241bbbfd9da6136435fd81881f"
+	memoryOriginalSourceInventorySHA256    = "sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264"
 	memoryMmapSourceSHA256                 = "sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7"
 	memoryMmapReplacementSHA256            = "sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad"
-	memoryReplacementSourceInventorySHA256 = "sha256:720c0239c80b4f8bcbebe1cd887451b8e58554f857d09f3f9b9dff939ce3f24e"
-	memoryPreparedSourceSetSHA256          = "sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36"
+	memoryReplacementSourceInventorySHA256 = "sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535"
 	memoryMmapPath                         = "mmap_unix.go"
 )
+
+var memoryPreparedSourceSetSHA256 = hostPin(map[string]string{
+	"darwin/arm64": "sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36",
+	"linux/amd64":  "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
+})
 
 func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	if identity.Module != memoryModulePath || identity.Version != memoryVersion || identity.Sum != memorySum {

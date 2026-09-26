@@ -16,13 +16,20 @@ import (
 )
 
 const (
-	libcModulePath              = "modernc.org/libc"
-	libcDarwinSHA256            = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
-	libcDarwinArm64SHA256       = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
-	libcUnixSHA256              = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	gomadLibcAdapterSHA256      = "sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd"
-	libcPreparedSourceSetSHA256 = "sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833"
+	libcModulePath         = "modernc.org/libc"
+	libcDarwinSHA256       = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
+	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
+	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
+	gomadLibcAdapterSHA256 = "sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd"
 )
+
+// The adapter rewrites the darwin sources only, so on Linux the prepared
+// package compiles modernc's own Linux files and the closure analysis reports
+// their host facts.
+var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
+	"darwin/arm64": "sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833",
+	"linux/amd64":  "sha256:7ac6fbc639477df64ab004f12014596fda4d7bab42379d9144d5d53b147f2151",
+})
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "libc@"+identity.Version))

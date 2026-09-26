@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -291,6 +292,12 @@ func detectModuleVersion(contents []byte, module string) (string, error) {
 		version = requirement.Mod.Version
 	}
 	return version, nil
+}
+
+// hostPin selects the identity recorded for the running platform when a
+// prepared source set legitimately differs between qualified platforms.
+func hostPin(pins map[string]string) string {
+	return pins[runtime.GOOS+"/"+runtime.GOARCH]
 }
 
 func mustAdapterRegistry(identities []gomadversion.AdapterIdentity, implementations []adapterImplementation) adapterRegistry {

@@ -14,10 +14,10 @@ const (
 	grpcModulePath                       = "google.golang.org/grpc"
 	grpcVersion                          = "v1.80.0"
 	grpcSum                              = "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="
-	grpcOriginalSourceInventorySHA256    = "sha256:8b2fee8f36a0554c6652dccb95641983d2bf57c2efaa7af584c0ecc08ce6c1aa"
+	grpcOriginalSourceInventorySHA256    = "sha256:898dbcb51623418375c8e521c4ef8a8f8ebf146ce81be290f3894267f0edf554"
 	grpcKeepaliveSourceSHA256            = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
 	grpcKeepaliveReplacementSHA256       = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
-	grpcReplacementSourceInventorySHA256 = "sha256:6bfaf02259a872caad5349a60dff7a2efa2e4b61eae51ea463d20398a078767b"
+	grpcReplacementSourceInventorySHA256 = "sha256:c7bc18ca5d634815e79fb169b528c434b24eeb890f9d1ebc86922e864ee01404"
 	grpcPreparedInternalSourceSetSHA256  = "sha256:348f37231e8391fd9361eb84ed9d5a39b9cacc4136461ce103ccc828be7db250"
 	grpcKeepalivePath                    = "internal/tcp_keepalive_unix.go"
 )
