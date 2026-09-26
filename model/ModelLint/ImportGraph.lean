@@ -48,6 +48,20 @@ structure Policy where
   testConsumerModules : Array Lean.Name
   /-- Exact production entry points whose full closure must remain free of Target elaboration. -/
   semanticRoots : Array Lean.Name
+  /-- The roots under which a production module that builds authoring records directly is
+  hand-written, and must be listed in the committed hand-written inventory. -/
+  handwrittenRoots : Array Lean.Name := #[]
+  /-- The authoring owners a hand-written module imports directly; a command-authored module
+  reaches them only through `Umpire.Command`. -/
+  authoringOwners : Array Lean.Name := #[]
+  /-- The roots under which a production module has one authoring path, the commands: importing an
+  authoring owner directly is a violation, not an inventory entry. -/
+  authoringPathRoots : Array Lean.Name := #[]
+  /-- Modules and namespaces the authoring-path rule names as outside it: the realizations, which
+  lower checked Models into Cases, and the Implementation Link, which reads the Nexus Model's
+  Properties. Neither is under a root today; they are named so that moving one under a root does
+  not silently put it inside the rule. -/
+  authoringPathExceptions : Array Lean.Name := #[]
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -64,6 +78,10 @@ inductive Rule where
   | nexusExperimentalIsolation
   | systemIsolation
   | testSupportIsolation
+  /-- A production module under an authoring-path root imports an authoring owner directly rather
+  than reaching it through `Umpire.Command`. A direct-import rule: every command-authored module
+  reaches the owners transitively. -/
+  | authoringPathIsolation
   deriving Repr, BEq
 
 /-- One forbidden reachability result and its selected shortest qualified path. -/
@@ -118,6 +136,17 @@ def defaultPolicy : Policy := {
     { modulePrefix := `UmpireTests, moduleClass := .modelTests }
   ],
   implementationLinkConsumers := #[`Temporal.System.Nexus.ImplementationLink],
+  handwrittenRoots := #[`Temporal.Feature, `Temporal.Testpilot, `Umpire.Examples],
+  authoringOwners := #[
+    `Umpire.Model,
+    `Umpire.Property,
+    `Umpire.Scenario,
+    `Umpire.Query,
+    `Umpire.Operation,
+    `Umpire.Case
+  ],
+  authoringPathRoots := #[`Temporal.Feature, `Umpire.Examples],
+  authoringPathExceptions := #[`Temporal.Case, `Temporal.System.Nexus.ImplementationLink],
   testSupportNamespaces := #[
     `Shared.Test,
     `Temporal.Shared.Test,
@@ -163,14 +192,21 @@ private def Rule.label : Rule → String
   | .nexusExperimentalIsolation => "nexus-experimental-isolation"
   | .systemIsolation => "system-isolation"
   | .testSupportIsolation => "test-support-isolation"
+  | .authoringPathIsolation => "authoring-path-isolation"
 
 private def pathText (path : Array Lean.Name) : String :=
   " -> ".intercalate <| path.toList.map (·.toString)
 
-/-- Render one deterministic architecture diagnostic. -/
+/-- Render one deterministic architecture diagnostic. A direct-import rule names the import; a
+reachability rule names the selected shortest path. -/
 def Violation.render (violation : Violation) : String :=
-  s!"[model-import-graph/{violation.rule.label}] forbidden qualified import path: \
-    {pathText violation.path}"
+  match violation.rule with
+  | .authoringPathIsolation =>
+      s!"[model-import-graph/{violation.rule.label}] forbidden direct import: \
+        {violation.source} -> {violation.destination}"
+  | _ =>
+      s!"[model-import-graph/{violation.rule.label}] forbidden qualified import path: \
+        {pathText violation.path}"
 
 /-- Render one deterministic inventory or metadata diagnostic. -/
 def InventoryIssue.render : InventoryIssue → String
@@ -185,6 +221,9 @@ def InventoryIssue.render : InventoryIssue → String
       s!"[model-import-graph/inventory] unclassified first-party module: {module}"
   | .unknownFirstPartyImport source imported =>
       s!"[model-import-graph/metadata] {source} imports unknown first-party module {imported}"
+  | .handwrittenNotInventoried module imported =>
+      s!"[model-import-graph/inventory] hand-written module not inventoried: {module} imports \
+        {imported} directly and is missing from HANDWRITTEN_INVENTORY.md"
 
 private def isTemporalClass : ModuleClass → Bool
   | .temporalShared | .temporalFeature | .temporalSystem
@@ -268,8 +307,39 @@ private def forbiddenRule?
   else
     none
 
+/-- Whether the authoring-path rule applies to a module: production, under an authoring-path root
+and not a named exception. -/
+private def Policy.isAuthoringPathModule (policy : Policy) (name : Lean.Name) : Bool :=
+  match policy.classify? name with
+  | some moduleClass =>
+      policy.authoringPathRoots.any (matchesPrefix · name) &&
+        policy.isProductionModule name moduleClass &&
+        !policy.authoringPathExceptions.any (matchesPrefix · name)
+  | none => false
+
+/-- Every direct import of an authoring owner by a module the authoring-path rule applies to, in
+deterministic order. It reads the direct imports rather than reachability because a command-authored
+module reaches every owner through `Umpire.Command`; what the rule forbids is the import itself. -/
+def checkAuthoringPath (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
+  let violations := modules.flatMap fun record =>
+    if policy.isAuthoringPathModule record.name then
+      record.imports.filterMap fun imported =>
+        if policy.authoringOwners.any (matchesPrefix · imported) then
+          some ({
+            rule := .authoringPathIsolation
+            source := record.name
+            destination := imported
+            path := #[record.name, imported]
+          } : Violation)
+        else none
+    else #[]
+  violations.qsort fun left right =>
+    left.source.toString < right.source.toString ||
+      (left.source == right.source && left.destination.toString < right.destination.toString)
+
 /--
-Return every forbidden transitive reachability result in deterministic order.
+Return every forbidden import in deterministic order: the authoring-path rule's direct imports
+first, then every forbidden transitive reachability result.
 
 For the owned-only inventory projection:
 The caller must first reconcile inventory and metadata. Imports outside the first-party policy are
@@ -279,6 +349,7 @@ Complete checking supplies reachable external metadata as well, so external wrap
 in the same traversal. Missing records still expose their endpoint to the policy.
 -/
 def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
+  checkAuthoringPath policy modules ++
   Tools.LeanImportGraph.check (fun source destination =>
     if source == `Umpire.OutcomeClassification && !matchesPrefix `Init destination then
       some .outcomeClassificationIsolation
@@ -318,6 +389,65 @@ def reconcile
       (!policy.isFirstParty name && !sources.any (·.module == name))
   }
   Tools.LeanSourceInventory.reconcile inventoryPolicy sources modules
+
+/-! ### The hand-written inventory
+
+A production module under a hand-written root that imports an authoring owner directly builds
+Umpire records or Testpilot Cases without the commands. `HANDWRITTEN_INVENTORY.md` lists every such
+module with its readers and a destination, so one that is missing from it is a module whose
+coverage has no destination: the lint reports it rather than letting the second authoring path
+grow unlisted. -/
+
+/-- The module names a hand-written inventory ledger lists: the first cell of each table row,
+written as a backticked qualified name. Rows whose first cell is not a name -- headers, separators,
+paths -- contribute nothing. -/
+private def trimSpaces (text : String) : String :=
+  String.ofList ((text.toList.dropWhile Char.isWhitespace).reverse.dropWhile Char.isWhitespace
+    |>.reverse)
+
+private def isNameCharacter (character : Char) : Bool :=
+  character.isAlphanum || character == '.' || character == '_'
+
+def inventoriedModules (ledger : String) : Array Lean.Name := Id.run do
+  let mut names : Array Lean.Name := #[]
+  for line in ledger.splitOn "\n" do
+    let trimmed := trimSpaces line
+    unless trimmed.startsWith "|" do continue
+    let cells := (String.ofList (trimmed.toList.drop 1)).splitOn "|"
+    let some first := cells.head? | continue
+    let cell := trimSpaces first
+    unless cell.startsWith "`" && cell.endsWith "`" && cell.length > 2 do continue
+    let spelling := String.ofList ((cell.toList.drop 1).dropLast)
+    unless spelling.toList.all isNameCharacter && spelling.toList.contains '.' do continue
+    names := names.push ((spelling.splitOn ".").foldl (init := Lean.Name.anonymous) Lean.Name.str)
+  return names
+
+/-- Whether a module is hand-written by the policy's definition: production, under a hand-written
+root, and importing an authoring owner directly. Returns the first such owner. -/
+def Policy.handwrittenImport? (policy : Policy) (record : ModuleRecord) : Option Lean.Name :=
+  match policy.classify? record.name with
+  | some moduleClass =>
+      if policy.handwrittenRoots.any (matchesPrefix · record.name) &&
+          policy.isProductionModule record.name moduleClass then
+        record.imports.find? fun imported => policy.authoringOwners.any (matchesPrefix · imported)
+      else none
+  | none => none
+
+/-- Every hand-written module the inventory does not list, in deterministic order. -/
+def reconcileHandwritten
+    (policy : Policy)
+    (inventoried : Array Lean.Name)
+    (modules : Array ModuleRecord) : Array InventoryIssue :=
+  let issues := modules.filterMap fun record =>
+    match policy.handwrittenImport? record with
+    | some imported =>
+        if inventoried.contains record.name then none
+        else some (InventoryIssue.handwrittenNotInventoried record.name imported)
+    | none => none
+  issues.qsort fun left right =>
+    match left, right with
+    | .handwrittenNotInventoried l _, .handwrittenNotInventoried r _ => l.toString < r.toString
+    | _, _ => false
 
 /-- Compose graph and declaration-linter success without allowing either result to mask the other. -/
 def exitCode (graphPassed declarationLintersPassed : Bool) : UInt32 :=

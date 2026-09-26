@@ -105,24 +105,35 @@ structure DeclaredNames where
   whose states carry no fields, which is what a one-field state and an atom both look like to
   everything that does not ask. -/
   stateFields : List (List (String × String)) := []
+  /-- The machine's setup parameters by name, in declaration order. A parameter is bound by the
+  Profile through the realization, so the Model carries its name and nothing varies over it. -/
+  setupParameters : List String := []
+  /-- Each action member's class, parallel to `actionKeys`: the action's name and, per input field,
+  the class the member assigns it as the Model spells it (`handlerError (retryable := true)`). It
+  is what an `examples:` line is matched against, so a Case knows which claims its path makes. -/
+  actionClasses : List (String × List (String × String)) := []
 
 inductive FiniteAdmissionError where
-  | outgoingTerminalTransition
   | noncanonicalTable
   | finite (error : TableAdmissionError)
 
+/-- Admit a declared table as a Query's Model.
+
+A step out of an end state is admitted. `ends:` names the phases an instance finishes in, and
+`DESIGN.md` writes steps out of them -- a completion that arrives after the operation is over is
+`notFound`, a worker stopping afterwards records its fault -- which a Search takes the way it takes
+every row the table carries. The `model` command refused such a step as an authoring slip; the
+`machine` command's tables are enumerated from step functions that say what happens in every state,
+and a step the operation no longer feels is something they say. -/
 def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
     (table : FiniteTable Setup State Action Outcome Fact)
     (canonicalTable : FiniteTable Setup State Action Outcome Fact)
     (identity : FiniteModelIdentity Setup State Action Outcome Fact)
     (definition : TableModelSpec)
-    (composition : Providers LawStatement)
-    (terminal : State → Bool) : Except FiniteAdmissionError (QueryModel LawStatement) := do
+    (composition : Providers LawStatement) : Except FiniteAdmissionError (QueryModel LawStatement) := do
   let _ ← table.validate
     |>.mapError (FiniteAdmissionError.finite ∘ TableAdmissionError.invalidTable)
-  if table.transitions.any fun row => terminal row.source then
-    throw .outgoingTerminalTransition
   if table ≠ canonicalTable then
     throw .noncanonicalTable
   table.checkModel identity definition composition |>.mapError .finite
@@ -181,6 +192,10 @@ structure DeclaredModel (Setup State Action Outcome Fact : Type)
   /-- Each state's fields as model values, parallel to `states`: the field's definition and the
   spelling this state holds it at. -/
   stateFieldValues : List (List (DefinitionId × String))
+  /-- Each setup parameter's name and definition, in declaration order. -/
+  setupParameters : List (String × DefinitionId)
+  /-- Each action member's name and class assignment, parallel to `actions` and `actionIds`. -/
+  actionClasses : List (String × List (String × String))
   actionIds : List DefinitionId
   outcomeIds : List DefinitionId
   factIds : List DefinitionId
@@ -299,17 +314,25 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (field, origin.ownedId "state-field" ownerKey field)
   let stateFieldValues := names.stateFields.map fun fields =>
     fields.map fun (field, spelling) => (origin.ownedId "state-field" ownerKey field, spelling)
+  let setupParameters := names.setupParameters.map fun parameter =>
+    (parameter, origin.ownedId "setup" ownerKey parameter)
   let actionIds := names.actionKeys.map (origin.ownedId "action" ownerKey)
   let outcomeIds := names.outcomeKeys.map (origin.ownedId "outcome" ownerKey)
   let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
   let relationIds := transitions.map fun row => origin.ownedId "relation" ownerKey row.key
   let table := declaredTable names setupValue states actions outcomes facts initial transitions
+  let fieldValuesOf : State → List ModelValue := fun state =>
+    match states.findIdx? (· == state) with
+    | some index => ((stateFieldValues[index]?).getD []).map fun (definitionId, spelling) =>
+        ModelValue.named definitionId spelling
+    | none => []
   let identity : FiniteModelIdentity Setup State Action Outcome Fact := {
     setupBindings := fun _ => initial.map fun value => { roleId := operationRoleId, state := value }
     stateId := catalogId states stateIds
     actionId := catalogId actions actionIds
     outcomeId := catalogId outcomes outcomeIds
     factId := catalogId facts factIds
+    stateFields := fieldValuesOf
   }
   let lawStatement := TableLawStatement lawId table transitions
   let law : Law := { id := lawId, body := lawId.value }
@@ -318,8 +341,12 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     behaviorVersion := capabilityId.value
     requiredLaws := [law]
   }
+  -- A field is provided beside the states that hold it: a Property admits a value only through a
+  -- meaning of the capability it requires, so a field a Property may name is meant here, the way a
+  -- state is.
   let meanings :=
     table.states.map (fun entry => meaning (identity.stateId entry.value) .state) ++
+    stateFieldIds.map (fun (_, fieldId) => meaning fieldId .state) ++
     table.actions.map (fun entry => meaning (identity.actionId entry.value) .action) ++
     table.outcomes.map (fun entry => meaning (identity.outcomeId entry.value) .outcome) ++
     table.facts.map (fun entry => meaning (identity.factId entry.value) .fact)
@@ -335,9 +362,6 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       origin.metadata capabilityId .capability,
       origin.metadata providerId .provider, origin.metadata lawId .law] ++
     (meanings.map fun provided => origin.metadata provided.definitionId provided.kind) ++
-    -- The fields are declared but not provided: a state field is a way of reading a state the
-    -- provider already means, not a second thing the capability supplies.
-    (stateFieldIds.map fun (_, fieldId) => origin.metadata fieldId .state) ++
     table.transitions.map fun row =>
       origin.metadata (origin.ownedId "relation" ownerKey row.key) .relation
   let modelSpec : TableModelSpec := {
@@ -351,7 +375,8 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     origin, key := ownerKey, roleName := names.roleName, setupValue,
     states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
-    stateIds, stateFieldIds, stateFieldValues, actionIds, outcomeIds, factIds, relationIds,
+    stateIds, stateFieldIds, stateFieldValues, setupParameters,
+    actionClasses := names.actionClasses, actionIds, outcomeIds, factIds, relationIds,
     table, identity, lawStatement, law, lawProof,
     composition := Providers.empty |>.provide provider, modelSpec
   }
@@ -365,25 +390,52 @@ abbrev ModelVocabulary := Umpire.Case.Producer.Vocabulary
 abbrev unknownValue := Umpire.Case.Producer.unknownValue
 
 
-/-- One `require` clause: its label and the member spelling it selects. -/
+/-- One requirement a Property's predicate fixes: its clause label and the member spelling it
+selects. The label is the clause's own key -- `state-succeeded`, `outcome-completed`,
+`fact-settled` -- so two Properties that fix the same value carry the same clause id under their
+own names. -/
 inductive PropertyRequirement where
   | stateClause (label spelling : String)
   | outcomeClause (label spelling : String)
   | factClause (label spelling : String)
+  deriving BEq, Repr, Inhabited
 
-/-- The declared role, the Action every clause is about, and the ordered `require` clauses. -/
+/-- What one group of requirements is about: the Action a same-step claim names, or the state a
+transition claim leaves. Each is the trigger pattern of every clause in the group. -/
+inductive PropertyTrigger where
+  | action (spelling : String)
+  | priorState (spelling : String)
+  deriving BEq, Repr, Inhabited
+
+/-- One trigger and the requirements the predicate fixes at it, in the order the clauses are
+emitted: state, outcome, then facts. -/
+structure PropertyGroup where
+  trigger : PropertyTrigger
+  requirements : List PropertyRequirement
+  deriving BEq, Repr, Inhabited
+
+/-- The declared role and the ordered groups a predicate enumerated to. A same-step claim is one
+group triggered by its Action; a transition claim is one group per prior state it constrains. -/
 structure PropertyNames where
   declaration : String
   roleName : String
-  actionSpelling : String
-  requirements : List PropertyRequirement
+  groups : List PropertyGroup
 
-/-- The setup state and the ordered occurrence labels with the Action each one selects. -/
+/-- One occurrence of a Scenario: its label, the Action it selects, and the instance that takes
+it, numbered from one. A Scenario over one instance names instance one throughout. -/
+structure ScenarioOccurrence where
+  label : String
+  action : String
+  instanceNumber : Nat := 1
+  deriving BEq, Repr, Inhabited
+
+/-- The setup state and the ordered occurrences with the Action each one selects. -/
 structure ScenarioNames where
   declaration : String
   roleName : String
   setupState : String
-  occurrences : List (String × String)
+  occurrences : List ScenarioOccurrence
+  deriving BEq, Repr, Inhabited
 
 def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -407,9 +459,11 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
   id := model.origin.family.id "property" names.declaration
   source := model.origin.source
   requires := [model.roleCapability names.roleName]
-  clauses :=
-    let selected := PropertyPattern.selectedAction (values.namedAction names.actionSpelling)
-    names.requirements.map fun requirement =>
+  clauses := names.groups.flatMap fun group =>
+    let selected := match group.trigger with
+      | .action spelling => PropertyPattern.selectedAction (values.namedAction spelling)
+      | .priorState spelling => PropertyPattern.priorState (values.namedState spelling)
+    group.requirements.map fun requirement =>
     match requirement with
     | .stateClause label spelling =>
         .transitionContract (model.origin.ownedId "property" names.declaration label) selected
@@ -436,8 +490,8 @@ def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
       (model.origin.ownedId "setup" names.declaration names.roleName)
       (model.namedRole names.roleName) (values.namedState names.setupState)])
     (occurrences := names.occurrences.map fun occurrence =>
-      { key := names.declaration ++ "." ++ occurrence.1,
-        action := (values.namedAction occurrence.2).definitionId })
+      { key := names.declaration ++ "." ++ occurrence.label,
+        action := (values.namedAction occurrence.action).definitionId })
 
 
 
@@ -456,6 +510,10 @@ inductive AdmissionError where
   -- so "nothing here satisfies the Property" is distinguishable from "the search was cut short",
   which are different mistakes with different fixes. -/
   | notSelected (outcome : PlanningOutcome) (explored : ExploredCounts) (limits : Limits)
+  /-- Several instances were asked for and the Query cannot be run over them as asked: an
+  instance the Scenario names lies outside the count, or the instances do not perform the same
+  sequence, so there is no one operation sequence for a Case to follow. -/
+  | instances (reason : String)
 
 /-- Which claim a Query makes: select one satisfying witness, or verify the requirement over every
 trace the Behavior admits within the declared limits. -/
@@ -463,6 +521,20 @@ inductive QueryFormKind where
   | selectWitness
   | verifyClaim
   deriving BEq, DecidableEq, Repr
+
+/-- What a Producer reads of a checked Model: one instance's checked Model, Property, Scenario and
+selected trace, plus the actions the Program performs when several instances interleave. For a
+Query over one instance these are the Query's own; for one over several they are the projection
+onto one instance, because a Contract follows each operation through the machine on its own. -/
+structure Realizable (LawStatement : Law → Prop) where
+  target : QueryModel LawStatement
+  vocabulary : ModelVocabulary
+  property : CheckedProperty
+  behavior : CheckedScenario
+  witness : Option Scenario.Trace
+  /-- Every instance's actions in path order, each with the instance that performs it, where
+  several instances interleave; `none` where the operation's own sequence is the Program's. -/
+  program : Option (List (DefinitionId × Nat)) := none
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : DeclaredModel Setup State Action Outcome Fact) where
@@ -475,8 +547,22 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
   over every admitted trace and selects none. -/
   witness : Option Scenario.Trace
+  /-- How many instances of the entity the Query ran over. -/
+  instances : Nat := 1
+  /-- The one-instance view a Producer lowers. -/
+  realizable : Realizable model.lawStatement
 
-def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+/-- A checked Model together with the admission it came from. `CheckedModel` carries what a
+Producer reads; the `AdmittedQuery` is what a second search of the same Query needs -- Promotion
+re-answers through it -- and a Query re-admitted later is a different admission. The index is the
+checked target, so the two cannot be paired across Models. -/
+structure AdmittedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) where
+  checked : CheckedModel model
+  admitted : AdmittedQuery checked.target
+
+/-- `check`, keeping the admission beside the checked Model. -/
+def checkAdmitted [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
     (model : DeclaredModel Setup State Action Outcome Fact)
@@ -488,9 +574,9 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : TableModelSpec := model.modelSpec) :
-    Except AdmissionError (CheckedModel model) := do
+    Except AdmissionError (AdmittedModel model) := do
   let target ← checkFiniteTarget authoredTable model.table model.identity authoredDefinition
-    model.composition (fun value => model.terminal.contains value) |>.mapError .invalidTarget
+    model.composition |>.mapError .invalidTarget
   let vocabulary ← modelVocabulary model authoredTable |>.mapError .invalidVocabulary
   let admitted ← Search.admit target (propertyAuthor vocabulary)
       (some (behaviorAuthor vocabulary)) {
@@ -511,11 +597,88 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let query := admitted.query
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>
-      pure { target, vocabulary, property, behavior, query, run, witness := some witness }
+      let checked : CheckedModel model :=
+        { target, vocabulary, property, behavior, query, run, witness := some witness
+          realizable := { target, vocabulary, property, behavior, witness := some witness } }
+      pure { checked, admitted }
   | .verifyClaim, .verified =>
-      pure { target, vocabulary, property, behavior, query, run, witness := none }
+      let checked : CheckedModel model :=
+        { target, vocabulary, property, behavior, query, run, witness := none
+          realizable := { target, vocabulary, property, behavior, witness := none } }
+      pure { checked, admitted }
   | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
 
+/-- Admit and search one Query over a declared Model: the Model's own table and vocabulary first,
+then the Property and Scenario the authors write over that vocabulary, then the search under the
+limits. What a Producer lowers is the result. -/
+def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact)
+    (queryKey : String)
+    (limits : Limits)
+    (propertyAuthor : ModelVocabulary → Property)
+    (behaviorAuthor : ModelVocabulary → Scenario)
+    (knownGaps : List KnownGap := [])
+    (form : QueryFormKind := .selectWitness)
+    (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
+    (authoredDefinition : TableModelSpec := model.modelSpec) :
+    Except AdmissionError (CheckedModel model) :=
+  (checkAdmitted model queryKey limits propertyAuthor behaviorAuthor knownGaps form authoredTable
+    authoredDefinition).map (·.checked)
+
+
+/-- What one `query` block admits, as values: its key, its limits, the Property and Scenario
+authors, its Known Gaps and its form. `admit` over it is the block's own admission, so a caller
+holding the source re-admits the Query with nothing re-authored -- a replay does so with the
+Scenario edited, and every other field as the block wrote it. -/
+structure QuerySource [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) where
+  key : String
+  limits : Limits
+  property : ModelVocabulary → Property
+  behavior : ModelVocabulary → Scenario
+  knownGaps : List KnownGap := []
+  form : QueryFormKind := .selectWitness
+
+/-- The Query's admission, as `check` evaluates it, with the admission kept. -/
+def QuerySource.admit [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Fact]
+    {model : DeclaredModel Setup State Action Outcome Fact} (source : QuerySource model) :
+    Except AdmissionError (AdmittedModel model) :=
+  checkAdmitted model source.key source.limits source.property source.behavior source.knownGaps
+    source.form
+
+/-! ### What one action's rows say
+
+A relation's operands are read under the members of the step the claim is about: an observation
+of the step under the fact the event confirms, one of an earlier step under the state the step
+starts from, a result under the step's outcome. The `property` command reads those members off
+the machine's own rows while the file compiles. -/
+
+/-- The keys of the facts the rows of `actionKey` record, in table order, without repeats. -/
+def DeclaredModel.recordedFacts [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).flatMap
+    (fun row => row.results.flatMap fun step => step.facts.filterMap fun fact =>
+      (model.table.facts.find? (·.value == fact)).map (·.key)) |>.eraseDups
+
+/-- The keys of the states the rows of `actionKey` start from, in table order, without repeats. -/
+def DeclaredModel.sourceStates [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).filterMap
+    (fun row => (model.table.states.find? (·.value == row.source)).map (·.key)) |>.eraseDups
+
+/-- The keys of the outcomes the rows of `actionKey` produce, in table order, without repeats. -/
+def DeclaredModel.rowOutcomes [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (model : DeclaredModel Setup State Action Outcome Fact) (actionKey : String) : List String :=
+  (model.table.transitions.filter (fun row =>
+      (model.table.actions.find? (·.value == row.action)).map (·.key) == some actionKey)).flatMap
+    (fun row => row.results.filterMap fun step =>
+      (model.table.outcomes.find? (·.value == step.outcome)).map (·.key)) |>.eraseDups
 
 /-! ### Producing a Case
 
@@ -530,11 +693,14 @@ def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     {«model» : DeclaredModel Setup State Action Outcome Fact}
     (checked : CheckedModel «model») :
     Umpire.Case.Producer.Input «model».lawStatement := {
-  target := checked.target
-  vocabulary := checked.vocabulary
-  «property» := checked.property
-  «scenario» := checked.behavior
-  «witness» := checked.witness
+  target := checked.realizable.target
+  vocabulary := checked.realizable.vocabulary
+  «property» := checked.realizable.property
+  «scenario» := checked.realizable.behavior
+  «witness» := checked.realizable.witness
+  program := checked.realizable.program
+  instances := checked.instances
+  setupParameters := «model».setupParameters
   operationRole := «model».operationRoleId
   queryId := checked.query.id
   querySource := checked.query.source
@@ -554,10 +720,21 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
-    (required : List DefinitionId := []) :
+    (required : List DefinitionId := [])
+    (claims : List Umpire.Case.Producer.ClassClaim := [])
+    (program : Option (List (DefinitionId × Nat)) := none)
+    (evidenceCatalog : List (String × String) := [])
+    (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  let input := producerInput checked
+  -- A realization may state the path its Program performs where the Model's own actions realize
+  -- nothing: the success slice's actions are waits, and its side effects are the realization's
+  -- classes until the protocol machine's actions are the path.
+  let input := { producerInput checked with
+    claims
+    program := program <|> checked.realizable.program
+    relations }
   Umpire.Case.Producer.produce input identity realization (evidence input.vocabulary) required
+    evidenceCatalog
 
 /-- The same, starting from the Query's own admission result. A Model the Query did not admit
 rejects as `checked-model` against the Case's own identity, because there is nothing else to name
@@ -568,13 +745,36 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
     (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
-    (required : List DefinitionId := []) :
+    (required : List DefinitionId := [])
+    (claims : List Umpire.Case.Producer.ClassClaim := [])
+    (program : Option (List (DefinitionId × Nat)) := none)
+    (evidenceCatalog : List (String × String) := [])
+    (relations : List Umpire.Case.Producer.FieldRelation := []) :
     Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← admitted.mapError fun _ => {
     sourceDefinitionId := identity.caseId
     source := «model».origin.source
     construct := "checked-model" }
-  produce checked identity realization evidence required
+  produce checked identity realization evidence required claims program evidenceCatalog relations
+
+/-- One relation admitted against a Model, as a test evaluates it with field evidence: the
+declaration the relation denotes, checked against the Query's admitted Model under the references
+the vocabulary resolves its members to. -/
+def checkedRelation [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
+    (admitted : Except AdmissionError (CheckedModel «model»))
+    (relation : Umpire.Case.Producer.FieldRelation) : Except String CheckedFieldProperty := do
+  let checked ← admitted.mapError fun _ => "checked-model"
+  let input := producerInput checked
+  let action := input.vocabulary.namedAction relation.action
+  let reference := fun (operand : Umpire.Case.Producer.FieldOperand) =>
+    match operand.root with
+    | .request => action.definitionId
+    | .event => (input.vocabulary.namedFact operand.member).definitionId
+    | .outcome => (input.vocabulary.namedOutcome operand.member).definitionId
+    | .priorState | .resultingState => (input.vocabulary.namedState operand.member).definitionId
+  relation.check (.ofTarget input.target) input.property.requires (reference relation.left)
+    ((relation.right.map reference).getD (reference relation.left))
 
 
 /-! ### What went wrong, where the author wrote it
@@ -592,9 +792,10 @@ def Diagnostic.anchorLimits : String := "limits"
 def Diagnostic.anchorQuery : String := "query"
 
 private def finiteAdmissionDescription : FiniteAdmissionError → String
-  | .outgoingTerminalTransition => "an end state has an outgoing Step"
   | .noncanonicalTable => "the declared Steps are not in canonical order"
-  | .finite _ => "the Step table was not admitted"
+  | .finite (.invalidTable error) => s!"the Step table was not admitted: {reprStr error}"
+  | .finite (.invalidTarget diagnostic) =>
+      s!"the Step table was not admitted: {reprStr diagnostic.error} at {reprStr diagnostic.path}"
 
 private def traceActions (trace : Scenario.Trace) : String :=
   ", ".intercalate (trace.trace.steps.map fun step => step.selectedAction.value)
@@ -658,5 +859,6 @@ def diagnose [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       some (Diagnostic.anchorModel, s!"the Model admits no finite search: {reprStr error}")
   | .error (.notSelected outcome explored limits) =>
       some (Diagnostic.anchorForm, notSelectedMessage outcome explored limits)
+  | .error (.instances reason) => some (Diagnostic.anchorScenario, reason)
 
 end Umpire.Command

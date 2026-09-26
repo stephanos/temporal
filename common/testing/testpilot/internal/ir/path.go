@@ -37,6 +37,7 @@ type Path struct {
 }
 
 func (p *Path) Type() Type        { return p.typ }
+func (p *Path) Text() string      { return p.text }
 func (p *Path) MayBeAbsent() bool { return p.absent }
 func (p *Path) Fanout() bool      { return p.fanout }
 func (p *Path) Steps() []PathStep {

@@ -1,5 +1,7 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/correlated.proto";
+import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/instruction.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -14,6 +16,55 @@ message Program {
   repeated Observation observations = 4;
   repeated Entrypoint entrypoints = 5;
   Cleanup cleanup = 6;
+  // The kinds of correlated evidence the Program lifts, each declared once.
+  repeated EvidenceDeclaration evidence = 7;
+}
+
+// EvidenceDeclaration declares one kind of correlated evidence once: the recorded data it is read
+// from, the Run coordinates that scope every evidence identity of the kind, the path of the
+// operation key that groups it, and the fields it exposes. A Program lift names the declaration and
+// a correlated Contract's projection rule names its kind, so the kind, the source, the key path and
+// the fields are written once and cannot drift apart.
+message EvidenceDeclaration {
+  // The evidence kind; the id a lift and a projection rule name.
+  string evidence_id = 1;
+  // The evidence source identity whose dense ordinals this kind's evidence counts in.
+  string evidence_source = 2;
+  oneof source {
+    HistoryEventSource history_event = 3;
+    RunEventSource run_event = 4;
+    ReadSource read = 5;
+  }
+  // The scope field values of every evidence identity of this kind, each a text literal.
+  repeated NamedValue scope = 6;
+  // The field path of the operation key, in the grammar PathExpression.path documents, read from
+  // the recorded value.
+  string operation = 7;
+  repeated EvidenceFieldDeclaration fields = 8;
+}
+
+// HistoryEventSource is one recorded history event kind: the attributes arm of
+// temporal.api.history.v1.HistoryEvent that a history read lifts, guarded by the arm's presence.
+message HistoryEventSource { string attributes_field = 1; }
+
+// RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime
+// lifts each such event as it records it, reading the operation key and fields from the payload.
+message RunEventSource { RunEventKind kind = 1; }
+
+// ReadSource is a value read back through a unary RPC: one element of the repeated field at path
+// in the response of method, polled by a ReadEvidence instruction.
+message ReadSource {
+  // The full method name, "/package.Service/Method".
+  string method = 1;
+  // A field path in the grammar PathExpression.path documents, ending in a repeated field.
+  string path = 2;
+}
+
+// EvidenceFieldDeclaration is one field the evidence exposes, read from the recorded value at path.
+message EvidenceFieldDeclaration {
+  string field_id = 1;
+  // A field path in the grammar PathExpression.path documents.
+  string path = 2;
 }
 
 // Role is a symbolic participant that instructions and activations address. Its bindings resolve to

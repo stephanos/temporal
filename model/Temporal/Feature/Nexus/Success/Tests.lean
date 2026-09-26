@@ -21,11 +21,32 @@ enum Fact
 
 private def admitted := completion.toOption
 
+/-! The success lifecycle produces no checked-in Case since fn-85 .11; what the Producer does with a
+checked Model is pinned here through the caller realization, an identity of the slice's own and the
+two evidence lines its waits map to. Its actions bind to no instruction, so the Program is the
+realization's scaffolding alone, which is what these pins are about anyway: the Contract, the
+provenance and the rejections. -/
+
+private def successIdentity : Umpire.Case.Producer.Identity :=
+  { caseId := Temporal.Case.caseIdRoot ++ ".nexusSuccessTests.completion"
+    fixture := "nexusSuccessTests-completion" }
+
+private def successRealization : Umpire.Case.Producer.Realization :=
+  Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete"
+
+private def successEvidence (vocabulary : Umpire.Case.Producer.Vocabulary) :
+    List Umpire.Case.Producer.EvidenceMapping := [
+  ⟨vocabulary.namedAction "awaitStart", "nexusOperationStarted"⟩,
+  ⟨vocabulary.namedAction "awaitSuccess", "nexusOperationCompleted"⟩]
+
+private def successCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
+  Umpire.Command.produceCase completion successIdentity successRealization successEvidence
+
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
-#guard match Temporal.Feature.Nexus.Success.asyncNexusSuccess, admitted with
+#guard match successCase, admitted with
   | .ok output, some checked =>
-      output.case_id == "temporal.case.async-nexus" &&
+      output.case_id == "temporal.case.nexusSuccessTests.completion" &&
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
@@ -44,8 +65,8 @@ private def produceFromChecked
     (checked : Umpire.Command.CheckedModel «model»)
     (required : List DefinitionId := []) :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Umpire.Command.produce checked asyncNexusSuccess.identity asyncNexusSuccess.realization
-    asyncNexusSuccess.evidence required
+  Umpire.Command.produce checked successIdentity successRealization
+    successEvidence required
 
 /-- Produce a Case from the checked model with one part replaced. Every part is carried into the
 Case; none is compared against an expected one. -/
@@ -59,10 +80,15 @@ private def produceWith
     source := lifecycle.origin.source
     construct := "checked-completion"
   }
+  -- The Producer reads the realizable view, which for one instance is the Query's own.
   produceFromChecked { checked with
     «property» := property?.getD checked.property
     «behavior» := behavior?.getD checked.behavior
-    «witness» := witness? }
+    «witness» := witness?
+    realizable := { checked.realizable with
+      «property» := property?.getD checked.property
+      «behavior» := behavior?.getD checked.behavior
+      «witness» := witness? } }
 
 /-- One authored Property replaced by a single clause of the caller's choosing. -/
 private def propertyWithClauses (clauses : List PropertyClause) : Option CheckedProperty := do
@@ -113,7 +139,7 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 
 -- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
 -- are exactly the Query's, and the rejections below happen with those gaps in hand.
-#guard match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
+#guard match admitted, successCase with
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
@@ -164,7 +190,7 @@ private def caseShape
 private def differsFromCompletionCase
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
-    caseShape produced != caseShape Temporal.Feature.Nexus.Success.asyncNexusSuccess
+    caseShape produced != caseShape successCase
 
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
@@ -189,7 +215,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
   | .ok _ => false
 
 private def checkedBindings : Bool :=
-  match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
+  match admitted, successCase with
   | some checked, .ok output =>
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
@@ -264,7 +290,11 @@ theorem undeclaredResultIsRejected :
     (runCheck (authoredTable := invalidResultTable)).toOption.isNone := by
   native_decide
 
-theorem outgoingTerminalTransitionIsRejected :
+/- A step out of an end state is admitted since fn-85 `.6` -- a machine's table says what happens
+in every state, and `DESIGN.md` writes completions that arrive after the operation is over -- so
+this table is refused for the reason that remains: the row is one the declared machine does not
+have, and a Query runs on the machine as declared. -/
+theorem outgoingTerminalTransitionIsNoncanonical :
     (runCheck (authoredTable := outgoingTerminalTable)).toOption.isNone := by
   native_decide
 
@@ -287,11 +317,9 @@ theorem unsatisfiedSuccessPropertyHasNoWitness :
   native_decide
 
 property renamedResult
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
 
 /-- The success slice records no Fact, so the Models below that exercise the declared-Fact path
 return into this domain rather than into the slice's empty one. -/
@@ -318,12 +346,10 @@ machine renamedLifecycle
     awaitSuccess: renamedSuccessStep
 
 property renamedModelResult
-  model: renamedLifecycle
+  machine: renamedLifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
-    fact: succeeded
+  holds: fun step =>
+    step.state.state == .succeeded && step.outcome == .completed && step.facts.contains .succeeded
 
 scenario renamedCompletion
   model: renamedLifecycle
@@ -375,7 +401,9 @@ private def renamedBehaviorResult :
   let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
     (.ofTarget checked.target)).mapError fun _ => Compiler.Error.mk
       checked.behavior.id.value lifecycle.origin.source "checked-behavior"
-  produceFromChecked { checked with «behavior» := renamedBehavior }
+  produceFromChecked { checked with
+    «behavior» := renamedBehavior
+    realizable := { checked.realizable with «behavior» := renamedBehavior } }
 
 /- A renamed model carries its own Target, Query and Property identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
@@ -573,12 +601,10 @@ machine probeLifecycle
     awaitSuccess: renamedSuccessStep
 
 property probeStart
-  model: probeLifecycle
+  machine: probeLifecycle
   when: awaitStart
-  require:
-    state: started
-    outcome: acknowledged
-    fact: started
+  holds: fun step =>
+    step.state.state == .started && step.outcome == .acknowledged && step.facts.contains .started
 
 scenario probeRun
   model: probeLifecycle
@@ -617,13 +643,14 @@ rejects the declaration instead of silently checking a different one. -/
 private def misspelledProperty (values : Umpire.Command.ModelVocabulary) : Property :=
   Umpire.Command.authoredProperty lifecycle values {
     declaration := "successfulResult", roleName := "operation"
-    actionSpelling := "awaitSuccess"
-    requirements := [.stateClause "successState" "suceeded"] }
+    groups := [{ trigger := .action "awaitSuccess"
+                 requirements := [.stateClause "successState" "suceeded"] }] }
 
 private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario :=
   Umpire.Command.authoredScenario lifecycle values {
     declaration := "successfulCompletion", roleName := "worker", setupState := "scheduled"
-    occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
+    occurrences := [{ label := "start", action := "awaitStart" },
+      { label := "completion", action := "awaitSuccess" }] }
 
 #guard match runCheck (propertyAuthor := misspelledProperty) with
   | .error (.admission (.property _)) => true
@@ -775,23 +802,25 @@ nothing to name. -/
 
 /- A step function that returned a Fact the slice's empty domain has no member for would not
 elaborate: `Umpire.Step Lifecycle Outcome Fact` over the success slice's `Fact` has nothing to put in
-`facts`, so there is no spelling for the mistake the `model` command's rows could make. The Property
-clause still has somewhere to be wrong, and that is what is pinned. -/
-
-/--
-error: this Model declares no facts, so 'succeeded' names nothing
--/
-#guard_msgs (error) in
-property factlessClause
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    fact: succeeded
+`facts`, so there is no spelling for the mistake the `model` command's rows could make. Nor has a
+Property: its predicate is Lean over the same `Fact`, so a fact the domain lacks is an unknown
+constructor at the spelling, before the command sees it. -/
 
 /- The success Model's Property is two clauses, and its vocabulary declares no Fact. -/
 #guard (do
   let checked ← admitted
   pure (checked.property.clauses.length == 2 && checked.vocabulary.facts.isEmpty)) == some true
+
+/- The predicate enumerates to exactly the clauses the keyed `require:` block wrote, so the Property
+carried the fingerprint it had when the form changed (pinned at fcbc068). The values below are the
+ones after fn-85 `.4` gave a machine's state fields a meaning, which every Property over a machine
+reads through, and which moved every one of these by the same cause. -/
+#guard (admitted.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:0a64e621e1bb03b72e4498534e156cfd6790e4af2c196db62b3c00a8f8006357"
+#guard (renamedQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:f93aeeeb2e0019180a7786952b3fb8d8ea3673f9d80b62d8aca343818c9f881b"
+#guard (probeQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:57387f1e9d5c1b6ac655bc335c3c4df725b5d6604e97f7e974925b76cb0a0bb6"
 
 /-! ### `enum` declares a domain
 
@@ -970,45 +999,236 @@ run_cmd do
 
 /-! ### Every name resolves, and every mistake lands where it was written -/
 
+/- A misspelled member of a predicate is Lean's own error, at the spelling: the predicate is
+ordinary Lean over the machine's own domains, so there is no second vocabulary to resolve it in. -/
 /--
-error: unknown Model state 'suceeded'; declared: scheduled, started, succeeded
+error: Unknown constant `Temporal.Feature.Nexus.Success.State.suceeded`
+
+Note: Inferred this name from the expected resulting type of `.suceeded`:
+  State
 -/
 #guard_msgs (error) in
 property misspelledState
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: suceeded
+  holds: fun step => step.state.state == .suceeded
 
 /--
-error: unknown Model outcome 'complete'; declared: acknowledged, completed
+error: Unknown constant `Temporal.Feature.Nexus.Success.Outcome.complete`
+
+Note: Inferred this name from the expected resulting type of `.complete`:
+  Outcome
 -/
 #guard_msgs (error) in
 property misspelledOutcome
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    outcome: complete
+  holds: fun step => step.outcome == .complete
 
 /--
 error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 property misspelledWhen
-  model: lifecycle
+  machine: lifecycle
   when: awaitFinish
-  require:
-    state: succeeded
+  holds: fun step => step.state.state == .succeeded
 
 /--
 error: 'Temporal.Feature.Nexus.Success.successfulResult' is not a Model declared by a `machine` command
 -/
 #guard_msgs (error) in
 property notAModel
-  model: successfulResult
+  machine: successfulResult
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded
+
+/-! ### A predicate is enumerated over the machine's table
+
+The command reads the predicate off the table, so what the Property claims is what the machine does.
+A predicate that holds on no step the Action produces, one that fixes nothing, one that is not a
+conjunction of one state, one outcome and facts, one over another machine's steps, one that is not
+decidable, and one of the other claim's shape each reject at the predicate. -/
+
+/- `awaitSuccess` never reaches `scheduled`, so a claim that it does is about the wrong machine
+and is rejected where it is written rather than found unsatisfiable by a later Query. -/
+/--
+error: the predicate holds on no step of this machine at `awaitSuccess`; a Property claims something the machine does, so it fixes a state, an outcome or a fact some step reaches
+-/
+#guard_msgs (error) in
+property unreachableResult
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .scheduled
+
+/--
+error: the predicate holds on every step of this machine at `awaitSuccess` and fixes no state, outcome or fact, so it claims nothing
+-/
+#guard_msgs (error) in
+property claimsNothing
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun _ => true
+
+/-- A state structure that is not the success Model's, over the same phases. -/
+structure OtherLifecycle where
+  state : State
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
+/--
+error: the predicate reads steps of 'Temporal.Feature.Nexus.Success.Tests.OtherLifecycle', which is not this machine's state; a `holds:` predicate is over `Step Temporal.Feature.Nexus.Success.Lifecycle _ _`
+-/
+#guard_msgs (error) in
+property otherMachine
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (step : Umpire.Step OtherLifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    step.state.state == .succeeded
+
+/--
+error: the predicate is not decidable: `holds:` is a `Bool`-valued function over the machine's steps, so a claim is written with `==`, `&&`, `||` and `!`, not as a proposition
+-/
+#guard_msgs (error) in
+property undecidable
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (step : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    ∃ n : Nat, n = step.facts.length
+
+/--
+error: a transition claim reads the step before, so it names no `when:` Action; a same-step claim under `when:` is `Step → Bool`
+-/
+#guard_msgs (error) in
+property twoStepsUnderWhen
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (before after : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    before.state.state != after.state.state
+
+/--
+error: a same-step claim names the Action it is about under `when:`; a claim over every step is a transition claim, `Step → Step → Bool`
+-/
+#guard_msgs (error) in
+property oneStepWithoutWhen
+  machine: lifecycle
+  holds: fun (step : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    step.state.state == .succeeded
+
+/- The keyed form is rejected at its key, naming its replacement. -/
+/--
+error: the keyed `require:` form is retired; a `property` names a `machine:` and a `holds:` predicate over its steps, `Step → Bool` for a same-step claim under `when:` or `Step → Step → Bool` for a transition claim
+-/
+#guard_msgs (error) in
+property keyedForm
+  machine: lifecycle
   when: awaitSuccess
   require:
     state: succeeded
+
+/--
+error: `model:` is retired on `property`; the key is `machine:`
+-/
+#guard_msgs (error) in
+property modelKey
+  model: lifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded
+
+/-! ### A transition claim
+
+`Step → Step → Bool` reads the step before and the step after, and enumerates into one group per
+prior state it constrains: a `priorState` trigger and the values it fixes there. A prior state at
+which it accepts every step constrains nothing and contributes no clause. -/
+
+/- Once started, the success slice can only succeed: from `started`, every step ends in
+`succeeded` with the `completed` outcome. From `scheduled` the claim says nothing. -/
+property startedThenSucceeds
+  machine: lifecycle
+  holds: fun before after =>
+    before.state.state != .started || after.state.state == .succeeded
+
+#guard (match Umpire.Command.modelVocabulary lifecycle lifecycle.table with
+  | .ok values => (startedThenSucceeds values).clauses.map (·.id.value)
+  | .error _ => []) ==
+  ["temporal.nexus.success.property.startedThenSucceeds.from-started-state-succeeded"]
+
+/-! ### What the clause language cannot carry
+
+A machine whose `awaitStart` produces different steps from different states, so a predicate over
+them can be a disjunction across fields: those the command refuses with the step the clauses
+cannot tell apart. -/
+
+/-- From `started` the wait may find the operation done, recording that, or still running. -/
+private def forkedStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  match current.state with
+  | .scheduled => records .started .acknowledged .started
+  | .started =>
+      [{ outcome := .completed, state := { state := .started }, facts := [] }] ++
+        records .succeeded .completed .succeeded
+  | .succeeded => []
+
+machine forkedLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  evidence:
+    started: nexusOperationStarted
+    succeeded: nexusOperationCompleted
+  steps:
+    awaitStart: forkedStartStep
+    awaitSuccess: renamedSuccessStep
+
+/--
+error: the predicate is not a conjunction of one state, one outcome and facts at `awaitStart`: the clauses it fixes cannot tell the step to started with outcome completed and facts [] apart from the steps it accepts; a Property is one such conjunction, so split it or restate it
+-/
+#guard_msgs (error) in
+property disjunction
+  machine: forkedLifecycle
+  when: awaitStart
+  holds: fun step => step.outcome == .acknowledged || step.facts.contains .succeeded
+
+/- A transition claim is about the state the step before reached. One that reads the step before's
+outcome accepts a step after some of the arrivals at `started` and not after others, and closing it
+over the arrivals would strengthen what the author wrote into a claim they did not make. -/
+/--
+error: the predicate reads the step before beyond its state at prior state `started`: it accepts the step to started with outcome completed and facts [] after some of the steps that arrive there and not after others; a transition claim is about the state the step before reached, so read `before.state` or split the claim
+-/
+#guard_msgs (error) in
+property readsTheOutcomeBefore
+  machine: forkedLifecycle
+  holds: fun before after =>
+    before.state.state != .started || before.outcome != .completed ||
+      after.state.state == .succeeded
+
+/- A predicate that only reads a fact fixes only that fact: the states its accepted steps happen to
+share are not something it rejects when changed, so no state clause is read off the table. -/
+property recordsSuccess
+  machine: forkedLifecycle
+  when: awaitStart
+  holds: fun step => step.facts.contains .succeeded
+
+#guard (match Umpire.Command.modelVocabulary forkedLifecycle forkedLifecycle.table with
+  | .ok values => (recordsSuccess values).clauses.map (·.id.value)
+  | .error _ => []) ==
+  ["temporal.nexus.success.tests.property.recordsSuccess.fact-succeeded"]
+
+scenario forkedStart
+  model: forkedLifecycle
+  starts: scheduled
+  actions: [awaitStart]
+
+/- A Property no admitted trace satisfies says so, and says nothing about limits: the search
+completed, and raising a bound would not help. The claim is one the machine does make -- from
+`started`, `awaitStart` records `succeeded` -- and the Scenario never takes that step. -/
+/--
+error: no trace the Scenario admits satisfies the Property; the search explored 2 traces within the declared limits and no bound stopped it
+-/
+#guard_msgs (error) in
+query forkedCompletion
+  find: recordsSuccess
+  in: forkedStart
+  limits: shortTrace
 
 /--
 error: unknown Model start state 'started'; declared: scheduled
@@ -1028,34 +1248,6 @@ scenario unknownScenarioAction
   starts: scheduled
   actions: [awaitStart, awaitFinish]
 
-/- A Property no admitted trace satisfies says so, and says nothing about limits: the search
-completed, and raising a bound would not help. -/
-property unreachableResult
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    state: scheduled
-
-/--
-error: no trace the Scenario admits satisfies the Property; the search explored 3 traces within the declared limits and no bound stopped it
--/
-#guard_msgs (error) in
-query unreachableCompletion
-  find: unreachableResult
-  in: successfulCompletion
-  limits: shortTrace
-
-/- A misspelled Fact is resolved against the Model's own Fact domain. -/
-/--
-error: unknown Model fact 'succeeeded'; declared: started, succeeded
--/
-#guard_msgs (error) in
-property misspelledFact
-  model: renamedLifecycle
-  when: awaitSuccess
-  require:
-    fact: succeeeded
-
 /- A bound that stops the search says a bound stopped it. -/
 limits tooFewSteps
   steps: 1
@@ -1073,8 +1265,8 @@ query boundedCompletion
 
 /-! ### The respelled surface rejects in place
 
-A missing key, a key that belongs to another declaration, a Query whose Property and Scenario name
-different Models, and a repeated requirement each land on what the author wrote. -/
+A missing key, a key that belongs to another declaration, and a Query whose Property and Scenario
+name different Models each land on what the author wrote. -/
 
 /- A missing key and a key on the wrong line are parse errors, located on the offending token:
 
@@ -1092,17 +1284,6 @@ different Models, and a repeated requirement each land on what the author wrote.
    read off the elaborator. -/
 
 /--
-error: duplicate requirement 'state-succeeded': this Property already requires it
--/
-#guard_msgs (error) in
-property duplicateRequirement
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    state: succeeded
-    state: succeeded
-
-/--
 error: the Property runs on Model 'Temporal.Feature.Nexus.Success.Tests.probeLifecycle' and the Scenario on 'Temporal.Feature.Nexus.Success.lifecycle'; a Query asks one question of one Model
 -/
 #guard_msgs (error) in
@@ -1114,120 +1295,595 @@ query mismatchedModels
 /-! The pre-respell spellings are gone rather than retired: every call site is in this repository
 and migrated in the same commit, so nothing outside it could be holding one. -/
 
-/-! ### The `case` block
+/-! ### Several instances of one entity
 
-`fixture` is the only identity slot the grammar has, so the derivation is what moves the Case ID and
-the Contract ID; everything else the Case carries is unchanged by it. -/
+A Scenario over `instances:` runs the Search over the product of that many copies of the machine,
+so their steps interleave and every interleaving is a path. The Property is read over the product
+as the same claim per instance, on the acting instance's own slot. A Producer reads one instance
+back: its sequence, and every instance's actions as the Program's path. -/
 
-#guard asyncNexusSuccess.identity.caseId == "temporal.case.async-nexus"
-#guard asyncNexusSuccess.identity.programId == "temporal.case.async-nexus.program"
-#guard asyncNexusSuccess.identity.contractId == "temporal.case.async-nexus.contract"
-#guard asyncNexusSuccess.identity.runScope == "async-nexus"
+scenario twoOperations
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 2, awaitSuccess 1, awaitSuccess 2]
 
-/-- The identity the fixture carried before the derivation: the same Model under it must produce a
-byte-identical Program and Contract, so the receipt's diff is complete. -/
-private def statedIdentity : Umpire.Case.Producer.Identity := {
-  caseId := "temporal.case.async-nexus-success"
-  fixture := "async-nexus"
-  programId := "temporal.case.async-nexus.program" }
+limits twoOperationTraces
+  steps: 4
+  actions: 4
+  search: 64
 
-private def statedCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Umpire.Command.produceCase completion statedIdentity asyncNexusSuccess.realization
-    asyncNexusSuccess.evidence
+query twoCompletions
+  find: successfulResult
+  in: twoOperations
+  limits: twoOperationTraces
 
-/-- Every identity the derivation moved, masked out of the canonical bytes. The longer spelling is
-replaced first, because it contains the shorter one. -/
-private def maskIdentities (encoded : String) : String :=
-  (encoded.replace "temporal.case.async-nexus-success" "MASKED").replace
-    "temporal.case.async-nexus" "MASKED"
+/- A transition claim is read on one instance: it is triggered by the state one slot was in, and
+no clause says which instance then acts, so another instance's step would leave the slot where it
+was and violate a claim that its next state differs. A Query over several instances names a
+same-step Property. -/
+/--
+error: a transition claim is read on one instance: it is triggered by the state one instance was in, and another instance's step would leave that instance where it was; a Scenario over several instances names a same-step Property under `when:`
+-/
+#guard_msgs in
+query twoTransitions
+  find: startedThenSucceeds
+  in: twoOperations
+  limits: twoOperationTraces
 
-private def maskedBytes
-    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : IO String := do
-  match produced with
-  | .ok output =>
-      match ← Testpilot.ProtoJSON.canonical output with
-      | .ok encoded => pure (maskIdentities encoded)
-      | .error failure => throw (IO.userError (toString failure))
-  | .error failure => throw (IO.userError (reprStr failure))
+/- The Search ran over the product: each step is one instance's action and the state is both
+instances' states, slot by slot. -/
+#guard (do
+  let checked ← twoCompletions.toOption
+  let selected ← checked.witness
+  pure (checked.instances == 2 &&
+    selected.trace.steps.map (·.selectedAction.value) ==
+      ["1_awaitStart", "2_awaitStart", "1_awaitSuccess", "2_awaitSuccess"] &&
+    selected.trace.steps.map (·.state.value) ==
+      ["started_scheduled", "started_started", "succeeded_started", "succeeded_succeeded"] &&
+    -- The Property held on the product: two clauses per instance.
+    checked.property.clauses.length == 4)) == some true
 
-/- Masked comparison on the canonical bytes: with the Case ID and the Contract ID masked out, the
-derived Case and the same Model under the stated identity are byte-identical, so the receipt's diff
-of those two fields is the whole diff. -/
-/-- info: true -/
-#guard_msgs (info) in
-#eval do
-  let derived ← maskedBytes asyncNexusSuccess
-  let stated ← maskedBytes statedCase
-  pure (derived == stated)
+/- The other interleaving is another path, and the Scenario picks which. -/
+scenario secondFirst
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 2, awaitSuccess 2, awaitStart 1, awaitSuccess 1]
 
-#guard match asyncNexusSuccess, statedCase with
-  | .ok derived, .ok stated =>
-      derived.case_id == "temporal.case.async-nexus" &&
-        stated.case_id == "temporal.case.async-nexus-success"
-  | _, _ => false
+query secondCompletesFirst
+  find: successfulResult
+  in: secondFirst
+  limits: twoOperationTraces
 
-/-! ### Located diagnostics
+#guard (do
+  let checked ← secondCompletesFirst.toOption
+  let selected ← checked.witness
+  pure (selected.trace.steps.map (·.state.value) ==
+    ["scheduled_started", "scheduled_succeeded", "started_succeeded", "succeeded_succeeded"])) ==
+  some true
 
-Every rejection lands on the syntax that caused it. -/
+/- What a Producer reads is one instance: the machine as declared, the first instance's sequence,
+and its projection of the selected path -- with every instance's actions as the Program's path,
+each with the instance that performs it. -/
+#guard (do
+  let checked ← twoCompletions.toOption
+  let selected ← checked.realizable.witness
+  let program ← checked.realizable.program
+  pure (selected.trace.steps.map (·.selectedAction.value) == ["awaitStart", "awaitSuccess"] &&
+    selected.trace.steps.map (·.state.value) == ["started", "succeeded"] &&
+    program == [(lifecycle.actionIdAt 0, 1), (lifecycle.actionIdAt 0, 2),
+      (lifecycle.actionIdAt 1, 1), (lifecycle.actionIdAt 1, 2)] &&
+    checked.realizable.property.clauses.length == 2)) == some true
+
+/- And a Case is produced from it. The success Model's actions are waits that no instruction
+performs, so the Program is the template's; the Contract follows the one sequence. -/
+#guard (match twoCompletions with
+  | .ok checked => (produceFromChecked checked).isOk
+  | .error _ => false)
+
+/- The instance count is a Limit: a Search that cannot finish within its budget says so. -/
+limits oneTrace
+  steps: 4
+  actions: 4
+  search: 1
 
 /--
-error: Query 'Temporal.Feature.Nexus.Success.Tests.verifiedCompletion' verifies rather than finds; a Case realizes one selected trace, so its `realizes` Query must be a `find` form
+error: the search stopped at its declared bound after 1 traces; raise `limits` if the trace you mean is longer
 -/
 #guard_msgs (error) in
-case verifyRealizes fixture "verify-realizes"
-  realizes verifiedCompletion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
+query twoCompletionsCutShort
+  find: successfulResult
+  in: twoOperations
+  limits: oneTrace
+
+/-! What a Scenario over instances rejects, each where it is written. -/
 
 /--
-error: the Scenario selects Action 'awaitSuccess' but no `evidence` line says which recorded event confirms it
+error: an instance count of zero admits no instance to run the Scenario over; a Scenario runs over at least one
 -/
 #guard_msgs (error) in
-case unmappedAction fixture "unmapped-action"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
+scenario noInstances
+  model: lifecycle
+  instances: 0
+  starts: scheduled
+  actions: [awaitStart 1]
 
 /--
-error: the Scenario never selects Action 'awaitCancel'; it selects: awaitStart, awaitSuccess
+error: 10 instances is more than nine; the product's keys number instances by one digit, and a Scenario over more instances than that is a Search no bound would admit
 -/
 #guard_msgs (error) in
-case unselectedAction fixture "unselected-action"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-    awaitCancel ← history nexusOperationCanceled
+scenario tenInstances
+  model: lifecycle
+  instances: 10
+  starts: scheduled
+  actions: [awaitStart 1]
+
+/- The product is walked before the Search runs, so its size is checked where the count is
+written: seven instances of a three-state, two-action machine are 30618 steps to enumerate. -/
+/--
+error: 7 instances of a machine with 3 states and 2 action classes multiply out to 30618 steps to enumerate; the bound is 16384, so declare fewer instances or a smaller machine
+-/
+#guard_msgs (error) in
+scenario sevenInstances
+  model: lifecycle
+  instances: 7
+  starts: scheduled
+  actions: [awaitStart 1]
 
 /--
-error: unknown history event kind 'nexusOperationSucceeded'; admitted: workflowExecutionStarted, workflowExecutionCompleted, workflowExecutionFailed, workflowExecutionTimedOut, workflowTaskScheduled, workflowTaskStarted, workflowTaskCompleted, workflowTaskTimedOut, workflowTaskFailed, activityTaskScheduled, activityTaskStarted, activityTaskCompleted, activityTaskFailed, activityTaskTimedOut, timerStarted, timerFired, activityTaskCancelRequested, activityTaskCanceled, timerCanceled, markerRecorded, workflowExecutionSignaled, workflowExecutionTerminated, workflowExecutionCancelRequested, workflowExecutionCanceled, requestCancelExternalWorkflowExecutionInitiated, requestCancelExternalWorkflowExecutionFailed, externalWorkflowExecutionCancelRequested, workflowExecutionContinuedAsNew, startChildWorkflowExecutionInitiated, startChildWorkflowExecutionFailed, childWorkflowExecutionStarted, childWorkflowExecutionCompleted, childWorkflowExecutionFailed, childWorkflowExecutionCanceled, childWorkflowExecutionTimedOut, childWorkflowExecutionTerminated, signalExternalWorkflowExecutionInitiated, signalExternalWorkflowExecutionFailed, externalWorkflowExecutionSignaled, upsertWorkflowSearchAttributes, workflowExecutionUpdateAccepted, workflowExecutionUpdateRejected, workflowExecutionUpdateCompleted, workflowPropertiesModifiedExternally, activityPropertiesModifiedExternally, workflowPropertiesModified, workflowExecutionUpdateAdmitted, nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut, nexusOperationCancelRequested, workflowExecutionOptionsUpdated, nexusOperationCancelRequestCompleted, nexusOperationCancelRequestFailed, workflowExecutionPaused, workflowExecutionUnpaused, workflowExecutionTimeSkippingTransitioned
+error: 'awaitSuccess' names no instance; a Scenario over 2 instances writes which instance takes each action, `awaitSuccess 1` to `awaitSuccess 2`
 -/
 #guard_msgs (error) in
-case unknownEventKind fixture "unknown-event-kind"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationSucceeded
-    awaitSuccess ← history nexusOperationCompleted
+scenario unnumbered
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitSuccess]
 
 /--
-error: fixture 'async-nexus' is already registered by Case 'temporal.case.async-nexus'
+error: 'awaitStart' names an instance, but this Scenario declares no `instances:`; a Scenario over one instance writes its actions bare
 -/
 #guard_msgs (error) in
-case duplicateFixture fixture "async-nexus"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
+scenario numberedAlone
+  model: lifecycle
+  starts: scheduled
+  actions: [awaitStart 1, awaitSuccess]
+
+/--
+error: instance 3 is not one of the 2 this Scenario runs over
+-/
+#guard_msgs (error) in
+scenario strayInstance
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 3]
+
+/- A Case follows each operation through one sequence, so every instance performs the same
+actions; a Scenario whose instances differ is admitted as a Scenario and rejected at the Query
+that would produce a Case from it. -/
+scenario unevenOperations
+  model: lifecycle
+  instances: 2
+  starts: scheduled
+  actions: [awaitStart 1, awaitStart 2, awaitSuccess 1]
+
+/--
+error: instance 2 performs awaitStart where instance 1 performs awaitStart, awaitSuccess; a Case follows each operation through one sequence, so every instance performs the same actions
+-/
+#guard_msgs (error) in
+query unevenCompletion
+  find: successfulResult
+  in: unevenOperations
+  limits: twoOperationTraces
+
+/-! ### Typed messages are checked in place
+
+A realization binds a class to the typed worker instruction that carries the class's API message,
+so the message's fields are the generated declarations' and a member the message does not declare
+rejects where it is written, at elaboration, with the field and the message named. This is the check
+task .2 deferred here: the descriptor could not check a member of `HandlerError.error_type`, a
+`string`, but a payload built from the generated message has every field typed. -/
+
+/--
+error: `retry_behaviour` is not a field of structure `temporal.api.nexus.v1.HandlerError`
+-/
+#guard_msgs (error) in
+example : temporal.api.nexus.v1.HandlerError :=
+  { error_type := "BAD_REQUEST", retry_behaviour := .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE }
+
+/--
+error: Type mismatch
+  "1s"
+has type
+  String
+but is expected to have type
+  Option google.protobuf.Duration
+-/
+#guard_msgs (error) in
+example : temporal.api.command.v1.ScheduleNexusOperationCommandAttributes :=
+  { endpoint := "endpoint", service := "service", operation := "operation"
+    schedule_to_close_timeout := "1s" }
 
 #print axioms Umpire.Command.declareModel
 #print axioms Umpire.Command.check
 #print axioms Temporal.Feature.Nexus.Success.lifecycle
 #print axioms Temporal.Feature.Nexus.Success.completion
+
+/-! ### A setup parameter, bound or not
+
+A machine's `setup:` parameter is bound by the Profile through the realization's configuration key.
+The Case bytes do not depend on its value; what they carry is whether the realization binds it at
+all, because one it does not bind runs under whatever value the environment has, and the Case says
+so as an `input` Known Gap naming the parameter. -/
+
+/-- The success lifecycle with a setup parameter no realization of the success slice binds. -/
+machine configuredLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  setup:
+    probe: Bool
+  steps:
+    awaitStart: awaitStartStep
+    awaitSuccess: awaitSuccessStep
+
+property configuredResult
+  machine: configuredLifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
+
+scenario configuredCompletion
+  model: configuredLifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitSuccess]
+
+query configuredQuery
+  find: configuredResult
+  in: configuredCompletion
+  limits: shortTrace
+
+/- The parameter is declared under a definition of its own, owned by the machine. -/
+#guard configuredLifecycle.setupParameters.map (·.1) == ["probe"]
+#guard (configuredLifecycle.setupParameters.map fun (_, parameter) =>
+  parameter.value.endsWith ".setup.configuredLifecycle.probe") == [true]
+
+private def probeParameter : DefinitionId :=
+  ((configuredLifecycle.setupParameters.head?).map (·.2)).getD (.of "")
+
+/- Unbound by the realization: the Case carries an `input` Known Gap coded after the parameter,
+with the parameter as its subject. -/
+#guard (match Umpire.Command.produceCase configuredQuery successIdentity
+    successRealization successEvidence with
+  | .ok output => (output.provenance.map fun provenance =>
+      provenance.known_gaps.any fun gap =>
+        gap.code == probeParameter.value ++ ".unbound" && gap.kind == .KNOWN_GAP_KIND_INPUT &&
+          gap.subject_presence.map (fun | .subject subject => subject) ==
+            some probeParameter.value) == some true
+  | .error _ => false)
+
+/- Bound to a configuration key of the catalog: no gap. Which key a parameter binds to is the
+realization's, and the value it ran under is the Profile's to record. -/
+#guard (match Umpire.Command.produceCase configuredQuery successIdentity
+    { successRealization with
+      setup := [{ parameter := probeParameter, key := "history.enablechasm" }] }
+    successEvidence with
+  | .ok output => (output.provenance.map fun provenance =>
+      provenance.known_gaps.all fun gap => !gap.code.endsWith ".unbound") == some true
+  | .error _ => false)
+
+/- The success Model itself declares no setup parameter, so its Case carries no such gap and its
+bytes did not move. -/
+#guard lifecycle.setupParameters == []
+
+/-! ### Sets
+
+A functional set compiles each of its `find` Queries to one Case under a derived identity. What the
+set command rejects is pinned here, each at the line that made it. -/
+
+/- A party the machine's actions name and the set does not bind. -/
+/--
+error: party 'caller' performs actions and this set does not bind it; a set binds every party except `system` to `driven` or `observed`
+-/
+#guard_msgs in
+set unboundCaller
+  purpose: functional
+  queries: [completion]
+
+/--
+error: `system` is the implementation under test and performs no declared action; a set binds every other party and never `system`
+-/
+#guard_msgs in
+set boundSystem
+  purpose: functional
+  bind:
+    caller: driven
+    system: driven
+  queries: [completion]
+
+/--
+error: no declared action is performed by party 'auditor'; a set binds the parties the Model's actions name
+-/
+#guard_msgs in
+set strayParty
+  purpose: functional
+  bind:
+    caller: driven
+    auditor: observed
+  queries: [completion]
+
+/- A functional Case performs its Queries' actions, so a party the world performs cannot be on a
+functional path. -/
+/--
+error: the Case for Query 'Temporal.Feature.Nexus.Success.completion' cannot perform 'awaitStart': its party 'caller' is `observed`, so the world performs it and the Case only reads that it did; bind 'caller' `driven` or leave the Query out
+-/
+#guard_msgs in
+set observedCaller
+  purpose: functional
+  bind:
+    caller: observed
+  queries: [completion]
+
+query completionHolds
+  verify: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
+
+/- A Case realizes one selected trace, so a Query that verifies rather than finds has none. -/
+/--
+error: Query 'Temporal.Feature.Nexus.Success.Tests.completionHolds' verifies rather than finds; a functional set's Queries each realize one selected trace, so each is a `find` form
+-/
+#guard_msgs in
+set verifiedSet
+  purpose: functional
+  bind:
+    caller: driven
+  queries: [completionHolds]
+
+/- `repeat:` runs Cases once per switch value, so only a functional set has one; and the switch is
+one a realization declares. -/
+/--
+error: `repeat:` runs a functional set's Cases once per switch value, and a canary set produces no Cases to repeat
+-/
+#guard_msgs in
+set repeatedCanary
+  purpose: canary
+  bind:
+    caller: driven
+  repeat: implementation
+  queries: [completion]
+
+/--
+error: 'rollout' is not a switch the realization declares; declared: implementation
+-/
+#guard_msgs in
+set unknownSwitch
+  purpose: functional
+  bind:
+    caller: driven
+  repeat: rollout
+  queries: [completion]
+
+/- The Nexus realization's switch is declared, so a functional set may repeat over it. -/
+set repeatedSuccess
+  purpose: functional
+  bind:
+    caller: driven
+  repeat: implementation
+  queries: [completion]
+
+#guard repeatedSuccess.repeat == some "implementation"
+
+/- An exploratory set covers rather than lists, and names a goal and a budget. -/
+/--
+error: an exploratory set names what it covers under `cover:`: rows, results or classMembers
+-/
+#guard_msgs in
+set aimless
+  purpose: exploratory
+  bind:
+    caller: driven
+  budget: shortTrace
+
+/--
+error: an exploratory set covers rather than lists Queries; `queries:` belongs to a functional or canary set
+-/
+#guard_msgs in
+set listedExploration
+  purpose: exploratory
+  bind:
+    caller: driven
+  cover: rows
+  queries: [completion]
+
+/--
+error: an exploratory set names the machine it covers under `machine:`
+-/
+#guard_msgs in
+set machineless
+  purpose: exploratory
+  bind:
+    caller: driven
+  cover: rows
+  budget: shortTrace
+
+/--
+error: 'completion' is not a machine declared by a `machine` command
+-/
+#guard_msgs in
+set coversAQuery
+  purpose: exploratory
+  bind:
+    caller: driven
+  machine: completion
+  cover: rows
+  budget: shortTrace
+
+/--
+error: 'completion' is not a `limits` declaration; `budget:` names the limits an exploratory set explores within
+-/
+#guard_msgs in
+set budgetedByAQuery
+  purpose: exploratory
+  bind:
+    caller: driven
+  machine: lifecycle
+  cover: rows
+  budget: completion
+
+/--
+error: `machine:` names the machine an exploratory set covers; a functional set's Queries name theirs
+-/
+#guard_msgs in
+set machinedFunctional
+  purpose: functional
+  bind:
+    caller: driven
+  machine: lifecycle
+  queries: [completion]
+
+set exploration
+  purpose: exploratory
+  bind:
+    caller: driven
+  machine: lifecycle
+  cover: rows | classMembers
+  budget: shortTrace
+
+#guard exploration.cover == [.rows, .classMembers]
+#guard exploration.budget == some "shortTrace"
+#guard (exploration.machine.map (·.value.endsWith ".machine.lifecycle")) == some true
+
+/--
+error: unknown purpose 'smoke'; a set is functional, canary or exploratory
+-/
+#guard_msgs in
+set unknownPurpose
+  purpose: smoke
+  bind:
+    caller: driven
+  queries: [completion]
+
+/- An exploratory set's block emits what the exploration bridge produces each candidate's Case
+with -- the realization and the machine's claims, evidence catalog, field relations and timers --
+and registers no Case; its candidates read the machine's own `evidence:` lines, so the block
+writes none. -/
+/--
+error: set 'Temporal.Feature.Nexus.Success.Tests.exploration' is exploratory; its candidates' Cases read the machine's own `evidence:` lines, so the block writes none
+-/
+#guard_msgs in
+case exploredCases
+  realizes exploration
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+  evidence
+    awaitStart ← history nexusOperationStarted
+
+case exploredProduction
+  realizes exploration
+  as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
+
+#guard exploredProduction.realization.producerId == "temporal.nexus.caller.testpilot"
+#guard exploredProduction.claims.isEmpty
+#guard exploredProduction.catalog.isEmpty
+#guard exploredProduction.relations.isEmpty
+#guard exploredProduction.timers.isEmpty
+
+/-! ### Abstraction claims
+
+A class with an `examples:` line is an abstraction claim: the author claims several realized values
+behave alike in it, and a functional Case runs the example. The Case records the claim for each
+class its path performs, and no claim for a class with no example. -/
+
+enum Speed
+  | quick
+  | slow
+
+/-- A probe of the operation whose input class is claimed: a slow probe stands for every sluggish
+realized value, and a quick one for itself. -/
+action probe
+  party: caller
+  on: operation
+  input:
+    speed: Speed
+  examples:
+    slow → Sluggish
+
+def probeStep (current : Lifecycle) (_speed : Speed) :
+    List (Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) :=
+  if current.state != .scheduled then [] else
+  [{ outcome := .acknowledged, state := { state := .started }, facts := [] }]
+
+machine probedLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    probe: probeStep
+    awaitSuccess: awaitSuccessStep
+
+/- Each action member carries its class as the Model spells it, which is what an example names. -/
+#guard probedLifecycle.actionClasses ==
+  [("awaitSuccess", []), ("probe", [("speed", "quick")]), ("probe", [("speed", "slow")])]
+
+/- The claims the machine's actions make: one, at the slow probe, since only it has an example. -/
+#guard ((Umpire.Command.classClaims probedLifecycle [probe]).map fun claim =>
+  (claim.member.value.endsWith ".action.probedLifecycle.probe-slow", claim.row)) ==
+  [(true, { action := "temporal.nexus.success.tests.action.probe", field := "speed",
+            className := "slow", exampleValue := "Sluggish" })]
+
+
+property probedResult
+  machine: probedLifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
+
+scenario slowProbe
+  model: probedLifecycle
+  starts: scheduled
+  actions: [probe (slow), awaitSuccess]
+
+scenario quickProbe
+  model: probedLifecycle
+  starts: scheduled
+  actions: [probe (quick), awaitSuccess]
+
+query slowProbed
+  find: probedResult
+  in: slowProbe
+  limits: shortTrace
+
+query quickProbed
+  find: probedResult
+  in: quickProbe
+  limits: shortTrace
+
+/-- The evidence for one probe's path: an evidence line names an Action the path selects, so each
+Scenario's Case maps its own probe class. -/
+private def probeEvidence (member : String) (vocabulary : Umpire.Case.Producer.Vocabulary) :
+    List Umpire.Case.Producer.EvidenceMapping := [
+  ⟨vocabulary.namedAction member, "nexusOperationStarted"⟩,
+  ⟨vocabulary.namedAction "awaitSuccess", "nexusOperationCompleted"⟩]
+
+private def probedClaims (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
+    Option (List (String × String × String × String)) :=
+  match produced with
+  | .ok output => output.provenance.map fun provenance =>
+      provenance.abstraction_claims.toList.map fun claim =>
+        (claim.action, claim.field, claim.class_name, claim.«example»)
+  | .error _ => none
+
+/- A path through the slow probe records the claim, with the example the Case ran. -/
+#guard probedClaims (Umpire.Command.produceCase slowProbed successIdentity
+    successRealization (probeEvidence "probe-slow")
+    (claims := Umpire.Command.classClaims probedLifecycle [probe])) ==
+  some [("temporal.nexus.success.tests.action.probe", "speed", "slow", "Sluggish")]
+
+/- A path through the quick probe, whose class has no example, records none. -/
+#guard probedClaims (Umpire.Command.produceCase quickProbed successIdentity
+    successRealization (probeEvidence "probe-quick")
+    (claims := Umpire.Command.classClaims probedLifecycle [probe])) == some []
 
 end Temporal.Feature.Nexus.Success.Tests

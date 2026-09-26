@@ -1,17 +1,76 @@
 package temporal
 
 import (
+	"cmp"
+	"slices"
+	"strings"
+
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 )
 
 // Environment names the physical resources one Case's symbolic bindings resolve to, plus the
 // identity the derived Profile carries. A Case that binds no Nexus endpoint leaves it empty.
+// DynamicConfig is the dynamic configuration the environment runs under -- a machine's setup
+// parameters bound through the realization's keys, and the value of the switch a functional set
+// repeats over -- keyed by the setting's key and valued by its text; the derived Profile records it.
 type Environment struct {
-	Identity      string
-	Namespace     string
-	TaskQueue     string
-	NexusEndpoint string
+	Identity  string
+	Namespace string
+	TaskQueue string
+	// HandlerTaskQueue is the queue a Nexus handler entrypoint polls when the Program binds it apart
+	// from the workflow's, so a fault on the handler's worker leaves the caller's running; a Program
+	// that binds one queue leaves it empty.
+	HandlerTaskQueue string
+	NexusEndpoint    string
+	DynamicConfig    map[string]string
+}
+
+// HandlerTaskQueueBindingID names the resource binding of the task-queue role a Nexus handler
+// entrypoint polls when that role differs from every workflow entrypoint's, or "" when the Program
+// binds one queue for both. A caller provisioning the Case's Nexus endpoint routes it to that queue.
+func HandlerTaskQueueBindingID(program *testpilotspb.Program) string {
+	workflowQueues := map[string]bool{}
+	handlerQueues := map[string]bool{}
+	for _, entrypoint := range program.GetEntrypoints() {
+		if workflow := entrypoint.GetWorkflow(); workflow != nil {
+			workflowQueues[workflow.GetTaskQueueRoleId()] = true
+		}
+		if handler := entrypoint.GetNexusHandler(); handler != nil {
+			handlerQueues[handler.GetTaskQueueRoleId()] = true
+		}
+	}
+	for _, role := range program.GetRoles() {
+		if role.GetKind() == testpilotspb.ROLE_KIND_TASK_QUEUE && handlerQueues[role.GetRoleId()] && !workflowQueues[role.GetRoleId()] {
+			return role.GetResourceBindingId()
+		}
+	}
+	return ""
+}
+
+// configurationOf records the environment's dynamic configuration in the canonical spelling the
+// catalog uses -- lower-case keys, sorted -- so two environments that spell one key differently
+// derive one Profile. An empty key or value is an error rather than a silently dropped setting.
+func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, error) {
+	if len(environment.DynamicConfig) == 0 {
+		return nil, nil
+	}
+	values := make([]testpilot.ConfigurationValue, 0, len(environment.DynamicConfig))
+	for key, value := range environment.DynamicConfig {
+		if key == "" || value == "" {
+			return nil, ErrInvalid
+		}
+		values = append(values, testpilot.ConfigurationValue{Key: strings.ToLower(key), Value: value})
+	}
+	slices.SortFunc(values, func(a, b testpilot.ConfigurationValue) int { return cmp.Compare(a.Key, b.Key) })
+	for i := 1; i < len(values); i++ {
+		if values[i-1].Key == values[i].Key {
+			return nil, ErrInvalid
+		}
+	}
+	return values, nil
 }
 
 // startWorkflowExecutionMethod is the one reservation carrier the Temporal Driver realizes: the start
@@ -50,10 +109,11 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, a reservation carrier for each StartWorkflowExecution an ordinary controller
 // invokes when the Program has workflow or Nexus-handler entrypoints to reserve, the opcodes its
-// instructions require, and the environment values its referenced bindings resolve to. Nothing is
-// widened beyond what the Case references, and anything the Case names that the catalog does not know
-// is an error rather than a silently authorized surface. Its resource ceilings are DefaultCeilings and
-// its instruction defaults DefaultInstructionLimits.
+// instructions require, the environment values its referenced bindings resolve to, and the dynamic
+// configuration the environment runs under. Nothing is widened beyond what the Case references, and
+// anything the Case names that the catalog does not know is an error rather than a silently
+// authorized surface. Its resource ceilings are DefaultCeilings and its instruction defaults
+// DefaultInstructionLimits.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -78,13 +138,19 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 	if err != nil {
 		return testpilot.ProfileSpec{}, err
 	}
+	configuration, err := configurationOf(environment)
+	if err != nil {
+		return testpilot.ProfileSpec{}, err
+	}
 	programLimits, contractLimits, correlatedLimits := DefaultCeilings()
 	return testpilot.ProfileSpec{
 		Identity:            environment.Identity,
 		Catalog:             catalog,
 		Roles:               roles,
 		Opcodes:             usage.authorizedOpcodes(),
+		CommandTypes:        usage.authorizedCommandTypes(),
 		EnvironmentBindings: bindings,
+		Configuration:       configuration,
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
@@ -119,8 +185,11 @@ type programUsage struct {
 	carrierOrder map[string][]string
 	shapes       map[carrierKey]map[testpilot.EntrypointKind]int64
 	opcodes      map[testpilot.Opcode]bool
+	commandTypes map[enumspb.CommandType]bool
 	// reservable counts the workflow and Nexus-handler entrypoints a carrier reserves one activation of.
 	reservable map[testpilot.EntrypointKind]int64
+	// evidence is the Program's declarations, which give a ReadEvidence poll its method.
+	evidence map[string]*testpilotspb.EvidenceDeclaration
 }
 
 func (u *programUsage) authorizedOpcodes() []testpilot.Opcode {
@@ -133,6 +202,20 @@ func (u *programUsage) authorizedOpcodes() []testpilot.Opcode {
 	return result
 }
 
+// authorizedCommandTypes are the command types the Case's workflow commands carry that the worker
+// Driver realizes, in enum order. A command type the Driver does not realize is left out, so the
+// Case rejects at preparation as one the Profile does not admit, rather than widened.
+func (u *programUsage) authorizedCommandTypes() []enumspb.CommandType {
+	var result []enumspb.CommandType
+	for _, commandType := range workerhost.CommandTypes() {
+		if u.commandTypes[commandType] {
+			result = append(result, commandType)
+		}
+	}
+	slices.Sort(result)
+	return result
+}
+
 func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.EntrypointKind, catalog *testpilot.Catalog) (*programUsage, error) {
 	usage := &programUsage{
 		methods:      map[string][]string{},
@@ -140,12 +223,17 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		carrierOrder: map[string][]string{},
 		shapes:       map[carrierKey]map[testpilot.EntrypointKind]int64{},
 		opcodes:      map[testpilot.Opcode]bool{},
+		commandTypes: map[enumspb.CommandType]bool{},
 		reservable:   map[testpilot.EntrypointKind]int64{},
+		evidence:     map[string]*testpilotspb.EvidenceDeclaration{},
 	}
 	for _, kind := range contexts {
 		if kind == testpilot.WorkflowEntrypoint || kind == testpilot.NexusHandlerEntrypoint {
 			usage.reservable[kind]++
 		}
+	}
+	for _, declaration := range program.GetEvidence() {
+		usage.evidence[declaration.GetEvidenceId()] = declaration
 	}
 	for _, entrypoint := range program.GetEntrypoints() {
 		controller := contexts[entrypoint.GetEntrypointId()] == testpilot.ControllerEntrypoint
@@ -172,7 +260,17 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		return ErrInvalid
 	}
 	u.opcodes[opcode] = true
+	if command := instruction.GetInstruction().GetWorkflowCommand(); command != nil {
+		u.commandTypes[command.GetCommand().GetCommandType()] = true
+	}
 	rpc := instruction.GetInstruction().GetInvokeRpc()
+	if read := instruction.GetInstruction().GetReadEvidence(); read != nil {
+		declaration := u.evidence[read.GetEvidenceId()]
+		if declaration.GetRead() == nil {
+			return ErrInvalid
+		}
+		rpc = &testpilotspb.InvokeRpc{EndpointRoleId: read.GetEndpointRoleId(), Method: declaration.GetRead().GetMethod()}
+	}
 	if rpc == nil {
 		return nil
 	}
@@ -231,6 +329,7 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 // rather than resolving to empty.
 func deriveBindings(program *testpilotspb.Program, environment Environment) ([]testpilot.EnvironmentBinding, error) {
 	values := map[string]string{}
+	handlerQueue := HandlerTaskQueueBindingID(program)
 	for _, role := range program.GetRoles() {
 		switch role.GetKind() {
 		case testpilotspb.ROLE_KIND_WORKER, testpilotspb.ROLE_KIND_TASK_QUEUE:
@@ -238,7 +337,11 @@ func deriveBindings(program *testpilotspb.Program, environment Environment) ([]t
 				values[id] = environment.Namespace
 			}
 			if id := role.GetResourceBindingId(); id != "" && role.GetKind() == testpilotspb.ROLE_KIND_TASK_QUEUE {
-				values[id] = environment.TaskQueue
+				if id == handlerQueue {
+					values[id] = environment.HandlerTaskQueue
+				} else {
+					values[id] = environment.TaskQueue
+				}
 			}
 		case testpilotspb.ROLE_KIND_ENDPOINT:
 			if id := role.GetResourceBindingId(); id != "" {

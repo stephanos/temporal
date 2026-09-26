@@ -55,10 +55,10 @@ var requiredFiles = []string{
 	"model/UmpireTests.lean",
 	"model/Temporal.lean",
 	"model/TemporalModelTests.lean",
-	"model/TemporalExperimentalTests.lean",
 	"model/Shared.lean",
 	"model/Testpilot.lean",
 	"model/README.md",
+	"model/AUTHORING.md",
 	"model/ARCHITECTURE.md",
 	"model/Umpire/ARCHITECTURE.md",
 }
@@ -598,6 +598,20 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"testpilot." + "Capability",
 		"model" + "Lint",
 		"model" + "LintTests",
+		// The whole-Program templates, the fixture-named `case` form and the success slice's
+		// set, retired by fn-85 .11: a Case is produced from a set through a realization value.
+		"Temporal.Case." + "Template",
+		"Case.Template." + "NexusOperation",
+		"Case.Template." + "Workflow",
+		"Case/" + "Template",
+		"Case.Tests." + "ProofPoint",
+		"Case/Tests/" + "ProofPoint",
+		"Case.Tests." + "Template",
+		"Case/Tests/" + "Template",
+		"case" + "Template",
+		"nexusSuccess" + "Set",
+		"Hook" + "Placement",
+		"fault" + "RuleId",
 		"testpilot" + "ProtoJSONFixture",
 		// The observed read path is one use of the Case coordinate walker, derived by
 		// `Umpire.Case.Projection.lower`.
@@ -702,6 +716,19 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Producer" + "Data",
 		"Get" + "ProducerData",
 		"producer" + "_data",
+		// fn-86 .3 removes the superseded Testpilot instruction shapes: the untyped Nexus start, the
+		// untyped completion whose result is an Expression, the untyped handler response and the enum
+		// that named its kind. `RespondNexus` and `NexusResponseKind` are held bare: the identifier
+		// boundary on both sides keeps the WorkflowService method `RespondNexusTaskCompleted` and the
+		// typed `NexusOperationCompletion` live. The other two names are HistoryService methods the
+		// generated `Temporal.API` spells in both cases, so only their protocol-qualified Go
+		// spellings -- the oneof arm type and its accessor -- are held.
+		"Respond" + "Nexus",
+		"NexusResponse" + "Kind",
+		"Instruction_StartNexus" + "Operation",
+		"Instruction_CompleteNexus" + "Operation",
+		"GetStartNexus" + "Operation",
+		"GetCompleteNexus" + "Operation",
 		// fn-87 spells a field path as a string in its grammar, so the structured path segment and its
 		// selector messages retire; FieldPath stays the concept's name.
 		"FieldPath" + "Segment",
@@ -811,12 +838,6 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		},
 		"common/testing/testpilot/internal/ir/catalog.go": {
 			"." + "qualified": true,
-		},
-		"tests/testcore/testpilot/testdata/async-nexus-case.json": {
-			`"bounds"`: true,
-		},
-		"tests/testcore/testpilot/testdata/get-system-info-case.json": {
-			`"bounds"`: true,
 		},
 	}
 	for _, class := range []string{

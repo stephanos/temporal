@@ -267,7 +267,7 @@ private def observeProperty
     (trace : Scenario.Trace)
     (state : AnalysisState)
     (property : CheckedProperty) : Except QueryError AnalysisState := do
-  let input ← checkPropertyEvaluationInput property trace.trace
+  let input ← checkPropertyEvaluationInput property trace.trace query.target.stateFields
     |>.mapError (queryEvaluationError query property)
   let evaluation := evaluateProperty property input
   let endpoint := evaluatePropertyEndpoint property input (query.ending == .«partial»)

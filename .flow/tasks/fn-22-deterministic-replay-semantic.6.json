@@ -12,6 +12,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.6.md",
   "status": "todo",
-  "title": "Prove the Case-native negative control and evidence core",
-  "updated_at": "2026-09-04T18:37:21.267844Z"
+  "title": "Implement the bounded monotonic minimizer over the bridge",
+  "updated_at": "2026-09-22T22:05:05.997292Z"
 }

@@ -1286,7 +1286,9 @@ structure PropertyTraceView where
   steps : List PropertyTraceStep
   deriving BEq, DecidableEq, Repr
 
-private def PropertyCapabilityView.allows
+/-- Whether a value's definition is one the Property's required capabilities mean. Every trace value
+the evaluator reads, a state's fields included, is admitted through this. -/
+def PropertyCapabilityView.allows
     (access : PropertyCapabilityView)
     (value : ModelValue) : Bool :=
   access.meanings.any fun meaning => meaning.definitionId == value.definitionId

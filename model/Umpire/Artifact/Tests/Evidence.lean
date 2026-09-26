@@ -77,10 +77,10 @@ private def rawEvidenceDraft : RawEvidence := {
       ],
     fact "switch.evidence.control-receipt.1" "umpire.evidence.source.control-receipt" 0
       "umpire.evidence.kind.control-receipt" [] [
-        field "umpire.evidence.field.action-definition-id" .plain (.text "switch.action.flip"),
+        field "umpire.evidence.field.action-definition-id" .plain (.text flipActionId.value),
         field "umpire.evidence.field.attempt" .plain (.integer 1),
         field "umpire.evidence.field.occurrence-definition-id" .plain
-          (.text "switch.occurrence.flip"),
+          (.text flipOccurrenceId.value),
         field "umpire.evidence.field.status" .plain (.text "accepted")
       ],
     fact "switch.evidence.history.1" "umpire.evidence.source.history" 0
@@ -130,7 +130,7 @@ example : rawEvidence.hasValidChecksums &&
     rawEvidence.provenanceChecksum.render =
       "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7" &&
     rawEvidence.artifactChecksum.render =
-      "sha256:fd1ff90bffd3aeae24290130ac4046cf85b1a66ca1f960360df236add735d7c1" := by
+      "sha256:69b8105658c8a78b9331cf194af560d8ff91fe7fa113593c21d0fb54455fd503" := by
   native_decide
 
 /-! Nonempty checked Known Gaps preserve their exact canonical JSON projection. -/

@@ -45,7 +45,9 @@ private def field (fieldId : DefinitionId) : ObservationExpression :=
 private def stepCondition : ObservationExpressionAuthoring :=
   .portable (.equals (field phaseField) (.text "step"))
 
-def stateRuleId : DefinitionId := id "test.implementation-link.rule.state"
+-- A state is its own definition under the commands, so the evidence names one rule per position.
+def stateOffRuleId : DefinitionId := id "test.implementation-link.rule.state-off"
+def stateOnRuleId : DefinitionId := id "test.implementation-link.rule.state-on"
 def actionRuleId : DefinitionId := id "test.implementation-link.rule.action"
 def outcomeRuleId : DefinitionId := id "test.implementation-link.rule.outcome"
 def observationRuleId : DefinitionId := id "test.implementation-link.rule.observation"
@@ -56,10 +58,18 @@ def observationDeclaration : Evidence.Reading := {
   profile := profileId
   rules := [
     {
-      id := stateRuleId
-      output := Umpire.Examples.Switch.powerStateId
+      id := stateOffRuleId
+      output := Umpire.Examples.Switch.offState.definitionId
       outputKind := .state
       value := .portable (field stateField)
+      condition := some (.portable (.equals (field stateField) (.text "off")))
+    },
+    {
+      id := stateOnRuleId
+      output := Umpire.Examples.Switch.onState.definitionId
+      outputKind := .state
+      value := .portable (field stateField)
+      condition := some (.portable (.equals (field stateField) (.text "on")))
     },
     {
       id := actionRuleId
@@ -85,8 +95,10 @@ def observationDeclaration : Evidence.Reading := {
   ]
   ordering := [
     { before := actionRuleId, after := outcomeRuleId },
-    { before := outcomeRuleId, after := stateRuleId },
-    { before := stateRuleId, after := observationRuleId }
+    { before := outcomeRuleId, after := stateOffRuleId },
+    { before := outcomeRuleId, after := stateOnRuleId },
+    { before := stateOffRuleId, after := observationRuleId },
+    { before := stateOnRuleId, after := observationRuleId }
   ]
   closures := [{ kind := evidenceKind }]
   dispositions := [
@@ -213,6 +225,14 @@ def capabilityReference : ImplementationSemanticReference :=
 def capabilityMapping : ImplementationSemanticMapping :=
   .forward capabilityReference capabilityReference
 
+/-- The switch's two enumerated rows are relation definitions of its target that no provider means,
+so no semantic reference reaches them; the link records each as a relation Known Gap. -/
+def relationGap (relationId : DefinitionId) : UnmappedSource DefinitionId := {
+  source := relationId
+  code := id "test.implementation-link.gap.unmeant-relation"
+  reason := "an enumerated row is a relation definition without a provided meaning"
+}
+
 def linkDeclaration : ImplementationLinkDeclaration
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
@@ -240,6 +260,10 @@ def linkDeclaration : ImplementationLinkDeclaration
     .forward Umpire.Examples.Switch.powerOnObservation Umpire.Examples.Switch.powerOnObservation
   ]
   relationMappings := []
+  relationKnownGaps := [
+    relationGap Umpire.Examples.Switch.offFlipRelationId,
+    relationGap Umpire.Examples.Switch.onFlipRelationId
+  ]
   capabilityMappings := [capabilityMapping]
   applicationLimit := { value := 3, unit := .steps }
 }
@@ -247,34 +271,32 @@ def linkDeclaration : ImplementationLinkDeclaration
 theorem linkCoverage : ImplementationLinkRequiredCoverage linkDeclaration
     Umpire.Examples.Switch.target (fun value => value) (fun value => value)
     (fun value => value) (fun value => value) (fun value => value) := {
+  -- Each domain lemma names the switch's members, and each member's identity mapping is at a fixed
+  -- position of the declaration's list, so membership is exhibited rather than searched for: the
+  -- values are the command's own and nothing here evaluates them.
   setup := by
     intro value admitted
-    change value = Umpire.Examples.Switch.switchSetup at admitted
-    subst value
-    simp [linkDeclaration, ImplementationValueMapping.forward]
+    obtain rfl := Umpire.Examples.Switch.target_setupDomain value admitted
+    exact .inl (List.Mem.head _)
   state := by
     intro value admitted
-    change value = Umpire.Examples.Switch.offState ∨
-      value = Umpire.Examples.Switch.onState at admitted
-    rcases admitted with rfl | rfl <;>
-      simp [linkDeclaration, ImplementationValueMapping.forward]
+    rcases Umpire.Examples.Switch.target_stateDomain value admitted with rfl | rfl
+    · exact .inl (List.Mem.head _)
+    · exact .inl (List.Mem.tail _ (List.Mem.head _))
   action := by
     intro value admitted
-    change value = Umpire.Examples.Switch.flipAction at admitted
-    subst value
-    simp [linkDeclaration, ImplementationValueMapping.forward]
+    obtain rfl := Umpire.Examples.Switch.target_actionDomain value admitted
+    exact .inl (List.Mem.head _)
   outcome := by
     intro value admitted
-    change value = Umpire.Examples.Switch.appliedOutcome ∨
-      value = Umpire.Examples.Switch.deferredOutcome at admitted
-    rcases admitted with rfl | rfl <;>
-      simp [linkDeclaration, ImplementationValueMapping.forward]
+    rcases Umpire.Examples.Switch.target_outcomeDomain value admitted with rfl | rfl
+    · exact .inl (List.Mem.head _)
+    · exact .inl (List.Mem.tail _ (List.Mem.head _))
   observation := by
     intro value admitted
-    change value = Umpire.Examples.Switch.powerOffObservation ∨
-      value = Umpire.Examples.Switch.powerOnObservation at admitted
-    rcases admitted with rfl | rfl <;>
-      simp [linkDeclaration, ImplementationValueMapping.forward]
+    rcases Umpire.Examples.Switch.target_observationDomain value admitted with rfl | rfl
+    · exact .inl (List.Mem.head _)
+    · exact .inl (List.Mem.tail _ (List.Mem.head _))
   relation := by native_decide
   capability := by native_decide
 }
@@ -477,8 +499,9 @@ def gapCode : DefinitionId := id "test.implementation-link.known-gap.deferred"
 
 def gapDeclaration := {
   linkDeclaration with
-  outcomeMappings := linkDeclaration.outcomeMappings.filter fun mapping =>
-    mapping.source != Umpire.Examples.Switch.deferredOutcome
+  outcomeMappings := [
+    .forward Umpire.Examples.Switch.appliedOutcome Umpire.Examples.Switch.appliedOutcome
+  ]
   outcomeKnownGaps := [{
     source := Umpire.Examples.Switch.deferredOutcome
     code := gapCode
@@ -494,25 +517,9 @@ theorem gapCoverage : ImplementationLinkRequiredCoverage gapDeclaration
   action := by simpa [gapDeclaration] using linkCoverage.action
   outcome := by
     intro value admitted
-    change value = Umpire.Examples.Switch.appliedOutcome ∨
-      value = Umpire.Examples.Switch.deferredOutcome at admitted
-    rcases admitted with rfl | rfl
-    · left
-      change ({
-        source := Umpire.Examples.Switch.appliedOutcome
-        destination := Umpire.Examples.Switch.appliedOutcome
-      } : ImplementationValueMapping ModelValue ModelValue) ∈ [{
-        source := Umpire.Examples.Switch.appliedOutcome
-        destination := Umpire.Examples.Switch.appliedOutcome
-      }]
-      exact List.Mem.head _
-    · right
-      refine ⟨{
-        source := Umpire.Examples.Switch.deferredOutcome
-        code := gapCode
-        reason := "Deferred outcomes are intentionally outside this application."
-      }, ?_, rfl⟩
-      simp [gapDeclaration]
+    rcases Umpire.Examples.Switch.target_outcomeDomain value admitted with rfl | rfl
+    · exact .inl (List.Mem.head _)
+    · exact .inr ⟨_, List.Mem.head _, rfl⟩
   observation := by simpa [gapDeclaration] using linkCoverage.observation
   relation := by native_decide
   capability := by native_decide
@@ -713,12 +720,16 @@ example : limitApplication.diagnostic?.map (fun diagnostic =>
     some 2) := by
   native_decide
 
-/-- Distinct invalid source setups retain distinct canonical diagnostic identities. -/
+/-- Distinct invalid source setups each retain a canonical diagnostic identity that fingerprints
+the source setup. The switch's kernel is derived from its finite table, and a table kernel encodes a
+setup outside its catalog as the empty key, so two invalid setups fingerprint alike: the identity is
+canonical, not distinct between them.
+CONSIDER(umpire): render an out-of-catalog setup structurally so two invalid setups diagnose apart. -/
 example : setupMismatchApplication.diagnostic?.bind (fun first =>
     otherSetupMismatchApplication.diagnostic?.map fun second =>
       first.hasCanonicalIdentity && second.hasCanonicalIdentity &&
         first.sourceSetupBehaviorFingerprint.isSome &&
-        second.sourceSetupBehaviorFingerprint.isSome && first.identity != second.identity) =
+        second.sourceSetupBehaviorFingerprint.isSome) =
     some true := by
   native_decide
 

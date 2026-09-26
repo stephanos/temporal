@@ -40,6 +40,18 @@ dependency; .15 is done, so those notes are satisfied.
 AUT-07a (.10) and the AUT-09 amendment .8 would have drafted are the GOV-02 items fn-83 leaves; the
 amendment moves to fn-85's rule drafts.
 
+**Closed 2026-09-20 with fn-85 .13.** The six blocked tasks are closed as superseded, each record
+naming where its concern went: .4 to fn-85 .7 (the generator reads `umpire-case --list`, the
+artifact test is table-driven, `bindCase`/`runCase` derive the binding, the live helpers are
+shared); .5's fault grammar to fn-85's actions (a fault is an action of a declared party, realized
+by an `ActionBinding` that injects it) and the outage Model with its outage-order rule to fn-86 R4;
+.6 to fn-85 .10's Query 1 with its `COVERAGE.md`; .8 to fn-85 .13 (`model/AUTHORING.md`, the drift
+test, the concept entries and rule drafts); .16 to fn-85 .7's derived identities; .17 to the
+realization's keyed bindings and production-time evidence rejections (fn-85 .10, .11). The AUT-09
+amendment is drafted in fn-85 .13. The spec's own `spec close`, like fn-85's and fn-87's, needs
+runtime task state a fresh clone does not carry, so the records carry the closure and Flow's status
+follows in a clone that has it.
+
 ### 2. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
 
 [fn-84 — Deepen five shallow module clusters in Umpire and Testpilot](../.flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md),
@@ -201,22 +213,24 @@ The early proof point rebuilds today's async-Nexus Case from the new abstraction
 its fixture with identities masked before any Testpilot protocol change. Worker instructions then
 carry the Temporal API messages the actions' schemas name (the Nexus schedule command's attributes
 with its three timeouts, a `StartOperationResponse` or `HandlerError` reply, a completion payload or
-failure) instead of a Testpilot field per server option (the old `StartNexusOperation`,
-`RespondNexus` and `NexusResponseKind` stay until fn-86 .3 migrates the last Producer that emits
-them), and a Case declares each observation once
+failure) instead of a Testpilot field per server option (the three untyped Nexus instruction
+shapes stayed until fn-86 .3 migrated the last Producer that emitted them and removed them), and a
+Case declares each observation once
 for both its Program and its Contract, which gives the retry Query's attempt count its read source.
 Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**In delivery. Task .1 is done, 2026-09-14, and the early proof point holds.** The Program the
+**Done 2026-09-20: all sixteen tasks landed and the receipts below record each.** The spec's
+`spec close` waits on a clone with runtime task state, as fn-87's does. **Task .1 is done,
+2026-09-14, and the early proof point holds.** The Program the
 Producer assembles from the path `[schedule, handlerReply, complete]` is byte-identical to the one the
 `nexusOperation` template writes by hand, so the party-to-entrypoint design carries what the template
 stated; the spec's stop condition did not fire. What landed: the protocol-migration oracle retired;
 `Umpire.Command.Records` for entities, actions, observations, timers, setup parameters, evidence lines
 and the machine declaration; a `ProgramPlan` and per-action-class bindings replacing
 `Realization.program`, with the Producer placing instructions from the path; and
-`Temporal.Case.Realization.asyncNexus` with the proof in `Temporal.Case.Tests.ProofPoint`. Its review
+`Temporal.Case.Realization.asyncNexus` with the proof in a proof-point test module (`.11` retired it with the templates). Its review
 is a self-review, so a session with a second backend should re-review before the completion review.
 
 **The proof point's acceptance was amended during delivery:** the comparison is the Program, not the
@@ -293,6 +307,170 @@ umpire-check-regression` exit 0 with nine live identities.
 Its review is a self-review: no second backend is reachable in a cloud session, so `codex exec`,
 `cursor-agent` and `grok` are not installed and all fall back to the session model. `.1`, `.2` and
 `.3` each owe a cross-model re-review before the completion review.
+
+**Tasks .14 and .16 are done, 2026-09-18 and 2026-09-19.** `machine` is a command over step
+functions, `model` is retired, every Model in the tree is a machine, and the design's protocol
+machine elaborates (192 states over 23 action classes, 1152 rows, about forty seconds, once the
+canonical-table law stopped comparing a table against itself quadratically). The receipts on the
+two tasks carry the decisions.
+
+**Task .15 is done, 2026-09-19.** A `property` names a machine and an ordinary Lean predicate --
+`Step → Bool` under `when:` for a same-step claim, `Step → Step → Bool` for a transition claim over
+the step before and the step after -- and the command enumerates it over the machine's table into
+the clause records a Property has always carried. The reading is the one the keyed `require:` block
+spelled out: the predicate fixes a state, an outcome or a fact when every accepted step carries it
+and changing it is rejected, probed on the predicate itself rather than read off the table's
+coincidences; the fixed values must carry the predicate exactly, and a disjunction across fields is
+refused with the step the clauses cannot tell apart. Every migrated Property carries the fingerprint
+its keyed block had, pinned. The keyed form is rejected at its key naming `holds:`, and `DESIGN.md`
+section 3 carries the amendment. Its review is a self-review.
+
+**Task .4 is done, 2026-09-19.** Its first half (2026-09-19, earlier session) carried a machine's
+state fields on the Model and on the wire and made both evaluators read them. Its second half makes
+the fields readable on the Model side -- the evaluator reads a state and every field it holds, and a
+machine's capability means its fields, which moved every Property-over-a-machine fingerprint once --
+adds a structured two-operation Target to the conformance corpus whose rule reads the `attempts`
+field and whose two operations are tracked apart by both evaluators, and lets a Scenario run over
+`instances:` of one entity: the Search walks the product of that many copies of the machine under
+the machine's own law, one instance's Property is read on the acting slot, and the Producer reads
+the first instance back with every instance's actions as the Program's path. Rejections are pinned
+where they are written. Its review is a self-review.
+
+**Task .6 is done, 2026-09-19.** A machine declares `refines:` and `map:` -- the product machine and
+a Lean function from its state to the product's -- and the command walks every row through the map:
+a row whose mapped states are a product step is that step, a row whose mapped states are equal is a
+stutter, and any other row rejects at the `map:` line naming the row, both readings and what the
+product lacks. Outcomes and facts read by name, a fact's constructor covering its members; a fact
+the product does not name is hidden, an outcome it does not name rejects, and a product step may
+record less than the protocol step it carries, never more. The derived step mapping is read back as
+data and pinned; the witness is `Umpire.ImplementationLink.Refinement`'s stuttering forward
+simulation, decided by the kernel over the two tables, with `traceForward` carrying every admitted
+protocol trace to an admitted product trace. A Property on the product machine is read on the
+protocol machine's paths through a state field named after the product machine, and a Query over a
+protocol Scenario may `find:` or `verify:` it. The product machine gained a `timeout` timer, the
+Scenario grammar took classed actions and a phase for `starts:`, a setup constructor is named by
+the start phase rather than the punctuated key, and the `model`-era refusal of a step out of an end
+state is retired because the design writes such steps. Its review is a self-review.
+
+**Task .5 is done, 2026-09-19.** A machine's `setup:` parameters travel with the declared Model by
+name and definition, the realization binds each to a dynamic-config key of the generated catalog,
+and one it leaves unbound is an `input` Known Gap of the Case naming the parameter. The Profile
+records the configuration the environment ran under, in the catalog's spelling and as part of its
+binding fingerprint, so the same Case bytes run under two switch values under two Profiles. The
+Nexus realization declares the `implementation` switch (`hsm`, `chasm`) with the three settings the
+upstream suites set, resolved by name for `.7`'s `repeat:`; the live harness runs the async-Nexus
+Case once per value under a dedicated environment constructed with the value's settings and fails
+on a divergence naming the switch, both values and both Verdicts, with the divergence check pinned
+by a unit test. `atConcurrencyLimit` is not bound: the limit exists, one key per implementation,
+but binding it needs a setup-varying table, a value per key and a key per switch value, which the
+research spike of 2026-09-19 (`UMPIRE4_RESEARCH_NEXUS_MODEL.md`) recommends `.10` resolve by
+dropping the parameter. Its review is a self-review.
+
+**Task .7 is done, 2026-09-19.** The `set` command groups Queries by purpose and binds every party
+except `system`, rejecting in place an unbound party, a bound `system`, a stray party, an
+`observed` party's action on a functional path, a `verify` Query, `repeat:` outside a functional set
+or naming a switch no realization registered, an exploratory set without a goal or budget, and the
+wrong keys for a purpose. The Temporal `case` block over a functional set realizes each Query under
+`temporal.case.<set>.<query>` and `<set>-<query>-case.json`, registered like any Case, so
+`umpire-case --list` and the list-driven generator carry it; the success slice's
+`nexusSuccessTests` produces `nexusSuccessTests-completion-case.json`. A Case records an abstraction
+claim row -- action, field, class, example -- for every class with an `examples:` line its Program
+performs, as the protocol's ninth provenance field. Its review is a self-review.
+
+**Task .8 is done, 2026-09-19.** The protocol carries the Temporal API messages the design named:
+a workflow command carrying a `Command`, a handler reply carrying a `StartOperationResponse` or a
+`HandlerError`, and a completion carrying a `Payload` or a `Failure`, imported from `proto/api.binpb`
+and compiled once into Lean by `Testpilot/Carried.lean` so the protocol module's own rebuild keeps
+its cost. Preparation admits each message against a Driver-reach table naming the fields the Driver
+realizes, so an unsettable field, an invalid or over-ceiling duration, a reply the activation does
+not admit and a command type the Profile does not admit reject in the existing categories at the
+field's path, pinned by unit tests and four conformance corpus variants; the Profile admits commands
+per command type. The worker Driver maps each message to the SDK call that produces it, with a
+Driver test per carried message. The Nexus realization binds the schedule, every handler-reply class
+and both completion classes, the asynchronous `case` form produces through it, and the two Query 2
+fixtures regenerate on the typed instructions, differing in exactly the three bound instructions.
+The checklist missed five places, now listed. Its review is a self-review.
+
+**Task .9 is done, 2026-09-19.** A Program declares each kind of correlated evidence once
+(`Program.evidence`): its source as a history event arm, a Run Event kind or a unary read, its scope,
+key path and fields. A history read's lift rule names the declaration and spells nothing else, a
+`ReadEvidence` controller instruction polls a read declaration through the new `Session.PollRPC`
+until an element satisfies its condition and lifts what the condition selects, a Run Event kind is
+lifted by the scheduler as the event is recorded, and the correlated Contract's projection rules
+resolve against the declarations; the Case compiler localizes the new names with the rest. The
+undeclared reference and the duplicate source-and-key rejections land in `unknown` and `malformed`,
+pinned by two corpus variants beside three accepted ones, one per source. `pendingAttempts` is the
+read catalog's one binding (`Temporal.Case.ReadKind`: `DescribeWorkflowExecution`,
+`pending_nexus_operations`, key `scheduled_event_id`, field `attempts`), the third answer an
+`evidence:` line resolves against, and the Nexus template carries it beside its two history kinds.
+The two Query 2 fixtures regenerate on by-name rules with their two declarations. The `case` block's
+evidence lines stay for `.11`. Its review is a self-review.
+
+**Task .10 is done, 2026-09-19.** The Caller Model (`Temporal.Feature.Nexus.Caller`, family
+`temporal.nexus.caller`) promotes the product and protocol machines out of the test specimens with
+six predicate Properties, four Scenarios, Queries 1 to 4 and the functional set `nexusCallerTests`
+over the HSM and CHASM switch; `nexusProtocol` takes no `setup:` parameter, because
+`atConcurrencyLimit` has no dynamic-config key. The set is realized by a `realized by asyncNexus`
+arm that writes no evidence lines: the mapping derives from the machine's `evidence:` catalog per
+Query path, the realization's bindings are keyed by the classed member a Scenario action resolves
+to, and `whenOnPath` places `await-completion-authority` on the completion paths only. A Contract
+now carries only the projection rows its rules can reach (the protocol machine's whole table made a
+2.6 MB fixture), and an instructed handler error completes the handler activation instead of
+stopping the Run. Four fixtures regenerate (`nexusCallerTests-{syncCompletion,asyncCompletion,
+asyncFailure,handlerError}-case.json`); `async-nexus-case.json` is gone, and Query 2's fixture
+differs from it by the controller's `await-close` read, the finish literal, one correlated rule for
+two, three declarations for two, five transitions for two and no known gaps. `COVERAGE.md` maps the
+four upstream tests; DESIGN.md section 3 is the cancel-free specimen with a `.10` amendment. `make
+umpire-check-regression` exit 0 with **20 passing live identities** (eleven before). `lint-model`
+adds two unused-binder warnings from the `enum` command's generated binders, the pattern
+`Tests/Commands.lean` carries. Its review is a self-review.
+
+**Task .11 is done, 2026-09-19.** The Caller Model adds Queries 5 to 7: a retryable handler error
+then sync success after one backoff, with `pendingAttempts` polled until `attempt == 1`; a
+schedule-to-start timeout after `workerStop` stops the handler's worker on its own task queue; an
+async reply then a start-to-close timeout. Timers are `TimerBinding`s on the Realization (2000 ms
+each) passed to the schedule command and observed through the timed-out event, so no
+wait-for-duration instruction was needed. The Producer folds a silent step into the next confirmed
+rule and carries it as a capability Known Gap (`backoff.unobserved`, `workerStop.unobserved`);
+every controller path first reads the scheduled event (`await-scheduled`), the runtime chains one
+operation's evidence across sources by a parent, admits a canceled reservation of an entrypoint
+that performs nothing, and the worker keeps a retryable handler activation open for the retried
+start. The whole-Program templates, the `fixture`-named `case` form, the template grammar of the `as` clause,
+`ProofPoint` and the `Success` set are gone and retired; `case … realizes <set> as <Realization>`
+is the one Case-producing command. Seven fixtures, `COVERAGE.md` mapping all seven upstream
+tests, timer stability three runs under both values (4.2 to 4.8 s per Query), `make
+umpire-check-regression` exit 0 with **29 passing live identities** (20 before). `lint-model` at
+the `.10` baseline. Its review is a self-review.
+
+**Task .12 is done, 2026-09-19.** The `case … realizes <set>` block admits a canary set: each
+Query's Case is produced under the realization, registered nowhere, and read for a white-box Known
+Gap (`capability`, `interpretation`), which rejects naming the Query and the gap;
+`nexusCallerCanary` over Queries 1 and 2 with `handler: observed` admits, and a canary over the
+retry Query rejects on `backoff.unobserved`, pinned by `#guard_msgs`. An exploratory set names
+`machine:`, and its `budget:` must be a `limits` declaration; `Umpire.Command.Coverage` enumerates
+its targets from the declared Model (rows within the budget's steps of a start, the results they
+reach, the claims their actions make, cut at the search count) and `nexusCallerExploration` over
+`nexusProtocol` under `four` lists 885 of 1152 rows, two results and two class members in
+`Caller/Fixtures/CallerExploratoryCoverage.json`, rendered byte-identically twice and checked by
+`umpire-check-goldens`. `make umpire-check-regression` exit 0 with **29 passing live
+identities** (29 before). Its review is a self-review.
+
+**Task .13 is done, 2026-09-20, and fn-85 is complete.** `model/AUTHORING.md` walks the Caller
+Model from an empty file to a green live test in thirteen steps, quoting every marked region of
+`Caller/Model.lean` (a `header` marker joined the twelve .10 placed); `tools/umpire/authoring`
+checks each quoted block against its region byte for byte and fails on a block naming a missing
+marker, a marker the Model carries twice, a drifted region, an unquoted region and an unfenced or
+repeated block, each pinned by a planted test; the file is in the vocabulary gate's required
+files. `UMPIRE4_SPEC.md` gains Entity, Party, Refinement, Set, Realization and Abstraction Claim
+and amends Action, Observation and Machine, with the AUT-07a (`set`, `register_switch`, the
+platform's Case-producing block), MOD-02 (the realization in `Temporal.Case`) and AUT-09 (what
+the commands derive) amendments drafted under GOV-02; the MOD-15 name gate is green. DESIGN.md
+points at the spec and the Model and its needs table records what each need received; the two
+architecture documents, the model README, the testcore README and `tools/umpire/CONTEXT.md`
+(eight glossary entries with their `_Avoid_` lists) follow. fn-83's six blocked tasks are closed
+as superseded above. Gates: `make umpire-check-regression` exit 0 with **29 passing
+live identities**; `lint-model` the `.11` baseline: two errors in generated `Temporal/API/Proto.lean` and 41 warnings (generated binders, deprecations, the two `enum` binders in `Caller/Model.lean`), none new; `lint-code` 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records. Its review is a
+self-review.
 
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
@@ -389,10 +567,159 @@ findings, applied:
 - `.1` re-reads the tree as fn-85 left it and corrects the file lists of `.2`, `.3` and `.6` first;
   every fn-86 task was written against the pre-fn-85 tree.
 
+**Task .1 is done, 2026-09-20.** `model/HANDWRITTEN_INVENTORY.md` freezes the tree before anything
+moves: the eleven production modules under `Temporal.Feature`, `Temporal.Testpilot` and
+`Umpire.Examples` that import an authoring owner directly (the two typed examples, the two
+Model-less Cases, `CaseSupport`, `Lifecycle.Model`, the four `Operations` modules and
+`Race.Authoring`), the modules the spec's table names beside them (`Observation`, `Experimental`,
+the `Success` specimen, `Umpire.Examples.Switch`), what is kept with the reason (the Implementation
+Link with its two Feature imports, the realization, `Conformance`) and every tool, target,
+compatibility family and document that reads them, each with a destination. `lint-model` reads
+the ledger and reports `hand-written module not inventoried` for a production module under those
+roots that imports an owner and is missing from it, pinned by a planted module in
+`ImportGraphTests`; the typed-unary Contract baseline is a scaffold under `tests/testcore/testpilot/baseline/`
+(beside `testdata/`, which the conformance gate keeps generator-owned) that `.2` compares against
+and deletes. `.2`, `.3` and `.6` were re-read against the fn-85 tree.
+Gates: `lint-model` at the fn-85 baseline: the import-graph and Batteries steps pass with the ledger read, and the `lake lint` step reports the same two generated `Proto.lean` errors and 41 pre-existing warnings, none new; `make umpire-check-regression` exit 0 with 29 passing live
+identities. Its review is a self-review.
+
+**Task .2 is done, 2026-09-20.** A field relation is a `relates:` line of `property` beside
+`holds:` (`<action>.input.<path>` or `<action>.result.<path>` of the `when:` action, or
+`<kind>.<path>` of a recorded event kind the machine's `evidence:` names; `=`, `≠`, `present`),
+resolved while the file compiles through a new platform hook
+(`Umpire.Command.installFieldResolver`, answered by `Temporal.Case.FieldPath` off the generated
+descriptors) into `PropertyFieldPath` steps, presence reads and a scalar type, and lowered by the
+Producer through `Umpire.Case.Projection.lower` to the monitor rule `<property>.relation`, with
+the literal read from the realization's action binding. The typed unary example is
+`Temporal/Feature/Workflow/Start/Model.lean` with one such line, produced through
+`Temporal.Case.Realization.workflowStart` as `workflowStartTests-started-case.json`; its rule's
+reads equal the `.1` baseline's up to the rule name and the identity-derived literal, pinned by a
+Go test that names the first differing read, and the hand-written module, its tests, fixture and
+the baseline scaffold are gone. Nine rejections and the crossed-pairing pins (`some false`,
+missing evidence `none`) are in the Model's Tests. Gates: `lint-model` at the `.1` baseline;
+`make umpire-check-regression` exit 0 with 29 passing live identities. Its review is
+a self-review.
+
+**Task .3 is done, 2026-09-20.** The typed Nexus example is `Temporal/Feature/Nexus/Pair/Model.lean`:
+two instances (`instances: 2`) of the caller Model's operation on a machine that keeps the
+asynchronous success path, one `relates:` line over the completed event's `scheduled_event_id` and
+the scheduled event's `event_id`, produced through the caller realization as
+`nexusPairTests-bothComplete-case.json` with one capture rule per instance. Getting there took
+three Umpire changes: a `relates:` operand of an earlier step's event is captured (read at the
+state the step starts from, selected by the evidence source's selector against the literal the
+confirming binding assigns), the Producer places every instance's actions through a `Placement`
+(per-instance ids, slots and entrypoints; the handler is emitted per instance), and the Search no
+longer extends a prefix the Scenario admits no extension of, which is what lets a six-step exact
+sequence over two instances be found within a small bound (the Operations compatibility artifacts
+record explored counts and were regenerated). The four untyped Nexus instruction shapes left the
+protocol, the Go runtime, the Lean authoring surface and the docs, their names are held by the
+retired-vocabulary gate (the two that are also HistoryService method names by their
+protocol-qualified Go spellings), and the hand-written module, its tests, fixture, `register_case`
+line and design sketches are gone. `make proto`'s api-linter step fails on a pre-existing
+`case.proto` field name unrelated to this task; the generated code was produced with `make protoc
+proto-codegen`. Gates: `lint-model` at the `.1` baseline; `make umpire-check-regression` exit 0
+with 29 passing live identities. Its review is a self-review.
+
+**Task .4 is done, 2026-09-20.** The Implementation Link imports the Caller Model in place of
+`Lifecycle` and `Race.Terminal`. Its destination is a Target the link derives from
+`nexusProduct`'s rows (`productTarget`: the rows with a class, `scheduled` and `started` as starts,
+`ends:` as the terminal condition, its own identity), because the product machine's own table is
+not admissible as a Target and starts only at `scheduled`; every element is taken from the checked
+Target's vocabulary, the two classes the product machine cannot see are simply outside the link, and
+no Known Gap was needed. The forward simulation is decided: the System's authoritative cases, the
+Target's soundness laws, a `native_decide` membership each; `checkImplementationLink` is
+`.complete`. The cancellation projection runs over the product Target from `started`, confirms the
+canceled and completed events as `complete-canceled` and `complete-succeeded`, treats the
+cancellation request as irrelevant (the product machine has no such row; fn-79), and closes on
+`ends:`. The evidence tests pin the product Target's identity and fingerprint, the six authority
+seams, and the Caller Model's Queries (`asyncCompletion`'s and `syncCompletion`'s witness facts
+against the link's translated facts). Two findings for later tasks: `productTarget` is
+`@[irreducible]` because the elaborator's implicit-lambda check `whnf`s an expected type that is a
+projection of an admitted Target, which evaluates the whole admission (46 s and a raised heartbeat
+budget, against 6 s); and importing the Caller Model makes `property`, `limits` and `machine`
+keywords in the importing module, so the link's constructor `FeaturePropertyLayer.property` is now
+`featureProperty`. Gates: `lake build` green; `lint-model` at the `.1` baseline; no Go changed. Its
+review is a self-review.
+
+**Task .5 is done, 2026-09-20.** The first-generation Nexus models are gone: `Race` (eight modules,
+three docs), `Lifecycle`, `Operations`, `Observation`, `Experimental`, the six Operations goldens,
+`Nexus/COVERAGE.md`, the `NexusDiscovery` tool and the `TemporalExperimentalTests` root, in the
+order Experimental, Observation, Race, Operations, Lifecycle; the build after the sweep (586
+targets) is the proof that no import remains. The race Model's rows, outcomes, facts, terminal
+slice, three Properties and four Scenarios, and what each becomes on the Caller Model, are fn-79's
+spec text; the variation Space's axes, faults, goals and pinned points and the Exploration's
+policies, limits and session behavior are fn-33's, with `nexusCallerExploration` named as their
+successor. The facade `Temporal.Feature.Nexus` is the Caller and Pair Models; the inspector was
+re-pointed as the plan review decided: its registry is the Caller Model's eight Queries in
+declaration order beside Switch, `inspect` prints a found Query's Artifact (the verify Query reports
+`planning-failure`), `list` prints the registry, `explain` prints one Query's checked lineage, and
+the three Make targets stay. `Temporal.SharedTests` keeps the identity, source and metadata pins
+over `Temporal.Shared` alone; no Temporal-side compatibility family remains and `switch` is pinned
+by `UmpireTests` until .7. Gates: `lake build` green; `lint-model` at the `.1` baseline; no golden
+changed; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
+self-review.
+
+**Task .6 is done, 2026-09-20.** The worker-outage and system-info Cases are produced from command
+Models. The outage Model (`Temporal/Feature/Workflow/Outage/Model.lean`) declares `workerStop` and
+`workerResume` as actions of the `worker` party beside the caller's `startWorkflow` and
+`awaitCompletion`, its machine keeps the state and records nothing at the faults, and its one path
+is stop, start, resume, wait; the workflow realization binds the faults to fault instructions on
+the Case's task-queue role and the wait to the close-event read, and the Case is
+`workerOutageTests-survived`. The outage-order rule (same id `worker-outage-order`, terminal
+`resumed`, `rule_events` deadline 16) is now derived by the Producer from the assembled Program --
+one bounded-liveness rule per role whose injected faults stop then resume, attached to the Query's
+Property -- in its own commit, pinned by a Producer unit test. The system-info Model
+(`Temporal/Feature/System/Info/Model.lean`) makes the one unary call through a new realization
+whose evidence is the instruction-completed Run Event keyed by its protocol code, and the Case is
+`systemInfoTests-answered`. Two findings: a workflow's started and completed history events carry
+no one key (the started event names the run, the completed event names the task that completed
+it), so the outage Model's evidence is the completed event alone and the three steps before it are
+capability Known Gaps -- the same conclusion the hand-written Case reached by reading only the
+completed event; and the old `server-version-present` rule has no Model form, because a `present`
+relation admits only optional fields and oneof members and `server_version` is always present. The
+hand-written modules, `register_case` and the two fixtures are gone; `lint-model` at the `.1`
+baseline; `make umpire-check-regression` exit 0 with 29 passing live identities. Its review is a
+self-review.
+
+**Task .7 is done, 2026-09-20.** `Umpire.Examples.Switch` is declared through the commands under
+`Umpire.Examples.Conventions` (root `umpire`), every exported name a view over `twoState`, its
+admitted Query and its target; the ids moved to `umpire.switch.<kind>.twoState.<member>` with each
+state and fact its own definition, so the two goldens, `SwitchPlanV2.json`, the run-record goldens,
+the experiment fixture, the generated view and the promotion source were regenerated with the diff
+listed on the receipt. The commands' leading words are non-reserved now, so the eleven importers
+build; `Registry.conventionsFor` picks the conventions by namespace prefix. Gates: `lake build`,
+goldens, regression views, inventory, retired vocabulary, Testpilot checks, `lint-model` at the .1
+baseline, `lint-code-fast`, the Go and live regressions.
+
+**Task .8 is done, 2026-09-20.** `lint-model` enforces R7: `Rule.authoringPathIsolation`, a
+direct-import rule over production modules under `Temporal.Feature` and `Umpire.Examples`, with
+`Temporal.Case` and `Temporal.System.Nexus.ImplementationLink` named outside it, rendered as
+`forbidden direct import: <module> -> <owner>`; a planted `Temporal.Feature.Planted -> Umpire.Model`
+violation is asserted byte for byte by the Makefile, the synthetic suite covers the carve-outs, and
+the tree is clean under the rule. Gates: `lint-model` at the .1 baseline.
+
+**Task .9 is done, 2026-09-20, and fn-86 closes.** `UMPIRE4_SPEC.md` carries four drafts under
+GOV-02: AUT-08 without the expert alternative (withdrawn for feature Models by amendment), AUT-07a
+naming the commands as the only authoring path for a feature Model, MOD-16
+(`authoring-path-isolation`) and MOD-11 listing it. `model/README.md`, both architecture
+documents, `model/AUTHORING.md`, `tools/umpire/CONTEXT.md` and `tests/testcore/testpilot/README.md`
+describe one authoring path, and `model/HANDWRITTEN_INVENTORY.md` records its final state with
+every row resolved. Gates: the fn-86 closeout row of the baseline table below.
+
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
 carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
 spec once every Case comes from the commands.
+
+**Also deferred from fn-86 R2:** a field path through a repeated field selecting the element the
+observation correlates to the row's entity instance. `Temporal.Case.FieldPath` rejects every
+repeated-field path today; neither migrated example needed the positive form, so the selection form
+was never built (fn-86 completion review, 2026-09-22).
+
+**Completion reviews, 2026-09-22.** fn-46 and fn-86 each passed `flowctl claude completion-review`
+(opus at high) with SHIP; fn-86's five P2/P3 documentation and tidiness findings are applied. Both
+specs' `spec close` still waits on a clone with runtime task state, because every task reads `todo`
+from the committed snapshot here.
 
 ### Additional open specs
 
@@ -400,9 +727,25 @@ These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; .2 and .3 start after fn-86 R6, because their root list pins `TemporalExperimentalTests`, which fn-86 deletes; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. Task .1 (the shared loader) is done. **Task .2 is done, 2026-09-21:** `ModelLint.ModuleIndex` builds the pure `temporal-model-module-index/v1` document, with the root lists frozen against the tree after fn-86 R6 (35 facades, 13 test roots, 10 classification spellings; the plan's corrupted facade entry and two absent test roots are gone, `Temporal.Case.Syntax` and `Umpire.Command` are in), and a real-tree probe indexes all 356 first-party modules without an issue. **Task .3 is done, 2026-09-21:** `temporal-model-module-index` (root preflight through pinned Lake root loading, buffered final write) with `make umpire-export-model-module-index` and `make umpire-check-model-module-index`, whose process suite runs the real warm, stale, cold and relocated Lake paths, wrong roots and injected failures with each stream captured. All three tasks are done; the spec waits on its completion review and `spec close` on a clone with runtime task state. |
 
 ## Gate baselines
+
+Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-86 closeout:
+
+| Gate | This session |
+| ---- | ------------ |
+| `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** (the Caller Model's seven Queries under two switch values, the pair, the workflow-start and worker-outage Cases; the system-info Case is an offline artifact identity, not a live one) |
+| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report the two generated `Temporal/API/Proto.lean` findings and 40 warnings, none new |
+| `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=9484405 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records |
+
+Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-85 closeout:
+
+| Gate | This session |
+| ---- | ------------ |
+| `make umpire-check-regression` | exit 0 — 614 Lean jobs, the offline checks, **29 passing live identities** (nine at the fn-87 closeout: the Caller Model's seven Queries under two switch values replaced the async-Nexus Case) |
+| `make lint-model` | the `.11` baseline: two errors in generated `Temporal/API/Proto.lean` and 41 warnings (generated binders, deprecations, the two `enum` binders in `Caller/Model.lean`), none new |
+| `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=39a61b4 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base, as the 2026-09-13 row records |
 
 Re-measured 2026-09-13 on a four-core, 16 GB cloud session at the fn-87 closeout, with the
 pre-installed toolchain (`/opt/temporal-toolchain`) on `PATH`:
@@ -463,10 +806,10 @@ block replanning or execution.
 
 | Spec                                                                                              | Dependencies                       | Next action                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md)    | fn-40, fn-64, fn-69, fn-84, and **fn-85** | Re-plan on fn-85: an exploratory set's coverage goal (rows, result classes, members of claimed input classes) is the candidate space, and a divergent class member is the counterexample Promotion keeps. Then review whole-Case candidates, serial coordination through Testpilot, lost iterations, semantic coverage, and bounded 10x behavior. |
-| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md)             | fn-5, fn-64, fn-69, **fn-85** and **fn-87** | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
-| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, fn-69 and **fn-87**  | Review offline Testpilot Case/Profile/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run.                                                                                  |
-| [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md)      | **fn-26**; fn-48, fn-64, fn-69, fn-83 .7, and fn-85 | After fn-26 ships, review external policy and credentials, serial Testpilot Runs, leases, lost Runs, reconciliation without redispatch, and publication. It runs an fn-85 canary set and consumes fn-83's provisioning package. |
+| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md)    | fn-40, fn-64, fn-69, fn-84, and **fn-85** | **Re-planned on fn-85, 2026-09-21.** The candidate space is `nexusCallerExploration`'s enumerated coverage targets; a candidate is a target Query (exact Scenario prefix plus an action Property, admitted through `Umpire.Command.check`) produced as a whole Case under the caller Realization; a `satisfied` Run credits the planned witness path; a violated class-member target is the counterexample Promotion keeps as a proposal. Six tasks rewritten in the order .1, .2, .3, .6, .4, .5. Plan review through `flowctl claude plan-review` (opus at high, 2026-09-22): two NEEDS_WORK rounds (thirteen and two findings, all applied) then SHIP, recorded in the spec's Flow receipt. **Task .1 is done, 2026-09-22:** `Umpire.Exploration` is re-founded on the exploratory set (`Target`, `Ledger`, `Campaign`, `Session`; the Space-based modules and their tests are gone, `Umpire.Variations` stays), `Umpire.Command.checkAdmitted` keeps the admission beside the checked Model, the Switch example carries an exploratory set, and the UMPIRE4 spec carries the GOV-02 drafts for the Exploration and Variations concepts. One refinement surfaced by the counter Model: the prefix to a row may take the row's action earlier only with the row's outcome, since a transition contract binds every occurrence. **Task .2 is done, 2026-09-22:** `Temporal.Tool.ExplorationBridge` (`umpire-explore`, non-default) serves `initialize`, `next`, `observe` and `finish` frames over the caller set's campaign, each candidate crossing as one whole Case under its own identity; `SetEntry` records the machine, the `case` block accepts an exploratory set and emits the realization, claims, catalog, relations and timers; `make umpire-check-exploration-bridge` runs the Lean tests and the Go proof that `Prepare` accepts the first realizable row's Case. Two findings recorded in the spec: the caller realization binds three of the eight `schedule` members, so unrealizable candidates are credited `unrealizable`, a ledger status of their own, without a Run, and a history read with no history rule lifts nothing. Implementation review through `flowctl claude impl-review`: four NEEDS_WORK rounds applied, then SHIP. **Task .3 is done, 2026-09-22:** `tools/umpire/binding` holds the deployment binding lifted from `umpire-run` (campaign-scoped `Open`, candidate-scoped `Bind`; `umpire-run` unchanged in behavior and exit codes), `tools/umpire/campaign` holds the bridge client (one request outstanding, exact echo, byte caps) and `RunCandidate` (preparation decided before any Driver, one Run, cleanup observed, closed Run back to the bridge). The integration proof against a development cluster did not run in the cloud session (no cluster; it skips and says so). Implementation review through `flowctl claude impl-review`: three NEEDS_WORK rounds applied, then SHIP. **Task .6 is done, 2026-09-22:** `campaign.Session` is the one-value coordinator state machine (every transition consumes its source; caps enforced before the action they bound; stop names the lost iteration and synthesizes nothing) and `campaign.Drive` the serial loop over it; implementation review: one NEEDS_WORK round applied, then SHIP. **Task .4 is done, 2026-09-22:** `umpire-fuzz run` (`tools/umpire/cmd/umpire-fuzz`) drives one campaign over the coordinator against the deployment `umpire-run` names, writes one canonical JSON summary (terminal, counters, the bridge's ledger and coverage, counterexamples, one line per candidate) and exits 0 exhausted, 1 counterexample or violated coverage, 2 cap or stop, 3 tooling failure; `make umpire-fuzz` and `make umpire-fuzz-run SET=<set>` wrap it, documented beside `umpire-run` in `model/README.md`. Implementation review: four NEEDS_WORK rounds applied, then SHIP; the deployment flags and the command-edge helpers are shared with `umpire-run` through `tools/umpire/binding` and `tools/umpire/internal/cli`. **fn-33 is closed, 2026-09-22:** completion review (`flowctl claude completion-review`, opus at high) SHIP with one P3 recorded and not applied (the 10x Model's one-Search-per-candidate property holds by construction, since `Campaign.next` admits once per planned target, and is not asserted by count); `flowctl spec close` written. **Task .5 is done, 2026-09-22:** determinism pinned on both sides (a scripted observation stream replayed through two Lean campaigns and the bridge's frames byte for byte, `Drive` and `umpire-fuzz run` twice in Go, an early stop as the completed prefix), pinned regressions shown outside the campaign (the switch's compiled regression Query is no candidate and consumes no cap), and the counterexample's proposal: the campaign retains the violated candidate, `Umpire.Exploration.Promotion` compiles it through `Umpire.Promotion` under fresh names keyed by its digest and seals the same SHA-256 every run, the bridge's summary carries it, and `umpire-fuzz run --promotion-root` writes it only outside the model. Implementation review: SHIP in one round, its P3 applied. |
+| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md)             | fn-5, fn-64, fn-69, **fn-85** and **fn-87** | **Re-planned on fn-85, fn-86, fn-87 and fn-33, 2026-09-22**, resolving the MAJOR_RETHINK: the violation key is Contract-relative (violated rules, terminal states, supporting event roles) and the Case identity is reported beside it, never in it; the negative Case is a labeled control Model beside the caller Model, produced through the caller Realization and proved violated twice against the test cluster before any reducer (task .2); offline semantic replay is `PreparedCase.Evaluate` on the facade, a class and field of its own, and promotion is `Umpire.Promotion.compilePromotionSource` from the admitted Query the Lean replay bridge recovers, review-only. Eight tasks rewritten in the order .1 to .8. Plan review through `flowctl claude plan-review` (opus at high): round one NEEDS_WORK with eleven findings, all applied (the key reads Definition IDs and the terminal step's evidence, not the Verdict's accumulated support; the control keeps the platform's real row and adds the one its Query selects; `binding.Campaign.Prepare` prepares without a deployment; the fixture and module go through the conformance generator and `Temporal.Feature.Nexus`); round two NEEDS_WORK with ten findings, all applied (a produced Case lifts only its witness's evidence, so the Producer first declares every result's evidence on witnessed rows, task .2, before the control is proved; the subject's identity is recorded beside the Run by `umpire-run --record`; `binding.Prepare` is free of `Open`; the evaluator reports each violated rule's violating evidence; an undecided edit ends the reduction incomplete); round three NEEDS_WORK with eight findings, all applied (the replay Profile's name is the recorded Run's, the catalog and bindings come from the flags, a rejected edit counts as inapplicable, the reducer is one last-first sweep, `umpire-fuzz --record-root` makes a counterexample a subject, the shared writer resolves symlinks and creates exclusively); round four NEEDS_WORK with five findings, all applied (a candidate's digest is its Plan checksum, a failed offline replay rejects the subject, `STOPPED_BY_MONITOR` is the only violated disposition, the live gate builds the replay bridge); round five NEEDS_WORK with four findings, all applied (the canonical Case form is the Lean renderer's compact ProtoJSON, reached from a fixture by compaction; the pair rule and the one-Run retry are stated); round six **SHIP** (2026-09-22), its six P2 and two P3 notes folded into the plan. **Task .1 is done, 2026-09-22:** `tools/umpire/replay` admits a subject (canonical Case, recorded Run with its Profile identity, admissible violated form, `stale` by fingerprint, offline replay through the facade's new `PreparedCase.Evaluate`) and derives the Contract-relative violation key in Definition IDs from the violating evidence the evaluator now records; `binding.Prepare` prepares without a deployment; `umpire-run --record` and `umpire-fuzz --record-root` write recorded Runs. Implementation review: one NEEDS_WORK round applied, then SHIP. **Tasks .2 and .3 are done, 2026-09-23:** the Producer declares the evidence of every result of a witnessed row (all fixtures byte-identical), and the negative control `Temporal.Feature.Nexus.Control` is produced through the caller realization, proved violated twice against the test cluster with one Contract-relative key, and its recorded Run pins the correlated key under `tools/umpire/replay/testdata`. **Task .4 is done, 2026-09-23:** `replay.Rerun` classifies two fresh isolated reruns of a subject or candidate by the pair rule. **Task .5 is done, 2026-09-23:** `Umpire.Replay` owns the ordered `dropPrefixStep` edits and the monotonic reduction, and `umpire-replay-bridge` (over the shared `Temporal.Tool.Bridge`) admits a subject by its re-produced bytes and hands out whole candidate Cases named by their Plan checksums. **Task .6 is done, 2026-09-23:** `replay.Reducer` drives one bounded sweep over the bridge through the shared `campaign.Conn` transport, with every limit named and the same classes giving the same report bytes. **Task .7 is done, 2026-09-23:** `Umpire.Command.Promotion.propose` is the one proposal compiler both bridges call, and one writer in `tools/umpire/internal/cli` writes proposals outside the model, never replacing a file. **Task .8 is done, 2026-09-23:** `umpire-replay run` replays, reruns, reduces and proposes under fixed limits with one canonical report, and the negative control runs end to end through `umpire-run --record` and `umpire-replay run` in the live suite. **Closed, 2026-09-23:** completion review SHIP (R1 to R10 met), its one P3 applied (a Case that no longer prepares statically is a `stale` admission rejection). |
+| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, fn-69 and **fn-87**  | **Re-planned on fn-85 and fn-22, 2026-09-23:** the subject is fn-22's canonical Case and recorded Run, admitted strictly without preparing (the recorded catalog fingerprint is compared with the tree's static catalog); Lean declares the Evaluation Profiles and renders them to canonical JSON, Go assesses against them and renders the receipt, published exclusively and idempotently; `umpire-assess run` is the command. Plan review through `flowctl claude plan-review` (opus at high): rounds one to eight NEEDS_WORK, every finding applied (among them: the recorded Run now names the canonical Case it ran, so a regenerated Case with the same IDs is `crossed`; only the disposition/Verdict agreement is shared with replay; publication inspects an existing name without following links); the round cap was reset because round six changed the recorded-Run format; round nine **SHIP** (2026-09-23), its notes folded in. **Implemented and closed, 2026-09-23:** `Umpire.Evaluation` and `Temporal.Evaluation.Local` declare the Profiles Lean renders for Go (task .1); the recorded Run names the canonical Case it ran and lives in a leaf package both admissions share, and `tools/umpire/evaluation` admits strictly and embeds the Profiles (.2); `Assess` decides from recorded values alone (.3); `Render` and `cli.Publish` give one canonical receipt published by hard link, exclusively and idempotently (.4); `umpire-assess run` is the command (.5); the live suite records and assesses the caller Model's asyncCompletion Case (accepted, then already published) and rejects the negative control, and the docs state the claim (.6). Every implementation review ended SHIP, one after a NEEDS_WORK round (.5); the completion review is SHIP. Assessment never creates or replays a Run. |
+| [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md)      | **fn-26**; fn-48, fn-64, fn-69, fn-83 .7, and fn-85 | **Re-planned on fn-85, fn-83, fn-22 and fn-26, 2026-09-23:** the fixed Case is the Caller Model's `nexusCallerCanary.syncCompletion`, pinned under `tools/canary`; the canary policy (Case identity, coordinate digests, trusted ref, Limits) is data under `tools/canary`; the `production-canary` Evaluation Profile is Lean's, rendered only for the canary, and the canary provenance (with `releaseEligibility: false`) is canary's; one lease workflow fences serial Runs; recovery never dispatches; each iteration is recorded, admitted, assessed and published through fn-26 unchanged; `umpire-canary run`/`reconcile` and a manual protected workflow are the surface. Plan review through `flowctl claude plan-review` (opus at high): rounds one to eight NEEDS_WORK, every finding applied (among them: Runs are fenced by a wrapping Driver that signals each Run ID to the lease; the lease is the server-side guard across fresh runners and reconcile acts only on its own job's lease; recorded Runs are never written; the harness is a separate build; the Driver Profile is hand-authored, as fn-80 decided; the production coordinates are the operator's to commit); the round cap was reset because those rounds changed the plan's core contracts; round nine **SHIP** (2026-09-23), its notes folded in. |
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -480,7 +823,8 @@ on an explicit user request; autonomous delivery approval does not override this
 fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
 and bounded cleanup cancellation behavior stays in scope. On resume it re-plans on fn-85
 (entities, actions, sets) and takes the cancel Query and the Testpilot cancel instructions that
-fn-85 left out; its re-planning note in Flow lists them.
+fn-85 left out; its re-planning note in Flow lists them, and its `## Scope` records the
+cancellation-race behavior fn-86 .5 deleted with the Race prototype (2026-09-20).
 
 
 **fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously

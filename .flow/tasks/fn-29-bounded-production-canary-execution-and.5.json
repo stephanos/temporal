@@ -12,6 +12,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.5.md",
   "status": "todo",
-  "title": "Preserve exact canary Run and Verdict admission",
+  "title": "Record each iteration and admit it through fn-26",
   "updated_at": "2026-09-04T18:37:26.872451Z"
 }

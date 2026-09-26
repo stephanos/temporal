@@ -22,16 +22,16 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	// build of the CLI is not what that budget is for.
 	binary := buildUmpireRun(t)
 	env := newTestpilotTestEnvironment(t)
-	endpointName := "umpire-run-async-nexus-endpoint"
+	endpointName := "umpire-run-nexus-caller-endpoint"
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	command := exec.CommandContext(ctx, binary,
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "async-nexus-case.json"),
+		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
-		"--namespace", "umpire-run-async-nexus",
-		"--task-queue", "umpire-run-async-nexus-queue",
+		"--namespace", "umpire-run-nexus-caller",
+		"--task-queue", "umpire-run-nexus-caller-queue",
 		"--nexus-endpoint", endpointName,
 		"--create",
 		"--timeout", "2m",
@@ -66,7 +66,7 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 	defer cancel()
 
 	command := exec.CommandContext(ctx, binary,
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "async-nexus-case.json"),
+		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", "127.0.0.1:1",
 		"--http", "127.0.0.1:1",
 		"--namespace", "umpire-run-unreachable",
@@ -85,10 +85,17 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 // rather than an in-process call.
 func buildUmpireRun(t *testing.T) string {
 	t.Helper()
-	binary := filepath.Join(t.TempDir(), "umpire-run")
-	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/umpire-run")
+	return buildUmpireCommand(t, "umpire-run")
+}
+
+// buildUmpireCommand builds one command under tools/umpire/cmd into the test's temporary
+// directory.
+func buildUmpireCommand(t *testing.T, name string) string {
+	t.Helper()
+	binary := filepath.Join(t.TempDir(), name)
+	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/"+name)
 	build.Env = os.Environ()
 	output, err := build.CombinedOutput()
-	require.NoError(t, err, "build umpire-run: %s", output)
+	require.NoError(t, err, "build %s: %s", name, output)
 	return binary
 }

@@ -11,6 +11,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.7.md",
   "status": "todo",
-  "title": "Expose bounded replay orchestration and reporting",
-  "updated_at": "2026-09-04T18:37:21.597647Z"
+  "title": "Emit the checked review-only regression proposal",
+  "updated_at": "2026-09-22T22:05:05.997632Z"
 }

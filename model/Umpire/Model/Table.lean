@@ -245,6 +245,10 @@ structure FiniteModelIdentity (Setup State Action Outcome Fact : Type) where
   actionId : Action → DefinitionId
   outcomeId : Outcome → DefinitionId
   factId : Fact → DefinitionId
+  /-- The fields one state holds, each as a model value under the field's own definition. A Model
+  whose states are atoms holds none; a machine's structured state holds one per field, so a Property
+  reads `phase` or `attempts` apart from the state that carries them. -/
+  stateFields : State → List ModelValue := fun _ => []
 
 namespace FiniteMachine
 
@@ -506,6 +510,42 @@ def machine [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
       simp [actionEq, resultsEq]
 }
 
+/-- The derived machine begins where the table's rows for that setup say it does. -/
+theorem machine_initialStates_mem [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Observation]
+    (validated : CheckedTable Setup State Action Outcome Observation)
+    (metadata : MachineMetadata) (setup : Setup) (state : State) :
+    state ∈ (validated.machine metadata).initialStates setup ↔
+      ∃ row ∈ validated.table.initial, row.setup = setup ∧ state ∈ row.states := by
+  simp only [machine, initialStates, List.mem_flatMap]
+  constructor
+  · rintro ⟨row, rowMember, stateMember⟩
+    by_cases setupEq : row.setup = setup
+    · simp [setupEq] at stateMember
+      exact ⟨row, rowMember, setupEq, stateMember⟩
+    · simp [setupEq] at stateMember
+  · rintro ⟨row, rowMember, setupEq, stateMember⟩
+    exact ⟨row, rowMember, by simp [setupEq, stateMember]⟩
+
+/-- The derived machine steps exactly where a row of the table says it does. -/
+theorem machine_steps_mem [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+    [DecidableEq Outcome] [DecidableEq Observation]
+    (validated : CheckedTable Setup State Action Outcome Observation)
+    (metadata : MachineMetadata) (state : State) (action : Action)
+    (result : Step State Outcome Observation) :
+    result ∈ (validated.machine metadata).steps state action ↔
+      ∃ row ∈ validated.table.transitions,
+        row.source = state ∧ row.action = action ∧ result ∈ row.results := by
+  simp only [machine, steps, List.mem_flatMap]
+  constructor
+  · rintro ⟨row, rowMember, resultMember⟩
+    by_cases pairEq : row.source = state ∧ row.action = action
+    · simp [pairEq] at resultMember
+      exact ⟨row, rowMember, pairEq.1, pairEq.2, resultMember⟩
+    · simp [pairEq] at resultMember
+  · rintro ⟨row, rowMember, sourceEq, actionEq, resultMember⟩
+    exact ⟨row, rowMember, by simp [sourceEq, actionEq, resultMember]⟩
+
 /-- Package the exact derived machine through the existing ordinary Target authoring boundary. -/
 def draftModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Observation]
@@ -677,8 +717,13 @@ def checkModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     (Outcome := ModelValue)
     (Fact := ModelValue)
     lowered |>.mapError TableAdmissionError.invalidTable
-  Umpire.checkModel (validated.draftModel definition composition)
+  let checked ← Umpire.checkModel (validated.draftModel definition composition)
     |>.mapError TableAdmissionError.invalidTarget
+  -- The fields travel with the state they belong to, looked up by the lowered value the trace
+  -- carries, so the evaluator that reads a state can read its fields without a second identity.
+  let lowered := table.states.map fun entry =>
+    (ModelValue.named (identity.stateId entry.value) entry.key, identity.stateFields entry.value)
+  pure (checked.withStateFields fun state => (lowered.lookup state).getD [])
 
 /-- Check a table whose carriers stay typed, without the ModelValue lowering `checkModel` applies. -/
 def checkTypedModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]

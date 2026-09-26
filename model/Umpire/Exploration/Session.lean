@@ -1,67 +1,62 @@
-import Umpire.Exploration.Engine
+import Umpire.Exploration.Campaign
 
-/-! Pure process-local sequencing for one checked bounded Exploration result. -/
+/-!
+# One candidate at a time
 
-namespace Umpire
+A session is a campaign with at most one candidate outstanding. `next` refuses while one is out;
+`observe` admits only the exact binding of the one that is, with what its Run said, and rejects a
+crossed, stale or malformed binding without touching the campaign.
+-/
 
-/-- One selected Plan in the process-local session's fixed execution order. -/
-structure CandidateCursorCandidate where
-  private mk ::
-  plan : Plan
-  deriving BEq, DecidableEq, Repr
+namespace Umpire.Exploration
 
-/-- The semantic identity of one process-local session candidate. -/
-def CandidateCursorCandidate.identity
-    (candidate : CandidateCursorCandidate) : ArtifactChecksum :=
-  candidate.plan.artifactChecksum
+open Umpire.Command
 
-/-- A fixed selected order with at most one candidate awaiting exact admission. -/
-structure CandidateCursor where
-  private mk ::
-  remaining : List CandidateCursorCandidate
-  outstanding : Option CandidateCursorCandidate
-  deriving BEq, DecidableEq, Repr
+variable {Setup State Action Outcome Fact : Type}
+variable [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+variable [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
+variable [DecidableEq Outcome] [DecidableEq Fact]
 
-private def sessionCandidateOfPinned
-    (pinned : PinnedRegression) : CandidateCursorCandidate := {
-  plan := pinned.plan
-}
+structure Session (model : DeclaredModel Setup State Action Outcome Fact) where
+  campaign : Campaign model
+  outstanding : Option (Candidate model) := none
 
-private def sessionCandidateOfExploratory
-    (candidate : ExplorationCandidate) : CandidateCursorCandidate := {
-  plan := candidate.plan
-}
+namespace Session
 
-/-- Check and select one Exploration request before opening its process-local candidate session. -/
-def beginSession
-    (request : ExplorationRequest LawStatement)
-    (base : AdmittedQuery request.space.baseQuery.target) :
-    Except ExplorationError CandidateCursor := do
-  let result ← explore request base
-  pure {
-    remaining := result.pinned.map sessionCandidateOfPinned ++
-      result.exploratory.map sessionCandidateOfExploratory
-    outstanding := none
-  }
+variable {model : DeclaredModel Setup State Action Outcome Fact}
 
-/-- Return the next fixed candidate and a session that must observe it before advancing. -/
-def CandidateCursor.next
-    (session : CandidateCursor) : Option (CandidateCursorCandidate × CandidateCursor) :=
-  match session.outstanding, session.remaining with
-  | none, candidate :: remaining =>
-      some (candidate, { remaining, outstanding := some candidate })
-  | _, _ => none
+/-- Open a session over a checked campaign. -/
+def begin (campaign : Campaign model) : Session model := { campaign }
 
-/-- Admit exactly the immutable binding for the outstanding candidate. -/
-def CandidateCursor.observe
-    (session : CandidateCursor)
-    (bindings : List ArtifactBinding) : Option CandidateCursor :=
+/-- What `next` returns: the candidate now outstanding, exhaustion, a tooling failure, or nothing
+because a candidate is already outstanding. -/
+inductive Step (model : DeclaredModel Setup State Action Outcome Fact) where
+  | candidate (candidate : Candidate model) (session : Session model)
+  | exhausted (session : Session model)
+  | toolingFailure (failure : ToolingFailure) (session : Session model)
+  | outstanding
+
+def next (session : Session model) : Step model :=
+  match session.outstanding with
+  | some _ => .outstanding
+  | none =>
+      match session.campaign.next with
+      | .candidate candidate campaign => .candidate candidate { campaign, outstanding := some candidate }
+      | .exhausted campaign => .exhausted { campaign, outstanding := none }
+      | .toolingFailure failure campaign => .toolingFailure failure { campaign, outstanding := none }
+
+/-- Admit exactly the outstanding candidate's binding with its observation, credited to its
+planned path or to the `covers` named instead. -/
+def observe (session : Session model) (bindings : List ArtifactBinding) (observation : Observation)
+    (covers : Option (List CoverageTarget) := none) : Option (Session model) :=
   match session.outstanding, bindings with
   | some candidate, [binding] =>
-      if binding == candidate.plan.artifactBinding then
-        some { session with outstanding := none }
-      else
-        none
+      if binding == candidate.binding then
+        some { campaign := session.campaign.observe candidate observation (covers.getD candidate.covers)
+               outstanding := none }
+      else none
   | _, _ => none
 
-end Umpire
+end Session
+
+end Umpire.Exploration

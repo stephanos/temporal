@@ -23,29 +23,31 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 		return contract.InvokeRPC
 	case *testpilotspb.Instruction_AwaitSlot:
 		return contract.AwaitSlot
-	case *testpilotspb.Instruction_CompleteNexusOperation:
-		return contract.CompleteNexusOperation
-	case *testpilotspb.Instruction_StartNexusOperation:
-		return contract.StartNexusOperation
 	case *testpilotspb.Instruction_AwaitInstruction:
 		return contract.Await
 	case *testpilotspb.Instruction_Finish:
 		return contract.Finish
-	case *testpilotspb.Instruction_RespondNexus:
-		return contract.RespondNexus
 	case *testpilotspb.Instruction_InjectFault:
 		return contract.InjectFault
+	case *testpilotspb.Instruction_WorkflowCommand:
+		return contract.WorkflowCommand
+	case *testpilotspb.Instruction_NexusHandlerReply:
+		return contract.NexusHandlerReply
+	case *testpilotspb.Instruction_NexusOperationCompletion:
+		return contract.NexusOperationCompletion
+	case *testpilotspb.Instruction_ReadEvidence:
+		return contract.ReadEvidence
 	default:
 		return 0
 	}
 }
 func opcodeContext(opcode contract.Opcode) contract.EntrypointKind {
 	switch opcode {
-	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault:
+	case contract.InvokeRPC, contract.AwaitSlot, contract.InjectFault, contract.NexusOperationCompletion, contract.ReadEvidence:
 		return contract.ControllerEntrypoint
-	case contract.StartNexusOperation, contract.Await, contract.Finish:
+	case contract.Await, contract.Finish, contract.WorkflowCommand:
 		return contract.WorkflowEntrypoint
-	case contract.RespondNexus:
+	case contract.NexusHandlerReply:
 		return contract.NexusHandlerEntrypoint
 	default:
 		return 0
@@ -60,6 +62,9 @@ func (a *admission) bindInstructions() error {
 		return err
 	}
 	if a.outcomeTypes.text, err = a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_TEXT)); err != nil {
+		return err
+	}
+	if a.outcomeTypes.any, err = a.prepared.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}); err != nil {
 		return err
 	}
 	for _, g := range a.prepared.graphs {
@@ -89,43 +94,41 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
 			return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 		}
-	case contract.CompleteNexusOperation:
-		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetHandleSlotId()]
-		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a handle Slot")
-		}
-	case contract.StartNexusOperation:
-		start := n.source.Instruction.GetStartNexusOperation()
-		if start == nil || !validID(start.Service) || !validID(start.Operation) {
-			return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus start")
-		}
-		if err := a.role(start.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
-			return err
-		}
 	case contract.Await:
-		return bindAwait(g, n)
+		return a.bindAwait(g, n)
 	case contract.Finish:
 		if n.source.Instruction.GetFinish() == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 		}
-	case contract.RespondNexus:
-		return a.bindNexusResponse(g, i, n)
 	case contract.InjectFault:
 		return a.bindFault(g, n)
+	case contract.WorkflowCommand:
+		return a.bindWorkflowCommand(g, n)
+	case contract.NexusHandlerReply:
+		return a.bindNexusHandlerReply(g, i, n)
+	case contract.NexusOperationCompletion:
+		return a.bindNexusOperationCompletion(g, n)
+	case contract.ReadEvidence:
+		return a.bindReadEvidence(g, n)
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
 	return nil
 }
-func bindAwait(g *graph, n *node) error {
+
+// bindAwait admits an Await of an earlier Nexus start of the same entrypoint. A scheduled command's
+// result is whatever payload the handler answered, so its VALUE is that payload, whole.
+func (a *admission) bindAwait(g *graph, n *node) error {
 	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
 	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
 		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
-	if InstructionOpcode(g.nodes[dependency].source.Instruction) != contract.StartNexusOperation {
-		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires StartNexusOperation")
+	started := g.nodes[dependency].source.Instruction
+	if !startsNexusOperation(started) {
+		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus schedule command")
 	}
+	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.any
 	return nil
 }
 
@@ -165,25 +168,6 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	n.method = method
 	return a.bindResponseReads(g, i, n)
 }
-func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
-	response := n.source.Instruction.GetRespondNexus()
-	if response == nil || response.Kind < testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS || response.Kind > testpilotspb.NEXUS_RESPONSE_KIND_ERROR {
-		return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus response")
-	}
-	if response.Kind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
-		typ, exists := a.prepared.slots[response.HandleSlotId]
-		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a handle Slot")
-		}
-		if err := a.addWriter(response.HandleSlotId, slotWriter{graph: g, node: i}); err != nil {
-			return err
-		}
-	} else if response.HandleSlotId != "" {
-		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish handles")
-	}
-
-	return nil
-}
 
 // A fault names the task-queue role whose worker the Driver stops or resumes; the role's own
 // resource binding identifies the queue, so the instruction carries no queue of its own.
@@ -202,13 +186,13 @@ func (a *admission) bindFault(g *graph, n *node) error {
 
 // bindOutcomes gives a node the outcome fields its instruction produces: every instruction a status and
 // a detail; a controller protocol effect its protocol code; a workflow or Nexus-handler instruction its
-// SDK failure code; and an awaited Nexus operation its text result as the value. A Case declares none
-// of them. An RPC response is read only through response reads, and a Finish or RespondNexus result
-// ends its activation, so neither is an outcome value.
+// SDK failure code; and an awaited Nexus operation its result as the value. A Case declares none of
+// them. An RPC response is read only through response reads, and a Finish result or a
+// NexusHandlerReply ends its activation, so neither is an outcome value.
 func (a *admission) bindOutcomes(g *graph, n *node) error {
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS] = a.outcomeTypes.status
 	switch {
-	case n.opcode == contract.InvokeRPC || n.opcode == contract.CompleteNexusOperation:
+	case n.opcode == contract.InvokeRPC || n.opcode == contract.NexusOperationCompletion || n.opcode == contract.ReadEvidence:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
 	case g.context != contract.ControllerEntrypoint:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
@@ -216,9 +200,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 		// Other controller instructions (AwaitSlot, InjectFault) have neither code.
 	}
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL] = a.outcomeTypes.text
-	if n.opcode == contract.Await {
-		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.text
-	}
+	// An Await's VALUE is typed by the start it awaits, in bindAwait.
 	return nil
 }
 func (a *admission) addWriter(id string, writer slotWriter) error {
@@ -360,6 +342,9 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 	return lift, nil
 }
 func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
+	if source.GetEvidenceId() != "" {
+		return a.bindDeclaredRule(g, n, location, source, typ)
+	}
 	if !validID(source.GetEvidenceSource()) || !validID(source.GetKind()) {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
@@ -373,18 +358,18 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	if err != nil {
 		return nil, err
 	}
-	operation, err := a.bindEvidencePath(g, n, typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
+	operation, err := a.bindEvidencePath(nodePath(g, n), typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
 	if err != nil {
 		return nil, err
 	}
 	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
 	// a typed scalar the portable decoder reads as text, unsigned integer or boolean.
-	scope, err := a.bindEvidenceBindings(g, n, location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
+	scope, err := a.bindEvidenceBindings(nodePath(g, n), location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
 	if err != nil {
 		return nil, err
 	}
-	fields, err := a.bindEvidenceBindings(g, n, location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
+	fields, err := a.bindEvidenceBindings(nodePath(g, n), location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
 	if err != nil {
 		return nil, err
 	}
@@ -410,15 +395,15 @@ var evidenceIntegerKinds = []testpilotspb.ScalarKind{
 	testpilotspb.SCALAR_KIND_SFIXED64,
 }
 
-// bindEvidenceBindings binds the named expressions at location. Each is a text literal or a path
-// read directly from the projected value; the lift reads its paths itself, so no other expression is
-// admitted.
-func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+// bindEvidenceBindings binds the named expressions at location, rejecting at errorPath. Each is a
+// text literal or a path read directly from the projected value; the lift reads its paths itself,
+// so no other expression is admitted.
+func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
 	for index, source := range sources {
 		if source == nil || !validID(source.GetFieldId()) || seen[source.GetFieldId()] {
-			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires one unique declared field")
+			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires one unique declared field")
 		}
 		seen[source.GetFieldId()] = true
 		site := ir.Site{Context: ir.EvidenceLiftContext, Path: fmt.Sprintf("%s[%d].value", location, index)}
@@ -429,36 +414,36 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ
 		case *testpilotspb.Expression_Literal:
 			literal, isText := supply.Literal.GetValue().(*testpilotspb.Value_TextValue)
 			if !isText {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a text")
+				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a text")
 			}
 			text := literal.TextValue
 			if text == "" {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
+				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: text})
 		case *testpilotspb.Expression_Path:
 			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
-				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+				return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 			}
-			path, err := a.bindEvidencePath(g, n, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
+			path, err := a.bindEvidencePath(errorPath, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
 			if err != nil {
 				return nil, err
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), path: path})
 		default:
-			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 		}
 	}
 	return bound, nil
 }
-func (a *admission) bindEvidencePath(g *graph, n *node, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
+func (a *admission) bindEvidencePath(errorPath string, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
 	path, err := a.prepared.catalog.BindPath(typ, location, source, a.expressionLimits())
 	if err != nil {
 		return nil, err
 	}
 	read := path.Type()
 	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence binding reads an unsupported scalar")
+		return nil, invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
 	}
 	return path, nil
 }
@@ -595,30 +580,29 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return bindIn(scope, value, field, expected)
 	}
 	switch n.opcode {
-	case contract.InvokeRPC:
+	case contract.InvokeRPC, contract.ReadEvidence:
 		inputScope := maps.Clone(scope)
 		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
-		err = a.bindAssignments(g, n, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+		sources, field := n.source.Instruction.GetInvokeRpc().GetRequestAssignments(), "instruction.invoke_rpc"
+		if n.opcode == contract.ReadEvidence {
+			sources, field = n.source.Instruction.GetReadEvidence().GetRequestAssignments(), "instruction.read_evidence"
+		}
+		err = a.bindAssignments(g, n, sources, field, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
 			return bindIn(inputScope, value, field, expected)
 		})
 	case contract.AwaitSlot:
 		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
 			return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
 		}
-	case contract.CompleteNexusOperation:
-		instruction := n.source.Instruction.GetCompleteNexusOperation()
-		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.HandleSlotId}].Available {
+	case contract.NexusOperationCompletion:
+		if !scope[ir.Reference{Kind: ir.SlotReference, ID: n.source.Instruction.GetNexusOperationCompletion().GetHandleSlotId()}].Available {
 			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 		}
-		n.input, err = bind(instruction.Result, "instruction.complete_nexus_operation.result", nil)
-	case contract.StartNexusOperation:
-		n.input, err = bind(n.source.Instruction.GetStartNexusOperation().Input, "instruction.start_nexus_operation.input", nil)
 	case contract.Finish:
 		n.input, err = bind(n.source.Instruction.GetFinish().Result, "instruction.finish.result", nil)
-	case contract.RespondNexus:
-		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, "instruction.respond_nexus.result", nil)
-	case contract.Await, contract.InjectFault:
-		// A fault names its target role statically; it binds no Program expression.
+	case contract.Await, contract.InjectFault, contract.WorkflowCommand, contract.NexusHandlerReply:
+		// A fault names its target role statically and a typed instruction carries its message
+		// whole; neither binds a Program expression.
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
@@ -637,16 +621,18 @@ func expressionPath(g *graph, n *node, field string) string {
 	return fmt.Sprintf("program.entrypoints[%s].instructions[%s].%s", g.id, n.source.InstructionId, field)
 }
 
-func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.Expression, string, *ir.Type) (*ir.Expression, error)) error {
+// bindAssignments binds the request assignments of an instruction that builds a request for
+// n.method; field locates the instruction arm the assignments sit under.
+func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.RequestAssignment, field string, bind func(*testpilotspb.Expression, string, *ir.Type) (*ir.Expression, error)) error {
 	input, err := messageType(a.prepared.catalog, n.method.Input())
 	if err != nil {
 		return err
 	}
-	for index, source := range n.source.Instruction.GetInvokeRpc().RequestAssignments {
+	for index, source := range sources {
 		if source == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
 		}
-		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].target", index)), source.Target, a.expressionLimits())
+		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("%s.request_assignments[%d].target", field, index)), source.Target, a.expressionLimits())
 		if err != nil {
 			return err
 		}
@@ -680,7 +666,7 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.E
 			}
 			valueSource = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
 		}
-		value, err := bind(valueSource, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].value", index), &typ)
+		value, err := bind(valueSource, fmt.Sprintf("%s.request_assignments[%d].value", field, index), &typ)
 		if err != nil {
 			return err
 		}

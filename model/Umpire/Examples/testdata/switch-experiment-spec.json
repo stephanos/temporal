@@ -1,21 +1,21 @@
 {
   "formatVersion": "umpire-experiment/v2",
-  "queryBehaviorFingerprint": "sha256:4081061e25d59938effa0d03799036aa08a8548949df4ab8c7283dda2c5bd8ad",
+  "queryBehaviorFingerprint": "sha256:7f35dfc05a8d53192b7b61bbf75486c1777e79bef2aa7108649fa8c986494d73",
   "plan": {
     "formatVersion": "umpire-drive-plan/v2",
-    "queryDefinitionId": "switch.query.exact-action",
-    "queryBehaviorFingerprint": "sha256:4081061e25d59938effa0d03799036aa08a8548949df4ab8c7283dda2c5bd8ad",
-    "behaviorDefinitionId": "switch.behavior.exact-action",
-    "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6",
-    "targetDefinitionId": "switch.target.two-state",
-    "targetBehaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
-    "kernelDefinitionId": "switch.kernel.two-state",
-    "kernelBehaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
+    "queryDefinitionId": "umpire.switch.query.exactAction",
+    "queryBehaviorFingerprint": "sha256:7f35dfc05a8d53192b7b61bbf75486c1777e79bef2aa7108649fa8c986494d73",
+    "behaviorDefinitionId": "umpire.switch.behavior.oneFlip",
+    "behaviorFingerprint": "sha256:a22850094877401bfe7c6cc53ffd10d788a8ce162cfad3e76653a718c0738b05",
+    "targetDefinitionId": "umpire.switch.target.twoState",
+    "targetBehaviorFingerprint": "sha256:4bd4815c4faf255165b36a5c2e82e8a2148e45d85d646e545f1e66b3b5a2ef4b",
+    "kernelDefinitionId": "umpire.switch.kernel.twoState.planner",
+    "kernelBehaviorFingerprint": "sha256:4bd4815c4faf255165b36a5c2e82e8a2148e45d85d646e545f1e66b3b5a2ef4b",
     "bindings": [
       {
-        "roleDefinitionId": "switch.role.subject",
+        "roleDefinitionId": "umpire.switch.role.twoState.subject",
         "value": {
-          "definitionId": "switch.state.power",
+          "definitionId": "umpire.switch.state.twoState.off",
           "value": "off"
         }
       }
@@ -23,56 +23,56 @@
     "symbolicRoles": [],
     "modelPreconditions": [
       {
-        "definitionId": "switch.setup.subject-is-off",
+        "definitionId": "umpire.switch.setup.oneFlip.subject",
         "relation": "equal",
         "left": {
           "kind": "role",
-          "definitionId": "switch.role.subject"
+          "definitionId": "umpire.switch.role.twoState.subject"
         },
         "right": {
           "kind": "value",
           "value": {
-            "definitionId": "switch.state.power",
+            "definitionId": "umpire.switch.state.twoState.off",
             "value": "off"
           }
         }
       }
     ],
     "initialState": {
-      "definitionId": "switch.state.power",
+      "definitionId": "umpire.switch.state.twoState.off",
       "value": "off"
     },
     "requestedActions": [
       {
-        "definitionId": "switch.action.flip",
+        "definitionId": "umpire.switch.action.twoState.flip",
         "value": "flip"
       }
     ],
     "modelOutcomes": [
       {
-        "definitionId": "switch.outcome.applied",
+        "definitionId": "umpire.switch.outcome.twoState.applied",
         "value": "applied"
       }
     ],
     "resultingStates": [
       {
-        "definitionId": "switch.state.power",
+        "definitionId": "umpire.switch.state.twoState.on",
         "value": "on"
       }
     ],
     "linearExtension": [
       {
-        "definitionId": "switch.occurrence.flip",
-        "actionDefinitionId": "switch.action.flip",
+        "definitionId": "umpire.switch.occurrence.oneFlip.1",
+        "actionDefinitionId": "umpire.switch.action.twoState.flip",
         "position": 1,
-        "authoredDefinitionId": "switch.occurrence.flip"
+        "authoredDefinitionId": "umpire.switch.occurrence.oneFlip.1"
       }
     ],
     "selectedChoices": [],
     "selectedVariants": [],
     "requestedFaults": [],
     "capabilityRequirementDefinitionIds": [
-      "switch.capability.state"
+      "umpire.switch.capability.twoState.transitions"
     ],
     "expandedLimits": {
       "steps": {
@@ -93,7 +93,7 @@
         "transition": 1,
         "observations": [
           {
-            "definitionId": "switch.observation.power",
+            "definitionId": "umpire.switch.fact.twoState.on",
             "value": "on"
           }
         ]
@@ -158,11 +158,11 @@
     ],
     "provenance": {
       "sourceDefinitionIds": [
-        "switch.behavior.exact-action",
-        "switch.kernel.two-state",
-        "switch.property.flip-turns-on",
-        "switch.query.exact-action",
-        "switch.target.two-state"
+        "umpire.switch.behavior.oneFlip",
+        "umpire.switch.kernel.twoState.planner",
+        "umpire.switch.property.flipTurnsOn",
+        "umpire.switch.query.exactAction",
+        "umpire.switch.target.twoState"
       ],
       "sourceLocations": [
         {
@@ -173,27 +173,28 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200"
+    "artifactChecksum": "sha256:32183cb9e7306592b5dfbaacb7325be0bf2086fb7d50841c2dd5c36a7aa5cc15"
   },
   "properties": [
     {
-      "definitionId": "switch.property.flip-turns-on",
-      "behaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e",
+      "definitionId": "umpire.switch.property.flipTurnsOn",
+      "behaviorFingerprint": "sha256:26a72f17d00fec3851f9cf0ef3180c0a854e00b64be195dc16c164fd979b5a37",
       "requirementDefinitionIds": [
-        "switch.capability.state"
+        "umpire.switch.capability.twoState.transitions"
       ]
     }
   ],
   "observationRequirementDefinitionIds": [
-    "switch.observation.power"
+    "umpire.switch.fact.twoState.off",
+    "umpire.switch.fact.twoState.on"
   ],
   "provenance": {
     "sourceDefinitionIds": [
-      "switch.behavior.exact-action",
-      "switch.kernel.two-state",
-      "switch.property.flip-turns-on",
-      "switch.query.exact-action",
-      "switch.target.two-state"
+      "umpire.switch.behavior.oneFlip",
+      "umpire.switch.kernel.twoState.planner",
+      "umpire.switch.property.flipTurnsOn",
+      "umpire.switch.query.exactAction",
+      "umpire.switch.target.twoState"
     ],
     "sourceLocations": [
       {
@@ -204,5 +205,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a"
+  "artifactChecksum": "sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a"
 }

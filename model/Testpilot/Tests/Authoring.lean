@@ -98,20 +98,127 @@ private def projection := Program.responseRead responsePath .READ_CARDINALITY_ON
 private def instructions : Array Instruction := #[
   Program.invokeRpc "endpoint" "/example.Service/Call" #[assignment] #[projection],
   Program.awaitSlot "slot",
-  Program.completeNexusOperation "capability" (Expr.literal (Value.text "done")),
-  Program.startNexusOperation "endpoint" "service" "operation" (Expr.literal (Value.text "input")),
   Program.awaitInstruction instructionReference,
   Program.finish (Expr.literal (Value.text "result")),
-  Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-    (Expr.literal (Value.text "token")) "capability",
-  Program.injectFault "queue" .FAULT_KIND_WORKER_STOP
+  Program.injectFault "queue" .FAULT_KIND_WORKER_STOP,
+  Program.scheduleNexusOperation "endpoint" "service" "operation" (Payload.text "request")
+    (scheduleToClose := some (Duration.seconds 5)) (header := [("x-case", "1")]),
+  Program.nexusAsyncReply "capability",
+  Program.nexusOperationCompletion "capability" (Payload.text "done"),
+  Program.readEvidence "attempts" "endpoint" #[assignment]
+    (Expr.present (Expr.path Expr.projectedValue (Path.make #[Path.field "attempt"]))) 250
 ]
 
+private def evidence : Array EvidenceDeclaration := #[
+  Program.historyEvidenceDeclaration "started" "history" "started_event_attributes"
+    (Path.make #[Path.oneofMember "attributes" "started_event_attributes",
+      Path.field "scheduled_event_id"])
+    #[Program.evidenceScope "run" "fixture"],
+  Program.runEventEvidenceDeclaration "faultInjected" "run-events" .RUN_EVENT_KIND_FAULT_INJECTED
+    (Path.make #[Path.field "role_id"]),
+  Program.readEvidenceDeclaration "attempts" "describe" "/example.Service/Describe"
+    (Path.make #[Path.field "pending"]) (Path.make #[Path.field "scheduled_event_id"])
+    #[Program.evidenceScope "run" "fixture"]
+    #[Program.evidenceField "attempts" (Path.make #[Path.field "attempt"])]
+]
+
+/-- Each declaration carries its source arm, and a by-name rule carries only the name. -/
+private def evidenceDeclarationsCarryTheirSources : Bool :=
+  (match evidence[0]!.source with
+    | some (.history_event arm) => arm.attributes_field == "started_event_attributes"
+    | _ => false)
+  && (match evidence[1]!.source with
+    | some (.run_event recorded) => recorded.kind == .RUN_EVENT_KIND_FAULT_INJECTED
+    | _ => false)
+  && (match evidence[2]!.source with
+    | some (.read read) => read.method == "/example.Service/Describe" && read.path == "pending"
+    | _ => false)
+  && evidence[2]!.fields.size == 1
+  && (Program.declaredEvidenceRule "started").evidence_id == "started"
+  && (Program.declaredEvidenceRule "started").guard.isNone
+
+/-- A read instruction names its declaration, its role, its condition and its interval. -/
+private def readEvidenceNamesItsDeclaration : Bool :=
+  match instructions[8]!.instruction with
+  | some (.read_evidence read) =>
+    read.evidence_id == "attempts" && read.endpoint_role_id == "endpoint"
+      && read.request_assignments.size == 1 && read.until.isSome
+      && read.poll_interval_milliseconds == 250
+  | _ => false
+
 private def injectFaultNamesRoleAndKind : Bool :=
-  match instructions[7]!.instruction with
+  match instructions[4]!.instruction with
   | some (.inject_fault fault) =>
     fault.role_id == "queue" && fault.kind == .FAULT_KIND_WORKER_STOP
   | _ => false
+
+/-- The schedule command carries its type, its attributes and the payload as the SDK spells it. -/
+private def scheduleCommandCarriesItsAttributes : Bool :=
+  match instructions[5]!.instruction with
+  | some (.workflow_command carried) =>
+    match carried.command.bind (·.attributes) with
+    | some (.schedule_nexus_operation_command_attributes attributes) =>
+      (carried.command.map (·.command_type)) == some .COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+        && attributes.endpoint == "endpoint" && attributes.service == "service"
+        && attributes.operation == "operation"
+        && (attributes.input.map (·.data)) == some "\"request\"".toUTF8
+        && (attributes.schedule_to_close_timeout.map (·.seconds)) == some 5
+        && attributes.schedule_to_start_timeout.isNone
+        && attributes.nexus_header.get? "x-case" == some "1"
+    | _ => false
+  | _ => false
+
+private def replyArm (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_handler_reply reply) =>
+    match reply.reply with
+    | some (.response response) =>
+      match response.variant with
+      | some (.async_success _) => "async"
+      | some (.sync_success sync) =>
+          if (sync.payload.map (·.data)) == some "\"answer\"".toUTF8 then "sync" else "sync?"
+      | _ => "response?"
+    | some (.error error) =>
+      if error.error_type == "BAD_REQUEST"
+          && error.retry_behavior == .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
+          && (error.failure.map (·.«message»)) == some "malformed" then "error" else "error?"
+    | none => "none"
+  | _ => "other"
+
+private def replySlot (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_handler_reply reply) => reply.handle_slot_id
+  | _ => "other"
+
+/-- The three typed replies each carry their own arm, and only the asynchronous one a handle. -/
+private def typedRepliesCarryTheirArms : Bool :=
+  let sync := Program.nexusSyncReply (Payload.text "answer")
+  let failed := Program.nexusHandlerError "BAD_REQUEST" "malformed"
+    .NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
+  [replyArm instructions[6]!, replyArm sync, replyArm failed] == ["async", "sync", "error"]
+    && [replySlot instructions[6]!, replySlot sync, replySlot failed] == ["capability", "", ""]
+
+private def completionResult (instruction : Instruction) : String :=
+  match instruction.instruction with
+  | some (.nexus_operation_completion completion) =>
+    match completion.result with
+    | some (.payload payload) => "payload:" ++ String.fromUTF8! payload.data
+    | some (.failure failure) => "failure:" ++ failure.«message»
+    | none => "none"
+  | _ => "other"
+
+/-- A typed completion carries a payload or a failure over the handle Slot it consumes. -/
+private def typedCompletionsCarryTheirResults : Bool :=
+  let failed := Program.nexusOperationFailure "capability" { «message» := "failed" }
+  [completionResult instructions[7]!, completionResult failed] ==
+      ["payload:\"done\"", "failure:failed"]
+    && (match instructions[7]!.instruction, failed.instruction with
+      | some (.nexus_operation_completion a), some (.nexus_operation_completion b) =>
+          a.handle_slot_id == "capability" && b.handle_slot_id == "capability"
+      | _, _ => false)
+
+#guard ((Payload.json (.num 1)).metadata.get? "encoding") == some "json/plain".toUTF8
+#guard (Duration.milliseconds 1500).seconds == 1 && (Duration.milliseconds 1500).nanos == 500000000
 
 private def node := Program.node "start" instructions[0]!
   instructionLimits
@@ -119,9 +226,9 @@ private def node := Program.node "start" instructions[0]!
   (guard := some programExpressions[10]!)
 
 /-- A node that writes only the bounds differing from the Profile's defaults. -/
-private def timeoutOnly := Program.node "timeout" instructions[5]!
+private def timeoutOnly := Program.node "timeout" instructions[3]!
   (Program.instructionLimits (timeoutMilliseconds := some 5000))
-private def defaulted := Program.node "defaulted" instructions[5]!
+private def defaulted := Program.node "defaulted" instructions[3]!
 
 private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
   #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
@@ -134,7 +241,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.workflow "workflow" "Workflow" "worker" "queue" #[node],
     Program.activity "activity" "Activity" "worker" "queue" #[node],
     Program.nexusHandler "handler" "service" "operation" "worker" "queue" #[node]]
-  (Program.cleanup "cleanup" #[node])
+  (Program.cleanup "cleanup" #[node]) evidence
 
 private def transition := Contract.transition "take" "start" "done"
   #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
@@ -199,7 +306,11 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 12
-#guard instructions.size == 8
+#guard instructions.size == 9
+#guard evidence.size == 3
+#guard evidenceDeclarationsCarryTheirSources
+#guard readEvidenceNamesItsDeclaration
+#guard (program.evidence.size == 3)
 #guard program.entrypoints.size == 4
 #guard match node.limits.bind (·.timeout), node.limits.bind (·.attempts) with
   | some (.timeout_milliseconds 1000), some (.max_attempts 2) => true
@@ -213,6 +324,9 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contract.rules.size == 2
 #guard run.events.size == 1
 #guard injectFaultNamesRoleAndKind
+#guard scheduleCommandCarriesItsAttributes
+#guard typedRepliesCarryTheirArms
+#guard typedCompletionsCarryTheirResults
 #guard match eventsDeadline.bound with
   | some (.rule_events 3) => true
   | _ => false
@@ -225,5 +339,15 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard correlatedCapability.rules[0]!.ending == .TRACE_ENDING_PARTIAL
 #guard correlatedCapability.rules[0]!.captures.isEmpty
 #guard correlatedCapability.rules[0]!.correlation.isNone
+
+/- An abstraction claim row carries the action, the field, the class and the example, and a
+provenance that lists none carries an empty row list. -/
+#guard (Testpilot.Authoring.abstractionClaim "example.action" "field" "slow" "Sluggish").class_name ==
+  "slow"
+#guard (Testpilot.Authoring.abstractionClaim "example.action" "field" "slow" "Sluggish").«example» ==
+  "Sluggish"
+#guard (Testpilot.Authoring.provenance "producer" "1").abstraction_claims.size == 0
+#guard (Testpilot.Authoring.provenance "producer" "1"
+  (abstractionClaims := #[Testpilot.Authoring.abstractionClaim "a" "f" "c" "e"])).abstraction_claims.size == 1
 
 end Testpilot.Tests.Authoring

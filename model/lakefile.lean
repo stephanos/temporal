@@ -38,6 +38,10 @@ input_file testpilotRunProto where
 input_file testpilotValueProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/value.proto"
 
+/-- The public API descriptor set the protocol's carried messages are compiled from. -/
+input_file apiDescriptorSet where
+  path := "../proto/api.binpb"
+
 target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
   let mut inputJobs : Array (Job FilePath) := #[]
   for input in #[
@@ -49,13 +53,15 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
     testpilotInstructionProto,
     testpilotProgramProto,
     testpilotRunProto,
-    testpilotValueProto
+    testpilotValueProto,
+    apiDescriptorSet
   ] do
     let inputTarget ← input.get
     inputJobs := inputJobs.push (← fetch inputTarget.default)
   let inputs := Job.collectArray (traceCaption := "Testpilot protocol schemas") inputJobs
   let stamp := pkg.buildDir / "testpilot-protocol-schemas"
   buildFileAfterDep stamp inputs fun _ => do
+    removeFileIfExists <| pkg.leanLibDir / "Testpilot/Carried.olean"
     removeFileIfExists <| pkg.leanLibDir / "Testpilot/Protocol.olean"
     createParentDirs stamp
     IO.FS.writeFile stamp ""
@@ -79,8 +85,6 @@ lean_exe «umpire-protojson-fixture» where
 
 @[default_target] lean_lib TemporalModelTests
 
-@[default_target] lean_lib TemporalExperimentalTests
-
 lean_lib ModelLintSupport where
   roots := #[
     `Tools.LeanImportGraph,
@@ -89,7 +93,10 @@ lean_lib ModelLintSupport where
     `Tools.LeanSourceInventoryTests,
     `ModelLint.ImportGraph,
     `ModelLint.PackageModules,
-    `ModelLint.PackageModulesTests
+    `ModelLint.PackageModulesTests,
+    `ModelLint.ModuleIndex,
+    `ModelLint.ModuleIndexTests,
+    `ModelLint.ModuleIndexExporter
   ]
 
 @[default_target] lean_exe «umpire-inspect» where
@@ -107,8 +114,23 @@ lean_exe «umpire-inventory-make-tests» where
 @[default_target] lean_exe «umpire-case» where
   root := `Temporal.Tool.Testpilot
 
+lean_exe «umpire-explore» where
+  root := `Temporal.Tool.ExplorationBridgeMain
+
+lean_exe «umpire-explore-tests» where
+  root := `Temporal.Tool.ExplorationBridgeTests
+
+lean_exe «umpire-replay-bridge» where
+  root := `Temporal.Tool.ReplayBridgeMain
+
+lean_exe «umpire-replay-bridge-tests» where
+  root := `Temporal.Tool.ReplayBridgeTests
+
 lean_exe «umpire-goldens» where
   root := `Temporal.Tool.Goldens
+
+lean_exe «umpire-evaluation-profiles» where
+  root := `Temporal.Tool.EvaluationProfiles
 
 lean_exe «umpire-correlated-fixtures» where
   root := `Umpire.Case.Tests.CorrelatedFixtureMain
@@ -119,4 +141,12 @@ lean_exe «umpire-lint» where
 
 lean_exe «umpire-lint-tests» where
   root := `ModelLint.ImportGraphTests
+  supportInterpreter := true
+
+lean_exe «temporal-model-module-index» where
+  root := `ModelLint.ModuleIndexMain
+  supportInterpreter := true
+
+lean_exe «temporal-model-module-index-tests» where
+  root := `ModelLint.ModuleIndexMainTests
   supportInterpreter := true

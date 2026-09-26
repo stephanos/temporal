@@ -568,10 +568,15 @@ private structure PropertyEvaluationPredicateInput extends PropertyPredicateInpu
 
 private structure PropertyEvaluationStep extends PropertyTraceStep where
   fieldValues : List PropertyFieldValue := []
+  /-- The fields the prior state and the resulting state hold, each admitted the way the state is.
+  A pattern that names a field's definition reads it here, beside the state that carries it. -/
+  priorStateFields : List ModelValue := []
+  stateFields : List ModelValue := []
   deriving Repr
 
 private structure PropertyEvaluationView where
   initialState : Option ModelValue
+  initialStateFields : List ModelValue := []
   steps : List PropertyEvaluationStep
   deriving Repr
 
@@ -602,12 +607,15 @@ private def expectationInput (step : PropertyEvaluationStep) : PropertyEvaluatio
   facts := some step.observations
 }
 
+/-- The values one trace field of a step offers a pattern. A state offers itself and every field
+it holds, so a pattern names either the state's definition or a field's; the runtime's correlated
+evaluator reads the same pair off the wire (`Shared.CorrelatedObligation.Predicate.holds`). -/
 private def valuesInStep
     (field : PropertyTraceField)
     (step : PropertyEvaluationStep) : List ModelValue :=
   match field with
-  | .state | .resultingState => step.resultingState.toList
-  | .priorState => step.priorState.toList
+  | .state | .resultingState => step.resultingState.toList ++ step.stateFields
+  | .priorState => step.priorState.toList ++ step.priorStateFields
   | .selectedAction => step.selectedAction.toList
   | .outcome => step.outcome.toList
   | .observation | .relation => step.observations
@@ -681,14 +689,25 @@ private def validatePropertyEvaluationView
     | _ => pure ()
   pure ()
 
-/-- Admit a legacy trace with no field evidence through the same complete input validator. -/
+/-- Admit a trace with no field evidence through the same complete input validator. `stateFields`
+says which fields each state of the trace holds, so a pattern can read one apart from the state;
+a Model whose states are atoms passes none, and every field is admitted the way a state is --
+through the capability the Property requires -- so an undeclared one is never read. -/
 def checkPropertyEvaluationInput
     (property : CheckedProperty)
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (stateFields : ModelValue → List ModelValue := fun _ => []) :
     Except PropertyError (CheckedPropertyEvaluationInput property) := do
   let raw := property.traceView trace
+  let admitted := fun (state : Option ModelValue) =>
+    (state.map stateFields).getD [] |>.filter property.access.allows
   let view : PropertyEvaluationView := {
-    initialState := raw.initialState, steps := raw.steps.map fun step => { toPropertyTraceStep := step } }
+    initialState := raw.initialState
+    initialStateFields := admitted raw.initialState
+    steps := raw.steps.map fun step => {
+      toPropertyTraceStep := step
+      priorStateFields := admitted step.priorState
+      stateFields := admitted step.resultingState } }
   validatePropertyEvaluationView property view
   pure { view }
 
@@ -799,12 +818,14 @@ private def stepOccurrences
     (transitionPosition : Nat)
     (step : PropertyEvaluationStep) : List PropertyOccurrence :=
   match pattern.field with
+  -- A state offers itself and its fields, so its occurrences are read the way observations are:
+  -- one per value the pattern accepts, which for a state is at most the one it names.
   | .state | .resultingState =>
-      optionalOccurrence pattern transitionPosition transitionPosition
-        step.logicalTime step.resultingState
+      observationOccurrences pattern transitionPosition transitionPosition
+        step.logicalTime (step.resultingState.toList ++ step.stateFields)
   | .priorState =>
-      optionalOccurrence pattern (transitionPosition - 1) transitionPosition
-        step.logicalTime step.priorState
+      observationOccurrences pattern (transitionPosition - 1) transitionPosition
+        step.logicalTime (step.priorState.toList ++ step.priorStateFields)
   | .selectedAction =>
       optionalOccurrence pattern transitionPosition transitionPosition
         step.logicalTime step.selectedAction
@@ -900,11 +921,9 @@ private theorem step_positions_mem (pattern : PropertyPattern)
     | none => simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
     | some item => cases hit : pattern.evaluate item <;>
         simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
-  · cases value : step.resultingState with
-    | none => simp [stepOccurrences, state, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
-    | some item => cases hit : pattern.evaluate item <;>
-        simp [stepOccurrences, state, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
-
+  · simpa [stepOccurrences, state, patternHoldsInStep, valuesInStep] using
+      observation_positions_mem pattern start start step.logicalTime
+        (step.resultingState.toList ++ step.stateFields) position
   · simpa [stepOccurrences, fact, patternHoldsInStep, valuesInStep] using
       observation_positions_mem pattern start start step.logicalTime step.observations position
 
@@ -940,12 +959,12 @@ private def valuesAtField
     (field : PropertyTraceField)
     (view : PropertyEvaluationView) : List ModelValue :=
   let initial := match field with
-    | .state => view.initialState.toList
+    | .state => view.initialState.toList ++ view.initialStateFields
     | _ => []
   let fromSteps := view.steps.flatMap fun step =>
     match field with
-    | .state | .resultingState => step.resultingState.toList
-    | .priorState => step.priorState.toList
+    | .state | .resultingState => step.resultingState.toList ++ step.stateFields
+    | .priorState => step.priorState.toList ++ step.priorStateFields
     | .selectedAction => step.selectedAction.toList
     | .outcome => step.outcome.toList
     | .observation | .relation => step.observations

@@ -534,6 +534,177 @@ narrows a requirement without changing its intent, and the task that owns it rec
   as a step function with its fingerprint shown equal to the row form's and its elaboration time
   recorded against the Race baselines (6 to 12 ms per check); if it cannot reproduce the fingerprint,
   fall back to rows with that evidence.
+- **A state field is meant by the machine's capability (decided while delivering `.4`,
+  2026-09-19).** The Model-side Property evaluator admits a value only through a meaning of the
+  capability the Property requires, so a field a Property names -- `phase`, `attempts`, or an
+  instance's slot -- is meant beside the states that hold it. Every Property over a machine reads
+  through that capability, so every one's fingerprint moved once, by the same cause; the `.15` pins
+  showed equality with the keyed form at fcbc068 and now pin the moved values.
+- **Instances are a Search view, declared on the Scenario (decided while delivering `.4`).** A
+  Scenario's `instances:` count runs the Search over the product of that many copies of the
+  machine, built at the data level from the checked declaration with the machine's own law as its
+  authority; each slot is a state field of the product state, which is what lets one instance's
+  Property be read over the product on the acting slot. A Case follows each operation through one
+  sequence, so every instance performs the same actions, and the Producer reads the first instance
+  back with every instance's actions as the Program's path. The count is checked against the
+  enumeration bound where it is written and is at most nine, because the product's keys number
+  instances by one digit and the canonical catalog order Search admits is the order of those keys.
+- **A projection rule's confirmed steps are a sequence, not alternatives (recorded while
+  delivering `.4`).** One evidence kind confirms one step, continuing from the operation's own
+  state, so a structured machine whose action leads to different results from different counts is
+  confirmed by a kind per result. The Producer emits a Case's rules from the concrete steps of its
+  own path, which is one result per kind on the seven functional Queries; a path that took the same
+  kind to two results would need `.9`'s observation declarations to say which.
+- **A refinement is a stuttering forward simulation, decided over the tables (decided while
+  delivering `.6`).** `refines:` names the product machine and `map:` a Lean function from this
+  machine's state to its state, by the rule that replaced rows with step functions. Every row's
+  result is a product step from the mapped state -- the product action of the row's own name where
+  one carries it, else any that does -- or a stutter when the mapped states are equal; any other row
+  rejects at the `map:` line. Outcomes and facts read as the product's value of the same name, a
+  fact's constructor covering its members; a fact the product does not name is hidden, an outcome
+  it does not name rejects, and a product step may record less than the step it carries, never
+  more. The witness is `Umpire.TableRefinement.ofChecked (by decide +kernel)`, synthesized by the
+  command and never written, and `Umpire.ImplementationLink.Refinement` carries the obligations to
+  the kernels and to traces. A refinement is not an Implementation Link (SEM-08).
+- **A product Property is read on the refining machine through a state field (decided while
+  delivering `.6`).** A refining machine carries the product state each state reads as in a field
+  named after the product machine, so a product claim about a state -- a prior-state trigger, or
+  the state a clause fixes -- is a claim about that field, read apart from the state the way any
+  field is since `.4`; outcomes, facts and trigger Actions are the refining machine's values of the
+  same name, and a Query rejects at `find:` naming one the refining machine lacks. The Property
+  keeps its own identity. A stutter is checked like any step, so a product transition claim that
+  requires the state to change fails on a stutter; the Nexus Properties are stutter-invariant.
+- **A step out of an end state is admitted (decided while delivering `.6`).** `ends:` names the
+  phases an instance finishes in, and `DESIGN.md` writes steps out of them -- a completion after
+  the operation is over is `notFound`, a worker stopping afterwards records its fault -- which a
+  Search takes like any row. The `model`-era refusal of such a step is retired; the Success test
+  that pinned it now pins the table as noncanonical, which is the reason that remains.
+- **Setup parameters and switches are bound in the realization and recorded by the Profile
+  (decided while delivering `.5`).** A machine's `setup:` parameters travel with the declared Model
+  by name and definition; the realization binds each to a dynamic-config key of the generated
+  catalog, and one it binds to no key is an `input` Known Gap of the Case coded after the parameter
+  with the parameter as its subject, because the Profile cannot set it and the Case would otherwise
+  run under whatever value the environment has. The Case bytes carry no value: the Profile records
+  the configuration the environment ran under (`ProfileSpec.Configuration`, lower-case keys, sorted,
+  part of the binding fingerprint), so one Case under two values runs under two Profiles. A switch is
+  declared by the realization with the configuration each value sets (`SwitchBinding`, and the
+  `Switch` record `.7`'s `set` resolves `repeat:` against through `Realization.switch?`); the Nexus
+  realization declares `implementation` with `hsm` and `chasm`, the three settings the upstream
+  suites set. The live harness runs a Case once per value, each under a dedicated environment
+  constructed with the value's settings, and `CheckSwitchAgreement` fails naming the switch, both
+  values and both Verdicts rule by rule. The design's `atConcurrencyLimit` is not bound: the limit
+  exists (one key per implementation, rejecting the workflow task with
+  `PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writing no scheduled event), but binding it needs a
+  table that varies with `setup:`, a value beside the key, a key per switch value and an evidence
+  source not keyed by the scheduled event; `.plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md` (2026-09-19)
+  recommends `.10` drop the parameter rather than carry a gap on every Case.
+- **A set is Umpire's; which Cases it produces is the platform's (decided while delivering `.7`).**
+  The `set` command checks what the Model alone decides -- the purpose's keys, every party the
+  set's machines' actions name bound and `system` not, each Query a `find` form, no `observed`
+  party's action on a functional path, `repeat:` naming a switch a realization registered
+  (`register_switch`) -- and records a `SetDeclaration`. The Temporal `case` block over a set
+  realizes every Query of a functional set under `temporal.case.<set>.<query>` and
+  `<set>-<query>-case.json`, one realization for all, each Case carrying the evidence lines for the
+  Actions its own path selects. `umpire-case --list` stays the registry: a functional set's
+  Queries beside the four Cases that register their values explicitly until fn-86 R3 migrates
+  them, and the `fixture`-named `case` block until `.11` removes it; the Go generator and the
+  artifact table were already list-driven (fn-83 `.4`'s Go half, dda17feda8).
+- **An abstraction claim is the presence of an example (decided while delivering `.7`, per the `.2`
+  amendment).** A machine's declared Model carries each action member's class as the Model spells
+  it, `classClaims` pairs every `examples:` line with the member that realizes its class, and the
+  Producer records the claims of the classes the Program performs as `AbstractionClaim` rows of
+  `CaseProvenance` (the protocol's ninth provenance field, additive). A class with no example
+  carries no claim and rejects nothing.
+- **Typed instructions import the API messages; the Driver-reach table lives with admission
+  (decided while delivering `.8`).** The three worker instructions carry
+  `temporal.api.command.v1.Command`, `temporal.api.nexus.v1.StartOperationResponse` or
+  `HandlerError`, and `temporal.api.common.v1.Payload` or `temporal.api.failure.v1.Failure` as
+  imported fields, not as `Any`: the Lean ProtoJSON writer resolves an `Any` against the generated
+  pool, so `Any` would have cost the same descriptors and bought only a type-URL check. The API
+  import closure is compiled once by `Testpilot/Carried.lean` from `proto/api.binpb`, apart from the
+  protocol's own module so a protocol edit keeps its rebuild cost. Which fields of each message the
+  Driver realizes is one table in `internal/execution/typed.go`, beside admission rather than the
+  interpreter, because preparation runs without a Driver; a completeness test names every field of
+  every carried message. The Profile admits workflow commands per command type (`CommandTypes`),
+  which `DeriveProfile` fills from the worker Driver's own list. A Model whose actions realize
+  nothing (the success slice's waits) produces through the realization on the path the realization
+  states (`Nexus.asyncPath`) until `.10`'s protocol machine makes the Query's path the side effects.
+- **One evidence declaration per kind, on the Program; a poll is a Driver effect (decided while
+  delivering `.9`).** `Program.evidence` declares each correlated evidence kind once with its
+  recorded source (a history event arm, a Run Event kind or a unary read), scope, key path and
+  fields; a history read's rule, a `ReadEvidence` instruction and a correlated projection rule name
+  it, and the Case compiler localizes those names with the Contract's. A read is polled by
+  `Session.PollRPC` rather than by repeated `InvokeRPC`, because the server Driver counts one effect
+  per instruction coordinate and attempt, so the Driver owns the loop and the runtime owns the
+  condition. A Run Event kind is lifted by the scheduler as it records the event, so a fault is
+  evidence without an instruction reading it back. The read catalog (`Temporal.Case.ReadKind`) is the
+  third answer an `evidence:` line resolves against, `pendingAttempts` its one binding.
+- **A set's Case derives its evidence from the machine's catalog, and its bindings are keyed
+  (task .10, 2026-09-19).** `case <name> realizes <set> as nexusOperation service … operation …
+  realized by asyncNexus` names a realization and writes no `evidence` lines: the elaborator quotes
+  the set's machine `evidence:` catalog and the Producer maps each Action on a Query's path to the
+  kind whose fact it records (`derivedEvidence`: the fact's value is the kind's spelling, or that
+  spelling and a hyphen), so the mapping is written once, on the machine; the `evidence` block stays
+  for a machine without a catalog. A realization's `ActionBinding` carries the member key a classed
+  Scenario action resolves to (`handlerReply-async`, `complete-succeeded`), resolved through the
+  vocabulary at assembly with the stated action id as the fallback, and `whenOnPath` places a
+  controller node only on the paths that need it (`await-completion-authority` on the completion
+  paths). `nexusProtocol` takes no `setup:` parameter: `atConcurrencyLimit` has no dynamic-config
+  key, so it is not an input a Case binds; the rows it selected are the `attempt` step's own branch.
+  A Contract carries only the projection rows reachable from the initial state under the actions
+  its rules name (`Projection.check`), not the machine's whole table, and `maximumFacts` bounds the
+  checked description from above: the protocol machine's 1152 rows made a 2.6 MB fixture that
+  exceeded `MaxTransitions`, and the rules can take no other row. An instructed handler error or
+  failed start completes the handler activation that produced it; the Run runs on to the caller's
+  recorded failure rather than stopping as an effect failure.
+- **Silent steps fold into the next confirmed rule, timers are realization bindings, and the
+  templates are gone (task .11, 2026-09-19).** A Scenario step whose action has no evidence line
+  (`backoff`, `workerStop`) is confirmed by the evidence of the next mapped action: the Producer
+  folds it into that rule's confirmed steps ahead of the mapped step (`resolveEvidence`), and
+  records it as a capability Known Gap `<actionId>.unobserved` on the Case, so a Case says which of
+  its steps no observation confirms; a trailing silent step is a rejection. A timer is a
+  `TimerBinding` on the Realization (name to milliseconds), consumed by the schedule bindings as
+  the operation's `scheduleToStart` and `startToClose` durations, and observed through the
+  timed-out event under the Case's deadline: no wait-for-duration instruction, fn-87's boundary
+  line holds. `workerStop` is an ordinary `ActionBinding` whose node injects
+  `FAULT_KIND_WORKER_STOP` on the handler's own task-queue role, which the realization binds beside
+  the caller's, so the outage stops the handler alone. Every controller path opens with a read of
+  the scheduled event (`await-scheduled`, kind `evidence.scheduled`), because the runtime processes
+  a read's evidence when its instruction commits and a `pendingAttempts` read verified before the
+  scheduled transition is unauthorized; one operation's evidence across sources is chained by a
+  parent at lift, and a canceled reservation of an entrypoint that performs nothing is admitted at
+  completion. The `case` block names a `Realization` value in its `as` clause; the whole-Program
+  templates, the `fixture`-named form, `ProofPoint` and the `Success` set are gone and retired,
+  while `Success/Model.lean` stays as the command specimen its tests pin until fn-86 R3. Correlated
+  field policies type text, boolean and unsigned only, so the reads declare no fields and the
+  attempt count is Known Gap `attempts-field`.
+- **A canary is admitted where Cases are produced, and an exploratory set names its machine
+  (task .12, 2026-09-19).** The Temporal `case … realizes <set>` block admits a canary set by
+  producing each Query's Case under the realization, registering nothing, and reading the Case for
+  a white-box Known Gap -- the `capability` and `interpretation` kinds, a step of the path no
+  observation confirms -- which rejects naming the Query and the gap; an `input` gap is a parameter
+  the deployment binds and keeps no canary out. The check lives there and not in the `set` command
+  because the question is answered only by the produced Case, which is the platform's. An
+  exploratory set names the machine it covers under `machine:` (required there, rejected
+  elsewhere), its `budget:` must be a `limits` declaration, and its `targets` are enumerated at
+  declaration from the declared Model: the rows an exploration within the budget's steps of a
+  start can take in table order, the result values those rows reach in catalog order, the claims
+  their actions make in claim order, cut at the search count; `coverageJson` renders them and a
+  golden under `Caller/Fixtures` pins the Caller Model's exploration over `nexusProtocol` (885 of
+  1152 rows, two results, two class members). Running canary and exploratory sets stays with
+  fn-70, fn-29 and fn-33.
+- **The walkthrough quotes the Model, and the spec names what landed (task .13, 2026-09-20).**
+  `model/AUTHORING.md` is generated from the Caller Model's marked regions and a Go drift test
+  (`tools/umpire/authoring`) fails on any way the two part, so the tutorial documents only
+  keywords that compile. The spec's concept entries -- Entity, Party, Refinement, Set, Realization,
+  Abstraction Claim, and the amended Action, Observation and Machine -- describe the landed meaning
+  (a class is a domain member, a claim is an `examples:` line, a switch is the realization's, a
+  refinement is a stuttering forward simulation and not an Implementation Link), and three rule
+  amendments are drafted under GOV-02: AUT-07a carries `set` and `register_switch` and leaves Case
+  production to the platform's block; MOD-02 admits the realization in `Temporal.Case`; AUT-09
+  covers what the commands derive. fn-83's six blocked tasks are closed as superseded with their
+  destinations, by editing the records, since a fresh clone cannot change task status. fn-85 is
+  complete; its `spec close` and fn-83's follow in a clone with runtime task state.
 - **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
   `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
   `Step → Step → Bool` for a transition claim over the step before and the step after. The command

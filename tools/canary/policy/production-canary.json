@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "caseIdentity": "2ddfcf55181d3376adf119033c77e91a8a2c86a8459258fcfbfc8385d18ddf38",
+  "caseProfile": "production-canary",
+  "evaluationProfile": "production-canary",
+  "authorityClass": "protected-workflow",
+  "coordinates": {
+    "grpc": "unconfigured",
+    "namespace": "unconfigured",
+    "taskQueue": "unconfigured",
+    "handlerQueue": "unconfigured",
+    "nexusEndpoint": "unconfigured"
+  },
+  "lease": {
+    "workflowId": "umpire-canary-lease",
+    "workflowType": "umpire-canary-lease",
+    "taskQueue": "umpire-canary-lease"
+  },
+  "repository": "temporalio/temporal",
+  "trustedRef": "refs/heads/main",
+  "workflowPath": ".github/workflows/umpire-production-canary.yml",
+  "limits": {
+    "iterations": 2,
+    "invocationSeconds": 600,
+    "cleanupReserveSeconds": 120,
+    "leaseRunTimeoutSeconds": 86400,
+    "progressBytes": 65536
+  }
+}

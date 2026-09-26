@@ -1,51 +1,53 @@
 import Temporal.Tool.Inspect
-import Temporal.Tool.NexusDiscovery
 
 namespace Temporal.Tool.InspectTests
 
 open _root_.Umpire
 open Temporal.Tool.Inspect
 
-private def inventoryValue : Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory :=
-  Temporal.Tool.NexusDiscovery.inventory.toOption.get (by native_decide)
-
-example : runCli ["list"] = {
-    status := 0
-    stdout := inventoryValue.canonicalListBytes
-    stderr := ""
-  } := by
+/-- The registry is the caller Model's eight Queries in declaration order, then the Switch example. -/
+example : productionRegistry.map (fun entry => (entry.id, entry.kind)) = [
+    ("temporal.nexus.caller.query.syncCompletion", "query"),
+    ("temporal.nexus.caller.query.asyncCompletion", "query"),
+    ("temporal.nexus.caller.query.asyncFailure", "query"),
+    ("temporal.nexus.caller.query.handlerError", "query"),
+    ("temporal.nexus.caller.query.retry", "query"),
+    ("temporal.nexus.caller.query.scheduleToStartTimeout", "query"),
+    ("temporal.nexus.caller.query.startToCloseTimeout", "query"),
+    ("temporal.nexus.caller.query.terminalHolds", "query"),
+    ("umpire.switch.query.exactAction", "example")
+  ] := by
   native_decide
 
-example : runDiscoveryList (Temporal.Tool.NexusDiscovery.checkInventory []) = {
-    status := 1
-    stdout := ""
-    stderr :=
-      "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
-        "\"context\":\"membership-drift\"}\n"
-  } := by
+/-- `list` prints the registry, deterministically, and nothing on stderr. -/
+example : runCli ["list"] = runCli ["list"] ∧
+    (runCli ["list"]).status = 0 ∧
+    (runCli ["list"]).stderr = "" ∧
+    (runCli ["list"]).stdout = CanonicalJson.prettyBytes (.array (productionRegistry.map fun entry =>
+      .object [("id", .string entry.id), ("kind", .string entry.kind)])) := by
   native_decide
 
-def explanationResults : List InspectorResult :=
-  inventoryValue.entries.map fun entry =>
-    runCli ["explain", entry.query.id.value]
-
-def expectedExplanationResults : List InspectorResult :=
-  inventoryValue.entries.map fun entry => {
-    status := 0
-    stdout := entry.canonicalExplanationBytes
-    stderr := ""
-  }
-
-example : explanationResults = expectedExplanationResults := by
+/-- Every registered identity explains to its lineage with exit 0; the explanation of a found
+Query names its witness and Artifact, a verify Query neither. -/
+example : (productionRegistry.map fun entry => (runCli ["explain", entry.id]).status) =
+      List.replicate productionRegistry.length 0 ∧
+    (productionRegistry.map fun entry => (runCli ["explain", entry.id]).stdout ==
+      CanonicalJson.prettyBytes entry.explanation).all id = true ∧
+    ((runCli ["explain", "temporal.nexus.caller.query.asyncCompletion"]).stdout.splitOn
+      "\"witness\": [").length = 2 ∧
+    ((runCli ["explain", "temporal.nexus.caller.query.terminalHolds"]).stdout.splitOn
+      "\"witness\": null").length = 2 ∧
+    ((runCli ["explain", "temporal.nexus.caller.query.terminalHolds"]).stdout.splitOn
+      "\"artifactChecksum\": null").length = 2 := by
   native_decide
 
 def invalidExplanationSelectors : List String := [
   "missing-query",
-  "Temporal.nexus.basic-lifecycle.query.async-start",
-  "temporal.nexus.basic-lifecycle.query.async",
-  "temporal.nexus.basic-lifecycle.query",
-  "async-start",
-  "temporal.nexus.basic-lifecycle.property.async-start",
+  "Temporal.nexus.caller.query.asyncCompletion",
+  "temporal.nexus.caller.query.async",
+  "temporal.nexus.caller.query",
+  "asyncCompletion",
+  "temporal.nexus.caller.property.completionSucceeds",
   ""
 ]
 
@@ -54,30 +56,20 @@ example : invalidExplanationSelectors.map (fun selector => runCli ["explain", se
       status := 1
       stdout := ""
       stderr :=
-        "{\"kind\":\"unknown-nexus-query\",\"subject\":" ++
+        "{\"kind\":\"unknown-query\",\"subject\":" ++
           Lean.Json.compress (.str selector) ++
-          ",\"context\":\"nexus discovery inventory\"}\n"
+          ",\"context\":\"scenario registry\"}\n"
     } := by
   native_decide
 
 example : [runCli ["explain"], runCli ["explain",
-    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value, "extra"]] =
+    "temporal.nexus.caller.query.asyncCompletion", "extra"]] =
     List.replicate 2 {
       status := 1
       stdout := ""
       stderr :=
         "{\"kind\":\"invalid-arguments\",\"subject\":\"explain\"," ++
           "\"context\":\"expected exactly one canonical query identity\"}\n"
-    } := by
-  native_decide
-
-example : runDiscoveryExplain (Temporal.Tool.NexusDiscovery.checkInventory [])
-    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value = {
-      status := 1
-      stdout := ""
-      stderr :=
-        "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
-          "\"context\":\"membership-drift\"}\n"
     } := by
   native_decide
 
@@ -97,21 +89,30 @@ example : runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value] = {
 example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
   native_decide
 
-def operationScenarios : List (String × Option Plan) := [
-  (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlanResult.artifact),
-  (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
-    Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind PlanResult.artifact),
-  (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value,
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind PlanResult.artifact)
-]
+/-- The Artifact `inspect` prints for a found Query is the Query's own planned Artifact. -/
+private def plannedArtifact (queryId : String) : Option String :=
+  (productionRegistry.find? (·.id == queryId)).bind fun entry =>
+    entry.result.toOption.map canonicalPlanBytes
 
-/-! Every ordinary Nexus Artifact producer is available through the authoritative inspector. -/
+/-! Every found Query of the caller Model is available through the inspector; the verify Query has
+no Artifact to print and says so. -/
 example :
-    operationScenarios.map (fun (id, artifact) =>
-      (runCli [id]).status == 0 &&
-        (runCli [id]).stdout == (artifact.map canonicalPlanBytes |>.getD "")) =
-      [true, true, true] := by
+    (["temporal.nexus.caller.query.syncCompletion",
+      "temporal.nexus.caller.query.asyncCompletion",
+      "temporal.nexus.caller.query.asyncFailure",
+      "temporal.nexus.caller.query.handlerError",
+      "temporal.nexus.caller.query.retry",
+      "temporal.nexus.caller.query.scheduleToStartTimeout",
+      "temporal.nexus.caller.query.startToCloseTimeout"].map fun id =>
+      (runCli [id]).status == 0 && (runCli [id]).stdout == (plannedArtifact id).getD "") =
+      List.replicate 7 true ∧
+    runCli ["temporal.nexus.caller.query.terminalHolds"] = {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"planning-failure\",\"subject\":\"temporal.nexus.caller.query.terminalHolds\"," ++
+          "\"context\":\"no portable artifact\"}\n"
+    } := by
   native_decide
 
 example : runCli ["missing-scenario"] = {

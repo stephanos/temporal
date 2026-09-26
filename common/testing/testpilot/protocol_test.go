@@ -83,7 +83,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	// rather than bytes only their Producer can read.
 	require.Equal(t, []protoreflect.Name{
 		"producer_id", "producer_version", "definitions", "sources", "known_gaps", "correlated_rules",
-		"local_names", "model_value_fingerprints",
+		"local_names", "model_value_fingerprints", "abstraction_claims",
 	}, fieldNames(messageDescriptor(t, "CaseProvenance")))
 }
 
@@ -133,6 +133,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Scoped" + "FieldPolicy", "Scoped" + "Identity", "Scoped" + "Limits", "Scoped" + "Operand",
 		"Scoped" + "Predicate", "Scoped" + "PredicateField", "Scoped" + "ProjectionRule", "Scoped" + "Transition",
 		"Scoped" + "Value",
+		"StartNexus" + "Operation", "CompleteNexus" + "Operation", "Respond" + "Nexus", "NexusResponse" + "Kind",
 	} {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)

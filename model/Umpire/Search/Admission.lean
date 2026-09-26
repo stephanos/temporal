@@ -15,8 +15,8 @@ it, so no caller rebuilds or transports a view by hand.
 
 Two transports exist, and both live in this package. `SearchView.retarget` moves a view across a
 proved Model equality. `AdmittedQuery.withQuery` re-pairs an admitted view with another checked
-Query over the same Model, which is what the Variations compiler, the Exploration engine and
-Promotion do: they hold one view and search many Queries derived from one base.
+Query over the same Model, which is what the Variations compiler and Promotion do: they hold one
+view and search many Queries derived from one base.
 -/
 
 namespace Umpire

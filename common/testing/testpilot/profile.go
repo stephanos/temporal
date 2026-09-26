@@ -10,6 +10,7 @@ import (
 	"slices"
 	"unicode/utf8"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -68,16 +69,31 @@ func (c *Catalog) CheckMethod(name string) error {
 // does not change it.
 type Profile interface{ Snapshot() ProfileSpec }
 
+// ConfigurationValue is one dynamic configuration value the environment a Profile describes runs
+// under: a machine's setup parameter bound through the realization's key, or one value of a switch a
+// functional set repeats over. The Case bytes do not depend on it; the Profile records it, so two
+// Runs of one Case under two values carry two Profiles.
+type ConfigurationValue struct {
+	Key   string
+	Value string
+}
+
 // ProfileSpec is one Profile snapshot. Its limits are the resource ceilings every admitted Case runs
 // under: a Case declares none of them, only the bounds that carry its behavior, which admission
 // checks against these ceilings. An instruction that writes no timeout or attempts takes
 // InstructionDefaults. CorrelatedLimits is required only to admit a correlated contract.
+// Configuration is the dynamic configuration the environment sets, and is part of the binding
+// fingerprint the prepared Case's identity carries.
 type ProfileSpec struct {
-	Identity            string
-	Catalog             *Catalog
-	Roles               []RolePolicy
-	Opcodes             []Opcode
+	Identity string
+	Catalog  *Catalog
+	Roles    []RolePolicy
+	Opcodes  []Opcode
+	// CommandTypes are the workflow command types a WorkflowCommand may carry: the ones the Driver
+	// realizes through its SDK, as DeriveProfile records them.
+	CommandTypes        []enumspb.CommandType
 	EnvironmentBindings []EnvironmentBinding
+	Configuration       []ConfigurationValue
 	ProgramLimits       *testpilotspb.ProgramLimits
 	ContractLimits      *testpilotspb.ContractLimits
 	CorrelatedLimits    *testpilotspb.CorrelatedLimits
@@ -90,7 +106,9 @@ func (p ProfileSpec) Snapshot() ProfileSpec {
 	snapshot.ContractLimits = proto.CloneOf(p.ContractLimits)
 	snapshot.CorrelatedLimits = proto.CloneOf(p.CorrelatedLimits)
 	snapshot.Opcodes = slices.Clone(p.Opcodes)
+	snapshot.CommandTypes = slices.Clone(p.CommandTypes)
 	snapshot.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
+	snapshot.Configuration = slices.Clone(p.Configuration)
 	snapshot.Roles = slices.Clone(p.Roles)
 	for i, role := range p.Roles {
 		snapshot.Roles[i].Methods = slices.Clone(role.Methods)
@@ -102,10 +120,16 @@ func (p ProfileSpec) Snapshot() ProfileSpec {
 	return snapshot
 }
 
-// BindingFingerprint validates and identifies the complete environment binding snapshot.
-// Rejections are malformed Profile preparation errors, including binding ceiling failures.
+// BindingFingerprint validates and identifies the complete environment binding snapshot, the
+// configuration the environment runs under included. Rejections are malformed Profile preparation
+// errors, including binding ceiling failures. A Profile with no bindings and no configuration has
+// no fingerprint, so a Profile that carried neither before keeps the identity it had.
 func (p ProfileSpec) BindingFingerprint() (string, error) {
-	if len(p.EnvironmentBindings) == 0 {
+	configuration, err := p.canonicalConfiguration()
+	if err != nil {
+		return "", err
+	}
+	if len(p.EnvironmentBindings) == 0 && len(configuration) == 0 {
 		return "", nil
 	}
 	if p.ProgramLimits == nil {
@@ -140,8 +164,44 @@ func (p ProfileSpec) BindingFingerprint() (string, error) {
 		canonical = binary.BigEndian.AppendUint64(canonical, uint64(len(binding.Value)))
 		canonical = append(canonical, binding.Value...)
 	}
+	// The configuration section is appended only when there is one, so a Profile that sets no
+	// configuration fingerprints exactly as it did before configuration was recorded.
+	if len(configuration) > 0 {
+		canonical = append(canonical, "testpilot.configuration/v1"...)
+		for _, value := range configuration {
+			canonical = binary.BigEndian.AppendUint64(canonical, uint64(len(value.Key)))
+			canonical = append(canonical, value.Key...)
+			canonical = binary.BigEndian.AppendUint64(canonical, uint64(len(value.Value)))
+			canonical = append(canonical, value.Value...)
+		}
+	}
 	fingerprint := sha256.Sum256(canonical)
 	return hex.EncodeToString(fingerprint[:]), nil
+}
+
+// canonicalConfiguration validates the configuration values and returns them sorted by key. A key
+// is spelled the way the dynamic configuration catalog spells it; a value is any non-empty text.
+func (p ProfileSpec) canonicalConfiguration() ([]ConfigurationValue, error) {
+	if len(p.Configuration) == 0 {
+		return nil, nil
+	}
+	if len(p.Configuration) > 10000 {
+		return nil, preparationError(errors.New("Profile configuration collection ceiling exceeded"), "profile.configuration")
+	}
+	values := slices.Clone(p.Configuration)
+	slices.SortFunc(values, func(a, b ConfigurationValue) int { return cmp.Compare(a.Key, b.Key) })
+	for i, value := range values {
+		if !validEnvironmentID(value.Key) || !utf8.ValidString(value.Key) {
+			return nil, preparationError(fmt.Errorf("Profile configuration value %d has an invalid key", i), "profile.configuration")
+		}
+		if value.Value == "" || !utf8.ValidString(value.Value) {
+			return nil, preparationError(fmt.Errorf("Profile configuration %q has an invalid value", value.Key), "profile.configuration")
+		}
+		if i > 0 && values[i-1].Key == value.Key {
+			return nil, preparationError(fmt.Errorf("Profile configuration %q is duplicated", value.Key), "profile.configuration")
+		}
+	}
+	return values, nil
 }
 
 func validEnvironmentID(id string) bool {

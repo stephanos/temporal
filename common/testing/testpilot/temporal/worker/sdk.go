@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"google.golang.org/protobuf/proto"
 )
 
 type sdkManagedWorker struct{ sdkworker.Worker }
@@ -92,16 +93,32 @@ type workflowOutboundInterceptor struct {
 func (i *workflowOutboundInterceptor) ExecuteNexusOperation(ctx workflow.Context, input interceptor.ExecuteNexusOperationInput) workflow.NexusOperationFuture {
 	routed, ok := ctx.Value(workflowRouteKey{}).(routedWorkflow)
 	sourceID, sourceOK := ctx.Value(workflowSourceKey{}).(string)
-	value, valueOK := input.Input.(*testpilotspb.Value)
-	if !ok || !sourceOK || !valueOK {
+	if !ok || !sourceOK {
 		return failedNexusOperationFuture(ctx, ErrInvalid)
 	}
-	header, preparedValue, err := routed.session.preparedNexusDispatch(routed.activation, sourceID, input.NexusHeader, value)
+	// The untyped start dispatches an interpreter value; a schedule command dispatches the payload it
+	// carries unconverted, or none, under the Case's own Nexus header.
+	header := input.NexusHeader
+	switch value := input.Input.(type) {
+	case *testpilotspb.Value:
+		input.Input = proto.CloneOf(value)
+	case converter.RawValue, nil:
+		caseHeader, _ := ctx.Value(caseNexusHeaderKey{}).(nexus.Header)
+		header = maps.Clone(caseHeader)
+		for name, value := range input.NexusHeader {
+			if _, collision := header[name]; collision {
+				return failedNexusOperationFuture(ctx, delivery.ErrReservedHeader)
+			}
+			header[name] = value
+		}
+	default:
+		return failedNexusOperationFuture(ctx, ErrInvalid)
+	}
+	prepared, err := routed.session.preparedNexusHeader(routed.activation, sourceID, header)
 	if err != nil {
 		return failedNexusOperationFuture(ctx, err)
 	}
-	input.Input = preparedValue
-	input.NexusHeader = header
+	input.NexusHeader = prepared
 	return i.Next.ExecuteNexusOperation(ctx, input)
 }
 
@@ -129,12 +146,10 @@ func (i *nexusInboundInterceptor) StartOperation(ctx context.Context, input inte
 	}
 	activationCtx = context.WithValue(activationCtx, nexusRouteKey{}, routed)
 	result, startErr := i.Next.StartOperation(activationCtx, input)
-	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
-	if startErr != nil {
-		outcome = sdkFailureOutcome(startErr)
-	}
-	if !routed.replay {
-		routed.session.finishActivation(routed.activation, outcome, startErr)
+	// A retried delivery is admitted as a replay of its route and settles the activation the
+	// retryable reply left open, so what finishes the activation is the reply, not the delivery.
+	if outcome, open, activationErr := routed.session.nexusActivationOutcome(routed.activation, startErr); !open {
+		routed.session.finishActivation(routed.activation, outcome, activationErr)
 	}
 	return result, startErr
 }
@@ -154,14 +169,17 @@ func (i *nexusInboundInterceptor) CancelOperation(ctx context.Context, input int
 	return i.Next.CancelOperation(context.WithValue(ctx, nexusRouteKey{}, routed), input)
 }
 
+// genericNexusOperation is every registered operation: its input is read unconverted, because a
+// schedule command carries any payload and the handler entrypoint reads none of it, and its output
+// is whatever the entrypoint's reply carries, an interpreter value or an unconverted payload.
 type genericNexusOperation struct {
-	nexus.UnimplementedOperation[*testpilotspb.Value, *testpilotspb.Value]
+	nexus.UnimplementedOperation[converter.RawValue, any]
 	queue, service, operation string
 }
 
 func (o *genericNexusOperation) Name() string { return o.operation }
 
-func (o *genericNexusOperation) Start(ctx context.Context, input *testpilotspb.Value, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[*testpilotspb.Value], error) {
+func (o *genericNexusOperation) Start(ctx context.Context, input converter.RawValue, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[any], error) {
 	routed, ok := ctx.Value(nexusRouteKey{}).(routedNexus)
 	if !ok {
 		return nil, nexusError(ErrInvalid)

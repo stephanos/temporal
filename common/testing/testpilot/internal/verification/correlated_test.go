@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -363,6 +364,7 @@ func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 }
 
 func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
+	var violationsWithEvidence atomic.Int64
 	encoded, err := os.ReadFile("../../testdata/case-runtime-conformance/correlated.json")
 	require.NoError(t, err)
 	var fixtures []struct {
@@ -373,7 +375,7 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 		Incomplete bool              `json:"incomplete"`
 	}
 	require.NoError(t, json.Unmarshal(encoded, &fixtures))
-	require.Len(t, fixtures, 15)
+	require.Len(t, fixtures, 19)
 	for _, fixture := range fixtures {
 		t.Run(fixture.Name, func(t *testing.T) {
 			var artifact testpilotspb.Case
@@ -391,6 +393,9 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			require.Equal(t, rules[0].GetProjectionId(), definitions[artifact.Contract.Correlated.ProjectionId])
 			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, rules[0].GetProjectionFingerprint())
 			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
+			// The structured fixtures project six events over a nine-row table, so one event's
+			// projection work is larger than the atomic fixtures' ceiling allows.
+			ceiling.MaxWorkPerEvent = 1000000
 			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})
 			require.NoError(t, err)
 			view := program.View()
@@ -429,18 +434,37 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 				}
 				live, err := monitor.Close(context.Background(), run)
 				require.NoError(t, err)
-				offline, err := prepared.Evaluate(context.Background(), run)
+				offline, violations, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(live, offline))
 				want := map[int]testpilotspb.RuleVerdictStatus{0: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.RULE_VERDICT_STATUS_SATISFIED, 3: testpilotspb.RULE_VERDICT_STATUS_VIOLATED}[fixture.Expected]
 				require.Equal(t, want, live.Rules[0].Status)
+				if want == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+					// The violation names the evidence whose release resolved the obligation, by
+					// its kind and the event that carried it, or nothing for a violation found at
+					// closure with the obligation still pending.
+					require.Len(t, violations, 1)
+					require.Equal(t, live.Rules[0].RuleId, violations[0].RuleID)
+					require.Empty(t, violations[0].ObservationIDs)
+					if violations[0].Sequence > 0 {
+						var evidence testpilotspb.CorrelatedEvidence
+						require.NoError(t, run.Events[violations[0].Sequence-1].Observations[0].Value.GetMessageValue().UnmarshalTo(&evidence))
+						require.Equal(t, evidence.GetKind(), violations[0].Kind)
+						violationsWithEvidence.Add(1)
+					} else {
+						require.Empty(t, violations[0].Kind)
+					}
+				} else {
+					require.Empty(t, violations)
+				}
 				live.Rules[0].Status = testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED
-				replayed, err := prepared.Evaluate(context.Background(), run)
+				replayed, _, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(offline, replayed))
 			}
 		})
 	}
+	require.Positive(t, violationsWithEvidence.Load(), "no violated fixture named its evidence")
 }
 
 func TestCorrelatedResourceBoundaries(t *testing.T) {
@@ -568,7 +592,7 @@ func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
 	run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: 3}
 	live, err := e.Close(context.Background(), run)
 	require.NoError(t, err)
-	offline, err := p.Evaluate(context.Background(), run)
+	offline, _, err := p.Evaluate(context.Background(), run)
 	require.NoError(t, err)
 	require.True(t, proto.Equal(live, offline))
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.Status)

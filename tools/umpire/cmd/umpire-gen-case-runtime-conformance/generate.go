@@ -603,8 +603,62 @@ func productionManifest() []manifestEntry {
 				},
 			},
 		},
+		typedRejectionEntry("command-type", "unsupported", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.command_type"),
+		typedRejectionEntry("invalid-duration", "malformed", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.schedule_nexus_operation_command_attributes.schedule_to_close_timeout"),
+		typedRejectionEntry("unsettable-field", "unsupported", "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.user_metadata"),
+		typedRejectionEntry("reply-not-admitted", "unsupported", "handler.reply"),
 		acceptedEntry("cleanup-failure-after-proved-violation", "temporal.case.conformance.cleanup-failure", "VIOLATED", "VIOLATED", "STOPPED_BY_MONITOR", "FAILED", 1),
 		acceptedEntry("cross-run-isolation", "temporal.case.conformance.cross-run-isolation", "SATISFIED", "SATISFIED", "COMPLETED", "SUCCEEDED", 2),
+		typedRejectionEntry("undeclared-evidence", "unknown", "program.entrypoints[controller].instructions[history].instruction.invoke_rpc.response_reads[0].targets[0].correlated_evidence.rules[0].evidence_id"),
+		typedRejectionEntry("duplicate-evidence", "malformed", "program.evidence[1]"),
+		evidenceEntry("history-evidence", "history", "INSTRUCTION_COMPLETED"),
+		evidenceEntry("run-event-evidence", "fault", "FAULT_INJECTED"),
+		evidenceEntry("read-evidence", "pending-attempts", "INSTRUCTION_COMPLETED"),
+	}
+}
+
+// evidenceEntry is one accepted Case per evidence source R10 names, each a variant of the satisfied
+// class: its one controller instruction records the event that carries the lifted evidence, which
+// the Contract reads, so the Verdict pins the lift.
+func evidenceEntry(variant, instruction, carrier string) manifestEntry {
+	caseID := "temporal.case.conformance.satisfied." + variant
+	events := []stableEventProjection{
+		{Kind: "RUN_OPENED"},
+		{Kind: "ACTIVATION_OPENED", EntrypointID: "controller"},
+		{Kind: "INSTRUCTION_STARTED", EntrypointID: "controller", InstructionID: instruction, Attempt: 1},
+		{Kind: "INSTRUCTION_COMPLETED", EntrypointID: "controller", InstructionID: instruction, Attempt: 1, OutcomeStatus: "SUCCEEDED"},
+		{Kind: carrier, EntrypointID: "controller", InstructionID: instruction, Attempt: 1},
+		{Kind: "ACTIVATION_CLOSED", EntrypointID: "controller"},
+		{Kind: "CLEANUP_STARTED", EntrypointID: "cleanup"},
+		{Kind: "CLEANUP_COMPLETED", EntrypointID: "cleanup"},
+		{Kind: "RUN_CLOSED"},
+	}
+	return manifestEntry{
+		Class: "satisfied", Variant: variant, RendererArg: "conformance-satisfied-" + variant, CaseID: caseID,
+		Expected: expectedResult{
+			Class: "satisfied", Preparation: "accepted", RunCount: 1,
+			Projection: &stableRunProjection{
+				CaseID: caseID, ProgramID: caseID + ".program", Disposition: "COMPLETED",
+				CleanupStatus: "SUCCEEDED", CleanupDiagnostics: []stableDiagnosticProjection{}, Events: events,
+				Diagnostics: []stableDiagnosticProjection{}, VerdictKind: "SATISFIED",
+				Rules:                    []stableRuleProjection{{RuleID: "result", Kind: "SATISFIED", TerminalStateID: "terminal", SupportingEventSequences: []int64{5}}},
+				SupportingEventSequences: []int64{5},
+			},
+		},
+	}
+}
+
+// typedRejectionEntry is one of the four typed-instruction rejections R10 names, each a variant of
+// the static-preparation-rejection class pinned to its category and path.
+func typedRejectionEntry(variant, category, path string) manifestEntry {
+	return manifestEntry{
+		Class: "static-preparation-rejection", Variant: variant,
+		RendererArg: "conformance-static-preparation-rejection-" + variant,
+		CaseID:      "temporal.case.conformance.static-rejection." + variant,
+		Expected: expectedResult{
+			Class: "static-preparation-rejection", Preparation: "rejected",
+			PreparationError: &expectedPreparationError{Category: category, Path: path},
+		},
 	}
 }
 

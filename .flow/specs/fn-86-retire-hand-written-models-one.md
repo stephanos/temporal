@@ -200,6 +200,88 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   machine and re-pins its evidence on the Caller Model's Queries, then task .5 deletes.
 - **Field relations lower onto the existing field-Property structure.** `PropertyFieldPath` already
   has index, select, cardinality, establish and capture steps; R2 adds a clause form, not a clause kind.
+- **A field relation is a `relates:` line of `property`** (task .2, 2026-09-20): `property <name>
+  machine: <m> when: <action> relates: <operand> = <operand>`, `≠`, or `<operand> present`, beside
+  `holds:` rather than under the retired `require:` key. An operand is `<action>.input.<path>`,
+  `<action>.result.<path>` (the action the claim is about, through its `schema:` request or the
+  method's response) or `<kind>.<path>` (a recorded event kind the machine's `evidence:` lines
+  name, read through the history response), and the platform resolves the dotted path to
+  `PropertyFieldPath` steps, presence reads and a scalar type through an installed resolver
+  (`Umpire.Command.installFieldResolver`, answered by `Temporal.Case.FieldPath`). The Producer
+  lowers the relations whose action a path performs to one monitor rule `<property>.relation`
+  through `Umpire.Case.Projection.lower`; a `present` relation admits but lowers to no rule.
+- **An observation of an earlier step is captured** (task .3, 2026-09-20): a `relates:` operand
+  `<kind>.<path>` whose fact the `when:` action's rows do not record is an earlier step's event,
+  read at the state the step starts from (the first state a row of the action starts from, in
+  table order) and lowered through `Umpire.Case.Projection.lower`'s cross-event capture: the rule
+  retains the instance's own event, selected by the field the realization's evidence source names
+  (`EvidenceSource.selector`, resolved against the schema at definition time) against the literal
+  the confirming action's binding assigns under that spelling, and matches the later event's read
+  against the retained one. A field of the history event itself (`event_id`) is read off the
+  event whichever arm the kind names. A result operand is read under the step's outcome.
+- **Several instances are placed, not flattened** (task .3): the Program path carries the instance
+  performing each action, an `ActionBinding` builds its node from a `Placement` (the Case, the
+  instance, the count), every id of an instance's node, slot and entrypoint carries `-<n>` on a
+  Case over several instances and nothing on one over one, an entrypoint may be emitted per
+  instance (`EntrypointPlan.perInstance`, the Nexus handler), a `whenOnPath` item emits once per
+  instance that performs the class, slots may be declared per instance, and a relation lowers to
+  one rule per instance (`relation-<n>`). The typed Nexus example is
+  `Temporal/Feature/Nexus/Pair/Model.lean`: two instances of the caller Model's operation on a
+  machine that keeps the asynchronous success path, produced through the caller realization, whose
+  instances address `<operation>-<n>` on their own handlers.
+- **The Search does not extend a prefix the Scenario admits no extension of** (task .3): an action
+  out of an exact sequence's order, one past an occurrence maximum, or one the Scenario forbids is
+  not enumerated (`CheckedScenario.admitsPrefix`), so the admitted traces and their order are the
+  same and the candidates counted against `limits.search` are the ones that could be admitted. The
+  Operations compatibility artifacts, which record explored counts, were regenerated.
+- **The Implementation Link's destination is a Target derived from the product machine's rows**
+  (task .4, 2026-09-20): `nexusProduct`'s own table is not admissible as a Target (two classes
+  without a row, one start), so the link derives `productTarget` from its rows -- the same rows,
+  `scheduled` and `started` as starts, `ends:` as the terminal condition, its own Target and kernel
+  identity -- and names every element from the checked Target's vocabulary. The forward simulation
+  is decided over that Target (the System's authoritative cases, the Target's soundness laws, a
+  `native_decide` membership each), the cancellation projection confirms `canceled` and `completed`
+  as the product's completion classes and treats the cancellation request as irrelevant (no
+  product row; fn-79), and the evidence tests pin the Caller Model's Queries. The Target is
+  irreducible so a goal over its machine is never unfolded into the admission.
+- **The retired models are gone and their behavior is spec text** (task .5, 2026-09-20): Race,
+  Lifecycle, Operations, Observation and Experimental are deleted with their goldens, tests, docs,
+  the `NexusDiscovery` tool and the `TemporalExperimentalTests` root; the race Model's rows,
+  Properties and Scenarios are recorded in fn-79's spec and the variation Space and Exploration
+  inputs in fn-33's; the facade `Temporal.Feature.Nexus` is the Caller and Pair Models; the
+  inspector's registry is the Caller Model's Queries beside Switch, `list` prints it and `explain`
+  prints one Query's checked lineage; no Temporal-side compatibility family remains, `switch` is
+  pinned by `UmpireTests` until .7.
+- **The two Model-less Cases are command Models and the outage-order rule is Producer-derived**
+  (task .6, 2026-09-20): the worker outage is `Temporal/Feature/Workflow/Outage/Model.lean` --
+  `workerStop` and `workerResume` as actions of the `worker` party, bound by the workflow
+  realization to fault instructions on the Case's task-queue role -- and the system-info call is
+  `Temporal/Feature/System/Info/Model.lean` through a unary realization whose evidence is the
+  instruction-completed Run Event. `Umpire.Case.Producer.outageOrderRules` derives the
+  bounded-liveness rule from the assembled Program (one per role whose faults stop then resume,
+  `rule_events` deadline from `Realization.outageDeadline`), so any fault-bearing path carries it
+  without a line of its own. A workflow's history events carry no one key across the started and
+  completed events, so the outage Model's one evidence kind is the completed event keyed by the
+  workflow task that completed it, and the three steps before it are Known Gaps. `register_case`
+  is gone: every checked-in Case is a `case` block's.
+- **The Switch example's ids moved with it (.7, 2026-09-20)**: the commands derive
+  `umpire.switch.<kind>.twoState.<member>` under a new `Umpire.Examples.Conventions` root, each
+  state and fact is its own definition, and the `power` field is one more; no golden is
+  byte-identical and each regenerated file is listed in the task receipt with its reason. The
+  exported names stayed, defined as views over the command's declarations, and the commands'
+  leading words became non-reserved so the importers keep binding `query`, `property` and `limits`.
+- **The authoring-path rule is a direct-import rule beside the inventory check (.8, 2026-09-20)**:
+  `checkAuthoringPath` reads each module's direct imports under `Temporal.Feature` and
+  `Umpire.Examples`, names `Temporal.Case` and the Implementation Link as exceptions, and is
+  composed into `check`, so the executable, the synthetic suite and the Makefile's controlled
+  violation all reach it through one entry point; `Temporal.Testpilot` stays under the inventory
+  check alone until its two rows are migrated.
+- **AUT-08's expert alternative is withdrawn by amendment, not deleted (.9, 2026-09-20)**: the
+  rule keeps the adapter's obligations and says the path produces a `DraftModel`; the amendment
+  records that direct `Machine` construction is withdrawn for feature Models and remains the
+  Implementation Link's and the tests' business, so the history of the rule stays readable under
+  GOV-02. The `Success` specimen is kept as the command-surface specimen rather than folded into the
+  Caller Model's tests.
 - **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
 - **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
   production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
@@ -212,6 +294,25 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   fn-85 R10 deferred them.
 - **The outage-order rule becomes Producer-derived** for fault-bearing paths (fn-83 .5's dropped
   concern), in its own commit inside task .6.
+- **Adjusted 2026-09-19 after fn-85 .1 to .7 landed (tasks .8 to .13 still open).** Four things
+  the fn-85 tree now says that this spec's text predates; each is recorded on the task it touches.
+  (1) fn-85 .15 made `property` take `machine:`, an optional `when:` and `holds:` with a Lean
+  predicate, and rejects `require:` at the key ("the keyed form is retired"); the field-relation
+  grammar under API Contracts (`when:` + `require: <path> = <path>`) therefore needs another key
+  or another form, a task .2 decision that keeps R2's semantics (three relation forms, four
+  rejections, lowering onto `PropertyFieldPath`). (2) fn-85 .7 added the Temporal `case <name>
+  realizes <set> as <template> evidence <lines>` block as the Case-producing command, with identity
+  `temporal.case.<set>.<query>` and fixture `<set>-<query>-case.json`; the migrated Cases of R3
+  and R4 are produced through it (or the shape fn-85 .11 leaves), so their fixture names move and
+  `register_case` goes with the last hand-written Case, as .6 says. (3) fn-85 .11 removes the
+  template-era `Hook`/`FaultLine` machinery; the design's `workerStop` is an action of the `worker`
+  party bound to `FAULT_KIND_WORKER_STOP`, so R4's outage-order rule derives from fault actions on
+  the path, not from `fault` lines. (4) A machine's `setup:` parameters are bound by the
+  realization and recorded by the Profile, switches are registered with `register_switch`, `ends:`
+  is required and steps out of end states are admitted, a Property's fingerprint reads through the
+  machine's state fields (fn-85 .4), and Definition IDs derive from `model_conventions`; R5's
+  Switch re-authoring meets all of these, so byte-identical goldens are unlikely and the listed
+  diff is the expected outcome.
 
 ## Requirement coverage
 

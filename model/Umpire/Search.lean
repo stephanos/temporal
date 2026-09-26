@@ -883,10 +883,18 @@ private partial def pullCandidate
             match kernel.actionAt index with
             | none => pullCandidate query kernel next
             | some action =>
-                pullCandidate query kernel {
-                  next with
-                  activePath := { advanced with currentAction := some action } :: parents
-                }
+                -- A prefix the Scenario admits no extension of -- an action out of an exact
+                -- sequence's order, one past its occurrence maximum -- is not extended: the
+                -- admitted traces are the same, and the candidates that could never be one are
+                -- neither generated nor counted against the search bound.
+                let prefixActions := cursor.trace.trace.steps.map (·.selectedAction.definitionId)
+                if query.behavior.admitsPrefix (prefixActions ++ [action.definitionId]) then
+                  pullCandidate query kernel {
+                    next with
+                    activePath := { advanced with currentAction := some action } :: parents
+                  }
+                else
+                  pullCandidate query kernel next
           else
             pullCandidate query kernel { state with activePath := parents }
       | some action =>
@@ -945,7 +953,8 @@ private def observeCandidate
   let mut current : PlanningObservations := { nonempty := true }
   for property in query.form.properties.mergeSort (fun left right =>
       decide (left.id.value ≤ right.id.value)) do
-    let input ← (checkPropertyEvaluationInput property candidate.trace).mapError fun error => {
+    let input ← (checkPropertyEvaluationInput property candidate.trace
+        query.target.stateFields).mapError fun error => {
       kind := QueryErrorKind.propertyEvaluationFailure
       definitionId := query.id
       sourcePath := error.sourcePath

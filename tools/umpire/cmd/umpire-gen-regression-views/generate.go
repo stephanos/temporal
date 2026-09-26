@@ -232,7 +232,9 @@ func removeRetiredGeneratedView(root, relative string, remove func(string) error
 }
 
 func inspectPlan(modelRoot, identity string) (inspectorOutput, error) {
-	command := exec.Command("lake", "exe", inspectorExecutable, identity)
+	// The inspector's stderr is its diagnostic channel, so lake's own replayed build logs (the
+	// warnings of every module in the inspector's closure) must not reach it.
+	command := exec.Command("lake", "--log-level=error", "exe", inspectorExecutable, identity)
 	command.Dir = modelRoot
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer

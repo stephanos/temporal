@@ -1083,7 +1083,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
-  "status": "open",
+  "status": "done",
   "title": "Author a live Case from a Model file",
   "tracker": {
     "baseHashFlow": null,
@@ -1096,5 +1096,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T00:16:18.608180Z"
+  "updated_at": "2026-09-22T15:08:34.668278Z"
 }

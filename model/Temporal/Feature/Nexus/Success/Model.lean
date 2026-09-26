@@ -1,24 +1,22 @@
 import Temporal.Case.Syntax
-import Temporal.Feature.Nexus.Race.Terminal
 
 /-!
-# Compact Nexus success model
+# The compact Nexus success lifecycle, as a command specimen
 
-This executable slice models only `scheduled → started → succeeded`. `awaitStart` and
-`awaitSuccess` wait for recorded Temporal outcomes; they do not manufacture those outcomes. It
-records no Fact: every step here reaches a state named after what happened, so a Fact would only
-restate it. A Model declares Facts where one carries a claim its state does not -- two paths into
-the same state, something that happened without a state change, or several claims in one step.
-Cancellation remains an unsupported design sketch in `Nexus.md`; the imported `Terminal` module
-is the historical already-started Target described in `Integration.md`, not this slice's.
-This slice authors no correlated Property of its own. It does not need one: the Producer in
-`Producer.lean` derives the operation-correlated clauses the Case carries from the `require` lines
-below and the Action order the Scenario fixes, so the same-step requirement written here is what the
-runtime capability reads.
+This slice models only `scheduled → started → succeeded`. `awaitStart` and `awaitSuccess` wait for
+recorded Temporal outcomes; they do not manufacture those outcomes. It records no Fact: every step
+here reaches a state named after what happened, so a Fact would only restate it. A Model declares
+Facts where one carries a claim its state does not -- two paths into the same state, something that
+happened without a state change, or several claims in one step. Cancellation remains deferred to
+fn-79.
+
+Since fn-85 .11 this is a specimen and not a Model of the feature: the caller Model
+(`Temporal.Feature.Nexus.Caller`) is where the Nexus operation is authored and where the Cases come
+from, and this slice declares no set and produces no Case. It stays because the command tests
+(`Success.Tests`, `RaceSyntaxTests`) pin the commands' rejections against a vocabulary small enough
+to read the messages of.
 
 Read from top to bottom: vocabulary → allowed behavior → requirement → scenario → question.
-The five blocks are the intentionally small Nexus success authoring surface. Their elaborator
-expands into the existing Umpire Target, Property, Scenario, and Query owners.
 -/
 
 namespace Temporal.Feature.Nexus.Success
@@ -78,13 +76,13 @@ machine lifecycle
     awaitStart: awaitStartStep
     awaitSuccess: awaitSuccessStep
 
-/- `awaitSuccess` must expose the complete Target-owned success result. -/
+/- `awaitSuccess` must expose the complete Target-owned success result. The predicate is ordinary
+Lean over the step the Action produces; the command enumerates it over the machine's table into the
+state and outcome it fixes, which is what Search and the Case read. -/
 property successfulResult
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
 
 /- `actions:` is the exact sequence the operation selects, and its length. -/
 scenario successfulCompletion
@@ -119,18 +117,4 @@ query completion
     subject: "cancellationResolves"
     detail: "Operation-correlated progress counting is unsupported by the success slice."
 
-/-
-The Case the selected trace realizes. `fixture` is the only identity slot: the Case ID is
-`temporal.case.async-nexus`, the Program and Contract IDs derive from it, and the Run scope is the
-fixture name. Each `evidence` line says which recorded history event confirms one Action; the Step
-it confirms is read from the `steps` block above, along the witness trace.
--/
-case asyncNexusSuccess fixture "async-nexus"
-  realizes completion
-  as nexusOperation service "umpire.case.service" operation "complete" responds async
-  evidence
-    awaitStart ← history nexusOperationStarted
-    awaitSuccess ← history nexusOperationCompleted
-
 end Temporal.Feature.Nexus.Success
-

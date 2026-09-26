@@ -129,6 +129,11 @@ returned handles remain in `outstanding`, including partial and malformed Driver
 completion is an activation-level diagnostic fact at its controller origin, causally linked to the
 trigger's start; its source includes the reservation's position and ordinal. This does not claim a worker
 activation opened or closed: the Driver's separate Consume coordinate may use a different ActivationID.
+A reservation that completes with any outcome but success fails the Run, with one exception: a
+reserved entrypoint that carries no instruction may go undelivered, so its reservation released
+canceled when the parent activation finished is recorded as that diagnostic and the Run goes on. A
+Case whose path performs nothing on the handler still reserves the handler's activation, because
+the carrier can activate the entrypoint, not because the path needs it to.
 Workers retain their own replay-local DAG state and emit no per-SDK-instruction central stream.
 
 Reservation carrier authority is separate from ordinary endpoint method authorization. Each endpoint
@@ -137,7 +142,7 @@ contexts. A Case declares no reservations: an ordinary controller instruction in
 on that endpoint reserves one activation of each workflow and Nexus-handler entrypoint whose kind the
 carrier's shapes admit, in entrypoint declaration order, and two instructions that could carry the
 same entrypoint reject `unsupported` naming both. Admission checks those reservations against the
-carrier's maximum counts and compiles their order once. Every potential StartNexusOperation source, including guarded sources, maps to
+carrier's maximum counts and compiles their order once. Every potential Nexus schedule command, including guarded sources, maps to
 one explicitly reserved handler by service and operation. Route order follows the prepared workflow
 node order, then workflow ordinal; handler ordinals count within the declared handler reservation.
 Missing, ambiguous, crossed or count-mismatched routes reject before Driver I/O.
@@ -161,13 +166,15 @@ without a consumer, while uncooperative Driver waits require quarantine and cann
 Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionPlan` methods
 `OutcomeType`, `EvaluateInput`, `ValidateOutcome`, `TimeoutMilliseconds`, `MaxAttempts` and
 `Reservations`. An instruction's outcome fields are derived from it: every instruction has a status and
-a detail, `InvokeRpc` and `CompleteNexusOperation` a protocol code, a workflow or Nexus-handler
-instruction an SDK failure code, and `AwaitInstruction` its operation's text result as VALUE.
+a detail, `InvokeRpc` and `NexusOperationCompletion` a protocol code, a
+workflow or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its operation's
+result as VALUE: the handler's payload as an `Any`, carried back from the `WorkflowCommand` that
+scheduled the operation.
 `OutcomeType` returns a cloned derived schema; `ValidateOutcome` returns an activation-owned
 `contract.OutcomeSnapshot` with independently copied outcome and derived fields. Mutating those results
 cannot mutate the plan or a subsequent validation result. An RPC response is read only through
-response reads, StartNexusOperation's SDK future is an opaque runtime handle, and a Finish or
-RespondNexus result ends its activation, so none of them has a VALUE.
+response reads, the SDK future a schedule command starts is an opaque runtime handle, and a Finish
+result or a `NexusHandlerReply` ends its activation, so none of them has a VALUE.
 
 A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard is true builds the evidence value
@@ -184,6 +191,24 @@ the exact declared `CorrelatedEvidence` Observation, every bound path to read a 
 evidence domain admits, and the lift to sit on one instruction of a controller entrypoint whose
 declared source no other instruction claims — a source ordinal is the position in that source's own
 dense stream, and only the emitting instruction can count it.
+
+A rule may instead name one of the Program's evidence declarations (`evidence_id`) and spell nothing
+else: the declaration must be a history event kind and the projected value the recorded
+`HistoryEvent`, and the rule's guard is the presence of the declared attributes arm, its scope,
+operation key and fields the declaration's. `bindEvidence` admits the declarations before the
+instructions: each identity once, each source and operation key path once, a history arm that the
+event's attributes oneof carries, a Run Event kind that carries a payload, a read method the catalog
+knows whose path ends in repeated messages, and every path typed against the recorded value. A Run
+Event declaration is lifted by `scheduler.liftRunEvents` as the event is recorded, into the Program's
+one `CorrelatedEvidence` Observation, with ordinals dense per source across the Run. Every lift names
+as its parent the operation's previously lifted evidence when that came from another source
+(`valueStore.chainEvidence`): ordinals order one source's evidence, only a parent orders evidence
+across sources, and the Run's own order is the order the Program's instructions took, so an
+operation read back by a poll and then by a history read is one comparable chain to the verifier. A read
+declaration is polled by a `ReadEvidence` instruction: the Session's `PollRPC` repeats the
+declaration's method with the request the assignments build until `readSatisfied` finds an element
+of the declared path satisfying `until`, and the instruction's one synthesized response read then
+lifts every element the condition selects, `until` doubling as the lift's guard.
 
 `EvaluateInput` evaluates the compiled guard first and skips the input on false. Its callback must
 read only that activation's previously validated, immutable field/Slot snapshots, returning nil for

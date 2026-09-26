@@ -12,14 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecodePlanAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
+func TestDecodePlanAcceptsCanonicalSwitchV2(t *testing.T) {
 	for _, relative := range []string{
 		"model/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
 		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsAsyncStartArtifact.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsCancellationArtifact.json",
-		"model/Temporal/Feature/Nexus/Fixtures/OperationsSuccessfulCompletionArtifact.json",
 	} {
 		t.Run(filepath.Base(relative), func(t *testing.T) {
 			document, err := DecodePlan(readRepositoryFile(t, relative))
@@ -93,14 +90,14 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200",
+		"sha256:32183cb9e7306592b5dfbaacb7325be0bf2086fb7d50841c2dd5c36a7aa5cc15",
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
 	experimentChecksum, err := ExpectedPlanChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
+		"sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a",
 		experimentChecksum,
 	)
 }
@@ -139,7 +136,7 @@ func TestDecodePlanRejectsNoncanonicalEncodings(t *testing.T) {
 	differentIndentation := bytes.Replace(withoutTerminalLF,
 		[]byte("  \"formatVersion\""), []byte("    \"formatVersion\""), 1)
 	lineTrailingSpace := bytes.Replace(withoutTerminalLF, []byte("{\n"), []byte("{ \n"), 1)
-	alternateEscape := bytes.Replace(withoutTerminalLF, []byte("switch.query.exact-action"), []byte(`switch.query.exact\u002daction`), 1)
+	alternateEscape := bytes.Replace(withoutTerminalLF, []byte("umpire.switch.query.exactAction"), []byte(`umpire.switch.query.exact\u0041ction`), 1)
 	exponent := bytes.Replace(withoutTerminalLF, []byte(`"position": 1`), []byte(`"position": 1e0`), 1)
 	legacyKey := bytes.Replace(withoutTerminalLF, []byte(`"queryDefinitionId"`), []byte(`"queryIdentity"`), 1)
 	unknownKey := bytes.Replace(withoutTerminalLF, []byte("{\n  \"formatVersion\":"),
@@ -152,7 +149,7 @@ func TestDecodePlanRejectsNoncanonicalEncodings(t *testing.T) {
 		1,
 	)
 	malformedFingerprint := uppercaseFirstDigest(t, withoutTerminalLF)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a"), []byte("sha256:1234"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -189,10 +186,10 @@ func TestDecodePlanVerifiesNestedAndOuterChecksumsIndependently(t *testing.T) {
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200"),
+			[]byte("sha256:32183cb9e7306592b5dfbaacb7325be0bf2086fb7d50841c2dd5c36a7aa5cc15"),
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a"),
+			[]byte("sha256:91c596811d96a246842d90c0cd55374cdbec3a0a054292276062958dbec6793a"),
 			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "plan artifact checksum mismatch"},
 	}
 	for name, test := range cases {

@@ -17,7 +17,7 @@ Focused public imports are available by responsibility:
 | Import | Public responsibility |
 | --- | --- |
 | `Umpire.Core` | Stable definitions, traces, capabilities, laws, and finite kernels. |
-| `Umpire.Model` | Finite-machine and expert Model authoring plus checked composition. |
+| `Umpire.Model` | Finite-machine Model records and checked composition: what the `machine` command elaborates to, built directly only by the Implementation Link and by tests. |
 | `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | The authored Property language: fields, clauses, and their ordinary-Lean constructors. |
 | `Umpire.Property.Check` | Property admission, canonicalization, and the checked trace view. |
@@ -27,7 +27,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Scenario.Check` | Scenario admission, canonicalization, and trace admission. |
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios; `Search.admit` admits one for search. |
 | `Umpire.Variations` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
-| `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
+| `Umpire.Exploration` | A campaign over one exploratory set's coverage targets: one exact-trace target Query per candidate, a ledger of what each Run credited, counterexamples, and one-candidate sessions. |
 | `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces; `EvidenceStructure.analyze` returns the Evidence structure whose `orderingFault?` and `closureFault?` give the first fault for a raw bundle or an accepted trace. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
 | `Umpire.Search` | Deterministic incremental planning over checked Queries; `Search.admit` owns the Property, Scenario, Known Gap, Query, and search-view chain and returns an `AdmittedQuery`. |
@@ -40,8 +40,13 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
 | `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the monitor rule derived from a checked field Property. |
 | `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
-| `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
+| `Umpire.Command` | The Model command surface: `entity`, `enum`, `action`, `observation`, `machine`, `property`, `scenario`, `limits`, `query`, `set`, and `register_switch` for a realization's switches. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
+| `Umpire.Command.Records` | What the declarations say: entities, actions, observations, timers, setup parameters, evidence lines, machines, sets and coverage targets. |
+| `Umpire.Command.Finite` | The finite domains a `structure` of finite fields derives, and the enumeration of a step function into the table. |
+| `Umpire.Command.Refinement` | The stuttering forward simulation a `refines:` machine is checked against. |
+| `Umpire.Command.Claims` | The abstraction claims a machine's actions make, for the Producer to record per path. |
+| `Umpire.Command.Coverage` | What an exploratory set sets out to reach: rows, results and class members under its budget. |
 | `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
 | `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, Correlated Rule bindings, and local name and model value fingerprint rows, lowered into typed Case provenance rows. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
@@ -97,12 +102,15 @@ DraftModel ── checkModel ──▶ CheckedModel
                                      ├── Property ─┐
                                      ├── Scenario ─┼── Search.admit ──▶ AdmittedQuery
                                      └── Query ────┘                        │
-                                                    Planning / Space / Exploration / Promotion
+                                                    Planning / Variations / Exploration / Promotion
 ```
 
-The finite-machine adapter is the ordinary route for fully enumerable Models. Direct
-`Machine` construction remains the expert route when authoritative propositions are
-specified independently. Both routes converge before Property, Scenario, or Query checking.
+A feature Model reaches this diagram through the commands: `machine` enumerates the author's step
+functions into a `FiniteTable` whose kernel is the finite-machine adapter's, and `query` admits the
+checked Model through `Search.admit`. Direct `Machine` construction is not an authoring path for a
+feature Model (AUT-08 as fn-86 amends it; MOD-16 rejects the import); it remains what the
+Implementation Link and Umpire's own tests do, and it converges with the adapter before Property,
+Scenario, or Query checking.
 
 `FiniteMachine.modelSpec` and `FiniteMachine.draftModel` assemble the ordinary finite
 Model without deriving its evidence. The author still owns every ordered domain, encoder,
@@ -240,11 +248,14 @@ operational and cleanup failures.
 
 ## Case production
 
-Each Lean Producer owns its checked semantic lowering into generated protocol values through
-`Testpilot.Authoring`. The Contract rules come from the checked Properties rather than from the
-Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
+`Umpire.Case.Producer` is the Producer. The platform's `case … realizes <set> as <realization>`
+block hands it each checked Query of a set (`Umpire.Command.produceCase`) and a realization, and it
+assembles the Case's Program from the Query's witness and lowers its checked semantics into generated
+protocol values through `Testpilot.Authoring`. The Contract rules come from the checked Properties
+rather than from the Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
 `Umpire.Case.Projection.lower` derives the monitor rule of a field Property, and each returns its
-correspondence certificate beside the lowering. Umpire-backed Producers pass those values to
+correspondence certificate beside the lowering, and the Producer derives the outage-order rule
+from the faults a Program injects. It passes those values to
 `Umpire.Case.Compiler`, which admits both lowerings side by side and
 validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
 Gaps in order, renames the Program and Contract to Case-local names and model value spellings
@@ -385,12 +396,21 @@ not compatibility surfaces of `Umpire.Case`.
 
 ## The Model command surface
 
-`Umpire.Command` owns the five commands a Model file is written in, and the construction and
-admission layer behind them. Nothing in it names a feature: the semantic family of a declaration is
-its enclosing namespace with the project's scaffolding prefix removed, and its Provenance source is
-the module being elaborated. A project declares those conventions once, with `model_conventions`,
-and every declaration in it inherits them.
+`Umpire.Command` owns the commands a Model file is written in, and the construction and admission
+layer behind them: `entity`, `enum`, `action` and `observation` declare the vocabulary; `machine`
+enumerates a step function over a structure of finite fields into the checked table, checks a
+`refines:` machine against the one it refines, and reads which observation confirms each Fact;
+`property`, `scenario`, `limits` and `query` are the authoring languages AUT-07 names, written
+over that vocabulary; `set` groups Queries by purpose and binds parties; `register_switch` is how a
+realization tells the surface which switches a set may repeat over. Nothing in it names a feature:
+the semantic family of a declaration is its enclosing namespace with the project's scaffolding
+prefix removed, and its Provenance source is the module being elaborated. A project declares those
+conventions once, with `model_conventions`, and every declaration in it inherits them.
+`model/AUTHORING.md` walks a Model file through every command in order.
 
 What stays outside is everything about turning a checked Model into something a runtime executes:
-the realization templates, which recorded event confirms which Action, and what a Case ID is rooted
-at. Those belong to whoever owns the runtime, which declares its own `case` command beside them.
+the realizations, the catalog of recorded events an `evidence:` line resolves against, and what a
+Case ID is rooted at. Those belong to whoever owns the runtime, which declares its own
+Case-producing block beside them (`case … realizes <set> as <realization>`), producing a
+functional set's Cases for the renderer and reading a canary set's for the gaps a deployment
+cannot close.

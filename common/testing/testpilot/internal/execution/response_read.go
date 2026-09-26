@@ -26,7 +26,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 		return nil, w.work, err
 	}
 	batch.outcome, batch.fields = snapshot.Outcome, snapshot.Fields
-	if n.opcode != contract.InvokeRPC {
+	if n.opcode != contract.InvokeRPC && n.opcode != contract.ReadEvidence {
 		if !isNil(result.Response) {
 			return nil, w.work, invalid(ir.Unsupported, "response_read", "only RPCs return raw responses")
 		}
@@ -252,6 +252,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 			}
 			evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
 		}
+		a.store.chainEvidence(evidence)
 		encoded, err := proto.Marshal(evidence)
 		if err != nil {
 			return nil, invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")

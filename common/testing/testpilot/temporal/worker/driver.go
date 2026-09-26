@@ -364,21 +364,21 @@ func (d *programDefinition) addEntry(entry entryDefinition, queueNexus map[strin
 func (h *Driver) addInstructionBindings(definition *programDefinition, plan testpilot.EntrypointPlan, roles map[string]testpilot.PreparedRole, program *testpilotspb.Program) error {
 	for _, instruction := range plan.Instructions() {
 		source := instruction.Source().GetInstruction()
-		if start := source.GetStartNexusOperation(); start != nil {
-			role, ok := roles[start.GetEndpointRoleId()]
+		var endpointRole string
+		if schedule := scheduleNexusOperation(source); schedule != nil {
+			endpointRole = schedule.GetEndpoint()
+		}
+		if endpointRole != "" {
+			role, ok := roles[endpointRole]
 			if !ok || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || role.ResourceBindingID == "" || role.Resource == "" || h.profileRoleHasMethods(role.ID) {
 				return ErrInvalid
 			}
-			endpoint := role.Resource
-			if endpoint == "" {
-				return ErrInvalid
-			}
-			definition.endpoints[start.GetEndpointRoleId()] = endpoint
+			definition.endpoints[endpointRole] = role.Resource
 		}
 		if err := h.validateRPCBindings(instruction, roles, program); err != nil {
 			return err
 		}
-		if response := source.GetRespondNexus(); response != nil && response.GetKind() == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
+		if source.GetNexusHandlerReply().GetResponse().GetAsyncSuccess() != nil {
 			definition.hasAsync = true
 		}
 	}

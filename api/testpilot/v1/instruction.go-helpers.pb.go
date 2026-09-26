@@ -340,117 +340,6 @@ func (this *AwaitInstruction) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type StartNexusOperation to the protobuf v3 wire format
-func (val *StartNexusOperation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type StartNexusOperation from the protobuf v3 wire format
-func (val *StartNexusOperation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *StartNexusOperation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two StartNexusOperation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *StartNexusOperation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *StartNexusOperation
-	switch t := that.(type) {
-	case *StartNexusOperation:
-		that1 = t
-	case StartNexusOperation:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CompleteNexusOperation to the protobuf v3 wire format
-func (val *CompleteNexusOperation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CompleteNexusOperation from the protobuf v3 wire format
-func (val *CompleteNexusOperation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CompleteNexusOperation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CompleteNexusOperation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CompleteNexusOperation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CompleteNexusOperation
-	switch t := that.(type) {
-	case *CompleteNexusOperation:
-		that1 = t
-	case CompleteNexusOperation:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type RespondNexus to the protobuf v3 wire format
-func (val *RespondNexus) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type RespondNexus from the protobuf v3 wire format
-func (val *RespondNexus) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *RespondNexus) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two RespondNexus values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RespondNexus) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *RespondNexus
-	switch t := that.(type) {
-	case *RespondNexus:
-		that1 = t
-	case RespondNexus:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type Finish to the protobuf v3 wire format
 func (val *Finish) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -525,6 +414,154 @@ func (this *InjectFault) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type WorkflowCommand to the protobuf v3 wire format
+func (val *WorkflowCommand) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type WorkflowCommand from the protobuf v3 wire format
+func (val *WorkflowCommand) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *WorkflowCommand) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two WorkflowCommand values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *WorkflowCommand) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *WorkflowCommand
+	switch t := that.(type) {
+	case *WorkflowCommand:
+		that1 = t
+	case WorkflowCommand:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type NexusHandlerReply to the protobuf v3 wire format
+func (val *NexusHandlerReply) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type NexusHandlerReply from the protobuf v3 wire format
+func (val *NexusHandlerReply) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *NexusHandlerReply) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two NexusHandlerReply values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *NexusHandlerReply) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *NexusHandlerReply
+	switch t := that.(type) {
+	case *NexusHandlerReply:
+		that1 = t
+	case NexusHandlerReply:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type NexusOperationCompletion to the protobuf v3 wire format
+func (val *NexusOperationCompletion) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type NexusOperationCompletion from the protobuf v3 wire format
+func (val *NexusOperationCompletion) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *NexusOperationCompletion) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two NexusOperationCompletion values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *NexusOperationCompletion) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *NexusOperationCompletion
+	switch t := that.(type) {
+	case *NexusOperationCompletion:
+		that1 = t
+	case NexusOperationCompletion:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ReadEvidence to the protobuf v3 wire format
+func (val *ReadEvidence) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ReadEvidence from the protobuf v3 wire format
+func (val *ReadEvidence) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ReadEvidence) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ReadEvidence values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ReadEvidence) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ReadEvidence
+	switch t := that.(type) {
+	case *ReadEvidence:
+		that1 = t
+	case ReadEvidence:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type InstructionLimits to the protobuf v3 wire format
 func (val *InstructionLimits) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -579,26 +616,6 @@ func ReadCardinalityFromString(s string) (ReadCardinality, error) {
 		return ReadCardinality(v), nil
 	}
 	return ReadCardinality(0), fmt.Errorf("%s is not a valid ReadCardinality", s)
-}
-
-var (
-	NexusResponseKind_shorthandValue = map[string]int32{
-		"Unspecified":  0,
-		"Synchronous":  1,
-		"Asynchronous": 2,
-		"Error":        3,
-	}
-)
-
-// NexusResponseKindFromString parses a NexusResponseKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to NexusResponseKind
-func NexusResponseKindFromString(s string) (NexusResponseKind, error) {
-	if v, ok := NexusResponseKind_value[s]; ok {
-		return NexusResponseKind(v), nil
-	} else if v, ok := NexusResponseKind_shorthandValue[s]; ok {
-		return NexusResponseKind(v), nil
-	}
-	return NexusResponseKind(0), fmt.Errorf("%s is not a valid NexusResponseKind", s)
 }
 
 var (

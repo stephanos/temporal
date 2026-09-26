@@ -1,23 +1,32 @@
 ---
-satisfies: [R1, R2]
+satisfies: [R1, R2, R9]
 ---
+# fn-22-deterministic-replay-semantic.1 Admit the replay subject, derive the Contract-relative violation key, and export offline semantic replay
 
-# fn-22-deterministic-replay-semantic.1 Admit the Case-native replay subject and semantic violation key
 ## Description
-Define strict replay admission over canonical Case, exact preparation Profile/catalog identity, and one closed matching Run/Verdict. Derive the semantic violation key from Case/Contract identity, violated terminal state, responsible clause, and supporting Observation roles while excluding fresh Run transport values.
+Define the *recorded Run* file shape in `tools/umpire/replay` (the closed Run with its Verdict and the `DriverIdentity` it was prepared under: Profile name, catalog fingerprint, bindings fingerprint) and have `umpire-run --record <path>` write it beside its report and `umpire-fuzz --record-root <dir>` write each counterexample's Case bytes (`<set>-<digest>-case.json`, compact with one trailing newline) and recorded Run (`<set>-<digest>-run.json`) through a per-candidate record hook `campaign.Drive` gains, which hands each violated Run's Case bytes, Run, Verdict and `DriverIdentity` to the caller as they close and retains nothing in the report. Define `Subject` admission: one Case in its canonical form (`input == compact(input) || input == persistedForm(compact(input))`, `persistedForm` lifted from the conformance generator into an importable package both use; the compact bytes' SHA-256 is the subject's identity) and one recorded Run in the admissible violated form, decided by one function reruns use too (`STOPPED_BY_MONITOR`, cleanup `SUCCEEDED`, Verdict `VIOLATED`); crossed ids (Case, Program, Run), an `INCOMPLETE` or unclosed Run, a `COMPLETED` disposition beside a violation (malformed, the evaluator never produces it), a non-violated Verdict, a supporting sequence naming no event and a duplicate sequence reject before any target effect. Add the free `binding.Prepare(deployment, handlerQueue, identity, source)` (its own method catalog, `DeriveProfile`, `testpilot.Prepare`; no connection, no provisioning, no Driver), build `Campaign.Bind` on it and expose the prepared Case on `Bound`; admission prepares the subject under the recorded Run's Profile name with the catalog and the environment bindings the deployment flags derive (no dynamic configuration) and decides `stale` as a catalog or bindings fingerprint other than the recorded one, all before `binding.Open`. Export offline semantic replay on the facade: `PreparedCase.Evaluate(ctx, run) (*Verdict, *Evaluation, error)` over the Case Runtime's own evaluator, where `Evaluation` names, per violated rule, the sequence of the event whose evidence resolved the obligation and that evidence (a monitor rule's observation ids from its transition trace; a correlated rule's released `CorrelatedEvidence.Kind`), covered by the protocol and facade tests; `Subject.Replay` compares the recorded Verdict with the re-evaluated one, and a replay that errs or disagrees rejects the subject before any rerun, naming the cause. Derive the `ViolationKey` in Definition IDs (Case-local names resolved through `provenance.local_names` where a row exists, taken as-is otherwise; a correlated rule's terminal state is the runtime constant): the violated rules, each with its terminal state and its violating evidence (a monitor rule violated by its deadline: its violation state, no evidence); pin that per-Run transport values, instruction ids, the Verdict's accumulated support and the Case identity never enter it.
 
-**Size:** M
-**Touches:** `tools/umpire/replay/subject.go`, `tools/umpire/replay/subject_test.go`
+### Approach
+- Admission is a pure function of the two inputs plus the prepared Case; `binding.Prepare` is what `Bind` calls first, and a test pins that it opens nothing.
+- The key is pinned offline on the synthetic Case (`Testpilot.Examples.Synthetic`, `testdata/synthetic-case.json`) driven by a scripted facade Driver, as `conformance_test.go` and `facade_external_test.go` drive Cases, into a violated Run; a correlated Case's key is pinned on the control's recorded live Run in task .3.
+- The evaluator's `transitionTrace` already records monitor-rule transitions; the correlated monitor learns to keep, per obligation, the evidence whose release resolved it.
 
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/umpire/replay/ ./tools/umpire/binding/ ./tools/umpire/cmd/umpire-run/ ./tools/umpire/cmd/umpire-fuzz/ ./common/testing/testpilot/...`
+
+**Size:** L
+**Files:** `tools/umpire/replay/subject.go`, `tools/umpire/replay/subject_test.go`, `tools/umpire/replay/key.go`, `tools/umpire/replay/key_test.go`, `tools/umpire/replay/recorded.go`, `tools/umpire/binding/binding.go`, `tools/umpire/binding/binding_test.go`, `tools/umpire/cmd/umpire-run/run.go`, `tools/umpire/cmd/umpire-run/run_test.go`, `tools/umpire/cmd/umpire-fuzz/run.go`, `tools/umpire/cmd/umpire-fuzz/run_test.go`, `tools/umpire/campaign/session.go`, `tools/umpire/campaign/run.go`, `tools/umpire/campaign/session_test.go`, `tools/umpire/cmd/umpire-gen-case-runtime-conformance/json.go`, `common/testing/testpilot/prepared_case.go`, `common/testing/testpilot/internal/verification/evaluator.go`, `common/testing/testpilot/internal/verification/correlated.go`, `common/testing/testpilot/protocol_test.go`, `common/testing/testpilot/facade_external_test.go`
+**Touches:** `tools/umpire/replay/**`, `tools/umpire/binding/**`, `tools/umpire/cmd/umpire-run/**`, `tools/umpire/cmd/umpire-fuzz/**`, `tools/umpire/campaign/**`, `tools/umpire/cmd/umpire-gen-case-runtime-conformance/**`, `common/testing/testpilot/prepared_case.go`, `common/testing/testpilot/internal/verification/**`, `common/testing/testpilot/*_test.go`
+
+### Re-plan note (2026-09-22)
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
-- [ ] Crossed, stale, noncanonical, incomplete, satisfied, duplicate, and N+1 inputs fail before target effects.
-- [ ] Equivalent per-Run identities and timestamps do not change the semantic key; any semantic binding change does.
-- [ ] No persisted replay bundle, audit digest, trust store, or compatibility reader is introduced.
-
+- [x] Crossed, stale, noncanonical (neither the compact canonical form nor its persisted re-indentation), incomplete, `COMPLETED`-beside-violation, unsupported (a supporting sequence naming no event), non-violated, duplicate and replay-mismatching inputs fail before `binding.Open`, each with its own reason; the subject is prepared under the recorded Profile name and `stale` is a catalog or bindings fingerprint other than the recorded one; `binding.Prepare` opens no connection and provisions nothing.
+- [x] Per-Run identities, sequences, times, instruction ids and the Verdict's accumulated support do not change the key; a different violated rule set, terminal state or violating evidence does; a Case-local renaming does not; the Case identity is reported beside the key and is not in it.
+- [x] `PreparedCase.Evaluate` reproduces a recorded Run's Verdict offline and names each violated rule's violating evidence; it is the only semantic-replay path; `umpire-run --record` and `umpire-fuzz --record-root` write the recorded Run shape; no bundle, digest, trust store or reader is introduced.
 ## Done summary
-TBD
-
+tools/umpire/replay admits a violated Run as a subject (canonical Case via tools/umpire/internal/casefile, recorded Run with its Profile identity, admissible violated form, stale by fingerprint, offline replay) and derives the Contract-relative violation key in Definition IDs from the violating evidence the evaluator now records; PreparedCase.Evaluate exports the offline replay; binding.Prepare prepares without a deployment; umpire-run --record and umpire-fuzz --record-root write recorded Runs through campaign.DriveRecording.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1ffec036fdbfd0ed7799b56c216f4af14822b4e4, eccb7d805c8716b9d84ebc01eec0f6821721c5c7, bef9bcd8fc60ad940e28ee79bacb4edc9902b674
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:

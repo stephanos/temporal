@@ -5,14 +5,14 @@ import Temporal.Feature.Nexus.Tests.Commands
 
 `DESIGN.md` section 3 writes the Nexus caller-side operation as two machines: a product machine that
 says what an operation does, and a protocol machine that says how the server gets there. It writes
-them as rows, in the grammar the user's 2026-09-12 decision replaced with ordinary Lean. This module
-is that decision applied to the design's own specimen -- the same behaviour, written as `match` a Go
-reader would recognise, enumerated by the `machine` command into the same table the rows produced.
+them as step functions, and the Caller Model (`Temporal.Feature.Nexus.Caller`) is where both live
+since fn-85 .10. This module keeps the product machine, written over the vocabulary specimen of
+`Tests.Commands`, as the small machine the `machine` command's rejections are pinned against, and
+the loops below as the specimens of what a Search makes of a timer and what a refinement rejects.
 
 Not here: the `requestCancel` and `cancelReply` rows, and the `cancel` state field they move. The
 design marks them `fn-79`, which resumes only on an explicit request, so writing them here would
-deliver that task early. The protocol machine's state is therefore its phase, its attempt count and
-the three timeouts the schedule command sets.
+deliver that task early.
 -/
 
 namespace Temporal.Feature.Nexus.Tests.Machines
@@ -24,7 +24,8 @@ open Temporal.Feature.Nexus.Tests.Commands
 /-! ### The product machine
 
 What an operation does, with no account of how. Every Property written against it is carried to the
-protocol machine by the refinement (`DESIGN.md` section 2.5, delivered by task `.6`). -/
+protocol machine by the refinement (`DESIGN.md` section 2.5), which is declared on the protocol
+machine below. -/
 
 enum ProductPhase
   | scheduled
@@ -93,22 +94,33 @@ def workerStopStep (state : ProductState) :
     List (Step ProductState ProductOutcome ProductFact) :=
   [{ outcome := .accepted, state, facts := [.faultInjected] }]
 
+/-- One of the operation's deadlines firing. Which deadline is the protocol's account of how, so the
+product machine has one timer, and it fires while the operation runs. -/
+def timeoutStep (state : ProductState) :
+    List (Step ProductState ProductOutcome ProductFact) :=
+  if state.phase == .scheduled || state.phase == .started then
+    productStep .timedOut .nexusOperationTimedOut
+  else []
+
 machine nexusProduct
   for: operation
   state: ProductState
   starts: [scheduled]
   ends: [succeeded, failed, canceled, timedOut]
+  timers: [timeout]
   evidence:
     nexusOperationStarted: nexusOperationStarted
     nexusOperationCompleted: nexusOperationCompleted
     nexusOperationFailed: nexusOperationFailed
     nexusOperationCanceled: nexusOperationCanceled
+    nexusOperationTimedOut: nexusOperationTimedOut
     faultInjected: faultInjected
   steps:
     handlerReply: handlerReplyStep
     complete: completeStep
     transportFault: transportFaultStep
     workerStop: workerStopStep
+    timeout: timeoutStep
 
 /-! ### What the product machine says
 
@@ -119,8 +131,9 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 #guard nexusProduct.table.states.length == 6
 #guard nexusProduct.ends.length == 4
 
-/- Every action class the machine steps on: six replies, three resolutions, and the two faults. -/
-#guard nexusProduct.actionKeys.size == 11
+/- Every action class the machine steps on: six replies, three resolutions, the two faults, and the
+one timer. -/
+#guard nexusProduct.actionKeys.size == 12
 
 /- An async reply starts the operation and records that it started. -/
 #guard (handlerReplyStep { phase := .scheduled } .async).map (·.state.phase) == [.started]
@@ -134,12 +147,12 @@ Contract lowering read. A `match` arm that stopped saying what it says would fai
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.outcome) == [.notFound]
 #guard (completeStep { phase := .succeeded } .succeeded).map (·.state.phase) == [.succeeded]
 
-/- What the Model actually reaches. `timedOut` is not among them: the product machine has no timer,
-because when an operation times out is the protocol's account of how and not what, so the state
-exists for the refinement to map onto and nothing here reaches it. -/
+/- What the Model actually reaches: every phase. `timedOut` is reached by the one timer, because a
+refinement carries every protocol step to a product step or a stutter, and a deadline firing is
+neither a stutter nor anything a product without a timer could take. -/
 #guard (Umpire.Command.reachableFrom nexusProduct.starts
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
-  ["scheduled", "canceled", "failed", "succeeded", "started"]
+  ["scheduled", "canceled", "failed", "succeeded", "started", "timedOut"]
 
 /- Nothing the command declares rests on an unchecked proof. The canonical-table law is what the
 Behavior Fingerprint, Search and Contract lowering all read, and `elabCommand` logs a failure rather
@@ -155,272 +168,10 @@ machine could be stuck -- which is why the rejection is pinned below on a machin
 
 /-! ### The protocol machine
 
-How the server gets there: the retry the product machine cannot see, the three timers the schedule
-command sets, and the attempt count a retryable failure raises. Written against the same actions, so
-a Property proved on the product machine is carried here by the refinement.
-
-Two parts of `DESIGN.md` section 3's machine are not here, for reasons recorded rather than silent.
-The `cancel` field and its two rows are fn-79's. The `atConcurrencyLimit: true + schedule → reject`
-row needs the table to vary with the setup, which is task `.5`; `setup:` is declared below because
-the machine has that parameter, and the one-setup table this command builds is the table without
-the rejection row.
-
-The design's `none + schedule` row is a step from a phase rather than from no instance: a machine's
-state structure has no "no instance yet" member, so `unscheduled` is that member. It is what makes
-the three timeout fields reachable at anything but their first value -- the schedule command is what
-sets them, so a machine that started already scheduled could never observe a timer firing. -/
-
-enum Phase
-  | unscheduled
-  | scheduled
-  | backingOff
-  | started
-  | succeeded
-  | failed
-  | canceled
-  | timedOut
-
-/-- Which timer fired. The history event records it, so a Contract that did not check it would pass
-a run that timed out on the wrong deadline. -/
-enum TimeoutType
-  | scheduleToClose
-  | scheduleToStart
-  | startToClose
-
-/-- The attempt count is `attempts: count` in the design, bounded by the Limits. Nothing wires the
-Limits into a machine's state yet (that is task `.4`'s Limits accounting), so the bound is written
-here and the saturating successor `Umpire.Command.saturatingSucc` is what keeps a retry inside it. -/
-abbrev attemptBound : Nat := 2
-
-structure ProtocolState where
-  phase : Phase
-  attempts : Fin (attemptBound + 1)
-  scheduleToClose : Timeout
-  scheduleToStart : Timeout
-  startToClose : Timeout
-  deriving BEq, DecidableEq, Repr, Finite
-
-enum ProtocolOutcome
-  | accepted
-  | notFound
-
-enum ProtocolFact
-  | nexusOperationScheduled
-  | nexusOperationStarted
-  | nexusOperationCompleted
-  | nexusOperationFailed
-  | nexusOperationCanceled
-  | nexusOperationTimedOut (timeoutType : TimeoutType)
-  | pendingAttempts
-  | faultInjected
-
-/-- The four phases the design ends on. A completion that arrives after one of them is not found. -/
-private def terminalPhase (phase : Phase) : Bool :=
-  phase == .succeeded || phase == .failed || phase == .canceled || phase == .timedOut
-
-/-- Scheduled and not yet over: the phases a completion resolves and a timer can fire in. -/
-private def running (phase : Phase) : Bool :=
-  phase == .scheduled || phase == .backingOff || phase == .started
-
-private def moves (state : ProtocolState) (phase : Phase) (recorded : List ProtocolFact) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  [{ outcome := .accepted, state := { state with phase }, facts := recorded }]
-
-/-- The caller's schedule command. It names the operation's three deadlines, and every one of them
-is a state field because whether a timer fires is a question about the operation and not about the
-command that started it. -/
-def scheduleStep (state : ProtocolState)
-    (scheduleToClose scheduleToStart startToClose : Timeout) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if state.phase != .unscheduled then [] else
-  [{ outcome := .accepted
-     state := { phase := .scheduled, attempts := 0, scheduleToClose, scheduleToStart, startToClose }
-     facts := [.nexusOperationScheduled] }]
-
-/-- The handler's reply to the server's start request. What the product machine cannot see is the
-last arm: a retryable failure backs the operation off and raises its attempt count, and the count is
-read back through the `pendingAttempts` observation because no history event records it. -/
-def protocolHandlerReplyStep (state : ProtocolState) (reply : Reply) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if state.phase != .scheduled then [] else
-  match reply with
-  | .syncSuccess => moves state .succeeded [.nexusOperationCompleted]
-  | .async => moves state .started [.nexusOperationStarted]
-  | .operationFailed => moves state .failed [.nexusOperationFailed]
-  | .operationCanceled => moves state .canceled [.nexusOperationCanceled]
-  | .handlerError false => moves state .failed [.nexusOperationFailed]
-  | .handlerError true =>
-      [{ outcome := .accepted
-         state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
-         facts := [.pendingAttempts] }]
-
-/-- A transport fault is the same failure arriving as a dropped delivery rather than as a reply. -/
-def protocolTransportFaultStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if state.phase != .scheduled then [] else
-  [{ outcome := .accepted
-     state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }
-     facts := [.pendingAttempts] }]
-
-/-- The handler's worker stopping is a fault the run records and the operation does not feel. -/
-def protocolWorkerStopStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  [{ outcome := .accepted, state, facts := [.faultInjected] }]
-
-/-- An asynchronous completion. Before a start, the server records a Started event first, which is
-why the evidence is two facts and not one -- and why the product machine, which has no `backingOff`
-phase to have skipped, could write the completion alone. -/
-def protocolCompleteStep (state : ProtocolState) (resolution : Resolution) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if terminalPhase state.phase then
-    [{ outcome := .notFound, state, facts := [] }]
-  else if state.phase == .unscheduled then []
-  else
-    let startedFirst : List ProtocolFact :=
-      if state.phase == .started then [] else [.nexusOperationStarted]
-    match resolution with
-    | .succeeded => moves state .succeeded (startedFirst ++ [.nexusOperationCompleted])
-    | .failed => moves state .failed (startedFirst ++ [.nexusOperationFailed])
-    | .canceled => moves state .canceled (startedFirst ++ [.nexusOperationCanceled])
-
-/-- The backoff timer. It is what makes `backingOff` a phase the operation leaves rather than a
-state it is stuck in, and it records nothing: a retry writes no history event. -/
-def backoffStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if state.phase != .backingOff then [] else moves state .scheduled []
-
-/-- The schedule-to-close deadline covers the whole operation, so it fires in every running phase --
-and only when the schedule command set it. -/
-def scheduleToCloseStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if running state.phase && state.scheduleToClose == .expires then
-    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .scheduleToClose)]
-  else []
-
-/-- The schedule-to-start deadline covers the wait for the handler to accept, so it stops at the
-start. -/
-def scheduleToStartStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if (state.phase == .scheduled || state.phase == .backingOff) &&
-      state.scheduleToStart == .expires then
-    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .scheduleToStart)]
-  else []
-
-/-- The start-to-close deadline covers the handler's own work, so it begins at the start. -/
-def startToCloseStep (state : ProtocolState) :
-    List (Step ProtocolState ProtocolOutcome ProtocolFact) :=
-  if state.phase == .started && state.startToClose == .expires then
-    moves state .timedOut [.nexusOperationTimedOut (timeoutType := .startToClose)]
-  else []
-
-machine nexusProtocol
-  for: operation
-  state: ProtocolState
-  starts: [unscheduled]
-  ends: [succeeded, failed, canceled, timedOut]
-  setup:
-    atConcurrencyLimit: Bool
-  timers: [backoff, scheduleToClose, scheduleToStart, startToClose]
-  unobservable: [backoff]
-  evidence:
-    nexusOperationScheduled: nexusOperationScheduled
-    nexusOperationStarted: nexusOperationStarted
-    nexusOperationCompleted: nexusOperationCompleted
-    nexusOperationFailed: nexusOperationFailed
-    nexusOperationCanceled: nexusOperationCanceled
-    nexusOperationTimedOut: nexusOperationTimedOut
-    pendingAttempts: pendingAttempts
-    faultInjected: faultInjected
-  steps:
-    schedule: scheduleStep
-    handlerReply: protocolHandlerReplyStep
-    complete: protocolCompleteStep
-    transportFault: protocolTransportFaultStep
-    workerStop: protocolWorkerStopStep
-    backoff: backoffStep
-    scheduleToClose: scheduleToCloseStep
-    scheduleToStart: scheduleToStartStep
-    startToClose: startToCloseStep
-
-/-! ### What the protocol machine says
-
-Elaborating this machine costs about forty seconds on a four-core box: 192 states over 23 action
-classes, enumerated into 1152 rows and checked against the canonical-table law. The cost is the law
-rather than the walk -- the short circuit in `Umpire.Command.satisfiesTransitionRequirement` is what
-made a machine this size provable at all. -/
-
-/-- A state written the way a reader names one: the phase, and whichever fields are not at the value
-the operation begins with. -/
-private def at' (phase : Phase) (attempts : Fin (attemptBound + 1) := 0)
-    (scheduleToClose : Timeout := .unset) (scheduleToStart : Timeout := .unset)
-    (startToClose : Timeout := .unset) : ProtocolState :=
-  { phase, attempts, scheduleToClose, scheduleToStart, startToClose }
-
-/- Eight phases, three attempt counts and three deadlines, and the four phases the design ends on. -/
-#guard nexusProtocol.table.states.length == 8 * (attemptBound + 1) * 2 * 2 * 2
-#guard nexusProtocol.ends.length == 4 * (attemptBound + 1) * 2 * 2 * 2
-
-/- Every action class the machine steps on. `schedule` contributes eight, one per assignment of the
-three deadlines, because which timers an operation has is settled by the command that scheduled it
-and an example is written at the class.
-
-The catalog is in canonical order -- sorted by the member key, which is the order a Search admits --
-rather than in the order the `steps:` lines are written, so it opens on the backoff timer and not on
-`schedule`. -/
-#guard nexusProtocol.actionKeys.size == 8 + 6 + 3 + 1 + 1 + 4
-#guard nexusProtocol.actionKeys.toList.take 2 == ["backoff", "complete-canceled"]
-
-/- The machine begins before the operation exists, with every deadline at its first value: the
-schedule command is what sets them, so a machine that began already scheduled could never reach a
-state a timer fires in. -/
-#guard nexusProtocol.starts == [at' .unscheduled]
-
-/- A retryable handler error backs the operation off and raises the attempt count. No history event
-records that, which is why its evidence is the derived `pendingAttempts` observation. -/
-#guard protocolHandlerReplyStep (at' .scheduled) (.handlerError (retryable := true)) ==
-  [{ outcome := .accepted, state := at' .backingOff 1, facts := [.pendingAttempts] }]
-
-/- The count saturates rather than wrapping: a machine whose attempt count rolled over to zero would
-claim the operation had never been retried. -/
-#guard (protocolHandlerReplyStep (at' .scheduled (attempts := Fin.last attemptBound))
-  (.handlerError (retryable := true))).map (·.state.attempts) == [Fin.last attemptBound]
-
-/- A completion that arrives before the start records the Started event first, and one that arrives
-after it does not. Both record the completion. -/
-#guard (protocolCompleteStep (at' .backingOff 1) .succeeded).flatMap (·.facts) ==
-  [.nexusOperationStarted, .nexusOperationCompleted]
-#guard (protocolCompleteStep (at' .started) .succeeded).flatMap (·.facts) ==
-  [.nexusOperationCompleted]
-
-/- A completion after the operation is over is not found and changes nothing. -/
-#guard protocolCompleteStep (at' .timedOut) .succeeded ==
-  [{ outcome := .notFound, state := at' .timedOut, facts := [] }]
-
-/- A timer fires only when the schedule command set it, and each covers its own span: the
-start-to-close deadline begins at the start, so it cannot fire before one. -/
-#guard startToCloseStep (at' .scheduled (startToClose := .expires)) == []
-#guard (startToCloseStep (at' .started (startToClose := .expires))).map (·.state.phase) == [.timedOut]
-#guard scheduleToCloseStep (at' .started) == []
-
-/- Which timer fired is recorded, because the history event records it and a Contract that did not
-check it would pass a run that timed out on the wrong deadline. -/
-#guard (scheduleToStartStep (at' .scheduled (scheduleToStart := .expires))).flatMap (·.facts) ==
-  [.nexusOperationTimedOut (timeoutType := .scheduleToStart)]
-
-/- Nothing is stuck. Unlike the product machine's, this claim can fail: `workerStop` steps from every
-state there, and here the operation's own phase decides which steps are enabled. -/
-#guard nexusProtocol.stuck == none
-
-/- Not every state is reachable, and that is what enumerating the structure rather than the walk
-costs: the count and the deadlines are fields of the state, so states that disagree about them exist
-in the type and no run produces them. The Behavior Fingerprint reads the table, so this number is
-part of the Model's identity. -/
-#guard (Umpire.Command.reachableFrom nexusProtocol.starts nexusProtocol.transitions).length == 158
-
-/- The canonical-table law holds, and holds by a proof rather than by a logged failure. -/
-/-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProtocol' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms nexusProtocol
+The protocol machine that refines this product machine, its map, the refinement and the Queries over
+it are the Caller Model's (`Temporal.Feature.Nexus.Caller`), and what they say is pinned in
+`Temporal.Feature.Nexus.Caller.Tests`; this module keeps the product machine as the small specimen
+the rejections below are written against. -/
 
 /-! ### What a Search makes of a timer
 
@@ -497,10 +248,9 @@ a timer, which is why nothing has to tell the Limits either. -/
 #guard attemptLoop.actionKeys.toList == ["retry", "transportFault", "workerStop"]
 
 property attemptEnds
-  model: attemptLoop
+  machine: attemptLoop
   when: workerStop
-  require:
-    state: finished
+  holds: fun step => step.state.phase == .finished
 
 /- The operation is dropped once, backs off, and is stopped: three occurrences, one of them the
 timer's and one of them the fault's. -/
@@ -518,6 +268,13 @@ query attemptCompletes
   find: attemptEnds
   in: faultThenRetry
   limits: threeOccurrences
+
+/- The predicate fixes the one state the keyed form named, so the fingerprint was the keyed form's
+when the form changed (pinned at fcbc068); the value here is the one after fn-85 `.4` gave a
+machine's state fields a meaning. -/
+#guard (attemptCompletes.toOption.map fun checked =>
+  checked.property.behaviorFingerprint.render) ==
+  some "sha256:c610cd4a976af184563203c4150073ab75fee68895f48c7b08222240a8bf755d"
 
 /- The Search finds the trace: three occurrences within a budget of three, one of them the timer's
 firing and one of them the fault. -/
@@ -545,10 +302,232 @@ query attemptOutOfBudget
 /- The count a machine keeps of its own attempts is bounded by the Limits the same way, and reaching
 that bound is what `limitReached` says of a count. Saturating rather than wrapping is what makes the
 claim readable: a count that rolled over would say the operation had never been retried. -/
-#guard (Umpire.Command.members (α := Fin (attemptBound + 1))).map Umpire.Command.limitReached ==
+#guard (Umpire.Command.members (α := Fin 3)).map Umpire.Command.limitReached ==
   [false, false, true]
-#guard Umpire.Command.limitReached
-  (Umpire.Command.saturatingSucc (Fin.last attemptBound)) == true
+#guard Umpire.Command.limitReached (Umpire.Command.saturatingSucc (Fin.last 2)) == true
+
+/-! ### What a refinement is, and what it rejects
+
+The rejections are pinned on a small pair, because each is about the declaration rather than about
+the size of the machine. `retryLoop` refines `attemptLoop` exactly: the loop's phase is the
+attempt's phase, and whether it has retried is hidden. -/
+
+structure RetryState where
+  phase : AttemptPhase
+  retried : Bool
+  deriving BEq, DecidableEq, Repr, Finite
+
+def retryFaultStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .waiting }, facts := [.pendingAttempts] }]
+
+def retryRetryStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .waiting then [] else
+  [{ outcome := .accepted, state := { phase := .trying, retried := true }, facts := [] }]
+
+def retryStopStep (state : RetryState) : List (Step RetryState AttemptOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .finished }, facts := [.faultInjected] }]
+
+/-- The attempt loop's phase is the retry loop's phase; whether it retried is hidden. -/
+def attemptOf (state : RetryState) : AttemptState := { phase := state.phase }
+
+machine retryLoop
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/- Every row is the attempt loop's step of the same name; nothing stutters. -/
+#guard retryLoop.refinement.rejected == none
+#guard retryLoop.refinement.rows.all (·.2.isSome)
+#guard retryLoop.refinement.rows.lookup "trying-false-transportFault" == some (some "transportFault")
+#guard retryLoop.refinement.rows.lookup "waiting-true-retry" == some (some "retry")
+
+/- The attempt loop's state is a field of the retry loop's, named after the attempt loop. -/
+#guard retryLoop.stateFieldIds.map (·.1) == ["phase", "retried", "attemptLoop"]
+
+/- A Property on the attempt loop is found on the retry loop's paths: `attemptEnds` is about
+`workerStop`, which the retry loop names too. -/
+scenario retryThenStop
+  model: retryLoop
+  starts: trying
+  actions: [transportFault, retry, workerStop]
+
+query retryCompletes
+  find: attemptEnds
+  in: retryThenStop
+  limits: threeOccurrences
+
+#guard (match retryCompletes with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "found"
+
+/- A map says how this machine's state reads as another's, so it names that machine. -/
+/--
+error: `map:` says how this machine's state reads as another machine's, so `refines:` names that machine; a `map:` without `refines:` maps to nothing
+-/
+#guard_msgs in
+machine mapAlone
+  for: operation
+  state: RetryState
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/--
+error: `refines:` names the machine this one refines, and `map:` names the function that reads this machine's state as its state; a refinement needs both
+-/
+#guard_msgs in
+machine refinesAlone
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/--
+error: 'notAMachine' is not a machine declared by a `machine` command; `refines:` names the product machine this one refines
+-/
+#guard_msgs in
+machine refinesNothing
+  for: operation
+  state: RetryState
+  refines: notAMachine
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/-- A map into the wrong machine's state: every value it produces is one the refined machine never
+declared. -/
+def productOfRetry (_state : RetryState) : ProductState := { phase := .scheduled }
+
+/--
+error: 'Temporal.Feature.Nexus.Tests.Machines.productOfRetry' is not a map from this machine's state to the refined machine's; `map:` names a function `Temporal.Feature.Nexus.Tests.Machines.RetryState → Temporal.Feature.Nexus.Tests.Machines.AttemptState`
+-/
+#guard_msgs in
+machine mappedElsewhere
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: productOfRetry
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
+
+/-- An outcome domain with a value the attempt loop has no name for. -/
+enum RetryOutcome
+  | accepted
+  | rejected
+
+def loudFaultStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .rejected, state := { state with phase := .waiting }, facts := [.pendingAttempts] }]
+
+def loudRetryStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .waiting then [] else
+  [{ outcome := .accepted, state := { phase := .trying, retried := true }, facts := [] }]
+
+def loudStopStep (state : RetryState) : List (Step RetryState RetryOutcome AttemptFact) :=
+  if state.phase != .trying then [] else
+  [{ outcome := .accepted, state := { state with phase := .finished }, facts := [.faultInjected] }]
+
+/- An outcome reads as the refined machine's outcome of the same name, and one with no such name
+reads as nothing. -/
+/--
+error: 'rejected' is an outcome of loudRetryLoop and no outcome of attemptLoop has that name; an outcome reads as the one of its name, so the refined machine declares it
+-/
+#guard_msgs in
+machine loudRetryLoop
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: attemptOf
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: loudFaultStep
+    workerStop: loudStopStep
+    retry: loudRetryStep
+
+/-- A map under which a dropped delivery finishes the attempt: the attempt loop finishes only by the
+worker stopping, which records a different fact. -/
+def finishedEarly (state : RetryState) : AttemptState :=
+  { phase := if state.phase == .waiting then .finished else state.phase }
+
+/- A row whose mapped states are neither a step of the refined machine nor equal is the refinement's
+own rejection, reported with the row, both readings and what the refined machine lacks. -/
+/--
+error: the row 'trying-false-transportFault' steps from 'trying-false' to 'waiting-false', which read as 'trying' and 'finished' in attemptLoop; attemptLoop has no step from 'trying' reaching 'finished' with outcome 'accepted' and the facts [pendingAttempts], and the two are not equal, so the row is neither a step of attemptLoop nor a stutter
+-/
+#guard_msgs in
+machine finishesEarly
+  for: operation
+  state: RetryState
+  refines: attemptLoop
+  map: finishedEarly
+  starts: [trying]
+  ends: [finished]
+  timers: [retry]
+  unobservable: [retry]
+  evidence:
+    pendingAttempts: pendingAttempts
+    faultInjected: faultInjected
+  steps:
+    transportFault: retryFaultStep
+    workerStop: retryStopStep
+    retry: retryRetryStep
 
 /-! ### What the machine command rejects
 
@@ -815,7 +794,7 @@ machine idleStep
 /- The other side of an evidence line is recorded data the realization carries or an `observation`
 this Model declares. A name in neither confirms nothing that can be read back. -/
 /--
-error: 'nexusOperationDreamt' is neither a recorded event kind the realization carries nor an observation this Model declares; evidence names recorded data, so it is a generated history event kind, a Testpilot Run Event kind, or a derived `observation`
+error: 'nexusOperationDreamt' is neither a recorded event kind the realization carries, a read observation its catalog binds, nor an observation this Model declares; evidence names recorded data, so it is a generated history event kind, a Testpilot Run Event kind, a catalog read such as `pendingAttempts`, or a derived `observation`
 -/
 #guard_msgs in
 machine strayObservation

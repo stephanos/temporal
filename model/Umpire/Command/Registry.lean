@@ -46,13 +46,20 @@ structure ModelEntry where
 structure PropertyEntry where
   declName : Name
   model : Name
+  /-- The Action spellings its same-step claims are about, and the outcome and fact spellings its
+  clauses fix: what a Query over a refining machine needs the refining machine to name. -/
+  actions : Array String := #[]
+  outcomes : Array String := #[]
+  facts : Array String := #[]
   deriving Inhabited, Repr, BEq
 
-/-- One Scenario declaration and the Action spellings it selects, in declaration order. -/
+/-- One Scenario declaration and the Action spellings it selects, in declaration order, with the
+number of instances of the entity it runs over. -/
 structure ScenarioEntry where
   declName : Name
   model : Name
   actions : Array String
+  instances : Nat := 1
   deriving Inhabited, Repr, BEq
 
 /-- One Query declaration: whether it selects a witness, and the Scenario it runs in. -/
@@ -103,6 +110,16 @@ structure ActionEntry where
   inputFields : Array (String × Name)
   /-- The enum a `results:` line names, if any. -/
   results : Option Name
+  /-- The protobuf messages a `schema:` line names, in the order it names them. -/
+  schema : Array String := #[]
+  deriving Inhabited, Repr, BEq
+
+/-- One field relation a `property … relates:` line declared: the machine it is about and the
+action its step is about. The Case-producing block reads the machine's relations from here. -/
+structure RelationEntry where
+  declName : Name
+  model : Name
+  action : String
   deriving Inhabited, Repr, BEq
 
 /-- One declared machine: the entity it tracks, the state structure it keeps, and the action each of
@@ -120,6 +137,10 @@ structure MachineEntry where
   name: it is `system` behaviour and has no `action` declaration to be named by, and recording them
   all as one name would make two timers indistinguishable to whoever reads this. -/
   steps : Array (String × Name)
+  /-- The `action` declarations the machine steps on, by their resolved constants, so a later
+  command reads the declaration the machine named rather than one of the same spelling. A timer
+  has no declaration and is not among them. -/
+  actionDecls : Array Name := #[]
   /-- The timers the machine declares, each of which a `steps:` line names. -/
   timers : Array String
   /-- The timers whose firing the realization records nowhere. Every Case whose path uses one
@@ -128,6 +149,30 @@ structure MachineEntry where
   unobservable : Array String
   /-- Each `evidence:` line as (the fact the steps return, the observation that confirms it). -/
   evidence : Array (String × String)
+  /-- The Model this machine `refines:`, as its declaration name, and the `map:` from this
+  machine's state to its state. A Property on that Model is read on this machine's paths. -/
+  refines : Option Name := none
+  abstraction : Name := .anonymous
+  deriving Inhabited, Repr, BEq
+
+/-- One declared set: its purpose, the Queries it runs and the switch it repeats over, for the
+command that produces its Cases to read. -/
+structure SetEntry where
+  declName : Name
+  name : String
+  purpose : String
+  queries : Array Name := #[]
+  «repeat» : Option String := none
+  /-- The machine an exploratory set covers, as its declaration name: the set lists no Queries to
+  reach its machine through, so the command that produces its Cases reads it here. -/
+  machine : Option Name := none
+  deriving Inhabited, Repr, BEq
+
+/-- One switch a realization registered, by name and by the names of its values. A `set`'s
+`repeat:` names one of these. -/
+structure SwitchEntry where
+  name : String
+  values : Array String := #[]
   deriving Inhabited, Repr, BEq
 
 /-- One declared observation: the entity whose key finds its instance, and the field it reads. -/
@@ -180,6 +225,12 @@ initialize domainExtension : SimplePersistentEnvExtension DomainEntry (Array Dom
     addImportedFn := collect
   }
 
+initialize relationExtension : SimplePersistentEnvExtension RelationEntry (Array RelationEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize machineExtension : SimplePersistentEnvExtension MachineEntry (Array MachineEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
@@ -200,6 +251,18 @@ initialize actionExtension : SimplePersistentEnvExtension ActionEntry (Array Act
 
 initialize observationExtension :
     SimplePersistentEnvExtension ObservationEntry (Array ObservationEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
+initialize setExtension : SimplePersistentEnvExtension SetEntry (Array SetEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
+initialize switchExtension : SimplePersistentEnvExtension SwitchEntry (Array SwitchEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
     addImportedFn := collect
@@ -236,8 +299,33 @@ def recordMachine (entry : MachineEntry) : CoreM Unit :=
 def recordAction (entry : ActionEntry) : CoreM Unit :=
   modifyEnv fun env => actionExtension.addEntry env entry
 
+def recordRelation (entry : RelationEntry) : CoreM Unit :=
+  modifyEnv fun env => relationExtension.addEntry env entry
+
+def relations (env : Environment) : Array RelationEntry := relationExtension.getState env
+
+/-- The relations declared on one machine, in declaration order. -/
+def relationsOf (env : Environment) (model : Name) : Array RelationEntry :=
+  (relations env).filter (·.model == model)
+
 def recordObservation (entry : ObservationEntry) : CoreM Unit :=
   modifyEnv fun env => observationExtension.addEntry env entry
+
+def recordSet (entry : SetEntry) : CoreM Unit :=
+  modifyEnv fun env => setExtension.addEntry env entry
+
+def recordSwitch (entry : SwitchEntry) : CoreM Unit :=
+  modifyEnv fun env => switchExtension.addEntry env entry
+
+def sets (env : Environment) : Array SetEntry := setExtension.getState env
+
+def set? (env : Environment) (declName : Name) : Option SetEntry :=
+  (sets env).find? (·.declName == declName)
+
+def switches (env : Environment) : Array SwitchEntry := switchExtension.getState env
+
+def switch? (env : Environment) (name : String) : Option SwitchEntry :=
+  (switches env).find? (·.name == name)
 
 def models (env : Environment) : Array ModelEntry := modelExtension.getState env
 def properties (env : Environment) : Array PropertyEntry := propertyExtension.getState env
@@ -288,6 +376,21 @@ def query? (env : Environment) (declName : Name) : Option QueryEntry :=
 a project that declares them once gets them everywhere. -/
 def conventions (env : Environment) : Conventions :=
   ((conventionsExtension.getState env).back?).getD {}
+
+/-- The conventions a declaration under `enclosing` reads: of the declared conventions whose
+namespace prefix `enclosing` starts with, the one with the longest prefix. Two projects in one import
+closure -- Temporal's Models and Umpire's own examples -- each read their own that way, whichever was
+imported last. A namespace no declaration covers reads `conventions`. -/
+def conventionsFor (env : Environment) (enclosing : Name) : Conventions :=
+  let covering := (conventionsExtension.getState env).filter fun entry =>
+    entry.namespacePrefix.isPrefixOf enclosing
+  let longest := covering.foldl (init := none) fun chosen entry =>
+    match chosen with
+    | none => some entry
+    | some (best : Conventions) =>
+        if entry.namespacePrefix.getNumParts ≥ best.namespacePrefix.getNumParts then some entry
+        else some best
+  longest.getD (conventions env)
 
 /-- Declare a project's conventions once. -/
 elab "model_conventions" &"root" root:str &"under" namespacePrefix:ident : command =>

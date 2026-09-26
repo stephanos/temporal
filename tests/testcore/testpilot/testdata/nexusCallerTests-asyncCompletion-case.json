@@ -1,0 +1,1259 @@
+{
+  "caseId": "temporal.case.nexusCallerTests.asyncCompletion",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.nexus.caller.testpilot",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.nexus.caller.target.nexusProtocol",
+        "behaviorFingerprint": "sha256:b38647500819c04cd82e179972ed23c76609d69e99a424748596295ce067af14",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.nexus.caller.behavior.asyncThenSucceeded",
+        "behaviorFingerprint": "sha256:36c4c7ce64acc267594c394d7aca4e4ff55b5d935759213b1529c262d4c56cd3",
+        "kind": "DEFINITION_KIND_SCENARIO"
+      },
+      {
+        "definitionId": "temporal.nexus.caller.query.asyncCompletion",
+        "behaviorFingerprint": "sha256:f92db953d0dec8b95c8fbc23e50619ec53779273a60009533e69d1df07d5ab5a",
+        "kind": "DEFINITION_KIND_QUERY"
+      },
+      {
+        "definitionId": "temporal.nexus.caller.property.completionSucceeds",
+        "behaviorFingerprint": "sha256:405b9db1215a108516c57e8a4a41bed399c9e03ece1d79da5db096c9356cb7fa",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Feature/Nexus/Caller/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Caller/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Caller/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Caller/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ],
+    "correlatedRules": [
+      {
+        "ruleId": "temporal.nexus.caller.property.completionSucceeds.fact-nexusOperationCompleted",
+        "propertyId": "temporal.nexus.caller.property.completionSucceeds",
+        "propertyFingerprint": "sha256:405b9db1215a108516c57e8a4a41bed399c9e03ece1d79da5db096c9356cb7fa",
+        "projectionId": "temporal.nexus.caller.projection",
+        "projectionFingerprint": "sha256:22743c6f91b2aaeacef2c8ae6ce09bc036c7cf44cc31e03e7a572a05cddd77a2",
+        "source": {
+          "path": "Temporal/Feature/Nexus/Caller/Model.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      }
+    ],
+    "localNames": [
+      {
+        "localName": "evidence.scheduled",
+        "definitionId": "temporal.nexus.caller.evidence.scheduled"
+      },
+      {
+        "localName": "started",
+        "definitionId": "temporal.nexus.caller.evidence.started"
+      },
+      {
+        "localName": "completed",
+        "definitionId": "temporal.nexus.caller.evidence.completed"
+      },
+      {
+        "localName": "source.scheduled",
+        "definitionId": "temporal.nexus.caller.source.scheduled"
+      },
+      {
+        "localName": "run",
+        "definitionId": "temporal.nexus.caller.scope.run"
+      },
+      {
+        "localName": "history",
+        "definitionId": "temporal.nexus.caller.source.history"
+      },
+      {
+        "localName": "projection",
+        "definitionId": "temporal.nexus.caller.projection"
+      },
+      {
+        "localName": "operation",
+        "definitionId": "temporal.nexus.caller.scope.operation"
+      },
+      {
+        "localName": "unscheduled-0-unset-unset-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.unscheduled-0-unset-unset-unset"
+      },
+      {
+        "localName": "phase",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.phase"
+      },
+      {
+        "localName": "attempts",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.attempts"
+      },
+      {
+        "localName": "scheduleToClose",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.scheduleToClose"
+      },
+      {
+        "localName": "scheduleToStart",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.scheduleToStart"
+      },
+      {
+        "localName": "startToClose",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.startToClose"
+      },
+      {
+        "localName": "nexusProduct",
+        "definitionId": "temporal.nexus.caller.state-field.nexusProtocol.nexusProduct"
+      },
+      {
+        "localName": "schedule-unset-unset-unset",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.schedule-unset-unset-unset"
+      },
+      {
+        "localName": "scheduled-0-unset-unset-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.scheduled-0-unset-unset-unset"
+      },
+      {
+        "localName": "accepted",
+        "definitionId": "temporal.nexus.caller.outcome.nexusProtocol.accepted"
+      },
+      {
+        "localName": "nexusOperationScheduled",
+        "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationScheduled"
+      },
+      {
+        "localName": "complete-succeeded",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.complete-succeeded"
+      },
+      {
+        "localName": "succeeded-0-unset-unset-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.succeeded-0-unset-unset-unset"
+      },
+      {
+        "localName": "nexusOperationStarted",
+        "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationStarted"
+      },
+      {
+        "localName": "nexusOperationCompleted",
+        "definitionId": "temporal.nexus.caller.fact.nexusProtocol.nexusOperationCompleted"
+      },
+      {
+        "localName": "handlerReply-async",
+        "definitionId": "temporal.nexus.caller.action.nexusProtocol.handlerReply-async"
+      },
+      {
+        "localName": "started-0-unset-unset-unset",
+        "definitionId": "temporal.nexus.caller.state.nexusProtocol.started-0-unset-unset-unset"
+      },
+      {
+        "localName": "notFound",
+        "definitionId": "temporal.nexus.caller.outcome.nexusProtocol.notFound"
+      },
+      {
+        "localName": "fact-nexusOperationCompleted",
+        "definitionId": "temporal.nexus.caller.property.completionSucceeds.fact-nexusOperationCompleted"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.nexusCallerTests.asyncCompletion.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      },
+      {
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.worker.namespace"
+      },
+      {
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.task-queue.resource"
+      },
+      {
+        "roleId": "temporal.handler-task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.handler-task-queue.resource"
+      },
+      {
+        "roleId": "temporal.nexus-endpoint",
+        "kind": "ROLE_KIND_ENDPOINT",
+        "resourceBindingId": "temporal.nexus-endpoint.resource"
+      }
+    ],
+    "slots": [
+      {
+        "slotId": "completion-authority",
+        "opaqueHandle": {}
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "history-event",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.api.history.v1.HistoryEvent"
+            }
+          }
+        }
+      },
+      {
+        "observationId": "correlated-evidence",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "start-workflow",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_type.name",
+                    "value": {
+                      "literal": {
+                        "textValue": "umpire-nexusCallerTests-asyncCompletion-workflow"
+                      }
+                    }
+                  },
+                  {
+                    "target": "task_queue.name",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.task-queue.resource"
+                      }
+                    }
+                  },
+                  {
+                    "target": "request_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "instructionId": "await-scheduled",
+            "instruction": {
+              "readEvidence": {
+                "evidenceId": "evidence.scheduled",
+                "endpointRoleId": "temporal.workflow-service",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ],
+                "until": {
+                  "present": {
+                    "operand": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "projectedValue": {}
+                          }
+                        },
+                        "path": "attributes<nexus_operation_scheduled_event_attributes>"
+                      }
+                    }
+                  }
+                },
+                "pollIntervalMilliseconds": "250"
+              }
+            }
+          },
+          {
+            "instructionId": "await-completion-authority",
+            "instruction": {
+              "awaitSlot": {
+                "slotId": "completion-authority"
+              }
+            }
+          },
+          {
+            "instructionId": "complete-nexus-operation",
+            "instruction": {
+              "nexusOperationCompletion": {
+                "handleSlotId": "completion-authority",
+                "payload": {
+                  "metadata": {
+                    "encoding": "anNvbi9wbGFpbg=="
+                  },
+                  "data": "ImNvbXBsZXRlZCI="
+                }
+              }
+            }
+          },
+          {
+            "instructionId": "await-close",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "maximum_page_size",
+                    "value": {
+                      "literal": {
+                        "signedIntegerValue": "64"
+                      }
+                    }
+                  },
+                  {
+                    "target": "wait_new_event",
+                    "value": {
+                      "literal": {
+                        "boolValue": true
+                      }
+                    }
+                  },
+                  {
+                    "target": "history_event_filter_type",
+                    "value": {
+                      "literal": {
+                        "enumValue": {
+                          "name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "instructionId": "history",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "maximum_page_size",
+                    "value": {
+                      "literal": {
+                        "signedIntegerValue": "64"
+                      }
+                    }
+                  },
+                  {
+                    "target": "wait_new_event",
+                    "value": {
+                      "literal": {
+                        "boolValue": true
+                      }
+                    }
+                  }
+                ],
+                "responseReads": [
+                  {
+                    "path": "history.events[*]",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
+                    "targets": [
+                      {
+                        "observationId": "history-event"
+                      },
+                      {
+                        "correlatedEvidence": {
+                          "observationId": "correlated-evidence",
+                          "rules": [
+                            {
+                              "evidenceId": "started"
+                            },
+                            {
+                              "evidenceId": "completed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "umpire-nexusCallerTests-asyncCompletion-workflow",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "start-nexus-operation",
+            "instruction": {
+              "workflowCommand": {
+                "command": {
+                  "commandType": "COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION",
+                  "scheduleNexusOperationCommandAttributes": {
+                    "endpoint": "temporal.nexus-endpoint",
+                    "service": "umpire.case.service",
+                    "operation": "complete",
+                    "input": {
+                      "metadata": {
+                        "encoding": "anNvbi9wbGFpbg=="
+                      },
+                      "data": "InJlcXVlc3Qi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "instructionId": "await-nexus-operation",
+            "instruction": {
+              "awaitInstruction": {
+                "instruction": {
+                  "entrypointId": "workflow",
+                  "instructionId": "start-nexus-operation"
+                }
+              }
+            },
+            "guard": {
+              "literal": {
+                "boolValue": true
+              }
+            }
+          },
+          {
+            "instructionId": "finish-workflow",
+            "instruction": {
+              "finish": {
+                "result": {
+                  "literal": {
+                    "textValue": "done"
+                  }
+                }
+              }
+            },
+            "guard": {
+              "literal": {
+                "boolValue": true
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "handler",
+        "nexusHandler": {
+          "service": "umpire.case.service",
+          "operation": "complete",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.handler-task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "respond-async",
+            "instruction": {
+              "nexusHandlerReply": {
+                "response": {
+                  "asyncSuccess": {}
+                },
+                "handleSlotId": "completion-authority"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "evidence": [
+      {
+        "evidenceId": "evidence.scheduled",
+        "evidenceSource": "source.scheduled",
+        "read": {
+          "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+          "path": "history.events[*]"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "nexusCallerTests-asyncCompletion"
+            }
+          }
+        ],
+        "operation": "event_id"
+      },
+      {
+        "evidenceId": "started",
+        "evidenceSource": "history",
+        "historyEvent": {
+          "attributesField": "nexus_operation_started_event_attributes"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "nexusCallerTests-asyncCompletion"
+            }
+          }
+        ],
+        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+      },
+      {
+        "evidenceId": "completed",
+        "evidenceSource": "history",
+        "historyEvent": {
+          "attributesField": "nexus_operation_completed_event_attributes"
+        },
+        "scope": [
+          {
+            "fieldId": "run",
+            "value": {
+              "textValue": "nexusCallerTests-asyncCompletion"
+            }
+          }
+        ],
+        "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+      }
+    ]
+  },
+  "contract": {
+    "contractId": "temporal.case.nexusCallerTests.asyncCompletion.contract",
+    "correlated": {
+      "projectionId": "projection",
+      "projectionFingerprint": "sha256:22743c6f91b2aaeacef2c8ae6ce09bc036c7cf44cc31e03e7a572a05cddd77a2",
+      "evidenceObservationId": "correlated-evidence",
+      "scopeFields": [
+        "run"
+      ],
+      "operationField": "operation",
+      "sources": [
+        "history",
+        "source.scheduled"
+      ],
+      "initialState": {
+        "definitionId": "unscheduled-0-unset-unset-unset",
+        "value": "unscheduled-0-unset-unset-unset"
+      },
+      "transitions": [
+        {
+          "priorState": {
+            "definitionId": "unscheduled-0-unset-unset-unset",
+            "value": "unscheduled-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "schedule-unset-unset-unset",
+            "value": "schedule-unset-unset-unset"
+          },
+          "state": {
+            "definitionId": "scheduled-0-unset-unset-unset",
+            "value": "scheduled-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "facts": [
+            {
+              "definitionId": "nexusOperationScheduled",
+              "value": "nexusOperationScheduled"
+            }
+          ],
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "unscheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "scheduled-0-unset-unset-unset",
+            "value": "scheduled-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "complete-succeeded",
+            "value": "complete-succeeded"
+          },
+          "state": {
+            "definitionId": "succeeded-0-unset-unset-unset",
+            "value": "succeeded-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "facts": [
+            {
+              "definitionId": "nexusOperationStarted",
+              "value": "nexusOperationStarted"
+            },
+            {
+              "definitionId": "nexusOperationCompleted",
+              "value": "nexusOperationCompleted"
+            }
+          ],
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "succeeded"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "succeeded"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "scheduled-0-unset-unset-unset",
+            "value": "scheduled-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "handlerReply-async",
+            "value": "handlerReply-async"
+          },
+          "state": {
+            "definitionId": "started-0-unset-unset-unset",
+            "value": "started-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "facts": [
+            {
+              "definitionId": "nexusOperationStarted",
+              "value": "nexusOperationStarted"
+            }
+          ],
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "scheduled"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "started"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "started"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "succeeded-0-unset-unset-unset",
+            "value": "succeeded-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "complete-succeeded",
+            "value": "complete-succeeded"
+          },
+          "state": {
+            "definitionId": "succeeded-0-unset-unset-unset",
+            "value": "succeeded-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "notFound",
+            "value": "notFound"
+          },
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "succeeded"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "succeeded"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "succeeded"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "succeeded"
+            }
+          ]
+        },
+        {
+          "priorState": {
+            "definitionId": "started-0-unset-unset-unset",
+            "value": "started-0-unset-unset-unset"
+          },
+          "action": {
+            "definitionId": "complete-succeeded",
+            "value": "complete-succeeded"
+          },
+          "state": {
+            "definitionId": "succeeded-0-unset-unset-unset",
+            "value": "succeeded-0-unset-unset-unset"
+          },
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          },
+          "facts": [
+            {
+              "definitionId": "nexusOperationCompleted",
+              "value": "nexusOperationCompleted"
+            }
+          ],
+          "priorFields": [
+            {
+              "definitionId": "phase",
+              "value": "started"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "started"
+            }
+          ],
+          "stateFields": [
+            {
+              "definitionId": "phase",
+              "value": "succeeded"
+            },
+            {
+              "definitionId": "attempts",
+              "value": "0"
+            },
+            {
+              "definitionId": "scheduleToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "scheduleToStart",
+              "value": "unset"
+            },
+            {
+              "definitionId": "startToClose",
+              "value": "unset"
+            },
+            {
+              "definitionId": "nexusProduct",
+              "value": "succeeded"
+            }
+          ]
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "completed",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "complete-succeeded",
+                "value": "complete-succeeded"
+              },
+              "state": {
+                "definitionId": "succeeded-0-unset-unset-unset",
+                "value": "succeeded-0-unset-unset-unset"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "facts": [
+                {
+                  "definitionId": "nexusOperationCompleted",
+                  "value": "nexusOperationCompleted"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "succeeded"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                },
+                {
+                  "definitionId": "scheduleToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "scheduleToStart",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "startToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "nexusProduct",
+                  "value": "succeeded"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "evidence.scheduled",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "schedule-unset-unset-unset",
+                "value": "schedule-unset-unset-unset"
+              },
+              "state": {
+                "definitionId": "scheduled-0-unset-unset-unset",
+                "value": "scheduled-0-unset-unset-unset"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "facts": [
+                {
+                  "definitionId": "nexusOperationScheduled",
+                  "value": "nexusOperationScheduled"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "scheduled"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                },
+                {
+                  "definitionId": "scheduleToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "scheduleToStart",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "startToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "nexusProduct",
+                  "value": "scheduled"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "started",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "handlerReply-async",
+                "value": "handlerReply-async"
+              },
+              "state": {
+                "definitionId": "started-0-unset-unset-unset",
+                "value": "started-0-unset-unset-unset"
+              },
+              "outcome": {
+                "definitionId": "accepted",
+                "value": "accepted"
+              },
+              "facts": [
+                {
+                  "definitionId": "nexusOperationStarted",
+                  "value": "nexusOperationStarted"
+                }
+              ],
+              "stateFields": [
+                {
+                  "definitionId": "phase",
+                  "value": "started"
+                },
+                {
+                  "definitionId": "attempts",
+                  "value": "0"
+                },
+                {
+                  "definitionId": "scheduleToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "scheduleToStart",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "startToClose",
+                  "value": "unset"
+                },
+                {
+                  "definitionId": "nexusProduct",
+                  "value": "started"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-nexusOperationCompleted",
+          "trigger": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "schedule-unset-unset-unset"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "schedule-unset-unset-unset"
+                }
+              }
+            }
+          },
+          "response": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "nexusOperationCompleted"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "nexusOperationCompleted"
+                }
+              }
+            }
+          },
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "bound": "2",
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "initialStateFields": [
+        {
+          "definitionId": "phase",
+          "value": "unscheduled"
+        },
+        {
+          "definitionId": "attempts",
+          "value": "0"
+        },
+        {
+          "definitionId": "scheduleToClose",
+          "value": "unset"
+        },
+        {
+          "definitionId": "scheduleToStart",
+          "value": "unset"
+        },
+        {
+          "definitionId": "startToClose",
+          "value": "unset"
+        },
+        {
+          "definitionId": "nexusProduct",
+          "value": "scheduled"
+        }
+      ]
+    }
+  }
+}

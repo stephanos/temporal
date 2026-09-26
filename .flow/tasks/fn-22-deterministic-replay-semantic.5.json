@@ -11,6 +11,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.5.md",
   "status": "todo",
-  "title": "Emit the checked review-only regression proposal",
-  "updated_at": "2026-09-04T18:37:20.939130Z"
+  "title": "Compile ordered typed edits into whole candidate Cases through a Lean replay bridge",
+  "updated_at": "2026-09-22T22:05:05.996948Z"
 }

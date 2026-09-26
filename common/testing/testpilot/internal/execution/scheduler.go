@@ -31,6 +31,9 @@ type scheduler struct {
 	closing          bool
 	closed           chan struct{}
 	lateTimeout      time.Duration
+	// runEventOrdinals count the evidence lifted per source out of recorded Run Events.
+	evidenceMu       sync.Mutex
+	runEventOrdinals map[string]int64
 }
 type scheduledActivation struct {
 	values    *activationValues
@@ -70,7 +73,19 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond}, nil
+	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
+}
+
+// performsNothing reports whether the named entrypoint of the source Program carries no instruction
+// at all. The source is read rather than a prepared graph because a worker entrypoint's graph is
+// the worker's own, and it is worker entrypoints a carrier reserves.
+func (s *scheduler) performsNothing(entrypointID string) bool {
+	for _, entrypoint := range s.values.program.source.GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == entrypointID {
+			return len(entrypoint.GetInstructions()) == 0
+		}
+	}
+	return false
 }
 func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
@@ -606,7 +621,7 @@ func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto
 	c := s.coordinate(task)
 	var request proto.Message
 	var input *testpilotspb.Value
-	if n.opcode == contract.InvokeRPC {
+	if n.opcode == contract.InvokeRPC || n.opcode == contract.ReadEvidence {
 		var enabled bool
 		var err error
 		request, enabled, _, err = a.request(ctx, c, a.workLimit())
@@ -694,13 +709,25 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	switch n.opcode {
 	case contract.InvokeRPC:
 		effect, err = s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
+	case contract.ReadEvidence:
+		a := task.activation.values
+		effect, err = s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
+			satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
+			return satisfied, err
+		})
 	case contract.InjectFault:
 		fault := n.source.Instruction.GetInjectFault()
 		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
-	case contract.AwaitSlot, contract.CompleteNexusOperation:
+	case contract.AwaitSlot, contract.NexusOperationCompletion:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
-		if n.opcode == contract.CompleteNexusOperation {
-			slot = n.source.Instruction.GetCompleteNexusOperation().HandleSlotId
+		// A typed completion delivers the payload or failure it carries.
+		var delivered proto.Message = input
+		switch n.opcode {
+		case contract.NexusOperationCompletion:
+			completion := n.source.Instruction.GetNexusOperationCompletion()
+			slot, delivered = completion.GetHandleSlotId(), carriedCompletion(completion)
+		default:
+			// An AwaitSlot consumes nothing.
 		}
 		if s.values.program.slots[slot].Opaque() {
 			bridge, err = s.session.Bridge(ctx)
@@ -708,14 +735,14 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 				err = invalid(ir.Malformed, "bridge", "nil bridge")
 			}
 		}
-		if err == nil && n.opcode == contract.CompleteNexusOperation {
+		if err == nil && n.opcode != contract.AwaitSlot {
 			var capability contract.OpaqueCapability
 			capability, err = bridge.Consume(ctx, slot)
 			if err == nil && isNil(capability) {
 				err = invalid(ir.Malformed, "bridge", "nil capability")
 			}
 			if err == nil {
-				effect, err = s.session.InvokeCapability(ctx, c, capability, input)
+				effect, err = s.session.InvokeCapability(ctx, c, capability, delivered)
 			}
 		}
 	default:
@@ -755,7 +782,13 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if completion.reservation != nil {
 		reservation := completion.reservation
 		id := reservation.identity
-		if completion.result.Outcome == nil || completion.result.Outcome.Status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
+		status := completion.result.Outcome.GetStatus()
+		// A reserved activation whose entrypoint performs nothing may go undelivered: the Program
+		// reserved it because its carrier can activate the entrypoint, not because the Case needs it
+		// to run, so the reservation released unconsumed when its parent finished is recorded as
+		// canceled rather than failing the Run.
+		unused := status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED && s.performsNothing(id.EntrypointID)
+		if completion.result.Outcome == nil || status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && !unused || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}
 		publish := s.recorder.publish
@@ -796,6 +829,12 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		coordinate := eventCoordinates(batch.coordinate)
 		coordinate.EmittedIndex = fact.index
 		facts = append(facts, &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, fact.read, fact.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: fact.observations})
+	}
+	if err := s.liftRunEvents(ctx, a, facts); err != nil {
+		if completion.cleanup {
+			return Stop, err
+		}
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	if completion.cleanup {
 		return s.recorder.publishCleanup(ctx, facts, func() error { return a.commit(ctx, batch) })

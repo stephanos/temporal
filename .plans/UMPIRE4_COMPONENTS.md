@@ -103,7 +103,7 @@ implementation was found.
 | C9 SDK participant | Partial | The System-owned caller-closure participant and exact duplicate-delivery variant bind the same Go SDK adapter; the latter records one real callback plus one labeled test-owned synthetic contribution. Additional programs and SDKs remain downstream. |
 | C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
 | C11 formal checks | Partial + separate | Current Lean provides proofs, finite completeness, bounded verification, and model counterexample search. Umpire3 has mature receipts and optional family-scoped Veil support; the current model has neither an explicit first-order checker view nor a Veil binding. |
-| C12 Claim Assessment | Separate | Hermetic CI and a tagged disposable self-hosted cluster now prove portability of the same exact Test and stable semantic result, including a no-Lean resident executor. Neither proof creates an Evaluation Receipt or Claim Assessment; remote, production-canary, and release paths remain deferred. |
+| C12 Claim Assessment | Local slice implemented | `umpire-assess run` assesses one recorded Run of one canonical Case offline under a Lean-declared Evaluation Profile (`local-ephemeral`) and publishes one canonical, exclusive Evaluation Receipt; it creates and replays no Run. Remote, CI, production-canary and release claims remain deferred. |
 
 | Milestone | Status | Summary |
 | --- | --- | --- |
@@ -134,7 +134,7 @@ for those decisions. A reviewed plan does not make its component built.
 | C11 Veil compatibility and adoption gate | `fn-23-veil-toolchain-compatibility-and` | Reviewed: Ship; six tasks ready | Two exact pinned Veil candidates are evaluated under Lean 4.33.1 only through an opt-in Linux/aarch64 diagnostic with frozen Git/npm/solver/Lean/Zig/Node/runtime closures, no-network execution, honest solver trust, candidate-scoped measurements, and one canonical adopt/defer/inconclusive receipt. No Veil dependency, semantic claim, default build integration, generated source, or production surface is introduced. |
 | C11 Lean-native receipts and canonical replay | `fn-24-lean-native-verification-receipts-and` | Reviewed: Ship; six tasks ready | A reusable Temporal-free formal module runs the exact checked Query/dependent kernel itself, emits honest bounded-search receipts, and admits a violation only after the candidate replays through the canonical kernel, Behavior, and pure Property evaluator. One caller-closure verify receipt and one family-test negative control prove both paths; Veil, Plan, runtime, promotion, and Claim Assessment remain separate. |
 | C11 optional CallerClosure checker binding | `fn-25-optional-callerclosure-veil-binding-and` | Reviewed: Ship; six tasks ready; depends on fn-23 and fn-24 | One completed compatibility receipt freezes an adopt or defer branch. Adoption adds one family-owned finite view with bidirectional correspondence, one exact optional handwritten declaration, a non-breaking external receipt v2, and mandatory canonical replay; defer/inconclusive adds no dependency, source, command, or placeholder claim. The reusable Umpire package remains Temporal/Nexus/checker-name free. |
-| C12 local Evaluation Receipt | `fn-26-local-qualification-receipts-and-staged` | Reviewed: Ship; six tasks ready; depends on fn-18, fn-19, and fn-20 | One offline local Evaluation Profile admits the exact six-member v2 Run Evaluation set plus optional admitted verification Evidence, preserves every phase status and Known Gap independently, and publishes one environment-scoped Evaluation Receipt. It acquires no Execution authority and accepts no pilot or pre-v2 compatibility input. |
+| C12 local Evaluation Receipt | `fn-26-local-qualification-receipts-and-staged` | Implemented (re-planned on fn-85 and fn-22, 2026-09-23) | The subject is fn-22's canonical Case and recorded Run, which now names the Case it ran; admission is strict and executes nothing. `Umpire.Evaluation` declares Evaluation Profiles and Lean renders them for Go, which assesses, renders one canonical receipt and publishes it by hard link; `umpire-assess run` is the command. The v2 Run Evaluation set it was first planned on is retired. |
 | C12 hermetic CI execution | `fn-27-hermetic-ci-execution-and-qualification` | Implemented and verified | One ordinary generated Go test consumes the byte-identical local v2 `Plan`, reuses the disposable loopback runner and canonical Run Evaluation authority, and proves Artifact Checksum, Behavior Fingerprint, and stable typed semantic parity while allowing fresh transport identities. It adds no CI Evaluation Profile, Evaluation Receipt, provenance schema, new Artifact-set version, or Claim Assessment path. |
 | Portable evaluation contract and disposable-cluster qualification | `fn-28-portable-evaluation-contract-and` | Implemented and verified | Lean ahead-of-time compilation produces closed per-Test protobuf contracts for the normal and duplicate-delivery Tests. Strict structural packing/admission, the fixed Go interpreter, explicit bounded Evidence closure, a single-flight resident executor, bounded HTTP protobuf transport, and one tagged `testcore.NewEnv` proof preserve independent statuses and return local pass/fail/inconclusive without Lean. The proof makes no fleet, production, release, whole-model, or Claim Assessment claim. |
 | C12 bounded production canary Claim Assessment | `fn-29-bounded-production-canary-execution-and` | Reviewed: Ship; thirteen tasks ready; depends on fn-14, fn-18, fn-19, fn-20, fn-26, fn-27, and fn-28 | One trusted-ref-gated protected workflow runs the same Plan against a fixed, dedicated production-canary namespace and Nexus route with no customer traffic, faults, deployment, configuration, or routing mutation. Exact lease reuse/fencing, idempotent mutation, public evidence, cleanup-reserved RPC accounting, versioned recovery, and strict receipt/set successors keep every canary receipt non-release-eligible. Receipt bytes are inspectable but not self-authenticating; release aggregation and its trusted artifact channel remain separate. |
@@ -195,15 +195,17 @@ Dynamic-config declarations -+
                                         |
                                         v
                                       Result
-                                        |
-                                        v
-                                  replay bundle
 ```
 
-The current bounded path now continues from deterministic `Plan` inspection through one
-local caller-closure execution and checked Run Evaluation. Replay, promotion, other profiles, and
-non-local Observation Evaluation remain separate implementations. The decomposition is an internal
-and artifact-level boundary, not a requirement to ship many unrelated binaries.
+That diagram is the v2 target as it was first drawn; its execution half (ExperimentRun, raw and
+semantic evidence, Result) is historical, and the separate Run Evaluation pipeline behind it is
+removed. The current path runs through the Case Runtime: a Model's Query is produced as a
+canonical `Case`, `testpilot.Prepare` prepares it under a Profile, `PreparedCase.Run` runs it
+against a Driver and closes one `Run` with its `Verdict`, and `umpire-run --record` or
+`umpire-fuzz --record-root` records a violated Run beside its Case. `umpire-replay run` (fn-22)
+replays that record offline, reruns it and reduces its Query, and its proposal is review-only.
+Other profiles and non-local observation remain separate implementations. The decomposition is an
+internal and artifact-level boundary, not a requirement to ship many unrelated binaries.
 
 ## 2. Artifact contracts
 
@@ -221,7 +223,7 @@ These artifacts are the seams between components:
 | Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | The v2 Lean model contract remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Semantic evidence | Lean-defined interpretation of raw facts | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
-| Replay bundle | Plan, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
+| Replay bundle | Retired | Superseded by fn-22: a replay's subject is a canonical Case and a Run recorded with its Profile identity (`umpire-run --record`, `umpire-fuzz --record-root`), replayed by `umpire-replay run`; no bundle format exists. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlanResult` results, not a verification receipt. |
 
@@ -345,7 +347,7 @@ portable caller-closure contracts.**
 verified, selected, absent, budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a
 canonical `umpire-experiment/v2`. `Umpire.Variations.compileBatch` canonically lowers every point through
 that same target-indexed kernel and returns the complete batch or one typed error with no partial
-list. `Temporal.Tool.Inspect` still exposes only the checked-in Switch and caller-closure scenarios
+list. `Temporal.Tool.Inspect` exposes the caller Model's Queries and the checked-in Switch example
 and emits deterministic JSON with structured diagnostics.
 
 ```text
@@ -355,7 +357,7 @@ checked spec + model target + Limits -> Plan[]
 Current interface:
 
 ```text
-make umpire-inspect SCENARIO=workflow-nexus.query.exact-action-caller-closure
+make umpire-inspect SCENARIO=temporal.nexus.caller.query.asyncCompletion
 make umpire-inspect SCENARIO=switch.query.exact-action
 ```
 

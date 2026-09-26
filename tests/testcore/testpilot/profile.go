@@ -33,12 +33,12 @@ func workflowServiceRole(nexusHandlers int64) testpilot.RolePolicy {
 	}
 }
 
-// nexusCapabilities is the instruction set a workflow-owned Nexus Case needs. The unary Case
-// declares its own narrower set instead of borrowing this one.
-func nexusCapabilities() []testpilot.Opcode {
+// realizedNexusCapabilities is the instruction set a Case the Nexus realization produces needs:
+// the typed worker instructions (fn-85 R10).
+func realizedNexusCapabilities() []testpilot.Opcode {
 	return []testpilot.Opcode{
-		testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.CompleteNexusOperation,
-		testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus,
+		testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.Await, testpilot.Finish,
+		testpilot.WorkflowCommand, testpilot.NexusHandlerReply, testpilot.NexusOperationCompletion,
 	}
 }
 

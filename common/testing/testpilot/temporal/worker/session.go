@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -120,6 +121,10 @@ func (s *Session) Reserve(ctx context.Context, request testpilot.ReservationRequ
 }
 
 func (*Session) InvokeRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (testpilot.EffectHandle, error) {
+	return nil, ErrUnsupportedOperation
+}
+
+func (*Session) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
 	return nil, ErrUnsupportedOperation
 }
 

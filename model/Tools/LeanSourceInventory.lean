@@ -34,6 +34,9 @@ inductive InventoryIssue where
   | uncoveredSource (module : Lean.Name) (path : String)
   | unclassifiedModule (module : Lean.Name)
   | unknownFirstPartyImport (source imported : Lean.Name)
+  /-- A production module under a hand-written root that builds authoring records directly (it
+  imports an authoring owner) and is missing from the committed hand-written inventory. -/
+  | handwrittenNotInventoried (module imported : Lean.Name)
   deriving Repr, BEq
 
 private structure DirectoryVisit where
@@ -61,6 +64,8 @@ private def issueKey : InventoryIssue → String
   | .unclassifiedModule module => s!"unclassified-module\u0000{module}"
   | .unknownFirstPartyImport source imported =>
       s!"unknown-first-party-import\u0000{source}\u0000{imported}"
+  | .handwrittenNotInventoried module imported =>
+      s!"handwritten-not-inventoried\u0000{module}\u0000{imported}"
 
 private def issueLess (left right : InventoryIssue) : Bool :=
   issueKey left < issueKey right

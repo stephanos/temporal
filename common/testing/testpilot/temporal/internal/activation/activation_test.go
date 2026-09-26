@@ -5,10 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	commandpb "go.temporal.io/api/command/v1"
+	commonpb "go.temporal.io/api/common/v1"
+	enumspb "go.temporal.io/api/enums/v1"
+	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -16,13 +21,22 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func preparedRuntimeFixture(t *testing.T, responseKind testpilotspb.NexusResponseKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+// nexusReplyKind picks the typed handler reply the fixture's handler entrypoint answers with.
+type nexusReplyKind uint8
+
+const (
+	synchronousReply nexusReplyKind = iota
+	asynchronousReply
+)
+
+func preparedRuntimeFixture(t *testing.T, responseKind nexusReplyKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	return preparedRuntimeFixtureWithProfile(t, responseKind, nil, modify...)
 }
 
-func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind nexusReplyKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	t.Helper()
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
 	catalog, err := testpilot.NewCatalog(descriptorClosure(file))
@@ -38,7 +52,8 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 			{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 		},
-		Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
+		Opcodes:      []testpilot.Opcode{testpilot.InvokeRPC, testpilot.WorkflowCommand, testpilot.Await, testpilot.Finish, testpilot.NexusHandlerReply},
+		CommandTypes: []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{
 			{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "endpoint"},
 		},
@@ -52,7 +67,12 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		Limits: runtimeBounds(),
 	}
 	start := &testpilotspb.InstructionNode{
-		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
+		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: &commandpb.Command{
+			CommandType: enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION,
+			Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+				Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimePayload("request"),
+			}},
+		}}}},
 		Limits: runtimeBounds(),
 	}
 	await := &testpilotspb.InstructionNode{
@@ -66,8 +86,16 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}},
 		Limits:        runtimeBounds(),
 	}
+	reply := &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+		Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: runtimePayload("accepted")}},
+	}}}
+	if responseKind == asynchronousReply {
+		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "capability", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+			Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}},
+		}}}
+	}
 	respond := &testpilotspb.InstructionNode{
-		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: responseKind, Result: runtimeText("accepted")}}},
+		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: reply}},
 		Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
@@ -85,9 +113,8 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		},
 		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}
-	if responseKind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
+	if responseKind == asynchronousReply {
 		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
-		respond.Instruction.GetRespondNexus().HandleSlotId = "capability"
 	}
 	for _, apply := range modify {
 		apply(program)
@@ -164,6 +191,12 @@ func runtimeBounds() *testpilotspb.InstructionLimits {
 	return &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
 }
 
+// runtimePayload is the carried payload a typed instruction of the fixture holds, encoded as the
+// SDK's default data converter encodes a string.
+func runtimePayload(value string) *commonpb.Payload {
+	return &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte(strconv.Quote(value))}
+}
+
 func runtimeText(value string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
 }
@@ -195,7 +228,7 @@ func TestConstruction(t *testing.T) {
 	state, err := New(testpilot.EntrypointPlan{})
 	require.Error(t, err)
 	require.Nil(t, state)
-	program := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	program := preparedRuntimeFixture(t, synchronousReply)
 	for _, id := range []string{"controller", "workflow", "handler"} {
 		t.Run(id, func(t *testing.T) {
 			plan, ok := findEntrypoint(program, id)
@@ -223,13 +256,33 @@ func newState(t *testing.T, plan testpilot.EntrypointPlan) *State {
 
 func workflowPlan(t *testing.T, modify ...func(*testpilotspb.Program)) testpilot.EntrypointPlan {
 	t.Helper()
-	plan, ok := findEntrypoint(preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, modify...), "workflow")
+	plan, ok := findEntrypoint(preparedRuntimeFixture(t, synchronousReply, modify...), "workflow")
 	require.True(t, ok)
 	return plan
 }
 
 func success(value string) *testpilotspb.InstructionOutcome {
-	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}
+	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue(value)}
+}
+
+// carriedValue is what an awaited Nexus operation answers with: the handler's payload, carried
+// whole rather than converted, so the Await's VALUE is that message.
+func carriedValue(value string) *testpilotspb.Value {
+	carried, err := anypb.New(runtimePayload(value))
+	if err != nil {
+		panic(err)
+	}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}
+}
+
+// carriedText reads the text back out of the payload carriedValue wrapped.
+func carriedText(t *testing.T, value *testpilotspb.Value) string {
+	t.Helper()
+	var payload commonpb.Payload
+	require.NoError(t, value.GetMessageValue().UnmarshalTo(&payload))
+	text, err := strconv.Unquote(string(payload.GetData()))
+	require.NoError(t, err)
+	return text
 }
 
 func evaluateEnabled(t *testing.T, state *State, index int) *testpilotspb.Value {
@@ -267,7 +320,7 @@ func TestGuardAndOwnership(t *testing.T) {
 			require.Error(t, err)
 			require.Error(t, state.Admit(t.Context(), 1, success("replacement")))
 			if succeeded {
-				require.Equal(t, "result", state.values[testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}].GetTextValue(), "only successful outcomes have a result")
+				require.Equal(t, "result", carriedText(t, state.values[testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}]), "only successful outcomes have a result")
 			}
 		})
 	}
@@ -363,38 +416,45 @@ func TestCanceledAndNilContexts(t *testing.T) {
 
 func TestWorkAccounting(t *testing.T) {
 	plan := workflowPlan(t)
-	for _, allowance := range []int64{-1, 0, 18, 19, math.MaxInt64} {
+	// A schedule command and a true guard evaluate to nothing, so finish's guard and input are what
+	// an allowance has to cover; measuring the cost keeps the table off a literal the fixture owns.
+	measured := newState(t, plan)
+	evaluateEnabled(t, measured, 1)
+	require.NoError(t, measured.Admit(t.Context(), 1, success("result")))
+	before := measured.remaining
+	evaluateEnabled(t, measured, 2)
+	evaluation := before - measured.remaining
+	require.Positive(t, evaluation)
+	for _, allowance := range []int64{-1, 0, evaluation - 1, evaluation, math.MaxInt64} {
 		t.Run(fmt.Sprint(allowance), func(t *testing.T) {
 			state := newState(t, plan)
+			evaluateEnabled(t, state, 1)
+			require.NoError(t, state.Admit(t.Context(), 1, success("result")))
 			state.remaining = allowance
-			input, enabled, err := state.Evaluate(t.Context(), 0)
-			if allowance == 19 {
+			input, enabled, err := state.Evaluate(t.Context(), 2)
+			if allowance == evaluation {
 				require.NoError(t, err)
 				require.True(t, enabled)
-				require.Equal(t, "request", input.GetTextValue())
+				require.Equal(t, "result", carriedText(t, input))
 				require.Zero(t, state.remaining)
-				_, _, err = state.Evaluate(t.Context(), 1)
-				require.Error(t, err)
-				require.Error(t, state.Admit(t.Context(), 0, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}))
+				require.Error(t, state.Admit(t.Context(), 2, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}))
 			} else {
 				require.Error(t, err)
 				require.Nil(t, input)
 				require.False(t, enabled)
-				if allowance == 18 {
-					require.EqualValues(t, 8, state.remaining)
-				}
+				require.GreaterOrEqual(t, state.remaining, int64(0))
 			}
 		})
 	}
 	state := newState(t, plan)
 	initial := state.remaining
 	evaluateEnabled(t, state, 0)
-	require.Equal(t, initial-19, state.remaining)
+	require.Equal(t, initial, state.remaining, "a schedule command evaluates no expression")
 	evaluateEnabled(t, state, 1)
 	require.NoError(t, state.Admit(t.Context(), 1, success("result")))
 	_, work, err := plan.Instructions()[1].ValidateOutcome(t.Context(), success("result"), initial)
 	require.NoError(t, err)
-	require.Equal(t, initial-19-work, state.remaining)
+	require.Equal(t, initial-work, state.remaining)
 	for _, allowance := range []int64{work - 1, work} {
 		tight := newState(t, plan)
 		evaluateEnabled(t, tight, 1)
@@ -427,10 +487,11 @@ func TestIndependentActivations(t *testing.T) {
 	exercise := func(t *testing.T, value string) {
 		t.Helper()
 		state := newState(t, plan)
-		require.Equal(t, "request", evaluateEnabled(t, state, 0).GetTextValue())
+		// A schedule command carries its own message, so it evaluates to no input.
+		require.Nil(t, evaluateEnabled(t, state, 0))
 		evaluateEnabled(t, state, 1)
 		require.NoError(t, state.Admit(t.Context(), 1, success(value)))
-		require.Equal(t, value, evaluateEnabled(t, state, 2).GetTextValue())
+		require.Equal(t, value, carriedText(t, evaluateEnabled(t, state, 2)))
 	}
 	exercise(t, "first")
 	exercise(t, "second")
@@ -438,7 +499,7 @@ func TestIndependentActivations(t *testing.T) {
 		t.Run(fmt.Sprint(i), func(t *testing.T) { t.Parallel(); exercise(t, fmt.Sprint(i)) })
 	}
 	snapshot := plan.Instructions()[0].Source()
-	snapshot.Instruction.GetStartNexusOperation().Input = runtimeText("mutated")
+	snapshot.Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().Input = runtimePayload("mutated")
 	exercise(t, "after snapshot mutation")
 	require.True(t, proto.Equal(before, plan.Activation()))
 	// A fresh activation sees no other activation's await outcome, so finish's success guard is false.
@@ -491,7 +552,7 @@ func TestPresenceAndMissingRequiredInput(t *testing.T) {
 				state = newState(t, plan)
 				evaluateEnabled(t, state, 1)
 				require.NoError(t, state.Admit(t.Context(), 1, success("present")))
-				require.Equal(t, "present", evaluateEnabled(t, state, 2).GetTextValue())
+				require.Equal(t, "present", carriedText(t, evaluateEnabled(t, state, 2)))
 			}
 		})
 	}
@@ -517,7 +578,7 @@ func TestRepeatedReadsOwnTheirValues(t *testing.T) {
 	require.NoError(t, err)
 	snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].Value = success("mutated snapshot").Value.Value
 	first := evaluateEnabled(t, state, 2)
-	require.Equal(t, "result", first.GetTextValue())
+	require.Equal(t, "result", carriedText(t, first))
 	first.Value = success("mutated input").Value.Value
-	require.Equal(t, "result", evaluateEnabled(t, state, 3).GetTextValue())
+	require.Equal(t, "result", carriedText(t, evaluateEnabled(t, state, 3)))
 }

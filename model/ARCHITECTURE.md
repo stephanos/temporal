@@ -45,8 +45,20 @@ Temporal.Testpilot ────────────────────�
 
 `Umpire.*` never imports `Temporal.*`. `Temporal.Feature.*` and `Temporal.System.*` remain separate
 except for the exact checked Implementation Link leaf. `Temporal.Tool.*` owns developer commands and
-is not imported by the production aggregate. `make lint-model` checks these edges against the full
-source inventory and compiled module metadata.
+is not imported by the production aggregate. A production module under `Temporal.Feature` or
+`Umpire.Examples` reaches Umpire's authoring owners (`Umpire.Model`, `Umpire.Property`,
+`Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation`, `Umpire.Case`) only through
+`Umpire.Command`; `Temporal.Case` and the Implementation Link are outside that rule. `make
+lint-model` checks these edges against the full source inventory and compiled module metadata, the
+authoring-path rule as a direct-import rule and the rest as reachability.
+
+`make umpire-export-model-module-index` projects the same source inventory and compiled metadata
+into a `temporal-model-module-index/v1` document (`ModelLint.ModuleIndex`, exported by
+`temporal-model-module-index`): per module, its classification under the lint policy, its direct
+and reverse first-party imports, and which of the reviewed public facades and focused test roots
+reach it. The roots are explicit policy in `ModelLint.ModuleIndex.defaultIndexPolicy`, never file
+names. The index is a navigation aid over this graph, produced on demand and never checked in; it
+makes no semantic claim and is not an input of any check.
 
 `Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
@@ -81,12 +93,19 @@ The retained semantic APIs keep these responsibilities separate:
 - Query asks one bounded question, and Search answers it. `Search.admit` checks the Property,
   Scenario, Known Gaps, Query, and search view in one order and returns an `AdmittedQuery` or the
   first stage that rejected.
-- Variations and Exploration select from a finite checked universe without performing runtime I/O.
+- Variations compile a finite checked universe, and Exploration plans one target Query per coverage
+  target of an exploratory set, without performing runtime I/O.
 - Evidence and Implementation Link retain the offline mapping path for model analysis.
 - Promotion validates one exact scenario-neutral Plan source for human review.
 
 Plans and Generated Views remain useful model outputs. They are not inputs to Testpilot and do not
 establish that a runtime Action occurred.
+
+A Model file is written in `Umpire.Command`'s commands -- entities, domains, actions, observations,
+machines with a step function per action, properties as predicates, scenarios, limits, queries and
+sets -- and a platform-owned `case … realizes <set>` block produces one Case per Query of a
+functional set through a realization in `Temporal.Case`. [AUTHORING.md](AUTHORING.md) walks the
+Nexus caller-side Model through them, quoting its marked regions under a drift test.
 
 Operation-correlated bounded response authoring lowers through the existing Property checker.
 `correlated_response%` and typed `PropertyCorrelatedClause` values share canonical meaning and fingerprints;
@@ -102,10 +121,11 @@ success Case remains the live Driver integration. Cancellation Models, evidence 
 capabilities, and authored Cases are deferred to fn-79, independently of Run-context cancellation
 and bounded cleanup.
 
-Typed operation authoring adds parameterized Actions over generated RPC and SDK-command
-declarations, exact field operands over the declared schema, and separately declared finite and
-runtime claims. The generator and `Temporal.API` own structural declarations and supported exact
-value representations; `Umpire` owns admission, canonical meaning and Property semantics;
+Typed operation authoring is written on the commands: an `action`'s `schema:` line binds it to the
+generated RPC or SDK-command declaration, a `property`'s `relates:` line compares exact field
+operands over the declared schemas, and an action's `input:` and `examples:` lines declare its
+finite domains and abstraction claims. The generator and `Temporal.API` own structural declarations
+and supported exact value representations; `Umpire` owns admission, canonical meaning and Property semantics;
 `Temporal.Feature` owns the product requirements. `Umpire.Case.Coverage` owns the request direction
 of the checked lowering, and `Umpire.Case.Projection.lower` derives the evidence direction, the
 monitor rule itself, from the checked field Property. The
@@ -142,18 +162,60 @@ Profile, and `testpilot.Prepare` checks the Case's behavior bounds and structure
 
 `Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
 Gaps and lowers them into the Case's typed provenance rows. It does not own a parallel Program, Contract,
-Run, or field serializer. Producers validate their semantic inputs and use `Testpilot.Authoring`.
-Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, Case-local
-names and model value spellings, exact provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
+Run, or field serializer. The Producer is `Umpire.Case.Producer`, reached through the platform's `case … realizes` block: it
+assembles a Case's Program and Contract from a checked Query's witness and a realization through
+`Testpilot.Authoring`, and uses `Umpire.Case.Compiler` for source-bound rule validation, Case-local
+names and model value spellings, exact provenance rows, and final assembly from generated values. The
+Contract's evidence is the witness's, plus the evidence of every other result of each witnessed row
+(the alternatives, one kind each, projected to their rows under the witness's silent prefix), so a
+Run that takes another result of an authorized row is read and judged against it rather than left
+unread; a kind any other result or row already declares, or one the realization does not admit, is
+a production error. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 
-`Temporal.Testpilot` is the first Producer. Its `GetSystemInfo` Case proves that the IR is not tied
-to Nexus. Its async Nexus Case uses controller RPCs plus SDK workflow and Nexus-handler entrypoints
-without adding a scenario opcode. The six conformance Cases cover the root Go facade's satisfied,
-violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes.
+`Umpire.Case.Producer` is the one Producer: every checked-in functional Case is produced from a
+command Model through a realization (`Temporal.Case.Realization.{asyncNexus,workflowStart,
+workflowOutage,unaryRpc}`). The system-info Model's Case proves that the IR is not tied to Nexus;
+the caller Model's Cases use controller RPCs plus SDK workflow and Nexus-handler entrypoints without
+adding a scenario opcode. `Temporal.Testpilot` supplies the six conformance Cases, which cover the
+root Go facade's satisfied, violated, inconclusive, static-rejection, cleanup-failure, and cross-Run
+classes.
 
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
+
+`Temporal.Tool.ExplorationBridge` (`umpire-explore`) is the run-time counterpart for an
+exploratory set: it opens the set's `Umpire.Exploration` campaign and answers `initialize`,
+`next`, `observe` and `finish` frames over stdin and stdout, producing each candidate's Case
+through the same Producer and the realization the set's `case` block names, under the candidate's
+own identity (`temporal.case.<set>.<digest>`), and crediting the campaign from the closed Run the
+coordinator hands back. It registers nothing in the Temporal Case Registry and reads no Run
+Event: credit is the planned witness path. The campaign retains each counterexample's candidate
+and `Umpire.Exploration.Promotion` compiles it through `Umpire.Promotion` into a review-only
+regression source under fresh names keyed by the candidate's digest; the `finished` frame carries
+the source's digest, path and bytes (or why it did not compile), and the bridge writes no file.
+
+`Temporal.Tool.ReplayBridge` (`umpire-replay-bridge`, non-default) is the run-time counterpart for
+a replay subject. Both bridges read, reject, echo and serve frames through `Temporal.Tool.Bridge`.
+`admit` names a set and its Query (or an exploratory set's target key) with the subject's Case
+identity; the bridge recovers the Query's source from its binding table (`<query>.source`, which
+the `query` command emits for a one-instance Query, and the claims, catalog and relations the
+`case` block names beside each Case), re-produces the Case and admits only when its compact
+canonical bytes are the subject's, answering `crossed` otherwise. `Umpire.Replay` owns the edits
+(`dropPrefixStep i`, last prefix step first, over the Scenario's exact action sequence) and the
+monotonic `Reduction`: each edited Query is re-admitted, one the Model does not admit is
+`inapplicable` and produces no Case, and an admitted one is handed out as one whole Case named by
+its Plan checksum. `observe` takes the coordinator's class for the candidate's Runs, never a Case
+edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every edit's fate. A
+`minimized` or `irreducible` result carries the retained candidate's review-only proposal, compiled
+by `Umpire.Command.Promotion.propose` -- the compiler `Umpire.Exploration.Promotion` calls too --
+from its admitted Query and keyed on its Plan checksum digest; both commands write proposals
+through `tools/umpire/internal/cli`, outside the model, resolving symlinks and never replacing a
+file. `umpire-replay run` is the Go side: `tools/umpire/replay` admits the subject and replays it
+offline through `PreparedCase.Evaluate` before anything is opened, derives the Contract-relative
+key, reruns the subject twice under its recorded Profile identity, drives the bounded reduction
+over the bridge through the transport the exploration client shares (`campaign.Conn`), and
+renders one report with each answer in its own field.
 
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
@@ -230,6 +292,42 @@ and cleanup proceed through owned handles and a fresh cleanup context. Dispositi
 and Verdict remain independent; a proved violation is not erased by cleanup failure. After closure,
 late completion and Driver diagnostics cannot mutate returned data.
 
+The exploration campaign's Go side is two small packages over that boundary. `tools/umpire/binding`
+is the deployment binding `umpire-run` performs, split into what a campaign opens once (the
+frontend connection, the provisioned namespace, task queue and Nexus endpoint, the method catalog)
+and what each candidate opens for itself (the derived Profile, `Prepare`, one composite Driver with
+its own SDK worker); `umpire-run` binds one Case through the same two steps, and `binding.Prepare`
+is the candidate-scoped part alone, touching no deployment, which admission and offline replay use.
+`tools/umpire/campaign`
+is the client of the exploration bridge and the serial path for one candidate: decode the Case the
+bridge handed out, bind it (preparation first, so a rejected Case opens no Driver and creates no
+Run), run it once, observe its cleanup, and hand the closed Run back to the bridge, which alone
+says what it credited. One request is outstanding at a time; the client refuses a second `next`
+before `observe` without writing a frame, and a binding or execution failure leaves the candidate
+outstanding rather than inventing an observation. The coordinator's state is one `Session` value
+(idle, planning, preparing, running, observing, finished) whose every transition consumes the
+state it starts from, with the campaign's caps -- candidates, aggregate Case bytes, aggregate Run
+Events, one Run's time, the report's bytes -- enforced before the action each bounds; `Drive` runs
+that loop to its terminal and never recovers, resumes or persists. The report is a function of the
+bridge's and the binder's answers: the same answers give the same report, and a stop changes only
+where it ends. `umpire-fuzz run` reports each counterexample by its proposal's digest and path and
+writes the bytes only under a `--promotion-root` outside the model; with `--record-root` it also
+records each violated Run's Case and recorded Run as they close, through the per-candidate hook
+`DriveRecording` offers, retaining nothing in the report.
+
+`tools/umpire/replay` admits one such subject: a Case in its canonical form (the renderer's compact
+ProtoJSON, or its persisted re-indentation, decided once in `tools/umpire/internal/casefile`) and a
+recorded Run, checked to be the Case's (recorded from these canonical bytes, whose identity the
+record names, and carrying the Case's IDs; `crossed` otherwise, and `incompatible` for a record
+naming no Case), closed by the Monitor's stop with a violated Verdict, its supporting sequences
+naming the Run's events, prepared under the recorded Profile name with the recorded catalog and
+bindings (`stale` otherwise), and replayed offline to the recorded Verdict. The record's codec and
+the checks replay shares with qualification admission live in `tools/umpire/recordedrun`. The
+subject's identity is the canonical bytes' SHA-256; its violation key is Contract-relative and read
+in Definition IDs (the violated rules, their terminal states, their violating evidence as the
+evaluation names it), never the Case or Run identity, sequences, times or the Verdict's accumulated
+support, so a rerun of the Case and a reduced candidate can share it.
+
 ## Artifact ownership and tests
 
 Semantic owners depend on `Umpire.OutcomeClassification` for neutral classifier and projection
@@ -256,8 +354,9 @@ Promotion is a separate target. Go tests consume checked-in fixtures without inv
 rewriting data.
 
 `TemporalModelTests` imports the ordinary Temporal model tests. `UmpireTests` imports reusable
-Umpire tests, including the scenario-neutral promotion source checks. `TemporalExperimentalTests`
-retains experimental model tests that still exist, without restoring deleted runtime adapters.
+Umpire tests, including the scenario-neutral promotion source checks. The experimental test root
+was retired with the first-generation Nexus models (fn-86 R6); no Temporal-side compatibility
+family remains.
 
 The full regression boundary is:
 

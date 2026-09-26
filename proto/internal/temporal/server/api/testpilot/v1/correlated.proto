@@ -194,6 +194,10 @@ message CorrelatedEvidenceRule {
   // The evidence field values, each a text literal or a path to a text, integer or boolean.
   repeated NamedExpression fields = 5;
   Expression guard = 6;
+  // Names an EvidenceDeclaration of the Program instead of spelling the rule: the source, kind,
+  // scope, operation key and fields are the declaration's, its guard the presence of the declared
+  // history event arm, and every other field of this rule is left empty.
+  string evidence_id = 7;
 }
 
 // NamedExpression supplies one CorrelatedEvidence field of a lift: a text literal the Case declares,

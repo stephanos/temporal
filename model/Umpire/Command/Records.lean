@@ -136,6 +136,76 @@ structure SetupParameter where
   domain : DefinitionId
   deriving BEq, Repr
 
+/-- How a set binds one party: the Case's own Program performs the party's actions, using each
+class's example, or a real deployment or the world performs them and the verifier reads which class
+occurred and checks the machine allows it. -/
+inductive PartyBinding where
+  | driven
+  | observed
+  deriving BEq, Repr
+
+def PartyBinding.name : PartyBinding → String
+  | .driven => "driven"
+  | .observed => "observed"
+
+/-- What a set is for: functional sets compile each `find` Query to a checked-in Case, canary sets
+are admitted for a deployment to run, and exploratory sets name a coverage goal and a budget. -/
+inductive SetPurpose where
+  | functional
+  | canary
+  | exploratory
+  deriving BEq, Repr
+
+def SetPurpose.name : SetPurpose → String
+  | .functional => "functional"
+  | .canary => "canary"
+  | .exploratory => "exploratory"
+
+/-- What an exploratory set covers: the machine's rows, its result values, or the members of each
+claimed class. -/
+inductive CoverageGoal where
+  | rows
+  | results
+  | classMembers
+  deriving BEq, Repr
+
+def CoverageGoal.name : CoverageGoal → String
+  | .rows => "rows"
+  | .results => "results"
+  | .classMembers => "classMembers"
+
+/-- One thing an exploratory set sets out to reach, as an exploration reads it: a row of the
+machine's table, a result value, or a member of a claimed class. Each carries the Definition IDs a
+Run's evidence is compared against, so an exploration needs no second reading of the Model. -/
+inductive CoverageTarget where
+  | row (key : String) (state action : DefinitionId) (results : List DefinitionId)
+  | result (outcome : DefinitionId)
+  | classMember (member : DefinitionId) (action field className exampleValue : String)
+  deriving BEq, Repr
+
+def CoverageTarget.kind : CoverageTarget → String
+  | .row .. => "row"
+  | .result .. => "result"
+  | .classMember .. => "classMember"
+
+/-- One set of Queries grouped by purpose, with every party except `system` bound. `queries` are
+the Queries a functional or canary set runs, `machine`, `cover` and `budget` an exploratory set's
+machine, goal and limits, `targets` what that set enumerates under them, and `repeat` the switch a
+functional set's Cases run once per value of. -/
+structure SetDeclaration where
+  id : DefinitionId
+  name : String
+  purpose : SetPurpose
+  bindings : List (String × PartyBinding) := []
+  «repeat» : Option String := none
+  queries : List DefinitionId := []
+  machine : Option DefinitionId := none
+  cover : List CoverageGoal := []
+  budget : Option String := none
+  targets : List CoverageTarget := []
+  source : SourceLocation
+  deriving BEq, Repr
+
 /-- How one outcome of one action class is confirmed: through a declared or catalogued observation,
 optionally only when a guard over the state before the step holds, or not at all.
 

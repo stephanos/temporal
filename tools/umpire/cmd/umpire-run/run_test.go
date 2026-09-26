@@ -19,6 +19,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/replay"
 )
 
 const fixtureRoot = "../../../../tests/testcore/testpilot/testdata"
@@ -61,7 +63,7 @@ func verdictSession(status testpilotspb.VerdictStatus, rules ...*testpilotspb.Ru
 func TestRunExitsZeroAndReportsEveryRuleVerdictWhenSatisfied(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		verdictSession(testpilotspb.VERDICT_STATUS_SATISFIED,
 			&testpilotspb.RuleVerdict{
 				RuleId: "clause-one", Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
@@ -83,6 +85,77 @@ func TestRunExitsZeroAndReportsEveryRuleVerdictWhenSatisfied(t *testing.T) {
 	}, strings.Split(strings.TrimSpace(stdout.String()), "\n"))
 }
 
+// --record writes the closed Run with the identity it was prepared under, after the report, and
+// never replaces a file that exists.
+func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "run.json")
+	identity := testpilot.DriverIdentity{Profile: "umpire-run.fuzz", Catalog: "catalog", Bindings: "bindings"}
+	open := func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		return &session{
+			identity: identity,
+			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+				verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
+				return &testpilotspb.Run{
+					RunId: "run-1", CaseId: "temporal.case.nexusCallerTests.asyncCompletion", Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+					Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict,
+				}, verdict, nil
+			},
+		}, nil
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, open)
+	require.Equal(t, exitViolated, code, stderr.String())
+	recorded, err := os.ReadFile(path)
+	require.NoError(t, err)
+	decoded, err := replay.DecodeRecordedRun(recorded)
+	require.NoError(t, err)
+	require.Equal(t, identity, decoded.Driver)
+	fixture, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
+	require.NoError(t, err)
+	caseIdentity, err := replay.CaseIdentity(fixture)
+	require.NoError(t, err)
+	require.Equal(t, caseIdentity, decoded.Case, "the record names the fixture's canonical Case")
+	run := decoded.Run
+	require.Equal(t, "run-1", run.GetRunId())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, run.GetVerdict().GetStatus())
+
+	// An existing record, or a directory that does not exist, is refused before anything runs.
+	opened := false
+	refusing := func(context.Context, config, *testpilotspb.Case) (*session, error) { opened = true; return nil, nil }
+	stdout.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", path), &stdout, &stderr, refusing)
+	require.Equal(t, exitFailed, code, "an existing record is never replaced")
+	require.False(t, opened)
+	require.Contains(t, stderr.String(), "exists and is never replaced")
+	stderr.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", filepath.Join(t.TempDir(), "missing", "run.json")), &stdout, &stderr, refusing)
+	require.Equal(t, exitFailed, code)
+	require.False(t, opened)
+	require.Contains(t, stderr.String(), "directory does not exist")
+
+	// A record that fails after the Run, a race on the path, keeps the Verdict's exit code and is
+	// said on stderr.
+	raced := filepath.Join(t.TempDir(), "raced.json")
+	racing := func(ctx context.Context, configuration config, source *testpilotspb.Case) (*session, error) {
+		require.NoError(t, os.WriteFile(raced, []byte("{}"), 0o644))
+		return open(ctx, configuration, source)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	code = Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--record", raced), &stdout, &stderr, racing)
+	require.Equal(t, exitViolated, code)
+	require.Contains(t, stdout.String(), "verdict Violated")
+	require.Contains(t, stderr.String(), "exist")
+	require.Equal(t, "{}", string(mustRead(t, raced)), "the raced file is never replaced")
+}
+
+func mustRead(t *testing.T, path string) []byte {
+	t.Helper()
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	return content
+}
+
 func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {
 	for _, probe := range []struct {
 		name   string
@@ -95,7 +168,7 @@ func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
-			code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+			code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 				verdictSession(probe.status))
 
 			require.Equal(t, probe.code, code)
@@ -117,12 +190,12 @@ func TestRunExitsThreeWithOneStderrLineWhenTheRunFails(t *testing.T) {
 		}, nil
 	}
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr, failing)
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr, failing)
 
 	require.Equal(t, exitFailed, code)
 	require.Empty(t, stdout.String())
 	require.Equal(t, []string{
-		`run Case "temporal.case.async-nexus": frontend refused the connection`,
+		`run Case "temporal.case.nexusCallerTests.asyncCompletion": frontend refused the connection`,
 	}, strings.Split(strings.TrimSpace(stderr.String()), "\n"))
 }
 
@@ -140,7 +213,7 @@ func (d refusingDriver) Open(context.Context, string, testpilot.PreparedProgram)
 }
 
 func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
-	encoded, err := os.ReadFile(fixturePath(t, "async-nexus-case.json"))
+	encoded, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
@@ -148,7 +221,7 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	require.NoError(t, err)
 	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 		Identity: "umpire-run.probe", Namespace: "probe", TaskQueue: "probe-queue",
-		NexusEndpoint: "probe-endpoint",
+		HandlerTaskQueue: "probe-queue-handler", NexusEndpoint: "probe-endpoint",
 	})
 	require.NoError(t, err)
 	prepared, err := testpilot.Prepare(source, profile)
@@ -156,7 +229,7 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	driver := refusingDriver{err: errors.New("driver is unavailable")}
 	var stdout, stderr bytes.Buffer
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		func(context.Context, config, *testpilotspb.Case) (*session, error) {
 			return &session{
 				run: func(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
@@ -169,10 +242,11 @@ func TestRunExitsThreeWhenTheDriverRefusesThePreparedCase(t *testing.T) {
 	require.Contains(t, stderr.String(), "driver is unavailable")
 }
 
-// A typed fixture carries a Profile `DeriveProfile` cannot derive, so it rejects before any server
-// call, with the admission category that says why.
-func TestRunRejectsATypedFixtureWithItsPreparationCategory(t *testing.T) {
-	encoded, err := os.ReadFile(fixturePath(t, "typed-nexus-case.json"))
+// A Nexus fixture run against an environment that binds no Nexus endpoint carries a Profile
+// `DeriveProfile` cannot derive, so it rejects before any server call, with the admission category
+// that says why.
+func TestRunRejectsAFixtureWithItsPreparationCategory(t *testing.T) {
+	encoded, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
@@ -185,7 +259,7 @@ func TestRunRejectsATypedFixtureWithItsPreparationCategory(t *testing.T) {
 	require.Error(t, deriveErr)
 
 	var stdout, stderr bytes.Buffer
-	code := Run(requiredFlags(t, "typed-nexus-case.json"), &stdout, &stderr,
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr,
 		func(_ context.Context, _ config, source *testpilotspb.Case) (*session, error) {
 			_, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
 				Identity: "umpire-run.probe", Namespace: "probe", TaskQueue: "probe-queue",
@@ -220,8 +294,8 @@ func TestRunRejectsMissingFlagsAndPositionalArgumentsBeforeAnyServerCall(t *test
 	}{
 		{"no case", []string{"--grpc", "a", "--http", "b", "--namespace", "c", "--task-queue", "d"}, "--case is required"},
 		{"no namespace", []string{"--case", "x", "--grpc", "a", "--http", "b", "--task-queue", "d"}, "--namespace is required"},
-		{"positional", append(requiredFlags(t, "async-nexus-case.json"), "extra"), "accepts no positional arguments"},
-		{"non-positive timeout", append(requiredFlags(t, "async-nexus-case.json"), "--timeout", "0s"), "--timeout must be positive"},
+		{"positional", append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "extra"), "accepts no positional arguments"},
+		{"non-positive timeout", append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--timeout", "0s"), "--timeout must be positive"},
 	} {
 		t.Run(probe.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -262,7 +336,7 @@ func TestRunHonoursTheTimeoutWhileBinding(t *testing.T) {
 	}
 
 	started := time.Now()
-	code := Run(append(requiredFlags(t, "async-nexus-case.json"), "--timeout", "50ms"),
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--timeout", "50ms"),
 		&stdout, &stderr, blocking)
 
 	require.Equal(t, exitFailed, code)
@@ -275,7 +349,7 @@ func TestRunHonoursTheTimeoutWhileBinding(t *testing.T) {
 func TestInterruptibleContextCancelsOnSIGINT(t *testing.T) {
 	process, err := os.FindProcess(os.Getpid())
 	require.NoError(t, err)
-	ctx, cancel := interruptible(context.Background(), time.Minute)
+	ctx, cancel := cli.Interruptible(context.Background(), time.Minute)
 	defer cancel()
 
 	if err := process.Signal(os.Interrupt); err != nil {
@@ -297,7 +371,7 @@ func TestRunReportsACreateCollision(t *testing.T) {
 		return nil, errors.New(`register namespace "umpire-run-namespace": namespace already exists`)
 	}
 
-	code := Run(append(requiredFlags(t, "async-nexus-case.json"), "--create"),
+	code := Run(append(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), "--create"),
 		&stdout, &stderr, colliding)
 
 	require.Equal(t, exitFailed, code)
@@ -317,7 +391,7 @@ func TestRunReportsEveryLeakedResourceOnItsOwnLine(t *testing.T) {
 		return bound, nil
 	}
 
-	code := Run(requiredFlags(t, "async-nexus-case.json"), &stdout, &stderr, leaking)
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr, leaking)
 
 	require.Equal(t, exitSatisfied, code)
 	require.Equal(t, []string{
@@ -393,3 +467,27 @@ func TestUmpireRunLinksNoTestClusterAndNoNewServerService(t *testing.T) {
 }
 
 var _ testpilot.Driver = refusingDriver{}
+
+// A record names the Case by its canonical bytes' identity, so with --record a fixture in no
+// canonical form is refused before anything is opened; without --record it still runs.
+func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
+	fixture, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
+	require.NoError(t, err)
+	respaced := filepath.Join(t.TempDir(), "respaced-case.json")
+	require.NoError(t, os.WriteFile(respaced, []byte(strings.Replace(string(fixture), "  ", "   ", 1)), 0o644))
+	flags := requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json")
+	flags[1] = respaced
+	opened := false
+	refusing := func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		opened = true
+		return nil, errors.New("not opened")
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run(append(flags, "--record", filepath.Join(t.TempDir(), "run.json")), &stdout, &stderr, refusing)
+	require.Equal(t, exitFailed, code)
+	require.False(t, opened, "nothing runs for a record that could not name its Case")
+	require.Contains(t, stderr.String(), "not in a canonical form")
+	stderr.Reset()
+	require.Equal(t, exitFailed, Run(flags, &stdout, &stderr, refusing))
+	require.True(t, opened, "without --record the fixture's form does not matter")
+}

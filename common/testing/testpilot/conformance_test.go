@@ -9,9 +9,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
+	historypb "go.temporal.io/api/history/v1"
+	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -79,8 +83,17 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 		"inconclusive",
 		"static-preparation-rejection",
 		"static-preparation-rejection/expression-context",
+		"static-preparation-rejection/command-type",
+		"static-preparation-rejection/invalid-duration",
+		"static-preparation-rejection/unsettable-field",
+		"static-preparation-rejection/reply-not-admitted",
+		"static-preparation-rejection/undeclared-evidence",
+		"static-preparation-rejection/duplicate-evidence",
 		"cleanup-failure-after-proved-violation",
 		"cross-run-isolation",
+		"satisfied/history-evidence",
+		"satisfied/run-event-evidence",
+		"satisfied/read-evidence",
 	}
 	classes := map[string]bool{}
 	for _, name := range cases {
@@ -118,6 +131,21 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 				require.NotNil(t, result.verdict)
 				require.Equal(t, *expected.Projection, projectFacadeRun(result.run))
 				require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
+				// The recorded Run replayed offline through the same prepared Contract reads the
+				// same Verdict, and names what violated each violated rule.
+				replayed, evaluation, err := prepared.Evaluate(t.Context(), result.run)
+				require.NoError(t, err)
+				require.True(t, proto.Equal(result.verdict, replayed), "offline replay differs from the Monitor's Verdict")
+				require.NotNil(t, evaluation)
+				if class == "violated" || class == "cleanup-failure-after-proved-violation" {
+					require.Len(t, evaluation.Violations, 1)
+					violation := evaluation.Violations[0]
+					require.Equal(t, "result", violation.RuleID)
+					require.Equal(t, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, result.run.GetEvents()[violation.Sequence-1].GetKind())
+					require.Empty(t, violation.CorrelatedKind)
+				} else {
+					require.Empty(t, evaluation.Violations)
+				}
 				validateFacadeDynamicFields(t, result.run)
 				require.NotContains(t, runIDs, result.run.GetRunId())
 				runIDs[result.run.GetRunId()] = struct{}{}
@@ -179,7 +207,9 @@ func loadFacadeExpected(t testing.TB, name string) facadeExpectedResult {
 // the Temporal Driver prepares the same corpus under temporal.DefaultCeilings.
 func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
-	catalog, err := testpilot.NewCatalog(facadeDescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	// The evidence variants declare a CorrelatedEvidence Observation, so the catalog carries the
+	// Testpilot protocol beside the service the Cases invoke.
+	catalog, err := testpilot.NewCatalog(facadeDescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
 	require.NoError(t, err)
 	programLimits := &testpilotspb.ProgramLimits{
 		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
@@ -195,11 +225,31 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	return testpilot.ProfileSpec{
 		Identity: "facade-conformance",
 		Catalog:  catalog,
-		Roles: []testpilot.RolePolicy{{
-			ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
-			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
-		}},
-		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
+		Roles: []testpilot.RolePolicy{
+			// The evidence variants read history, poll a describe and inject a fault, so the
+			// Profile admits those methods, the read and fault Opcodes and the task-queue role.
+			{
+				ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				Methods: []string{
+					"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
+					"/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+					"/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
+				},
+			},
+			// The typed-instruction rejection variants carry a workflow and a handler entrypoint;
+			// the Profile admits their roles, the typed opcodes and the Nexus schedule command type,
+			// so each variant rejects on the message it carries rather than on the Profile.
+			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+			{ID: "temporal.task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+			{ID: "temporal.nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
+		},
+		Opcodes:      []testpilot.Opcode{testpilot.InvokeRPC, testpilot.Finish, testpilot.WorkflowCommand, testpilot.NexusHandlerReply, testpilot.ReadEvidence, testpilot.InjectFault},
+		CommandTypes: []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION},
+		EnvironmentBindings: []testpilot.EnvironmentBinding{
+			{ID: "temporal.worker.namespace", Value: "conformance"},
+			{ID: "temporal.task-queue.resource", Value: "conformance-queue"},
+			{ID: "temporal.nexus-endpoint.resource", Value: "conformance-endpoint"},
+		},
 		ProgramLimits:  programLimits,
 		ContractLimits: contractLimits,
 		// temporal.DefaultInstructionLimits, spelled here for the same reason as the ceilings.
@@ -207,7 +257,7 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	}
 }
 
-func facadeDescriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
+func facadeDescriptorClosure(roots ...protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
 	seen := make(map[string]struct{})
 	result := &descriptorpb.FileDescriptorSet{}
 	var add func(protoreflect.FileDescriptor)
@@ -222,7 +272,9 @@ func facadeDescriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.Fil
 		}
 		result.File = append(result.File, protodesc.ToFileDescriptorProto(file))
 	}
-	add(root)
+	for _, root := range roots {
+		add(root)
+	}
 	return result
 }
 
@@ -279,16 +331,59 @@ func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordi
 	if field := response.Descriptor().Fields().ByName("server_version"); field != nil {
 		response.Set(field, protoreflect.ValueOfString("facade-conformance"))
 	}
+	// The evidence variants read one started Nexus operation back: as the history event that
+	// records it and as the pending operation on its second attempt, both keyed by the scheduled
+	// event id.
+	var recorded proto.Message
+	switch method.Output().FullName() {
+	case "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse":
+		recorded = &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
+			EventId: 6, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED,
+			Attributes: &historypb.HistoryEvent_NexusOperationStartedEventAttributes{NexusOperationStartedEventAttributes: &historypb.NexusOperationStartedEventAttributes{ScheduledEventId: 5}},
+		}}}}
+	case "temporal.api.workflowservice.v1.DescribeWorkflowExecutionResponse":
+		recorded = &workflowservice.DescribeWorkflowExecutionResponse{PendingNexusOperations: []*workflowpb.PendingNexusOperationInfo{{ScheduledEventId: 5, Attempt: 2}}}
+	default:
+	}
+	if recorded != nil {
+		encoded, err := proto.Marshal(recorded)
+		if err != nil {
+			return nil, err
+		}
+		if err := proto.Unmarshal(encoded, response); err != nil {
+			return nil, err
+		}
+	}
 	return facadeEffect{result: testpilot.EffectResult{
 		Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 		Response: response,
 	}}, nil
 }
+func (s *facadeSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	if interval <= 0 || satisfied == nil {
+		return nil, errors.New("facade conformance polls require an interval and a predicate")
+	}
+	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)
+	if err != nil {
+		return nil, err
+	}
+	result, err := handle.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := satisfied(ctx, result.Response); err != nil {
+		return nil, err
+	}
+	return handle, nil
+}
 func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
+
+// InjectFault realizes every fault at once: the facade owns no worker, so the outage is recorded
+// and nothing stops, which is what the Run Event evidence variant reads.
 func (*facadeSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	return nil, errors.New("facade conformance Cases inject no faults")
+	return facadeEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
 }
 func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return nil, errors.New("facade conformance Cases do not use capability bridges")

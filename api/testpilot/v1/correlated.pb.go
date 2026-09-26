@@ -1042,8 +1042,12 @@ type CorrelatedEvidenceRule struct {
 	Operation string `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
 	Kind      string `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
 	// The evidence field values, each a text literal or a path to a text, integer or boolean.
-	Fields        []*NamedExpression `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
-	Guard         *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
+	Fields []*NamedExpression `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
+	Guard  *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
+	// Names an EvidenceDeclaration of the Program instead of spelling the rule: the source, kind,
+	// scope, operation key and fields are the declaration's, its guard the presence of the declared
+	// history event arm, and every other field of this rule is left empty.
+	EvidenceId    string `protobuf:"bytes,7,opt,name=evidence_id,json=evidenceId,proto3" json:"evidence_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1118,6 +1122,13 @@ func (x *CorrelatedEvidenceRule) GetGuard() *Expression {
 		return x.Guard
 	}
 	return nil
+}
+
+func (x *CorrelatedEvidenceRule) GetEvidenceId() string {
+	if x != nil {
+		return x.EvidenceId
+	}
+	return ""
 }
 
 // NamedExpression supplies one CorrelatedEvidence field of a lift: a text literal the Case declares,
@@ -1443,14 +1454,16 @@ const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\x15max_correlation_depth\x18\v \x01(\x03R\x13maxCorrelationDepth\"\x95\x01\n" +
 	"\x1cCorrelatedEvidenceProjection\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12N\n" +
-	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xcb\x02\n" +
+	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xec\x02\n" +
 	"\x16CorrelatedEvidenceRule\x12G\n" +
 	"\x05scope\x18\x01 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x05scope\x12'\n" +
 	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12\x1c\n" +
 	"\toperation\x18\x03 \x01(\tR\toperation\x12\x12\n" +
 	"\x04kind\x18\x04 \x01(\tR\x04kind\x12I\n" +
 	"\x06fields\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x06fields\x12B\n" +
-	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\"p\n" +
+	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\x12\x1f\n" +
+	"\vevidence_id\x18\a \x01(\tR\n" +
+	"evidenceId\"p\n" +
 	"\x0fNamedExpression\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12B\n" +
 	"\x05value\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05value\"\xae\x02\n" +

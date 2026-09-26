@@ -34,10 +34,14 @@ helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `
 Gaps, and Correlated Rule bindings, and lowers them into the Case's typed provenance rows, which the
 runtime never reads.
 
-`Temporal.Feature.Nexus.Success.Producer` lowers the checked success model into the async Nexus
-example: its Contract carries no monitor Rule, only the Correlated capability the checked Property
-lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
-worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
+`Temporal.Feature.Nexus.Caller` authors the Nexus caller-side operation, and its functional set
+produces the seven caller Cases through `Temporal.Case.Realization.asyncNexus`: each Contract carries
+no monitor Rule, only the Correlated capability the checked Property lowered into.
+[AUTHORING.md](AUTHORING.md) walks that Model file from an empty file to a green live test, one
+command at a time; its canary set is admitted through the same block and its exploratory set's
+coverage targets are pinned by a golden. The system-info and
+worker-outage Models (`Temporal/Feature/System/Info`, `Temporal/Feature/Workflow/Outage`) produce the
+unary and the fault Cases; `Temporal.Testpilot` supplies the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.
@@ -73,8 +77,9 @@ Testpilot terms have precise boundaries:
 The retained model uses separate `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`,
 `Umpire.Query`, `Umpire.Search`, `Umpire.Variations`, `Umpire.Exploration`, and `Umpire.Promotion`
 APIs. A checked Model owns behavior; Properties state Trace claims; Scenarios constrain Trace
-shape; Queries ask bounded questions and Search answers them; Variations and Exploration select
-finite candidates. None of these performs runtime I/O.
+shape; Queries ask bounded questions and Search answers them; Variations compile authored variation
+points; Exploration walks an exploratory set's coverage targets, one target Query per candidate,
+and keeps a ledger of what each Run credited. None of these performs runtime I/O.
 
 For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
 `Umpire.Scenario`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
@@ -92,20 +97,24 @@ admission and serialization support both paths.
 the complete Plan anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
 
-The `umpire-inspect` executable exposes the retained checked catalog and emits deterministic Plan
-Artifacts. Generated Views remain navigation and test wrappers around that Plan data; they do not
+The `umpire-inspect` executable exposes the caller Model's Queries and the Switch example
+(`make umpire-list`, `make umpire-explain QUERY=<id>`) and emits deterministic Plan Artifacts. Generated Views remain navigation and test wrappers around that Plan data; they do not
 execute a Case or determine a Verdict.
 
 ### Ordinary Nexus authoring
 
-`Temporal.Feature.Nexus` is the compiled established walkthrough. Read
-`Lifecycle.Semantics`, `Lifecycle.Model`, the three `Operations` modules, and `Observation` in that
-order. The finite `Lifecycle.finiteMachine` is the ordinary Model seam: authors still provide the
-ordered domains, encoders, enumerators, closure proofs, and Action-executability proof, while
-`modelSpec` and `draftModel` remove repeated record and planning transport. Authors who
-need an independently specified authoritative relation can use the expert `Machine` path.
+`Temporal.Feature.Nexus.Caller` is the walkthrough, and [AUTHORING.md](AUTHORING.md) quotes it
+region by region. A feature Model has one authoring path: the commands. `entity`, `enum` and
+`action` declare its vocabulary, `machine` enumerates its step functions into the finite table,
+`property`, `scenario`, `limits` and `query` say what it promises and what a Query asks, and `set`
+with the platform's `case … realizes` block produces its Cases. A production module under
+`Temporal.Feature` or `Umpire.Examples` imports `Umpire.Command` and reaches Umpire's authoring
+owners only through it; `make lint-model` rejects a direct import (`authoring-path-isolation`,
+MOD-16), and building a `Machine` by hand is no path for a feature Model (AUT-08 as fn-86 amends
+it). The raw records below are what a command elaborates to, and what the Implementation Link and
+Umpire's own tests build directly because they exercise those records.
 
-Property, Scenario, Query, and Evidence inputs remain ordinary values. Call each language's
+Beneath the commands, Property, Scenario, Query, and Evidence inputs are ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error. Property, Scenario, and Query `checked`
 operations take checker-success evidence that defaults to `native_decide`, so a closed valid
 declaration names no proof and an invalid one fails where it is written; Evidence's `checked` still
@@ -145,25 +154,21 @@ Models, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 ### Typed operation authoring
 
-An author who needs to name a concrete API operation and relate its fields references the generated
-declaration rather than a method string. `Temporal.API.bindUnary` admits a candidate schema only
-against the generator's own selection for that method, so a wrong-method pairing, a forged request
-or response closure, and an unsupported streaming shape each reject with their own diagnostic.
-`Umpire.Operation.ActionTemplate` carries the admitted binding, and `ParameterDomain.check` admits
-an explicit list of exact request values as parameterized Action instances. Selecting an Action
-never selects its outcome: the authoritative Model still owns which result each instance admits.
+An author who needs to name a concrete API operation and relate its fields writes it on the
+commands. An `action`'s `schema:` line names the generated request declaration, admitted only
+against the generator's own selection for that method (`Temporal.API.bindUnary`), so a
+wrong-method pairing, a forged request or response closure, and an unsupported streaming shape each
+reject with their own diagnostic while the file compiles. A `property`'s `relates:` line compares
+the selected action's input, the modeled result and a recorded event's fields through their
+schemas. Selecting an Action never selects its outcome: the authoritative Model still owns which
+result each instance admits.
 
-Two claims are declared separately and reported separately.
-
-- The **finite domain** is exactly the authored list, under a `ParameterCoverage` of `.sampled`
-  (representative cases) or `.fixed` (one exact value). An `.abstracted` claim rejects, because no
-  transition and Property preservation evidence exists for it. Ten samples are still ten samples;
-  enlarging the list never turns a sample into an exhaustive claim.
-- The **runtime admission scope** is a separate `RuntimeScope`. `.samplesOnly` admits nothing the
-  finite domain did not list; `.schema bounds` admits any value inside its own declared depth, byte
-  and collection bounds. A value past those bounds is reported `outOfScope`, which is a different
-  answer from the checker exhausting its own resource ceiling — that one is owned by the value
-  layer. Neither answer enlarges the finite claim.
+What an action claims about its inputs is declared on the action and reported per Case. An `input:`
+field ranges over a finite domain the author declared, and an `examples:` line is the abstraction
+claim that every realized value of a class behaves alike, with the example the functional Case
+runs; a Case records the claims of the classes its path performs, an exploration tries the other
+members, and a divergent member is a counterexample that splits the class. A single-member class
+carries no claim, and no list of examples turns a sample into an exhaustive claim.
 
 Field operands read the exact schema-defined value, not a summary of it. Supported forms are nested
 message access, implicit- and explicit-presence reads, oneof selection, enum values, repeated index
@@ -176,9 +181,9 @@ discoverable, a recursive value past its declared depth is incomplete rather tha
 an integer outside its declared range rejects before protobuf lowering, and a closed enum value the
 descriptor does not name rejects while an open enum retains its unknown number.
 
-A Property relates those operands. Same-step clauses compare the selected Action's own immutable
-request against the modeled result and resulting state; cross-step clauses bind a named earlier
-occurrence under an explicit operation key and compare the captured value. Unmentioned fields are
+A `relates:` line relates those operands. Same-step relations compare the selected Action's own
+immutable request against the modeled result and resulting state; a relation over an earlier
+step's event binds that occurrence under the operation key and compares the captured value. Unmentioned fields are
 unconstrained: a partial conjunction is not an exhaustive field contract. Missing evidence never
 satisfies a comparison — it is rejected or left unresolved.
 
@@ -191,16 +196,27 @@ Observation's own message, the comparison and the literal the Program assigns
 
 Two authored examples carry this end to end:
 
-- [`Temporal/Feature/Nexus/Success/TypedUnary.lean`](Temporal/Feature/Nexus/Success/TypedUnary.lean) references the
-  generated `StartWorkflowExecution` and requires the submitted nested `workflow_type.name` to equal
-  the workflow type the `WorkflowExecutionStarted` event records, read through the generated
-  `GetWorkflowExecutionHistory` response schema. Its derived rule reports all three answers: an
-  agreeing recorded type is satisfied, a disagreeing one is violated, and an event that never
-  establishes the field leaves the rule pending.
-- [`Temporal/Feature/Nexus/Success/TypedNexus.lean`](Temporal/Feature/Nexus/Success/TypedNexus.lean) runs two
-  workflow-owned Nexus SDK operations in one Case, each retaining its own scheduled evidence under
-  its own operation key, and requires a completion to reference the scheduled event its own
-  operation was scheduled at.
+- [`Temporal/Feature/Workflow/Start/Model.lean`](Temporal/Feature/Workflow/Start/Model.lean) (the
+  typed unary example, re-authored with the commands by fn-86 .2) binds `startWorkflow` to the
+  generated `StartWorkflowExecution` request through `schema:` and writes one
+  `relates: startWorkflow.input.workflow_type.name = workflowExecutionStarted.workflow_type.name`
+  line, resolved against the generated descriptors while the file compiles; the recorded field is
+  read through the generated `GetWorkflowExecutionHistory` response schema. Its derived rule
+  reports all three answers: an agreeing recorded type is satisfied, a disagreeing one is violated,
+  and an event that never establishes the field leaves the rule pending.
+- [`Temporal/Feature/Nexus/Pair/Model.lean`](Temporal/Feature/Nexus/Pair/Model.lean) (the typed
+  Nexus example, re-authored with the commands by fn-86 .3) runs two instances of the caller
+  Model's operation in one workflow, `instances: 2` on its Scenario, and writes
+  `relates: nexusOperationCompleted.scheduled_event_id = nexusOperationScheduled.event_id`: the
+  scheduled event is an earlier step's, so each instance's rule captures its own -- selected by
+  the operation name its schedule command assigned -- and matches the completion's reference
+  against the retained event's id.
+- [`Temporal/Feature/Nexus/Control/Model.lean`](Temporal/Feature/Nexus/Control/Model.lean) (the
+  negative control, fn-22 .3) keeps the caller Model's real reply rows and adds one row the
+  platform never takes, a non-retryable handler error completing the operation as succeeded; its
+  one Query selects that row, so every Run of `nexusCallerControl-forgedCompletion` is violated
+  and the replay has a subject to record, admit and rerun. It enters no set of the caller Model
+  and no regression view, and nothing reads it as a claim about the platform.
 
 Environment binding stays outside the model. Namespaces, task queues and named Nexus endpoints are
 symbolic in the Program and supplied by the Profile; a semantic relationship that involves one is
@@ -208,11 +224,11 @@ declared in the model and preserved under binding. Nexus operation cancellation 
 confirmation, and resolution are not modeled here and remain deferred to fn-79.
 
 Known Gaps disclose what a Case does not check; they never waive a requested clause. The
-two-operation Nexus Case records two: its bounded-response window is evaluated in the model only,
-because no instruction of that Program emits the `CorrelatedEvidence` Observation a runtime correlated
-capability would read; and a completion referencing another scheduled event leaves its rule pending
-rather than violated, because a completed history event carries no operation identity and
-separating the two would need a correlation condition the model never declared.
+two-operation Nexus Query declares two: a completed history event carries no operation identity,
+so the operation key of the lifted evidence is the scheduled event a completion references; and a
+completion referencing another scheduled event leaves its rule pending rather than violated, because
+separating the two would need a correlation condition the model never declared, while the model
+Property still distinguishes them.
 
 Lean syntax used by the walkthrough:
 
@@ -223,17 +239,12 @@ Lean syntax used by the walkthrough:
   seam.
 - `#guard_msgs` compiles an expected elaboration failure; `#print axioms` reports transitive trust.
 
-`Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
-real selected artifact, Observation evaluation, malformed identity/reference, missing proof,
-incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
-trust, and cost inventory is in [the established coverage record](Temporal/Feature/Nexus/COVERAGE.md).
-
-The experimental [Nexus race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
-ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
-measurements under its narrow prototype exceptions. It is a separate `temporal.nexus.race.*` model,
-not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
-elaboration, human readability, product-owner usability, and broader syntax approval remain
-unmeasured. Its [coverage inventory](Temporal/Feature/Nexus/Race/COVERAGE.md) records those boundaries.
+`Temporal.Feature.NexusTests` compiles the facade-only path: the caller Model's machines, a
+Property, a Scenario, a Query, a set and a Case, reached through `Temporal.Feature.Nexus` alone.
+The coverage record is [the caller Model's](Temporal/Feature/Nexus/Caller/COVERAGE.md). The
+first-generation lifecycle, Operations, Observation, Experimental and race-prototype modules were
+retired by fn-86 .5; the race behavior is recorded in fn-79's spec and the exploration inputs in
+fn-33's.
 
 ## Runtime ownership
 
@@ -282,6 +293,45 @@ exact Case 1.0 resources as the sole source of namespaces, task queues, and name
 Transport targets, credentials, callback authority, SDK clients, and lifecycle configuration remain
 physical Driver inputs.
 
+### Running Cases and campaigns against a deployment
+
+Two commands consume the canonical bytes against any Temporal deployment, linking the Driver and
+the SDK and never the test cluster. `umpire-run` runs one checked-in Case: it reads the fixture,
+derives the Profile the Case implies, binds it to the namespace, task queue and Nexus endpoint the
+caller names (creating and removing them with `--create`), runs once, reports the Run, cleanup and
+Verdict, and exits 0 satisfied, 1 violated, 2 inconclusive, 3 when nothing ran; `--record <path>`
+writes the closed Run beside the Profile identity it was prepared under and the identity of the
+canonical Case it ran (the *recorded Run*, a local JSON file `tools/umpire/replay` reads as a replay
+subject; the file must not exist, and a fixture in no canonical form is refused before the Run). `umpire-fuzz run`
+runs one exploration campaign: it opens the exploration bridge over the set it names, takes each
+candidate's Case through the same binding (`tools/umpire/binding`, campaign-scoped once and
+candidate-scoped per Case), one Run and cleanup, hands the closed Run back to the bridge, and stops
+at exhaustion, at one of its own caps (`--max-candidates`, `--max-case-bytes`, `--max-run-events`,
+`--max-report-bytes`; `--run-timeout` bounds one Run, `--timeout` the campaign), on SIGINT or its
+timeout, or on a tooling failure. No flag names a target or widens a declared Limit. It writes one
+canonical JSON summary to stdout -- terminal status, the campaign's counters, the bridge's per-target
+ledger and coverage counts, the counterexamples, and one line per candidate -- and the bridge's
+progress lines per candidate (the candidate handed out, then its observation) to stderr; it exits 0 exhausted, 1 on a counterexample or violated coverage, 2 on a
+cap or a stop, 3 on a tooling failure. Nothing unexecuted, inconclusive or cleanup-uncertain is
+ever reported as coverage: coverage is the bridge's ledger, copied, never inferred. A counterexample
+is in the summary by its proposal's digest and path; `--promotion-root <dir>` writes each compiled
+proposal there, at the path the bridge named, and the summary says where (`written`). The root must
+lie outside `--model-root`: a proposal is for review, and nothing installs it. Two campaigns over the
+same set, caps and Run results write the same summary bytes and the same proposal files; one stopped
+early writes the completed prefix of the other's candidates. `--record-root <dir>` writes each
+counterexample's Case (`<set>-<digest>-case.json`, the compact canonical form with one newline) and
+its recorded Run (`<set>-<digest>-run.json`), outside the model, as they close; each file is created
+and never replaced, so a second campaign over the same set into the same root ends as a tooling
+failure at its first counterexample.
+
+```sh
+make umpire-run                      # builds ./.build/umpire-run
+make umpire-fuzz                     # builds ./.build/umpire-fuzz
+UMPIRE_FUZZ_GRPC=127.0.0.1:7233 UMPIRE_FUZZ_HTTP=127.0.0.1:7243 UMPIRE_FUZZ_NAMESPACE=fuzz \
+  UMPIRE_FUZZ_TASK_QUEUE=fuzz-queue UMPIRE_FUZZ_NEXUS_ENDPOINT=fuzz-endpoint UMPIRE_FUZZ_CREATE=1 \
+  UMPIRE_FUZZ_FLAGS='--max-candidates 20' make umpire-fuzz-run SET=nexusCallerExploration
+```
+
 ## Generated artifacts
 
 The checked semantic inventory is the generated navigation view
@@ -313,8 +363,84 @@ The Testpilot conformance and example trees are independently owner-managed by t
 ```sh
 make umpire-check-case-runtime-conformance
 make umpire-gen-case-runtime-conformance  # separate reviewed promotion
-model/.lake/build/bin/umpire-case async-nexus
-mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
+model/.lake/build/bin/umpire-case nexusCallerTests-asyncCompletion
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotNexusCallerAsyncCompletion$'
+```
+
+The exploration bridge (`Temporal.Tool.ExplorationBridge`, `lean_exe umpire-explore`, not a default
+target) drives one exploratory set's campaign from outside, one canonical JSON frame per line on
+stdin and stdout: `initialize` names the set, `next` hands out the next candidate as one whole
+produced Case with its opaque identity and the target keys its planned path covers, `observe` takes
+back the exact closed Run of the outstanding candidate (or its preparation rejection) and answers with
+what was credited, `finish` renders the summary and the counterexamples. Each counterexample carries
+its proposal: the campaign retains the violated candidate and `Umpire.Exploration.Promotion` compiles
+it through `Umpire.Promotion` into a review-only regression source under fresh names keyed by the
+candidate's digest, so the frame names the source's SHA-256, its path (`<set>-<digest>.lean`) and its
+bytes, or the reason it did not compile. The bridge writes no file: whoever runs the campaign writes
+the bytes where it names, never under `model/`, and the same counterexample seals the same digest
+every run. A duplicate, stale, crossed or out-of-order frame is rejected before any campaign call. A candidate whose planned path performs a
+class member the realization binds nothing for is credited `unrealizable` and listed as skipped on
+the next frame. Frames are exact: a key a frame kind does not admit rejects it; `initialize` names
+the Profile identity the coordinator runs under, echoed on every frame and required on `observe`;
+`initialized` writes the budget's Limits out by value. Progress goes to stderr; nothing but frames
+goes to stdout.
+
+```sh
+make umpire-check-exploration-bridge   # builds umpire-explore, runs its tests and the Go Prepare proof
+make umpire-check-replay-bridge        # builds umpire-replay-bridge, runs its frame-level tests and the Go client proof
+printf '%s\n' '{"frame":"initialize","seq":1,"set":"nexusCallerExploration","profile":"dev"}' \
+  '{"frame":"next","seq":2,"set":"nexusCallerExploration"}' \
+  '{"frame":"finish","seq":3,"set":"nexusCallerExploration"}' | model/.lake/build/bin/umpire-explore
+```
+
+`umpire-replay run` replays one violated Run: the subject is a canonical Case (`--case`) and the
+Run recorded against it with its Profile identity (`--run`, as `umpire-run --record` or
+`umpire-fuzz --record-root` writes it), named by `--set` and `--query` (or an exploratory set's
+`--target`), against the deployment flags `umpire-run` takes, without `--create`: the replay
+prepares under the recorded identity, so the resources must be the ones the Run was recorded
+against. It admits and replays the subject offline before anything is opened, recovers its Query
+through `umpire-replay-bridge` (a subject the set does not produce is `crossed`), reruns it twice,
+reduces its Query under fixed limits (eight edits, twelve Runs, 25 minutes), and writes the
+retained candidate's review-only proposal under `--promotion-root`, outside the model. One JSON
+report goes to stdout, with admission, the offline semantic replay, the key and the Case identity,
+the reruns, the reduction, the limits, cleanup and the proposal apart; SDK history replay has no
+field. Exit 0 is reproduced with a complete reduction (and the proposal written when a root is
+named), 1 not reproduced, 2 indeterminate, incomplete or stopped, 3 a tooling failure, a rejected
+subject or a proposal that did not compile or could not be written.
+
+```sh
+make umpire-replay-run CASE=case.json RUN=run.json SET=nexusCallerControl QUERY=forgedCompletion \
+  UMPIRE_REPLAY_GRPC=127.0.0.1:7233 UMPIRE_REPLAY_HTTP=127.0.0.1:7243 \
+  UMPIRE_REPLAY_NAMESPACE=ns UMPIRE_REPLAY_TASK_QUEUE=tq UMPIRE_REPLAY_NEXUS_ENDPOINT=ep \
+  UMPIRE_REPLAY_FLAGS='--promotion-root /tmp/proposals'
+```
+
+`umpire-assess run` assesses one recorded Run offline under one Evaluation Profile: the subject is
+a canonical Case (`--case`) and the Run recorded against it (`--run`), the Profile an exact name
+from the ones the model declares (`--profile local-ephemeral`; Lean renders them to
+`tools/umpire/evaluation/profiles/`, which `make umpire-check-evaluation-profiles` checks and the
+command embeds), and the receipt goes under `--receipt-root`, an existing directory outside the
+model. It admits the pair strictly (the record must name this Case's canonical bytes and the tree's
+catalog), reads the recorded Verdict, disposition, cleanup, Known Gaps and supporting sequences
+against the Profile's reason table, and publishes one canonical Evaluation Receipt named by its
+SHA-256, by hard link, never overwriting: the same subject under the same Profile is
+`already-published`, another Profile is another receipt. Whether a rule's conclusion must have
+supporting events is the Profile's choice: under `local-ephemeral` a rule the Verdict names at a
+terminal state with none keeps the decision at `incomplete`. It takes no address, so it can neither
+create nor replay a Run. Exit 0 is accepted, 1 rejected, 2 incomplete, 3 anything else, with a
+named status in the one-line JSON summary on stdout.
+
+The claim a `local-ephemeral` receipt makes is exactly its Profile's: the Case's Contract held for
+one closed Run against an ephemeral local test cluster, under the recorded Driver identity. The
+trust basis, `local-ephemeral-cluster`, is asserted by the Profile and not checked against the
+recorded identity, and a receipt is not self-authenticating: its identity says which bytes it is,
+not who wrote them. Publication needs a filesystem with hard links and fails closed (exit 3)
+without one. The Case Runtime's Verdict and the offline Claim Assessment stay separate: assessment
+never re-derives a Verdict, and the receipt records the Verdict beside the decision. No CI, remote,
+canary, production or release claim is made, and no receipt authorizes anything.
+
+```sh
+make umpire-assess-run CASE=case.json RUN=run.json PROFILE=local-ephemeral RECEIPT_ROOT=/tmp/receipts
 ```
 
 The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both
@@ -362,6 +488,35 @@ gate compares the entire inherited failure-identity set, so both additions and d
 `make lint-model` runs Lean declaration linting and validates the complete first-party import graph.
 The regression boundary intentionally adds no broad generated-Lean API drift check and no new
 GitHub Actions surface.
+
+### Module impact index
+
+```sh
+make umpire-export-model-module-index > module-index.json
+make umpire-check-model-module-index
+```
+
+The export writes one `temporal-model-module-index/v1` JSON document to stdout: one row per
+first-party module with `name`, `sourcePath` (relative to `model/`, forward slashes),
+`classification` (`shared`, `testpilot`, `umpire`, `temporal-shared`, `temporal-feature`,
+`temporal-system`, `temporal-tool`, `temporal`, `model-tests` or `lint-infrastructure`, as
+`make lint-model`'s policy assigns it), its direct and reverse first-party imports, and the
+configured public facades and focused test roots whose compilation the module affects. Rows and
+every array are sorted; empty arrays are present; the document is compact, one line, and ends with
+one LF. It is a navigation aid for a reader about to change a module and carries no Definition ID,
+Artifact Checksum or other semantic claim; a test root on a row says the root imports the module,
+not that its suite ran.
+
+The exporter is opt-in and unversioned: neither Lake's default targets nor version control carry it
+or its output. It refuses to run outside the model package root (it loads the current directory as
+a Lake root and requires the `temporal-model` package owning `umpire-lint`, `umpire-lint-tests` and
+itself; a relocated checkout passes). Success is exactly the document on stdout, status 0 and an
+empty stderr; any inventory, build, metadata, index or root failure is status 1, an empty stdout and
+diagnostics on stderr. The document is complete in memory before the final write, so a failure
+before it leaves nothing on stdout; if the final write itself fails, the status is non-zero and
+whatever the stream had already accepted is not a document. The check target runs the process
+suite (warm, stale and cold Lake paths, a relocated checkout, wrong roots, injected failures) and
+the Make path with each stream captured separately.
 
 ## Superseded runtime history
 

@@ -17,7 +17,10 @@ Profile's carriers, and an instruction limit the Case omits takes the Profile's
 private prepared resources, and includes the complete binding fingerprint in Prepared Case identity.
 `PreparedCase.Run` checks the Driver identity, calls `Driver.Validate` without target I/O, creates the
 Monitor, and only then opens a per-Run `Session`. Validation failure produces no Session, Run, Verdict,
-or effect. Scheduling, recording, expression admission, and Contract evaluation stay private to this
+or effect. `PreparedCase.Evaluate` replays a closed Run's events through the same prepared Contract
+with no Driver and no target, the offline semantic replay: it returns the Verdict that reading gives
+and, per violated rule, the Run Event whose evidence resolved it and that evidence (a monitor rule's
+observation ids, or none when its deadline violated it; a correlated rule's evidence kind). Scheduling, recording, expression admission, and Contract evaluation stay private to this
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
 
@@ -33,10 +36,40 @@ records one `FAULT_INJECTED` event per realized outage, carrying the fault in it
 payload, which a Contract reads through a path. Nothing about a requested fault is evidence until
 that event exists.
 
+A worker instruction may carry the Temporal API message the Driver realizes through its SDK
+(fn-85 R10): `WorkflowCommand` carries a `temporal.api.command.v1.Command`, `NexusHandlerReply` a
+`temporal.api.nexus.v1.StartOperationResponse` or `HandlerError`, and `NexusOperationCompletion` a
+`temporal.api.common.v1.Payload` or `temporal.api.failure.v1.Failure`. The message is carried whole,
+not evaluated: preparation admits it against the Driver-reach table in
+`internal/execution/typed.go`, which names per message the fields the Driver realizes and the fields
+it does not, so a field the Driver cannot set rejects `unsupported` at the field's own path, an
+invalid or over-ceiling duration rejects `malformed` or `limit_exceeded` at its field, a reply the
+activation does not admit rejects at its node, and a command whose type the Profile's
+`CommandTypes` does not list rejects `unsupported` at `command_type`. `temporal.DeriveProfile` lists
+the command types the worker Driver realizes (`worker.CommandTypes`) and nothing more. A command's
+endpoint field names the Case's endpoint role; the Driver resolves it to the bound resource. The
+Await of a scheduled command yields the handler's payload whole, as an `Any`, where the Await of the
+untyped start yields text.
+
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
 the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
 Correlated Contract that admits no evidence answers inconclusive: silence is not a satisfied property.
+
+A Program declares each kind of that evidence once, in `Program.evidence`: the recorded data it is
+read from, the Run coordinates that scope it, the path of its operation key and the fields it
+exposes. The source is one of three. A history event kind is an arm of the recorded `HistoryEvent`'s
+attributes oneof, lifted by a history read whose rule names the declaration (`evidence_id`) and
+spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
+event's payload: an injected fault becomes `faultInjected` evidence keyed by the role it stopped. A
+read is a repeated field in the response of a unary RPC, polled from a controller by a
+`ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and
+every element the condition selects is lifted; `pendingAttempts` reads
+`DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`.
+A Correlated Contract's projection rules name the declarations by kind, so the kind, source, key
+path and fields are written once and cannot drift; a reference to an undeclared kind, or the same
+source and key path declared twice, rejects at preparation. A Program that declares nothing keeps
+the spelled-out lift rules, which slot-bound reads still use.
 
 ## Field paths and enum literals
 
@@ -91,6 +124,11 @@ first planned use.
    `testpilotProtocolSchemas` (`model/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
    list in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`.
    A Run-only message never enters the Case closure (`TestCaseImportClosureExcludesRunOnlyMessages`).
+   A field that carries a public API message imports that message's file from `proto/api.binpb`
+   (`--descriptor_set_in`, already passed by `make proto`, `umpire-check-testpilot-protocol` and
+   `Testpilot/Protocol.lean`); the file's whole import closure is compiled once into Lean by
+   `Testpilot/Carried.lean`, so each file the closure adds is appended to `Testpilot.Carried.files`,
+   which `Testpilot.Protocol` checks.
 2. **Generated code.** `make proto` regenerates `api/testpilot/v1` and runs the api-linter; a singular
    enum field naming an enum from another file of the package compiles only through the rewrite in
    `cmd/tools/protogen/enum_references.go`. `Testpilot/Protocol.lean` elaborates both closures with one
@@ -118,22 +156,37 @@ first planned use.
 ### A new instruction
 
 1. A message in `instruction.proto` and an arm appended to `Instruction.instruction`. The arm's field
-   number is its Opcode.
+   number is its Opcode; a removed arm's successors move up, so the numbers stay dense from 1.
 2. `make proto`.
 3. A `Testpilot.Authoring.Program` constructor beside `Program.injectFault`.
 4. `execution.InstructionOpcode` and `opcodeContext` (which entrypoint kind may declare it), a binder in
    `admission.bindInstruction` and `admission.bindNodeDataflow`, its outcome fields in
    `admission.bindOutcomes`, dispatch in `scheduler.acceptEffect` and any event it records in
-   `scheduler.publishCompletion`. A workflow instruction also runs in `workflowInterpreter.execute`
-   (`temporal/worker/interpreter.go`).
+   `scheduler.publishCompletion`. An instruction that reads evidence back names a declaration, which
+   `admission.bindEvidence` (`execution/evidence.go`) binds; a new evidence source kind is a new arm
+   of `EvidenceDeclaration.source`, bound there, lifted where its data appears (`liftRunEvents` for
+   a recorded event, the instruction's response reads for a read), and listed in the Lean catalog
+   the `evidence:` line resolves against (`Temporal.Case.Catalog`, with `EventKind` and `ReadKind`). A workflow instruction also runs in `workflowInterpreter.execute`
+   (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`. An
+   instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
+   which the carrier route derivation and `bindAwait` read, and by the worker's
+   `startsNexusOperation` and `addInstructionBindings`, which prepare its dispatch route and
+   endpoint. An instruction that carries a public API message gets a row per carried message in the
+   Driver-reach table (`execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
+   name every field of every carried message, and the Driver's interpreter reads only the fields
+   the row names realized.
 5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
-   oneof arm to map to the Opcode of its field number.
-6. Append the Opcode to `contract.Opcode` and move `contract.MaxOpcode`; `temporal.DeriveProfile`
-   authorizes it through `testpilot.InstructionOpcode`. A new Driver effect adds a
+   oneof arm to map to the Opcode of its field number, the numbers dense from 1.
+6. Append the Opcode to `contract.Opcode`, move `contract.MaxOpcode` and alias it in the facade's
+   `contract.go`; `temporal.DeriveProfile` authorizes it through `testpilot.InstructionOpcode`, and
+   a workflow command's type through `worker.CommandTypes`. A new Driver effect adds a
    `contract.Session` method, implemented by the server, worker and composite Sessions and by every
-   test Session.
-7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
-   what fn-85 R10 plans.
+   test Session (`PollRPC` is the worked example: the server Session polls, the worker refuses, the
+   composite routes to the controller Session).
+7. Focused tests beside the binder and the Driver, and a Driver test per carried message
+   (`temporal/worker/typed_test.go`); a preparation rejection the instruction adds is a variant of
+   the `static-preparation-rejection` conformance class (`productionManifest` in the generator,
+   `Temporal.Testpilot.Conformance` in Lean, the facade Profile in `conformance_test.go`).
 8. and 9. As above.
 
 ### A new fault kind
@@ -197,15 +250,17 @@ first planned use.
    added.
 3. **`Testpilot.Authoring`.** `Program.injectFault "queue" .FAULT_KIND_WORKER_STOP`, guarded by
    `injectFaultNamesRoleAndKind`. Producers reach it two ways: `Umpire.faultKindOf`
-   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, and
-   `faultKindName` (`model/Temporal/Testpilot/WorkerOutage.lean`) names it in an exhaustive match, so a
-   new kind is a Lean error there until it is named.
+   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, the
+   worker-outage Model's realization (`model/Temporal/Case/Realization/Workflow.lean`) binds the
+   `workerStop` and `workerResume` classes to it, and `Umpire.Case.Producer.faultKindName` names it
+   in an exhaustive match, so a new kind is a Lean error there until it is named.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
    kinds from `FAULT_KIND_WORKER_STOP` to `FAULT_KIND_WORKER_RESUME` on a task-queue role.
    `scheduler.acceptEffect` calls `Session.InjectFault` with the kind, and `scheduler.publishCompletion`
    records `RUN_EVENT_KIND_FAULT_INJECTED` with the `fault_injected` payload after a successful outcome.
-   The worker-outage Contract compares `path(run_event.payload, fault_injected.kind)` with
-   `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`, which preparation resolves against that field's enum.
+   The outage-order rule the Producer derives for a fault-bearing path compares
+   `path(run_event.payload, fault_injected.kind)` with `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`,
+   which preparation resolves against that field's enum.
 5. **Table.** `ir.RunEventPayloadOf(RUN_EVENT_KIND_FAULT_INJECTED)` is the required `fault_injected`
    arm; unchanged.
 6. **Opcode and Driver.** `contract.InjectFault` and `contract.Session.InjectFault`, unchanged. The
@@ -220,9 +275,9 @@ first planned use.
    covers faults.
 8. **Retired vocabulary.** Nothing to retire for an added kind.
 9. **Equivalence mapping.** An added enum value changes no baseline fixture, so no step; a Producer
-   that starts writing it into `worker-outage-case.json` needs one.
-10. **Fixtures.** `worker-outage-case.json` is rendered from `Temporal.Testpilot.WorkerOutage` (listed
-    as `worker-outage` in `model/Temporal/Tool/Testpilot.lean`) by
+   that starts writing it into `workerOutageTests-survived-case.json` needs one.
+10. **Fixtures.** `workerOutageTests-survived-case.json` is rendered from the worker-outage Model
+    (`model/Temporal/Feature/Workflow/Outage/Model.lean`, whose `case` block registers it) by
     `make umpire-gen-case-runtime-conformance`.
 
 ## Preparation diagnostics

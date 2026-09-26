@@ -1,6 +1,7 @@
 import Temporal.API
-import Temporal.Case.Template
 import Temporal.DynamicConfig
+import Temporal.Evaluation.Local
+import Temporal.Evaluation.Canary
 import Temporal.Feature
 import Temporal.System
 import Temporal.Testpilot

@@ -21,7 +21,7 @@ import (
 )
 
 func TestConcurrentRunsRouteReorderedWorkflowAndNexusExactly(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	sessionA, carrierA, requestA := runtimeTestSession(t, host, definition, prepared, "run-a", "workflow-a")
 	sessionB, carrierB, requestB := runtimeTestSession(t, host, definition, prepared, "run-b", "workflow-b")
@@ -64,7 +64,7 @@ func TestConcurrentRunsRouteReorderedWorkflowAndNexusExactly(t *testing.T) {
 }
 
 func TestAdmittedWorkflowUsesImmutableNexusDispatchAfterStop(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	canceler := &recordingClient{}
 	host.options.client = canceler
@@ -88,7 +88,7 @@ func TestAdmittedWorkflowUsesImmutableNexusDispatchAfterStop(t *testing.T) {
 }
 
 func TestCreateCarrierRejectsForeignPhysicalWorkflowBinding(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	tests := map[string]WorkflowBinding{
 		"namespace": {Namespace: "foreign", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"},
 		"type":      {Namespace: "namespace", WorkflowID: "workflow", WorkflowType: "foreign", TaskQueue: "task-queue"},
@@ -111,7 +111,7 @@ func TestCreateCarrierRejectsForeignPhysicalWorkflowBinding(t *testing.T) {
 func TestNewRejectsProfileLimitsBeforeRetainedStateAllocation(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
-	limits := proto.CloneOf(preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Limits())
+	limits := proto.CloneOf(preparedRuntimeFixture(t, replySynchronous).Limits())
 	limits.MaxRunEvents = 100001
 	_, err = New(Options{
 		Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits},
@@ -121,7 +121,7 @@ func TestNewRejectsProfileLimitsBeforeRetainedStateAllocation(t *testing.T) {
 }
 
 func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replyAsynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	bridge := newTestBridge()
 	factoryCalls := 0
@@ -168,7 +168,7 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 }
 
 func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replyAsynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	bridge := newTestBridge()
 	factoryStarted := make(chan struct{})
@@ -205,7 +205,7 @@ func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
 }
 
 func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replyAsynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	options := SessionOptions{
 		Bridge: newTestBridge(),
@@ -230,7 +230,7 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 }
 
 func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
@@ -242,15 +242,15 @@ func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	kind, value, token, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{})
+	result, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{}, &nexusResult{})
 	require.ErrorIs(t, err, context.Canceled)
-	require.Zero(t, kind)
-	require.Nil(t, value)
-	require.Empty(t, token)
+	require.Zero(t, result.kind)
+	require.Nil(t, result.value)
+	require.Empty(t, result.token)
 }
 
 func TestStopRejectsDelayedAndUnreservedDelivery(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 	require.NoError(t, session.Close(t.Context()))

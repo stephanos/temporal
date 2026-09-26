@@ -1,5 +1,9 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/api/command/v1/message.proto";
+import "temporal/api/common/v1/message.proto";
+import "temporal/api/failure/v1/message.proto";
+import "temporal/api/nexus/v1/message.proto";
 import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -31,12 +35,13 @@ message Instruction {
   oneof instruction {
     InvokeRpc invoke_rpc = 1;
     AwaitSlot await_slot = 2;
-    CompleteNexusOperation complete_nexus_operation = 3;
-    StartNexusOperation start_nexus_operation = 4;
-    AwaitInstruction await_instruction = 5;
-    Finish finish = 6;
-    RespondNexus respond_nexus = 7;
-    InjectFault inject_fault = 8;
+    AwaitInstruction await_instruction = 3;
+    Finish finish = 4;
+    InjectFault inject_fault = 5;
+    WorkflowCommand workflow_command = 6;
+    NexusHandlerReply nexus_handler_reply = 7;
+    NexusOperationCompletion nexus_operation_completion = 8;
+    ReadEvidence read_evidence = 9;
   }
 }
 
@@ -89,39 +94,9 @@ message ReadTarget {
 // AwaitSlot waits, in a controller, until a Slot is written.
 message AwaitSlot { string slot_id = 1; }
 
-// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier StartNexusOperation of the
-// same entrypoint started; its outcome value is the operation's result.
+// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier schedule command
+// (`WorkflowCommand`) of the same entrypoint started; its outcome value is the operation's result.
 message AwaitInstruction { InstructionReference instruction = 1; }
-
-// StartNexusOperation starts a Nexus operation from a workflow and succeeds once it has started. The
-// instruction timeout is the operation's schedule-to-close timeout.
-message StartNexusOperation {
-  string endpoint_role_id = 1;
-  string service = 2;
-  string operation = 3;
-  Expression input = 4;
-}
-
-// CompleteNexusOperation completes, from a controller, the asynchronous Nexus operation whose handle a
-// Slot holds.
-message CompleteNexusOperation { string handle_slot_id = 1; Expression result = 2; }
-
-// RespondNexus answers the Nexus operation that activated a Nexus handler entrypoint.
-message RespondNexus {
-  NexusResponseKind kind = 1;
-  Expression result = 2;
-  // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
-  string handle_slot_id = 3;
-}
-
-// NexusResponseKind names how a Nexus handler answers: with result, asynchronously through a
-// completion handle, or with a non-retryable handler error whose message is result.
-enum NexusResponseKind {
-  NEXUS_RESPONSE_KIND_UNSPECIFIED = 0;
-  NEXUS_RESPONSE_KIND_SYNCHRONOUS = 1;
-  NEXUS_RESPONSE_KIND_ASYNCHRONOUS = 2;
-  NEXUS_RESPONSE_KIND_ERROR = 3;
-}
 
 // Finish completes the workflow of a workflow entrypoint with result.
 message Finish { Expression result = 1; }
@@ -140,6 +115,54 @@ enum FaultKind {
   FAULT_KIND_UNSPECIFIED = 0;
   FAULT_KIND_WORKER_STOP = 1;
   FAULT_KIND_WORKER_RESUME = 2;
+}
+
+// WorkflowCommand issues one workflow command from a workflow entrypoint, carrying the command the
+// SDK would emit: its type and the attributes of that type, the same message the action's schema
+// names. The Driver maps the attributes to the SDK call that issues the command, so the Profile
+// admits commands per command type, and a field the Driver cannot set through the SDK rejects at
+// preparation naming it. An attributes field that names a Nexus endpoint names the Case's endpoint
+// role rather than a resource; the role's binding supplies the resource at dispatch. A schedule
+// timeout the attributes leave absent is the instruction's own timeout.
+message WorkflowCommand { temporal.api.command.v1.Command command = 1; }
+
+// NexusHandlerReply answers the Nexus operation that activated a Nexus handler entrypoint with the
+// reply the handler would return: a start response, synchronous with its payload, asynchronous
+// through a completion handle the Driver issues, or failed; or a handler error with its type,
+// message and retry behavior. The Driver issues the operation token, so an asynchronous response
+// carries none.
+message NexusHandlerReply {
+  oneof reply {
+    temporal.api.nexus.v1.StartOperationResponse response = 1;
+    temporal.api.nexus.v1.HandlerError error = 2;
+  }
+  // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
+  string handle_slot_id = 3;
+}
+
+// NexusOperationCompletion completes, from a controller, the asynchronous Nexus operation whose
+// handle a Slot holds, with what the completion callback carries: the operation's result payload, or
+// the failure it ends with, canceled when the failure says so and failed otherwise.
+message NexusOperationCompletion {
+  string handle_slot_id = 1;
+  oneof result {
+    temporal.api.common.v1.Payload payload = 2;
+    temporal.api.failure.v1.Failure failure = 3;
+  }
+}
+
+// ReadEvidence polls, from a controller, the RPC the read-source EvidenceDeclaration it names reads
+// through, until an element of the declared path satisfies `until` or the instruction's timeout
+// expires, and then lifts every element `until` selects into the declaration's evidence. The request
+// is built from the assignments once, at dispatch, and sent again after each interval; a poll that
+// fails is the instruction's outcome.
+message ReadEvidence {
+  string evidence_id = 1;
+  string endpoint_role_id = 2;
+  repeated RequestAssignment request_assignments = 3;
+  // A boolean over the projected value, one element of the declared path.
+  Expression until = 4;
+  int64 poll_interval_milliseconds = 5;
 }
 
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are

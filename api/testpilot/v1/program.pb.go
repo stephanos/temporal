@@ -99,13 +99,15 @@ func (RoleKind) EnumDescriptor() ([]byte, []int) {
 // It declares no environment bindings: the ones it uses are those its roles and expressions reference,
 // derived at preparation, and the Profile must supply each.
 type Program struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProgramId     string                 `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
-	Roles         []*Role                `protobuf:"bytes,2,rep,name=roles,proto3" json:"roles,omitempty"`
-	Slots         []*Slot                `protobuf:"bytes,3,rep,name=slots,proto3" json:"slots,omitempty"`
-	Observations  []*Observation         `protobuf:"bytes,4,rep,name=observations,proto3" json:"observations,omitempty"`
-	Entrypoints   []*Entrypoint          `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
-	Cleanup       *Cleanup               `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	ProgramId    string                 `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
+	Roles        []*Role                `protobuf:"bytes,2,rep,name=roles,proto3" json:"roles,omitempty"`
+	Slots        []*Slot                `protobuf:"bytes,3,rep,name=slots,proto3" json:"slots,omitempty"`
+	Observations []*Observation         `protobuf:"bytes,4,rep,name=observations,proto3" json:"observations,omitempty"`
+	Entrypoints  []*Entrypoint          `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
+	Cleanup      *Cleanup               `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
+	// The kinds of correlated evidence the Program lifts, each declared once.
+	Evidence      []*EvidenceDeclaration `protobuf:"bytes,7,rep,name=evidence,proto3" json:"evidence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -182,6 +184,363 @@ func (x *Program) GetCleanup() *Cleanup {
 	return nil
 }
 
+func (x *Program) GetEvidence() []*EvidenceDeclaration {
+	if x != nil {
+		return x.Evidence
+	}
+	return nil
+}
+
+// EvidenceDeclaration declares one kind of correlated evidence once: the recorded data it is read
+// from, the Run coordinates that scope every evidence identity of the kind, the path of the
+// operation key that groups it, and the fields it exposes. A Program lift names the declaration and
+// a correlated Contract's projection rule names its kind, so the kind, the source, the key path and
+// the fields are written once and cannot drift apart.
+type EvidenceDeclaration struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The evidence kind; the id a lift and a projection rule name.
+	EvidenceId string `protobuf:"bytes,1,opt,name=evidence_id,json=evidenceId,proto3" json:"evidence_id,omitempty"`
+	// The evidence source identity whose dense ordinals this kind's evidence counts in.
+	EvidenceSource string `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
+	// Types that are valid to be assigned to Source:
+	//
+	//	*EvidenceDeclaration_HistoryEvent
+	//	*EvidenceDeclaration_RunEvent
+	//	*EvidenceDeclaration_Read
+	Source isEvidenceDeclaration_Source `protobuf_oneof:"source"`
+	// The scope field values of every evidence identity of this kind, each a text literal.
+	Scope []*NamedValue `protobuf:"bytes,6,rep,name=scope,proto3" json:"scope,omitempty"`
+	// The field path of the operation key, in the grammar PathExpression.path documents, read from
+	// the recorded value.
+	Operation     string                      `protobuf:"bytes,7,opt,name=operation,proto3" json:"operation,omitempty"`
+	Fields        []*EvidenceFieldDeclaration `protobuf:"bytes,8,rep,name=fields,proto3" json:"fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvidenceDeclaration) Reset() {
+	*x = EvidenceDeclaration{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvidenceDeclaration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvidenceDeclaration) ProtoMessage() {}
+
+func (x *EvidenceDeclaration) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvidenceDeclaration.ProtoReflect.Descriptor instead.
+func (*EvidenceDeclaration) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *EvidenceDeclaration) GetEvidenceId() string {
+	if x != nil {
+		return x.EvidenceId
+	}
+	return ""
+}
+
+func (x *EvidenceDeclaration) GetEvidenceSource() string {
+	if x != nil {
+		return x.EvidenceSource
+	}
+	return ""
+}
+
+func (x *EvidenceDeclaration) GetSource() isEvidenceDeclaration_Source {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *EvidenceDeclaration) GetHistoryEvent() *HistoryEventSource {
+	if x != nil {
+		if x, ok := x.Source.(*EvidenceDeclaration_HistoryEvent); ok {
+			return x.HistoryEvent
+		}
+	}
+	return nil
+}
+
+func (x *EvidenceDeclaration) GetRunEvent() *RunEventSource {
+	if x != nil {
+		if x, ok := x.Source.(*EvidenceDeclaration_RunEvent); ok {
+			return x.RunEvent
+		}
+	}
+	return nil
+}
+
+func (x *EvidenceDeclaration) GetRead() *ReadSource {
+	if x != nil {
+		if x, ok := x.Source.(*EvidenceDeclaration_Read); ok {
+			return x.Read
+		}
+	}
+	return nil
+}
+
+func (x *EvidenceDeclaration) GetScope() []*NamedValue {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *EvidenceDeclaration) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *EvidenceDeclaration) GetFields() []*EvidenceFieldDeclaration {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+type isEvidenceDeclaration_Source interface {
+	isEvidenceDeclaration_Source()
+}
+
+type EvidenceDeclaration_HistoryEvent struct {
+	HistoryEvent *HistoryEventSource `protobuf:"bytes,3,opt,name=history_event,json=historyEvent,proto3,oneof"`
+}
+
+type EvidenceDeclaration_RunEvent struct {
+	RunEvent *RunEventSource `protobuf:"bytes,4,opt,name=run_event,json=runEvent,proto3,oneof"`
+}
+
+type EvidenceDeclaration_Read struct {
+	Read *ReadSource `protobuf:"bytes,5,opt,name=read,proto3,oneof"`
+}
+
+func (*EvidenceDeclaration_HistoryEvent) isEvidenceDeclaration_Source() {}
+
+func (*EvidenceDeclaration_RunEvent) isEvidenceDeclaration_Source() {}
+
+func (*EvidenceDeclaration_Read) isEvidenceDeclaration_Source() {}
+
+// HistoryEventSource is one recorded history event kind: the attributes arm of
+// temporal.api.history.v1.HistoryEvent that a history read lifts, guarded by the arm's presence.
+type HistoryEventSource struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	AttributesField string                 `protobuf:"bytes,1,opt,name=attributes_field,json=attributesField,proto3" json:"attributes_field,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *HistoryEventSource) Reset() {
+	*x = HistoryEventSource{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HistoryEventSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HistoryEventSource) ProtoMessage() {}
+
+func (x *HistoryEventSource) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HistoryEventSource.ProtoReflect.Descriptor instead.
+func (*HistoryEventSource) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *HistoryEventSource) GetAttributesField() string {
+	if x != nil {
+		return x.AttributesField
+	}
+	return ""
+}
+
+// RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime
+// lifts each such event as it records it, reading the operation key and fields from the payload.
+type RunEventSource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          RunEventKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunEventSource) Reset() {
+	*x = RunEventSource{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunEventSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunEventSource) ProtoMessage() {}
+
+func (x *RunEventSource) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunEventSource.ProtoReflect.Descriptor instead.
+func (*RunEventSource) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RunEventSource) GetKind() RunEventKind {
+	if x != nil {
+		return x.Kind
+	}
+	return RUN_EVENT_KIND_UNSPECIFIED
+}
+
+// ReadSource is a value read back through a unary RPC: one element of the repeated field at path
+// in the response of method, polled by a ReadEvidence instruction.
+type ReadSource struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The full method name, "/package.Service/Method".
+	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	// A field path in the grammar PathExpression.path documents, ending in a repeated field.
+	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadSource) Reset() {
+	*x = ReadSource{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadSource) ProtoMessage() {}
+
+func (x *ReadSource) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadSource.ProtoReflect.Descriptor instead.
+func (*ReadSource) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ReadSource) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ReadSource) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+// EvidenceFieldDeclaration is one field the evidence exposes, read from the recorded value at path.
+type EvidenceFieldDeclaration struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	FieldId string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	// A field path in the grammar PathExpression.path documents.
+	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvidenceFieldDeclaration) Reset() {
+	*x = EvidenceFieldDeclaration{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvidenceFieldDeclaration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvidenceFieldDeclaration) ProtoMessage() {}
+
+func (x *EvidenceFieldDeclaration) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvidenceFieldDeclaration.ProtoReflect.Descriptor instead.
+func (*EvidenceFieldDeclaration) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *EvidenceFieldDeclaration) GetFieldId() string {
+	if x != nil {
+		return x.FieldId
+	}
+	return ""
+}
+
+func (x *EvidenceFieldDeclaration) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
 // Role is a symbolic participant that instructions and activations address. Its bindings resolve to
 // the Profile's physical values.
 type Role struct {
@@ -199,7 +558,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -211,7 +570,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +583,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Role) GetRoleId() string {
@@ -271,7 +630,7 @@ type Slot struct {
 
 func (x *Slot) Reset() {
 	*x = Slot{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -283,7 +642,7 @@ func (x *Slot) String() string {
 func (*Slot) ProtoMessage() {}
 
 func (x *Slot) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -296,7 +655,7 @@ func (x *Slot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Slot.ProtoReflect.Descriptor instead.
 func (*Slot) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Slot) GetSlotId() string {
@@ -358,7 +717,7 @@ type Observation struct {
 
 func (x *Observation) Reset() {
 	*x = Observation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +729,7 @@ func (x *Observation) String() string {
 func (*Observation) ProtoMessage() {}
 
 func (x *Observation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +742,7 @@ func (x *Observation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Observation.ProtoReflect.Descriptor instead.
 func (*Observation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Observation) GetObservationId() string {
@@ -418,7 +777,7 @@ type Entrypoint struct {
 
 func (x *Entrypoint) Reset() {
 	*x = Entrypoint{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -430,7 +789,7 @@ func (x *Entrypoint) String() string {
 func (*Entrypoint) ProtoMessage() {}
 
 func (x *Entrypoint) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -443,7 +802,7 @@ func (x *Entrypoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entrypoint.ProtoReflect.Descriptor instead.
 func (*Entrypoint) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Entrypoint) GetEntrypointId() string {
@@ -540,7 +899,7 @@ type ControllerActivation struct {
 
 func (x *ControllerActivation) Reset() {
 	*x = ControllerActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -552,7 +911,7 @@ func (x *ControllerActivation) String() string {
 func (*ControllerActivation) ProtoMessage() {}
 
 func (x *ControllerActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -565,7 +924,7 @@ func (x *ControllerActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControllerActivation.ProtoReflect.Descriptor instead.
 func (*ControllerActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{10}
 }
 
 // WorkflowActivation activates the entrypoint for each workflow of this type the worker role runs on
@@ -581,7 +940,7 @@ type WorkflowActivation struct {
 
 func (x *WorkflowActivation) Reset() {
 	*x = WorkflowActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -593,7 +952,7 @@ func (x *WorkflowActivation) String() string {
 func (*WorkflowActivation) ProtoMessage() {}
 
 func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -606,7 +965,7 @@ func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowActivation.ProtoReflect.Descriptor instead.
 func (*WorkflowActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WorkflowActivation) GetWorkflowType() string {
@@ -643,7 +1002,7 @@ type ActivityActivation struct {
 
 func (x *ActivityActivation) Reset() {
 	*x = ActivityActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -655,7 +1014,7 @@ func (x *ActivityActivation) String() string {
 func (*ActivityActivation) ProtoMessage() {}
 
 func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -668,7 +1027,7 @@ func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityActivation.ProtoReflect.Descriptor instead.
 func (*ActivityActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ActivityActivation) GetActivityType() string {
@@ -706,7 +1065,7 @@ type NexusHandlerActivation struct {
 
 func (x *NexusHandlerActivation) Reset() {
 	*x = NexusHandlerActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -718,7 +1077,7 @@ func (x *NexusHandlerActivation) String() string {
 func (*NexusHandlerActivation) ProtoMessage() {}
 
 func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -731,7 +1090,7 @@ func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusHandlerActivation.ProtoReflect.Descriptor instead.
 func (*NexusHandlerActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *NexusHandlerActivation) GetService() string {
@@ -774,7 +1133,7 @@ type Cleanup struct {
 
 func (x *Cleanup) Reset() {
 	*x = Cleanup{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -786,7 +1145,7 @@ func (x *Cleanup) String() string {
 func (*Cleanup) ProtoMessage() {}
 
 func (x *Cleanup) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -799,7 +1158,7 @@ func (x *Cleanup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cleanup.ProtoReflect.Descriptor instead.
 func (*Cleanup) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Cleanup) GetEntrypointId() string {
@@ -854,7 +1213,7 @@ type ProgramLimits struct {
 
 func (x *ProgramLimits) Reset() {
 	*x = ProgramLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +1225,7 @@ func (x *ProgramLimits) String() string {
 func (*ProgramLimits) ProtoMessage() {}
 
 func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +1238,7 @@ func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProgramLimits.ProtoReflect.Descriptor instead.
 func (*ProgramLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ProgramLimits) GetMaxEntrypoints() int64 {
@@ -984,7 +1343,7 @@ var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescrip
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\x8c\x03\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xdf\x03\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x01 \x01(\tR\tprogramId\x12<\n" +
@@ -992,7 +1351,30 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x05slots\x18\x03 \x03(\v2&.temporal.server.api.testpilot.v1.SlotR\x05slots\x12Q\n" +
 	"\fobservations\x18\x04 \x03(\v2-.temporal.server.api.testpilot.v1.ObservationR\fobservations\x12N\n" +
 	"\ventrypoints\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.EntrypointR\ventrypoints\x12C\n" +
-	"\acleanup\x18\x06 \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\"\xc1\x01\n" +
+	"\acleanup\x18\x06 \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\x12Q\n" +
+	"\bevidence\x18\a \x03(\v25.temporal.server.api.testpilot.v1.EvidenceDeclarationR\bevidence\"\x91\x04\n" +
+	"\x13EvidenceDeclaration\x12\x1f\n" +
+	"\vevidence_id\x18\x01 \x01(\tR\n" +
+	"evidenceId\x12'\n" +
+	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12[\n" +
+	"\rhistory_event\x18\x03 \x01(\v24.temporal.server.api.testpilot.v1.HistoryEventSourceH\x00R\fhistoryEvent\x12O\n" +
+	"\trun_event\x18\x04 \x01(\v20.temporal.server.api.testpilot.v1.RunEventSourceH\x00R\brunEvent\x12B\n" +
+	"\x04read\x18\x05 \x01(\v2,.temporal.server.api.testpilot.v1.ReadSourceH\x00R\x04read\x12B\n" +
+	"\x05scope\x18\x06 \x03(\v2,.temporal.server.api.testpilot.v1.NamedValueR\x05scope\x12\x1c\n" +
+	"\toperation\x18\a \x01(\tR\toperation\x12R\n" +
+	"\x06fields\x18\b \x03(\v2:.temporal.server.api.testpilot.v1.EvidenceFieldDeclarationR\x06fieldsB\b\n" +
+	"\x06source\"?\n" +
+	"\x12HistoryEventSource\x12)\n" +
+	"\x10attributes_field\x18\x01 \x01(\tR\x0fattributesField\"T\n" +
+	"\x0eRunEventSource\x12B\n" +
+	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\"8\n" +
+	"\n" +
+	"ReadSource\x12\x16\n" +
+	"\x06method\x18\x01 \x01(\tR\x06method\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"I\n" +
+	"\x18EvidenceFieldDeclaration\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"\xc1\x01\n" +
 	"\x04Role\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12>\n" +
 	"\x04kind\x18\x02 \x01(\x0e2*.temporal.server.api.testpilot.v1.RoleKindR\x04kind\x120\n" +
@@ -1071,45 +1453,59 @@ func file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
-	(RoleKind)(0),                  // 0: temporal.server.api.testpilot.v1.RoleKind
-	(*Program)(nil),                // 1: temporal.server.api.testpilot.v1.Program
-	(*Role)(nil),                   // 2: temporal.server.api.testpilot.v1.Role
-	(*Slot)(nil),                   // 3: temporal.server.api.testpilot.v1.Slot
-	(*Observation)(nil),            // 4: temporal.server.api.testpilot.v1.Observation
-	(*Entrypoint)(nil),             // 5: temporal.server.api.testpilot.v1.Entrypoint
-	(*ControllerActivation)(nil),   // 6: temporal.server.api.testpilot.v1.ControllerActivation
-	(*WorkflowActivation)(nil),     // 7: temporal.server.api.testpilot.v1.WorkflowActivation
-	(*ActivityActivation)(nil),     // 8: temporal.server.api.testpilot.v1.ActivityActivation
-	(*NexusHandlerActivation)(nil), // 9: temporal.server.api.testpilot.v1.NexusHandlerActivation
-	(*Cleanup)(nil),                // 10: temporal.server.api.testpilot.v1.Cleanup
-	(*ProgramLimits)(nil),          // 11: temporal.server.api.testpilot.v1.ProgramLimits
-	(*ValueType)(nil),              // 12: temporal.server.api.testpilot.v1.ValueType
-	(*OpaqueHandleType)(nil),       // 13: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*InstructionNode)(nil),        // 14: temporal.server.api.testpilot.v1.InstructionNode
+	(RoleKind)(0),                    // 0: temporal.server.api.testpilot.v1.RoleKind
+	(*Program)(nil),                  // 1: temporal.server.api.testpilot.v1.Program
+	(*EvidenceDeclaration)(nil),      // 2: temporal.server.api.testpilot.v1.EvidenceDeclaration
+	(*HistoryEventSource)(nil),       // 3: temporal.server.api.testpilot.v1.HistoryEventSource
+	(*RunEventSource)(nil),           // 4: temporal.server.api.testpilot.v1.RunEventSource
+	(*ReadSource)(nil),               // 5: temporal.server.api.testpilot.v1.ReadSource
+	(*EvidenceFieldDeclaration)(nil), // 6: temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
+	(*Role)(nil),                     // 7: temporal.server.api.testpilot.v1.Role
+	(*Slot)(nil),                     // 8: temporal.server.api.testpilot.v1.Slot
+	(*Observation)(nil),              // 9: temporal.server.api.testpilot.v1.Observation
+	(*Entrypoint)(nil),               // 10: temporal.server.api.testpilot.v1.Entrypoint
+	(*ControllerActivation)(nil),     // 11: temporal.server.api.testpilot.v1.ControllerActivation
+	(*WorkflowActivation)(nil),       // 12: temporal.server.api.testpilot.v1.WorkflowActivation
+	(*ActivityActivation)(nil),       // 13: temporal.server.api.testpilot.v1.ActivityActivation
+	(*NexusHandlerActivation)(nil),   // 14: temporal.server.api.testpilot.v1.NexusHandlerActivation
+	(*Cleanup)(nil),                  // 15: temporal.server.api.testpilot.v1.Cleanup
+	(*ProgramLimits)(nil),            // 16: temporal.server.api.testpilot.v1.ProgramLimits
+	(*NamedValue)(nil),               // 17: temporal.server.api.testpilot.v1.NamedValue
+	(RunEventKind)(0),                // 18: temporal.server.api.testpilot.v1.RunEventKind
+	(*ValueType)(nil),                // 19: temporal.server.api.testpilot.v1.ValueType
+	(*OpaqueHandleType)(nil),         // 20: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*InstructionNode)(nil),          // 21: temporal.server.api.testpilot.v1.InstructionNode
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
-	2,  // 0: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
-	3,  // 1: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
-	4,  // 2: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
-	5,  // 3: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
-	10, // 4: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
-	0,  // 5: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	12, // 6: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	13, // 7: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	12, // 8: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	6,  // 9: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	7,  // 10: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	8,  // 11: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	9,  // 12: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	14, // 13: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	14, // 14: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	7,  // 0: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
+	8,  // 1: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
+	9,  // 2: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
+	10, // 3: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
+	15, // 4: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
+	2,  // 5: temporal.server.api.testpilot.v1.Program.evidence:type_name -> temporal.server.api.testpilot.v1.EvidenceDeclaration
+	3,  // 6: temporal.server.api.testpilot.v1.EvidenceDeclaration.history_event:type_name -> temporal.server.api.testpilot.v1.HistoryEventSource
+	4,  // 7: temporal.server.api.testpilot.v1.EvidenceDeclaration.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventSource
+	5,  // 8: temporal.server.api.testpilot.v1.EvidenceDeclaration.read:type_name -> temporal.server.api.testpilot.v1.ReadSource
+	17, // 9: temporal.server.api.testpilot.v1.EvidenceDeclaration.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	6,  // 10: temporal.server.api.testpilot.v1.EvidenceDeclaration.fields:type_name -> temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
+	18, // 11: temporal.server.api.testpilot.v1.RunEventSource.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	0,  // 12: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
+	19, // 13: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
+	20, // 14: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	19, // 15: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	11, // 16: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	12, // 17: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	13, // 18: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	14, // 19: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	21, // 20: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	21, // 21: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_program_proto_init() }
@@ -1117,13 +1513,20 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 	if File_temporal_server_api_testpilot_v1_program_proto != nil {
 		return
 	}
+	file_temporal_server_api_testpilot_v1_correlated_proto_init()
+	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1].OneofWrappers = []any{
+		(*EvidenceDeclaration_HistoryEvent)(nil),
+		(*EvidenceDeclaration_RunEvent)(nil),
+		(*EvidenceDeclaration_Read)(nil),
+	}
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7].OneofWrappers = []any{
 		(*Slot_Value)(nil),
 		(*Slot_OpaqueHandle)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9].OneofWrappers = []any{
 		(*Entrypoint_Controller)(nil),
 		(*Entrypoint_Workflow)(nil),
 		(*Entrypoint_Activity)(nil),
@@ -1135,7 +1538,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_program_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_program_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

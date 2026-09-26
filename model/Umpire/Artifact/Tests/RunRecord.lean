@@ -80,7 +80,7 @@ private def runtimeConfigurationDraft : RuntimeConfiguration := {
     programDefinitionId := id "switch.participant.program"
     programBehaviorFingerprint :=
       fingerprint "sha256:92489e8192608a0a88e319591737e528194b9c1239ac3d08f92bdc692aca3d31"
-    capabilityDefinitionIds := [id "switch.capability.state"]
+    capabilityDefinitionIds := [switchCapabilityId]
   }]
   knownGaps := KnownGapSet.empty
   provenance := {
@@ -140,8 +140,8 @@ private def experimentRunDraft : ExperimentRun := {
     phaseOutcome .cleanup 1400 1500
   ]
   controlAttempts := [{
-    occurrenceDefinitionId := id "switch.occurrence.flip"
-    actionDefinitionId := id "switch.action.flip"
+    occurrenceDefinitionId := flipOccurrenceId
+    actionDefinitionId := flipActionId
     attempt := 1
     receiptFactDefinitionId := some (id "switch.evidence.control-receipt.1")
     status := .accepted
@@ -196,11 +196,11 @@ example : runtimeConfiguration.hasValidChecksums && experimentRun.hasValidChecks
     runtimeConfiguration.provenanceChecksum.render =
       "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e" &&
     runtimeConfiguration.artifactChecksum.render =
-      "sha256:e476606b3bfddbadc6203c5e236fcf297dddc9a3a62f439e52b8b1eba07621e4" &&
+      "sha256:e531d909234037d9fbd89ac0887ac5a1543c39222711aa2597c2dcc76416c9f3" &&
     experimentRun.provenanceChecksum.render =
       "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9" &&
     experimentRun.artifactChecksum.render =
-      "sha256:a7b8e197b8d310959ff41d3fbb64b0c4f69ff974ceec9da93862404705d58758" := by
+      "sha256:76d99b2d5b57caa20214ff434cfa1258eeed9f46e8378b5e5aabf8f466c23ce6" := by
   native_decide
 
 /-! The canonical values close over the exact Experiment, configuration, Limits, and controls. -/

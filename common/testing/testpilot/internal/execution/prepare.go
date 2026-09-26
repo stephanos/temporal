@@ -7,6 +7,7 @@ import (
 	"slices"
 	"unicode/utf8"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -21,6 +22,7 @@ type admission struct {
 	methods          map[string]map[string]bool
 	carriers         map[string]map[string]contract.ReservationCarrierPolicy
 	opcodes          map[contract.Opcode]bool
+	commandTypes     map[enumspb.CommandType]bool
 	bindingsRequired bool
 	// environment holds the Profile's binding values, and bindings those of the Program's derived
 	// binding graph.
@@ -28,7 +30,7 @@ type admission struct {
 	bindings     map[string]string
 	observations map[string]ir.Type
 	// outcomeTypes are the types of the outcome fields instructions produce.
-	outcomeTypes struct{ status, text ir.Type }
+	outcomeTypes struct{ status, text, any ir.Type }
 	runID        ir.Type
 	writers      map[string]slotWriter
 	// Each declared evidence source, and the one instruction that may lift under it.
@@ -85,7 +87,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 		return nil, err
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, commandTypes: map[enumspb.CommandType]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
@@ -135,7 +137,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 	if err := checkInstructionDefaults(policy.InstructionDefaults, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
+	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.CommandTypes) > len(enumspb.CommandType_name) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
 	var environmentBytes int64
@@ -163,6 +165,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 	snapshot.Limits = proto.CloneOf(policy.Limits)
 	snapshot.Roles = slices.Clone(policy.Roles)
 	snapshot.Opcodes = slices.Clone(policy.Opcodes)
+	snapshot.CommandTypes = slices.Clone(policy.CommandTypes)
 	snapshot.EnvironmentBindings = slices.Clone(policy.EnvironmentBindings)
 	for i, role := range snapshot.Roles {
 		bound, err := a.bindRolePolicy(role, policy.Limits)
@@ -176,6 +179,12 @@ func (a *admission) bindPolicy(policy Profile) error {
 			return invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")
 		}
 		a.opcodes[opcode] = true
+	}
+	for _, commandType := range snapshot.CommandTypes {
+		if _, declared := enumspb.CommandType_name[int32(commandType)]; !declared || commandType == enumspb.COMMAND_TYPE_UNSPECIFIED || a.commandTypes[commandType] {
+			return invalid(ir.Malformed, "policy.command_types", "invalid or duplicate command type")
+		}
+		a.commandTypes[commandType] = true
 	}
 	a.prepared.policy = snapshot
 	a.prepared.limits = snapshot.Limits
@@ -338,7 +347,7 @@ func (a *admission) bindSchemas() error {
 		a.observations[observation.ObservationId] = typ
 		a.prepared.view.observations = append(a.prepared.view.observations, Observation{ID: observation.ObservationId, Type: typ})
 	}
-	return nil
+	return a.bindEvidence(p)
 }
 
 // bindEnvironment resolves the Program's derived binding graph against the Profile. Every binding a

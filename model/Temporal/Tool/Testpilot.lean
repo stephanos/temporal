@@ -1,33 +1,28 @@
 import Temporal.Testpilot
-import Temporal.Feature.Nexus.Success.Model
-import Temporal.Feature.Nexus.Success.TypedUnary
-import Temporal.Feature.Nexus.Success.TypedNexus
+import Temporal.Feature.Nexus.Caller.Model
+import Temporal.Feature.Nexus.Control.Model
+import Temporal.Feature.Nexus.Pair.Model
+import Temporal.Feature.System.Info.Model
+import Temporal.Feature.Workflow.Outage.Model
+import Temporal.Feature.Workflow.Start.Model
 import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
 /-!
-Render the checked-in Cases. Every Case a `case` block declares, and every Case that registers its
-value explicitly, is enumerated from the Lean environment rather than from a table maintained here:
-`--list` prints what exists, `--render <case-id>` prints its canonical bytes.
+Render the checked-in Cases. Every Case a `case` block declares is enumerated from the Lean
+environment rather than from a table maintained here: `--list` prints what exists,
+`--render <case-id>` prints its canonical bytes; `--render-canary <case-id>` prints an admitted
+canary Case's, which is never a fixture of the functional suites.
 
 The synthetic and conformance Cases stay reachable by their own argument. They carry no Model and
 the Go conformance builder names them by expected Verdict, which the registry does not model.
 -/
 
-/-! The two typed examples and the two realization-only Cases carry their identities in Lean rather
-than in a Model, so they register their existing values. Their Programs, Profiles and Contracts do
-not change. -/
-register_case Temporal.Testpilot.getSystemInfoCase
-  id "temporal.case.get-system-info" fixture "get-system-info"
-register_case Temporal.Testpilot.workerOutageCase
-  id "temporal.case.worker-outage" fixture "worker-outage"
-register_case Temporal.Feature.Nexus.Success.TypedUnary.typedUnaryCase
-  id "temporal.case.typed-unary" fixture "typed-unary"
-register_case Temporal.Feature.Nexus.Success.TypedNexus.typedNexusCase
-  id "temporal.case.typed-nexus" fixture "typed-nexus"
-
 /-- Every registered Case, sorted by Case ID. -/
 def registered : List Temporal.Case.Registry.Materialized := registeredCases%
+
+/-- Every admitted canary Case, sorted by Case ID; rendered only by `--render-canary`. -/
+def canaries : List Temporal.Case.Registry.Materialized := registeredCanaryCases%
 
 private def renderTestpilot
     (compiled : Except Umpire.Case.Compiler.Error
@@ -55,6 +50,12 @@ private def renderRegisteredCase (caseId : String) : IO Unit :=
   | some entry => renderTestpilot entry.value
   | none => throw (IO.userError s!"unknown Case '{caseId}'; known: {knownCaseIds}")
 
+private def renderCanaryCase (caseId : String) : IO Unit :=
+  match canaries.find? (·.caseId == caseId) with
+  | some entry => renderTestpilot entry.value
+  | none => throw (IO.userError
+      s!"unknown canary Case '{caseId}'; known: {", ".intercalate (canaries.map (·.caseId))}")
+
 private def renderRegisteredFixture (fixture : String) : IO Unit :=
   match registered.find? (·.fixture == fixture) with
   | some entry => renderTestpilot entry.value
@@ -64,6 +65,7 @@ def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["--list"] => registered.forM fun entry => IO.println s!"{entry.caseId} {entry.fixture}"
   | ["--render", caseId] => renderRegisteredCase caseId
+  | ["--render-canary", caseId] => renderCanaryCase caseId
   | ["synthetic"] => renderSynthetic
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase
@@ -72,9 +74,28 @@ def main (arguments : List String) : IO Unit :=
       renderTestpilot Temporal.Testpilot.conformanceStaticRejectionCase
   | ["conformance-static-preparation-rejection-expression-context"] =>
       renderTestpilot Temporal.Testpilot.conformanceExpressionContextRejectionCase
+  | ["conformance-static-preparation-rejection-command-type"] =>
+      renderTestpilot Temporal.Testpilot.conformanceCommandTypeRejectionCase
+  | ["conformance-static-preparation-rejection-invalid-duration"] =>
+      renderTestpilot Temporal.Testpilot.conformanceInvalidDurationRejectionCase
+  | ["conformance-static-preparation-rejection-unsettable-field"] =>
+      renderTestpilot Temporal.Testpilot.conformanceUnsettableFieldRejectionCase
+  | ["conformance-static-preparation-rejection-reply-not-admitted"] =>
+      renderTestpilot Temporal.Testpilot.conformanceReplyRejectionCase
+  | ["conformance-static-preparation-rejection-undeclared-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceUndeclaredEvidenceRejectionCase
+  | ["conformance-static-preparation-rejection-duplicate-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceDuplicateEvidenceRejectionCase
+  | ["conformance-satisfied-history-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceHistoryEvidenceCase
+  | ["conformance-satisfied-run-event-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceRunEventEvidenceCase
+  | ["conformance-satisfied-read-evidence"] =>
+      renderTestpilot Temporal.Testpilot.conformanceReadEvidenceCase
   | ["conformance-cleanup-failure-after-proved-violation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCleanupFailureCase
   | ["conformance-cross-run-isolation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCrossRunIsolationCase
   | [fixture] => renderRegisteredFixture fixture
-  | _ => throw (IO.userError "expected --list, --render <case-id>, or a Case fixture name")
+  | _ => throw (IO.userError
+      "expected --list, --render <case-id>, --render-canary <case-id>, or a Case fixture name")

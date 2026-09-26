@@ -26,10 +26,11 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testing.T) {
-	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
 	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
@@ -40,20 +41,18 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 	environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 	environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	environment.SetHeader(request.GetHeader())
-	operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
-	environment.OnNexusOperation(
-		"service",
-		operation,
-		&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}},
-		mock.Anything,
-	).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
+	operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
+	var operationInput converter.RawValue
+	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Run(func(arguments mock.Arguments) {
+		operationInput = arguments.Get(1).(converter.RawValue)
+	}).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
 	environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
 	require.NoError(t, environment.GetWorkflowError())
 	var result testpilotspb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
-	require.Equal(t, "done", result.GetTextValue())
-	environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}, mock.Anything)
+	require.Equal(t, "done", carriedText(t, &result))
+	require.True(t, proto.Equal(runtimePayload("request"), operationInput.Payload()))
 	workflowReservation := reservationForEntrypoint(t, session, "workflow")
 	workflowResult, err := workflowReservation.Wait(t.Context())
 	require.NoError(t, err)
@@ -65,7 +64,7 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 }
 
 func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
-	prepared := preparedRuntimeFixtureForNamespace(t, "ReplayNamespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "ReplayNamespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
 	binding := WorkflowBinding{Namespace: "ReplayNamespace", WorkflowID: "replay-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
@@ -107,7 +106,7 @@ func TestSDKDynamicWorkflowRejectsForeignWorkflowTypeBeforeAdmission(t *testing.
 }
 
 func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
@@ -127,19 +126,23 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 	input := interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
 	result, err := inbound.StartOperation(t.Context(), input)
 	require.NoError(t, err)
-	require.Equal(t, "accepted", result.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetTextValue())
+	raw, ok := result.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
+	require.True(t, ok)
+	require.True(t, proto.Equal(runtimePayload("accepted"), raw.Payload()))
 	_, err = reservationForEntrypoint(t, session, "handler").Wait(t.Context())
 	require.NoError(t, err)
 	replay, err := inbound.StartOperation(t.Context(), input)
 	require.NoError(t, err)
-	require.Equal(t, "accepted", replay.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetTextValue())
+	replayed, ok := replay.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
+	require.True(t, ok)
+	require.True(t, proto.Equal(runtimePayload("accepted"), replayed.Payload()))
 	require.Len(t, session.nexusAdmissions, 1)
 	_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
 	require.Error(t, err)
 }
 
 func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testing.T) {
-	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
 	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
@@ -151,8 +154,8 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 	environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	environment.SetHeader(request.GetHeader())
-	operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
-	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
+	operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
+	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
 	environment.RegisterDynamicWorkflow(func(ctx workflow.Context, arguments converter.EncodedValues) (*testpilotspb.Value, error) {
 		close(entered)
 		<-proceed
@@ -168,13 +171,13 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	close(proceed)
 	<-done
 	require.Error(t, environment.GetWorkflowError())
-	environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}, mock.Anything)
+	environment.AssertNexusOperationCalled(t, "service", "operation", mock.Anything, mock.Anything)
 
 	replayEnvironment := suite.NewTestWorkflowEnvironment()
 	replayEnvironment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 	replayEnvironment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	replayEnvironment.SetHeader(request.GetHeader())
-	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
+	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
 	replayEnvironment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	replayEnvironment.ExecuteWorkflow("workflow-type", "untouched")
 	require.NoError(t, replayEnvironment.GetWorkflowError())
@@ -182,7 +185,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 }
 
 func TestSDKFailedTriggerRejectsWorkflowBeforeExecution(t *testing.T) {
-	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	_, _, request := runtimeTestSessionWithDisposition(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()}, delivery.TriggerNonSuccess)
@@ -198,7 +201,7 @@ func TestSDKFailedTriggerRejectsWorkflowBeforeExecution(t *testing.T) {
 }
 
 func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
-	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
 	bindingA := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-a", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
@@ -213,8 +216,8 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 		environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 		environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 		environment.SetHeader(request)
-		operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
-		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
+		operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
+		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
 		environment.RegisterDynamicWorkflow(dynamic, workflow.DynamicRegisterOptions{})
 		return environment
 	}
@@ -345,7 +348,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 		{"completion before await", 10 * time.Second, 5 * time.Second, time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *testpilotspb.Program) {
+			prepared := preparedRuntimeFixture(t, replySynchronous, func(program *testpilotspb.Program) {
 				program.Entrypoints[1].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.start.Milliseconds()}
 				program.Entrypoints[1].Instructions[1].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.await.Milliseconds()}
 				finish := program.Entrypoints[1].Instructions[2]
@@ -355,22 +358,22 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 			_, definition := runtimeTestDriver(t, prepared)
 			var suite testsuite.WorkflowTestSuite
 			environment := suite.NewTestWorkflowEnvironment()
-			operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
+			operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
 			environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultAsync{OperationToken: "token"}, nil)
-			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}, nil, tc.completion))
+			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", converter.NewRawValue(jsonPayload(t, "done")), nil, tc.completion))
 			environment.ExecuteWorkflow(func(ctx workflow.Context) (string, error) {
 				entry := definition.entries["workflow"].plan
 				state, err := activation.New(entry)
 				if err != nil {
 					return "", err
 				}
-				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture), typed: make(map[string]bool)}
 				instructions := entry.Instructions()
-				input, enabled, err := state.Evaluate(context.Background(), 0)
+				_, enabled, err := state.Evaluate(context.Background(), 0)
 				if err != nil || !enabled {
-					return "", fmt.Errorf("start evaluation: enabled=%t: %w", enabled, err)
+					return "", fmt.Errorf("schedule evaluation: enabled=%t: %w", enabled, err)
 				}
-				if err := i.startNexus(0, instructions[0], input); err != nil {
+				if err := i.scheduleNexus(0, instructions[0]); err != nil {
 					return "", err
 				}
 				_, enabled, err = state.Evaluate(context.Background(), 1)
@@ -402,7 +405,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 // A Finish admits only after its activation evaluated it; its result ends the workflow rather than
 // becoming an outcome value, so no value type is checked at admission.
 func TestWorkflowFinishRejectsInvalidAdmission(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixture(t, replySynchronous)
 	entry := prepared.Entrypoints()[1]
 	state, err := activation.New(entry)
 	require.NoError(t, err)

@@ -94,6 +94,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Slot.** Private immutable single-assignment execution data. Slot opacity does not make declared
   response projections secret; only declared Observations enter Contract evidence.
 - **Observation.** A declared typed value attached to a Run Event and available to the Contract.
+  On the model side, a machine's `evidence:` line names the observation that confirms each Fact a
+  step records: a recorded event the realization catalogs, or an `observation` the Model declares
+  for a value that is read rather than recorded (`Umpire.Command.Observation`). A timer under
+  `unobservable:` is one no observation confirms, and every Case whose path fires it carries a
+  Known Gap saying so.
 - **Verdict.** The three-valued conclusion a Run reaches: `satisfied`, `violated`, or
   `inconclusive`, with Rule states and supporting Run Event sequences. The model-side answer a Query
   endpoint produces is `Umpire.PropertyEndpointAnswer`, whose three values are `satisfied`,
@@ -196,6 +201,8 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.ImplementationLink`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-09, and
   MOD-10 across the complete first-party Lean import graph, and MOD-05 once its modules exist.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
+  MOD-16, as a direct-import rule beside the reachability rules.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
@@ -220,12 +227,25 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   delivering it is open. A Go test under `tools/umpire` MUST enforce this against an index built by
   scanning the model tree. Whether each term is defined once and used consistently remains a review
   judgment; the test covers only the mechanical half.
+- **MOD-16 — Authoring-path isolation.** *(drafted by fn-86; awaiting GOV-02 approval.)* A
+  production module under `Temporal.Feature` or `Umpire.Examples` MUST NOT directly import
+  `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` or
+  `Umpire.Case`; it reaches them only through `Umpire.Command`. `Temporal.Case` and
+  `Temporal.System.Nexus.ImplementationLink` are outside the rule, and a test module is not a
+  production module. It is a direct-import rule, because every command-authored module reaches the
+  owners transitively; `make lint-model` enforces it as `authoring-path-isolation`, whose
+  diagnostic names the module and the import.
 
 ### Module design
 
 - **MOD-02 — Product and system ownership.** `Temporal.Feature` MUST own product-visible behavior.
   `Temporal.System` MUST own implementation mechanisms, configuration interpretation, Evidence
   mappings, and runtime behavior.
+  *Amendment (drafted by fn-85; awaiting GOV-02 approval.)* A realization -- the Evidence mapping
+  from a `Temporal.Feature` Model's actions, observations and timers to a runtime's instructions,
+  recorded events and durations -- lives in `Temporal.Case`, beside the Case-producing block,
+  because MOD-10 forbids `Temporal.System` from importing the Feature machines it would bind.
+  `Temporal.System` keeps configuration interpretation and the implementation's runtime behavior.
 - **MOD-04 — Independent product and system modules.** `Temporal.Feature.*` and
   `Temporal.System.*` modules MUST be understandable and testable on their own. Only focused
   Implementation Link modules MAY connect them, subject to MOD-10.
@@ -246,11 +266,31 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   and `Umpire.Vocabulary` holds its enumerated finite domains — states, Actions, Model Outcomes, and
   Facts — in a canonical order.
 - **Machine (`Umpire.Machine`).** The transition relation of a Model together with the proofs that
-  it is the authority for that Model's behavior.
+  it is the authority for that Model's behavior. The `machine` command declares one over a
+  `structure` of finite fields with one step function per action, naming the entity it tracks, the
+  phases it starts and ends in, its timers, its setup parameters and the observation confirming
+  each Fact; `Umpire.Command.MachineDeclaration` is its record.
+- **Entity (`Umpire.Command.Entity`).** Something with identity that a machine keeps state for,
+  declared by the `entity` command with the entities it refers to and the key recorded data names
+  an instance by. A Scenario runs over a number of `instances:` of it. State belongs to machines,
+  not entities: two machines may track one entity differently.
+- **Party.** Who performs an action: a name a Model declares by using it on an `action`. `system`
+  is reserved for the implementation under test, performs no declared action, and owns the
+  timers. A set binds every other party; a fault is an ordinary action of the party that causes
+  it.
+- **Refinement (`Umpire.Command.Refinement`).** A machine that `refines:` another through a state
+  `map:`: a stuttering forward simulation the `machine` command decides over the two tables, so
+  every Property declared on the abstract machine is read on the refining machine's paths. It is
+  not an Implementation Link, which SEM-08 reserves for the connection from `Temporal.Feature` to
+  `Temporal.System`; both machines of a refinement are product behavior.
 - **Table (`Umpire.FiniteTable`).** The finite row form of a Machine. `Umpire.CheckedTable` is an
   admitted one and `Umpire.TableModelSpec` is its author record.
 - **Action.** Something an author asks the Model to do, such as closing a Workflow. Requesting an
-  Action neither chooses its Model Outcome nor proves that the Action occurred at runtime.
+  Action neither chooses its Model Outcome nor proves that the Action occurred at runtime. The
+  `action` command declares one with its party, the entity it creates or acts on, typed inputs
+  over `enum` domains and an optional protobuf schema (`Umpire.Command.Action`). Each member of an
+  input domain is a class, and a constructor with finite fields is one class per assignment of
+  them; a Scenario selects classes, and a machine's step function is written over them.
 - **Model Outcome.** The result the Model produces for an Action. It is an expected model result,
   not a runtime result.
 - **Step (`Umpire.Step`).** One model step and what it produced: an `outcome`, a `state`, and a list
@@ -271,6 +311,26 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   correlated by an explicit key, so one operation's obligations never discharge another's.
   `Shared.CorrelatedObligation` is the semantics the Lean Producer and the Go runtime share.
 - **Unsatisfiable.** A Scenario that allows no Trace. This is an error, not a passing answer.
+- **Set (`Umpire.Command.SetDeclaration`).** A named group of Queries by purpose -- `functional`,
+  `canary` or `exploratory` -- that binds every party but `system` to `driven` (the Case performs
+  the party's actions, using each class's example) or `observed` (the world performs them and the
+  verifier reads which class occurred). A functional set compiles to one Case per `find` Query,
+  once per value of its `repeat:` switch; a canary set is admitted when a deployment can close
+  every Known Gap its Cases carry; an exploratory set names the machine it covers, a coverage goal
+  and a `limits` budget, and enumerates its coverage targets (`Umpire.Command.CoverageTarget`).
+- **Realization (`Umpire.Case.Producer.Realization`).** The platform-owned binding of a Model to
+  a runtime: each action class to an instruction, each observation to where it is recorded, each
+  timer to a duration, each switch to its values. `Temporal.Case.Realization.asyncNexus` is the
+  Nexus one, and the platform's `case … realizes <set> as <realization>` block
+  (`Temporal.Case.Syntax`) produces a set's Cases through it. The Producer assembles a Case's
+  Program and Contract from a Query's witness and the realization, so no Program is written per
+  Case.
+- **Abstraction Claim (`Umpire.Case.Producer.ClassClaim`).** An `examples:` line on an action: the
+  author's claim that every realized value of a class behaves alike, with the example the
+  functional Case runs. A Case records the claims of the classes its path performs as
+  `Umpire.Provenance.AbstractionClaimRow` rows; an exploration tries the other members, and a
+  divergent member is a counterexample that splits the class. A single-member class carries no
+  claim.
 
 ### Model languages
 
@@ -316,15 +376,38 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   forbids. `Umpire.Command` MUST NOT name a feature, a protocol, or a runtime: which Definition ID
   root a project hangs its families off, which namespace prefix is scaffolding, and what a Case ID
   is rooted at are the project's declared conventions, not the surface's.
+  *Amendment (drafted by fn-85; awaiting GOV-02 approval.)* The surface also carries `set`, which
+  groups Queries by purpose and binds parties, and `register_switch`, by which a realization
+  registers the switches a set's `repeat:` names. Producing Cases is not part of the surface: a
+  platform declares its own Case-producing block beside its realizations (`Temporal.Case.Syntax`
+  declares `case … realizes <set> as <realization>`), which names a set and a realization and
+  defines no behavior, so `Umpire.Command` names no feature and the platform's block is where a
+  feature is named.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* The command surface is the only
+  authoring path for a feature Model. A production module under `Temporal.Feature` or
+  `Umpire.Examples` declares its entities, domains, actions, machines, Properties, Scenarios,
+  Limits, Queries and sets through the commands and reaches `Umpire.Model`, `Umpire.Property`,
+  `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` and `Umpire.Case` only through
+  `Umpire.Command`: a concrete API operation is an `action`'s `schema:` line, a field relation is
+  a `property`'s `relates:` line, and a Case is the platform's `case … realizes` block over a
+  realization. MOD-16 enforces the import boundary.
 - **AUT-08 — Finite Model adapter.** Authors SHOULD use the proof-carrying
   `Umpire.FiniteMachine` adapter when a complete finite Model has enumerators that define its
   authoritative behavior. The adapter derives membership relations, completeness support, and
   exact finite Search. Authors MUST still provide ordered semantic domains, encoders, enumerators,
   evidence that enumerated values stay within those domains, and evidence that every enumerated
-  Action is executable. As an expert alternative, authors MAY construct `Umpire.Machine`
-  directly for Models whose authority is specified independently. Both paths MUST produce an
-  `Umpire.DraftModel` and pass it to `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT
-  introduce another Property, Query, Scenario, or macro language.
+  Action is executable. The path MUST produce an `Umpire.DraftModel` and pass it to
+  `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT introduce another Property, Query, Scenario,
+  or macro language.
+  *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* The expert alternative this rule offered
+  -- constructing `Umpire.Machine` directly for a Model whose authority is specified independently --
+  is withdrawn for feature Models. A Model under `Temporal.Feature` or `Umpire.Examples` is declared
+  through the commands (AUT-07a): `machine` enumerates the author's step functions into the finite
+  table (`Umpire.FiniteTable`) whose kernel is this adapter's, and discharges the adapter's
+  obligations from the table. Direct `Umpire.Machine` and `Umpire.DraftModel` construction remains
+  what `Temporal.System.Nexus.ImplementationLink` and Umpire's own tests do, because they exercise
+  those records; it is not an authoring path for a feature Model, and MOD-16 enforces that at the
+  import.
 - **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
   AUT-08's "author-provided" includes a domain a command macro derives from the author's
   own declarations: the ordered domains, encoders and enumerators an authoring macro elaborates from
@@ -332,6 +415,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   macro MUST derive them from declarations the author wrote and MUST NOT admit a spelling the author
   did not declare. Completeness, domain membership and Action executability MUST still be discharged
   against the same authorities AUT-08 names; a macro MUST NOT weaken or assume them.
+  *Amendment (drafted by fn-85; awaiting GOV-02 approval.)* Author-provided also covers what the
+  `machine`, `property`, `scenario` and `enum` commands derive: a `structure` of finite fields as
+  the state domain (`Umpire.Command.Finite`), one step function per action enumerated into the
+  finite table in the catalog's order, a `property` predicate enumerated into clause records by
+  probing that table, a refinement decided by the kernel over the two tables
+  (`Umpire.Command.Refinement`), and a Scenario's `instances:` product. Each is derived from
+  declarations the author wrote and admits no spelling the author did not declare; an enumeration
+  past `Umpire.Command.elaborationBound` is refused with the numbers that exceeded it, never
+  truncated.
 
 ## Search, Limits, and Artifacts
 
@@ -358,6 +450,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   instructions, not an authoring language, and Testpilot does not accept it.
 - **Variations (`Umpire.Variations`).** A finite space of authored variations over one Model.
   `Umpire.VariationSpace` is the declared space Exploration draws candidates from.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* `Umpire.VariationSpace` is a finite
+  space of authored variations over one Model that a Variations compiler lowers to Plans; Exploration
+  no longer draws candidates from it.
 - **Artifact (`Umpire.Artifact`).** Immutable, versioned, inspectable data exchanged across
   components, languages, and processes. Artifacts cannot define model behavior.
 - **Artifact Checksum.** A reproducible checksum over all Artifact content in canonical order,
@@ -541,6 +636,39 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Exploration (`Umpire.Exploration`).** Model-owned selection from a declared `Umpire.Variations`
   space to find useful Plans or counterexamples. It is exhaustive only when it covers the declared
   finite space within its Limits.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* Model-owned walking of one exploratory
+  set's enumerated coverage targets: one candidate per target in enumeration order, each an
+  exact-trace Query admitted and searched like any command Query, credited per target from a
+  decisive Run along its planned witness path. It is exhausted when no target is pending, and it
+  claims coverage only for targets a satisfied Run confirmed. A candidate's exact-prefix shortest
+  witness is the minimization EXP-05 requires: there is no shorter trace to that row under the
+  Model. The platform's bridge drives one campaign by frames (`initialize`, `next`, `observe`,
+  `finish`), each candidate crossing as one whole produced Case under its own identity; a
+  candidate whose path performs a class member the realization binds nothing for is credited
+  `unrealizable`, a ledger status of its own, without a Run, and the campaign moves on. The
+  campaign is a function of its checked inputs and the decisive observations it is handed: the
+  same set, budget and observation stream select the same candidates in the same order, credit
+  the same targets and render the same summary; an observation stream that ends early yields the
+  completed prefix, with the same identities. A violated class-member target is a counterexample
+  whose candidate the campaign retains and compiles through `Umpire.Promotion` into a review-only
+  regression source under fresh names keyed by the candidate's digest (`Umpire.Exploration.Promotion`);
+  the summary carries the source's digest and bytes, the same for the same counterexample every
+  run, and nothing installs it.
+- **Replay (`Umpire.Replay`, `tools/umpire/replay`).** *Amendment (drafted by fn-22; awaiting
+  GOV-02 approval.)* Taking one violated Run of one produced Case -- its subject -- back through
+  three classes of replay, reported apart. *Semantic replay* re-evaluates the recorded Run through
+  the same prepared Contract offline and must reproduce the recorded Verdict before anything else
+  runs. *Concrete rerun* prepares the same canonical Case under the exact recorded Profile identity
+  and runs it fresh; two reruns, each classed `reproduced`, `not-reproduced` or `indeterminate`,
+  decide the subject by precedence. *SDK history replay* is diagnostic only and proves nothing. A
+  violation is compared by its *key* -- the violated rules, the terminal state each reached and
+  its violating evidence, all in Definition IDs -- never by the Case's identity (the SHA-256 of
+  its canonical bytes), which is reported beside it. A reproduced subject's Query is reduced in
+  one sweep of `dropPrefixStep` edits, each re-admitted by the Model before any Case is produced
+  and each retained only when two fresh Runs reproduce the key; the sweep ends `minimized`,
+  `irreducible` or `incomplete`, and only a finished sweep compiles the retained candidate's
+  review-only proposal through `Umpire.Promotion`. A negative control whose one claim the platform
+  contradicts proves the mechanism, and its proposal is never reviewed into a Regression.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of Exploration Limits.
 - **Promotion (`Umpire.Promotion`).** Re-answering a Query against the Behavior Model using exactly
@@ -558,17 +686,39 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **EXP-03 — Bounded fuzzing is not exhaustive.** Runtime fuzzing stopped by a time or work Limit
   MUST NOT claim exhaustive coverage.
 - **EXP-04 — Pinned Regressions.** Known Regressions MUST run independently of Exploration Limits.
+  *Amendment (drafted by fn-33; awaiting GOV-02 approval.)* A campaign's targets are its
+  exploratory set's alone: a pinned Regression, a functional set's Case or a promoted Query is
+  never selected, prepared or counted against a campaign cap, and a proposal a campaign compiles
+  is written only where the caller names, outside the model.
 - **EXP-05 — Reviewed promotion.** Before human review for promotion to a permanent Lean Regression,
   a discovered failure MUST be reproduced at runtime, minimized in model terms, and re-answered
   against the Behavior Model through `Umpire.Promotion` using its exact referenced identities.
+  *Amendment (drafted by fn-22; awaiting GOV-02 approval.)* Reproduced means the subject's
+  recorded Verdict replays offline and two fresh Runs under its recorded Profile identity reproduce
+  its Contract-relative key; minimized means one bounded sweep of Model-admitted prefix edits in
+  which every retained edit reproduced the key twice. A Run lost to a stop, a limit, or an
+  undecided edit leaves the reduction incomplete and proposes nothing.
 
 ## Verification, CLI, and claims
 
 ### Verification and claim concepts
 
-Nothing in this section exists in the tree. Every rule below is a design commitment whose owning
-spec is named, and each is enforceable only once that spec delivers it.
+Claim Assessment exists in the tree; nothing else in this section does. Every other rule below is a
+design commitment whose owning spec is named, and each is enforceable only once that spec delivers
+it.
 
+- **Claim Assessment (`Umpire.Evaluation`, `tools/umpire/evaluation`).** *Amendment (drafted by
+  fn-26; awaiting GOV-02 approval.)* Deciding, offline, what one closed Run of one canonical Case
+  supports under one *Evaluation Profile*: a Lean-declared, Temporal-free policy of a claim, an
+  asserted trust basis, the Known Gap kinds that block acceptance and an ordered reason table,
+  each reason naming one status-specific condition and forcing `rejected` or `incomplete`; with
+  no reason holding the subject is `accepted`. The subject is admitted strictly and never
+  prepared, run or replayed; verification is the recorded Verdict's status and evidence each
+  rule's supporting sequences, never re-derived. The decision is an *Evaluation Receipt*,
+  canonical bytes named by their SHA-256 and published exclusively, that binds the Profile, the
+  Case and recorded Run identities, the recorded Driver identity, the Verdict with its evidence
+  links, the decision and every reason, the Known Gaps and the admission caps. A receipt is not
+  self-authenticating and authorizes nothing; `local-ephemeral` is the one declared Profile.
 - **`Temporal.Verify`.** Optional Temporal-specific checker integration. It does not define
   behavior. *(planned: fn-24-lean-native-verification-receipts-and)*
 - **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes
@@ -613,6 +763,10 @@ spec is named, and each is enforceable only once that spec delivers it.
   and limits on possible impact.
 - **QLF-03 — Complete claims.** Every claim made from a Run MUST expose its environment, Evidence
   policy, Limits, the basis of the claim, Known Gaps, cleanup outcome, and Behavior Fingerprints.
+  *Amendment (drafted by fn-26; awaiting GOV-02 approval.)* An Evaluation Receipt exposes these
+  as its Profile's trust basis and reason table, the admission caps, the recorded Verdict, the
+  Case's Known Gaps and the Run's cleanup; the Behavior Fingerprints are carried by the canonical
+  Case the receipt names by identity, whose provenance records them.
 - **QLF-05 — Per-Run decisions.** A Testpilot decision MUST retain Run disposition, cleanup
   status, and Verdict separately. A satisfied Verdict does not hide operational or cleanup failure;
   a proved violated Verdict remains violated after later cleanup failure; every unresolved Contract

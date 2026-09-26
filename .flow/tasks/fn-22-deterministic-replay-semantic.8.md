@@ -1,23 +1,30 @@
 ---
 satisfies: [R6, R8, R10]
 ---
+# fn-22-deterministic-replay-semantic.8 Expose the bounded replay command; close the matrices, live proof, gates and documentation
 
-# fn-22-deterministic-replay-semantic.8 Close replay matrices, gates, and documentation
 ## Description
-Complete admission, identity, preparation, rerun, reduction, EvidenceCore, proposal, cancellation, cleanup, limit, and output mutation matrices. Reconcile replay documentation with the Case Runtime and remove active references to replay bundles, Run Evaluation, caller-closure runtime support, and SDK replay as proof.
+Add `umpire-replay run`: the subject from `--case <fixture.json>` and `--run <recorded-run.json>`, the set and the Query or exploration target the bridge recovers it by, the deployment through `binding.RegisterFlags`, `--promotion-root`, the fixed limits by name only; admission before `binding.Open`. One canonical JSON report to stdout with `admission`, `semanticReplay`, the `key` and the Case `identity` apart, `reproduction` and each rerun's outcome, `reduction` (completion and every edit's fate), `limits`, `cleanup`, `proposal` (digest, path, written, or its status) and `failure` as separate fields, with no history-replay field, the field set pinned; bounded progress on stderr. Exit codes: 0 reproduced with a complete reduction and, when a root is named, the proposal written; 1 not-reproduced; 2 indeterminate, incomplete or stopped; 3 tooling failure, which is also a rejected subject (the `admission` field names the reason, nothing ran), an offline replay that errs or disagrees (the `semanticReplay` field names it, nothing ran) and a proposal that does not compile, a proposal write failure or an existing destination (the `proposal` field names it, the rest of the report stands); a subject whose pair is not `reproduced` reports the reduction as not attempted and exits 1 or 2 by its class. `make umpire-replay` and `make umpire-replay-run` wrap it beside `umpire-fuzz`. The live proof needs the Lean replay bridge: the control's live test fails, never skips, when `umpire-replay-bridge` is missing, and `umpire-check-live-tests` builds it (with `umpire-explore`) before running the suite. Then close the admission, key, semantic replay, rerun, reduction, evidence core, proposal, cancellation, limit and output matrices; run the negative control end to end through `umpire-replay run` against the test cluster in the live suite: the helper records the Run against its own provisioned namespace, queues and endpoint, and the command is invoked, while those resources are still held, with the same names and without `--create`, so the recorded identity is the one the replay prepares under (reproduced, irreducible or minimized, proposal compiled and written under a scratch root, proving the mechanism only); reconcile the documentation with the Case Runtime, amend the UMPIRE4 spec's Exploration section for the replay classes and the key, and remove active references to replay bundles, Run Evaluation, caller-closure runtime support and SDK replay as proof.
 
-**Size:** M
-**Touches:** `tools/umpire/replay/**`, `docs/**`, `.plans/UMPIRE4_COMPONENTS.md`, `Makefile`
+### Approach
+- The command mirrors `umpire-fuzz run`'s shape: parse and refuse before opening anything, admit, open once, drive, settle, render, cap the report without truncating; the command-edge helpers and the proposal writer come from `tools/umpire/internal/cli`.
 
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-replay/; cd model && lake build && LEAN_NUM_THREADS=1 make -C .. lint-model; make umpire-check-goldens umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-model-module-index umpire-check-exploration-bridge; go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...; make lint-code-fast`
+
+**Size:** L
+**Files:** `tools/umpire/cmd/umpire-replay/main.go`, `tools/umpire/cmd/umpire-replay/run.go`, `tools/umpire/cmd/umpire-replay/run_test.go`, `tools/umpire/replay/report.go`, `tools/umpire/replay/report_test.go`, `tests/testpilot_nexus_control_case_test.go`, `Makefile`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** `tools/umpire/cmd/umpire-replay/**`, `tools/umpire/replay/report*.go`, `tests/testpilot_nexus_control_case_test.go`, `Makefile`, `model/*.md`, `.plans/*.md`
+
+### Re-plan note (2026-09-22)
+Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK and revised through the six plan review rounds the spec's **Plan review** section records (SHIP on round six, 2026-09-22).
 ## Acceptance
-- [ ] Focused Lean, Go, `-tags test_dep`, integration, regression, formatting, and lint gates pass with the full `^TestUmpire` selector where applicable.
-- [ ] Docs preserve the three replay classes and all retired/deferred boundaries.
-- [ ] Existing comments are preserved or reworded only where the described invariant changes.
-
+- [x] The command exposes no arbitrary Driver, checker, executable, semantic edit or compatibility option, refuses the command line before opening anything, and admits before `binding.Open`; every exit code is pinned, a rejected subject and a proposal failure included; the report cap never truncates.
+- [x] Focused Lean, Go, `-tags test_dep`, integration, formatting and lint gates pass; the live negative-control proof runs through the command, and fails rather than skips without the replay bridge, which the live gate builds first.
+- [x] Docs keep the three replay classes, the key against the identity, the control's proposal as mechanism only, and every retired or deferred boundary; existing comments are preserved or reworded only where the invariant they describe changed.
 ## Done summary
-TBD
-
+`umpire-replay run` (`tools/umpire/cmd/umpire-replay`) takes the subject from `--case` and `--run`, the set and `--query` or `--target`, the deployment through `binding.RegisterFlags`, `--promotion-root` (outside the model, symlinks resolved), `--model-root`, `--bridge` and `--timeout`; the limits are fixed and named in the report, and no flag names a Driver, a checker, an edit or a compatibility option. It refuses the command line and unreadable files before anything is read or opened. `replay.Execute` admits the subject and replays it offline before anything opens, starts `umpire-replay-bridge` and admits the subject there (`crossed` when the set does not produce its bytes), and only then opens the deployment, reruns the subject twice, reduces it and writes the proposal; it releases everything it opened. The report (`replay.Report`) has `admission`, `semanticReplay`, `key` and `identity` apart, `reproduction` with each rerun's class, Run, Verdict, key and diagnostics, `reduction`, `limits`, `cleanup`, `proposal` and `failure`, and no history-replay field; its field set is pinned. Exit codes: 0 reproduced with a complete reduction and the proposal written when a root is named; 1 not reproduced; 2 indeterminate, incomplete, stopped or a report over its cap (written whole); 3 a tooling failure, a rejected subject (admission names the reason; a disagreeing offline replay names `semanticReplay` too), or a proposal that did not compile or could not be written. `binding.Bind` sends the SDK client's logs to stderr, so the report is the only thing on stdout (this fixed the same defect in `umpire-fuzz`). `make umpire-replay` and `make umpire-replay-run` wrap the command, and `umpire-check-live-tests` builds `umpire-explore` and `umpire-replay-bridge` first. The live proof `TestTestpilotNexusControlReplaysThroughTheCommand` provisions its own namespace, queues and endpoint, records one control Run with `umpire-run --record`, and invokes `umpire-replay run` with the same names and no `--create`: admitted, replayed offline, reproduced twice, irreducible, proposal written under a scratch root; it fails, never skips, without the bridge. Docs: `model/README.md`, `model/ARCHITECTURE.md`, the UMPIRE4 spec's Exploration section (replay concept, EXP-05 amendment) and the components doc (the replay bundle retired).
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ac5f0320f1dd803332677e0601aa4a38ca10aea9
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/..., make umpire-check-live-tests, make umpire-check-retired-vocabulary umpire-check-testpilot-authoring, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
 - PRs:

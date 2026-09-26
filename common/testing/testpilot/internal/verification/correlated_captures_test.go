@@ -466,7 +466,7 @@ func TestCorrelatedCaptureLiveAndOfflineAgree(t *testing.T) {
 				require.NoError(t, err)
 				live, err := monitor.Close(context.Background(), run)
 				require.NoError(t, err)
-				offline, err := prepared.Evaluate(context.Background(), run)
+				offline, _, err := prepared.Evaluate(context.Background(), run)
 				require.NoError(t, err)
 				require.True(t, proto.Equal(live, offline))
 				require.Equal(t, tc.want, live.Rules[0].Status)

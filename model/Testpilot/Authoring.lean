@@ -65,6 +65,33 @@ def map (entries : Array (temporal.server.api.testpilot.v1.Value ×
 
 end Value
 
+namespace Payload
+
+/-! Constructors for the API payloads the typed instructions carry, spelled as the SDK's default data
+converter spells them. -/
+
+/-- A JSON payload: the SDK's `json/plain` encoding of one JSON value. -/
+def json (value : Lean.Json) : temporal.api.common.v1.Payload :=
+  { metadata := Std.HashMap.ofList [("encoding", "json/plain".toUTF8)]
+    data := value.compress.toUTF8 }
+
+/-- A text payload, as the SDK encodes a string argument. -/
+def text (value : String) : temporal.api.common.v1.Payload := json (.str value)
+
+end Payload
+
+namespace Duration
+
+/-- A whole number of seconds. -/
+def seconds (value : Int) : google.protobuf.Duration :=
+  { seconds := Int64.ofInt value, nanos := 0 }
+
+/-- A whole number of milliseconds. -/
+def milliseconds (value : Int) : google.protobuf.Duration :=
+  { seconds := Int64.ofInt (value / 1000), nanos := Int32.ofInt (value % 1000 * 1000000) }
+
+end Duration
+
 namespace Types
 
 /-! Constructors for generated Testpilot value schemas. -/
@@ -348,6 +375,51 @@ def responseRead (path : String) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
   { path, cardinality, targets }
 
+/-! #### Evidence declarations
+
+A Program declares each kind of correlated evidence once: the recorded data it is read from, the
+Run coordinates that scope it, the path of its operation key and the fields it exposes. A lift
+names the declaration with `declaredEvidenceRule`, a read instruction with `readEvidence`, and a
+correlated Contract's projection rule by its kind, so nothing is written twice. -/
+
+/-- A Run coordinate every evidence identity of the kind carries, as the Case declares it. -/
+def evidenceScope (fieldId value : String) : NamedValue :=
+  { field_id := fieldId, value := some (Value.text value) }
+
+/-- One field the evidence exposes, read from the recorded value at `path`. -/
+def evidenceField (fieldId path : String) : EvidenceFieldDeclaration :=
+  { field_id := fieldId, path }
+
+/-- Evidence lifted from one arm of the recorded history event's `attributes` oneof, keyed by the
+`operation` path read from the event. -/
+def historyEvidenceDeclaration (evidenceId evidenceSource attributesField operation : String)
+    (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.history_event { attributes_field := attributesField })
+    scope, operation, fields }
+
+/-- Evidence lifted from the payload of every Run Event of `kind` the runtime records, keyed by the
+`operation` path read from the payload. -/
+def runEventEvidenceDeclaration (evidenceId evidenceSource : String) (kind : RunEventKind)
+    (operation : String) (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.run_event { kind }), scope, operation, fields }
+
+/-- Evidence read back through the unary RPC `method`: each element of the repeated field at `path`
+in its response, keyed by the `operation` path read from the element, polled by `readEvidence`. -/
+def readEvidenceDeclaration (evidenceId evidenceSource method path operation : String)
+    (scope : Array NamedValue := #[])
+    (fields : Array EvidenceFieldDeclaration := #[]) : EvidenceDeclaration :=
+  { evidence_id := evidenceId, evidence_source := evidenceSource
+    source := some (.read { method, path }), scope, operation, fields }
+
+/-- A lift rule that names a history declaration instead of spelling itself: its guard is the
+presence of the declared arm and its coordinates are the declaration's. -/
+def declaredEvidenceRule (evidenceId : String) : CorrelatedEvidenceRule :=
+  { (default : CorrelatedEvidenceRule) with evidence_id := evidenceId }
+
 /-- Write the bounds that carry one instruction's behavior where they differ from the Profile's
 instruction defaults: its dispatch timeout and its highest attempt. A bound left `none` takes the
 Profile's default. Its resource ceilings are the Profile's, so a Case declares none of them. -/
@@ -364,31 +436,96 @@ def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestA
 def awaitSlot (slotId : String) : Instruction :=
   { instruction := some (.await_slot { slot_id := slotId }) }
 
-def completeNexusOperation (handleSlotId : String) (result : Expression) : Instruction :=
-  { instruction := some (.complete_nexus_operation {
-      handle_slot_id := handleSlotId, result := some result }) }
-
-def startNexusOperation (endpointRoleId serviceName operationName : String)
-    (input : Expression) :
-    Instruction :=
-  { instruction := some (.start_nexus_operation
-      (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
-
 def awaitInstruction (instruction : InstructionReference) : Instruction :=
   { instruction := some (.await_instruction { instruction := some instruction }) }
 
 def finish (result : Expression) : Instruction :=
   { instruction := some (.finish { result := some result }) }
 
-def respondNexus (kind : NexusResponseKind) (result : Expression)
-    (handleSlotId : String := "") : Instruction :=
-  { instruction := some (.respond_nexus {
-      kind, result := some result, handle_slot_id := handleSlotId }) }
-
 /-- Request one deliberate outage. `roleId` names the task-queue role whose worker the Driver
 stops or resumes; the role's own resource binding identifies the queue. -/
 def injectFault (roleId : String) (kind : FaultKind) : Instruction :=
   { instruction := some (.inject_fault { role_id := roleId, kind }) }
+
+/-! #### Typed worker instructions
+
+Each carries the Temporal API message the Driver realizes through the SDK call that produces it. -/
+
+/-- Issue one workflow command from a workflow entrypoint, carrying the command the SDK would emit.
+The Profile admits commands per command type. -/
+def workflowCommand (command : temporal.api.command.v1.Command) : Instruction :=
+  { instruction := some (.workflow_command { command := some command }) }
+
+/-- Schedule one Nexus operation through a workflow command: `endpointRoleId` names the Case's
+endpoint role, which the Driver resolves to its bound resource, `input` is the operation's payload
+as the SDK sends it, and a timeout left `none` is the instruction's own (schedule-to-close) or
+unset (the other two). -/
+def scheduleNexusOperation (endpointRoleId serviceName operationName : String)
+    (input : Option temporal.api.common.v1.Payload := none)
+    (scheduleToClose scheduleToStart startToClose : Option google.protobuf.Duration := none)
+    (header : List (String × String) := []) : Instruction :=
+  workflowCommand {
+    command_type := .COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+    attributes := some (.schedule_nexus_operation_command_attributes {
+      endpoint := endpointRoleId, service := serviceName, operation := operationName, input
+      schedule_to_close_timeout := scheduleToClose
+      nexus_header := Std.HashMap.ofList header
+      schedule_to_start_timeout := scheduleToStart
+      start_to_close_timeout := startToClose }) }
+
+/-- Answer the Nexus operation that activated a handler entrypoint with a start response. An
+asynchronous response names the opaque Slot that receives the completion handle the Driver issues. -/
+def nexusHandlerReply (response : temporal.api.nexus.v1.StartOperationResponse)
+    (handleSlotId : String := "") : Instruction :=
+  { instruction := some (.nexus_handler_reply {
+      reply := some (.response response), handle_slot_id := handleSlotId }) }
+
+/-- Answer synchronously with the operation's result payload. -/
+def nexusSyncReply (payload : temporal.api.common.v1.Payload) : Instruction :=
+  nexusHandlerReply { variant := some (.sync_success { payload := some payload }) }
+
+/-- Answer asynchronously, publishing the completion handle into `handleSlotId`. -/
+def nexusAsyncReply (handleSlotId : String) : Instruction :=
+  nexusHandlerReply { variant := some (.async_success {}) } handleSlotId
+
+/-- Answer with the operation failed or canceled at its start, as the failure says. -/
+def nexusFailedReply (failure : temporal.api.failure.v1.Failure) : Instruction :=
+  nexusHandlerReply { variant := some (.failure failure) }
+
+/-- Answer with a handler error: its type as the Nexus protocol spells it, its message and its
+retry behavior. -/
+def nexusHandlerError (errorType text : String)
+    (retryBehavior : temporal.api.enums.v1.NexusHandlerErrorRetryBehavior) : Instruction :=
+  { instruction := some (.nexus_handler_reply {
+      reply := some (.error {
+        error_type := errorType, failure := some { «message» := text }
+        retry_behavior := retryBehavior }) }) }
+
+/-- Complete, from a controller, the asynchronous operation whose handle `handleSlotId` holds, with
+the payload the completion callback carries. -/
+def nexusOperationCompletion (handleSlotId : String)
+    (payload : temporal.api.common.v1.Payload) : Instruction :=
+  { instruction := some (.nexus_operation_completion {
+      handle_slot_id := handleSlotId, result := some (.payload payload) }) }
+
+/-- Complete the operation as failed, or canceled when the failure says so. -/
+def nexusOperationFailure (handleSlotId : String)
+    (failure : temporal.api.failure.v1.Failure) : Instruction :=
+  { instruction := some (.nexus_operation_completion {
+      handle_slot_id := handleSlotId, result := some (.failure failure) }) }
+
+/-- Poll, from a controller, the RPC the read declaration `evidenceId` names on `endpointRoleId`:
+the request the assignments build is sent every `pollIntervalMilliseconds` until an element of the
+declared path satisfies `condition`, a boolean over `Expr.projectedValue`, or the instruction times
+out. Every element the condition selects is lifted into the Program's CorrelatedEvidence
+Observation under the declaration's coordinates. -/
+def readEvidence (evidenceId endpointRoleId : String)
+    (assignments : Array RequestAssignment) (condition : Expression)
+    (pollIntervalMilliseconds : Int64) : Instruction :=
+  { instruction := some (.read_evidence {
+      evidence_id := evidenceId, endpoint_role_id := endpointRoleId
+      request_assignments := assignments, «until» := some condition
+      poll_interval_milliseconds := pollIntervalMilliseconds }) }
 
 /-- Name the instructions of the same entrypoint an instruction runs after, where that set is not the
 instruction before it: several instructions, one earlier than its predecessor, or none for a second
@@ -437,10 +574,10 @@ declares no resource ceilings and no environment bindings: the Profile it is adm
 the ceilings and the values of the bindings its roles and expressions reference. -/
 def make (programId : String) (roles : Array Role) (slots : Array Slot)
     (observations : Array Observation) (entrypoints : Array Entrypoint)
-    (cleanup : Cleanup) :
+    (cleanup : Cleanup) (evidence : Array EvidenceDeclaration := #[]) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,
-    cleanup := some cleanup }
+    cleanup := some cleanup, evidence }
 
 end Program
 
@@ -583,17 +720,24 @@ def knownGap (kind : KnownGapKind) (code : String) (subject detail : Option Stri
   { kind, code, subject_presence := subject.map (.subject ·),
     detail_presence := detail.map (.detail ·) }
 
+/-- One abstraction claim row: the class of one action's input field the Case realized, and the
+example it used. -/
+def abstractionClaim (action field className exampleValue : String) : AbstractionClaim :=
+  { action, field, class_name := className, «example» := exampleValue }
+
 /-- Attach producer identity and the typed provenance rows Testpilot never reads to a generated Case,
 each list in the caller's order. -/
 def provenance (producerId producerVersion : String)
     (definitions : Array DefinitionBinding := #[]) (sources : Array SourceLocation := #[])
     (knownGaps : Array KnownGap := #[]) (correlatedRules : Array CorrelatedRuleBinding := #[])
     (localNames : Array LocalName := #[])
-    (modelValueFingerprints : Array ModelValueFingerprint := #[]) :
+    (modelValueFingerprints : Array ModelValueFingerprint := #[])
+    (abstractionClaims : Array AbstractionClaim := #[]) :
     CaseProvenance :=
   { producer_id := producerId, producer_version := producerVersion, definitions, sources,
     known_gaps := knownGaps, correlated_rules := correlatedRules, local_names := localNames,
-    model_value_fingerprints := modelValueFingerprints }
+    model_value_fingerprints := modelValueFingerprints,
+    abstraction_claims := abstractionClaims }
 
 /-- Assemble one generated Case from its version, identity, Program, Contract, and provenance. -/
 def case (major : Int32) (caseId : String)

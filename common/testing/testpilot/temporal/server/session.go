@@ -26,6 +26,7 @@ type Session struct {
 	entries                       map[string]struct{}
 	controllers                   map[string]struct{}
 	nodes                         map[nodeKey]*testpilotspb.InstructionNode
+	evidence                      map[string]*testpilotspb.EvidenceDeclaration
 	effects                       map[*effect]struct{}
 	capabilities                  map[*opaqueCapability]struct{}
 	slots                         map[string]*capabilitySlot
@@ -98,6 +99,60 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 			return rpcFailure(ctx, err)
 		}
 		return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}, Response: response}
+	})
+	if err != nil {
+		return nil, err
+	}
+	return handle, nil
+}
+
+// PollRPC repeats the read declaration's RPC on the endpoint role until the runtime's predicate
+// accepts a response or the instruction's timeout ends it. One effect, one attempt: the polls are
+// the effect's own calls, so the Session's attempt and identity accounting sees the instruction once.
+func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+	if err := contextError(ctx); err != nil {
+		return nil, err
+	}
+	n, err := s.controllerNode(c)
+	if err != nil {
+		return nil, err
+	}
+	read := n.GetInstruction().GetReadEvidence()
+	declaration := s.evidence[read.GetEvidenceId()]
+	if read == nil || declaration.GetRead() == nil || nilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || nilValue(request) || interval <= 0 || satisfied == nil {
+		return nil, errUnauthorized
+	}
+	path := "/" + string(method.Parent().FullName()) + "/" + string(method.Name())
+	endpoint, ok := s.host.endpoints[role]
+	if !ok || !endpoint.methods[path] || read.EndpointRoleId != role || declaration.GetRead().GetMethod() != path || request.ProtoReflect().Descriptor() != method.Input() {
+		return nil, errUnauthorized
+	}
+	if int64(proto.Size(request)) > s.host.profile.ProgramLimits.MaxRequestBytes {
+		return nil, errCapacity
+	}
+	request = proto.Clone(request)
+	handle, err := s.start(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
+		for {
+			response := dynamicpb.NewMessage(method.Output())
+			callCtx := metadata.NewOutgoingContext(ctx, endpoint.metadata.Copy())
+			if err := endpoint.connection.Invoke(callCtx, path, request, response, grpc.MaxCallRecvMsgSize(int(s.host.profile.ProgramLimits.MaxInstructionResponseBytes))); err != nil {
+				return rpcFailure(ctx, err)
+			}
+			accepted, err := satisfied(ctx, response)
+			if err != nil {
+				return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "poll_predicate_failed", Detail: err.Error()}}
+			}
+			if accepted {
+				return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}, Response: response}
+			}
+			timer := time.NewTimer(interval)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return rpcFailure(ctx, ctx.Err())
+			case <-timer.C:
+			}
+		}
 	})
 	if err != nil {
 		return nil, err
