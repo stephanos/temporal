@@ -177,14 +177,14 @@ gomad3-run:
 	@test -n "$(GOMAD3_RUN)" || { echo "GOMAD3_RUN is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
 	@$(MAKE) gomad3-go
 	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
+		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
 
 gomad3-test:
 	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
 	@test -n "$(GOMAD3_PACKAGES)" || { echo "GOMAD3_PACKAGES is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
 	@$(MAKE) gomad3-go
 	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
+		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
 
 gomad3-integration-test: gomad3-runner
 	@go test -tags test_dep,gomad3_integration -count=1 ./tools/gomad3integration
