@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -78,4 +80,22 @@ func TestReconcileWithNoRecordIsNothingToReconcile(t *testing.T) {
 	require.NoError(t, json.Unmarshal(stdout.Bytes(), &reconciled))
 	require.Equal(t, controller.StatusNothingToReconcile, reconciled.Status)
 	require.Contains(t, stderr.String(), "umpire-canary reconcile: "+controller.StatusNothingToReconcile)
+}
+
+// failingWriter is a stdout that takes nothing, as a closed pipe would.
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) { return 0, errors.New("stdout is closed") }
+
+// A report stdout cannot take is a reporting failure: exit 3 whatever the mode concluded, with the
+// document kept on stderr so nothing it says is lost.
+func TestAReportStdoutCannotTakeIsExitThree(t *testing.T) {
+	var stderr bytes.Buffer
+	code := Main([]string{"reconcile", "--output", t.TempDir(), "--recovery", filepath.Join(t.TempDir(), "recovery.json")},
+		failingWriter{}, &stderr, noEnvironment, seams())
+	require.Equal(t, controller.ExitFailed, code, "a mode that concluded nothing-to-reconcile still exits 3")
+	var reconciled controller.Report
+	line, _, _ := strings.Cut(stderr.String(), "\n")
+	require.NoError(t, json.Unmarshal([]byte(line), &reconciled), stderr.String())
+	require.Equal(t, controller.StatusNothingToReconcile, reconciled.Status)
 }

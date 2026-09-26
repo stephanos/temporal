@@ -29,7 +29,9 @@ import (
 // script is one scripted invocation: each Run opens its fenced Driver, starts its workflow on the
 // fake server and leaves it open or closes it, then decide answers from statuses.
 type script struct {
-	server   *fakeServer
+	server *fakeServer
+	// first offsets the scripted Run IDs, so concurrent scripts name disjoint Runs.
+	first    int
 	statuses []string
 	// leaveOpen leaves each Run's workflow open, as a Run cut off by its deadline would.
 	leaveOpen bool
@@ -66,7 +68,7 @@ func (s *script) invocation(t *testing.T, canary *policy.Policy, started time.Ti
 
 func (s *script) run(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	s.runs++
-	id := runID(s.runs)
+	id := runID(s.first + s.runs)
 	if _, err := driver.Open(ctx, id, testpilot.PreparedProgram{}); err != nil {
 		return nil, nil, err
 	}
