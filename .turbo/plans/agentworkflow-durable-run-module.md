@@ -20,10 +20,6 @@ explicitly deferred.
 
 ### Analogous Features
 
-- `tools/gomad3/runner/internal/campaign/recovery.go:45` — `RecoverCampaign` acquires the recovery lock, re-inspects durable state under that lock, performs recovery, and returns domain-level before/after projections.
-- `tools/gomad3/runner/internal/campaign/campaign_journal.go:333` — `CampaignJournal.Publish` owns lifecycle transition, encoding, atomic publication, syncing, and terminal state rather than exposing their ordering to callers.
-- `tools/gomad3/runner/internal/campaign/campaign_journal.go:487` — `ExecutionJournal.Transition` validates legal state transitions at the durable module interface.
-- `tools/gomad3/artifact/store.go:65` — `PublishArtifact` stages, validates, hashes, syncs, and atomically publishes an entire artifact as one operation.
 - `tools/agentworkflow/internal/workspace/workspace.go:56` — `Reopen` returns a semantic `Prepared` projection after validating filesystem layout and admitted-source identity, keeping scanning mechanics behind the Workspace module.
 - `tools/agentworkflow/internal/store/legacy.go:27` — `inspectLegacyRun` adapts v1 files into the current inspection model without mutating legacy artifacts.
 - `tools/agentworkflow/internal/store/recovery.go:89` — `recoverAttempt` already concentrates event-prefix validation and completed-versus-interrupted reconciliation inside Store.
@@ -44,8 +40,6 @@ explicitly deferred.
 
 ### Convention Anchors
 
-- Durable operation ownership: repository journal modules own validation, encoding, transition ordering, syncing, and publication behind one semantic operation (`tools/gomad3/runner/internal/campaign/campaign_journal.go:333`, `tools/gomad3/artifact/store.go:65`).
-- Lock-and-reinspect recovery: recovery decisions are recomputed after lock acquisition, so callers never act on stale pre-lock state (`tools/gomad3/runner/internal/campaign/recovery.go:45`).
 - Compatibility locality: old artifact schemas are isolated in a dedicated adapter file and projected into the current read model without migration (`tools/agentworkflow/internal/store/legacy.go:11`, `tools/agentworkflow/internal/store/legacy.go:27`).
 - Typed outer seam, private persistence shapes: Workspace exposes `Prepared` and `Change` while keeping inventory entries and scanning mechanics private (`tools/agentworkflow/internal/workspace/workspace.go:24`, `tools/agentworkflow/internal/workspace/workspace.go:41`).
 - Layered error handling: Store identifies capacity, corruption, and locking with sentinel errors; Engine maps them at the public seam (`tools/agentworkflow/internal/store/store.go:19`, `tools/agentworkflow/engine.go:553`).
@@ -68,7 +62,6 @@ Blend the existing Agentworkflow integrity and v1 adapter utilities with the dee
 2. **Introduce run-domain projections while retaining private persistence shapes**
    - In `tools/agentworkflow/internal/store/store.go`, add compact domain values for run position, inspection, attempt summary, recovery bounds, and attempt completion.
    - Make manifest and attempt-manifest structs implementation details; project only state, phase, outcome, timestamps, recoverability, stage, status, and session across the Run seam.
-   - Validate legal state transitions at publication time, following `ExecutionJournal.Transition` in `tools/gomad3/runner/internal/campaign/campaign_journal.go`.
    - Keep `ErrCapacity`, `ErrCorrupt`, and `ErrLocked` as Store sentinels for `mapStoreError`.
 
 3. **Move typed payload ownership into Store**
@@ -79,7 +72,6 @@ Blend the existing Agentworkflow integrity and v1 adapter utilities with the dee
 
 4. **Combine acquisition, reinspection, and attempt recovery**
    - Refactor `Store.Acquire`, `Run.RecoverAttempts`, and follow-up `Store.Inspect` into one acquisition operation taking recovery bounds and the current time.
-   - Re-read and validate the manifest after lock acquisition before choosing recovery actions, mirroring `RecoverCampaign` in `tools/gomad3/runner/internal/campaign/recovery.go`.
    - Return the acquired Run with a post-recovery domain inspection so Engine cannot observe or act on the pre-recovery state.
    - Keep v1 runs read-only and reject acquisition without mutating their layout.
 
@@ -130,5 +122,3 @@ Blend the existing Agentworkflow integrity and v1 adapter utilities with the dee
 - `tools/agentworkflow/workflow.go` — attempt recording, lifecycle validation, and completed-attempt reuse.
 - `tools/agentworkflow/internal/store/store_test.go` — real-filesystem integrity and recovery fixtures.
 - `tools/agentworkflow/engine_test.go` — public behavior and current crash-window reach-through tests.
-- `tools/gomad3/runner/internal/campaign/recovery.go` — lock-and-reinspect recovery precedent.
-- `tools/gomad3/runner/internal/campaign/campaign_journal.go` — deep durable transition and publication precedent.

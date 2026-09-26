@@ -102,9 +102,8 @@ where the model Property distinguishes the two. Adding a `violated` state plus a
 live assertion is a real R6 improvement and belongs to task .10 or .11, which own the combined
 online/offline agreement evidence; it is outside this task's acceptance.
 
-Concurrent local edits this run swept in that this task did not author: the parallel session's
-`fn-82` spec and its ten task files, `.plans/GOMAD_MILESTONES.md`, `.plans/UMPIRE4_ORDER.md`,
-`.plans/index.json`, `AGENTS.md`, `.flow/config.json`, `.flow/memory/declined/`, and various
+Concurrent local edits this run swept in that this task did not author: `.plans/index.json`,
+`AGENTS.md`, `.flow/config.json`, `.flow/memory/declined/`, and various
 `.flow/specs/*.json` receipts were all included by the catch-all staging.
 
 stage: impl-review - ran [round 1 SHIP (claude/claude-fable-5-1, high)]; two P3 findings, the

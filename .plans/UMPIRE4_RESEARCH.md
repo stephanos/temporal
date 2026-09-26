@@ -392,7 +392,7 @@ different and much larger program than Umpire's current artifact-driven external
 
 **Inference for Umpire.** Borrow the reproducibility contract, not the implementation architecture.
 Umpire's thin runtime should control faults and SDK participants at explicit seams while allowing
-the existing Temporal cluster to remain distributed. Gomad or purpose-built in-process harnesses can
+the existing Temporal cluster to remain distributed. Purpose-built in-process harnesses can
 be optional execution backends only when they consume the same Lean-produced experiment and emit
 the same Evidence contract.
 

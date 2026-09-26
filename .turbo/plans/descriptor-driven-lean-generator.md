@@ -29,8 +29,6 @@ inputs and complete goldens, and keep Temporal-specific composition in the root 
 - `tools/umpire/internal/generate/api/descriptors.go:94` — The current public-API acquisition path already implements the temporary Go helper strategy: discover packages, blank-import them, inspect registered descriptors, and serialize a descriptor set.
 - `cmd/tools/getproto/main.go:73` — The repository has another registered-Go-descriptor exporter that maps protobuf imports to Go packages and materializes a `FileDescriptorSet`.
 - `tools/umpire3/internal/generate/api/main.go:38` — Another Umpire generator follows the same load → project → render → sorted generate/check lifecycle with atomic artifact publication.
-- `tools/gomad2/internal/prettylog/prettylog_test.go:38` — Existing golden tests enumerate readable `testdata` inputs, compare checked-in output byte-for-byte, and offer an explicit rewrite mode.
-- `tools/gomad2/internal/translate/translate_test.go:83` — Multi-file source/output fixtures are kept together in `testdata`, reconstructed in a temporary work directory, deterministically sorted, and compared as a complete output set.
 
 ### Reusable Utilities
 
