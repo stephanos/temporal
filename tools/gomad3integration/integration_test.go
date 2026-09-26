@@ -78,7 +78,7 @@ func TestPublicWrappers(t *testing.T) {
 		})
 	}
 
-	output, status := runMake(t, repositoryRoot, "gomad3-run", "GOMADSEED=103", "GOMAD3_RUN=./tools/gomad3/toolchain/internal/conformance/testdata/clock/main.go", "GOMAD3_ARGS=initial")
+	output, status := runMake(t, repositoryRoot, "gomad3-run", "GOMADSEED=103", "GOMAD3_RUN=./tools/gomad3/internal/gomadtool/conformance/testdata/clock/main.go", "GOMAD3_ARGS=initial")
 	if status != 0 || !strings.HasSuffix(strings.TrimSpace(output), "clock initial ok") {
 		t.Fatalf("gomad3-run status=%d output=%q", status, output)
 	}
