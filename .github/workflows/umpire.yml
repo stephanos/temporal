@@ -35,3 +35,25 @@ jobs:
         run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
       - name: Run the live Umpire tests
         run: make umpire-check-live-tests
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: "go.mod"
+          check-latest: false
+          cache: false
+      - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+        with:
+          version: "2026.8.16"
+          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
+          working_directory: model
+          cache: false
+      - name: Run the canary's unit tests
+        run: mise exec -- go test -count=1 -tags test_dep ./tools/canary/...
+      - name: Run the canary harness build's tests
+        run: mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
+      - name: Check the canary's pinned Case and rendered Profiles
+        run: make canary-check-case umpire-check-evaluation-profiles

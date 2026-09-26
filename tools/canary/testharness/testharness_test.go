@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,9 @@ import (
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+// canaryHarnessIdentity is the identity Temporal/Evaluation/CanaryTests.lean pins.
+const canaryHarnessIdentity = "sha256:cfb6675934e5c89b50748e5d6b37c17fa7608a6bc63b1ca9108b710a654fc860"
 
 func environment(values map[string]string) authority.Lookup {
 	return func(key string) (string, bool) {
@@ -46,6 +50,7 @@ func TestLoadPolicyReadsAHarnessPolicy(t *testing.T) {
 	require.Equal(t, ProfileName, canary.EvaluationProfile)
 	require.Equal(t, ProfileName, profile.Name)
 	require.Equal(t, "test-cluster-harness", profile.Trust)
+	require.Equal(t, canaryHarnessIdentity, profile.Identity, "Go reads the bytes Lean pins")
 }
 
 // A harness policy that names production's Evaluation Profile or authority class, or is missing
@@ -73,7 +78,8 @@ func TestLoadPolicyRefusesAnythingButAHarnessPolicy(t *testing.T) {
 	require.Error(t, err, "the harness reads a policy as strictly as production does")
 }
 
-// The harness transport is plaintext and needs no credential; its Redactor knows every coordinate.
+// The harness transport is plaintext and needs no credential; its Redactor knows every coordinate
+// production's does, since both take the list from authority.
 func TestAuthorityIsPlaintextWithoutACredential(t *testing.T) {
 	loaded, err := Authority(environment(map[string]string{
 		authority.VariableGRPC: "127.0.0.1:7233", authority.VariableNamespace: "harness", authority.VariableTaskQueue: "queue",
@@ -82,7 +88,8 @@ func TestAuthorityIsPlaintextWithoutACredential(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, insecure.NewCredentials().Info().SecurityProtocol, loaded.Transport.Credentials.Info().SecurityProtocol)
 	require.Nil(t, loaded.Transport.ClientTLS)
-	require.Equal(t, authority.Redacted+" "+authority.Redacted, loaded.Redactor.Redact("harness 127.0.0.1"))
+	require.Equal(t, strings.Repeat(authority.Redacted+" ", 5)+authority.Redacted,
+		loaded.Redactor.Redact("127.0.0.1:7233 127.0.0.1 harness queue handler endpoint"))
 	_, err = Authority(environment(nil))
 	require.Error(t, err, "the coordinates are still required")
 }

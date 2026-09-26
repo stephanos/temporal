@@ -66,8 +66,10 @@ func (c Coordinates) Digests() policy.Coordinates {
 	return policy.DigestsOf(c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint)
 }
 
-func (c Coordinates) values() []string {
-	return []string{c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint}
+// Redactor removes every coordinate and each given secret. It is the one list of what a canary
+// redacts, so no build can redact a coordinate the other writes.
+func (c Coordinates) Redactor(secrets ...string) *Redactor {
+	return NewRedactor(append([]string{c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint}, secrets...)...)
 }
 
 // LoadCoordinates reads every coordinate; each is required.
@@ -171,8 +173,7 @@ func Load(lookup Lookup) (*Authority, error) {
 	}
 	transport.Credentials = credentials.NewTLS(config.Clone())
 	transport.ClientTLS = config
-	secrets := append(coordinates.values(), certificate, key, apiKey)
-	return &Authority{Coordinates: coordinates, Transport: transport, Redactor: NewRedactor(secrets...)}, nil
+	return &Authority{Coordinates: coordinates, Transport: transport, Redactor: coordinates.Redactor(certificate, key, apiKey)}, nil
 }
 
 // bearer sends the API key on every RPC, and only over TLS.

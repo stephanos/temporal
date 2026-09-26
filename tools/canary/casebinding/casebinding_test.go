@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/policy"
+	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -194,4 +195,26 @@ func mustSource(t *testing.T) *testpilotspb.Case {
 	source, err := testpilot.DecodeCaseProtoJSON(Case())
 	require.NoError(t, err)
 	return source
+}
+
+// The pinned Case refuses under any other Case version even when the policy is re-pinned to the
+// re-versioned bytes' identity, so the refusal is the version's, not only the identity's: no
+// version is read as an alias of the pinned one.
+func TestBindRefusesEveryOtherCaseVersion(t *testing.T) {
+	for name, version := range map[string]string{
+		"the prior major version": `"version":{"major":0}`,
+		"the next major version":  `"version":{"major":2}`,
+		"a minor version":         `"version":{"major":1,"minor":1}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := bytes.Replace(Case(), []byte(`"version":{"major":1}`), []byte(version), 1)
+			require.False(t, bytes.Equal(changed, pinned))
+			identity, err := recordedrun.CaseIdentity(changed)
+			require.NoError(t, err)
+			canary := *committed(t)
+			canary.CaseIdentity = identity
+			_, err = bind(changed, &canary, testEnvironment)
+			require.ErrorContains(t, err, "unsupported Case version")
+		})
+	}
 }

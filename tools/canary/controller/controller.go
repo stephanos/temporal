@@ -96,6 +96,8 @@ type Invocation struct {
 	service func(*authority.Authority, string, io.Writer) (*lazyService, error)
 	// prepare lets a unit test script the iterations.
 	prepare func(*invocation)
+	// publish is publication.Publish; a unit test wraps it to fail recording a publication.
+	publish func(context.Context, string, []publication.Item, func(string) error) ([]publication.Published, error)
 }
 
 // Summary is the one JSON document `run` writes, in a fixed key order. It carries statuses,
@@ -320,7 +322,11 @@ func (invocation Invocation) publishAll(ctx context.Context, items []publication
 		result.raise(StatusToolingFailure, ExitFailed, err.Error())
 		return
 	}
-	_, err := publication.Publish(ctx, invocation.Output, items, func(runID string) error {
+	publishItems := invocation.publish
+	if publishItems == nil {
+		publishItems = publication.Publish
+	}
+	_, err := publishItems(ctx, invocation.Output, items, func(runID string) error {
 		return store.Update(func(record *recovery.Record) {
 			for index := range record.Iterations {
 				if record.Iterations[index].RunID == runID {

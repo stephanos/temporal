@@ -806,7 +806,7 @@ umpire-check-live-tests:
 		actual=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		trap 'rm -f "$$temporary" "$$expected" "$$actual"' EXIT HUP INT TERM; \
 		status=0; \
-		TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -tags 'test_dep integration' \
+		TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilot' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u > "$$actual"; \
@@ -828,7 +828,9 @@ umpire-check-live-tests:
 
 umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/canary/...
+	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
 	@set -eu; \
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \
