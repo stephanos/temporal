@@ -82,7 +82,6 @@ func newCanaryHarness(t *testing.T, name string, edit func(*policy.Policy)) *can
 
 	binary := filepath.Join(t.TempDir(), "umpire-canary")
 	build := exec.Command("go", "build", "-tags", "canary_harness", "-o", binary, "go.temporal.io/server/tools/canary/cmd/umpire-canary")
-	build.Env = os.Environ()
 	output, err := build.CombinedOutput()
 	require.NoError(t, err, "build the harness: %s", output)
 	return &canaryHarness{env: env, binary: binary, coordinates: coordinates, policy: canary, policyPath: policyPath}
