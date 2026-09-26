@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -533,4 +534,54 @@ func encodedAnalysisResult(t *testing.T, classification capabilityanalysis.Class
 		t.Fatal(err)
 	}
 	return CommandResult{ExitCode: status, Stdout: append(encoded, '\n')}
+}
+
+func TestLoadManifestResolvesPlatformExpectationsForTheHost(t *testing.T) {
+	root := t.TempDir()
+	path := writeManifest(t, root, "qualified")
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	host := runtime.GOOS + "/" + runtime.GOARCH
+	suite := manifest["suites"].([]any)[0].(map[string]any)
+	suite["platform_expectations"] = map[string]any{
+		host:         map[string]any{"classification": "unsupported_target", "import_path": "example.com/host", "capability": "foreign:assembly:host.s"},
+		"plan9/mips": map[string]any{"classification": "target_failure"},
+	}
+	write := func() {
+		contents, err = json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write()
+	loaded, err := LoadManifest(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	workload := loaded.Suites[0]
+	if got := workload.expectationFor(host); got.Classification != "unsupported_target" || got.ImportPath != "example.com/host" {
+		t.Fatalf("host expectation = %#v", got)
+	}
+	if got := workload.expectationFor("darwin/arm64"); got != workload.Expectation && runtime.GOOS+"/"+runtime.GOARCH != "darwin/arm64" {
+		t.Fatalf("other platform expectation = %#v, want the default", got)
+	}
+	suite["platform_expectations"] = map[string]any{"linux": map[string]any{"classification": "qualified"}}
+	write()
+	if _, err := LoadManifest(path); err == nil || !strings.Contains(err.Error(), "platform expectation key is invalid") {
+		t.Fatalf("LoadManifest() error = %v", err)
+	}
+	suite["platform_expectations"] = map[string]any{host: map[string]any{"classification": "unsupported_target"}}
+	write()
+	if _, err := LoadManifest(path); err == nil || !strings.Contains(err.Error(), "requires exact import and capability") {
+		t.Fatalf("LoadManifest() error = %v", err)
+	}
 }
