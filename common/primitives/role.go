@@ -13,15 +13,3 @@ const (
 	ServerService           ServiceName = "server"
 	UnitTestService         ServiceName = "unittest"
 )
-
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
-	}
-)

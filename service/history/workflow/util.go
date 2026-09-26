@@ -74,16 +74,6 @@ func TimeoutWorkflow(
 	retryState enumspb.RetryState,
 	continuedRunID string,
 ) error {
-	return TimeoutWorkflowWithContext(context.Background(), mutableState, retryState, continuedRunID)
-}
-
-// TimeoutWorkflowWithContext records a timeout and emits its normalized close observation.
-func TimeoutWorkflowWithContext(
-	ctx context.Context,
-	mutableState historyi.MutableState,
-	retryState enumspb.RetryState,
-	continuedRunID string,
-) error {
 
 	if workflowTask := mutableState.GetStartedWorkflowTask(); workflowTask != nil {
 		if _, err := failWorkflowTask(
@@ -95,14 +85,11 @@ func TimeoutWorkflowWithContext(
 		}
 	}
 
-	event, err := mutableState.AddTimeoutWorkflowEvent(
+	_, err := mutableState.AddTimeoutWorkflowEvent(
 		retryState,
 		continuedRunID,
 	)
-	if err != nil {
-		return err
-	}
-	return EmitWorkflowExecutionClosed(ctx, mutableState.GetWorkflowKey(), event)
+	return err
 }
 
 // TerminateWorkflow writes a WorkflowExecutionTerminated event. If a workflow
@@ -116,19 +103,6 @@ func TerminateWorkflow(
 	deleteAfterTerminate bool,
 	links []*commonpb.Link,
 ) error {
-	return TerminateWorkflowWithContext(context.Background(), mutableState, terminateReason, terminateDetails, terminateIdentity, deleteAfterTerminate, links)
-}
-
-// TerminateWorkflowWithContext records a termination and emits its normalized close observation.
-func TerminateWorkflowWithContext(
-	ctx context.Context,
-	mutableState historyi.MutableState,
-	terminateReason string,
-	terminateDetails *commonpb.Payloads,
-	terminateIdentity string,
-	deleteAfterTerminate bool,
-	links []*commonpb.Link,
-) error {
 
 	if workflowTask := mutableState.GetStartedWorkflowTask(); workflowTask != nil {
 		if _, err := failWorkflowTask(
@@ -140,17 +114,14 @@ func TerminateWorkflowWithContext(
 		}
 	}
 
-	event, err := mutableState.AddWorkflowExecutionTerminatedEvent(
+	_, err := mutableState.AddWorkflowExecutionTerminatedEvent(
 		terminateReason,
 		terminateDetails,
 		terminateIdentity,
 		deleteAfterTerminate,
 		links,
 	)
-	if err != nil {
-		return err
-	}
-	return EmitWorkflowExecutionClosed(ctx, mutableState.GetWorkflowKey(), event)
+	return err
 }
 
 // FindAutoResetPoint returns the auto reset point

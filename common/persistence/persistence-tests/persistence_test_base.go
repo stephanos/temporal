@@ -25,7 +25,6 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/persistence/cassandra"
 	"go.temporal.io/server/common/persistence/client"
-	"go.temporal.io/server/common/persistence/intercept"
 	"go.temporal.io/server/common/persistence/serialization"
 	"go.temporal.io/server/common/persistence/sql"
 	"go.temporal.io/server/common/persistence/sql/sqlplugin/mysql"
@@ -61,7 +60,6 @@ type (
 		StoreType         string `yaml:"-"`
 		SchemaDir         string `yaml:"-"`
 		FaultInjection    *config.FaultInjection
-		Interceptor       intercept.PersistenceInterceptor
 		Logger            log.Logger `yaml:"-"`
 	}
 )
@@ -107,7 +105,6 @@ type (
 		DefaultTestCluster        PersistenceTestCluster
 		Logger                    log.Logger
 		TracerProvider            trace.TracerProvider
-		interceptor               intercept.PersistenceInterceptor
 	}
 
 	// PersistenceTestCluster exposes management operations on a database
@@ -127,7 +124,7 @@ type (
 func NewTestBaseWithCassandra(options *TestBaseOptions) *TestBase {
 	logger := log.NewTestLogger()
 	testCluster := NewTestClusterForCassandra(options, logger)
-	return NewTestBaseForCluster(testCluster, logger, options.Interceptor)
+	return NewTestBaseForCluster(testCluster, logger)
 }
 
 func NewTestClusterForCassandra(options *TestBaseOptions, logger log.Logger) *cassandra.TestCluster {
@@ -190,7 +187,7 @@ func NewTestBaseWithSQL(options *TestBaseOptions) *TestBase {
 		options.FaultInjection,
 		logger,
 	)
-	return NewTestBaseForCluster(testCluster, logger, options.Interceptor)
+	return NewTestBaseForCluster(testCluster, logger)
 }
 
 func NewTestBaseWithEs(options *TestBaseOptions) *TestBase {
@@ -214,7 +211,7 @@ func NewTestBaseWithEs(options *TestBaseOptions) *TestBase {
 		options.DBName,
 		logger,
 	)
-	return NewTestBaseForCluster(testCluster, logger, options.Interceptor)
+	return NewTestBaseForCluster(testCluster, logger)
 }
 
 // NewTestBase returns a persistence test base backed by either cassandra or sql
@@ -229,16 +226,11 @@ func NewTestBase(options *TestBaseOptions) *TestBase {
 	}
 }
 
-func NewTestBaseForCluster(
-	testCluster PersistenceTestCluster,
-	logger log.Logger,
-	interceptor intercept.PersistenceInterceptor,
-) *TestBase {
+func NewTestBaseForCluster(testCluster PersistenceTestCluster, logger log.Logger) *TestBase {
 	return &TestBase{
 		DefaultTestCluster: testCluster,
 		Logger:             logger,
 		TracerProvider:     telemetry.NoopTracerProvider,
-		interceptor:        interceptor,
 	}
 }
 
@@ -268,11 +260,7 @@ func (s *TestBase) Setup(clusterMetadataConfig *cluster.Config) {
 		metrics.NoopMetricsHandler,
 		s.TracerProvider,
 		serializer,
-		nil,
 	)
-	if s.interceptor != nil {
-		dataStoreFactory = intercept.NewInterceptorDataStoreFactory(dataStoreFactory, s.interceptor)
-	}
 	factory := client.NewFactory(
 		dataStoreFactory,
 		&cfg,

@@ -9,6 +9,7 @@ import (
 	updatepb "go.temporal.io/api/update/v1"
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/testing/protoutils"
+	"go.temporal.io/server/common/testing/testvars"
 )
 
 type (
@@ -19,10 +20,6 @@ type (
 	helper interface {
 		Helper()
 	}
-
-	TaskContext interface {
-		MessageID() string
-	}
 )
 
 func New(t require.TestingT) UpdateUtils {
@@ -31,7 +28,7 @@ func New(t require.TestingT) UpdateUtils {
 	}
 }
 
-func (u UpdateUtils) UpdateAcceptCommands(tv TaskContext) []*commandpb.Command {
+func (u UpdateUtils) UpdateAcceptCommands(tv *testvars.TestVars) []*commandpb.Command {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
@@ -44,7 +41,7 @@ func (u UpdateUtils) UpdateAcceptCommands(tv TaskContext) []*commandpb.Command {
 	}}
 }
 
-func (u UpdateUtils) UpdateCompleteCommands(tv TaskContext) []*commandpb.Command {
+func (u UpdateUtils) UpdateCompleteCommands(tv *testvars.TestVars) []*commandpb.Command {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
@@ -58,14 +55,14 @@ func (u UpdateUtils) UpdateCompleteCommands(tv TaskContext) []*commandpb.Command
 	}
 }
 
-func (u UpdateUtils) UpdateAcceptCompleteCommands(tv TaskContext) []*commandpb.Command {
+func (u UpdateUtils) UpdateAcceptCompleteCommands(tv *testvars.TestVars) []*commandpb.Command {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
 	return append(u.UpdateAcceptCommands(tv), u.UpdateCompleteCommands(tv)...)
 }
 
-func (u UpdateUtils) UpdateAcceptMessages(tv TaskContext, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
+func (u UpdateUtils) UpdateAcceptMessages(tv *testvars.TestVars, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
@@ -85,7 +82,7 @@ func (u UpdateUtils) UpdateAcceptMessages(tv TaskContext, updRequestMsg *protoco
 	}
 }
 
-func (u UpdateUtils) UpdateCompleteMessages(tv TaskContext, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
+func (u UpdateUtils) UpdateCompleteMessages(tv *testvars.TestVars, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
@@ -108,7 +105,7 @@ func (u UpdateUtils) UpdateCompleteMessages(tv TaskContext, updRequestMsg *proto
 	}
 }
 
-func (u UpdateUtils) UpdateAcceptCompleteMessages(tv TaskContext, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
+func (u UpdateUtils) UpdateAcceptCompleteMessages(tv *testvars.TestVars, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}
@@ -117,7 +114,7 @@ func (u UpdateUtils) UpdateAcceptCompleteMessages(tv TaskContext, updRequestMsg 
 		u.UpdateCompleteMessages(tv, updRequestMsg)...)
 }
 
-func (u UpdateUtils) UpdateRejectMessages(tv TaskContext, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
+func (u UpdateUtils) UpdateRejectMessages(tv *testvars.TestVars, updRequestMsg *protocolpb.Message) []*protocolpb.Message {
 	if th, ok := u.t.(helper); ok {
 		th.Helper()
 	}

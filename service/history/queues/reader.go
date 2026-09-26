@@ -454,8 +454,7 @@ func (r *ReaderImpl) loadAndSubmitTasks() {
 	loadSlice := r.nextReadSlice.Value.(Slice)
 	tasks, err := loadSlice.SelectTasks(r.readerID, r.options.BatchSize())
 	if err != nil {
-		// TODO: changed level to WARN because it's very noisy
-		r.logger.Warn("Queue reader unable to retrieve tasks", tag.Error(err))
+		r.logger.Error("Queue reader unable to retrieve tasks", tag.Error(err))
 		if common.IsResourceExhausted(err) {
 			r.pauseLocked(throttleRetryDelay)
 		} else {

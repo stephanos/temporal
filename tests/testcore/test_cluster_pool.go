@@ -13,54 +13,48 @@ import (
 	"go.temporal.io/server/common/dynamicconfig"
 )
 
-var (
-	testClusterRouterOnce sync.Once
-	testClusterRouter     *clusterRouter
-)
+var testClusterRouter *clusterRouter
 
-func getTestClusterRouter() *clusterRouter {
-	testClusterRouterOnce.Do(func() {
-		sharedSize := max(1, runtime.GOMAXPROCS(0)/2)
-		if v := os.Getenv("TEMPORAL_TEST_SHARED_CLUSTERS"); v != "" {
-			n, err := strconv.Atoi(v)
-			if err != nil || n <= 0 {
-				panic("TEMPORAL_TEST_SHARED_CLUSTERS must be a positive integer")
-			}
-			sharedSize = n
+func init() {
+	sharedSize := max(1, runtime.GOMAXPROCS(0)/2)
+	if v := os.Getenv("TEMPORAL_TEST_SHARED_CLUSTERS"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n <= 0 {
+			panic("TEMPORAL_TEST_SHARED_CLUSTERS must be a positive integer")
 		}
+		sharedSize = n
+	}
 
-		dedicatedSize := runtime.GOMAXPROCS(0)
-		if v := os.Getenv("TEMPORAL_TEST_DEDICATED_CLUSTERS"); v != "" {
-			n, err := strconv.Atoi(v)
-			if err != nil || n <= 0 {
-				panic("TEMPORAL_TEST_DEDICATED_CLUSTERS must be a positive integer")
-			}
-			dedicatedSize = n
+	dedicatedSize := runtime.GOMAXPROCS(0)
+	if v := os.Getenv("TEMPORAL_TEST_DEDICATED_CLUSTERS"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n <= 0 {
+			panic("TEMPORAL_TEST_DEDICATED_CLUSTERS must be a positive integer")
 		}
+		dedicatedSize = n
+	}
 
-		// In CI, recreate clusters after 50 tests to prevent resource accumulation.
-		// Locally, clusters are reused indefinitely for faster iteration.
-		var maxLeases int
-		if os.Getenv("CI") != "" {
-			maxLeases = 50
-		}
+	// In CI, recreate clusters after 50 tests to prevent resource accumulation.
+	// Locally, clusters are reused indefinitely for faster iteration.
+	var maxLeases int
+	if os.Getenv("CI") != "" {
+		maxLeases = 50
+	}
 
-		var eventsFile *os.File
-		if path := os.Getenv("TEMPORAL_TEST_CLUSTER_EVENTS_FILE"); path != "" {
-			f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-			if err != nil {
-				log.Printf("cluster events disabled: cannot open %q: %v", path, err)
-			}
-			eventsFile = f
+	var eventsFile *os.File
+	if path := os.Getenv("TEMPORAL_TEST_CLUSTER_EVENTS_FILE"); path != "" {
+		f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+		if err != nil {
+			log.Printf("cluster events disabled: cannot open %q: %v", path, err)
 		}
+		eventsFile = f
+	}
 
-		testClusterRouter = &clusterRouter{
-			shared:     newClusterPool(sharedSize, false, maxLeases),
-			dedicated:  newClusterPool(dedicatedSize, true, maxLeases),
-			eventsFile: eventsFile,
-		}
-	})
-	return testClusterRouter
+	testClusterRouter = &clusterRouter{
+		shared:     newClusterPool(sharedSize, false, maxLeases),
+		dedicated:  newClusterPool(dedicatedSize, true, maxLeases),
+		eventsFile: eventsFile,
+	}
 }
 
 // clusterPool manages a fixed number of test [clusterPoolSlot]s.
@@ -207,11 +201,10 @@ func UseSuiteScopedCluster(t *testing.T) {
 	if t.Name() != rootName {
 		t.Fatalf("UseSuiteScopedCluster must be called from a top-level test, got %q", t.Name())
 	}
-	router := getTestClusterRouter()
-	router.suiteScoped.LoadOrStore(rootName, &suiteScopedCluster{})
+	testClusterRouter.suiteScoped.LoadOrStore(rootName, &suiteScopedCluster{})
 
 	t.Cleanup(func() {
-		suiteClusterAny, ok := router.suiteScoped.Load(rootName)
+		suiteClusterAny, ok := testClusterRouter.suiteScoped.Load(rootName)
 		if ok {
 			suiteCluster := suiteClusterAny.(*suiteScopedCluster)
 			if suiteCluster.cluster != nil {
@@ -220,7 +213,7 @@ func UseSuiteScopedCluster(t *testing.T) {
 				}
 			}
 		}
-		router.suiteScoped.Delete(rootName)
+		testClusterRouter.suiteScoped.Delete(rootName)
 	})
 }
 
@@ -288,14 +281,13 @@ func (r clusterRequest) recordCreation(t *testing.T) {
 		return
 	}
 
-	router := getTestClusterRouter()
-	if router.eventsFile == nil {
+	if testClusterRouter.eventsFile == nil {
 		log.Printf("CLUSTEREVENT %s", line)
 		return
 	}
 	// O_APPEND makes each write land atomically at EOF and os.File serializes
 	// concurrent writes, so lines from parallel tests don't interleave.
-	_, _ = router.eventsFile.Write(append(line, '\n'))
+	_, _ = testClusterRouter.eventsFile.Write(append(line, '\n'))
 }
 
 func (p *clusterRouter) get(t *testing.T, req clusterRequest) (tb *FunctionalTestBase) {

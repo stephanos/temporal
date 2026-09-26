@@ -1,9 +1,0 @@
-{
-  "class": "static-preparation-rejection",
-  "preparation": "rejected",
-  "runCount": 0,
-  "preparationError": {
-    "category": "unsupported",
-    "path": "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.user_metadata"
-  }
-}

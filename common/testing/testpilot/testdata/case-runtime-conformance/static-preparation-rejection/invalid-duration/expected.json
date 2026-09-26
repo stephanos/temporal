@@ -1,9 +1,0 @@
-{
-  "class": "static-preparation-rejection",
-  "preparation": "rejected",
-  "runCount": 0,
-  "preparationError": {
-    "category": "malformed",
-    "path": "program.entrypoints[workflow].instructions[schedule].instruction.workflow_command.command.schedule_nexus_operation_command_attributes.schedule_to_close_timeout"
-  }
-}
