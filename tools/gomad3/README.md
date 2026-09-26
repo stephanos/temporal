@@ -10,11 +10,13 @@ Build the argv-safe CLI and cached toolchain from the repository root:
 make gomad3
 ```
 
-The complete Gomad v3 Runner and deterministic-I/O contract is qualified only
-on `darwin/arm64`. The builder rejects other hosts before starting a toolchain
-build. Runtime source may remain portable to other Unix systems, but those
-systems are not supported Runner platforms until they have their own adapters,
-publication primitives, and complete test gate.
+The complete Gomad v3 Runner and deterministic-I/O contract is qualified on
+`darwin/arm64` and `linux/amd64`, the platforms the boundary manifest names.
+The builder rejects other hosts before starting a toolchain build. Runtime
+source may remain portable to other Unix systems, but those systems are not
+supported Runner platforms until the manifest qualifies them and they have
+their own adapters, publication primitives, and complete test gate. Artifacts
+replay only on the platform that produced them.
 
 Use the CLI directly so every package and target argument crosses exactly one
 argv boundary:
@@ -443,8 +445,13 @@ black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
 adapters, and the Darwin-only DTrace audit. `make validate` rejects an
-unowned script or new Bash/Perl policy. Linux CI exercises the platform-neutral
-host packages, but does not qualify the Gomad runtime on Linux.
+unowned script or new Bash/Perl policy. Linux CI builds the toolchain, runs the
+harness, toolchain, interception, overlay, world, builder, live-capability, and
+upstream tiers as gates, reports the runtime and host tiers without gating, and
+qualifies the core corpus with `core-qualification-set`. The macOS sandbox test
+and the DTrace audit stay darwin-only, and the modernc libc adapter and its
+compatibility packs still admit only `darwin/arm64` facts, so the libc and SQLite
+core workloads carry `linux/amd64` expectations of `unsupported_target`.
 
 To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
 and `deterministicio/boundary/manifest.json`, materialize the old patch against the new pinned
@@ -529,7 +536,7 @@ records. Choice traces and tapes remain explicitly byte-bounded; overflow is a
 Runner failure and cannot claim exact replay.
 
 Deterministic mode supports internally linked pure-Go targets on the qualified
-`darwin/arm64` host. Enabled cgo or externally linked binaries fail before package
+`darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
 initialization. Windows, plugins, foreign threads, the race detector, signals,
 finalizers, and host-dependent network, filesystem, process, and other I/O
 readiness are outside the contract. Launch targets compile with
@@ -560,8 +567,8 @@ those identities.
 
 Compatibility packs use only the strict `gomad3.compatibility-pack/v2`
 contract. Every allowed fact is bound to an exact module, complete compiled Go
-and foreign-source inventories, a package source-set digest, governance, and a
-`darwin/arm64` platform scope. Local module replacements are rejected unless
+and foreign-source inventories, a package source-set digest, governance, and an
+explicit platform scope. Local module replacements are rejected unless
 they are created by a registered deterministic-I/O adapter and carry the exact
 profile, adapter, original/replacement inventory, and prepared source-set
 identities.
