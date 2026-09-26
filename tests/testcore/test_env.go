@@ -37,6 +37,7 @@ import (
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
+	"go.temporal.io/server/temporal"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -289,7 +290,7 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	}
 
 	// Obtain the test cluster from the router.
-	base := getTestClusterRouter().get(t, clusterRequest{
+	base := testClusterRouter.get(t, clusterRequest{
 		dedicated:         options.dedicatedCluster,
 		needWorkerService: options.needWorkerService,
 		dedicatedReason:   options.dedicatedReason,
@@ -419,7 +420,7 @@ func (e *TestEnv) InjectHook(hook testhooks.Hook) (cleanup func()) {
 	case testhooks.ScopeNamespace:
 		scope = e.nsID
 	case testhooks.ScopeGlobal:
-		if e.isShared && !getTestClusterRouter().hasSuiteScoped(e.t) {
+		if e.isShared && !testClusterRouter.hasSuiteScoped(e.t) {
 			e.t.Fatal("InjectHook: global hooks require a dedicated cluster; use testcore.WithDedicatedCluster()")
 		}
 		e.dedicatedGuard.record("global hook injected")

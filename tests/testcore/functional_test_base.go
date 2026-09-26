@@ -45,8 +45,8 @@ import (
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
-	"go.temporal.io/server/components/nexusoperations"
-	"google.golang.org/grpc"
+	"go.temporal.io/server/service/history/hsm/nexusoperations"
+	"go.temporal.io/server/temporal"
 )
 
 type (
@@ -92,20 +92,20 @@ type (
 	}
 	// testClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	testClusterParams struct {
-		DCRedirectionPolicy             config.DCRedirectionPolicy
-		DynamicConfigOverrides          map[dynamicconfig.Key]any
-		ArchivalEnabled                 bool
-		EnableMTLS                      bool
-		EnableWorkerService             bool
-		FaultInjectionConfig            *config.FaultInjection
-		NumHistoryShards                int32
-		Logger                          log.Logger
-		SharedCluster                   bool
-		EnableHistoryTaskRecorder       bool
-		Persistence                     persistencetests.TestBaseOptions
-		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
-		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
-		AdditionalInterceptors          []grpc.UnaryServerInterceptor
+		DCRedirectionPolicy       config.DCRedirectionPolicy
+		DynamicConfigOverrides    map[dynamicconfig.Key]any
+		EnableMTLS                bool
+		EnableWorkerService       bool
+		FaultInjectionConfig      *config.FaultInjection
+		NumHistoryShards          int32
+		Logger                    log.Logger
+		SharedCluster             bool
+		EnableHistoryTaskRecorder bool
+		EnableReplicationRecorder bool
+		EnableArchival            bool
+		SpanExporter              sdktrace.SpanExporter
+		AdditionalServerOptions   []temporal.ServerOption
+		Persistence               persistencetests.TestBaseOptions
 	}
 	TestClusterOption func(params *testClusterParams)
 )
@@ -195,24 +195,6 @@ func WithSharedCluster() TestClusterOption {
 	}
 }
 
-func WithCustomHistoryArchiverFactory(factory provider.CustomHistoryArchiverFactory) TestClusterOption {
-	return func(params *testClusterParams) {
-		params.CustomHistoryArchiverFactory = factory
-	}
-}
-
-func WithCustomVisibilityArchiverFactory(factory provider.CustomVisibilityArchiverFactory) TestClusterOption {
-	return func(params *testClusterParams) {
-		params.CustomVisibilityArchiverFactory = factory
-	}
-}
-
-func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
-	return func(params *testClusterParams) {
-		params.AdditionalInterceptors = append(params.AdditionalInterceptors, interceptors...)
-	}
-}
-
 func (s *FunctionalTestBase) GetTestCluster() *TestCluster {
 	return s.testCluster
 }
@@ -290,7 +272,7 @@ func (s *FunctionalTestBase) TearDownSuite() {
 
 func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption) {
 	// Reserve a slot from the dedicated test cluster pool.
-	getTestClusterRouter().dedicated.reserveSlot(s.T())
+	testClusterRouter.dedicated.reserveSlot(s.T())
 	s.setupCluster(options...)
 	clusterRequest{
 		kind:              clusterKindDedicated,
@@ -321,28 +303,21 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		s.Logger = tl
 	}
 
-	var err error
-
-	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors))
-	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
-
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
 		Persistence:    params.Persistence,
 		HistoryConfig: HistoryConfig{
 			NumHistoryShards: cmp.Or(params.NumHistoryShards, 4),
 		},
-		DCRedirectionPolicy:             params.DCRedirectionPolicy,
-		DynamicConfigOverrides:          params.DynamicConfigOverrides,
-		EnableMetricsCapture:            true,
-		EnableArchival:                  params.ArchivalEnabled,
-		EnableMTLS:                      params.EnableMTLS,
-		EnableHistoryTaskRecorder:       params.EnableHistoryTaskRecorder,
-		Persistence:                     params.Persistence,
-		CustomHistoryArchiverFactory:    params.CustomHistoryArchiverFactory,
-		CustomVisibilityArchiverFactory: params.CustomVisibilityArchiverFactory,
-		AdditionalInterceptors:          additionalInterceptors,
-		WorkerConfig:                    WorkerConfig{DisableWorker: !params.EnableWorkerService},
+		DCRedirectionPolicy:       params.DCRedirectionPolicy,
+		DynamicConfigOverrides:    params.DynamicConfigOverrides,
+		EnableMetricsCapture:      true,
+		EnableMTLS:                params.EnableMTLS,
+		EnableHistoryTaskRecorder: params.EnableHistoryTaskRecorder,
+		EnableReplicationRecorder: params.EnableReplicationRecorder,
+		EnableArchival:            params.EnableArchival,
+		AdditionalServerOptions:   params.AdditionalServerOptions,
+		WorkerConfig:              WorkerConfig{DisableWorker: !params.EnableWorkerService},
 	}
 
 	// Apply configuration for shared clusters.
@@ -361,6 +336,7 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		setSpanExporter(s.testClusterConfig, telemetry.OtelTracesOtlpExporterType, s.otelExporter)
 	}
 
+	var err error
 	testClusterFactory := NewTestClusterFactory()
 	s.testCluster, err = testClusterFactory.NewCluster(s.T(), s.testClusterConfig, s.Logger)
 	s.Require().NoError(err)

@@ -533,7 +533,7 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 			// Flush buffer event before terminating the workflow
 			ms.FlushBufferedEvents()
 
-			event, err := ms.AddWorkflowExecutionTerminatedEvent(
+			_, err := ms.AddWorkflowExecutionTerminatedEvent(
 				wtFailedCause.Message(),
 				nil,
 				consts.IdentityHistoryService,
@@ -542,9 +542,6 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 			)
 			if err != nil {
 				return nil, err
-			}
-			if err := workflow.EmitWorkflowExecutionClosed(ctx, ms.GetWorkflowKey(), event); err != nil {
-				handler.logger.DPanic("Failed to emit workflow close telemetry", tag.Error(err))
 			}
 
 			wtFailedShouldCreateNewTask = false
@@ -702,8 +699,7 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 				return nil, err
 			}
 
-			if err := workflow.TerminateWorkflowWithContext(
-				ctx,
+			if err := workflow.TerminateWorkflow(
 				ms,
 				common.FailureReasonTransactionSizeExceedsLimit,
 				payloads.EncodeString(updateErr.Error()),

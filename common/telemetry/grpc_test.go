@@ -75,35 +75,35 @@ func Test_ServerStatsHandler(t *testing.T) {
 	t.Run("annotate span with workflow tags", func(t *testing.T) {
 		result := makeRequest(nil)
 
-		require.NotContains(t, result.mainSpanAttrs, "temporalWorkflowID")
-		require.NotContains(t, result.mainSpanAttrs, "temporalRunID")
-		require.Equal(t, "WF-ID", result.requestSpanAttrs["temporalWorkflowID"].Value.AsString())
-		require.Equal(t, "RUN-ID", result.requestSpanAttrs["temporalRunID"].Value.AsString())
+		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
+
+		require.Equal(t, "WF-ID", spanAttrsByKey["temporalWorkflowID"].Value.AsString())
+		require.Equal(t, "RUN-ID", spanAttrsByKey["temporalRunID"].Value.AsString())
 
 		// ensure no debug attributes are present
-		require.NotContains(t, result.requestSpanAttrs, "rpc.request.payload")
-		require.NotContains(t, result.mainSpanAttrs, "rpc.response.payload")
+		require.NotContains(t, spanAttrsByKey, "rpc.request.payload")
+		require.NotContains(t, spanAttrsByKey, "rpc.response.payload")
 	})
 
 	t.Run("annotate span with request/response payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		result := makeRequest(nil)
+		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
 
 		require.JSONEq(t,
 			`{"workflowExecution":{"workflowId":"WF-ID","runId":"RUN-ID"}}`,
-			toStr(t, result.requestSpanAttrs["rpc.request.payload"].Value))
-		require.Equal(t, "{}", result.mainSpanAttrs["rpc.response.payload"].Value.AsString())
+			toStr(t, spanAttrsByKey["rpc.request.payload"].Value))
+		require.Equal(t, "{}", spanAttrsByKey["rpc.response.payload"].Value.AsString())
 	})
 
 	t.Run("annotate span with response error payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		result := makeRequest(status.Errorf(codes.Internal, "Something went wrong"))
+		spanAttrsByKey := captureTerminateWorkflowAttributes(t, status.Errorf(codes.Internal, "Something went wrong"))
 
 		require.JSONEq(t,
 			`{"code":13,"message":"Something went wrong"}`,
-			toStr(t, result.mainSpanAttrs["rpc.response.error"].Value))
+			toStr(t, spanAttrsByKey["rpc.response.error"].Value))
 	})
 
 	t.Run("skip if noop trace provider", func(t *testing.T) {
