@@ -95,8 +95,7 @@ func Invoke(
 			)
 
 			if request.GetCause() == enumspb.WORKFLOW_TASK_FAILED_CAUSE_GRPC_MESSAGE_TOO_LARGE {
-				if err := workflow.TerminateWorkflowWithContext(
-					ctx,
+				if err := workflow.TerminateWorkflow(
 					mutableState,
 					request.GetCause().String(),
 					nil,

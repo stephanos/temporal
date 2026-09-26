@@ -1,9 +1,0 @@
-{
-  "class": "static-preparation-rejection",
-  "preparation": "rejected",
-  "runCount": 0,
-  "preparationError": {
-    "category": "unknown",
-    "path": "program.entrypoints[controller].instructions[history].instruction.invoke_rpc.response_reads[0].targets[0].correlated_evidence.rules[0].evidence_id"
-  }
-}

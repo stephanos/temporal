@@ -78,7 +78,7 @@ The assessment that produced this document verified the following on the working
   `GuardImplementationSHA256` in `target/internal/livecap/protocol_generated.go`, digests of the
   gomadcap overlay file that the same pass rewrites, so `validate-toolchain` fails again after
   one `make generate` and passes after a second.
-- Spec [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md) in its first
+- Spec fn-81 in its first
   revision deleted every gomad tree, the functional probe, and its pack. Its 2026-09-08
   amendment retains Gomad v3 and the probe, and deletes gomad, gomad1, and gomad2 together with
   the Gomad v3 parity manifest that read gomad2 source paths.

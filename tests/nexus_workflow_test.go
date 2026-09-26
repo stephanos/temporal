@@ -1627,50 +1627,17 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionBeforeStart(ch
 }
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncFailure(chasmEnabled bool) {
-	testCases := []struct {
-		name            string
-		completionError *nexus.OperationError
-		expectedEvent   enumspb.EventType
-		// Asserted in the workflow: the Go SDK strips the NexusOperationError wrapper when the
-		// returned error wraps a CanceledError.
-		checkWorkflowError func(err error) error
-	}{
-		{
-			name:            "Failed",
-			completionError: nexus.NewOperationFailedErrorf("test operation failed"),
-			expectedEvent:   enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED,
-			checkWorkflowError: func(err error) error {
-				var opErr *temporal.NexusOperationError
-				if !errors.As(err, &opErr) {
-					return fmt.Errorf("expected NexusOperationError, got %w", err)
-				}
-				if _, ok := errors.AsType[*temporal.ApplicationError](opErr); !ok {
-					return fmt.Errorf("expected ApplicationError, got %w", err)
-				}
-				if !strings.Contains(opErr.Error(), "test operation failed") {
-					return fmt.Errorf("expected error to contain %q, got %w", "test operation failed", err)
-				}
-				return nil
-			},
-		},
-		{
-			// A bare failure body carries no CanceledFailureInfo, but must still be recorded as canceled.
-			name: "CanceledBareFailure",
-			completionError: &nexus.OperationError{
-				State: nexus.OperationStateCanceled,
-				Cause: &nexus.FailureError{Failure: nexus.Failure{Message: "operation canceled"}},
-			},
-			expectedEvent: enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED,
-			checkWorkflowError: func(err error) error {
-				var opErr *temporal.NexusOperationError
-				if !errors.As(err, &opErr) {
-					return fmt.Errorf("expected NexusOperationError, got %w", err)
-				}
-				if _, ok := errors.AsType[*temporal.CanceledError](opErr); !ok {
-					return fmt.Errorf("expected CanceledError, got %w", err)
-				}
-				return nil
-			},
+	env := s.newTestEnv(chasmEnabled)
+	ctx := s.Context()
+	taskQueue := testcore.RandomizeStr(s.T().Name())
+
+	var callbackToken, publicCallbackURL string
+
+	h := nexustest.Handler{
+		OnStartOperation: func(ctx context.Context, service, operation string, input *nexus.LazyValue, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[any], error) {
+			callbackToken = options.CallbackHeader.Get(commonnexus.CallbackTokenHeader)
+			publicCallbackURL = options.CallbackURL
+			return &nexus.HandlerStartOperationResultAsync{OperationToken: "test"}, nil
 		},
 	}
 
@@ -2718,10 +2685,6 @@ func (s *NexusWorkflowTestSuite) TestNexusAsyncOperationErrorRehydration(chasmEn
 }
 
 func (s *NexusWorkflowTestSuite) TestNexusCallbackAfterCallerComplete(chasmEnabled bool) {
-	if chasmEnabled {
-		s.T().Skip("Blocked on CHASM Nexus callback failure handling after caller completion")
-	}
-
 	env := s.newTestEnv(chasmEnabled)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()

@@ -1,9 +1,0 @@
-import Umpire.Evidence.Tests.Compilation
-import Umpire.Evidence.Tests.Structure
-import Umpire.Evidence.Tests.Evaluation
-import Umpire.Evidence.Tests.EvidenceSupport
-import Umpire.Evidence.Tests.Disposition
-import Umpire.Evidence.Tests.PropertyStatus
-import Umpire.Evidence.Tests.Aggregation
-import Umpire.Evidence.Tests.Mutations
-import Umpire.Evidence.Tests.Check

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"go.opentelemetry.io/otel/trace"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -29,7 +28,7 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/persistence"
-	"go.temporal.io/server/common/telemetry"
+	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/service/history/api/updateworkflowoptions"
 	"go.temporal.io/server/service/history/consts"
 	"go.temporal.io/server/service/history/hsm"
@@ -283,20 +282,6 @@ func (r *workflowResetterImpl) ResetWorkflow(
 	); err != nil {
 		return err
 	}
-
-	// Emit an OTEL span event for the reset (forked) run's start, carrying its lineage — the base
-	// run it forked from and the chain root — so a trace consumer can link it to its predecessor.
-	resetKey := resetMS.GetWorkflowKey()
-	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionStarted,
-		trace.WithAttributes(
-			telemetry.AttrWorkflowID.String(resetKey.WorkflowID),
-			telemetry.AttrRunID.String(resetKey.RunID),
-			telemetry.AttrNamespaceID.String(resetKey.NamespaceID),
-			telemetry.AttrFirstRunID.String(resetMS.GetExecutionInfo().GetFirstExecutionRunId()),
-			telemetry.AttrPreviousRunID.String(baseRunID),
-			telemetry.AttrRunInitiator.String(telemetry.RunInitiatorReset),
-		),
-	)
 
 	if !currentExecutionMissing {
 		currentWorkflow.GetContext().UpdateRegistry(ctx).Abort(update.AbortReasonWorkflowCompleted)
@@ -1099,8 +1084,7 @@ func reapplyEvents(
 			if attr.GetIdentity() == consts.IdentityHistoryService || attr.GetIdentity() == consts.IdentityResetter {
 				continue
 			}
-			if err := workflow.TerminateWorkflowWithContext(
-				ctx,
+			if err := workflow.TerminateWorkflow(
 				mutableState,
 				attr.GetReason(),
 				attr.GetDetails(),

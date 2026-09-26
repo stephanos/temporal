@@ -163,7 +163,6 @@ type (
 		httpEnabled                     bool
 		registry                        *chasm.Registry
 		workerDeploymentReadRateLimiter quotas.RequestRateLimiter
-		hostInfoProvider                membership.HostInfoProvider
 	}
 )
 
@@ -336,7 +335,6 @@ func NewWorkflowHandler(
 	healthServer *health.Server,
 	timeSource clock.TimeSource,
 	membershipMonitor membership.Monitor,
-	hostInfoProvider membership.HostInfoProvider,
 	healthInterceptor *interceptor.HealthInterceptor,
 	scheduleSpecBuilder *scheduler.SpecBuilder,
 	httpEnabled bool,
@@ -384,7 +382,6 @@ func NewWorkflowHandler(
 		workerDeploymentClient:          workerDeploymentClient,
 		schedulerClient:                 schedulerClient,
 		archiverProvider:                archiverProvider,
-		hostInfoProvider:                hostInfoProvider,
 		payloadSerializer:               payloadSerializer,
 		namespaceRegistry:               namespaceRegistry,
 		saProvider:                      saProvider,
@@ -453,10 +450,6 @@ func (wh *WorkflowHandler) Stop() {
 		wh.healthServer.SetServingStatus(WorkflowServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
 		wh.healthInterceptor.SetHealthy(false)
 	}
-}
-
-func (wh *WorkflowHandler) Identity() string {
-	return wh.hostInfoProvider.HostInfo().Identity()
 }
 
 // GetConfig return config

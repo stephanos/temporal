@@ -10,7 +10,6 @@ type (
 	settingType struct {
 		Name      string
 		GoType    string
-		Codec     string
 		IsGeneric bool
 	}
 	settingPrecedence struct {
@@ -34,32 +33,26 @@ var (
 			{
 				Name:   "Bool",
 				GoType: "bool",
-				Codec:  "Bool",
 			},
 			{
 				Name:   "Int",
 				GoType: "int",
-				Codec:  "Int",
 			},
 			{
 				Name:   "Float",
 				GoType: "float64",
-				Codec:  "Float",
 			},
 			{
 				Name:   "String",
 				GoType: "string",
-				Codec:  "String",
 			},
 			{
 				Name:   "Duration",
 				GoType: "time.Duration",
-				Codec:  "Duration",
 			},
 			{
 				Name:   "Map",
 				GoType: "map[string]any",
-				Codec:  "Map",
 			},
 			{
 				Name:      "Typed",

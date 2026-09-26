@@ -1,7 +1,6 @@
 .tmp/
 .bin/
 .stamp/
-.gomad/
 
 .idea/
 .vscode/settings.json
@@ -10,22 +9,6 @@
 .DS_Store
 .coverage
 .testoutput
-testdata/
-!/model/Temporal/Feature/Nexus/Experimental/testdata/
-!/tools/umpire/testdata/
-!/tools/umpire/testdata/**
-!/tools/umpire/**/testdata/
-!/tools/umpire/**/testdata/**
-!/tools/canary/**/testdata/
-!/tools/canary/**/testdata/**
-!/common/testing/testpilot/testdata/
-!/common/testing/testpilot/testdata/**
-!/tests/testcore/testpilot/testdata/
-!/tests/testcore/testpilot/testdata/**
-!/cmd/tools/genleanmodeldescriptors/testdata/
-!/cmd/tools/genleanmodeldescriptors/testdata/**
-!/cmd/tools/genleandynamicconfig/testdata/
-!/cmd/tools/genleandynamicconfig/testdata/**
 
 *.out
 *.test
@@ -52,10 +35,6 @@ testdata/
 # Goreleaser
 /dist
 
-# Lake build output for the offline Lean model
-/model/.lake/
-/tools/common/formal/.lake/
-
 # direnv
 .envrc
 
@@ -70,12 +49,5 @@ testdata/
 # Ignoring AI agent files
 .agents/
 
-# Locally built Umpire tool binaries; `go build ./tools/umpire/cmd/<name>` drops them here.
-/umpire-*
-
-# Locally built tool binaries
-/.build/
-
-# Temp helper the Lean dynamic-config catalog generator writes beside its own source and deletes
-# (os.CreateTemp, so the name carries a random suffix); a run that overlaps a commit must not add it.
-tools/umpire/cmd/*/zz_*_helper_*.go
+# Gomad v3 campaign store
+.gomad/
