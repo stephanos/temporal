@@ -6,15 +6,8 @@
 
 package gomadintercept
 
-const boundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-const boundaryManifestSHA256 = "sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904"
-
-func qualifiedPlatform(goos, goarch string) bool {
-	if goos == "darwin" && goarch == "arm64" {
-		return true
-	}
-	return false
-}
+const boundaryManifestVersion = "go1.26.4-v2"
+const boundaryManifestSHA256 = "sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63"
 
 var specs = []spec{
 	{PackagePath: "os", Function: "OpenFile", Hook: "gomadInterceptOpenFile", DeclarationSHA256: "sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522", ProbeID: 7387584446895609212},
@@ -53,7 +46,7 @@ var specs = []spec{
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Stat", Hook: "gomadInterceptFileStat", DeclarationSHA256: "sha256:caada573fd120b1bc957728ddf30e6d212ded504285bc1f97d710f2c7229e46d", ProbeID: 6262700350578749255},
 	{PackagePath: "os", Function: "Hostname", Hook: "gomadInterceptHostname", DeclarationSHA256: "sha256:47f4da83b24a9d14d6f1bd417947bcea899efac8dbb3fa990d63937417de6a65", ProbeID: 3154121086094955465},
 	{PackagePath: "os", Function: "NewFile", Hook: "gomadInterceptNewFile", DeclarationSHA256: "sha256:65ada9292712ade0ad2bd256287e6d725ca68c05e93f482e083ace1ae472d1ac", ProbeID: 2875164590099884048},
-	{PackagePath: "os", Function: "Pipe", Hook: "gomadInterceptPipe", DeclarationSHA256: "sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141", ProbeID: 6970204907358903689},
+	{PackagePath: "os", Function: "Pipe", Hook: "gomadInterceptPipe", DeclarationSHA256: "sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141", PlatformDeclarationSHA256: map[string]string{"linux/amd64": "sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d"}, ProbeID: 6970204907358903689},
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Fd", Hook: "gomadInterceptFileFd", DeclarationSHA256: "sha256:5b25898f2677f6f1b4f8eb8a47705d03a3d80521ac276c85e3482f046c90541b", ProbeID: 2745196243836079444},
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "SyscallConn", Hook: "gomadInterceptFileSyscallConn", DeclarationSHA256: "sha256:8067ea105ce53643b11e30a39a0e8c6eedd5278aba0e3bad2cbdd074b1d9ac5b", ProbeID: 8931524285908319323},
 	{PackagePath: "os/user", Function: "Current", Hook: "gomadInterceptCurrent", DeclarationSHA256: "sha256:f3c7e0772bbfb77c1817e56527ea1b230a7a8dd3f748e546cc9c17bcc700cf7e", ProbeID: 2990000456060841660},

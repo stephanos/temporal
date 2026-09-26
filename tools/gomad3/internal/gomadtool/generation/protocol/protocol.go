@@ -193,6 +193,7 @@ type liveCapabilityTemplateData struct {
 	UniverseDigest            string
 	BoundaryManifestDigest    string
 	Boundaries                []liveCapabilityBoundary
+	Platforms                 []string
 }
 
 type simulationModelSchema struct {
@@ -408,6 +409,10 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 	if err != nil {
 		return err
 	}
+	platforms, err := boundary.Platforms(root)
+	if err != nil {
+		return err
+	}
 	universeDigest, err := liveCapabilityUniverseIdentity(definition, boundaryDigest)
 	if err != nil {
 		return err
@@ -432,7 +437,7 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 	for _, target := range outputs {
 		generated, generateErr := generate(filepath.Join(root, "target", "internal", "livecap", target.Template), liveCapabilityTemplateData{
 			Package: target.Package, Schema: definition, ImplementationDigest: implementationDigest, GuardImplementationDigest: implementationDigest,
-			UniverseDigest: universeDigest, BoundaryManifestDigest: boundaryDigest, Boundaries: boundaries,
+			UniverseDigest: universeDigest, BoundaryManifestDigest: boundaryDigest, Boundaries: boundaries, Platforms: platforms,
 		})
 		if generateErr != nil {
 			return generateErr

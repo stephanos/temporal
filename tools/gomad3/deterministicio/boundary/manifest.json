@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
-  "manifest_version": "go1.26.4-darwin-arm64-v1",
+  "manifest_version": "go1.26.4-v2",
   "go_version": "go1.26.4",
   "platforms": [
-    "darwin/arm64"
+    "darwin/arm64",
+    "linux/amd64"
   ],
   "hook_policies": [
     {
@@ -915,6 +916,12 @@
       "signature": "func() (r *File, w *File, err error)",
       "source": "os/pipe_unix.go",
       "declaration_sha256": "sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141",
+      "platform_overrides": {
+        "linux/amd64": {
+          "source": "os/pipe2_unix.go",
+          "declaration_sha256": "sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d"
+        }
+      },
       "package_sha256": "sha256:f3919bd2e90d342f0528ec9032dacf27cd1d6cba49b25c6bf7bf9b6dff7c7a5d",
       "operation": "filesystem.pipe",
       "probe": "stdlib.os.pipe",

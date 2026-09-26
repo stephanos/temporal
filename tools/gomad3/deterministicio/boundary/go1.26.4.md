@@ -1,6 +1,6 @@
-# Gomad deterministic boundary: go1.26.4-darwin-arm64-v1
+# Gomad deterministic boundary: go1.26.4-v2
 
-Generated from [`manifest.json`](manifest.json) for Go go1.26.4 on darwin/arm64. Manifest identity: `sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904`. Do not edit this inventory directly.
+Generated from [`manifest.json`](manifest.json) for Go go1.26.4 on darwin/arm64, linux/amd64. Manifest identity: `sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63`. Do not edit this inventory directly.
 
 | Target | Signature | Operation | Probe | Disposition | Hook | Hook policy | Adapters | Conformance | Negative | Escape |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Generated from [`manifest.json`](manifest.json) for Go go1.26.4 on darwin/arm64.
 | os.(*File).Stat | func() (FileInfo, error) | filesystem.stat | stdlib.os.file.stat | model | gomadInterceptFileStat |  | internal/gomadfs<br>internal/gomadio/mount | runner/internal/execution.TestProfileFilesystemStaysInMemory |  |  |
 | os.Hostname | func() (name string, err error) | host.hostname | stdlib.os.hostname | model | gomadInterceptHostname |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory |  |  |
 | os.NewFile | func(fd uintptr, name string) *File | world.transport-or-deny-raw-descriptor | stdlib.os.newfile | model | gomadInterceptNewFile |  | overlay/os<br>world/process | runner/internal/execution.TestProfileFilesystemStaysInMemory<br>runner/internal/execution.TestRunCapturesWorldRecordFromExecutingChild | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |
-| os.Pipe | func() (r *File, w *File, err error) | filesystem.pipe | stdlib.os.pipe | deny | gomadInterceptPipe |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |
+| os.Pipe<br>linux/amd64: os/pipe2_unix.go | func() (r *File, w *File, err error) | filesystem.pipe | stdlib.os.pipe | deny | gomadInterceptPipe |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |
 | os.(*File).Fd | func() uintptr | filesystem.raw-descriptor | stdlib.os.file.fd | deny | gomadInterceptFileFd |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |
 | os.(*File).SyscallConn | func() (syscall.RawConn, error) | filesystem.raw-connection | stdlib.os.file.syscallconn | deny | gomadInterceptFileSyscallConn |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |
 | os/user.Current | func() (*User, error) | user.current | stdlib.osuser.current | model | gomadInterceptCurrent |  | internal/gomadio | runner/internal/execution.TestProfilePassesHostCapabilitySandbox |  |  |

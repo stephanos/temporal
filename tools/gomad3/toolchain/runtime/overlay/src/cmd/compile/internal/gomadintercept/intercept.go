@@ -21,6 +21,7 @@ import (
 	"cmd/compile/internal/ir"
 	"cmd/compile/internal/typecheck"
 	"cmd/compile/internal/types"
+	"cmd/internal/gomadcap"
 	"internal/buildcfg"
 )
 
@@ -35,7 +36,10 @@ type spec struct {
 	Function          string
 	Hook              string
 	DeclarationSHA256 string
-	ProbeID           uint64
+	// PlatformDeclarationSHA256 holds the fingerprint for platforms whose
+	// standard library selects a different declaration, keyed by GOOS/GOARCH.
+	PlatformDeclarationSHA256 map[string]string
+	ProbeID                   uint64
 }
 
 type interception struct {
@@ -47,7 +51,7 @@ type interception struct {
 
 // Apply installs all interceptions selected for the package.
 func Apply(pkg *ir.Package) {
-	if !qualifiedPlatform(buildcfg.GOOS, buildcfg.GOARCH) {
+	if !gomadcap.QualifiedPlatform(buildcfg.GOOS, buildcfg.GOARCH) {
 		return
 	}
 	var selected []spec
@@ -130,7 +134,11 @@ func Apply(pkg *ir.Package) {
 }
 
 func validateDeclarationFingerprint(target *ir.Func, candidate spec) error {
-	if candidate.DeclarationSHA256 == "" {
+	want := candidate.DeclarationSHA256
+	if override, found := candidate.PlatformDeclarationSHA256[buildcfg.GOOS+"/"+buildcfg.GOARCH]; found {
+		want = override
+	}
+	if want == "" {
 		return nil
 	}
 	position := base.Ctxt.OutermostPos(target.Pos())
@@ -181,8 +189,8 @@ func validateDeclarationFingerprint(target *ir.Func, candidate spec) error {
 	}
 	digest := sha256.Sum256(declaration.Bytes())
 	actual := fmt.Sprintf("sha256:%x", digest)
-	if actual != candidate.DeclarationSHA256 {
-		return fmt.Errorf("got %s, want %s", actual, candidate.DeclarationSHA256)
+	if actual != want {
+		return fmt.Errorf("got %s, want %s", actual, want)
 	}
 	return nil
 }

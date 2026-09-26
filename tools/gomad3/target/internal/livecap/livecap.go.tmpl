@@ -36,6 +36,23 @@ const (
 
 var HeaderMagic = [16]byte{ {{bytes .Schema.Header.Magic}} }
 
+// QualifiedPlatforms lists the GOOS/GOARCH pairs the boundary manifest qualifies.
+var QualifiedPlatforms = []string{
+	{{- range .Platforms}}
+	{{printf "%q" .}},
+	{{- end}}
+}
+
+func QualifiedPlatform(goos, goarch string) bool {
+	platform := goos + "/" + goarch
+	for _, candidate := range QualifiedPlatforms {
+		if candidate == platform {
+			return true
+		}
+	}
+	return false
+}
+
 type Limits struct {
 	Facts uint64 `json:"facts"`
 	OwnerFacts uint64 `json:"owner_facts"`

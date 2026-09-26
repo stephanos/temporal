@@ -3,6 +3,7 @@ package boundary
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -35,8 +36,8 @@ func TestGenerateWritesAndChecksAllArtifacts(t *testing.T) {
 			if !strings.Contains(string(contents), "ProbeID:") {
 				t.Fatalf("generated compiler spec has no semantic probe")
 			}
-			if !strings.Contains(string(contents), "func qualifiedPlatform") || !strings.Contains(string(contents), `goos == "darwin" && goarch == "arm64"`) {
-				t.Fatalf("generated compiler spec has no qualified platform guard")
+			if strings.Contains(string(contents), "func qualifiedPlatform") {
+				t.Fatalf("generated compiler spec duplicates the platform guard that cmd/internal/gomadcap generates")
 			}
 		}
 		if relative == "deterministicio/boundary_generated.go" && !strings.Contains(string(contents), "generatedBoundaryProbes") {
@@ -323,12 +324,12 @@ func TestValidateDelegateReachabilityRejectsBypassedBoundary(t *testing.T) {
 
 func TestQualifyChecksPinnedStandardLibrarySignatures(t *testing.T) {
 	root := t.TempDir()
-	writeTestManifest(t, root, validManifest)
+	writeTestManifest(t, root, hostQualifiedManifest(validManifest))
 	if err := Qualify(root); err != nil {
 		t.Fatal(err)
 	}
 
-	invalid := strings.Replace(validManifest,
+	invalid := strings.Replace(hostQualifiedManifest(validManifest),
 		`func(name string, flag int, perm FileMode) (*File, error)`,
 		`func(name string) (*File, error)`, 1)
 	writeTestManifest(t, root, invalid)
@@ -336,7 +337,7 @@ func TestQualifyChecksPinnedStandardLibrarySignatures(t *testing.T) {
 		t.Fatalf("Qualify() error = %v", err)
 	}
 
-	stale := strings.Replace(validManifest,
+	stale := strings.Replace(hostQualifiedManifest(validManifest),
 		`sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522`,
 		`sha256:0000000000000000000000000000000000000000000000000000000000000000`, 1)
 	writeTestManifest(t, root, stale)
@@ -347,7 +348,7 @@ func TestQualifyChecksPinnedStandardLibrarySignatures(t *testing.T) {
 
 func TestRefreshFingerprintsRepairsMissingSourceIdentity(t *testing.T) {
 	root := t.TempDir()
-	incomplete := strings.Replace(validManifest,
+	incomplete := strings.Replace(hostQualifiedManifest(validManifest),
 		`"source": "os/file.go",`,
 		`"source": "",`, 1)
 	writeTestManifest(t, root, incomplete)
@@ -357,6 +358,16 @@ func TestRefreshFingerprintsRepairsMissingSourceIdentity(t *testing.T) {
 	if err := Qualify(root); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// hostQualifiedManifest declares the test host as a qualified platform so
+// Qualify, which checks the host standard library, can run anywhere.
+func hostQualifiedManifest(contents string) string {
+	host := runtime.GOOS + "/" + runtime.GOARCH
+	if host == "darwin/arm64" {
+		return contents
+	}
+	return strings.Replace(contents, `"platforms": ["darwin/arm64"]`, `"platforms": ["darwin/arm64", "`+host+`"]`, 1)
 }
 
 func writeTestManifest(t *testing.T, root, contents string) {
@@ -421,3 +432,46 @@ const validCompilerTestManifest = `{
   ]
 }
 `
+
+func TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity(t *testing.T) {
+	root := t.TempDir()
+	multiPlatform := strings.Replace(validManifest, `"platforms": ["darwin/arm64"]`, `"platforms": ["darwin/arm64", "linux/amd64"]`, 1)
+	multiPlatform = strings.Replace(multiPlatform, `"escape_fixtures": ["testdata/io_filesystem.host-escape"]`,
+		`"escape_fixtures": ["testdata/io_filesystem.host-escape"],
+  "platform_overrides": {"linux/amd64": {"source": "os/file_linux.go", "declaration_sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111"}}`, 1)
+	writeTestManifest(t, root, multiPlatform)
+	if err := Generate(root, false); err != nil {
+		t.Fatal(err)
+	}
+	spec, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(spec), `PlatformDeclarationSHA256: map[string]string{"linux/amd64": "sha256:1111111111111111111111111111111111111111111111111111111111111111"}`) {
+		t.Fatalf("generated compiler spec lacks the platform override:\n%s", spec)
+	}
+	identity, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("deterministicio/boundary_generated.go")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(identity), `generatedBoundaryPlatforms = []string{"darwin/arm64", "linux/amd64"}`) {
+		t.Fatalf("generated host identity lacks the platform list:\n%s", identity)
+	}
+	if _, err := os.Stat(filepath.Join(root, filepath.FromSlash("deterministicio/boundary/go1.26.4-darwin-arm64.md"))); err != nil {
+		t.Fatal(err)
+	}
+	for name, contents := range map[string]string{
+		"undeclared platform": strings.Replace(multiPlatform, `"platform_overrides": {"linux/amd64"`, `"platform_overrides": {"linux/arm64"`, 1),
+		"primary platform":    strings.Replace(multiPlatform, `"platform_overrides": {"linux/amd64"`, `"platform_overrides": {"darwin/arm64"`, 1),
+		"foreign source":      strings.Replace(multiPlatform, `"source": "os/file_linux.go"`, `"source": "net/file_linux.go"`, 1),
+		"bad fingerprint":     strings.Replace(multiPlatform, `"declaration_sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111"}}`, `"declaration_sha256": "sha256:1"}}`, 1),
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			writeTestManifest(t, root, contents)
+			if _, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json")); err == nil {
+				t.Fatal("load() accepted an invalid platform override")
+			}
+		})
+	}
+}

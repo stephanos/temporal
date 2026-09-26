@@ -10,9 +10,9 @@ type AdapterIdentity struct {
 
 const (
 	GoVersion               = "go1.26.4"
-	BoundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
+	BoundaryManifestVersion = "go1.26.4-v2"
 )
 
-var SupportedPlatforms = [...]string{"darwin/arm64"}
+var SupportedPlatforms = [...]string{"darwin/arm64", "linux/amd64"}
 
 var Adapters = [...]AdapterIdentity{{Module: "golang.org/x/net", Version: "v0.57.0", Sum: "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="}, {Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, {Module: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}}

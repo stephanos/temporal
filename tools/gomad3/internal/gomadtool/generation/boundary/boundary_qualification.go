@@ -14,6 +14,7 @@ import (
 	"go/types"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 
@@ -39,6 +40,10 @@ func Qualify(root string) error {
 	definition, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
 	if err != nil {
 		return err
+	}
+	host := runtime.GOOS + "/" + runtime.GOARCH
+	if !slices.Contains(definition.Platforms, host) {
+		return fmt.Errorf("boundary qualification requires one of %s; host is %s", strings.Join(definition.Platforms, ", "), host)
 	}
 	typedPackages := make(map[string]*types.Package)
 	sourcePackages := make(map[string]sourcePackage)
@@ -67,7 +72,7 @@ func Qualify(root string) error {
 		}
 		sourcePkg, found := sourcePackages[entry.Package]
 		if !found {
-			sourcePkg, err = loadSourcePackage(entry.Package)
+			sourcePkg, err = loadSourcePackage(host, entry.Package)
 			if err != nil {
 				return err
 			}
@@ -77,7 +82,14 @@ func Qualify(root string) error {
 		if fingerprintErr != nil {
 			return fingerprintErr
 		}
-		if fingerprint.source != entry.Source || fingerprint.declarationSHA256 != entry.DeclarationSHA256 || fingerprint.packageSHA256 != entry.PackageSHA256 {
+		// The package fingerprint identifies the primary platform's file set; other
+		// platforms are bound by the declaration they compile.
+		wantSource, wantDeclaration := entry.Source, entry.DeclarationSHA256
+		if override, found := entry.PlatformOverrides[host]; found {
+			wantSource, wantDeclaration = override.Source, override.DeclarationSHA256
+		}
+		primary := host == definition.Platforms[0]
+		if fingerprint.source != wantSource || fingerprint.declarationSHA256 != wantDeclaration || primary && fingerprint.packageSHA256 != entry.PackageSHA256 {
 			return fmt.Errorf("boundary source fingerprint mismatch for %s.%s: run gomadtool boundary-generate -refresh", entry.Package, targetName(entry.Receiver, entry.Symbol))
 		}
 	}
@@ -103,22 +115,40 @@ func RefreshFingerprints(root string) error {
 		return err
 	}
 	packages := make(map[string]sourcePackage)
-	for index, entry := range definition.Intercepts {
-		pkg, found := packages[entry.Package]
+	fingerprintFor := func(platform string, entry intercept) (sourceFingerprint, error) {
+		key := platform + " " + entry.Package
+		pkg, found := packages[key]
 		if !found {
-			pkg, err = loadSourcePackage(entry.Package)
+			pkg, err = loadSourcePackage(platform, entry.Package)
 			if err != nil {
-				return err
+				return sourceFingerprint{}, err
 			}
-			packages[entry.Package] = pkg
+			packages[key] = pkg
 		}
-		fingerprint, fingerprintErr := pkg.fingerprint(entry)
+		return pkg.fingerprint(entry)
+	}
+	for index, entry := range definition.Intercepts {
+		fingerprint, fingerprintErr := fingerprintFor(definition.Platforms[0], entry)
 		if fingerprintErr != nil {
 			return fingerprintErr
 		}
 		definition.Intercepts[index].Source = fingerprint.source
 		definition.Intercepts[index].DeclarationSHA256 = fingerprint.declarationSHA256
 		definition.Intercepts[index].PackageSHA256 = fingerprint.packageSHA256
+		definition.Intercepts[index].PlatformOverrides = nil
+		for _, platform := range definition.Platforms[1:] {
+			other, otherErr := fingerprintFor(platform, entry)
+			if otherErr != nil {
+				return otherErr
+			}
+			if other.declarationSHA256 == fingerprint.declarationSHA256 {
+				continue
+			}
+			if definition.Intercepts[index].PlatformOverrides == nil {
+				definition.Intercepts[index].PlatformOverrides = make(map[string]platformOverride)
+			}
+			definition.Intercepts[index].PlatformOverrides[platform] = platformOverride{Source: other.source, DeclarationSHA256: other.declarationSHA256}
+		}
 	}
 	encoded, err := json.MarshalIndent(definition, "", "  ")
 	if err != nil {
@@ -152,9 +182,14 @@ func lookupFunction(pkg *types.Package, entry intercept) (*types.Func, error) {
 	return function, nil
 }
 
-func loadSourcePackage(packagePath string) (sourcePackage, error) {
+func loadSourcePackage(platform, packagePath string) (sourcePackage, error) {
 	context := build.Default
 	context.CgoEnabled = false
+	goos, goarch, ok := strings.Cut(platform, "/")
+	if !ok {
+		return sourcePackage{}, fmt.Errorf("boundary platform is invalid: %q", platform)
+	}
+	context.GOOS, context.GOARCH = goos, goarch
 	description, err := context.Import(packagePath, "", 0)
 	if err != nil {
 		return sourcePackage{}, fmt.Errorf("locate boundary package %s: %w", packagePath, err)

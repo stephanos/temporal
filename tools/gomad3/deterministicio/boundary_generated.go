@@ -3,12 +3,12 @@
 package deterministicio
 
 const (
-	generatedBoundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-	generatedBoundaryManifestSHA256  = "sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904"
+	generatedBoundaryManifestVersion = "go1.26.4-v2"
+	generatedBoundaryManifestSHA256  = "sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63"
 	generatedBoundaryGoVersion       = "go1.26.4"
-	generatedBoundaryGOOS            = "darwin"
-	generatedBoundaryGOARCH          = "arm64"
 )
+
+var generatedBoundaryPlatforms = []string{"darwin/arm64", "linux/amd64"}
 
 var generatedBoundaryProbes = []struct {
 	ID   uint64
