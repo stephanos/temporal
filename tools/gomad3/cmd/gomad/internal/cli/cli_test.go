@@ -48,7 +48,7 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 	dependencies := qualifySetDependencies{
 		executable: func() (string, error) { return "/bin/gomad", nil },
 		load: func(string) (qualificationset.Manifest, error) {
-			return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Workloads: []qualificationset.Workload{{}}}, nil
+			return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Workload{{}}}, nil
 		},
 		run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
 			observed = config

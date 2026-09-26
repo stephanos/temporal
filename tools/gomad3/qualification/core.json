@@ -1,16 +1,16 @@
 {
-  "schema": "gomad3.qualification-set/v1",
+  "schema": "gomad3.qualification-set/v3",
   "name": "gomad3-core",
   "description": "Fast application-neutral Gomad v3 mechanism qualification",
   "module": "gomad3.core.corpus",
   "seeds": [17],
   "repeat": 2,
-  "execution_timeout": "2m",
+  "run_timeout": "2m",
   "overall_timeout": "5m",
   "terminate_grace": "2s",
   "output_bytes": 8388608,
   "world_transition_bytes": 67108864,
-  "workloads": [
+  "suites": [
     {
       "id": "concurrency-state-invariant",
       "name": "Concurrency state invariant",

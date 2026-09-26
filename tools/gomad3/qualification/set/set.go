@@ -25,7 +25,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
-const ManifestSchema = "gomad3.qualification-set/v1"
+const ManifestSchema = "gomad3.qualification-set/v3"
 const ReportSchema = "gomad3.qualification-set-report/v1"
 
 const maximumCommandOutputBytes = 64 << 20
@@ -39,12 +39,12 @@ type Manifest struct {
 	Module               string     `json:"module"`
 	Seeds                []uint64   `json:"seeds"`
 	Repeat               uint64     `json:"repeat"`
-	ExecutionTimeout     string     `json:"execution_timeout"`
+	RunTimeout           string     `json:"run_timeout"`
 	OverallTimeout       string     `json:"overall_timeout"`
 	TerminateGrace       string     `json:"terminate_grace"`
 	OutputBytes          uint64     `json:"output_bytes"`
 	WorldTransitionBytes uint64     `json:"world_transition_bytes"`
-	Workloads            []Workload `json:"workloads"`
+	Suites               []Workload `json:"suites"`
 	Seed                 uint64     `json:"-"`
 }
 
@@ -286,22 +286,22 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		Schema: ReportSchema, Name: manifest.Name, Description: manifest.Description,
 		ManifestSHA256: record.HashBytes(manifestBytes), Module: moduleIdentity,
 		Dimensions: EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
-		Selected:   uint64(len(manifest.Workloads)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
-		Workloads: make([]WorkloadReport, len(manifest.Workloads)),
+		Selected:   uint64(len(manifest.Suites)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
+		Workloads: make([]WorkloadReport, len(manifest.Suites)),
 	}
 	for index, seed := range manifest.Seeds {
 		report.Seeds[index] = record.Uint64String(seed)
 	}
-	for index, workload := range manifest.Workloads {
+	for index, workload := range manifest.Suites {
 		report.Workloads[index] = WorkloadReport{
 			ID: workload.ID, Name: workload.Name, Tier: workload.Tier, Invariant: workload.Invariant,
 			Expected: workload.Expectation, Seeds: []SeedReport{}, Blockers: []capabilityanalysis.Blocker{},
 			Choice: emptyChoiceCoverage(), CapabilityMode: workload.CapabilityMode,
 		}
 	}
-	failed := make([]string, 0, len(manifest.Workloads))
+	failed := make([]string, 0, len(manifest.Suites))
 	analysisFailed := false
-	for index, workload := range manifest.Workloads {
+	for index, workload := range manifest.Suites {
 		workloadReport := report.Workloads[index]
 		if err := ctx.Err(); err != nil {
 			workloadReport.AnalysisError = contextClassification(err)
@@ -357,7 +357,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		}
 	}
 	if !analysisFailed {
-		for index, workload := range manifest.Workloads {
+		for index, workload := range manifest.Suites {
 			if report.Workloads[index].Analysis == nil || report.Workloads[index].Analysis.Classification == capabilityanalysis.ClassificationUnsupported {
 				continue
 			}
@@ -476,7 +476,7 @@ func OpenReport(path string) (Report, error) {
 }
 
 func validateManifest(manifest Manifest) error {
-	if manifest.Schema != ManifestSchema || !setNamePattern.MatchString(manifest.Name) || manifest.Repeat < 2 || manifest.Repeat > 32 || len(manifest.Seeds) == 0 || len(manifest.Seeds) > 32 || len(manifest.Workloads) == 0 || len(manifest.Workloads) > 64 || manifest.OutputBytes == 0 || manifest.WorldTransitionBytes == 0 {
+	if manifest.Schema != ManifestSchema || !setNamePattern.MatchString(manifest.Name) || manifest.Repeat < 2 || manifest.Repeat > 32 || len(manifest.Seeds) == 0 || len(manifest.Seeds) > 32 || len(manifest.Suites) == 0 || len(manifest.Suites) > 64 || manifest.OutputBytes == 0 || manifest.WorldTransitionBytes == 0 {
 		return errors.New("qualification set manifest identity or bounds are invalid")
 	}
 	if strings.TrimSpace(manifest.Description) == "" || strings.TrimSpace(manifest.Module) == "" || strings.ContainsAny(manifest.Module, "\x00\n\r\t ") {
@@ -487,7 +487,7 @@ func validateManifest(manifest Manifest) error {
 			return errors.New("qualification set seeds must be sorted and unique")
 		}
 	}
-	runTimeout, err := time.ParseDuration(manifest.ExecutionTimeout)
+	runTimeout, err := time.ParseDuration(manifest.RunTimeout)
 	if err != nil || runTimeout <= 0 {
 		return errors.Join(errors.New("qualification set execution timeout is invalid"), err)
 	}
@@ -499,8 +499,8 @@ func validateManifest(manifest Manifest) error {
 	if err != nil || grace < 0 || grace > runTimeout || grace > overallTimeout {
 		return errors.Join(errors.New("qualification set termination grace is invalid"), err)
 	}
-	seen := make(map[string]struct{}, len(manifest.Workloads))
-	for index, workload := range manifest.Workloads {
+	seen := make(map[string]struct{}, len(manifest.Suites))
+	for index, workload := range manifest.Suites {
 		packagePath := strings.TrimPrefix(workload.Package, "./")
 		if !setNamePattern.MatchString(workload.ID) || strings.TrimSpace(workload.Name) == "" || !strings.HasPrefix(workload.Package, "./") || packagePath == "" || filepath.ToSlash(filepath.Clean(filepath.FromSlash(packagePath))) != packagePath || strings.HasPrefix(packagePath, "../") || !testNamePattern.MatchString(workload.Test) {
 			return fmt.Errorf("qualification workload %d identity is invalid", index)
@@ -508,7 +508,7 @@ func validateManifest(manifest Manifest) error {
 		if workload.Tier != 1 && workload.Tier != 2 || strings.TrimSpace(workload.Invariant) == "" {
 			return fmt.Errorf("qualification workload %s tier or invariant is invalid", workload.ID)
 		}
-		if index > 0 && workload.ID <= manifest.Workloads[index-1].ID {
+		if index > 0 && workload.ID <= manifest.Suites[index-1].ID {
 			return errors.New("qualification workload identities must be sorted and unique")
 		}
 		if _, duplicate := seen[workload.ID]; duplicate {

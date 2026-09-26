@@ -242,7 +242,7 @@ tools/gomad3/.bin/gomad qualify-set --check \
   --working-dir=/absolute/path/to/target/module
 ```
 
-Manifest v1 binds the expected module, tier, invariant, ordered seeds, choice
+Manifest v3 binds the expected module, tier, invariant, ordered seeds, choice
 capacity, capability mode, successful-replay requirement, and explicit
 retention bounds. The
 orchestrator analyzes every workload before executing any supported target,

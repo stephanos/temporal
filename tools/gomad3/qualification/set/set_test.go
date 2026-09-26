@@ -235,8 +235,8 @@ func TestLoadManifestRejectsDuplicateWorkloadNames(t *testing.T) {
 	if err := json.Unmarshal(contents, &manifest); err != nil {
 		t.Fatal(err)
 	}
-	workloads := manifest["workloads"].([]any)
-	manifest["workloads"] = append(workloads, workloads[0])
+	suites := manifest["suites"].([]any)
+	manifest["suites"] = append(suites, suites[0])
 	contents, err = json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
@@ -289,8 +289,8 @@ func TestRunAnalyzesEveryWorkloadBeforeTargetExecution(t *testing.T) {
 	}
 	manifest := map[string]any{
 		"schema": ManifestSchema, "name": "test-set", "description": "analysis ordering fixture", "module": "example.com/target", "seeds": []uint64{7}, "repeat": 2,
-		"execution_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s", "output_bytes": 1024, "world_transition_bytes": 2048,
-		"workloads": []any{
+		"run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s", "output_bytes": 1024, "world_transition_bytes": 2048,
+		"suites": []any{
 			map[string]any{"id": "a-unsupported", "name": "A", "tier": 1, "invariant": "A remains unsupported", "package": "./a", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "unsupported_target", "import_path": "golang.org/x/net/internal/socket", "capability": "uses go:linkname in sys_unix.go"}},
 			map[string]any{"id": "b-supported", "name": "B", "tier": 1, "invariant": "B remains qualified", "package": "./b", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
 		},
@@ -333,9 +333,9 @@ func TestRunClassifiesEveryWorkloadWhenAnalysisFails(t *testing.T) {
 	}
 	manifest := map[string]any{
 		"schema": ManifestSchema, "name": "test-set", "description": "analysis failure fixture", "module": "example.com/target",
-		"seeds": []uint64{7}, "repeat": 2, "execution_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
+		"seeds": []uint64{7}, "repeat": 2, "run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
-		"workloads": []any{
+		"suites": []any{
 			map[string]any{"id": "a-supported", "name": "A", "tier": 1, "invariant": "A remains classified", "package": "./a", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
 			map[string]any{"id": "b-broken", "name": "B", "tier": 1, "invariant": "B reports analysis failure", "package": "./b", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
 			map[string]any{"id": "c-supported", "name": "C", "tier": 1, "invariant": "C remains classified", "package": "./c", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
@@ -430,9 +430,9 @@ func writeManifestWithSeeds(t *testing.T, root string, seeds []uint64, classific
 	}
 	manifest := map[string]any{
 		"schema": ManifestSchema, "name": "test-set", "description": "portable fixture", "module": "example.com/target",
-		"seeds": seeds, "repeat": 2, "execution_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
+		"seeds": seeds, "repeat": 2, "run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
-		"workloads": []any{map[string]any{
+		"suites": []any{map[string]any{
 			"id": "fixture-case", "name": "Fixture case", "tier": 1, "invariant": "the fixture remains deterministic",
 			"package": "./pkg", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 4096, "replay_successes": true,
 			"success_artifact_limit": 2, "success_bytes_limit": 1048576, "expectation": expectation,

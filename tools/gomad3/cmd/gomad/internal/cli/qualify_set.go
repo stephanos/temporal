@@ -49,14 +49,14 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 				Schema    string `json:"schema"`
 				Name      string `json:"name"`
 				Workloads uint64 `json:"workloads"`
-			}{"gomad3.qualification-set-check/v1", manifest.Name, uint64(len(manifest.Workloads))})
+			}{"gomad3.qualification-set-check/v1", manifest.Name, uint64(len(manifest.Suites))})
 			if encodeErr != nil {
 				return writeCommandError(stderr, 3, "encode qualification manifest result: %v\n", encodeErr)
 			}
 			if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
 				return 3
 			}
-		} else if _, err := fmt.Fprintf(stdout, "qualification manifest: name=%s workloads=%d\n", manifest.Name, len(manifest.Workloads)); err != nil {
+		} else if _, err := fmt.Fprintf(stdout, "qualification manifest: name=%s workloads=%d\n", manifest.Name, len(manifest.Suites)); err != nil {
 			return 3
 		}
 		return 0
