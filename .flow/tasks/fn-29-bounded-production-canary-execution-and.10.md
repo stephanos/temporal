@@ -22,9 +22,12 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [ ] Nothing in the harness can publish or retain a production receipt: the harness source refuses a policy naming `production-canary` or `protected-workflow`, its receipts are under `canary-harness` with authority class `harness`, and the untagged binary has no override path (`build_test.go`).
 
 ## Done summary
-TBD
+The canary_harness build (testharness policy/transport/hook seams, seams_harness.go), build_test.go and the TestTestpilotCanary* live tests (landed in b4c5a175d6/f498c7eefd) were verified against the Acceptance and run green against the test cluster. Two gaps were fixed. The untagged-only credential test now lives in seams_test.go (`!canary_harness`), so the harness-tagged `./tools/canary/...` test line is green. The live production-policy refusal now covers both `production-canary` and `protected-workflow`, asserts the named refusal, and checks that nothing was published. The review's P3 notes on the pause-hook test and the redundant build env are applied.
 
+Follow-ups: the harness redactor repeats authority's coordinate list by hand (export it from tools/canary/authority, which is outside this task's files); no CI line runs the canary_harness-tagged tests yet (task .12).
+
+stage: impl-review - ran [2026-09-26T12:11..2026-09-26T12:13] SHIP (claude:opus:high, round 1)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b4c5a175d6dfe130e8daf31b420d1056cd53f41a, f498c7eefddc9f96022279e482932dc6ebd649a2, 8d4ccd4c3d52caeb1d87171933d31763b611c031, f22f18ffc407fae20ab83cc2bbb69139bae54f8d
+- Tests: baseline: green (Quick command, pre-edit at 707b472591), CGO_ENABLED=0 go test -count=1 -tags "test_dep integration" ./tests/ -run '^TestTestpilotCanary' (green at f22f18ffc4, live against the in-process test cluster; CGO_ENABLED=0 because local clang lacks its headers), CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/canary/..., CGO_ENABLED=0 go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/..., golangci-lint v2.13.1 run --build-tags test_dep,canary_harness ./tools/canary/... (0 issues); --build-tags test_dep,integration ./tests/... ./tools/canary/... (no canary issues), note: a verify run at 12:13 overlapped a user branch switch and was discarded as inconclusive
 - PRs:
