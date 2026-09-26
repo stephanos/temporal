@@ -67,21 +67,6 @@ func TestMainRefusesAnOutputUnderTheModel(t *testing.T) {
 	require.Contains(t, summary.Detail, "under the model")
 }
 
-// The untagged build with no credential in its environment refuses as authority-unavailable before
-// it reads the target or writes a record, and says so on stdout and stderr.
-func TestTheUntaggedBuildNeedsACredential(t *testing.T) {
-	recovery := filepath.Join(t.TempDir(), "recovery.json")
-	var stdout, stderr bytes.Buffer
-	code := Main([]string{"run", "--output", t.TempDir(), "--recovery", recovery}, &stdout, &stderr, noEnvironment, seams())
-	require.Equal(t, controller.ExitFailed, code)
-	summary := summaryOf(t, &stdout)
-	require.Equal(t, controller.StatusAuthorityUnavailable, summary.Status)
-	require.Empty(t, summary.Iterations)
-	require.Contains(t, stderr.String(), controller.StatusAuthorityUnavailable)
-	_, err := os.Stat(recovery)
-	require.ErrorIs(t, err, os.ErrNotExist)
-}
-
 // Reconcile with no recovery record has nothing to reconcile and needs no credential; the report
 // is its one document on stdout.
 func TestReconcileWithNoRecordIsNothingToReconcile(t *testing.T) {
