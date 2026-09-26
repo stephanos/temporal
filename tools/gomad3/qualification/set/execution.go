@@ -292,7 +292,7 @@ func addSeedTotals(report *Report, seed SeedReport) {
 }
 
 func workloadTimeouts(manifest Manifest, workload Workload) (runTimeout time.Duration, overallTimeout time.Duration) {
-	runTimeout, _ = time.ParseDuration(manifest.ExecutionTimeout)
+	runTimeout, _ = time.ParseDuration(manifest.RunTimeout)
 	overallTimeout, _ = time.ParseDuration(manifest.OverallTimeout)
 	if workload.ExecutionTimeout != "" {
 		runTimeout, _ = time.ParseDuration(workload.ExecutionTimeout)

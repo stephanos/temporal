@@ -227,9 +227,9 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 	t.Helper()
 	manifest := map[string]any{
 		"schema": qualificationset.ManifestSchema, "name": name, "description": "upgrade corpus fixture", "module": "example.com/corpus", "seeds": []uint64{7}, "repeat": 2,
-		"execution_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
+		"run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
-		"workloads": []any{map[string]any{
+		"suites": []any{map[string]any{
 			"id": "boundary", "name": "Boundary", "tier": 1, "invariant": "boundary remains unsupported", "package": "./pkg", "test": "TestBoundary", "capability_mode": "closure",
 			"choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096,
 			"expectation": map[string]any{
