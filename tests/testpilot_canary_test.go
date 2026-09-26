@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	nexuspb "go.temporal.io/api/nexus/v1"
+	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
@@ -250,41 +252,102 @@ func TestTestpilotCanaryHarnessEndToEnd(t *testing.T) {
 	require.Empty(t, report.Terminated)
 }
 
-// A process lost before its first Run and one lost during a Run hold the lease: the next dispatch
-// refuses on it, the job's own reconcile closes exactly what it fenced and reports the lost
-// iteration with no receipt, provenance or Verdict, and a dispatch after it proceeds.
-func TestTestpilotCanaryHarnessRecoversALostProcess(t *testing.T) {
-	for _, phase := range []string{controller.PhaseLeased, controller.PhaseRunOpened} {
-		t.Run(phase, func(t *testing.T) {
-			h := newCanaryHarness(t, "canary-lost-"+strings.ReplaceAll(phase, "-", ""), nil)
-			lost := h.job(t)
-			code, _ := h.run(t, lost, map[string]string{testharness.VariableCrash: phase})
-			require.Equal(t, testharness.CrashExit, code)
-			_, status := h.leaseClose(t)
-			require.Equal(t, enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, status, "the lost process's lease stays held")
+// Routing drift is proved by the Run, not by preflight: the endpoint's target is an operator
+// precondition the namespace-scoped credential cannot read. With the endpoint repointed to a queue
+// no handler polls, preflight passes, the Run's Case never observes the handler's reply, and the
+// iteration is incomplete: its receipt and provenance are published, no further Run is made,
+// cleanup releases the lease, and the exit is 1.
+func TestTestpilotCanaryHarnessRefusesARepointedEndpoint(t *testing.T) {
+	h := newCanaryHarness(t, "canary-repointed", nil)
+	listed, err := h.env.OperatorClient().ListNexusEndpoints(h.env.Context(), &operatorservice.ListNexusEndpointsRequest{
+		Name: h.coordinates.NexusEndpoint, PageSize: 1,
+	})
+	require.NoError(t, err)
+	require.Len(t, listed.GetEndpoints(), 1)
+	endpoint := listed.GetEndpoints()[0]
+	spec := endpoint.GetSpec()
+	spec.Target = &nexuspb.EndpointTarget{Variant: &nexuspb.EndpointTarget_Worker_{Worker: &nexuspb.EndpointTarget_Worker{
+		Namespace: h.coordinates.Namespace, TaskQueue: h.coordinates.HandlerQueue + "-elsewhere",
+	}}}
+	_, err = h.env.OperatorClient().UpdateNexusEndpoint(h.env.Context(), &operatorservice.UpdateNexusEndpointRequest{
+		Id: endpoint.GetId(), Version: endpoint.GetVersion(), Spec: spec,
+	})
+	require.NoError(t, err)
 
-			refused := h.job(t)
-			code, summary := h.run(t, refused, nil)
-			require.Equal(t, controller.ExitUncertain, code, "%+v", summary)
-			require.Equal(t, controller.StatusLeaseUnreconciled, summary.Status)
-			require.Empty(t, published(t, refused))
+	job := h.job(t)
+	code, summary := h.run(t, job, nil)
+	require.Equal(t, controller.ExitDecided, code, "%+v", summary)
+	require.Equal(t, controller.StatusIncomplete, summary.Status, "the handler's reply is never observed, so the Verdict cannot be proved")
+	require.Len(t, summary.Iterations, 1, "no Run follows one not accepted")
+	require.Equal(t, summary.Status, summary.Iterations[0].Status)
+	require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome)
+	require.Len(t, published(t, job), 2, "the Run that was not accepted publishes its receipt and provenance")
+	receipt, err := os.ReadFile(filepath.Join(job.output, summary.Iterations[0].Receipt+".json"))
+	require.NoError(t, err)
+	require.Contains(t, string(receipt), `"decision":"`+summary.Status+`"`)
+	reason, _ := h.leaseClose(t)
+	require.Equal(t, controller.ReasonReleased, reason)
+}
+
+// A process lost at each phase is recovered by its own job's reconcile, which closes exactly what
+// it fenced and reports the lost iterations with no receipt, provenance or Verdict. Lost with the
+// lease held -- before its first Run, during a Run, after a Run closed -- the next dispatch refuses
+// until that reconcile; lost after cleanup released the lease and before publication, the next
+// dispatch proceeds and the lost job's reconcile still names both unpublished iterations lost,
+// leaving the later invocation's lease run alone. A dispatch after it proceeds.
+func TestTestpilotCanaryHarnessRecoversALostProcess(t *testing.T) {
+	for _, test := range []struct {
+		phase string
+		// held is whether the lost process leaves the lease held.
+		held bool
+		// fenced is how many Runs the lost process fenced, each lost.
+		fenced int
+	}{
+		{phase: controller.PhaseLeased, held: true},
+		{phase: controller.PhaseRunOpened, held: true, fenced: 1},
+		{phase: controller.PhaseIterationClosed, held: true, fenced: 1},
+		{phase: controller.PhaseCleaned, fenced: 2},
+	} {
+		t.Run(test.phase, func(t *testing.T) {
+			h := newCanaryHarness(t, "canary-lost-"+strings.ReplaceAll(test.phase, "-", ""), nil)
+			lost := h.job(t)
+			code, _ := h.run(t, lost, map[string]string{testharness.VariableCrash: test.phase})
+			require.Equal(t, testharness.CrashExit, code)
+			record, err := recovery.Read(lost.recovery)
+			require.NoError(t, err)
+			require.Len(t, record.Iterations, test.fenced)
+			var fenced []string
+			for _, iteration := range record.Iterations {
+				require.False(t, iteration.Published)
+				fenced = append(fenced, iteration.RunID)
+			}
+
+			next := h.job(t)
+			code, summary := h.run(t, next, nil)
+			if test.held {
+				_, status := h.leaseClose(t)
+				require.Equal(t, enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, status, "the lost process's lease stays held")
+				require.Equal(t, controller.ExitUncertain, code, "%+v", summary)
+				require.Equal(t, controller.StatusLeaseUnreconciled, summary.Status)
+				require.Empty(t, published(t, next))
+			} else {
+				require.Equal(t, controller.ExitAccepted, code, "a released lease is a clean scope: %+v", summary)
+				require.Len(t, published(t, next), 4)
+			}
 
 			code, report := h.reconcile(t, lost)
 			require.Equal(t, controller.ExitAccepted, code, "%+v", report)
 			require.Equal(t, controller.StatusReconciled, report.Status)
-			record, err := recovery.Read(lost.recovery)
-			require.NoError(t, err)
-			if phase == controller.PhaseRunOpened {
-				require.Len(t, record.Iterations, 1)
-				require.Equal(t, []string{record.Iterations[0].RunID}, report.Fenced)
-				require.Equal(t, []string{record.Iterations[0].RunID}, report.Lost, "the lost iteration is named, with no receipt")
-			} else {
-				require.Empty(t, report.Fenced)
-				require.Empty(t, report.Lost)
-			}
+			require.Equal(t, nonNilIDs(fenced), report.Fenced)
+			require.Equal(t, nonNilIDs(fenced), report.Closed)
+			require.Equal(t, nonNilIDs(fenced), report.Lost, "each lost iteration is named, with no receipt")
 			require.Empty(t, published(t, lost), "no receipt, provenance or Verdict is fabricated")
 			reason, _ := h.leaseClose(t)
-			require.Equal(t, controller.ReasonReconciled, reason)
+			if test.held {
+				require.Equal(t, controller.ReasonReconciled, reason)
+			} else {
+				require.Equal(t, controller.ReasonReleased, reason, "the later invocation's lease run is left alone")
+			}
 
 			after := h.job(t)
 			code, summary = h.run(t, after, nil)
@@ -292,6 +355,13 @@ func TestTestpilotCanaryHarnessRecoversALostProcess(t *testing.T) {
 			require.Len(t, summary.Iterations, 2)
 		})
 	}
+}
+
+func nonNilIDs(ids []string) []string {
+	if ids == nil {
+		return []string{}
+	}
+	return ids
 }
 
 // A second dispatch and its reconcile during a live first invocation touch nothing of it: the run

@@ -67,7 +67,9 @@ type invokeFixture struct {
 	started time.Time
 	// runErr fails each scripted Run after its Driver opens.
 	runErr error
-	runs   int
+	// session acts on each scripted Run's fenced Session once it opens; an error fails the Run.
+	session func(ctx context.Context, session testpilot.Session) error
+	runs    int
 }
 
 func newInvokeFixture(t *testing.T) *invokeFixture {
@@ -130,11 +132,17 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 			run.runCase = func(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 				f.runs++
 				id := runID(f.runs)
-				if _, err := driver.Open(ctx, id, testpilot.PreparedProgram{}); err != nil {
+				session, err := driver.Open(ctx, id, testpilot.PreparedProgram{})
+				if err != nil {
 					return nil, nil, err
 				}
 				f.server.open(id, time.Unix(3000, 0))
 				f.server.finish(id)
+				if f.session != nil {
+					if err := f.session(ctx, session); err != nil {
+						return nil, nil, err
+					}
+				}
 				recorded := recordedRun(t, id)
 				if f.run != nil {
 					recorded = f.run(f.runs, recorded)
