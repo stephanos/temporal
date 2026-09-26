@@ -31,13 +31,29 @@ const (
 	MaximumFacts                 = 100000
 	MaximumStringBytes           = 4096
 	MaximumOwnerFacts            = 4096
-	ProducerImplementationSHA256 = "sha256:fb99139dd9c08aae821e9e1d08fd74a3e6f7bc91c272002395ccb46a644745ee"
-	GuardImplementationSHA256    = "sha256:fb99139dd9c08aae821e9e1d08fd74a3e6f7bc91c272002395ccb46a644745ee"
-	CapabilityUniverseSHA256     = "sha256:30847accc6b2b8d4cdde14e63b2c82384ce1e94b0e44b8640f31eb24d5ee526c"
-	BoundaryManifestSHA256       = "sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904"
+	ProducerImplementationSHA256 = "sha256:aaa09d0a003a23056b4c7cd8053843874f964ebcbb8f5bde1c27c7ce5ebc79a3"
+	GuardImplementationSHA256    = "sha256:aaa09d0a003a23056b4c7cd8053843874f964ebcbb8f5bde1c27c7ce5ebc79a3"
+	CapabilityUniverseSHA256     = "sha256:e7483579e53f238d722d80b24b9b3dc0d2d0d8db562de83b2833cfec4d7f64bb"
+	BoundaryManifestSHA256       = "sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63"
 )
 
 var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I', 'L', 'I', 'T', 'Y', '\x00'}
+
+// QualifiedPlatforms lists the GOOS/GOARCH pairs the boundary manifest qualifies.
+var QualifiedPlatforms = []string{
+	"darwin/arm64",
+	"linux/amd64",
+}
+
+func QualifiedPlatform(goos, goarch string) bool {
+	platform := goos + "/" + goarch
+	for _, candidate := range QualifiedPlatforms {
+		if candidate == platform {
+			return true
+		}
+	}
+	return false
+}
 
 type Limits struct {
 	Facts        uint64 `json:"facts"`

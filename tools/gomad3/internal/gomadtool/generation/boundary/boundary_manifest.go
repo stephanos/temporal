@@ -12,6 +12,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
+	"maps"
 	"os"
 	"path"
 	"path/filepath"
@@ -97,6 +98,15 @@ type intercept struct {
 	ConformanceFixtures []string  `json:"conformance_fixtures"`
 	NegativeFixtures    []string  `json:"negative_fixtures"`
 	EscapeFixtures      []string  `json:"escape_fixtures"`
+	// PlatformOverrides records, for platforms whose standard library selects a
+	// different source file for the target, that file and its declaration
+	// fingerprint. Platforms without an entry share the primary declaration.
+	PlatformOverrides map[string]platformOverride `json:"platform_overrides,omitempty"`
+}
+
+type platformOverride struct {
+	Source            string `json:"source"`
+	DeclarationSHA256 string `json:"declaration_sha256"`
 }
 
 type compilerTest struct {
@@ -330,6 +340,9 @@ func validate(definition manifest) error {
 	if definition.ManifestVersion == "" {
 		return errors.New("boundary manifest version is empty")
 	}
+	if revision := strings.LastIndex(definition.ManifestVersion, "-v"); revision <= 0 || revision == len(definition.ManifestVersion)-2 {
+		return fmt.Errorf("boundary manifest version %q has no -v revision suffix", definition.ManifestVersion)
+	}
 	if goVersionPattern.FindStringSubmatch(definition.GoVersion) == nil {
 		return fmt.Errorf("boundary manifest Go version is invalid: %q", definition.GoVersion)
 	}
@@ -376,6 +389,14 @@ func validate(definition manifest) error {
 	for index, entry := range definition.Intercepts {
 		if err := validateIntercept(entry); err != nil {
 			return fmt.Errorf("boundary manifest interception %d: %w", index+1, err)
+		}
+		for platform, override := range entry.PlatformOverrides {
+			if _, declared := seenPlatforms[platform]; !declared || platform == definition.Platforms[0] {
+				return fmt.Errorf("boundary manifest interception %d overrides undeclared or primary platform %q", index+1, platform)
+			}
+			if !strings.HasPrefix(override.Source, entry.Package+"/") || !sha256Pattern.MatchString(override.DeclarationSHA256) {
+				return fmt.Errorf("boundary manifest interception %d has an invalid %s override", index+1, platform)
+			}
 		}
 		target := entry.Package + "." + targetName(entry.Receiver, entry.Symbol)
 		if _, duplicate := seenTargets[target]; duplicate {
@@ -565,11 +586,13 @@ func render(definition manifest) ([]artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	platformName := strings.ReplaceAll(strings.Join(definition.Platforms, "+"), "/", "-")
+	// The inventory is named like the descriptor's upgrade guide: the manifest
+	// version without its revision suffix, so both tools agree on the path.
+	reportName := definition.ManifestVersion[:strings.LastIndex(definition.ManifestVersion, "-v")]
 	artifacts := []artifact{
 		{path: specPath, content: spec},
 		{path: "expected-intercepts-" + definition.GoVersion + ".txt", content: renderExpectedReport(definition)},
-		{path: filepath.ToSlash(filepath.Join("deterministicio", "boundary", definition.GoVersion+"-"+platformName+".md")), content: renderInventory(definition, identity)},
+		{path: filepath.ToSlash(filepath.Join("deterministicio", "boundary", reportName+".md")), content: renderInventory(definition, identity)},
 		{path: "deterministicio/boundary_generated.go", content: hostIdentity},
 	}
 	for _, policy := range definition.HookPolicies {
@@ -706,18 +729,12 @@ func renderCompilerSpec(definition manifest, tests []compilerTest, identity stri
 	source.WriteString("package gomadintercept\n\n")
 	fmt.Fprintf(&source, "const boundaryManifestVersion = %q\n", definition.ManifestVersion)
 	fmt.Fprintf(&source, "const boundaryManifestSHA256 = %q\n\n", identity)
-	source.WriteString("func qualifiedPlatform(goos, goarch string) bool {\n")
-	for _, platform := range definition.Platforms {
-		goos, goarch, _ := strings.Cut(platform, "/")
-		fmt.Fprintf(&source, "\tif goos == %q && goarch == %q { return true }\n", goos, goarch)
-	}
-	source.WriteString("\treturn false\n}\n\n")
 	source.WriteString("var specs = []spec{\n")
 	for _, entry := range definition.Intercepts {
-		writeSpec(&source, entry.Package, entry.Receiver, entry.Symbol, entry.Hook, entry.DeclarationSHA256, boundaryProbeID(entry.Probe))
+		writeSpec(&source, entry.Package, entry.Receiver, entry.Symbol, entry.Hook, entry.DeclarationSHA256, entry.PlatformOverrides, boundaryProbeID(entry.Probe))
 	}
 	for _, fixture := range tests {
-		writeSpec(&source, fixture.Package, fixture.Receiver, fixture.Symbol, fixture.Hook, fixture.DeclarationSHA256, 0)
+		writeSpec(&source, fixture.Package, fixture.Receiver, fixture.Symbol, fixture.Hook, fixture.DeclarationSHA256, nil, 0)
 	}
 	source.WriteString("}\n")
 	formatted, err := format.Source([]byte(source.String()))
@@ -727,7 +744,7 @@ func renderCompilerSpec(definition manifest, tests []compilerTest, identity stri
 	return formatted, nil
 }
 
-func writeSpec(output *strings.Builder, packagePath string, receiverValue *receiver, symbol, hook, declarationSHA256 string, probeID uint64) {
+func writeSpec(output *strings.Builder, packagePath string, receiverValue *receiver, symbol, hook, declarationSHA256 string, overrides map[string]platformOverride, probeID uint64) {
 	fmt.Fprintf(output, "\t{PackagePath: %q, ", packagePath)
 	if receiverValue != nil {
 		fmt.Fprintf(output, "Receiver: &receiverSpec{Name: %q, Pointer: %t}, ", receiverValue.Name, receiverValue.Pointer)
@@ -735,6 +752,13 @@ func writeSpec(output *strings.Builder, packagePath string, receiverValue *recei
 	fmt.Fprintf(output, "Function: %q, Hook: %q", symbol, hook)
 	if declarationSHA256 != "" {
 		fmt.Fprintf(output, ", DeclarationSHA256: %q", declarationSHA256)
+	}
+	if len(overrides) != 0 {
+		output.WriteString(", PlatformDeclarationSHA256: map[string]string{")
+		for _, platform := range slices.Sorted(maps.Keys(overrides)) {
+			fmt.Fprintf(output, "%q: %q, ", platform, overrides[platform].DeclarationSHA256)
+		}
+		output.WriteString("}")
 	}
 	if probeID != 0 {
 		fmt.Fprintf(output, ", ProbeID: %d", probeID)
@@ -758,8 +782,12 @@ func renderInventory(definition manifest, identity string) []byte {
 	output.WriteString("| Target | Signature | Operation | Probe | Disposition | Hook | Hook policy | Adapters | Conformance | Negative | Escape |\n")
 	output.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
 	for _, entry := range definition.Intercepts {
+		target := entry.Package + "." + targetName(entry.Receiver, entry.Symbol)
+		for _, platform := range slices.Sorted(maps.Keys(entry.PlatformOverrides)) {
+			target += fmt.Sprintf("<br>%s: %s", platform, entry.PlatformOverrides[platform].Source)
+		}
 		values := []string{
-			entry.Package + "." + targetName(entry.Receiver, entry.Symbol), entry.Signature,
+			target, entry.Signature,
 			entry.Operation, entry.Probe, entry.Disposition, entry.Hook, entry.HookPolicy,
 			strings.Join(entry.Adapters, "<br>"), strings.Join(entry.ConformanceFixtures, "<br>"),
 			strings.Join(entry.NegativeFixtures, "<br>"), strings.Join(entry.EscapeFixtures, "<br>"),
@@ -782,10 +810,6 @@ func renderInventory(definition manifest, identity string) []byte {
 }
 
 func renderHostIdentity(definition manifest, identity string) ([]byte, error) {
-	platform := strings.Split(definition.Platforms[0], "/")
-	if len(definition.Platforms) != 1 || len(platform) != 2 {
-		return nil, errors.New("host identity generation requires exactly one GOOS/GOARCH platform")
-	}
 	source := fmt.Sprintf(`// Code generated by cmd/gomadtool boundary-generate. DO NOT EDIT.
 
 package deterministicio
@@ -794,10 +818,10 @@ const (
 	generatedBoundaryManifestVersion = %q
 	generatedBoundaryManifestSHA256  = %q
 	generatedBoundaryGoVersion       = %q
-	generatedBoundaryGOOS            = %q
-	generatedBoundaryGOARCH          = %q
 )
-`, definition.ManifestVersion, identity, definition.GoVersion, platform[0], platform[1])
+
+var generatedBoundaryPlatforms = []string{%s}
+`, definition.ManifestVersion, identity, definition.GoVersion, quotedList(definition.Platforms))
 	var probes strings.Builder
 	probes.WriteString("\nvar generatedBoundaryProbes = []struct {\n\tID uint64\n\tName string\n}{\n")
 	for _, entry := range definition.Intercepts {
@@ -850,4 +874,12 @@ func targetName(receiverValue *receiver, symbol string) string {
 		prefix = "*"
 	}
 	return fmt.Sprintf("(%s%s).%s", prefix, receiverValue.Name, symbol)
+}
+
+func quotedList(values []string) string {
+	quoted := make([]string, len(values))
+	for index, value := range values {
+		quoted[index] = fmt.Sprintf("%q", value)
+	}
+	return strings.Join(quoted, ", ")
 }

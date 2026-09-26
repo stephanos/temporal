@@ -4,6 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"runtime"
+	"slices"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
@@ -90,7 +93,7 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 
 var deterministicProfile = mustSpec(profileDefinition{
 	name:                  Deterministic,
-	target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: generatedBoundaryGOOS, GOARCH: generatedBoundaryGOARCH},
+	target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: runtime.GOOS, GOARCH: runtime.GOARCH},
 	implementationFamily:  "gomad3.deterministic-io/v1",
 	implementationVersion: deterministicImplementationVersion,
 	adapters:              deterministicAdapters,
@@ -185,7 +188,15 @@ func (profile Spec) validated() (*profileDefinition, error) {
 	if profile.definition == nil || profile.definition != deterministicProfile.definition {
 		return nil, fmt.Errorf("invalid I/O profile specification")
 	}
+	if host := profile.definition.target.GOOS + "/" + profile.definition.target.GOARCH; !slices.Contains(generatedBoundaryPlatforms, host) {
+		return nil, fmt.Errorf("deterministic I/O requires one of %s; host is %s", strings.Join(generatedBoundaryPlatforms, ", "), host)
+	}
 	return profile.definition, nil
+}
+
+// BoundaryPlatforms lists the GOOS/GOARCH pairs the boundary manifest qualifies.
+func BoundaryPlatforms() []string {
+	return append([]string(nil), generatedBoundaryPlatforms...)
 }
 
 func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error {
@@ -200,7 +211,7 @@ func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Pre
 		return fmt.Errorf("deterministic I/O target arguments do not match their build specification")
 	}
 	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {
-		return fmt.Errorf("deterministic I/O requires Go 1.26.4 on darwin/arm64")
+		return fmt.Errorf("deterministic I/O requires Go %s on %s/%s; target was built with %s for %s/%s", definition.target.GoVersion, definition.target.GOOS, definition.target.GOARCH, prepared.GoVersion, prepared.TargetGOOS, prepared.TargetGOARCH)
 	}
 	adapters := make([]Adapter, len(prepared.Adapters))
 	for index, adapter := range prepared.Adapters {

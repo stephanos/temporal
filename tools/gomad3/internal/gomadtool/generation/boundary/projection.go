@@ -50,3 +50,12 @@ func CapabilityProjection(root string) (string, []CapabilityBoundary, error) {
 	}
 	return digest, result, nil
 }
+
+// Platforms returns the GOOS/GOARCH pairs the boundary manifest qualifies.
+func Platforms(root string) ([]string, error) {
+	definition, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return nil, err
+	}
+	return append([]string(nil), definition.Platforms...), nil
+}

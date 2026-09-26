@@ -7,9 +7,10 @@
     "sha256": "4f668a32fbfc1132e6a881fb968c2f1dada631492a339211735fbb255a42602d"
   },
   "supported_platforms": [
-    "darwin/arm64"
+    "darwin/arm64",
+    "linux/amd64"
   ],
-  "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
+  "boundary_manifest_version": "go1.26.4-v2",
   "patch": "toolchain/runtime/go1.26.4.patch",
   "adapters": [
     {
