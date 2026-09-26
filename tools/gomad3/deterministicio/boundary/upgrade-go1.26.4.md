@@ -1,4 +1,4 @@
-# Gomad v3 upgrade qualification: go1.26.4-darwin-arm64-v1
+# Gomad v3 upgrade qualification: go1.26.4-v2
 
 Generated from [`../../toolchain/version/version.json`](../../toolchain/version/version.json). Do not edit this guide directly.
 
@@ -6,8 +6,8 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 
 - Go release: `go1.26.4`
 - source archive SHA-256: `4f668a32fbfc1132e6a881fb968c2f1dada631492a339211735fbb255a42602d`
-- supported platforms: `darwin/arm64`
-- boundary manifest: `go1.26.4-darwin-arm64-v1`
+- supported platforms: `darwin/arm64`, `linux/amd64`
+- boundary manifest: `go1.26.4-v2`
 - patch: [`../../toolchain/runtime/go1.26.4.patch`](../../toolchain/runtime/go1.26.4.patch)
 - adapter: `golang.org/x/net@v0.57.0` (`h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=`)
 - adapter: `google.golang.org/grpc@v1.80.0` (`h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM=`)

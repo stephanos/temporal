@@ -341,7 +341,9 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
 	return uint32((uint64(s0+s1) * uint64(n)) >> 32)
 }
 
-func gomadChoiceDecision(kind, flags uint8, siteOffset uint64, alternatives [][32]byte, seeded, data uint32) uint32 {
+// ordered is caller-provided scratch for the sorted alternative set so the
+// decision itself carries no large frame onto the system stack.
+func gomadChoiceDecision(kind, flags uint8, siteOffset uint64, alternatives [][32]byte, ordered *[gomadChoiceMaximumAlternatives][32]byte, seeded, data uint32) uint32 {
 	if !gomadChoiceEnabled {
 		return seeded
 	}
@@ -351,7 +353,6 @@ func gomadChoiceDecision(kind, flags uint8, siteOffset uint64, alternatives [][3
 	if len(alternatives) == 1 {
 		return seeded
 	}
-	var ordered [gomadChoiceMaximumAlternatives][32]byte
 	for index := range alternatives {
 		if gomadChoiceZero(alternatives[index][:]) {
 			gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
@@ -618,12 +619,19 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 	newg.gomadIdentity = hasher.sum()
 }
 
+// The run-queue choice runs on the system stack, which Linux sizes at 16 KiB
+// for non-main threads, so its 8 KiB candidate buffers live here instead of in
+// the frame. The system stack is never preempted and there is one P, so the
+// scheduler is the only user.
+var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
+var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
+
 func gomadChoiceRunqIndex(pp *p, head, tail, seeded uint32) uint32 {
 	if !gomadChoiceEnabled {
 		return seeded
 	}
 	count := tail - head
-	var alternatives [gomadChoiceMaximumAlternatives][32]byte
+	alternatives := &gomadChoiceSchedulerAlternatives
 	if count > uint32(len(alternatives)) {
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
 	}
@@ -634,7 +642,7 @@ func gomadChoiceRunqIndex(pp *p, head, tail, seeded uint32) uint32 {
 		}
 		alternatives[offset] = gp.gomadIdentity
 	}
-	return gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:count], seeded, 0)
+	return gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:count], &gomadChoiceSchedulerOrdered, seeded, 0)
 }
 
 func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int, site uint64, siteFlags uint8, seeded uint32) uint32 {
@@ -650,7 +658,8 @@ func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int,
 		alternatives[index] = gomadChoiceSelectIdentity(site, siteFlags, int(pollorder[index]), nsends)
 	}
 	alternatives[norder] = gomadChoiceSelectIdentity(site, siteFlags, current, nsends)
-	return gomadChoiceDecision(gomadChoiceKindSelectPoll, gomadChoiceFlagDecision|siteFlags, site, alternatives[:count], seeded, uint32(current))
+	var ordered [gomadChoiceMaximumAlternatives][32]byte
+	return gomadChoiceDecision(gomadChoiceKindSelectPoll, gomadChoiceFlagDecision|siteFlags, site, alternatives[:count], &ordered, seeded, uint32(current))
 }
 
 func gomadChoiceSelectIdentity(site uint64, siteFlags uint8, ordinal, nsends int) [32]byte {

@@ -19,8 +19,8 @@ func gomadCapabilityManifest(ctxt *Link) {
 	if *flagGomadCapability == "" {
 		return
 	}
-	if buildcfg.GOOS != "darwin" || buildcfg.GOARCH != "arm64" {
-		Exitf("-gomadcap is supported only on darwin/arm64")
+	if !gomadcap.QualifiedPlatform(buildcfg.GOOS, buildcfg.GOARCH) {
+		Exitf("-gomadcap is not supported on %s/%s", buildcfg.GOOS, buildcfg.GOARCH)
 	}
 	if ctxt.LinkMode != LinkInternal || ctxt.BuildMode != BuildModeExe && ctxt.BuildMode != BuildModePIE {
 		Exitf("-gomadcap requires an internally linked executable")
