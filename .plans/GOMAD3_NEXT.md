@@ -17,6 +17,14 @@ These are separate investment tracks. Success in one does not imply success in t
 
 The goal documents are strategy and capability designs. Their original first slices are historical where this document marks the capability complete. Each remaining capability should become its own implementation plan after its predecessor meets the stated exit criteria; they should not be executed as one monolithic project.
 
+**Operative order.** [GOMAD_MILESTONES.md](GOMAD_MILESTONES.md) (2026-09-08) sequences the
+subset of this roadmap that a deterministic Temporal functional test depends on, F0 through F7,
+and records repairs this document does not know about: the conformance fixture corpus was never
+committed, the qualification manifests could not load, and the toolchain pin trails the root
+module's Go version. Until its F3 lands, the milestones below are the capability map, not the
+work queue, and the "complete" marks describe implemented code whose gates could not all run on
+a clean checkout. The SIM-0 parity manifest this document cites was retired with gomad2.
+
 ## Current baseline
 
 The trust and observability work that previously blocked every track is complete:
