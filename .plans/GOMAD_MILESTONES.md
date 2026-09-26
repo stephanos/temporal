@@ -141,6 +141,26 @@ the pack, and delete gomad, gomad1, gomad2, and the parity manifest.
 **Outcome.** A developer on a clean `darwin/arm64` checkout can build the toolchain and run
 every Gomad v3 gate that exists today, and the two integration contract tests pass.
 
+**Status.** Partially applied on 2026-09-26, on the `gomad` branch rebuilt as upstream
+`951c5516e` plus Gomad v3 (the Umpire, Testpilot, canary, and Lean trees are gone, so the root
+`.gitignore` no longer ignores `testdata/` and needs no allowances). Done on Linux: the
+generated outputs validate and the Linux CI job now runs `make validate`; the manifest loader
+reads `gomad3.qualification-set/v3` and the core corpus moved to it; the root wrappers point at
+the conformance `exec.sh`; the `tagged` wrapper fixture exists; and the runtime-tier fixture
+corpus is authored under `internal/gomadtool/conformance/testdata` as module `gomad3.test`:
+`activation`, `activation_io`, `automatic_gc`, `channels`, `choice_exploration`, `choice_replay`,
+`clock`, `clock_bench`, `clock_cgo`, `clock_deadlock`, `clock_gotest`, `clock_race`,
+`clock_spin`, `clock_synctest`, `gotest`, `maps`, `preemption`, `random`, `runqueue`,
+`scheduler`, `scheduler_min`, `select`, `sync`, the `intercept` package, and the nine
+`interceptfail` packages named by `compiler-tests.json`. Their unseeded behaviour was checked
+under stock Go on `linux/amd64`; their seeded behaviour has not run under the patched toolchain,
+which builds only on `darwin/arm64`. Still missing, each with the test that drives it:
+`clock_io` (`runtime_clocks.go`), `io_filesystem`, `io_net`, `io_signal`, `io_user`,
+`libc_adapter`, and `sqlite_adapter` (`runner/internal/execution/io_*_toolchain_test.go`),
+`io_net_races`, `io_entropy`, `io_ro_mount`, `io_fd5`, `io_failure`, and
+`io_ro_mount_failure` (the remaining `*_toolchain_test.go` and `replay_io_integration_test.go`).
+Nothing references a `compatibilitypack/testdata/v041` fixture any more.
+
 **Details.**
 
 - Commit the regenerated files from `make -C tools/gomad3 generate` and verify
@@ -148,10 +168,7 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
   converge in one pass by ordering the gomadcap overlay generation before the livecap protocol
   digest, or by having `generate` loop until `-check` passes. Add that gate to the
   gomad3 workflow's `core` job so generated outputs cannot drift again without a red check.
-- Re-author and commit the conformance fixture corpus. Add
-  `!/tools/gomad3/internal/gomadtool/conformance/testdata/` and
-  `!/tools/gomad3/internal/compatibilitypack/testdata/` to the root `.gitignore` next to the
-  existing umpire allowances. Each fixture is a small Go program whose expected output, exit
+- Re-author and commit the conformance fixture corpus. Each fixture is a small Go program whose expected output, exit
   status, and timing are pinned by the `runtime_*.go` conformance files, so those files are the
   specification. Author `io_filesystem`, `io_net`, and `io_filesystem.host-escape` first, since
   the boundary manifest names them as the semantic canary, then `activation`, `clock`, `maps`,
@@ -159,12 +176,12 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
   assertion depend on. The rest follow in the order `make -C tools/gomad3 test-runtime` fails.
 - Point the root Makefile at the real `exec.sh` or move the script to the path the Makefile
   expects. Pick one; the compatibility-pack request records the path.
-- Bump `HarnessSpecSchema` in `tools/gomad3/simulation/parity/manifest.go` and the JSON manifest
-  to `gomad3.simulation-spec/v7`, or explain in the spec changelog why gomad3sim moved without
-  the manifest.
+- ~~Bump `HarnessSpecSchema` in `tools/gomad3/simulation/parity/manifest.go` and the JSON manifest
+  to `gomad3.simulation-spec/v7`.~~ Moot: fn-81 retired the parity manifest.
 - Reconcile the qualification-set schema. Either the loader in `qualification/set/set.go`
   accepts `v3` with `suites` and `run_timeout`, or the two manifests return to `v1`. The CI
-  workflow asserts the `v6` report schema, so the loader change is the smaller diff.
+  workflow asserted a `v6` report schema that nothing produces; the loader now reads manifest
+  `v3` and CI asserts the `v1` report schema the tool emits.
 - Add the missing `tools/gomad3integration/testdata/tagged` fixture that `TestPublicWrappers`
   runs, or delete that test.
 
