@@ -1,4 +1,4 @@
-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification intercept-test test-toolchain qualification-set runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility test-harness test-builder test-live-capability test-runtime test-upstream test
+.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility test-harness test-builder test-live-capability test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -78,12 +78,13 @@ compatibility-pack-qualification: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/modernc-libc-xsys-v047.json --working-dir=$(CURDIR)/qualification/corpus
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/modernc-libc-xsys-v047-isatty-v021.json --working-dir=$(CURDIR)/../..
 
-core-qualification: compatibility-pack-qualification
-core-qualification: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
-core-qualification: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
-core-qualification: GOMAD3_QUALIFICATION_ARTIFACTS := $(CURDIR)/.toolchain/core-qualification
-core-qualification: GOMAD3_QUALIFICATION_OUTPUT := $(CURDIR)/.toolchain/core-qualification-set.json
-core-qualification: qualification-set
+core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
+core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
+core-qualification-set: GOMAD3_QUALIFICATION_ARTIFACTS := $(CURDIR)/.toolchain/core-qualification
+core-qualification-set: GOMAD3_QUALIFICATION_OUTPUT := $(CURDIR)/.toolchain/core-qualification-set.json
+core-qualification-set: qualification-set
+
+core-qualification: compatibility-pack-qualification core-qualification-set
 
 upgrade-dossier: core-qualification
 	GOWORK=off go run ./cmd/gomadtool upgrade-dossier \
