@@ -228,7 +228,11 @@ and it writes only its own report (`reconcile-summary.json`).
 The report lists `fenced`, `closed`, `terminated` and `unverified` workflow IDs. It also reports
 what happened to the iterations:
 
-- `lost` lists this job's own Runs that were opened and never published.
+- `lost` lists this job's own Runs that its recovery record shows opened and not recorded as
+  published. After `run` ends `publication-unreported` or `publication-failed`, it can name a Run
+  whose receipt is in the artifact. Whether a Run was published is decided by the files in
+  `canary-output/`, not by `lost`, and not by `run-summary.json`, which lists each decided
+  iteration's identities before publication runs.
 - `publicationUnknown` lists, when the job found an earlier invocation's lease, the Runs that lease
   fenced. Whether they were published is recorded in the earlier invocation's artifact, which
   `foundArtifact` names (`umpire-production-canary-<run id>-<attempt>`) when the lease's start
@@ -256,7 +260,8 @@ When `reconcile` reports `uncertain`:
 2. Close each listed workflow by hand in the canary namespace, for example with
    `temporal workflow terminate --namespace <canary namespace> --workflow-id <id>`. Close only the listed IDs.
 3. Dispatch the workflow again. Its `run` refuses the held lease as `lease-unreconciled`, and its
-   `reconcile` verifies that the workflows are closed and records the scope reconciled.
+   `reconcile` verifies that the workflows are closed and records the scope reconciled. If it
+   reports `lease-in-use`, the lease run is younger than 12 minutes; dispatch again later.
 4. Dispatch again to run the canary.
 
 Do not terminate the lease by hand. A lease closed with any other reason is unreconciled. The next
@@ -300,7 +305,8 @@ Everything canary-specific lives here. Umpire never imports `tools/canary`.
 
 The `canary_harness` build tag compiles a separate harness binary with a test policy, the
 `canary-harness` Evaluation Profile and the `harness` authority class. The live tests in
-`tests/testpilot_canary_test.go` (`TestTestpilotCanary*`) run it against the test cluster.
+`tests/testpilot_canary_test.go` and `tests/testpilot_canary_lifecycle_test.go`
+(`TestTestpilotCanary*`) run it against the test cluster.
 `build_test.go` pins that the untagged build has no override path, so a harness receipt is never a
 production receipt. `make umpire-check-regression` and the `canary` job in
 `.github/workflows/umpire.yml` run the canary's tests. `make canary-gen-case` and
