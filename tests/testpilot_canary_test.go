@@ -257,7 +257,7 @@ func TestTestpilotCanaryHarnessEndToEnd(t *testing.T) {
 // no handler polls, preflight passes, the Run's Case never observes the handler's reply, and the
 // iteration is incomplete: its receipt and provenance are published, no further Run is made,
 // cleanup releases the lease, and the exit is 1.
-func TestTestpilotCanaryHarnessRefusesARepointedEndpoint(t *testing.T) {
+func TestTestpilotCanaryHarnessRunsARepointedEndpointIncomplete(t *testing.T) {
 	h := newCanaryHarness(t, "canary-repointed", nil)
 	listed, err := h.env.OperatorClient().ListNexusEndpoints(h.env.Context(), &operatorservice.ListNexusEndpointsRequest{
 		Name: h.coordinates.NexusEndpoint, PageSize: 1,
@@ -346,7 +346,7 @@ func TestTestpilotCanaryHarnessRecoversALostProcess(t *testing.T) {
 			if test.held {
 				require.Equal(t, controller.ReasonReconciled, reason)
 			} else {
-				require.Equal(t, controller.ReasonReleased, reason, "the later invocation's lease run is left alone")
+				require.Equal(t, controller.ReasonReleased, reason, "the later invocation released its own lease run")
 			}
 
 			after := h.job(t)

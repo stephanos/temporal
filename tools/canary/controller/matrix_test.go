@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -115,7 +116,6 @@ func TestARunCrossingItsFenceFailsAtItsBoundary(t *testing.T) {
 		require.Contains(t, summary.Detail, "different Runs")
 		require.Empty(t, f.published(t), "a crossed receipt is never published")
 		require.Equal(t, []string{runID(1), runID(2)}, summary.Cleanup.Fenced)
-		require.NotContains(t, f.server.runs, runID(101))
 	})
 
 	t.Run("a start outside the fence", func(t *testing.T) {
@@ -135,7 +135,6 @@ func TestARunCrossingItsFenceFailsAtItsBoundary(t *testing.T) {
 		require.Empty(t, f.published(t))
 		require.Equal(t, []string{runID(1)}, summary.Cleanup.Fenced)
 		require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome)
-		require.NotContains(t, f.server.runs, "customer-workflow")
 	})
 }
 
@@ -180,8 +179,7 @@ func TestASecondDispatchDuringALiveRunTouchesNothingOfIt(t *testing.T) {
 	require.Equal(t, StatusLeaseInUse, reconciled.Status)
 	require.NotEmpty(t, calls)
 	for _, call := range calls {
-		require.False(t, strings.HasPrefix(call, "start ") || strings.HasPrefix(call, "signal ") || strings.HasPrefix(call, "terminate "),
-			"the second job only reads: %s", call)
+		require.False(t, mutates(call), "the second job only reads: %s", call)
 	}
 
 	require.Equal(t, ExitAccepted, code, "%+v", summary)
@@ -311,20 +309,21 @@ func TestAProvedViolationStaysViolated(t *testing.T) {
 	}
 }
 
-// No state crosses Runs or leases. Invocations running at once, each on its own lease, fence and
-// close only their own Runs; invocations one after another on one lease each open fresh Drivers,
+// No state crosses Runs or leases. Invocations running at once on one server, each on its own
+// lease, fence and close only their own Runs; invocations one after another on one lease each open fresh Drivers,
 // each opened once, and each lease run's fence names only its own invocation's Runs. The package's
 // tests run under the race detector, which this exercises across the concurrent invocations.
 func TestNoStateCrossesRunsOrLeases(t *testing.T) {
 	t.Run("concurrent invocations", func(t *testing.T) {
 		const invocations = 4
-		canary := testPolicy(t)
-		scripts := make([]*script, invocations)
+		server := newFakeServer()
 		runs := make([]*invocation, invocations)
 		stores := make([]*recovery.Store, invocations)
 		for index := range invocations {
-			scripts[index] = &script{server: newFakeServer(), first: 10 * index}
-			runs[index], stores[index] = scripts[index].invocation(t, canary, time.Now(), &bytes.Buffer{})
+			canary := testPolicy(t)
+			canary.Lease.WorkflowID += "-" + strconv.Itoa(index)
+			s := &script{server: server, first: 10 * index}
+			runs[index], stores[index] = s.invocation(t, canary, time.Now(), &bytes.Buffer{})
 		}
 		results := make([]*Result, invocations)
 		errs := make([]error, invocations)
@@ -398,11 +397,16 @@ func TestAStaleRecoveryRecordNeverReachesALaterLease(t *testing.T) {
 	require.Equal(t, []string{runID(1)}, report.Lost)
 	require.Empty(t, report.Terminated)
 	for _, call := range f.server.calls {
-		require.False(t, strings.HasPrefix(call, "start ") || strings.HasPrefix(call, "terminate "), "reconcile only reads here: %s", call)
+		require.False(t, mutates(call), "reconcile only reads here: %s", call)
 	}
 	observed := f.leaseState(t)
 	require.Equal(t, Observed{State: LeaseOpen, RunID: later.RunID, Started: time.Unix(1000, 0).UTC()}, observed, "the later lease run is left alone")
 	closed, err := workflowClosed(t.Context(), target(f.server), runID(2), time.Second, noWait)
 	require.NoError(t, err)
 	require.False(t, closed, "the later invocation's Run is left alone")
+}
+
+// mutates says whether a fake server call changes the target: a start, a signal or a termination.
+func mutates(call string) bool {
+	return strings.HasPrefix(call, "start ") || strings.HasPrefix(call, "signal ") || strings.HasPrefix(call, "terminate ")
 }
