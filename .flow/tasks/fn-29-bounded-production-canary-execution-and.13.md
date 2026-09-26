@@ -22,9 +22,12 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [ ] No schedule, automatic rerun, rollout, customer-traffic or release-authorization guidance is added.
 
 ## Done summary
-TBD
+`tools/canary/README.md` is the production canary's operator runbook: the credential's privilege (namespace writer on the canary namespace only), the preconditions an operator owns (protected `production-canary` environment restricted to `main` with reviewers, the Nexus endpoint's target and allowed caller namespace, 30-day retention, coordinate digests committed in a reviewed pull request to `main`, else `policy-unconfigured`), invocation, preflight, the Limits, every `run` and `reconcile` status and exit, lost iterations, the held lease and reconciliation, how to clear an uncertain scope, the retained artifact, and that receipts are not self-authenticating, provenance always carries `releaseEligibility: false`, and nothing here authorizes a release. `.plans/UMPIRE4_COMPONENTS.md` records fn-29's implemented ownership; `.plans/UMPIRE4_ORDER.md`'s fn-29 row records tasks .1 to .13 with .12's gate notes. The `lint-model` note says the `Refinement.lean` diagnostic is outside the recorded baseline and is not fn-29's, and that the baseline was not re-measured.
 
+Review: round 1 NEEDS_WORK (P2: `lost` could name a published Run after `publication-unreported`; P3: `lease-in-use` when clearing a scope; P3: the second live-test file), all fixed; round 2 SHIP.
+
+stage: impl-review - ran [2026-09-26] SHIP (claude:opus:high, round 2; deterministic triage-skip overridden because the runbook's claims needed checking against the code)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 24fc66b900d860d977a1674186681d9c893242d8, 5fe6539628b27675e993925ab1d853645f252771
+- Tests: baseline: green (make umpire-check-retired-vocabulary, pre-edit), make umpire-check-retired-vocabulary (exit 0 at HEAD, 196s), gate classify: FULL (.plans/UMPIRE4_*.md is scanned by the retired-vocabulary gate), impl-review: SHIP (claude:opus:high, round 2; triage-skip overridden with a full review)
 - PRs:
