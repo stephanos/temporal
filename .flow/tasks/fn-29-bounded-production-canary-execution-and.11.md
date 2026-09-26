@@ -22,9 +22,23 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [ ] Race-enabled tests show no cross-Run or cross-lease state.
 
 ## Done summary
-TBD
+The adversarial matrix is now covered by tests. In process, `tools/canary/controller/matrix_test.go` proves these, and its header points to the existing tests for the other matrix cases:
+- a planted credential or coordinate reaches no output;
+- a Run crossing its fence fails at publication or at the fenced Session;
+- a second dispatch and its reconcile during a live Run only read;
+- a tenfold request is capped by the pinned policy limits, the Temporal Profile's `DefaultCeilings` (150s iteration bound) and fn-26's caps;
+- a proved violation stays rejected under every other failure, and an inconclusive Run stays incomplete;
+- a stale recovery record never touches a later lease;
+- concurrent and serial invocations share no Run or lease state, under `-race`.
 
+Live, `TestTestpilotCanaryHarnessRunsARepointedEndpointIncomplete` shows routing drift ends as an incomplete Run with its receipt and exit 1. `TestTestpilotCanaryHarnessRecoversALostProcess` now crashes at all four phases. The cmd test pins a report stdout cannot take as exit 3.
+
+Each new in-process test failed under a mutation of the code it guards; every mutation was reverted.
+
+Follow-up: the harness redactor in `tools/canary/testharness` still lists the coordinates by hand. The fix belongs in `tools/canary/authority`, outside this task. Environment note: on this host, Lean's bundled clang shadows `/usr/bin/clang` on PATH and breaks cgo. The gates ran with `CC=/usr/bin/clang`.
+
+stage: impl-review - ran [2026-09-26T22:20..2026-09-26T22:24] SHIP (claude:opus:high, round 1; its four P3 notes applied)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d463834cce612befd662ea8647f5327f6c221d08, 89433664bb05a162577afdfec4fd2074e8e2a8f6
+- Tests: baseline: green (CC=/usr/bin/clang; Lean's bundled clang on PATH lacks stddef.h), go test -race -count=1 -tags test_dep ./tools/canary/..., go test -race -count=1 -tags "test_dep canary_harness" ./tools/canary/..., go test -count=1 -tags "test_dep integration" ./tests/ -run '^TestTestpilotCanary', make lint-code-fast
 - PRs:
