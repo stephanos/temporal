@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
+	"go.temporal.io/server/tools/canary/publication"
 	"go.temporal.io/server/tools/canary/recovery"
 	"go.temporal.io/server/tools/umpire/evaluation"
 	"go.temporal.io/server/tools/umpire/recordedrun"
@@ -70,6 +71,8 @@ type invokeFixture struct {
 	// session acts on each scripted Run's fenced Session once it opens; an error fails the Run.
 	session func(ctx context.Context, session testpilot.Session) error
 	runs    int
+	// publish replaces publication.Publish; nil keeps it.
+	publish func(context.Context, string, []publication.Item, func(string) error) ([]publication.Published, error)
 }
 
 func newInvokeFixture(t *testing.T) *invokeFixture {
@@ -116,7 +119,8 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 	}
 	return Invoke(ctx, Invocation{
 		Seams: seams, Output: f.output, Recovery: f.recovery, Progress: &f.progress, Started: f.startedAt(),
-		Lookup: func(key string) (string, bool) { value, ok := f.env[key]; return value, ok },
+		Lookup:  func(key string) (string, bool) { value, ok := f.env[key]; return value, ok },
+		publish: f.publish,
 		service: func(*authority.Authority, string, io.Writer) (*lazyService, error) {
 			return &lazyService{direct: f.server}, nil
 		},
@@ -415,8 +419,8 @@ func TestAnInterruptStillPublishesWhatWasDecided(t *testing.T) {
 }
 
 // The other named failures, each exit 3: a Run that errors (unconstructible, no receipt), no
-// iteration at all within the limit, a publication that fails, and a Driver that does not release
-// after an iteration that was not accepted.
+// iteration at all within the limit, a publication that fails, a publication it cannot record,
+// and a Driver that does not release after an iteration that was not accepted.
 func TestInvokeNamesEveryOtherFailure(t *testing.T) {
 	t.Run("a Run that errors", func(t *testing.T) {
 		f := newInvokeFixture(t)
@@ -447,6 +451,21 @@ func TestInvokeNamesEveryOtherFailure(t *testing.T) {
 		summary, code := f.invoke(t, seams)
 		require.Equal(t, ExitFailed, code)
 		require.Equal(t, StatusPublicationFailed, summary.Status)
+	})
+	t.Run("a publication it cannot record", func(t *testing.T) {
+		f := newInvokeFixture(t)
+		f.publish = func(ctx context.Context, root string, items []publication.Item, _ func(string) error) ([]publication.Published, error) {
+			return publication.Publish(ctx, root, items, func(string) error { return errors.New("the record is not writable") })
+		}
+		summary, code := f.invoke(t, f.seams())
+		require.Equal(t, ExitFailed, code)
+		require.Equal(t, StatusPublicationUnreported, summary.Status)
+		require.Contains(t, summary.Detail, "not writable")
+		require.Len(t, f.published(t), 2, "the first receipt and its provenance are published, and nothing after them")
+		record, err := recovery.Read(f.recovery)
+		require.NoError(t, err)
+		require.Equal(t, recovery.PhasePublishing, record.Phase, "an unreported publication never reads as finished")
+		require.False(t, record.Iterations[0].Published)
 	})
 	t.Run("a Driver that does not release after a rejection", func(t *testing.T) {
 		f := newInvokeFixture(t)

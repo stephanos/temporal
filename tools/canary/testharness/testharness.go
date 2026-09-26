@@ -78,8 +78,7 @@ func Authority(lookup authority.Lookup) (*authority.Authority, error) {
 	return &authority.Authority{
 		Coordinates: coordinates,
 		Transport:   authority.Transport{Target: coordinates.GRPC, Credentials: insecure.NewCredentials()},
-		Redactor: authority.NewRedactor(coordinates.GRPC, coordinates.Namespace, coordinates.TaskQueue,
-			coordinates.HandlerQueue, coordinates.NexusEndpoint),
+		Redactor:    coordinates.Redactor(),
 	}, nil
 }
 

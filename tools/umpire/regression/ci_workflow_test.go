@@ -22,7 +22,7 @@ import (
 
 const (
 	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/..."
-	liveTestCommand          = "mise exec -- go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilot'"
+	liveTestCommand          = "mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' ./tests -run '^TestTestpilot'"
 	liveTestTargetCommand    = "make umpire-check-live-tests"
 	conformanceTargetCommand = "./tools/umpire/cmd/umpire-gen-case-runtime-conformance"
 	retiredVocabularyTarget  = "umpire-check-retired-vocabulary"
@@ -35,6 +35,15 @@ const (
 	liveTestEmptyMismatch    = "Live Testpilot failure identities differ from the empty expected set."
 	liveTestSuccess          = "Live Testpilot failure identities match the empty expected set across %s passing identities."
 	liveTestNoIdentity       = "The live suite failed without reporting a test identity."
+)
+
+// The canary's tests join the regression gate's package-local line, and run in CI in a job of their
+// own beside its harness build's tests and its checks.
+const (
+	regressionTestCommand = packageLocalTestCommand + " ./tools/canary/..."
+	canaryTestCommand     = "mise exec -- go test -count=1 -tags test_dep ./tools/canary/..."
+	canaryHarnessCommand  = "mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/"
+	canaryChecksCommand   = "make canary-check-case umpire-check-evaluation-profiles"
 )
 
 type ciWorkflow struct {
@@ -95,28 +104,19 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 			"portability": {
 				RunsOn:         "ubuntu-24.04",
 				TimeoutMinutes: 15,
-				Steps: []ciWorkflowStep{
-					{Uses: "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10"},
-					{
-						Uses: "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
-						With: map[string]any{
-							"go-version-file": "go.mod",
-							"check-latest":    false,
-							"cache":           false,
-						},
-					},
-					{
-						Uses: "jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925",
-						With: map[string]any{
-							"version":           "2026.8.16",
-							"sha256":            "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35",
-							"working_directory": "model",
-							"cache":             false,
-						},
-					},
-					{Name: "Run package-local Testpilot and Umpire Producer tests", Run: packageLocalTestCommand},
-					{Name: "Run the live Umpire tests", Run: liveTestTargetCommand},
-				},
+				Steps: append(setup(),
+					ciWorkflowStep{Name: "Run package-local Testpilot and Umpire Producer tests", Run: packageLocalTestCommand},
+					ciWorkflowStep{Name: "Run the live Umpire tests", Run: liveTestTargetCommand},
+				),
+			},
+			"canary": {
+				RunsOn:         "ubuntu-24.04",
+				TimeoutMinutes: 30,
+				Steps: append(setup(),
+					ciWorkflowStep{Name: "Run the canary's unit tests", Run: canaryTestCommand},
+					ciWorkflowStep{Name: "Run the canary harness build's tests", Run: canaryHarnessCommand},
+					ciWorkflowStep{Name: "Check the canary's pinned Case and rendered Profiles", Run: canaryChecksCommand},
+				),
 			},
 		},
 	}, workflow)
@@ -127,6 +127,9 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.NoError(t, err)
 	normalizedDryRun := strings.Join(strings.Fields(strings.ReplaceAll(string(dryRun), "\\\n", " ")), " ")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, packageLocalTestCommand))
+	require.Equal(t, 1, strings.Count(normalizedDryRun, regressionTestCommand))
+	require.Equal(t, 1, strings.Count(normalizedDryRun, canaryHarnessCommand))
+	require.Contains(t, normalizedDryRun, "--render-canary temporal.case.nexusCallerCanary.syncCompletion")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
 	require.Contains(t, normalizedDryRun, conformanceTargetCommand)
 	require.Contains(t, normalizedDryRun, retiredVocabularyTarget)
@@ -147,6 +150,30 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.NotContains(t, normalizedDryRun, "TestUmpire2TestSuite")
 	require.NotContains(t, normalizedDryRun, "TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram")
 	require.NotContains(t, normalizedDryRun, retiredGeneratedTestPath)
+}
+
+// setup is every job's checkout and pinned toolchain.
+func setup() []ciWorkflowStep {
+	return []ciWorkflowStep{
+		{Uses: "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10"},
+		{
+			Uses: "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+			With: map[string]any{
+				"go-version-file": "go.mod",
+				"check-latest":    false,
+				"cache":           false,
+			},
+		},
+		{
+			Uses: "jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925",
+			With: map[string]any{
+				"version":           "2026.8.16",
+				"sha256":            "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35",
+				"working_directory": "model",
+				"cache":             false,
+			},
+		},
+	}
 }
 
 func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T) {
