@@ -10,11 +10,12 @@ import (
 )
 
 // TestSeedReachesTestBinary proves the exec wrapper delivered the seed and
-// prints a schedule the seed decides.
+// prints a schedule the seed decides. The seeded runtime hides the process
+// environment behind a fixed TZ=UTC, so that scrubbed environment is the
+// activation signal.
 func TestSeedReachesTestBinary(t *testing.T) {
-	seed, ok := os.LookupEnv("GOMADSEED")
-	if !ok || seed == "" {
-		t.Fatal("GOMADSEED did not reach the test binary")
+	if environment := os.Environ(); !slices.Equal(environment, []string{"TZ=UTC"}) {
+		t.Fatalf("environment = %v, want the seeded runtime's TZ=UTC only", environment)
 	}
 	var mutex sync.Mutex
 	var order []int
@@ -28,7 +29,7 @@ func TestSeedReachesTestBinary(t *testing.T) {
 		})
 	}
 	group.Wait()
-	fmt.Printf("seed=%s order=%v\n", seed, order)
+	fmt.Printf("seeded order=%v\n", order)
 }
 
 // TestDisabledCompatibility prints one line that must be identical under the

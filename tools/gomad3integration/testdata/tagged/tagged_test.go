@@ -4,14 +4,14 @@ package tagged
 
 import (
 	"os"
+	"slices"
 	"testing"
 )
 
+// The seeded runtime replaces the environment with TZ=UTC, so seeing exactly
+// that proves exec.sh turned GOMAD3_CHILD_SEED into an active GOMADSEED.
 func TestTargetRequiresTestDep(t *testing.T) {
-	if _, set := os.LookupEnv("GOMAD3_CHILD_SEED"); set {
-		t.Fatal("GOMAD3_CHILD_SEED leaked into the test binary; exec.sh must consume it")
-	}
-	if _, set := os.LookupEnv("GOMADSEED"); !set {
-		t.Fatal("GOMADSEED was not delivered to the test binary")
+	if environment := os.Environ(); !slices.Equal(environment, []string{"TZ=UTC"}) {
+		t.Fatalf("environment = %v, want the seeded runtime's TZ=UTC only", environment)
 	}
 }
