@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,6 +17,9 @@ import (
 )
 
 func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("the host capability sandbox uses macOS sandbox-exec")
+	}
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
