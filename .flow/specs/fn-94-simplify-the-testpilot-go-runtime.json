@@ -18,7 +18,9 @@
     "fn-94-simplify-the-testpilot-go-runtime.3": 0,
     "fn-94-simplify-the-testpilot-go-runtime.4": 0,
     "fn-94-simplify-the-testpilot-go-runtime.5": 0,
-    "fn-94-simplify-the-testpilot-go-runtime.6": 0
+    "fn-94-simplify-the-testpilot-go-runtime.6": 0,
+    "fn-94-simplify-the-testpilot-go-runtime.7": 1,
+    "fn-94-simplify-the-testpilot-go-runtime.8": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -422,6 +424,110 @@
       "task": "fn-94-simplify-the-testpilot-go-runtime.6",
       "timestamp": "2026-09-27T18:50:07.327161Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "446e74d7fcbbe0ec21753d8aafac9069a7d80414c105b3986e72c88c9f1b2bc5",
+      "backend": "codex",
+      "base_sha": "63443f398821fd7c8cf59063a4412473e6eea20b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d23fb75d7e23b394c350bba03d3e2ea0",
+            "classification": "introduced",
+            "findingId": "finding-d23fb75d7e23b394c350bba03d3e2ea0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5f29c3d4166a18907b2fdebf1495268e",
+            "classification": "introduced",
+            "findingId": "finding-5f29c3d4166a18907b2fdebf1495268e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5ac32da7360c5ca29a1914f68573e502831c4494",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1907,
+      "output_sha256": "ce02a0b287ef3125b3d04c2af979e3345d5ca2476b7e2365f54331204f6fb943",
+      "reservation_id": "cee925eba5684dd58e0adfdaa54d95c8",
+      "round_consumed": true,
+      "scope": "impl:fn-94-simplify-the-testpilot-go-runtime.8",
+      "superseded_by": null,
+      "task": "fn-94-simplify-the-testpilot-go-runtime.8",
+      "timestamp": "2026-09-27T18:53:29.983138Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0c66e864678f254cb11613f4f684953173893f5a1261ad5c34fa16ffc752bf39",
+      "backend": "codex",
+      "base_sha": "63443f398821fd7c8cf59063a4412473e6eea20b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d23fb75d7e23b394c350bba03d3e2ea0",
+            "classification": "introduced",
+            "findingId": "finding-d23fb75d7e23b394c350bba03d3e2ea0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5f29c3d4166a18907b2fdebf1495268e",
+            "classification": "introduced",
+            "findingId": "finding-5f29c3d4166a18907b2fdebf1495268e",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c482bb58ec93973fe9c83357624958405c7d5bf1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 520,
+      "output_sha256": "5ec5d5eae01577623e278da5a4df7f94836f042dc0192b1861d074109b1a6803",
+      "reservation_id": "12f81b9391984a8cbe46ae7bfdad110f",
+      "round_consumed": true,
+      "scope": "impl:fn-94-simplify-the-testpilot-go-runtime.8",
+      "superseded_by": null,
+      "task": "fn-94-simplify-the-testpilot-go-runtime.8",
+      "timestamp": "2026-09-27T18:56:40.362035Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -431,11 +537,23 @@
     "impl:fn-94-simplify-the-testpilot-go-runtime.4": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.5": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.6": 1,
+    "impl:fn-94-simplify-the-testpilot-go-runtime.8": 1,
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-94-simplify-the-testpilot-go-runtime.7": 1
+  },
+  "review_reservations": {
+    "11e9d1052bf04f9abdc21c9d04d27b05": {
+      "artifact_sha256": "e174e5cff1022dda77698cdc547f2bf27ade50b1eedf05c4ad5f2e8c242116a7",
+      "counter_scope": "impl:fn-94-simplify-the-testpilot-go-runtime.7",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-94-simplify-the-testpilot-go-runtime.1": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.2": 0,
@@ -443,6 +561,7 @@
     "impl:fn-94-simplify-the-testpilot-go-runtime.4": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.5": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.6": 0,
+    "impl:fn-94-simplify-the-testpilot-go-runtime.8": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-94-simplify-the-testpilot-go-runtime.md",
@@ -459,5 +578,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T18:50:07.330545Z"
+  "updated_at": "2026-09-27T18:56:40.365400Z"
 }
