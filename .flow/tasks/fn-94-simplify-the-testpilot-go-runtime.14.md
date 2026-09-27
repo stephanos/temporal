@@ -39,9 +39,29 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+The Testpilot tests now share one support package. `internal/testsupport` holds `DescriptorClosure`, `ProgramLimits()`, and the scripted `Session`, `Effect` and `Reservation`. It imports only `contract`, protobuf and generated code, so `ir`, `execution` and `verification` tests can use it and gain no facade or adapter dependency (`go list -deps -test ... | grep -c testpilot/temporal` = 0). `internal/testsupport/facadetest` holds the fake `Driver`, `Capture`, and the one runtime fixture `RuntimeCase`, which takes the reply kind and command types as parameters. The activation and worker tests both use it.
 
+Every former copy's callers now use the shared definition:
+- The 12 descriptor closures.
+- The full-field `ProgramLimits` literals. Callers override only the field their test needs: poll and evidence set the fanout to the emission bound, and the runtime fixture keeps its 64 KiB byte ceilings.
+- The four program-capture Drivers and the conformance, proof, correlated and fault-run Drivers.
+- The facade, proof, correlated, recording controller and recording worker Sessions, and the scheduler host.
+- The facade, recording, terminal, blocking, scheduler and runtime effects.
+- The recording, scheduler and delivery reservations.
+
+Some literals and fakes stay local, each with a one-line reason:
+- Literals: the conformance and correlated `ProgramLimits` literals (existing comments explain them), the identity golden's pinned literal, and the partial callback and recorder limits.
+- Fakes: the in-package `facadeDriver` and typed-nil types in `prepare_test.go`, `countingMonitorFactory`, execution's `runtimeDriver`/`runtimeSession` and `recorderHandle`, and the bridges.
+
+Test files shrink by about 970 lines; with the 610 support lines added, the net drop is about 360. Goldens and conformance fixtures are unchanged.
+
+The review found one problem. The first commit had deleted `TestConcurrentEnvironmentPreparationsResolveIndependently` as a two-layer duplicate, but the facade test does not check resolved requests. The test is restored in the second commit.
+
+baseline: green (go test -race -count=3 -tags test_dep ./common/testing/testpilot/..., pre-edit)
+Gate receipt: attempted. Other sessions' uncommitted model/** edits keep the worktree dirty.
+
+stage: impl-review - ran [codex fan-out rid 77c71b5484bb458a8f63702c114ece1f: correctness SHIP, contracts NEEDS_WORK, integration SHIP -> restore test -> re-review SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5abdf52d8bc3f1b1d57f383aa6ec7b72d2270c57, ee61d21bb756240dd8613c5ef65baa8b0e32ef88
+- Tests: go test -race -count=3 -tags test_dep ./common/testing/testpilot/..., go list -tags test_dep -deps -test ./common/testing/testpilot/internal/ir/ ./common/testing/testpilot/internal/execution/ | grep -c testpilot/temporal (0), make lint-code-fast, make umpire-check-retired-vocabulary
 - PRs:
