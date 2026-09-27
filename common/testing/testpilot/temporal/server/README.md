@@ -1,6 +1,6 @@
 # Temporal controller transport
 
-`New(Options)` checks the Profile's Program limits against the shared ceiling check once, freezes
+`New(Options)` checks the Profile's Program limits once with `testpilot.WithinProgramCeiling`, freezes
 the Profile and configured transport endpoints, creates lazy shared gRPC channels, and performs no
 target calls. Supply its `Snapshot` through `testpilot.Prepare`. The root facade passes an admitted
 `PreparedProgram` to `Open` (the composite Driver calls `OpenSession` for the concrete Session);
