@@ -329,6 +329,12 @@ private def forbiddenRule?
   else
     none
 
+/-- Direct-import violations by source, then import. -/
+private def sortDirectViolations (violations : Array Violation) : Array Violation :=
+  violations.qsort fun left right =>
+    left.source.toString < right.source.toString ||
+      (left.source == right.source && left.destination.toString < right.destination.toString)
+
 /-- Whether the authoring-path rule applies to a module: production, under an authoring-path root
 and not a named exception. -/
 private def Policy.isAuthoringPathModule (policy : Policy) (name : Lean.Name) : Bool :=
@@ -355,9 +361,7 @@ def checkAuthoringPath (policy : Policy) (modules : Array ModuleRecord) : Array 
           } : Violation)
         else none
     else #[]
-  violations.qsort fun left right =>
-    left.source.toString < right.source.toString ||
-      (left.source == right.source && left.destination.toString < right.destination.toString)
+  sortDirectViolations violations
 
 private def Policy.isTestModule (policy : Policy) (name : Lean.Name) : Bool :=
   match policy.classify? name with
@@ -384,9 +388,7 @@ def checkSearchBackends (policy : Policy) (modules : Array ModuleRecord) : Array
           } : Violation)
         else none
     else #[]
-  violations.qsort fun left right =>
-    left.source.toString < right.source.toString ||
-      (left.source == right.source && left.destination.toString < right.destination.toString)
+  sortDirectViolations violations
 
 /--
 Return every forbidden import in deterministic order: the direct-import rules first (authoring

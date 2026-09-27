@@ -168,8 +168,6 @@ A `veil` run names its backend, the unit its bound counts and the pinned commit,
       (canonicalPlanningReceiptJson reference).contains "veilCommit")) ==
   some (.reference, .veil Veil.commit, .states, true, true, false)
 
-#guard Veil.commit == "517f2badbf9a7ba2b18a72242351ff20943cbdd7"
-
 /-! ### Axiom inventories of the adapter theorems (R7) -/
 
 /-- info: 'Umpire.Search.Backend.Veil.transition_equivalence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
