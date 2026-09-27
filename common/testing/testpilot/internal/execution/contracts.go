@@ -2,7 +2,6 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
@@ -57,15 +56,4 @@ type Driver interface {
 	Open(context.Context, string, *PreparedProgram) (contract.Session, error)
 }
 
-func isNil(value any) bool {
-	if value == nil {
-		return true
-	}
-	reflected := reflect.ValueOf(value)
-	switch reflected.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
-		return reflected.IsNil()
-	default:
-		return false
-	}
-}
+var isNil = ir.IsNil

@@ -38,25 +38,11 @@ type admission struct {
 	work            int64
 }
 
-func invalid(category ir.ErrorCategory, path, detail string) error {
-	if len(path) > 256 {
-		path = path[:256]
-	}
-	return &ir.Error{Category: category, Path: path, Detail: detail}
-}
-func validID(id string) bool {
-	if len(id) == 0 || len(id) > 256 {
-		return false
-	}
-	for _, c := range id {
-		switch {
-		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '_', c == '-', c == '.':
-		default:
-			return false
-		}
-	}
-	return true
-}
+var (
+	invalid = ir.Invalid
+	validID = ir.ValidID
+)
+
 func (a *admission) charge(count int64) error {
 	if count < 0 || count > ir.DefaultLimits().Work-a.work {
 		return invalid(ir.LimitExceeded, "program", "admission work ceiling exceeded")
@@ -114,18 +100,9 @@ func checkLimits(limits, ceiling *testpilotspb.ProgramLimits) error {
 	if limits == nil || ceiling == nil {
 		return invalid(ir.Malformed, "limits", "limits are required")
 	}
-	if err := ir.CheckSurface(limits, ir.DefaultLimits()); err != nil {
-		return err
-	}
-	fields := limits.ProtoReflect().Descriptor().Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		value := limits.ProtoReflect().Get(field).Int()
-		if value <= 0 || value > ceiling.ProtoReflect().Get(field).Int() {
-			return invalid(ir.LimitExceeded, string(field.Name()), "limit is outside the positive Driver ceiling")
-		}
-	}
-	return nil
+	return ir.CheckCeilings(limits, ceiling, func(field string) error {
+		return invalid(ir.LimitExceeded, field, "limit is outside the positive Driver ceiling")
+	})
 }
 func (a *admission) bindPolicy(policy Profile) error {
 	if !validID(policy.Identity) || policy.CatalogIdentity != a.prepared.catalog.Identity() {

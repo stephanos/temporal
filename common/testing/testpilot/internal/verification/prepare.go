@@ -105,27 +105,14 @@ type admission struct {
 }
 
 func invalid(category ir.ErrorCategory, detail string) error {
-	return &ir.Error{Category: category, Path: "contract", Detail: detail}
+	return ir.Invalid(category, "contract", detail)
 }
 
-// invalidAt is invalid located at path, truncated to the bound every located path keeps.
-func invalidAt(category ir.ErrorCategory, path, detail string) error {
-	if len(path) > 256 {
-		path = path[:256]
-	}
-	return &ir.Error{Category: category, Path: path, Detail: detail}
-}
-func validID(id string) bool {
-	if len(id) == 0 || len(id) > 256 {
-		return false
-	}
-	for _, c := range id {
-		if (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') && c != '_' && c != '-' && c != '.' {
-			return false
-		}
-	}
-	return true
-}
+var (
+	// invalidAt is invalid located at path, truncated to the bound every located path keeps.
+	invalidAt = ir.Invalid
+	validID   = ir.ValidID
+)
 
 // hardLimits is the Driver ceiling every Profile's Contract ceiling must fit under. MaxWorkPerEvent
 // is sized for a correlated capability rather than for expression evaluation alone: an evidence event
@@ -146,18 +133,9 @@ func checkLimits(limits, ceiling *testpilotspb.ContractLimits) error {
 	if limits == nil || ceiling == nil {
 		return invalid(ir.Malformed, "Contract limits and Driver ceilings are required")
 	}
-	if err := ir.CheckSurface(limits, ir.DefaultLimits()); err != nil {
-		return err
-	}
-	fields := limits.ProtoReflect().Descriptor().Fields()
-	for i := 0; i < fields.Len(); i++ {
-		f := fields.Get(i)
-		value := limits.ProtoReflect().Get(f).Int()
-		if value <= 0 || value > ceiling.ProtoReflect().Get(f).Int() {
-			return invalid(ir.LimitExceeded, "limit outside positive Driver ceiling: "+string(f.Name()))
-		}
-	}
-	return nil
+	return ir.CheckCeilings(limits, ceiling, func(field string) error {
+		return invalid(ir.LimitExceeded, "limit outside positive Driver ceiling: "+field)
+	})
 }
 func add(total *int64, value, ceiling int64) error {
 	if value < 0 || value > ceiling-*total {

@@ -4,10 +4,10 @@ package testpilot
 import (
 	"context"
 	"errors"
-	"reflect"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/verification"
 	"google.golang.org/protobuf/proto"
 )
@@ -77,15 +77,4 @@ func (p *PreparedCase) preflight(ctx context.Context, driver Driver) (execution.
 	return driverAdapter{driver: driver}, monitor, nil
 }
 
-func isNil(value any) bool {
-	if value == nil {
-		return true
-	}
-	reflected := reflect.ValueOf(value)
-	switch reflected.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
-		return reflected.IsNil()
-	default:
-		return false
-	}
-}
+var isNil = ir.IsNil

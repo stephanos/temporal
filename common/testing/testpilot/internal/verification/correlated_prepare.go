@@ -106,20 +106,12 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if l == nil {
 		return invalid(ir.Malformed, "Profile correlated limits required")
 	}
-	if err := ir.CheckSurface(l, ir.DefaultLimits()); err != nil {
+	// The capture ceilings are required only by a capability that declares captures or a
+	// correlation, so a Profile that admits neither may leave both unset.
+	if err := ir.CheckCeilings(l, nil, func(string) error {
+		return invalid(ir.LimitExceeded, "correlated limits must be positive")
+	}, "max_captures", "max_correlation_depth"); err != nil {
 		return err
-	}
-	fields := l.ProtoReflect().Descriptor().Fields()
-	for i := 0; i < fields.Len(); i++ {
-		f := fields.Get(i)
-		// The capture ceilings are required only by a capability that declares captures or a
-		// correlation, so a Profile that admits neither may leave both unset.
-		if f.Name() == "max_captures" || f.Name() == "max_correlation_depth" {
-			continue
-		}
-		if l.ProtoReflect().Get(f).Int() <= 0 {
-			return invalid(ir.LimitExceeded, "correlated limits must be positive")
-		}
 	}
 	capturesDeclared := slices.ContainsFunc(s.Rules, func(c *testpilotspb.CorrelatedRule) bool { return len(c.Captures) > 0 })
 	correlationDeclared := slices.ContainsFunc(s.Rules, func(c *testpilotspb.CorrelatedRule) bool { return c.Correlation != nil })
