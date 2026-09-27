@@ -480,6 +480,16 @@ type WorkflowBinding struct { // the fields and JSON tags of today's codec.go bi
   - the hand-written `.proto` smaller by the removed arms, reported without a floor,
     because the default decisions keep most arms.
 
+  **Amended 2026-09-28 (owner decision, after fn-94.17's measurement).** The two floors are
+  withdrawn; the receipt reports the measured change without a floor. Measured at `803cc1178c`
+  against fn-94.2's baseline: production +26 (+0.1%), or -3.0% counting the 610 lines of shared
+  test fakes in `internal/testsupport` as test code; tests -235 (-1.1%); live -30; `.proto` -3.
+  About 1,000 duplicated test lines were removed and about 760 lines of pinning tests added
+  (identity goldens, correlated-field and rejection-order pins), and R9 kept two of the three arms
+  D1 slated for removal because Lean's `Case/Correlated.lean` emits them. Hitting a line count by
+  further deletion would trade away those pins or the kept decisions, which R1 to R9 rank above
+  size. The simplification R2 to R7 require is met task by task and reviewed.
+
   Errors: a floor missed is reported with the reason.
 - **R11:** Golden tests pin `BindingFingerprint` bytes, the Driver catalog identity and the delivery
   route wire bytes before any lane that could move them lands. Only the lane G commit changes the
