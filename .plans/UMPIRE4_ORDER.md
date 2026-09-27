@@ -42,13 +42,15 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    and .7 docs and the rollback drill. The reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path.
 2. **fn-89 — One Contract Rule per entity**
-   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)); 5 of 7 tasks done. A Rule over
-   N instances crosses the wire once with its per-instance values instead of N lowered copies;
-   Verdicts and admission stay identical to the expansion, pinned by a differential test, and only
-   the multi-instance pair fixture changed. `make umpire-rerecord-pinned-runs` (task .7) refreshes
-   every catalog-pinned recorded Run and receipt after a protocol change, machine-free. In
-   progress: .5, the conformance sub-entry and the umpire-assess rule set. Remaining: .6, the
-   GOV-02 drafts, docs and closing gates.
+   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)); delivered, all 7 tasks done,
+   awaiting its completion review. A Rule over N instances crosses the wire once with its
+   per-instance values instead of N lowered copies; Verdicts and admission stay identical to the
+   expansion, pinned by a differential test, and only the multi-instance pair fixture changed.
+   `make umpire-rerecord-pinned-runs` (task .7) refreshes every catalog-pinned recorded Run and
+   receipt after a protocol change, machine-free. The Rule glossary Amendment and the SEM-17
+   Restatement are drafted in the specification, awaiting GOV-02 approval. Closing gates at
+   df1a7c927f: `make umpire-check-regression` exit 0 with 45 live identities, `make lint-model`
+   and `make lint-code-fast` clean.
 3. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
    after fn-88 and fn-89. A `compose` command builds one Model from entity machines with declared
