@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:25.940055Z",
+  "depends_on": [
+    "fn-101-gomad-f7-any-functional-test-and-ci.2",
+    "fn-101-gomad-f7-any-functional-test-and-ci.3"
+  ],
+  "id": "fn-101-gomad-f7-any-functional-test-and-ci.4",
+  "priority": null,
+  "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
+  "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.4.md",
+  "status": "todo",
+  "title": "Make the Temporal qualification a required sharded CI check",
+  "updated_at": "2026-09-27T15:28:25.940055Z"
+}

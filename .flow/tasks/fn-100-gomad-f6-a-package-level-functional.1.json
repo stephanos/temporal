@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:25.535478Z",
+  "depends_on": [],
+  "id": "fn-100-gomad-f6-a-package-level-functional.1",
+  "priority": null,
+  "spec": "fn-100-gomad-f6-a-package-level-functional",
+  "spec_path": ".flow/tasks/fn-100-gomad-f6-a-package-level-functional.1.md",
+  "status": "todo",
+  "title": "Requalify the ten-suite slice on darwin after the environment-filter fix",
+  "updated_at": "2026-09-27T15:28:25.535478Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:23.537821Z",
+  "depends_on": [
+    "fn-95-gomad-f1-restore-the-checkout-on.3"
+  ],
+  "id": "fn-95-gomad-f1-restore-the-checkout-on.4",
+  "priority": null,
+  "spec": "fn-95-gomad-f1-restore-the-checkout-on",
+  "spec_path": ".flow/tasks/fn-95-gomad-f1-restore-the-checkout-on.4.md",
+  "status": "todo",
+  "title": "Record the F1 darwin/arm64 result in the milestone status",
+  "updated_at": "2026-09-27T15:28:23.537821Z"
+}

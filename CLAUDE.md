@@ -8,4 +8,6 @@
   libc adapter and the core SQLite workloads qualify on both. The toolchain builder downloads the Go source
   archive from go.dev, which cloud sessions cannot reach; GitHub CI can.
 - `.plans/GOMAD_MILESTONES.md` is the operative delivery order; `.plans/GOMAD3_NEXT.md` is the
-  capability roadmap it draws from.
+  capability roadmap it draws from. The remaining work of each milestone is a flow-next spec
+  (`fn-95` F1 through `fn-101` F7, chained by spec dependencies); those specs are the
+  authoritative work list.

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:24.736185Z",
+  "depends_on": [
+    "fn-98-gomad-f4-close-the-tests-capability.1"
+  ],
+  "id": "fn-98-gomad-f4-close-the-tests-capability.2",
+  "priority": null,
+  "spec": "fn-98-gomad-f4-close-the-tests-capability",
+  "spec_path": ".flow/tasks/fn-98-gomad-f4-close-the-tests-capability.2.md",
+  "status": "todo",
+  "title": "Close the ./tests closure on darwin/arm64",
+  "updated_at": "2026-09-27T15:28:24.736185Z"
+}

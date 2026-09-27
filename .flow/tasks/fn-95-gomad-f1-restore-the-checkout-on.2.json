@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:23.537746Z",
+  "depends_on": [
+    "fn-95-gomad-f1-restore-the-checkout-on.1"
+  ],
+  "id": "fn-95-gomad-f1-restore-the-checkout-on.2",
+  "priority": null,
+  "spec": "fn-95-gomad-f1-restore-the-checkout-on",
+  "spec_path": ".flow/tasks/fn-95-gomad-f1-restore-the-checkout-on.2.md",
+  "status": "todo",
+  "title": "Pass make -C tools/gomad3 test on darwin/arm64",
+  "updated_at": "2026-09-27T15:28:23.537746Z"
+}
