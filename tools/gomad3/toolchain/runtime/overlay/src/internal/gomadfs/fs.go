@@ -122,8 +122,31 @@ const (
 	maximumTotalBytes       = 64 << 20
 )
 
+// TempDirectory is the directory os.TempDir resolves to when TMPDIR is unset.
+// A Go program assumes it exists, so every fresh in-memory filesystem carries
+// it instead of making the first scratch-file open fail closed.
+const TempDirectory = "/tmp"
+
+// initialNodeCount is the number of nodes a filesystem holds before any
+// operation: the root and the temp directory.
+const initialNodeCount = 2
+
 func New() *FS {
-	return &FS{nodes: map[string]*node{"/": {inode: 1, mode: 0o755, kind: KindDirectory, linked: true}}, liveNodes: 1, cwd: "/", nextInode: 2, generation: 1, handles: make(map[*Handle]struct{}), mappings: make(map[*Mapping]struct{})}
+	fs := &FS{cwd: "/", nextInode: 2, generation: 1, handles: make(map[*Handle]struct{}), mappings: make(map[*Mapping]struct{})}
+	fs.resetNodesLocked()
+	return fs
+}
+
+func (fs *FS) resetNodesLocked() {
+	fs.nodes = map[string]*node{
+		"/":           {inode: 1, mode: 0o755, kind: KindDirectory, linked: true},
+		TempDirectory: {inode: fs.allocateInodeLocked(), mode: 0o777, kind: KindDirectory, linked: true, modTime: fs.nowLocked()},
+	}
+	fs.liveNodes = initialNodeCount
+}
+
+func (fs *FS) initialLocked() bool {
+	return len(fs.nodes) == initialNodeCount && fs.nodes["/"] != nil && fs.nodes[TempDirectory] != nil && fs.openHandles == 0 && fs.usedBytes == 0
 }
 
 func NewSimulation() *FS {

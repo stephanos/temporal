@@ -363,7 +363,11 @@ matching environment marker. Profile-less v2 artifacts are rejected as
 incomplete; replay never falls back to host I/O.
 
 Gomad replaces supported loopback TCP operations, filesystem operations,
-hostname, and entropy with process-local in-memory implementations. Optional
+hostname, and entropy with process-local in-memory implementations. The
+in-memory filesystem starts with the root and the process temp directory
+(`/tmp`, plus the directory `TMPDIR` names when it is set), so a program that
+writes scratch files where `os.TempDir` points finds the directory a host would
+provide instead of failing closed on the first open. Optional
 built-in adapters are an immutable collection generated from `version.json`.
 The current version-pinned `modernc.org/libc` adapter redirects supported
 filesystem, entropy, and time operations to those same generic boundaries.

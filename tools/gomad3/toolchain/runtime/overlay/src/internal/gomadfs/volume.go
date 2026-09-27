@@ -198,7 +198,7 @@ type volumeState struct {
 func (fs *FS) ConfigureVolumes(configs []VolumeConfig, limits VolumeLimits) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
-	if fs.volumes != nil || len(fs.nodes) != 1 || fs.nodes["/"] == nil {
+	if fs.volumes != nil || !fs.initialLocked() {
 		return errors.New("simulation volumes must be configured on a new filesystem")
 	}
 	if limits.PendingOperations == 0 || limits.Transitions == 0 {
@@ -729,8 +729,7 @@ func (fs *FS) rebuildAfterLifecycleLocked() {
 	fs.generation++
 	fs.openHandles = 0
 	fs.cwd = "/"
-	fs.nodes = map[string]*node{"/": {inode: 1, mode: 0o755, kind: KindDirectory, linked: true}}
-	fs.liveNodes = 1
+	fs.resetNodesLocked()
 	fs.usedBytes = 0
 	configs := make([]VolumeConfig, 0, len(fs.volumes))
 	for _, volume := range fs.volumes {
