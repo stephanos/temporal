@@ -245,6 +245,20 @@ func TestRunKeepsNondeterministicSeedClassification(t *testing.T) {
 	}
 }
 
+func TestProjectSeedReportDoesNotClaimExactReplayForDivergedReplay(t *testing.T) {
+	report := qualification.QualificationReport{Seed: 7, EvidenceDigest: record.HashBytes([]byte("evidence")), Executions: []qualification.QualificationExecutionReport{
+		{Replay: &qualification.QualificationReplay{Attempted: true, Divergence: "stderr.full_sha256", ChoiceReplayStatus: qualification.ChoiceReplayExact}},
+		{Replay: &qualification.QualificationReplay{Attempted: true, Match: true, ChoiceReplayStatus: qualification.ChoiceReplayExact}},
+	}}
+	seed, err := projectSeedReport(report, "replay_divergence", 7, Workload{ChoiceBytes: 1, ReplaySuccesses: true}, capabilityanalysis.Report{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !seed.Replayed || seed.ReplayMatch || seed.ChoiceReplayExact || seed.ReplayDivergence != "stderr.full_sha256" {
+		t.Fatalf("seed evidence = %#v", seed)
+	}
+}
+
 func TestRunMeetsUnrepeatableExpectationForEitherOutcome(t *testing.T) {
 	for _, classification := range []string{"nondeterministic", "replay_divergence"} {
 		t.Run(classification, func(t *testing.T) {

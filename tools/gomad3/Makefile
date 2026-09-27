@@ -78,7 +78,7 @@ GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
 ifeq ($(GOMAD3_HOST_PLATFORM),linux/amd64)
 COMPATIBILITY_PACK_QUALIFICATIONS := modernc-libc-xsys-v047-linux-amd64:$(CURDIR)/qualification/corpus temporal-functional-compute-linux-amd64:$(CURDIR)/../.. temporal-functional-tests-linux-amd64:$(CURDIR)/../..
 else
-COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../..
+COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../.. temporal-functional-compute-darwin-arm64:$(CURDIR)/../.. temporal-functional-tests-darwin-arm64:$(CURDIR)/../..
 endif
 
 compatibility-pack-qualification: toolchain

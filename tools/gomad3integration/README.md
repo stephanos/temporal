@@ -26,7 +26,10 @@ matching.
 The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
 exit under guarded mode, but its same-seed evidence does not yet reproduce in
 every run, and the report records `nondeterministic` or `replay_divergence`
-as observed; darwin/arm64 expects `qualified`.
+as observed. Its darwin/arm64 expectation is `intermittent`: on 2026-09-27 seed
+17 qualified with exact choice replay in one run and both seeds were
+`nondeterministic` in another, so the report keeps whichever of `qualified`,
+`nondeterministic`, or `replay_divergence` the run produced.
 The user-timers suite's expectation is `intermittent`: it runs the one-box
 cluster to a successful exit with exact I/O evidence, and its same-seed choice
 evidence reproduces on some seeds and repetitions but not all (seed 11 eight of
@@ -35,7 +38,7 @@ divergence GOMAD_MILESTONES.md F5 records; the report keeps whichever of
 `qualified`, `nondeterministic`, or `replay_divergence` the run produced.
 
 The functional test package itself has a closed capability closure on
-linux/amd64 under the `gomad` build tag:
+linux/amd64 and darwin/arm64 under the `gomad` build tag:
 
 ```sh
 tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json \
@@ -49,6 +52,9 @@ archivers, AWS request signing, ringpop membership, the auto-scaled-workers
 component, and the MySQL and PostgreSQL drivers) and the fx, Temporal SDK,
 otel/sdk, and gRPC adapters remove the remaining `os/signal`, `os/user`, and
 `syscall` imports; `temporal-functional-tests-linux-amd64` admits the assembly,
-linknames, and procfs reads that stay. The manifest's tier 2 suites keep their
+linknames, and procfs reads that stay. On darwin/arm64,
+`temporal-functional-compute-darwin-arm64` admits the arm64 assembly and
+`temporal-functional-tests-darwin-arm64` admits the Prometheus client's darwin
+process-collector `syscall` and `golang.org/x/sys/unix` imports. The manifest's tier 2 suites keep their
 untagged expectations because their darwin/arm64 counterparts have not been
 observed; GOMAD_MILESTONES.md F4 records the tagged linux results per suite.

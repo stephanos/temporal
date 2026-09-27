@@ -1,10 +1,10 @@
 # Compatibility Pack Review: temporal-functional-compute-darwin-arm64
 
-Review SHA-256: `sha256:d538b6e575396682ae49ce282f3f8b7f1dd66307689a08a65cd3e94a989c2c7d`
+Review SHA-256: `sha256:f17760eeb6fa02c315586cf99923c0f55aa3bf92f75f8508728e61fd7b32614f`
 
 Owner: `temporal-server`
 
-Reviewed at: `2026-08-20T00:00:00Z`
+Reviewed at: `2026-09-27T00:00:00Z`
 
 Justification: Admits exact source-bound deterministic hashing, compression, and cryptographic assembly used by the local Temporal frontend functional workload.
 
@@ -25,7 +25,7 @@ Workload: `frontend-system-info`
 - `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 - `github.com/golang/snappy@v1.0.0` (`h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=`), replacement `none`
 - `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
-- `golang.org/x/crypto@v0.54.0` (`h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=`), replacement `none`
+- `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
 
 ## Reviewed packages
 
@@ -95,7 +95,7 @@ Requested facts:
 
 ### `golang.org/x/crypto/chacha20`
 
-Module: `golang.org/x/crypto@v0.54.0` (`h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=`), replacement `none`
+Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
 
 Source set: `sha256:20b66754cb0493b6f50a8a02c3a357169c51c2c1ac92eab58d1ba5fff6a11e8b`
 

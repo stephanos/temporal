@@ -167,6 +167,9 @@ func projectSeedReport(report qualification.QualificationReport, classification 
 		result.ReplayMatch = false
 		result.ChoiceReplayExact = false
 	}
+	if !result.ReplayMatch {
+		result.ChoiceReplayExact = false
+	}
 	if qualified && workload.ReplaySuccesses && (!result.Replayed || !result.ReplayMatch) {
 		return SeedReport{}, errors.New("qualification did not complete exact successful replay")
 	}

@@ -666,6 +666,9 @@ reflect2 linknames, and the procfs process-metrics reads that the `gomad` build
 of the Temporal functional test package reaches on linux/amd64; with the
 server's `gomad` build seams and the fx, SDK, otel, and gRPC adapters it closes
 `gomad analyze --capability-mode=closure go-test ./tests` with zero blockers.
+On darwin/arm64 `temporal-functional-compute-darwin-arm64` admits the arm64
+assembly and `temporal-functional-tests-darwin-arm64` admits the Prometheus
+client's darwin process-collector imports, which close the same analysis.
 The obsolete `temporal-backoff-overflow` and
 `xnet-socket-activity-candidate` requests were retired after exact gRPC and
 x/net adapters removed their active blockers. The gRPC workload qualifies
