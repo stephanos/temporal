@@ -27,7 +27,7 @@ milestone's status here.
 | Milestone | Spec | State |
 | --- | --- | --- |
 | F0 | none | done |
-| F1 | `fn-95-gomad-f1-restore-the-checkout-on` | open on darwin/arm64 |
+| F1 | `fn-95-gomad-f1-restore-the-checkout-on` | done |
 | F2 | `fn-96-gomad-f2-close-the-go127-port-on` | open on darwin/arm64 |
 | F3 | `fn-97-gomad-f3-qualify-the-frontend` | open |
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | open on darwin/arm64 |
@@ -223,8 +223,10 @@ plan, and umask tests fail with "deterministic I/O requires Go go1.27.1 on linux
 `TestRunReportsPeriodicProgressWhileTargetIsRunning` waits forever for an executor that never
 starts; the two world-transport replay tests report "invalid I/O terminal frame"; and the
 execution package's choice-trace tests report "choice trace unterminated" and its process-group
-cleanup test finds the group still present. Nothing references a
-`compatibilitypack/testdata/v041` fixture any more. Three more defects surfaced while qualifying on Linux: the run-queue choice
+cleanup test finds the group still present. The non-Linux branch of
+`COMPATIBILITY_PACK_QUALIFICATIONS` in `tools/gomad3/Makefile` still qualifies
+`modernc-libc-xsys-v041` against `internal/compatibilitypack/testdata/v041`, which was never
+committed until the darwin run below authored it. Three more defects surfaced while qualifying on Linux: the run-queue choice
 decision kept two 8 KiB candidate buffers on the system stack, which Linux sizes at 16 KiB for
 non-main threads, so every seeded run with choice tracing died with `morestack on g0` (the
 buffers now live in static scheduler scratch); the adapters' source-inventory pins were
@@ -238,6 +240,36 @@ flow; the two rewritten x/net files are byte-identical between the versions). Re
 rewritten files and both prepared packages are byte-identical to the previous pins, so only the
 module inventories moved; the gRPC `internal` prepared source set is now recorded per platform
 like the x/net one.
+
+Done on darwin/arm64 on 2026-09-27, on the `gomad` branch rebased onto upstream main the same day
+(the rebased tree equals a clean merge). With `GOROOT` on a stock go1.27.1, `make gomad3` built
+the go1.27.1 toolchain from source (key `85c444f9…`) with no darwin build failure, and
+`gomad doctor` reports the host, toolchain, runner, all seven adapters, and the artifact store
+available. `make -C tools/gomad3 test` passes all ten tiers; the harness, toolchain, intercept,
+overlay, world, builder, live-capability, and upstream tiers passed unchanged, and the host tier
+needed five repairs (commit `45e6788d97`): the darwin source-set pins of the libc, memory, x/net,
+and gRPC adapters were stale and are re-pinned, with the darwin `v047` and `isatty-v021` libc
+packs regenerated (only adapter identities moved); the `libc_adapter` fixture's `fstat` call is
+split per platform because darwin's modernc libc has no `Tstat`; the exec-provenance check now
+compares the stamped `go1.27.1-X:nogreenteagc` version that `GOEXPERIMENT=nogreenteagc` builds
+carry, which failed on every platform; the `runner` fake preparer takes its target from the
+deterministic profile instead of pinning `darwin/arm64` and `go1.26.4`, which removes the pin
+behind the Linux failures and the hang recorded above (not yet rerun on linux/amd64), and a stale
+seed-environment order assertion it exposed is fixed; and the boundary test manifest's `os`
+package fingerprint is re-pinned. `make gomad3-integration-test` passes with both tests running,
+and the core qualification set reports selected 5, supported 5, unsupported 0, failed 0, and
+infrastructure errors 0, with `choice_replay_exact` for all five workloads
+(`concurrency-state-invariant`, `filesystem-transaction`, `loopback-tcp-roundtrip`,
+`modernc-libc-boundary`, `sqlite-transaction`). `compatibility-pack-qualification` failed at
+first because the `v041` fixture was missing; commit `7ea97c052e` authors it as module
+`gomad3.compatibility.v041` (modernc libc v1.72.3, x/sys v0.41.0, test
+`TestLibcCompatibilityClosure`) and regenerates `modernc-libc-xsys-v041`, whose libc and memory
+adapter identities had drifted like `v047`'s (capabilities, linkname directives, and platform
+scope unchanged; review
+`sha256:e93c386eae937f3b91cf28da8549527db8cbc724ec96061e99ab2dd7f7e34eed`), so all four darwin
+packs qualify. One host prerequisite, not a Gomad defect: the runtime tier's `clock_cgo` build
+needs a working host `clang`, and a `clang` from mise's lean4 install that shadows Xcode's cannot
+find `stddef.h`; the runs put `/usr/bin` ahead of it on `PATH`.
 
 **Details.**
 
