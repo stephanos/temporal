@@ -111,11 +111,13 @@ private def instructionIds (entrypointId : String) : List String :=
     entry.instructions.toList.map (·.instruction_id)).getD []
 
 /- Each instance's schedule, await, authority wait, completion and handler carry the instance, so
-the two operations share no instruction, no slot and no handler. -/
+the two operations share no instruction, no slot and no handler. The scheduled read follows the
+close read: the second operation is scheduled only once the first has started, so only a closed
+workflow's history is certain to hold both scheduled events. -/
 #guard instructionIds "controller" ==
-  ["start-workflow", "await-scheduled", "await-completion-authority-1",
-    "complete-nexus-operation-1", "await-completion-authority-2", "complete-nexus-operation-2",
-    "await-close", "history"]
+  ["start-workflow", "await-completion-authority-1", "complete-nexus-operation-1",
+    "await-completion-authority-2", "complete-nexus-operation-2", "await-close",
+    "await-scheduled", "history"]
 #guard instructionIds "workflow" ==
   ["start-nexus-operation-1", "start-nexus-operation-2", "await-nexus-operation-1",
     "await-nexus-operation-2", "finish-workflow"]

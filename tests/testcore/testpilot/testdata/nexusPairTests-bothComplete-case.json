@@ -329,48 +329,6 @@
             }
           },
           {
-            "instructionId": "await-scheduled",
-            "instruction": {
-              "readEvidence": {
-                "evidenceId": "evidence.scheduled",
-                "endpointRoleId": "temporal.workflow-service",
-                "requestAssignments": [
-                  {
-                    "target": "namespace",
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
-                    }
-                  },
-                  {
-                    "target": "execution.workflow_id",
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  }
-                ],
-                "until": {
-                  "present": {
-                    "operand": {
-                      "path": {
-                        "operand": {
-                          "reference": {
-                            "projectedValue": {}
-                          }
-                        },
-                        "path": "attributes<nexus_operation_scheduled_event_attributes>"
-                      }
-                    }
-                  }
-                },
-                "pollIntervalMilliseconds": "250"
-              }
-            }
-          },
-          {
             "instructionId": "await-completion-authority-1",
             "instruction": {
               "awaitSlot": {
@@ -464,6 +422,48 @@
                     }
                   }
                 ]
+              }
+            }
+          },
+          {
+            "instructionId": "await-scheduled",
+            "instruction": {
+              "readEvidence": {
+                "evidenceId": "evidence.scheduled",
+                "endpointRoleId": "temporal.workflow-service",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ],
+                "until": {
+                  "present": {
+                    "operand": {
+                      "path": {
+                        "operand": {
+                          "reference": {
+                            "projectedValue": {}
+                          }
+                        },
+                        "path": "attributes<nexus_operation_scheduled_event_attributes>"
+                      }
+                    }
+                  }
+                },
+                "pollIntervalMilliseconds": "250"
               }
             }
           },
