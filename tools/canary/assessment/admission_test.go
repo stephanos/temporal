@@ -38,7 +38,7 @@ func committed(t *testing.T) *policy.Policy {
 func TestAdmitRecordsAClosedRunAndAdmitsIt(t *testing.T) {
 	canary := committed(t)
 	fixture := recorded(t)
-	require.Equal(t, canary.CaseIdentity, fixture.Case)
+	require.Equal(t, canary.CaseIdentity, fixture.Case, "crossed: the record is of another Case than the policy pins")
 	before := proto.CloneOf(fixture.Run)
 
 	subject, err := Admit(canary, fixture.Driver, fixture.Run)
