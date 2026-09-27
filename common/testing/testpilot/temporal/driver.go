@@ -175,9 +175,9 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	if !ok || method == nil || primitive.NilValue(request) {
 		return nil, ErrInvalid
 	}
-	binding, _, err := delivery.StartBinding(request.ProtoReflect())
+	binding, err := carrierBinding(request)
 	if err != nil {
-		return nil, errors.Join(ErrInvalid, err)
+		return nil, err
 	}
 	s.mu.Lock()
 	handles := append([]testpilot.ReservationHandle(nil), s.reservations[coordinate]...)
@@ -202,6 +202,19 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	s.mu.Unlock()
 	cleanupTimeout := time.Duration(s.program.Limits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
 	return &carrierEffect{EffectHandle: handle, carrier: carrier, cleanupTimeout: cleanupTimeout}, nil
+}
+
+// carrierBinding is the workflow binding a carried StartWorkflow request names; every field of it
+// must be set.
+func carrierBinding(request proto.Message) (delivery.WorkflowBinding, error) {
+	binding, _, err := delivery.StartBinding(request.ProtoReflect())
+	if err != nil {
+		return delivery.WorkflowBinding{}, errors.Join(ErrInvalid, err)
+	}
+	if binding.Namespace == "" || binding.WorkflowID == "" || binding.WorkflowType == "" || binding.TaskQueue == "" {
+		return delivery.WorkflowBinding{}, ErrInvalid
+	}
+	return binding, nil
 }
 
 func (s *compositeSession) InvokeHandle(ctx context.Context, coordinate testpilot.Coordinate, handle testpilot.OpaqueHandle, value proto.Message) (testpilot.EffectHandle, error) {
