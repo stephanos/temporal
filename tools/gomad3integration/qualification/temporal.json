@@ -309,6 +309,24 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
       "expectation": {"classification": "qualified"}
+    },
+    {
+      "id": "user-timers-workflow",
+      "name": "User timers workflow",
+      "tier": 3,
+      "capability_mode": "closure",
+      "invariant": "a workflow that starts, completes workflow tasks through the poller, fires user timers, and reads history back runs the one-box cluster deterministically under virtual time",
+      "package": "./tests",
+      "test": "TestUserTimersTestSuite",
+      "build_tags": ["disable_grpc_modules", "gomad", "test_dep"],
+      "read_only_mounts": [{"source": "./schema", "target": "/go.temporal.io/server/schema"}],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "execution_timeout": "6m",
+      "overall_timeout": "20m",
+      "expectation": {"classification": "intermittent"}
     }
   ]
 }

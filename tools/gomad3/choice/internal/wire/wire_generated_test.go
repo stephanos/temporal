@@ -88,12 +88,12 @@ func TestChoiceWireHeaderAndTerminalRoundTrip(t *testing.T) {
 	if decodedHeader.Capacity != capacity || decodedHeader.RecordCount != 1 {
 		t.Fatalf("header = %+v", decodedHeader)
 	}
-	terminal := EncodeTerminal(Terminal{State: TerminalComplete, Records: 1, MappingBytes: HeaderBytes + RecordBytes, PayloadHash: Hash([]byte("payload"))})
+	terminal := EncodeTerminal(Terminal{State: TerminalComplete, Records: 1, MappingBytes: HeaderBytes + RecordBytes, PayloadHash: Hash([]byte("payload")), PeakGoroutines: 5})
 	decodedTerminal, err := DecodeTerminal(terminal[:])
 	if err != nil {
 		t.Fatal(err)
 	}
-	if decodedTerminal.State != TerminalComplete || decodedTerminal.Records != 1 {
+	if decodedTerminal.State != TerminalComplete || decodedTerminal.Records != 1 || decodedTerminal.PeakGoroutines != 5 {
 		t.Fatalf("terminal = %+v", decodedTerminal)
 	}
 	terminal[TerminalFrameBytes-1]++

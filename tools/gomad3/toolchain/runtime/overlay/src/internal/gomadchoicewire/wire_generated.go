@@ -27,7 +27,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'\a', ':', '&', 'É', 'í', 'W', '¯', '¯', 'ü', 'x', '!', 'Y', 'T', '£', 'c', '\u0094', '\a', '8', '\x1c', '`', 'E', '-', '~', '\u0080', '\u009c', '>', '{', 'K', '¢', 'Ã', 'ê', '*'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'Ý', '+', '8', '\t', '¬', '\x05', '\x1b', 'á', '8', '¦', 'ø', 'S', 'ð', 'l', '\u0083', 'T', 'Ë', '$', '>', '\x7f', '|', '\x10', '"', 'X', 'ü', '*', '\x12', 'X', '¥', 'ë', '\x1f', 'ø'}
 )
 
 type Kind uint8
@@ -246,6 +246,7 @@ type Terminal struct {
 	State            TerminalState
 	Records          uint64
 	MappingBytes     uint64
+	PeakGoroutines   uint32
 	PayloadHash      [DigestBytes]byte
 	DivergenceReason DivergenceReason
 	DivergentOrdinal uint64
@@ -264,6 +265,7 @@ func EncodeTerminal(value Terminal) [TerminalFrameBytes]byte {
 	binary.BigEndian.PutUint64(frame[16:24], value.Records)
 	binary.BigEndian.PutUint64(frame[24:32], value.MappingBytes)
 	copy(frame[32:64], value.PayloadHash[:])
+	binary.BigEndian.PutUint32(frame[66:70], value.PeakGoroutines)
 	frame[13] = byte(value.DivergenceReason)
 	if value.ExpectedPresent {
 		frame[64] = 1
@@ -287,14 +289,14 @@ func EncodeTerminal(value Terminal) [TerminalFrameBytes]byte {
 }
 
 func DecodeTerminal(frame []byte) (Terminal, error) {
-	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:8], terminalMagic[:]) || binary.BigEndian.Uint32(frame[8:12]) != wireVersion || !zero(frame[14:16]) || !zero(frame[66:72]) || frame[64] > 1 || frame[65] > 1 {
+	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:8], terminalMagic[:]) || binary.BigEndian.Uint32(frame[8:12]) != wireVersion || !zero(frame[14:16]) || !zero(frame[70:72]) || frame[64] > 1 || frame[65] > 1 {
 		return Terminal{}, errors.New("invalid choice terminal frame")
 	}
 	checksum := sum256(frame[:TerminalChecksumOffset])
 	if !bytes.Equal(frame[TerminalChecksumOffset:], checksum[:]) {
 		return Terminal{}, errors.New("choice terminal checksum mismatch")
 	}
-	value := Terminal{State: TerminalState(frame[12]), DivergenceReason: DivergenceReason(frame[13]), Records: binary.BigEndian.Uint64(frame[16:24]), MappingBytes: binary.BigEndian.Uint64(frame[24:32]), DivergentOrdinal: binary.BigEndian.Uint64(frame[72:80]), TapeRecords: binary.BigEndian.Uint64(frame[80:88]), ExpectedPresent: frame[64] != 0, ObservedPresent: frame[65] != 0}
+	value := Terminal{State: TerminalState(frame[12]), DivergenceReason: DivergenceReason(frame[13]), Records: binary.BigEndian.Uint64(frame[16:24]), MappingBytes: binary.BigEndian.Uint64(frame[24:32]), PeakGoroutines: binary.BigEndian.Uint32(frame[66:70]), DivergentOrdinal: binary.BigEndian.Uint64(frame[72:80]), TapeRecords: binary.BigEndian.Uint64(frame[80:88]), ExpectedPresent: frame[64] != 0, ObservedPresent: frame[65] != 0}
 	copy(value.PayloadHash[:], frame[32:64])
 	if value.ExpectedPresent {
 		var decodeErr error

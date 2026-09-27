@@ -98,6 +98,7 @@ type terminal struct {
 	State            TerminalState
 	Records          uint64
 	MappingBytes     uint64
+	PeakGoroutines   uint32
 	PayloadHash      [sha256.Size]byte
 	DivergenceReason DivergenceReason
 	DivergentOrdinal uint64
@@ -149,7 +150,7 @@ func decodeReplayPlanHeader(encoded []byte) (replayPlanHeader, error) {
 
 func encodeTerminal(value terminal) [wire.TerminalFrameBytes]byte {
 	return wire.EncodeTerminal(wire.Terminal{
-		State: wire.TerminalState(value.State), Records: value.Records, MappingBytes: value.MappingBytes,
+		State: wire.TerminalState(value.State), Records: value.Records, MappingBytes: value.MappingBytes, PeakGoroutines: value.PeakGoroutines,
 		PayloadHash: value.PayloadHash, DivergenceReason: wire.DivergenceReason(value.DivergenceReason),
 		DivergentOrdinal: value.DivergentOrdinal, TapeRecords: value.TapeRecords,
 		ExpectedPresent: value.ExpectedPresent, ObservedPresent: value.ObservedPresent,
@@ -160,7 +161,7 @@ func encodeTerminal(value terminal) [wire.TerminalFrameBytes]byte {
 func decodeTerminal(encoded []byte) (terminal, error) {
 	value, err := wire.DecodeTerminal(encoded)
 	return terminal{
-		State: TerminalState(value.State), Records: value.Records, MappingBytes: value.MappingBytes,
+		State: TerminalState(value.State), Records: value.Records, MappingBytes: value.MappingBytes, PeakGoroutines: value.PeakGoroutines,
 		PayloadHash: value.PayloadHash, DivergenceReason: DivergenceReason(value.DivergenceReason),
 		DivergentOrdinal: value.DivergentOrdinal, TapeRecords: value.TapeRecords,
 		ExpectedPresent: value.ExpectedPresent, ObservedPresent: value.ObservedPresent,

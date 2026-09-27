@@ -188,6 +188,7 @@ type CampaignResult struct {
 	SuccessArtifacts      []string
 	SemanticCoverage      *deterministicio.SemanticCoverage
 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
+	ExecutionElapsedNanos uint64
 	CorpusPath            string
 	CorpusEntries         uint64
 	CorpusAdded           uint64
@@ -211,6 +212,7 @@ type ChoiceTraceSummary struct {
 	TerminalState    string
 	TapeSHA256       record.SHA256
 	Decisions        uint64
+	PeakGoroutines   uint32
 }
 
 type ChoiceExplorationSummary struct {
@@ -919,6 +921,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			}
 			runRecord := executionEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
 			summary.ExecutionEvidence = &runRecord
+			summary.ExecutionElapsedNanos = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
 		}
 		if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
 			if hostFailure == nil {
@@ -1753,7 +1756,7 @@ func choiceTraceSummary(seed uint64, trace execution.ChoiceTrace) *ChoiceTraceSu
 		Seed: seed, Profile: trace.Profile, Limit: trace.Limit, SHA256: record.SHA256FromSum(trace.Trace.SHA256),
 		Records: trace.Trace.Summary.Records, BranchingRecords: trace.Trace.Summary.Branching,
 		Runnable: trace.Trace.Summary.Runnable, SelectPoll: trace.Trace.Summary.SelectPoll, SelectResult: trace.Trace.Summary.SelectResult,
-		TerminalState: choiceTerminalState(trace.Trace.Summary.Terminal), Decisions: trace.Decisions,
+		TerminalState: choiceTerminalState(trace.Trace.Summary.Terminal), Decisions: trace.Decisions, PeakGoroutines: trace.Trace.Summary.PeakGoroutines,
 	}
 	if trace.TapeSHA256 != ([32]byte{}) {
 		summary.TapeSHA256 = record.SHA256FromSum(trace.TapeSHA256)

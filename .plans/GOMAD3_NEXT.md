@@ -129,6 +129,23 @@ Complete [SIM-7](GOMAD3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) b
 
 Use [BUG-7](GOMAD3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) evidence from the earlier milestones to decide whether PCT, preemption bounding, semantic dependency metadata and DPOR, compiler checkpoints, deterministic GC, code-coverage guidance, richer I/O models, or multi-P execution have sufficient expected value. These are expensive and potentially contract-changing; none should be assumed mandatory.
 
+Deterministic GC is now an open research item with evidence, opened by
+[GOMAD_MILESTONES.md F5](GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic).
+With the scheduler's own host-timed random draws (lock hand-off anti-starvation, work-steal
+order, pcvalue-cache eviction) moved off the seeded stream and stack scans waiting for host
+syscalls to return, two same-seed runs of `TestUserTimersTestSuite` still differ in what the
+collector marks: identical `mallocgc` sequences, identical seeded draw counts, identical stack
+scan bytes, but the fourth collection scans 24 more heap bytes in one run than the other, and
+from there span refills, `heapLive`, and the cleanup goroutine's wake (`runCleanups` after
+`sweepdone`) drift until the wake lands on a different run-queue decision (seed 17, ordinal
+2102, in three of eight repetitions; seed 11 reproduces eight of eight). The channel is in the
+collector's view of memory, not in allocation or scheduling. Candidate work, in order of
+expected value: record the collector's cycle boundaries as choice records so a cycle starts and
+ends at recorded scheduling points; make the mark phase observe goroutine stacks only at
+recorded points (today a mark worker scans between mutator slots); and only then consider
+address-independent marking. Any of these changes the choice contract and needs the COMPAT-5
+evidence set before it lands.
+
 ## Complete track coverage
 
 The tables below account for every named capability and delivery stage in the four detailed roadmaps. The companion documents remain normative for their non-goals, module boundaries, protocols, error classifications, 10×-load behavior, trade-offs, verification plans, and exit criteria.

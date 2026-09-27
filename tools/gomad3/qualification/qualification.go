@@ -26,10 +26,11 @@ const (
 const maximumQualificationReportBytes = 16 << 20
 
 type QualificationExecution struct {
-	CampaignPath string
-	ArtifactPath string
-	Evidence     runner.ExecutionEvidence
-	Replay       *QualificationReplay
+	CampaignPath     string
+	ArtifactPath     string
+	WallElapsedNanos uint64
+	Evidence         runner.ExecutionEvidence
+	Replay           *QualificationReplay
 }
 
 type QualificationInput struct {
@@ -55,10 +56,11 @@ type QualificationFailure struct {
 }
 
 type QualificationExecutionReport struct {
-	CampaignPath   string               `json:"campaign_path"`
-	ArtifactPath   string               `json:"artifact_path,omitempty"`
-	EvidenceDigest record.SHA256        `json:"evidence_digest"`
-	Replay         *QualificationReplay `json:"replay,omitempty"`
+	CampaignPath     string               `json:"campaign_path"`
+	ArtifactPath     string               `json:"artifact_path,omitempty"`
+	EvidenceDigest   record.SHA256        `json:"evidence_digest"`
+	WallElapsedNanos record.Uint64String  `json:"wall_elapsed_nanos"`
+	Replay           *QualificationReplay `json:"replay,omitempty"`
 }
 
 type QualificationReport struct {
@@ -131,7 +133,7 @@ func BuildQualificationReport(input QualificationInput) (QualificationReport, er
 		if copiedReplay != nil && run.Evidence.Choices != nil && copiedReplay.Match && copiedReplay.ChoiceReplayStatus != ChoiceReplayExact {
 			return QualificationReport{}, fmt.Errorf("validate execution replay %d: exact choice replay evidence is required", index)
 		}
-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: copiedReplay})
+		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: copiedReplay})
 	}
 	report.Qualified = report.Deterministic && report.TargetSuccess && replayOK
 	return report, nil
@@ -176,7 +178,7 @@ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, com
 		if replayEvidence != nil && run.Evidence.Choices != nil && replayEvidence.Match && replayEvidence.ChoiceReplayStatus != ChoiceReplayExact {
 			return QualificationReport{}, fmt.Errorf("validate completed qualification replay %d: exact choice replay evidence is required", index)
 		}
-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: replayEvidence})
+		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: replayEvidence})
 	}
 	return report, nil
 }
@@ -416,6 +418,7 @@ func firstDivergence(expected, actual runner.ExecutionEvidence) string {
 		{"io_transcript.sha256", expected.IOTranscriptSHA256, actual.IOTranscriptSHA256},
 		{"io_transcript.records", expected.IOTranscriptRecords, actual.IOTranscriptRecords},
 		{"io_transcript.complete", expected.IOTranscriptComplete, actual.IOTranscriptComplete},
+		{"virtual_time_elapsed_nanos", expected.VirtualTimeElapsedNanos, actual.VirtualTimeElapsedNanos},
 		{"choices", expected.Choices, actual.Choices},
 		{"world", expected.World, actual.World},
 		{"read_only_mounts_sha256", expected.ReadOnlyMountsSHA256, actual.ReadOnlyMountsSHA256},
