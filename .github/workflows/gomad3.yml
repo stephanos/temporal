@@ -86,8 +86,8 @@ jobs:
         continue-on-error: true
         run: make -C tools/gomad3 test-host
 
-      - name: Qualify the core corpus
-        run: make -C tools/gomad3 core-qualification-set
+      - name: Qualify the Linux compatibility packs and the core corpus
+        run: make -C tools/gomad3 compatibility-pack-qualification core-qualification-set
 
       - name: Verify portable core qualification evidence
         run: >-
@@ -95,8 +95,8 @@ jobs:
           .schema == "gomad3.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
           .seeds == ["17"] and .expectations_met and
-          .selected == 5 and .completed == 5 and .supported == 3 and
-          .unsupported == 2 and .failed == 0 and .infrastructure_errors == 0 and
+          .selected == 5 and .completed == 5 and .supported == 5 and
+          .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | select(.classification == "qualified") | .choice.available and
           .choice.exact_replay_available and
           ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)

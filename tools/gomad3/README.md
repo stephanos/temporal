@@ -448,10 +448,15 @@ adapters, and the Darwin-only DTrace audit. `make validate` rejects an
 unowned script or new Bash/Perl policy. Linux CI builds the toolchain, runs the
 harness, toolchain, interception, overlay, world, builder, live-capability, and
 upstream, and runtime tiers as gates, reports the host tier without gating, and
-qualifies the core corpus with `core-qualification-set`. The macOS sandbox test
-and the DTrace audit stay darwin-only, and the modernc libc adapter and its
-compatibility packs still admit only `darwin/arm64` facts, so the libc and SQLite
-core workloads carry `linux/amd64` expectations of `unsupported_target`.
+qualifies the Linux compatibility packs and the core corpus. The macOS sandbox
+test and the DTrace audit stay darwin-only. The modernc libc adapter covers both
+platforms: on darwin it models the libc functions themselves, on linux/amd64 it
+models the syscall numbers behind the musl trampolines, and each platform has
+its own compatibility pack for the facts the rewritten module still carries.
+Adapter replacements are published under `.toolchain/adapters` by identity and
+inventory, because the go command records a directory replacement's path in the
+binary and a per-campaign path would change the target identity between
+repetitions.
 
 To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
 and `deterministicio/boundary/manifest.json`, materialize the old patch against the new pinned

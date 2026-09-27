@@ -197,14 +197,35 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if err := os.Mkdir(root, 0o700); err != nil {
 		return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter directory: %w", err)
 	}
+	// The go command records a directory replacement's path in the binary's
+	// module information, so the replacement must live at a path that is the
+	// same for every preparation on this host or the target identity changes
+	// between repetitions. The toolchain root holds one copy per adapter
+	// identity and replacement inventory.
+	cacheRoot := root
+	if spec.ToolchainRoot != "" {
+		cacheRoot, err = filepath.Abs(filepath.Join(spec.ToolchainRoot, "adapters"))
+		if err != nil {
+			return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O adapter cache: %w", err)
+		}
+		if err := os.MkdirAll(cacheRoot, 0o700); err != nil {
+			return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter cache: %w", err)
+		}
+	}
 	evidence := make([]BuildAdapter, 0, len(selected))
 	for _, definition := range selected {
-		prepared, prepareErr := definition.implementation.prepare(moduleCache, root, definition.identity)
+		var prepared adapterPreparation
+		var prepareErr error
+		if cacheRoot == root {
+			prepared, prepareErr = definition.implementation.prepare(moduleCache, root, definition.identity)
+			if prepareErr == nil && prepared.evidence.ReplacementRoot != prepared.replacement {
+				prepareErr = errors.New("deterministic I/O adapter replacement root mismatch")
+			}
+		} else {
+			prepared, prepareErr = prepareCachedAdapter(definition, moduleCache, cacheRoot)
+		}
 		if prepareErr != nil {
 			return target.Spec{}, nil, prepareErr
-		}
-		if prepared.evidence.ReplacementRoot != prepared.replacement {
-			return target.Spec{}, nil, errors.New("deterministic I/O adapter replacement root mismatch")
 		}
 		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" "+definition.identity.Version+" => "+prepared.replacement+"\n")...)
 		evidence = append(evidence, prepared.evidence)
@@ -292,6 +313,48 @@ func detectModuleVersion(contents []byte, module string) (string, error) {
 		version = requirement.Mod.Version
 	}
 	return version, nil
+}
+
+// prepareCachedAdapter prepares an adapter replacement in a private directory
+// and publishes it under a name derived from its identity and replacement
+// inventory, reusing a published copy whose inventory still matches.
+func prepareCachedAdapter(definition adapterDefinition, moduleCache, cacheRoot string) (adapterPreparation, error) {
+	work, err := os.MkdirTemp(cacheRoot, ".prepare-*")
+	if err != nil {
+		return adapterPreparation{}, fmt.Errorf("create deterministic I/O adapter work directory: %w", err)
+	}
+	defer os.RemoveAll(work)
+	prepared, err := definition.implementation.prepare(moduleCache, work, definition.identity)
+	if err != nil {
+		return adapterPreparation{}, err
+	}
+	if prepared.evidence.ReplacementRoot != prepared.replacement || !strings.HasPrefix(prepared.replacement, work+string(filepath.Separator)) {
+		return adapterPreparation{}, errors.New("deterministic I/O adapter replacement root mismatch")
+	}
+	inventory := prepared.evidence.ReplacementSourceInventorySHA256
+	if len(inventory) < len("sha256:")+16 {
+		return adapterPreparation{}, errors.New("deterministic I/O adapter replacement inventory is incomplete")
+	}
+	published := filepath.Join(cacheRoot, filepath.Base(prepared.replacement)+"@"+definition.identity.Version+"-"+inventory[len("sha256:"):len("sha256:")+16])
+	if err := os.Rename(prepared.replacement, published); err != nil {
+		if _, statErr := os.Lstat(published); statErr != nil {
+			return adapterPreparation{}, fmt.Errorf("publish deterministic I/O adapter replacement: %w", err)
+		}
+		existing, digestErr := digestAdapterSourceInventory(published)
+		if digestErr != nil {
+			return adapterPreparation{}, fmt.Errorf("verify published deterministic I/O adapter replacement: %w", digestErr)
+		}
+		if existing != inventory {
+			return adapterPreparation{}, fmt.Errorf("published deterministic I/O adapter replacement %s has inventory %s, want %s", published, existing, inventory)
+		}
+	}
+	relocate := func(path string) string {
+		return published + strings.TrimPrefix(path, prepared.replacement)
+	}
+	prepared.evidence.Replacement = relocate(prepared.evidence.Replacement)
+	prepared.evidence.ReplacementRoot = published
+	prepared.replacement = published
+	return prepared, nil
 }
 
 // hostPin selects the identity recorded for the running platform when a

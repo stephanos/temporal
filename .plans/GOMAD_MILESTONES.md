@@ -102,9 +102,12 @@ The assessment that produced this document verified the following on the working
 - **Platform.** The boundary manifest qualifies `darwin/arm64` and `linux/amd64` (added
   2026-09-26 as one manifest with a per-platform declaration override, not a second bundle).
   Each platform is its own qualification and artifacts replay only where they were produced.
-  The modernc libc adapter, its compatibility packs, the macOS sandbox test, and the DTrace
-  clock audit remain `darwin/arm64` only, so the libc and SQLite core workloads are expected
-  unsupported on Linux until COMPAT-5 gives the adapter a Linux target.
+  The macOS sandbox test and the DTrace clock audit remain `darwin/arm64` only. The modernc
+  libc adapter has a Linux target since 2026-09-27 (COMPAT-5): it hooks the musl syscall
+  trampolines, and `modernc-libc-xsys-v047-linux-amd64` admits the facts the rewritten module
+  still carries, so the libc and SQLite core workloads qualify on both platforms. Each
+  platform's compatibility packs are its own; `compatibility-pack-qualification` qualifies the
+  requests that name the host.
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters
@@ -168,8 +171,9 @@ scheduler drawing from per-M random streams whenever no choice trace was attache
 picked up the P after a hand-off changed the interleaving; the scheduler now draws from
 process-wide seeded states and the runtime tier's repeatability sweep passes on linux/amd64
 (the GC-dimension risk this document names remains a risk, not an observed defect). Still missing, each with the test that drives it:
-`io_filesystem`, `io_net`, `io_signal`, `io_user`, `libc_adapter`, and `sqlite_adapter`
-(`runner/internal/execution/io_*_toolchain_test.go`), `io_net_races`, `io_entropy`,
+`io_filesystem`, `io_net`, `io_signal`, and `io_user`
+(`runner/internal/execution/io_*_toolchain_test.go`; `libc_adapter` and `sqlite_adapter` were
+added on 2026-09-27 and pass on Linux), `io_net_races`, `io_entropy`,
 `io_ro_mount`, `io_failure`, and `io_ro_mount_failure` (the remaining `*_toolchain_test.go`
 and `replay_io_integration_test.go`). Nothing references a `compatibilitypack/testdata/v041`
 fixture any more. Three more defects surfaced while qualifying on Linux: the run-queue choice
@@ -479,8 +483,9 @@ gate run in CI.
   compiler, linker, and deterministic I/O profile accept `linux/amd64`, and the `core-linux` CI
   job builds the toolchain and runs the conformance tiers and the core corpus on Linux.
   Artifacts replay only on the platform that produced them, so the Linux run is a second
-  qualification, never a replay of the Mac one. Still open for Linux: the modernc libc adapter
-  and packs, a host-clock escape audit to replace DTrace, and the `./tests` closure.
+  qualification, never a replay of the Mac one. The modernc libc adapter and its pack landed
+  for Linux on 2026-09-27. Still open for Linux: a host-clock escape audit to replace DTrace,
+  and the `./tests` closure.
 - Move the Temporal qualification from weekly cron to a required check on changes under
   `tools/gomad3`, `tests`, `tests/testcore`, `go.mod`, and any server package the closure
   review names.

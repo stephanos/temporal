@@ -17,6 +17,9 @@ func TestModerncLibcAdapterTemplateHasPinnedIdentity(t *testing.T) {
 	if got := digestBytes([]byte(gomadLibcAdapterSource)); got != gomadLibcAdapterSHA256 {
 		t.Fatalf("adapter template digest = %q, want %q", got, gomadLibcAdapterSHA256)
 	}
+	if got := digestBytes([]byte(gomadLibcLinuxAdapterSource)); got != gomadLibcLinuxAdapterSHA256 {
+		t.Fatalf("linux adapter template digest = %q, want %q", got, gomadLibcLinuxAdapterSHA256)
+	}
 }
 
 func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
@@ -71,12 +74,30 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if adapter.ReplacementSHA256 != fmt.Sprintf("sha256:%x", digest) {
 		t.Fatalf("replacement digest = %q", adapter.ReplacementSHA256)
 	}
-	adapterBytes, err := os.ReadFile(filepath.Join(adapter.ReplacementRoot, "gomad_darwin.go"))
+	for _, name := range []string{"gomad_darwin.go", "gomad_linux.go"} {
+		adapterBytes, err := os.ReadFile(filepath.Join(adapter.ReplacementRoot, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(adapterBytes), "internal/gomadio.Enabled") || strings.Contains(string(adapterBytes), "Temporal") || strings.Contains(string(adapterBytes), "SQLite") {
+			t.Fatalf("modernc adapter %s = %s", name, adapterBytes)
+		}
+	}
+	trampolines, err := os.ReadFile(filepath.Join(adapter.ReplacementRoot, "syscall_musl.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(adapterBytes), "internal/gomadio.Enabled") || strings.Contains(string(adapterBytes), "Temporal") || strings.Contains(string(adapterBytes), "SQLite") {
-		t.Fatalf("modernc adapter = %s", adapterBytes)
+	if strings.Count(string(trampolines), "gomadSyscall(tls, n,") != 8 {
+		t.Fatalf("musl trampolines = %s", trampolines)
+	}
+	guarded, err := os.ReadFile(filepath.Join(adapter.ReplacementRoot, "libc_musl.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"Xsystem", "Xabort", "Xsignal"} {
+		if !strings.Contains(string(guarded), "gomad: unsupported modernc libc host capability: "+name) {
+			t.Errorf("musl host capability %s is not guarded", name)
+		}
 	}
 }
 
