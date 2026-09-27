@@ -866,7 +866,7 @@ history events its Contract's supporting evidence must name) and one function th
 both values of the implementation switch:
 
 ```sh
-CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) \
+TMPDIR=$(cd /tmp && pwd -P) \
   go test -count=1 -tags test_dep,integration ./tests -run TestTestpilotNexusCallerRetry
 ```
 
