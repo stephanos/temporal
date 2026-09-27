@@ -21,3 +21,7 @@ path-free `gomad3.qualification-set-report/v1` to
 boundaries are exact analyzer dispositions, not claims of support; the report
 keeps actual supported and unsupported counts separate from expectation
 matching.
+The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
+exit under guarded mode, but its same-seed evidence does not yet reproduce in
+every run, and the report records `nondeterministic` or `replay_divergence`
+as observed; darwin/arm64 expects `qualified`.

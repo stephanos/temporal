@@ -90,7 +90,7 @@ index f28807d..d2fe134 100644
  	fatalpanic(&p)   // should not return
  	*(*int)(nil) = 0 // not reached
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index b8d4d15..f58cfe4 100644
+index b8d4d15..720734e 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -257,6 +257,10 @@ func main() {
@@ -112,7 +112,20 @@ index b8d4d15..f58cfe4 100644
  	randinit() // must run before mallocinit, AlgInit, mcommoninit
  	mallocinit()
  	cpuinit(godebug) // must run before AlgInit
-@@ -932,7 +937,10 @@ func schedinit() {
+@@ -900,7 +905,11 @@ func schedinit() {
+ 	initSigmask = gp.m.sigmask
+ 
+ 	goargs()
+-	goenvs()
++	if gomadEnabled {
++		gomadGoenvs()
++	} else {
++		goenvs()
++	}
+ 	secure()
+ 	checkfds()
+ 	if !parsedGodebug {
+@@ -932,7 +941,10 @@ func schedinit() {
  	lock(&sched.lock)
  	sched.lastpoll.Store(nanotime())
  	var procs int32
@@ -124,7 +137,126 @@ index b8d4d15..f58cfe4 100644
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -5391,6 +5399,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
+@@ -3444,7 +3456,7 @@ top:
+ 	}
+ 
+ 	// Try to schedule a GC worker.
+-	if gcBlackenEnabled != 0 {
++	if gcBlackenEnabled != 0 && (!gomadEnabled || gomadMarkWorkerAllowed(pp)) {
+ 		gp, tnow := gcController.findRunnableGCWorker(pp, now)
+ 		if gp != nil {
+ 			return gp, false, true
+@@ -3455,7 +3467,7 @@ top:
+ 	// Check the global runnable queue once in a while to ensure fairness.
+ 	// Otherwise two goroutines can completely occupy the local runqueue
+ 	// by constantly respawning each other.
+-	if pp.schedtick%61 == 0 && !sched.runq.empty() {
++	if !gomadEnabled && pp.schedtick%61 == 0 && !sched.runq.empty() {
+ 		lock(&sched.lock)
+ 		gp := globrunqget()
+ 		unlock(&sched.lock)
+@@ -3491,6 +3503,11 @@ top:
+ 		gp, q := globrunqgetbatch(int32(len(pp.runq)) / 2)
+ 		unlock(&sched.lock)
+ 		if gp != nil {
++			if gomadEnabled {
++				q.push(gp)
++				gp, inheritTime := gomadAdmit(pp, &q)
++				return gp, inheritTime, false
++			}
+ 			if runqputbatch(pp, &q); !q.empty() {
+ 				throw("Couldn't put Gs into empty local runq")
+ 			}
+@@ -3556,7 +3573,7 @@ top:
+ 	//
+ 	// If we're in the GC mark phase, can safely scan and blacken objects,
+ 	// and have work to do, run idle-time marking rather than give up the P.
+-	if gcBlackenEnabled != 0 && gcShouldScheduleWorker(pp) && gcController.addIdleMarkWorker() {
++	if gcBlackenEnabled != 0 && !gomadEnabled && gcShouldScheduleWorker(pp) && gcController.addIdleMarkWorker() {
+ 		node := (*gcBgMarkWorkerNode)(gcBgMarkWorkerPool.pop())
+ 		if node != nil {
+ 			pp.gcMarkWorkerMode = gcMarkWorkerIdleMode
+@@ -3617,11 +3634,24 @@ top:
+ 		if gp == nil {
+ 			throw("global runq empty with non-zero runqsize")
+ 		}
++		if gomadEnabled {
++			q.push(gp)
++			gp, inheritTime := gomadAdmit(pp, &q)
++			return gp, inheritTime, false
++		}
+ 		if runqputbatch(pp, &q); !q.empty() {
+ 			throw("Couldn't put Gs into empty local runq")
+ 		}
+ 		return gp, false, false
+ 	}
++	if gomadEnabled && !gomadArrivals.empty() {
++		// One arrival per idle window: whether two runner syscalls return
++		// inside the same window is host timing, and admitting them together
++		// would record a choice that a run admitting them apart never makes.
++		gp := gomadArrivals.pop()
++		unlock(&sched.lock)
++		return gp, false, false
++	}
+ 	if !mp.spinning && sched.needspinning.Load() == 1 {
+ 		// See "Delicate dance" comment below.
+ 		mp.becomeSpinning()
+@@ -5081,7 +5111,7 @@ func exitsyscallTryGetP(oldp *p) *p {
+ 	}
+ 
+ 	// Try to get an idle P.
+-	if sched.pidle != 0 {
++	if !gomadEnabled && sched.pidle != 0 {
+ 		lock(&sched.lock)
+ 		pp, _ := pidleget(0)
+ 		if pp != nil && sched.sysmonwait.Load() {
+@@ -5120,12 +5150,20 @@ func exitsyscallNoP(gp *g) {
+ 	dropg()
+ 	lock(&sched.lock)
+ 	var pp *p
+-	if schedEnabled(gp) {
++	// While a Gomad quiescence round-trip is in flight the idle P belongs to
++	// that exchange: taking it here would run this goroutine before the
++	// answer (a time advance and its timers) at a host-timed moment, so the
++	// goroutine waits in the arrival queue and checkdead starts the P for it.
++	if schedEnabled(gp) && !(gomadEnabled && gomadSimulationTimeQuiescing) {
+ 		pp, _ = pidleget(0)
+ 	}
+ 	var locked bool
+ 	if pp == nil {
+-		globrunqput(gp)
++		if gomadEnabled {
++			gomadArrivals.pushBack(gp)
++		} else {
++			globrunqput(gp)
++		}
+ 
+ 		// Below, we stoplockedm if gp is locked. globrunqput releases
+ 		// ownership of gp, so we must check if gp is locked prior to
+@@ -5139,6 +5177,22 @@ func exitsyscallNoP(gp *g) {
+ 	}
+ 	unlock(&sched.lock)
+ 	if pp != nil {
++		if gomadEnabled {
++			// The syscall returned to an idle P at a host-timed moment. Resuming
++			// gp here would skip the scheduler, so timers already due would fire
++			// after gp instead of before it as they do when the P was busy; the
++			// goroutine is admitted through findRunnable like any other arrival.
++			lock(&sched.lock)
++			gomadArrivals.pushBack(gp)
++			locked = gp.lockedm != 0
++			unlock(&sched.lock)
++			acquirep(pp)
++			if locked {
++				stoplockedm()
++				execute(gp, false) // Never returns.
++			}
++			schedule() // Never returns.
++		}
+ 		acquirep(pp)
+ 		execute(gp, false) // Never returns.
+ 	}
+@@ -5391,6 +5445,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
  	gostartcallfn(&newg.sched, fn)
  	newg.parentGoid = callergp.goid
  	newg.gopc = callerpc
@@ -135,7 +267,7 @@ index b8d4d15..f58cfe4 100644
  	newg.ancestors = saveAncestors(callergp)
  	newg.startpc = fn.fn
  	newg.runningCleanups.Store(false)
-@@ -6444,7 +6456,7 @@ func checkdead() {
+@@ -6444,7 +6502,7 @@ func checkdead() {
  		run0 = 1
  	}
  
@@ -144,7 +276,7 @@ index b8d4d15..f58cfe4 100644
  	if run > run0 {
  		return
  	}
-@@ -6455,10 +6467,15 @@ func checkdead() {
+@@ -6455,10 +6513,15 @@ func checkdead() {
  	}
  
  	grunning := 0
@@ -160,7 +292,7 @@ index b8d4d15..f58cfe4 100644
  		s := readgstatus(gp)
  		switch s &^ _Gscan {
  		case _Gwaiting,
-@@ -6467,11 +6484,18 @@ func checkdead() {
+@@ -6467,11 +6530,18 @@ func checkdead() {
  		case _Grunnable,
  			_Grunning,
  			_Gsyscall:
@@ -179,7 +311,7 @@ index b8d4d15..f58cfe4 100644
  	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
  		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
  		fatal("no goroutines (main called runtime.Goexit) - deadlock!")
-@@ -6479,12 +6503,56 @@ func checkdead() {
+@@ -6479,12 +6549,64 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -206,6 +338,14 @@ index b8d4d15..f58cfe4 100644
 +			if !ok {
 +				unlock(&sched.lock)
 +				fatal("Gomad simulation time transport failed")
++			}
++			if kind != gomadSimulationTimeResponseAdvance && !gomadArrivals.empty() {
++				// A syscall returned during the round-trip; its goroutine runs
++				// first and the next quiescence asks again.
++				if pp, _ := pidleget(0); pp != nil {
++					startm(pp, false, true)
++				}
++				return
 +			}
 +			switch kind {
 +			case gomadSimulationTimeResponseRetry, gomadSimulationTimeResponseExternal:
@@ -239,7 +379,7 @@ index b8d4d15..f58cfe4 100644
  				// There should always be a free P since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6492,6 +6560,10 @@ func checkdead() {
+@@ -6492,6 +6614,10 @@ func checkdead() {
  			}
  			mp := mget()
  			if mp == nil {
@@ -250,7 +390,7 @@ index b8d4d15..f58cfe4 100644
  				// There should always be a free M since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6519,6 +6591,34 @@ func checkdead() {
+@@ -6519,6 +6645,34 @@ func checkdead() {
  	fatal("all goroutines are asleep - deadlock!")
  }
  
@@ -285,7 +425,7 @@ index b8d4d15..f58cfe4 100644
  // forcegcperiod is the maximum time in nanoseconds between garbage
  // collections. If we go this long without a garbage collection, one
  // is forced to run.
-@@ -6529,7 +6629,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+@@ -6529,7 +6683,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -294,7 +434,7 @@ index b8d4d15..f58cfe4 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6576,7 +6676,7 @@ func sysmon() {
+@@ -6576,7 +6730,7 @@ func sysmon() {
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -303,7 +443,28 @@ index b8d4d15..f58cfe4 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7519,7 +7619,7 @@ func runqempty(pp *p) bool {
+@@ -6651,7 +6805,7 @@ func sysmon() {
+ 			idle++
+ 		}
+ 		// check if we need to force a GC
+-		if t := (gcTrigger{kind: gcTriggerTime, now: now}); t.test() && forcegc.idle.Load() {
++		if t := (gcTrigger{kind: gcTriggerTime, now: now}); !gomadEnabled && t.test() && forcegc.idle.Load() {
+ 			lock(&forcegc.lock)
+ 			forcegc.idle.Store(false)
+ 			var list gList
+@@ -6679,6 +6833,11 @@ type sysmontick struct {
+ const forcePreemptNS = 10 * 1000 * 1000 // 10ms
+ 
+ func retake(now int64) uint32 {
++	if gomadEnabled {
++		// Syscall retakes and preemption requests are paced by the host
++		// clock and would reorder goroutines outside the recorded schedule.
++		return 0
++	}
+ 	n := 0
+ 	// Prevent allp slice changes. This lock will be completely
+ 	// uncontended unless we're already stopping the world.
+@@ -7519,7 +7678,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -312,7 +473,7 @@ index b8d4d15..f58cfe4 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7538,7 +7638,7 @@ func runqput(pp *p, gp *g, next bool) {
+@@ -7538,7 +7697,7 @@ func runqput(pp *p, gp *g, next bool) {
  		// risk starvation.
  		next = false
  	}
@@ -321,7 +482,7 @@ index b8d4d15..f58cfe4 100644
  		next = false
  	}
  
-@@ -7591,7 +7691,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+@@ -7591,7 +7750,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
  
  	if randomizeScheduler {
  		for i := uint32(1); i <= n; i++ {
@@ -330,7 +491,7 @@ index b8d4d15..f58cfe4 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7632,7 +7732,7 @@ func runqputbatch(pp *p, q *gQueue) {
+@@ -7632,7 +7791,7 @@ func runqputbatch(pp *p, q *gQueue) {
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
  		for i := uint32(1); i < n; i++ {
@@ -339,7 +500,7 @@ index b8d4d15..f58cfe4 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7656,6 +7756,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7656,6 +7815,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -499,7 +660,7 @@ index 219bcb9..27dadf9 100644
  	}
  
 diff --git a/src/runtime/time.go b/src/runtime/time.go
-index 6c569b5..f59a27f 100644
+index 6c569b5..570e531 100644
 --- a/src/runtime/time.go
 +++ b/src/runtime/time.go
 @@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
@@ -528,12 +689,12 @@ index 6c569b5..f59a27f 100644
  		// Update ts.heap[0].when and move within heap.
 +		if gomadEnabled && !t.isFake {
 +			// Timer comparisons read rand while holding ts.mu.
-+			t.rand = cheaprand()
++			t.rand = gomadTimerRand()
 +		}
  		t.state &^= timerModified
  		ts.heap[0].when = t.when
  		ts.siftDown(0)
-@@ -709,10 +717,11 @@ func (t *timer) maybeAdd() {
+@@ -709,11 +717,12 @@ func (t *timer) maybeAdd() {
  	when := int64(0)
  	wake := false
  	if t.needsAdd() {
@@ -542,17 +703,19 @@ index 6c569b5..f59a27f 100644
  			// Re-randomize timer order.
  			// We could do this for all timers, but unbubbled timers are highly
  			// unlikely to have the same when.
+-			t.rand = cheaprand()
 +			// Gomad's unbubbled timers use virtual time, so equal deadlines are common.
- 			t.rand = cheaprand()
++			t.rand = gomadTimerRand()
  		}
  		t.state |= timerHeaped
+ 		when = t.when
 @@ -932,6 +941,10 @@ func (ts *timers) adjust(now int64, force bool) {
  			changed = true
  
  		case t.state&timerModified != 0:
 +			if gomadEnabled && !t.isFake {
 +				// Timer comparisons read rand while holding ts.mu.
-+				t.rand = cheaprand()
++				t.rand = gomadTimerRand()
 +			}
  			tw.when = t.when
  			t.state &^= timerModified

@@ -76,12 +76,26 @@ func matchesUnsupportedAnalysis(expected WorkloadExpectation, analysis capabilit
 	return first.Package.ImportPath == expected.ImportPath && first.Capability == expected.Capability
 }
 
+// unrepeatableClassifications are the outcomes an "unrepeatable" expectation
+// accepts: the workload ran, but its same-seed evidence did not reproduce,
+// either across fresh repetitions or under replay of a retained execution. A
+// manifest states it while a workload's repeatability is being closed, so a
+// run that lands on either outcome is recorded as it happened rather than as
+// a surprise.
+var unrepeatableClassifications = map[string]bool{"nondeterministic": true, "replay_divergence": true}
+
 func matchesSupportedExpectation(expected WorkloadExpectation, workload WorkloadReport) bool {
-	if expected.Classification != workload.Classification || len(workload.Seeds) == 0 {
+	accepts := func(classification string) bool {
+		if expected.Classification == "unrepeatable" {
+			return unrepeatableClassifications[classification]
+		}
+		return classification == expected.Classification
+	}
+	if !accepts(workload.Classification) || len(workload.Seeds) == 0 {
 		return false
 	}
 	for _, seed := range workload.Seeds {
-		if seed.Classification != expected.Classification {
+		if !accepts(seed.Classification) {
 			return false
 		}
 	}

@@ -59,7 +59,7 @@
       "success_bytes_limit": 268435456,
       "expectation": {"classification": "qualified"},
       "platform_expectations": {
-        "linux/amd64": {"classification": "nondeterministic"}
+        "linux/amd64": {"classification": "unrepeatable"}
       }
     },
     {

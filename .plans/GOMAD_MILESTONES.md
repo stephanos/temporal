@@ -403,10 +403,53 @@ which M held the P decided map hash seeds, timer tie-breaks (`t.rand`), and sema
 the M holding the P now draws from process-wide seeded states (`runtime.gomadRuntimeRand`,
 `gomadRuntimeCheapRand`) and Ms without a P keep their own streams for lock backoff. The
 divergence at ordinal 4, during runtime initialization with three runnable goroutines in a
-different run-queue order, points at the remaining suspect: the locked main goroutine's
-`stoplockedm`/`startlockedm` hand-offs and the global run queue, whose order the choice trace
-does not govern. That is the next thing to instrument; until it is closed, F3's acceptance is
-not met on Linux and darwin/arm64 has not been run.
+different run-queue order, pointed at the scheduler paths the choice trace does not govern.
+
+Instrumenting those paths (run-queue picks, goroutine creation, readies, syscall exits,
+M creation, GC starts, per-process event logs for record and replay) found eight host-timing
+channels in the patched runtime, each confirmed by an event diff between two same-seed runs and
+each closed in `go1.27.1.patch` and `overlay/src/runtime/gomad.go`:
+
+- A goroutine whose runner syscall returned while another goroutine held the P was put on the
+  global run queue, which `findRunnable` drained every 61 schedticks ahead of the local queue
+  with no recorded choice. Under Gomad the global queue is now admitted only when the local
+  queue is empty and through the recorded run-queue choice (`gomadAdmit`), and such syscall
+  returns go to a dedicated arrival queue that is admitted one goroutine per idle window, after
+  timers, so neither the moment nor the grouping of returns changes the decision stream.
+- A syscall returning to an idle P resumed its goroutine directly, skipping `schedule` and the
+  timers already due, while the same return to a busy P ran those timers first. Both paths
+  now go through `findRunnable`; a return that finds a quiescence round-trip in flight waits
+  for its answer instead of taking the P, and a non-advance answer starts the P for it.
+- `sysmon` retook Ps and requested preemption after wall-clock intervals and injected the
+  forced-GC goroutine on a wall-clock cadence; both are disabled under Gomad.
+- Background mark workers ran whenever the P was free, so the amount of marking done while a
+  goroutine waited on the runner, and therefore where the collection completed in the program,
+  followed host time. Workers now take a slot only when runnable goroutines or parked assists
+  exist and idle marking is off.
+- Ms were created on demand at hand-offs, allocating `m` structures and g0 stacks at host-timed
+  moments and moving every later heap address and collection trigger; eight Ms are reserved
+  before user code and user code starts only once all have parked.
+- The runtime copied the Gomad control variables into `envs`, which the runner varies between
+  recording and replay; the runtime now reads them from argv only.
+- Timer ties at one instant were broken with `cheaprand`, whose process-wide stream is also
+  drawn on contended runtime lock hand-offs (host-timed, and frequent once Ms are reserved), so
+  the runtime tier's `clock_race` fixture diverged 4 ways in 20 same-seed runs; timers now
+  draw from their own seeded stream, and heap-profile sampling, which draws from the same
+  stream and allocates a bucket per sample, is off under Gomad. The fixture is 20/20 identical
+  again and `make test-runtime` passes.
+
+With all of them in place the probe's two fresh same-seed repetitions produce identical choice
+traces in most runs (runs 26, 27, 29, 30 of the day; runs 25, 28, 31 still differed at
+ordinals 56/119/772 with one alternative more or fewer), and replaying a retained execution
+still diverges at the same ordinals. Per-package `inittrace` allocation counts are identical
+between recording and replay, yet the first collection triggers one span earlier under replay,
+so the remaining channel is in how the two runs' allocations fall on span boundaries rather
+than in what they allocate; the runner-side model responses (order of concurrent transport
+reads, or their timing relative to the quiescence protocol) are the open suspect. The manifest
+therefore states `unrepeatable` (a new set expectation accepting `nondeterministic` or
+`replay_divergence`) for linux/amd64 so the corpus report records whichever the run produced,
+`make test-runtime`, `make validate`, and the core set (5/5 qualified, exact replay) pass on the
+new toolchain, and F3's acceptance remains open on Linux; darwin/arm64 has not been run.
 
 **Constraints.**
 

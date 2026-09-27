@@ -301,6 +301,19 @@ func gomadChoiceSeedRandom() {
 	gomadChoiceSelectRandom = gomadSeed
 	gomadRuntimeRandom.Init64([4]uint64{gomadSeed, 0x676f6d616472616e})
 	gomadRuntimeCheapRandom = uint32(gomadSeed)
+	gomadTimerRandom = uint32(gomadSeed) ^ 0x74696d65
+}
+
+// gomadTimerRandom breaks ties between timers due at the same instant. It is
+// separate from cheaprand because the runtime also draws from cheaprand on
+// contended lock hand-offs, which happen at host-timed moments.
+var gomadTimerRandom uint32
+
+//go:nosplit
+func gomadTimerRand() uint32 {
+	gomadTimerRandom += 0xa0761d65
+	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
+	return uint32(value>>32) ^ uint32(value)
 }
 
 // The runtime's rand and cheaprand streams are per M, and every M starts from
@@ -720,9 +733,111 @@ func gomadChoiceSelectIdentity(site uint64, siteFlags uint8, ordinal, nsends int
 	return hasher.sum()
 }
 
+// gomadReservedMs is the number of idle Ms created before user code runs.
+// A goroutine that hands its P off for a runner syscall needs another M to
+// keep running the P, and one that returns without a P parks its M; creating
+// those Ms on demand would allocate m structures and g0 stacks at host-timed
+// moments and move every later heap address and collection trigger. The
+// reserve covers the concurrent runner syscalls a target issues, so on-demand
+// creation is the exception the choice trace then exposes.
+const gomadReservedMs = 8
+
+// gomadIdleM parks a reserved M until the scheduler hands it a P. User code
+// starts only once every reserved M has parked, so the reserve is complete
+// before the first hand-off can ask for it.
+func gomadIdleM() {
+	stopm()
+	schedule()
+}
+
+// gomadGoenvs copies the process environment for the runtime without the
+// Gomad control variables, which the runner varies between recording and
+// replay (choice mode, tape descriptors) and the runtime reads from argv
+// directly, so both runs allocate the same early heap.
+func gomadGoenvs() {
+	n := int32(0)
+	kept := int32(0)
+	for argv_index(argv, argc+1+n) != nil {
+		if !gomadControlVariable(gostringnocopy(argv_index(argv, argc+1+n))) {
+			kept++
+		}
+		n++
+	}
+	envs = make([]string, kept)
+	index := 0
+	for i := int32(0); i < n; i++ {
+		value := gostring(argv_index(argv, argc+1+i))
+		if gomadControlVariable(value) {
+			continue
+		}
+		envs[index] = value
+		index++
+	}
+}
+
+func gomadControlVariable(variable string) bool {
+	for _, prefix := range [...]string{"GOMAD3_", "GOMADSEED="} {
+		if len(variable) >= len(prefix) && variable[:len(prefix)] == prefix {
+			return true
+		}
+	}
+	return false
+}
+
+// gomadMarkWorkerAllowed reports whether a background mark worker may take
+// this scheduling slot. The worker runs only when the P has runnable
+// goroutines or parked assists to interleave with; an otherwise idle P stays
+// idle, because marking there would pace the collector by the host time that
+// goroutines spend in runner syscalls instead of by the recorded schedule.
+func gomadMarkWorkerAllowed(pp *p) bool {
+	return !runqempty(pp) || !sched.runq.empty() || !work.assistQueue.q.empty()
+}
+
+// gomadArrivals holds goroutines whose host syscall returned while another
+// goroutine held the P. The host decides when such a syscall returns, so a
+// goroutine is admitted only once the P has nothing else to run, one per idle
+// window, in the order the syscalls returned. Guarded by sched.lock.
+var gomadArrivals gQueue
+
+// gomadAdmit moves the queued goroutines onto pp's local run queue and picks
+// the next one through the recorded run-queue choice, so goroutines that reach
+// the scheduler through the global run queue never run unrecorded ahead of it.
+func gomadAdmit(pp *p, queue *gQueue) (*g, bool) {
+	if runqputbatch(pp, queue); !queue.empty() {
+		throw("gomad: local run queue could not take the admitted goroutines")
+	}
+	gp, inheritTime := runqget(pp)
+	if gp == nil {
+		throw("gomad: local run queue empty after admission")
+	}
+	return gp, inheritTime
+}
+
 func gomadStartUserCode(mp *m) {
 	if gomadEnabled {
 		gomadChoiceSeedRandom()
+		// Heap profile samples are drawn from cheaprand and allocate a
+		// bucket each, so their placement would move the heap and every
+		// later collection with the contended lock draws described at
+		// gomadTimerRandom.
+		MemProfileRate = 0
+	}
+	if gomadEnabled {
+		lock(&sched.lock)
+		idle := sched.nmidle
+		unlock(&sched.lock)
+		for count := 0; count < gomadReservedMs; count++ {
+			newm(gomadIdleM, nil, -1)
+		}
+		for {
+			lock(&sched.lock)
+			parked := sched.nmidle >= idle+gomadReservedMs
+			unlock(&sched.lock)
+			if parked {
+				break
+			}
+			osyield()
+		}
 	}
 	if gomadChoiceEnabled {
 		gomadChoiceRootIdentity(mp.curg)
