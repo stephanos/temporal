@@ -272,10 +272,10 @@ type reservationKey struct {
 }
 
 func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding binding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
-	if origin.RunID != runID || !validCoordinate(origin) || !validRouteText(plan.EndpointRoleID) || plan.Method != primitive.StartWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
+	if origin.RunID != runID || !validCoordinate(origin) || plan.Method != primitive.StartWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
 		return nil, nil, ErrInvalid
 	}
-	expected, handlerCount, err := validateTopology(plan, limits)
+	expected, err := expectedHandles(plan, limits)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -283,40 +283,22 @@ func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.Re
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := validateRoutes(plan, expected, handlerCount); err != nil {
-		return nil, nil, err
-	}
 	return expected, ordered, nil
 }
 
-func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map[reservationKey]testpilot.EntrypointKind, int, error) {
+// expectedHandles is the handle each reservation of the admitted plan expects, bounded by the
+// runtime route limit. Preparation compiled the plan's shape, so it is not re-checked here.
+func expectedHandles(plan testpilot.ReservationCarrierPlan, limits Limits) (map[reservationKey]testpilot.EntrypointKind, error) {
 	expected := make(map[reservationKey]testpilot.EntrypointKind)
-	workflowCount := 0
-	handlerCount := 0
 	for _, topology := range plan.Reservations {
-		if !validRouteText(topology.EntrypointID) || topology.Count <= 0 || topology.Count > int64(limits.MaxRoutes-len(expected)) {
-			return nil, 0, ErrInvalid
-		}
-		if topology.Kind != testpilot.WorkflowEntrypoint && topology.Kind != testpilot.NexusHandlerEntrypoint {
-			return nil, 0, ErrInvalid
+		if topology.Count > int64(limits.MaxRoutes-len(expected)) {
+			return nil, ErrInvalid
 		}
 		for ordinal := int64(0); ordinal < topology.Count; ordinal++ {
-			key := reservationKey{entrypoint: topology.EntrypointID, ordinal: ordinal}
-			if _, duplicate := expected[key]; duplicate {
-				return nil, 0, ErrInvalid
-			}
-			expected[key] = topology.Kind
-		}
-		if topology.Kind == testpilot.WorkflowEntrypoint {
-			workflowCount += int(topology.Count)
-		} else {
-			handlerCount += int(topology.Count)
+			expected[reservationKey{entrypoint: topology.EntrypointID, ordinal: ordinal}] = topology.Kind
 		}
 	}
-	if workflowCount != 1 {
-		return nil, 0, ErrInvalid
-	}
-	return expected, handlerCount, nil
+	return expected, nil
 }
 
 func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]testpilot.EntrypointKind, handles []testpilot.ReservationHandle) ([]testpilot.ReservationHandle, error) {
@@ -346,24 +328,6 @@ func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]te
 		return nil, ErrInvalid
 	}
 	return ordered, nil
-}
-
-func validateRoutes(plan testpilot.ReservationCarrierPlan, expected map[reservationKey]testpilot.EntrypointKind, handlerCount int) error {
-	seenSources := make(map[sourceKey]bool, len(plan.Routes))
-	seenHandlers := make(map[reservationKey]bool, len(plan.Routes))
-	for _, planned := range plan.Routes {
-		source := sourceKey{workflowEntrypoint: planned.WorkflowEntrypointID, workflowOrdinal: planned.WorkflowOrdinal, sourceInstruction: planned.SourceInstructionID}
-		handler := reservationKey{entrypoint: planned.HandlerEntrypointID, ordinal: planned.HandlerOrdinal}
-		if expected[reservationKey{entrypoint: planned.WorkflowEntrypointID, ordinal: planned.WorkflowOrdinal}] != testpilot.WorkflowEntrypoint || expected[handler] != testpilot.NexusHandlerEntrypoint || !validRouteText(planned.SourceInstructionID) || seenSources[source] || seenHandlers[handler] {
-			return ErrRouteConflict
-		}
-		seenSources[source] = true
-		seenHandlers[handler] = true
-	}
-	if len(seenHandlers) != handlerCount {
-		return ErrInvalid
-	}
-	return nil
 }
 
 func clonePlan(plan testpilot.ReservationCarrierPlan) testpilot.ReservationCarrierPlan {

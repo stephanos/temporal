@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,26 +12,35 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 )
 
+// The expected-handle map built from the admitted plan is what validateHandles checks each handle
+// against: a missing, duplicated, crossed, or unexpected handle rejects.
 func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
-	for name, mutate := range map[string]func(*fixture, []testpilot.ReservationHandle) []testpilot.ReservationHandle{
-		"partial": func(_ *fixture, handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+	for name, tc := range map[string]struct {
+		mutate func([]testpilot.ReservationHandle) []testpilot.ReservationHandle
+		err    error
+	}{
+		"partial": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
 			return handles[:1]
-		},
-		"duplicate": func(_ *fixture, handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+		}, ErrInvalid},
+		"duplicate": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
 			return []testpilot.ReservationHandle{handles[0], handles[0]}
-		},
-		"crossed origin": func(f *fixture, handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+		}, ErrRouteConflict},
+		"crossed origin": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
 			handles[0].(*fakeReservation).identity.Origin.RunID = "other"
 			return handles
-		},
-		"crossed ordinal": func(f *fixture, handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+		}, ErrRouteConflict},
+		"unexpected ordinal": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
 			handles[0].(*fakeReservation).identity.Ordinal = 1
 			return handles
-		},
-		"malformed id": func(f *fixture, handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+		}, ErrRouteConflict},
+		"unexpected entrypoint": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
+			handles[0].(*fakeReservation).identity.EntrypointID = "other"
+			return handles
+		}, ErrRouteConflict},
+		"malformed id": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
 			handles[0].(*fakeReservation).identity.ID = ""
 			return handles
-		},
+		}, ErrRouteConflict},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newFixture(t, "existing-run", "existing-session")
@@ -40,7 +50,7 @@ func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
 			origin.RunID = "run"
 			workflow := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "workflow"})
 			handler := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: "handler"})
-			raw := mutate(f, []testpilot.ReservationHandle{workflow, handler})
+			raw := tc.mutate([]testpilot.ReservationHandle{workflow, handler})
 			handles := make([]testpilot.ReservationHandle, 0, len(raw))
 			for _, handle := range raw {
 				retained, retainErr := ledger.RetainReservation(context.Background(), handle)
@@ -51,17 +61,51 @@ func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
 				handles = append(handles, retained)
 			}
 			bundle, err := ledger.CreateBundle(context.Background(), origin, f.plan, f.binding, handles)
-			require.Error(t, err)
+			require.ErrorIs(t, err, tc.err)
 			require.Len(t, bundle.Handles(), lenNonNil(handles))
 		})
 	}
+}
 
-	f := newFixture(t, "run", "session")
-	duplicatePlan := f.plan
-	duplicatePlan.Routes = append(duplicatePlan.Routes, duplicatePlan.Routes[0])
-	bundle, err := f.ledger.CreateBundle(context.Background(), testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "second", Attempt: 1}, duplicatePlan, f.binding, nil)
-	require.Error(t, err)
-	require.Empty(t, bundle.Handles())
+// MaxRoutes bounds a bundle at runtime whatever the admitted plan holds: its reservation and route
+// lists, and the handles its reservation counts expect. Each case supplies exactly the handles its
+// plan expects, so only the route limit rejects.
+func TestCreateBundleRejectsPlanBeyondMaxRoutes(t *testing.T) {
+	workflow := func(ordinal int64) reservationKey { return reservationKey{entrypoint: "workflow", ordinal: ordinal} }
+	for name, tc := range map[string]struct {
+		mutate  func(*testpilot.ReservationCarrierPlan)
+		handles []reservationKey
+	}{
+		"reservations": {func(plan *testpilot.ReservationCarrierPlan) {
+			plan.Reservations[1].Count = 0
+			plan.Routes = nil
+		}, []reservationKey{workflow(0)}},
+		"routes": {func(plan *testpilot.ReservationCarrierPlan) {
+			plan.Reservations = plan.Reservations[:1]
+			plan.Routes = append(plan.Routes, plan.Routes[0])
+		}, []reservationKey{workflow(0)}},
+		"expected handles": {func(plan *testpilot.ReservationCarrierPlan) {
+			plan.Reservations = []testpilot.ReservationTopology{{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 2}}
+			plan.Routes = nil
+		}, []reservationKey{workflow(0), workflow(1)}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t, "run", "session")
+			ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 1, MaxHeaderBytes: 4096, MaxHandles: 2, MaxDiagnostics: 1}})
+			require.NoError(t, err)
+			plan := clonePlan(f.plan)
+			tc.mutate(&plan)
+			handles := make([]testpilot.ReservationHandle, 0, len(tc.handles))
+			for _, key := range tc.handles {
+				raw := newFakeReservation(testpilot.ReservationIdentity{Origin: f.origin, EntrypointID: key.entrypoint, Ordinal: key.ordinal, ID: fmt.Sprintf("%s-%d", key.entrypoint, key.ordinal)})
+				retained, err := ledger.RetainReservation(context.Background(), raw)
+				require.NoError(t, err)
+				handles = append(handles, retained)
+			}
+			_, err = ledger.CreateBundle(context.Background(), f.origin, plan, f.binding, handles)
+			require.ErrorIs(t, err, ErrInvalid)
+		})
+	}
 }
 
 func TestIdenticalConcurrentRunsRouteByIdentityUnderReorderedDelivery(t *testing.T) {
