@@ -1,4 +1,4 @@
-import Umpire.Search.Product.Scenario
+import Umpire.Search.Product.Monitor
 
 /-!
 # The product state space
@@ -35,6 +35,12 @@ the witness the reference would.
 The product never enumerates what the Scenario rejects: a root or a transition the automaton drops
 has no admitted extension, so it is not a product state. The search strategy's seed is not read;
 seeded search stays on the reference backend.
+
+## The Query's own monitors
+
+`MonitoredProduct.build` builds the product a Query's search runs: its Scenario automaton beside
+the Property monitors of `Umpire.Search.Product.Monitor` (`MonitorFamily.ofQuery`), or the first
+Property clause or Scenario construct version one cannot encode.
 -/
 
 namespace Umpire.Search.Product
@@ -51,6 +57,11 @@ structure MonitorFamily (Monitors : Type) where
 def MonitorFamily.empty : MonitorFamily Unit where
   start _ _ := ((), 0)
   advance _ _ _ := ((), 0)
+
+/-- The family of a Query's lowered Property monitors; clause `i` owns fired bit `i`. -/
+def MonitorFamily.ofQuery (monitors : QueryMonitors) : MonitorFamily (List ClauseState) where
+  start _ initialState := monitors.start initialState
+  advance := monitors.advance
 
 /-- One product state. See the module header for why it determines the future verdict. -/
 structure State (Monitors : Type) where
@@ -250,5 +261,34 @@ theorem mem_successors {state next : State Monitors} {transition : Transition}
               ⟨outcomeIndex, outcomeBound, stepped⟩⟩
 
 end Product
+
+/-- Why a Query has no version-one product: its Scenario or one of its Property clauses. -/
+inductive ProductUnsupported where
+  | scenario (unsupported : Unsupported)
+  | clause (unsupported : MonitorUnsupported)
+  deriving BEq, DecidableEq, Repr
+
+/-- A Query's product with its own Property monitors, and how to read its answers. -/
+structure MonitoredProduct (target : QueryModel LawStatement) where
+  product : Product target (List ClauseState)
+  monitors : QueryMonitors
+  /-- Whether the Query's ending is `partial`, under which a monitor may answer `unresolved`. -/
+  partialTrace : Bool
+
+/-- Build the product a Query's search runs, or name the first Property clause or, failing that,
+the Scenario construct version one cannot encode. -/
+def MonitoredProduct.build
+    (query : CheckedQuery LawStatement)
+    (view : SearchView query.target) :
+    Except ProductUnsupported (MonitoredProduct query.target) := do
+  let monitors ← (QueryMonitors.lower query.form.properties query.target.stateFields).mapError
+    .clause
+  let product ← (Product.build query view (.ofQuery monitors)).mapError .scenario
+  pure { product, monitors, partialTrace := query.ending == .«partial» }
+
+/-- Each Property's answer, by Definition ID, on the trace that reached this state. -/
+def MonitoredProduct.answers (monitored : MonitoredProduct target)
+    (state : State (List ClauseState)) : List PropertyEndpointAnswer :=
+  monitored.monitors.answers state.monitors monitored.partialTrace
 
 end Umpire.Search.Product
