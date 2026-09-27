@@ -694,7 +694,7 @@ four steps, each measured with the same command:
   zeroed in turn the review reported `d8b65806…` (fx), `45cd8411…` (SDK `internal`), and
   `796855ab…` (otel `resource`), equal to the committed pins, so none changed. On the same
   host `compatibility-pack check` reports every pack current and
-  `compatibility-pack-qualification` qualifies all six darwin requests.
+  `compatibility-pack-qualification` qualifies all six requests of the darwin set.
 
 The remaining acceptance items, measured on linux/amd64:
 
