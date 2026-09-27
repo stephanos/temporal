@@ -3,17 +3,18 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
 
 func TestCheckReportsAvailableContract(t *testing.T) {
-	root, runner, artifacts := writeDoctorFixture(t, "darwin", "arm64")
+	root, runner, artifacts := writeDoctorFixture(t, runtime.GOOS, runtime.GOARCH)
 	report := Check(Config{
 		ToolchainRoot: filepath.Join(root, ".toolchain"), InstallationSource: "test", RepairInstruction: "repair test toolchain",
-		RunnerPath: runner, ArtifactRoot: artifacts, HostOS: "darwin", HostArch: "arm64",
+		RunnerPath: runner, ArtifactRoot: artifacts, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
 	})
-	if !report.Available || report.GoVersion != "go1.26.4" || report.ToolchainBuild != strings.Repeat("a", 64) {
+	if !report.Available || report.GoVersion != "go1.27.1" || report.ToolchainBuild != strings.Repeat("a", 64) {
 		t.Fatalf("report = %#v", report)
 	}
 	gotAdapters := make([]string, len(report.Adapters))
@@ -94,7 +95,7 @@ func writeDoctorFixture(t *testing.T, goos, goarch string) (string, string, stri
 			t.Fatal(err)
 		}
 	}
-	goScript := "#!/bin/sh\nprintf 'go1.26.4\\n" + goos + "\\n" + goarch + "\\n0\\n'\n"
+	goScript := "#!/bin/sh\nprintf 'go1.27.1\\n" + goos + "\\n" + goarch + "\\n0\\n'\n"
 	for _, path := range []string{filepath.Join(root, ".toolchain", "bin", "go"), filepath.Join(root, ".toolchain", "builds", key, "bin", "go")} {
 		if err := os.WriteFile(path, []byte(goScript), 0o700); err != nil {
 			t.Fatal(err)
