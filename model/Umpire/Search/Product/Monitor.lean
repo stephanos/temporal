@@ -415,7 +415,7 @@ structure QueryMonitors where
 /-- Lower every clause of these Properties, or name the first one version one cannot encode. -/
 def QueryMonitors.lower (properties : List CheckedProperty)
     (stateFields : ModelValue → List ModelValue) : Except MonitorUnsupported QueryMonitors := do
-  let sorted := properties.mergeSort fun left right => decide (left.id.value ≤ right.id.value)
+  let sorted := CheckedProperty.sortedById properties
   let mut clauses := #[]
   for (property, index) in sorted.zipIdx do
     if let some rule := property.correlatedRules.head? then

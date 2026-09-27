@@ -11,3 +11,4 @@ import Umpire.Search.Tests.Product
 import Umpire.Search.Tests.Monitor
 import Umpire.Search.Tests.BackendVeil
 import Umpire.Search.Tests.Replay
+import Umpire.Search.Tests.Differential

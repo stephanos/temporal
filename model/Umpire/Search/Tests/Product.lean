@@ -192,7 +192,7 @@ def allTraces {target : QueryModel LawStatement} (view : SearchView target)
 
 /-- Every product path from `state` within `depth` more steps, reversed, in successor order. -/
 def pathsFrom {target : QueryModel LawStatement}
-    (product : Search.Product.Product target Unit) :
+    (product : Search.Product.StateSpace target Unit) :
     Nat → Search.Product.State Unit → List Search.Product.Transition →
       List (Search.Product.State Unit × List Search.Product.Transition)
   | 0, state, reversed => [(state, reversed)]
@@ -204,7 +204,7 @@ def pathsFrom {target : QueryModel LawStatement}
 automaton agrees with `admits` on every trace, admitted or not. -/
 def productAgrees (query : CheckedQuery LawStatement) (view : SearchView query.target)
     (depth : Nat) : Bool :=
-  match Search.Product.Product.build query view .empty with
+  match Search.Product.StateSpace.build query view .empty with
   | .error _ => false
   | .ok product =>
       let traces := allTraces view product.setups depth
@@ -290,7 +290,7 @@ private def countingMonitors : Search.Product.MonitorFamily Nat where
     let model ← (ModelTests.Parameterized.target .samplesOnly).toOption
     let query ← (Query.check (.ofTarget model) (parameterizedQuery model)).toOption
     let view ← (SearchView.ofCheckedQuery query.target.id query).toOption
-    let product ← (Search.Product.Product.build query view countingMonitors).toOption
+    let product ← (Search.Product.StateSpace.build query view countingMonitors).toOption
     let root ← product.initialStates.head?
     let successors := product.successors root
     let accepted := successors.filter fun (transition, _) =>
@@ -318,16 +318,16 @@ end Parameterized
 #guard_msgs in
 #print axioms Umpire.Search.Product.decode_lossless
 
-/-- info: 'Umpire.Search.Product.Product.run_progress' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Search.Product.StateSpace.run_progress' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Search.Product.Product.run_progress
+#print axioms Umpire.Search.Product.StateSpace.run_progress
 
-/-- info: 'Umpire.Search.Product.Product.accepts_iff_admits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Search.Product.StateSpace.accepts_iff_admits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Search.Product.Product.accepts_iff_admits
+#print axioms Umpire.Search.Product.StateSpace.accepts_iff_admits
 
-/-- info: 'Umpire.Search.Product.Product.mem_successors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Search.Product.StateSpace.mem_successors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Search.Product.Product.mem_successors
+#print axioms Umpire.Search.Product.StateSpace.mem_successors
 
 end Umpire.SearchTests.Product

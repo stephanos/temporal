@@ -5,8 +5,8 @@ import Umpire.Search.Product.Monitor
 
 A state-space search over a checked Query explores the product of four things: the Model state the
 `SearchView` steps, the Scenario's `Progress` (`Umpire.Search.Product.Scenario`), the states of the
-Property monitors, and a bitset of the clauses whose trigger has fired. `Product` builds that space
-from a `SearchView`, a `CheckedScenario` and a supplied `MonitorFamily`; its transitions are
+Property monitors, and a bitset of the clauses whose trigger has fired. `StateSpace` builds that
+space from a `SearchView`, a `CheckedScenario` and a supplied `MonitorFamily`; its transitions are
 labelled with the Model `Step` taken, so a product path decodes to a `Scenario.Trace` with nothing
 lost.
 
@@ -27,8 +27,8 @@ breadth-first frontier guarantees.
 
 ## Order
 
-`Product.initialStates` lists roots by sorted setup and then initial index, and
-`Product.successors` lists transitions by action index and then outcome index: the key order the
+`StateSpace.initialStates` lists roots by sorted setup and then initial index, and
+`StateSpace.successors` lists transitions by action index and then outcome index: the key order the
 reference search enumerates candidates in, so a backend that keeps first-discovery parents reports
 the witness the reference would.
 
@@ -44,10 +44,6 @@ Property clause or Scenario construct version one cannot encode.
 -/
 
 namespace Umpire.Search.Product
-
--- The product is `Umpire.Search.Product.Product`: its namespace names the module the whole state
--- space lives in, and renaming the structure would move every caller of `Product.build`.
-set_option linter.extra.dupNamespace false
 
 /-- The Property monitors a product runs beside the Scenario automaton. `start` gives the monitor
 states at a root and `advance` steps them along one transition from a Model state; each also
@@ -91,7 +87,7 @@ instance [Hashable Monitors] : Hashable (State Monitors) where
           mixHash (hash state.monitors) (hash state.fired)
 
 /-- The product of one checked Query's search view, Scenario automaton and Property monitors. -/
-structure Product {LawStatement : Law → Prop} (target : QueryModel LawStatement)
+structure StateSpace {LawStatement : Law → Prop} (target : QueryModel LawStatement)
     (Monitors : Type) where
   view : SearchView target
   /-- The setups roots are drawn from, sorted. -/
@@ -107,19 +103,20 @@ private def setupLe (left right : List RoleBinding) : Bool :=
 /-- Build the product for one checked Query, or name the Scenario construct it cannot encode. The
 setups are the Query's finite role assignments, or the Model's resolved setups without finite
 evidence, sorted as the reference search sorts them. -/
-def Product.build
+def StateSpace.build
     (query : CheckedQuery LawStatement)
     (view : SearchView query.target)
-    (monitors : MonitorFamily Monitors) : Except Unsupported (Product query.target Monitors) := do
+    (monitors : MonitorFamily Monitors) :
+    Except Unsupported (StateSpace query.target Monitors) := do
   let scenario ← ScenarioAutomaton.lower query.behavior
   let setups := match query.completeness with
     | some evidence => evidence.roleAssignments
     | none => query.target.resolvedSetups
   pure { view, setups := setups.mergeSort setupLe, scenario, monitors }
 
-namespace Product
+namespace StateSpace
 
-variable (product : Product target Monitors)
+variable (product : StateSpace target Monitors)
 
 /-- The root at this setup and initial state, or `none` when the Scenario admits no trace from
 it. -/
@@ -166,7 +163,7 @@ def accepts (state : State Monitors) : Bool :=
 def run (state : State Monitors) (path : List Transition) : Option (State Monitors) :=
   path.foldlM product.follow state
 
-end Product
+end StateSpace
 
 /-- The trace a product path from `root` records: the root's setup and Model state, then one step
 per transition. -/
@@ -183,9 +180,9 @@ theorem decode_lossless (root : State Monitors) (path : List Transition) :
   refine ⟨rfl, rfl, ?_⟩
   simp [decode, Function.comp_def]
 
-namespace Product
+namespace StateSpace
 
-variable (product : Product target Monitors)
+variable (product : StateSpace target Monitors)
 
 /-- The Scenario progress of a followed transition is the automaton's step. -/
 theorem follow_progress (state : State Monitors) (transition : Transition) :
@@ -264,7 +261,7 @@ theorem mem_successors {state next : State Monitors} {transition : Transition}
             exact ⟨followed, ⟨actionIndex, actionBound, selected⟩,
               ⟨outcomeIndex, outcomeBound, stepped⟩⟩
 
-end Product
+end StateSpace
 
 /-- Why a Query has no version-one product: its Scenario or one of its Property clauses. -/
 inductive ProductUnsupported where
@@ -274,7 +271,7 @@ inductive ProductUnsupported where
 
 /-- A Query's product with its own Property monitors, and how to read its answers. -/
 structure MonitoredProduct (target : QueryModel LawStatement) where
-  product : Product target (List ClauseState)
+  product : StateSpace target (List ClauseState)
   monitors : QueryMonitors
   /-- Whether the Query's ending is `partial`, under which a monitor may answer `unresolved`. -/
   partialTrace : Bool
@@ -287,7 +284,7 @@ def MonitoredProduct.build
     Except ProductUnsupported (MonitoredProduct query.target) := do
   let monitors ← (QueryMonitors.lower query.form.properties query.target.stateFields).mapError
     .clause
-  let product ← (Product.build query view (.ofQuery monitors)).mapError .scenario
+  let product ← (StateSpace.build query view (.ofQuery monitors)).mapError .scenario
   pure { product, monitors, partialTrace := query.ending == .«partial» }
 
 /-- Each Property's answer, by Definition ID, on the trace that reached this state. -/

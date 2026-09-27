@@ -1,5 +1,6 @@
 import Umpire.Search
 import Umpire.Search.Branches
+import Umpire.Model.Table
 import Umpire.Shared.Test
 
 /-! Shared deterministic model, checked query, incremental kernel, and runner fixtures. -/
@@ -347,5 +348,100 @@ def run
     (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlanResult :=
   search (fixtureQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
+
+/-! ### Table fixtures for the backend differential
+
+Two Models written as finite tables, for the backend differential: one where two paths reach one
+product state at the same depth, and three instances of a two-state machine, whose paths outgrow a
+search bound its states never approach. Every state, action and outcome is named by its key under
+the table's own family of Definition IDs, and nothing binds a setup role. -/
+
+/-- A table's Model under the family `planner.<family>`. -/
+def tableTarget (family : String)
+    (table : FiniteTable Unit String String String String) : Option (QueryModel (fun _ => True)) :=
+  let owned := fun (kind : String) => id s!"planner.{family}.{kind}"
+  let identity : FiniteModelIdentity Unit String String String String := {
+    setupBindings := fun _ => []
+    stateId := fun _ => owned "state"
+    actionId := fun action => owned ("action." ++ action)
+    outcomeId := fun _ => owned "outcome"
+    factId := fun _ => owned "fact"
+  }
+  let definition : TableModelSpec := {
+    id := owned "target"
+    source
+    metadata := { id := owned "kernel", source }
+    requiredCapabilities := []
+    definitions := [
+      metadata (owned "target") .target "target/v1",
+      metadata (owned "kernel") .machine "kernel/v1",
+      metadata (owned "state") .state "state/v1",
+      metadata (owned "outcome") .outcome "outcome/v1"] ++
+      table.actions.map fun action =>
+        metadata (owned ("action." ++ action.key)) .action "action/v1"
+  }
+  (table.checkModel identity definition).toOption
+
+private def catalog (keys : List String) : FiniteCatalog String :=
+  keys.map fun key => { value := key, key }
+
+private def row (source action target : String) : FiniteTransitionRow String String String String :=
+  { key := source ++ "-" ++ action, source, action,
+    results := [{ outcome := "accepted", state := target, facts := [] }] }
+
+/-- `a` and `b` both lead from `idle` to `mid` with equal results, and `c` from `mid` to `done`: the
+two paths to `mid` reach one product state at depth one. -/
+def sameDepthTable : FiniteTable Unit String String String String := {
+  setups := [{ value := (), key := "setup" }]
+  states := catalog ["idle", "mid", "done"]
+  actions := catalog ["a", "b", "c"]
+  outcomes := catalog ["accepted"]
+  facts := []
+  initial := [{ setup := (), states := ["idle"] }]
+  transitions := [row "idle" "a" "mid", row "idle" "b" "mid", row "mid" "c" "done"]
+}
+
+/-- The switch positions of three instances of a two-state machine, first instance first. -/
+private def threeSwitches : List (List Bool) :=
+  [false, true].flatMap fun first => [false, true].flatMap fun second =>
+    [false, true].map fun third => [first, second, third]
+
+private def switchesKey (switches : List Bool) : String :=
+  "-".intercalate (switches.map fun on => if on then "on" else "off")
+
+/-- Three instances of a two-state machine, each flipped by its own action: eight states, and
+three enabled transitions from each, so the paths of each length triple. -/
+def threeInstanceTable : FiniteTable Unit String String String String := {
+  setups := [{ value := (), key := "setup" }]
+  states := catalog (threeSwitches.map switchesKey)
+  actions := catalog ["flip-1", "flip-2", "flip-3"]
+  outcomes := catalog ["accepted"]
+  facts := []
+  initial := [{ setup := (), states := [switchesKey [false, false, false]] }]
+  transitions := threeSwitches.flatMap fun switches =>
+    (List.range 3).map fun slot =>
+      row (switchesKey switches) s!"flip-{slot + 1}"
+        (switchesKey (switches.modify slot (!·)))
+}
+
+/-- A Query over a table fixture's Model, with its finite completeness, and the search view over
+it. -/
+def tableQuery (model : QueryModel (fun _ => True)) (key : String) (form : Query.Form)
+    (selectedBehavior : CheckedScenario) (limits : Limits) (strategy : SearchStrategy) :
+    Option ((query : CheckedQuery (fun _ => True)) × SearchView query.target) := do
+  let checked ← (Query.check (.ofTarget model) {
+    id := id ("planner.query." ++ key)
+    source
+    target := model.id
+    form
+    limits
+    policy := policy strategy
+    behavior := selectedBehavior
+  }).toOption
+  let query := { checked with
+    target := model
+    completeness := (ModelCompleteness.ofTarget model).completeness }
+  let view ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure ⟨query, view⟩
 
 end Umpire.SearchTests

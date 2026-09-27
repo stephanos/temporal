@@ -14,7 +14,7 @@ that imports `Veil.*`; `Umpire.Search.Selection` is the only module that imports
 
 `system` is the product as a Veil `EnumerableTransitionSystem` over `Located` states, a product
 state with the depth it was reached at. Roots come in the product's order and successors in
-`Product.successors` order, which is the reference search's key order. The depth bound
+`StateSpace.successors` order, which is the reference search's key order. The depth bound
 (`maximumDepth`, the smaller of the `steps` and `actions` Limits) is a Veil state constraint, so a
 state past it is never enumerated. `transition_equivalence`, `initial_equivalence` and
 `assumptions_equivalence` prove that Veil's relational reading of `system` is the product's own
@@ -70,15 +70,15 @@ variable {LawStatement : Law → Prop} {target : QueryModel LawStatement} {Monit
 
 /-- The product as Veil's enumerable transition system. Every transition succeeds; the theory is
 `Unit`. -/
-def system (product : Product target Monitors) :
+def system (product : StateSpace target Monitors) :
     Veil.EnumerableTransitionSystem Unit (List Unit) (Located Monitors) (List (Located Monitors))
       Int Transition (List (Transition × Veil.ExecutionOutcome Int (Located Monitors))) () where
   initStates := product.initialStates.map ({ depth := 0, state := · })
   tr _ located := (product.successors located.state).map fun (transition, next) =>
     (transition, .success { depth := located.depth + 1, state := next })
 
-/-- The product's own relation, read off `Product.initialStates` and `Product.successors`. -/
-def relation (product : Product target Monitors) :
+/-- The product's own relation, read off `Product.initialStates` and `StateSpace.successors`. -/
+def relation (product : StateSpace target Monitors) :
     Veil.RelationalTransitionSystem Unit (Located Monitors) Transition where
   assumptions _ := True
   init _ located := located.depth = 0 ∧ located.state ∈ product.initialStates
@@ -86,7 +86,7 @@ def relation (product : Product target Monitors) :
     after.depth = before.depth + 1 ∧ (transition, after.state) ∈ product.successors before.state
 
 /-- Every edge of Veil's relational reading of the adapter is a product edge, and the converse. -/
-theorem transition_equivalence (product : Product target Monitors)
+theorem transition_equivalence (product : StateSpace target Monitors)
     (before after : Located Monitors) (transition : Transition) :
     (system product).toRelational.tr () before transition after ↔
       (relation product).tr () before transition after := by
@@ -101,7 +101,7 @@ theorem transition_equivalence (product : Product target Monitors)
     exact ⟨_, _, member, rfl, rfl, rfl⟩
 
 /-- Veil's relational reading of the adapter and the product admit the same initial states. -/
-theorem initial_equivalence (product : Product target Monitors) (located : Located Monitors) :
+theorem initial_equivalence (product : StateSpace target Monitors) (located : Located Monitors) :
     (system product).toRelational.init () located ↔ (relation product).init () located := by
   cases located
   simp only [system, relation, Veil.EnumerableTransitionSystem.toRelational, List.mem_map,
@@ -113,7 +113,7 @@ theorem initial_equivalence (product : Product target Monitors) (located : Locat
     exact ⟨_, member, rfl, rfl⟩
 
 /-- Both readings accept the one theory. -/
-theorem assumptions_equivalence (product : Product target Monitors) (theory : Unit) :
+theorem assumptions_equivalence (product : StateSpace target Monitors) (theory : Unit) :
     (system product).toRelational.assumptions theory ↔ (relation product).assumptions theory := by
   simp [system, relation, Veil.EnumerableTransitionSystem.toRelational]
 

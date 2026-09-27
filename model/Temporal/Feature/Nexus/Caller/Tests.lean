@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Caller.Model
+import Umpire.Search.Tests.Differential
 
 /-!
 # What the Caller Model says
@@ -215,6 +216,25 @@ identity: it is the product Property and no other. -/
   | .error _ => "admission failed") == "verified-within-limits"
 #guard (terminalHolds.toOption.map fun checked => checked.property.id.value) ==
   some "temporal.nexus.caller.property.terminalIsFinal"
+
+/-! ### The product state space (fn-88 R9)
+
+The verify Query on both search backends, and its Property over every trace of the protocol machine
+within `four`, the Caller's widest Limits: `reference` counts candidate paths, `veil` product
+states. Both complete and agree; over the whole machine the product has 171 states where the
+reference enumerates 3525 paths. Wall times are recorded in the fn-88.9 evidence, never asserted.
+Every Caller Query's comparison, with the Scenario automaton and monitor checks, is in
+`TemporalModelTests.SearchDifferential`. -/
+
+open Umpire.SearchTests.Differential in
+#guard ((admitSource terminalHolds.source).toOption.map fun ⟨_, admitted⟩ =>
+    admittedLine admitted) ==
+  some "veil default, verified-within-limits 4 paths, verified-within-limits 4 states"
+
+open Umpire.SearchTests.Differential in
+#guard ((admitQuery nexusProtocol "terminalHoldsEverywhere" terminalHolds.source.property none
+    .verifyClaim four).toOption.map fun ⟨_, admitted⟩ => admittedLine admitted) ==
+  some "veil default, verified-within-limits 3525 paths, verified-within-limits 171 states"
 
 /- A product Property about an action the protocol machine does not have cannot be read there. -/
 property timesOut
