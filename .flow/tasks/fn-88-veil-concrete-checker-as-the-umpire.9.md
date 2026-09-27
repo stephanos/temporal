@@ -27,6 +27,10 @@ Add the differential test that runs every Query reachable through `AdmittedQuery
 ### Key context
 - Exempt only the listed fields; an unlisted difference is a finding, not a new exemption.
 
+### Carried from fn-88.3 review (2026-09-27)
+- R14's differential in `Umpire/Search/Tests/Product.lean` reaches only the Umpire test roots (Switch, Search fixture, parameterized Model). Apply its public `Umpire.SearchTests.Product.productAgrees` to the Caller and Pair Scenarios (and any other Temporal feature Scenario this task's modules reach) within their Limits, beside the product-state pins, so `ScenarioAutomaton.admits = CheckedScenario.admits` is checked trace-by-trace on them.
+- The automaton lowers `ordering`/`adjacencies` when `actionsExactly`/`traceExactly` pins the schedule (every `scenario`-command Scenario does); only free-schedule `ordering`/`adjacencies` is `Unsupported`. Plan the selection reasons and R18 flip list against that.
+
 ## Acceptance
 - [ ] Differential test over every `AdmittedQuery.search` Query passes with exactly the stated exemptions
 - [ ] Same-depth fixture proves witness order on both backends

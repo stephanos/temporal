@@ -29,6 +29,14 @@ advanced one `Transition` at a time, whose final value decides `admits`.
   `adjacencies`, whose substring match needs the active partial matches, are not encoded:
   lowering returns `Unsupported` naming the construct.
 
+Encoding `ordering` and `adjacencies` under a pinned schedule is deliberate. What makes them
+unencodable -- slot assignment over the occurrences still unassigned, substring matches still in
+progress -- only arises when the schedule is free; over a pinned one each is one Boolean fixed at
+lowering, and the progress carries nothing for it. Every Scenario the `scenario` command declares is
+pinned and carries an `ordering` (`Scenario.exactly` orders its occurrences), so returning
+`Unsupported` for them would keep every multi-step checked-in Scenario, the Nexus Caller and Pair
+included (R9), off the state-space search.
+
 The fixed setup -- the role bindings and setup constraints, and an exact trace's setup and initial
 state -- is decided once, at the root, by `admits` on the root trace of a Scenario that keeps only
 those fields. An unsatisfiable Scenario admits no root.
@@ -42,7 +50,10 @@ every trace of every Scenario it holds: exhaustively over bounded action sequenc
 Scenarios that exercises every construct, and over every trace within the Query Limits of the
 checked-in Scenarios the Umpire test roots reach (the Switch example and the Search fixtures). It
 also keeps `CheckedScenario.admitsPrefix` as a pruning oracle: every prefix it rejects, the
-automaton drops.
+automaton drops. The Temporal feature Scenarios (Nexus Caller, Pair, Control, Success, Workflow
+Start and Outage) sit outside the Umpire test roots; the same oracle, `productAgrees` in that test
+module, is public so their test modules can apply it, which task .9 does beside its Caller and Pair
+pins.
 -/
 
 namespace Umpire.Search.Product
