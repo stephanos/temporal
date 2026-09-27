@@ -304,7 +304,10 @@ func upstreamFixtures(goRoot string) ([]fixture, func() error, error) {
 	}
 	goCommand := filepath.Join(linkedRoot, "bin", "go")
 	workingDirectory := filepath.Join(linkedRoot, "src")
-	baseEnvironment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GO111MODULE", "GODEBUG", "GOWORK", "GOMAD3_IO_PROFILE")
+	// The stable GOROOT lives inside this module's tree, so upstream tests that
+	// shell out to go list from GOROOT would resolve std directories against
+	// this module. Pin GOROOT to the workspace link, which sits outside it.
+	baseEnvironment := append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GO111MODULE", "GODEBUG", "GOROOT", "GOWORK", "GOMAD3_IO_PROFILE"), "GOROOT="+linkedRoot)
 	return []fixture{
 		{
 			tier: "test-upstream", name: "upstream-clock", command: []string{
