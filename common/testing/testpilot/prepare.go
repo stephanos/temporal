@@ -37,6 +37,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if err != nil {
 		return nil, preparationError(err, "profile.environment_bindings")
 	}
+	// The one boundary copy: execution cannot import the facade, and ProfileSpec's public shape stays.
 	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, CommandTypes: spec.CommandTypes, EnvironmentBindings: spec.EnvironmentBindings, Limits: spec.ProgramLimits, InstructionDefaults: spec.InstructionDefaults}
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
