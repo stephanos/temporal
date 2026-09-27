@@ -374,7 +374,21 @@ claim kernel keepalive support. On Linux it also compiles gRPC's own non-Linux
 `internal/channelz`, `internal/syscall`, and ready-reader implementations, so
 channelz socket introspection, TCP user timeouts, CPU-time reads, and
 non-blocking ready reads stop at the same stubs darwin uses instead of reaching
-raw connections or `x/sys/unix`.
+raw connections or `x/sys/unix`. On every platform it also rewrites the three
+portable gRPC files that import `syscall`: the disconnect-reason label keeps
+only its context and deadline classifications, credentials stop wrapping TLS
+connections in a `syscall.Conn`, and the ready reader always takes the
+blocking path, because Gomad's connections never expose a descriptor.
+Three exact adapters keep the Temporal server's own dependencies away from the
+host so that closure mode can be claimed for `./tests`: `go.uber.org/fx@v1.24.0`
+keeps its shutdowner channel plumbing but never registers with `os/signal` and
+names its signals locally instead of through `x/sys/unix`;
+`go.temporal.io/sdk@v1.48.0` returns an interrupt channel that never fires
+instead of installing a signal handler; and `go.opentelemetry.io/otel/sdk@v1.44.0`
+reports `<unknown>` for the process owner and `uname` the way the module already
+does on unsupported platforms, and its BSD host-id command runner refuses
+instead of reaching `os/exec`. Each rewrite is anchored to exact file digests,
+so an upstream edit fails the build instead of shifting the rewrite.
 Each target records the exact adapters it selected, and resume and replay fail
 before execution if an identity is unavailable or changed. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.
@@ -610,6 +624,11 @@ replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
 `internal/compatibilitypack`.
 
+`temporal-functional-tests-linux-amd64` admits the amd64 assembly, the
+reflect2 linknames, and the procfs process-metrics reads that the `gomad` build
+of the Temporal functional test package reaches on linux/amd64; with the
+server's `gomad` build seams and the fx, SDK, otel, and gRPC adapters it closes
+`gomad analyze --capability-mode=closure go-test ./tests` with zero blockers.
 The obsolete `temporal-backoff-overflow` and
 `xnet-socket-activity-candidate` requests were retired after exact gRPC and
 x/net adapters removed their active blockers. The gRPC workload qualifies
