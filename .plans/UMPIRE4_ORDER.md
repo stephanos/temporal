@@ -6,71 +6,48 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-Status as of 2026-09-27. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94. Their
-task receipts in `.flow/` and the git history carry the details. Delivered on 2026-09-27 and
-2026-09-28:
-
-- **fn-90** re-measured the three intermittent live Testpilot failures with the
-  `make umpire-repeat-run` harness; none reproduced on today's identities. It fixed two causes:
-  the umpire-run test now runs on a cluster with the system worker, so the `--create` namespace
-  deletion finishes and is asserted, and the pair Case's controller reads the scheduled events
-  after the workflow closes instead of before the second operation is scheduled. No quarantine
-  exists.
-- **fn-91** renamed the Driver seam's Go to the opaque handle family and holds the eight retired
-  names in the vocabulary gate.
-- **fn-89** sends a Rule over N instances once with its per-instance values instead of N lowered
-  copies; Verdicts and admission equal the expansion (except that the authored surface is bounded
-  as written), pinned by a differential test. `make umpire-rerecord-pinned-runs` refreshes every
-  catalog-pinned recorded Run after a protocol change, machine-free.
-- **fn-94** simplified the handwritten Testpilot Go runtime with no Run or Verdict change. The
-  `BindingFingerprint` and route wire bytes are unchanged; removing the model-value expression
-  reference moved the Driver catalog identity, and that commit re-recorded the pinned Runs. Go's
-  correlated monitor now reads `initial_state_fields` and `prior_fields` as Lean's does. Dead and
-  test-only code is gone, admitted data is validated once, one opcode table drives instruction
-  binding, and copied primitives and test fakes are shared. `evidence_field_id` and
-  `correlated_capture` stay, because Lean's correlated Producer emits both. The live identity count
-  stayed at 45. The line-count floors were missed; the fn-94.17 receipt reports the measurement and
-  the reasons.
+Status as of 2026-09-28. Delivered, each with SHIP implementation and completion reviews: fn-83,
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94
+(fn-94's completion review is running). Their task receipts in `.flow/` and the git history carry
+the details.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
-leases, recovery, and publication stay outside Testpilot and Umpire.
+leases, recovery, and publication stay outside Testpilot and Umpire. After a protocol change,
+`make umpire-rerecord-pinned-runs` refreshes every catalog-pinned recorded Run (fn-89.7).
 
 ### Delivery queue
 
 1. **fn-88 — Veil concrete checker as the Umpire search engine**
-   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)); 7 of 12 tasks done.
-   Veil's concrete model-checker library becomes the engine behind `Umpire.Search`, over the
-   `FiniteTable` the `machine` command enumerates, with Scenarios and Properties lowered to a
-   product of a progress automaton and bounded monitors; today's traversal stays as the frozen
-   `reference` backend and differential oracle. The first probe was `defer-incompatible` (Veil
-   declares Lean 4.32.0); the spec was amended (R22) to allow moving the toolchain and an `IO`
-   checker run during command elaboration, with every witness kernel-replayed and absence answers
-   trusted from the checker under the differential test and a stated 64-bit state-hash assumption.
-   The second probe decided `adopt`, and the model moved to Lean 4.32.0 (task .12). Done: the
-   probes, the backend seam, the product state space, the monitor lowering and the GOV-02
-   drafts. In progress: .5, the Veil Lake dependency, the adapter and the isolation lint rule.
-   Remaining: .6 backend selection and the kernel replay gate, .9 the differential test and the
-   Caller, Pair and three-instance pins, .10 Exploration and Replay keys with the golden re-pin,
-   and .7 docs and the rollback drill. The reasoning is sections 1 and 6 of
+   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)); 9 of 12 tasks done.
+   Veil's concrete checker becomes the engine behind `Umpire.Search`, over the `FiniteTable` the
+   `machine` command enumerates, with Scenarios and Properties lowered to a product of a progress
+   automaton and bounded monitors; today's traversal stays as the frozen `reference` backend and
+   differential oracle. The model is on Lean 4.32.0, Veil's declared toolchain, with Veil a
+   required Lake dependency. As built, the `veil` backend is pure (it drives Veil's `bfsStep`
+   within `Limits.search`) and deduplicates by exact product state, and every witness passes a
+   kernel replay gate. `Selection.cutover` is still `false`, so every Query searches on
+   `reference` until .10. In progress: .9, the differential test and the Caller, Pair and
+   three-instance pins. Remaining: .10, the cutover with the Exploration and Replay keys and the
+   one-commit golden re-pin; .7, docs, the rollback drill, the cold CI build measurement, and the
+   GOV-02 drafts corrected to the as-built trust basis. The reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path.
 2. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
-   after fn-88 (fn-89 is delivered). A `compose` command builds one Model from entity machines with declared
-   action synchronization over a reachable-state enumeration; `restrict:` and `extend:` derive
-   machines from a source table; `Workflow` and `Worker` entity modules are shared by the Start
-   and Outage use cases; the first cross-entity claims are `verify` Queries. Version one realizes
-   no Case over a composition and leaves the caller module, its fixtures and the canary's pinned
-   Case identity untouched.
+   after fn-88. A `compose` command builds one Model from entity machines with declared action
+   synchronization over a reachable-state enumeration; `restrict:` and `extend:` derive machines
+   from a source table; `Workflow` and `Worker` entity modules are shared by the Start and Outage
+   use cases; the first cross-entity claims are `verify` Queries. Version one realizes no Case over
+   a composition and leaves the caller module, its fixtures and the canary's pinned Case identity
+   untouched.
 3. **fn-93 — Simplify the Lean model**
-   ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks
-   (Codex plan review SHIP), after fn-88, fn-89 and fn-92. A simplification campaign over the roughly 88,100 handwritten of `model/`'s 128,630
-   Lean lines: fix the defects the investigation found, derive what is written out by hand, delete
-   what retired rules left behind (per-task owner decisions), reuse core Lean (re-checked
-   against Lean 4.32.0), and cut `model/` Markdown to one README and one ARCHITECTURE. Every
-   golden, Case fixture, Definition ID and Behavior Fingerprint stays byte-identical. It absorbs
-   fn-60's re-scoped aim.
+   ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks (Codex plan
+   review SHIP), after fn-88 and fn-92. A simplification campaign over the handwritten Lean in
+   `model/`: fix the defects the investigation found, derive what is written out by hand, delete
+   what retired rules left behind (per-task owner decisions), reuse core Lean, and cut `model/`
+   Markdown to one README and one ARCHITECTURE. Every golden, Case fixture, Definition ID and
+   Behavior Fingerprint stays byte-identical. It absorbs fn-60's re-scoped aim.
+
 ### Carried forward, not specs
 
 - **A field path through a repeated field** (deferred from fn-86 R2): selecting the element the
@@ -96,7 +73,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Gate baselines
 
-Measured 2026-09-27 on a macOS host, Lean 4.32.0 (fn-88.12, fn-90 and fn-91 closeouts):
+Measured 2026-09-27 and 2026-09-28 on a macOS host, Lean 4.32.0 (fn-88.12, fn-90, fn-91, fn-89 and fn-94 closeouts):
 
 | Gate | Result |
 | ---- | ------ |
@@ -106,6 +83,7 @@ Measured 2026-09-27 on a macOS host, Lean 4.32.0 (fn-88.12, fn-90 and fn-91 clos
 | `make umpire-check-lean-api` | exit 0; regenerates the Lean API into a temp directory and fails on any drift from the committed output |
 | `make lint-code-fast` | 0 issues (it skips `testdata` and nested modules, as `./...` does) |
 | `make umpire-check-plan-index` | valid |
+| `TestTestpilotOwnsCaseProtocolAndRuntime` | passes: the Temporal Drivers reach Program ceilings through `testpilot.WithinProgramCeiling`, never `internal/ir` or `internal/execution` |
 
 Intermittent-failure rates at the fn-90 closeout (7d0997b990), all zero: the umpire-run test 0/50,
 the pair, caller async, caller fixture-name and worker-outage tests 0/200 each, and the two caller
