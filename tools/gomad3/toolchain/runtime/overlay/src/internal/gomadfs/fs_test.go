@@ -382,7 +382,7 @@ func TestVolumeCrashRevokesReadOnlyMappings(t *testing.T) {
 	if _, err := file.Write([]byte("mapped")); err != nil {
 		t.Fatal(err)
 	}
-	mapping, err := file.Map(16)
+	mapping, err := file.Map(0, 16, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +410,7 @@ func TestReadOnlyMappingTracksWritesAndTruncation(t *testing.T) {
 	if _, err := file.Write([]byte("initial")); err != nil {
 		t.Fatal(err)
 	}
-	mapping, err := file.Map(16)
+	mapping, err := file.Map(0, 16, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,6 +429,111 @@ func TestReadOnlyMappingTracksWritesAndTruncation(t *testing.T) {
 	}
 	if !bytes.Equal(contents, append([]byte("cha"), make([]byte, 13)...)) {
 		t.Fatalf("mapping after truncate = %q", contents)
+	}
+}
+
+func TestSharedWritableMappingIsVisibleToEveryMapperAndTheFile(t *testing.T) {
+	filesystem := New()
+	first, err := filesystem.Open(TempDirectory+"/wal-shm", OpenFlags{Read: true, Write: true, Create: true}, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := filesystem.Open(TempDirectory+"/wal-shm", OpenFlags{Read: true, Write: true}, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := first.Truncate(8192); err != nil {
+		t.Fatal(err)
+	}
+	firstMapping, err := first.Map(4096, 4096, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondMapping, err := second.Map(4096, 4096, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstBytes, err := firstMapping.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondBytes, err := secondMapping.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	copy(firstBytes, "index")
+	if string(secondBytes[:5]) != "index" {
+		t.Fatalf("second mapping = %q, want the first mapping's store", secondBytes[:5])
+	}
+	read := make([]byte, 5)
+	if _, err := second.ReadAt(read, 4096); err != nil || string(read) != "index" {
+		t.Fatalf("file after mapped store = (%q, %v)", read, err)
+	}
+	if _, err := second.WriteAt([]byte("file!"), 4096); err != nil {
+		t.Fatal(err)
+	}
+	if string(firstBytes[:5]) != "file!" {
+		t.Fatalf("mapping after file write = %q", firstBytes[:5])
+	}
+	if err := firstMapping.Close(); err != nil {
+		t.Fatal(err)
+	}
+	copy(secondBytes, "still")
+	if _, err := first.ReadAt(read, 4096); err != nil || string(read) != "still" {
+		t.Fatalf("file after surviving alias store = (%q, %v)", read, err)
+	}
+	if err := secondMapping.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if statistics := filesystem.Statistics(); statistics.MappedBytes != 0 {
+		t.Fatalf("mapped bytes after close = %d, want 0", statistics.MappedBytes)
+	}
+}
+
+func TestWritableMappingsFailClosedOutsideTheirContract(t *testing.T) {
+	filesystem := newTestVolumeFilesystem(t)
+	volatile, err := filesystem.Open(TempDirectory+"/volatile", OpenFlags{Read: true, Write: true, Create: true}, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := volatile.Write(make([]byte, 8192)); err != nil {
+		t.Fatal(err)
+	}
+	readOnly, err := filesystem.Open(TempDirectory+"/volatile", OpenFlags{Read: true}, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readOnly.Map(0, 4096, true); !errors.Is(err, syscall.EBADF) {
+		t.Fatalf("writable mapping through a read-only handle error = %v, want EBADF", err)
+	}
+	durable, err := filesystem.Open("/data/journaled", OpenFlags{Read: true, Write: true, Create: true}, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := durable.Map(0, 4096, true); !errors.Is(err, syscall.ENOTSUP) {
+		t.Fatalf("writable mapping of a volume file error = %v, want ENOTSUP", err)
+	}
+	if _, err := durable.Map(0, 4096, false); err != nil {
+		t.Fatalf("read-only mapping of a volume file error = %v", err)
+	}
+	region, err := volatile.Map(0, 4096, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := volatile.Map(2048, 4096, true); !errors.Is(err, syscall.EINVAL) {
+		t.Fatalf("overlapping distinct writable region error = %v, want EINVAL", err)
+	}
+	if _, err := volatile.Map(4096, 4096, false); err != nil {
+		t.Fatalf("adjacent region error = %v", err)
+	}
+	if _, err := volatile.Map(-1, 4096, false); !errors.Is(err, syscall.EINVAL) {
+		t.Fatalf("negative offset error = %v, want EINVAL", err)
+	}
+	if err := region.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := volatile.Map(0, MaximumFileBytes+1, false); !errors.Is(err, syscall.EINVAL) {
+		t.Fatalf("mapping beyond the file bound error = %v, want EINVAL", err)
 	}
 }
 

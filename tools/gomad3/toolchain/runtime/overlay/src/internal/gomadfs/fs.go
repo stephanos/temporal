@@ -78,6 +78,7 @@ type FS struct {
 	volumeLimits VolumeLimits
 	handles      map[*Handle]struct{}
 	mappings     map[*Mapping]struct{}
+	mappedBytes  uint64
 	unavailable  error
 }
 
@@ -96,11 +97,19 @@ type Handle struct {
 	generation      uint64
 }
 
+// Mapping is a memory view of one file region. Mappings of the same region
+// share one buffer, so a store through one is visible through every other and,
+// once flushed, through the file itself; that is the shared-memory contract
+// SQLite's WAL index relies on. A writable mapping is available only for a
+// volatile file, because stores through memory bypass the volume journal.
 type Mapping struct {
 	fs            *FS
 	processHandle uint64
 	node          *node
+	offset        uint64
 	data          []byte
+	writable      bool
+	owner         bool
 	closed        bool
 	revoked       bool
 	generation    uint64
@@ -109,6 +118,7 @@ type Mapping struct {
 type Statistics struct {
 	OpenHandles uint64
 	UsedBytes   uint64
+	MappedBytes uint64
 }
 
 var Default = New()
@@ -120,6 +130,7 @@ const (
 	maximumDirectoryEntries = 100_000
 	MaximumFileBytes        = 16 << 20
 	maximumTotalBytes       = 64 << 20
+	maximumMappedBytes      = 64 << 20
 )
 
 // TempDirectory is the directory os.TempDir resolves to when TMPDIR is unset.
@@ -167,7 +178,7 @@ func (fs *FS) allocateInodeLocked() uint64 {
 func (fs *FS) Statistics() Statistics {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
-	return Statistics{OpenHandles: fs.openHandles, UsedBytes: fs.usedBytes}
+	return Statistics{OpenHandles: fs.openHandles, UsedBytes: fs.usedBytes, MappedBytes: fs.mappedBytes}
 }
 
 func (fs *FS) SetLoader(loader Loader) {
@@ -797,6 +808,7 @@ func (handle *Handle) Read(destination []byte) (int, error) {
 	if handle.node.kind != KindFile {
 		return 0, syscall.EISDIR
 	}
+	handle.fs.flushMappingsLocked(handle.node)
 	if handle.offset >= int64(len(handle.node.data)) {
 		return 0, io.EOF
 	}
@@ -823,6 +835,7 @@ func (handle *Handle) ReadAt(destination []byte, offset int64) (int, error) {
 	if handle.node.kind != KindFile {
 		return 0, syscall.EISDIR
 	}
+	handle.fs.flushMappingsLocked(handle.node)
 	if offset >= int64(len(handle.node.data)) {
 		return 0, io.EOF
 	}
@@ -1183,29 +1196,55 @@ func (handle *Handle) Sync() error {
 	if err := handle.errorLocked(); err != nil {
 		return err
 	}
+	handle.fs.flushMappingsLocked(handle.node)
 	return handle.fs.syncNodeLocked(handle.node)
 }
 
-func (handle *Handle) Map(length uint64) (*Mapping, error) {
+func (handle *Handle) Map(offset int64, length uint64, writable bool) (*Mapping, error) {
 	if handle.fs.process {
-		return processHandleMap(handle, length)
+		return processHandleMap(handle, offset, length, writable)
 	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
 		return nil, err
 	}
-	if !handle.readable {
+	if !handle.readable || writable && !handle.writable {
 		return nil, syscall.EBADF
 	}
 	if handle.node.kind != KindFile {
 		return nil, syscall.ENODEV
 	}
-	if length == 0 || length > MaximumFileBytes {
+	if offset < 0 || length == 0 || length > MaximumFileBytes || uint64(offset) > MaximumFileBytes-length {
 		return nil, syscall.EINVAL
 	}
-	mapping := &Mapping{fs: handle.fs, node: handle.node, data: make([]byte, length), generation: handle.fs.generation}
-	copy(mapping.data, handle.node.data)
+	if writable && (handle.node.readonly || handle.node.volume != "") {
+		return nil, syscall.ENOTSUP
+	}
+	mapping := &Mapping{fs: handle.fs, node: handle.node, offset: uint64(offset), writable: writable, generation: handle.fs.generation}
+	for existing := range handle.fs.mappings {
+		if existing.node != handle.node {
+			continue
+		}
+		if existing.offset == mapping.offset && uint64(len(existing.data)) == length {
+			mapping.data = existing.data
+			continue
+		}
+		if (existing.writable || writable) && existing.offset < mapping.offset+length && mapping.offset < existing.offset+uint64(len(existing.data)) {
+			return nil, syscall.EINVAL
+		}
+	}
+	if mapping.data == nil {
+		if length > maximumMappedBytes-handle.fs.mappedBytes {
+			return nil, syscall.ENOMEM
+		}
+		mapping.data = make([]byte, length)
+		mapping.owner = true
+		handle.fs.mappedBytes += length
+		if mapping.offset < uint64(len(handle.node.data)) {
+			copy(mapping.data, handle.node.data[mapping.offset:])
+		}
+	}
 	handle.fs.mappings[mapping] = struct{}{}
 	return mapping, nil
 }
@@ -1231,10 +1270,36 @@ func (mapping *Mapping) Close() error {
 	if err := mapping.errorLocked(); err != nil {
 		return err
 	}
+	if mapping.writable {
+		mapping.fs.flushMappingLocked(mapping)
+	}
 	mapping.closed = true
 	delete(mapping.fs.mappings, mapping)
+	if mapping.owner {
+		// The buffer stays alive while an alias still maps it; the accounting
+		// moves to the first surviving alias.
+		mapping.owner = false
+		for alias := range mapping.fs.mappings {
+			if alias.node == mapping.node && alias.offset == mapping.offset && len(alias.data) == len(mapping.data) {
+				alias.owner = true
+				break
+			}
+		}
+		if !mapping.ownerTransferredLocked() {
+			mapping.fs.mappedBytes -= uint64(len(mapping.data))
+		}
+	}
 	mapping.data = nil
 	return nil
+}
+
+func (mapping *Mapping) ownerTransferredLocked() bool {
+	for alias := range mapping.fs.mappings {
+		if alias.node == mapping.node && alias.offset == mapping.offset && len(alias.data) == len(mapping.data) && alias.owner {
+			return true
+		}
+	}
+	return false
 }
 
 func (mapping *Mapping) errorLocked() error {
@@ -1250,22 +1315,54 @@ func (mapping *Mapping) errorLocked() error {
 	return nil
 }
 
+// flushMappingsLocked makes stores through writable mappings of n visible to
+// file reads. Bytes beyond the file's size stay in the mapping only, as they
+// would beyond a real file's end.
+func (fs *FS) flushMappingsLocked(n *node) {
+	for mapping := range fs.mappings {
+		if mapping.node == n && mapping.writable {
+			fs.flushMappingLocked(mapping)
+		}
+	}
+}
+
+func (fs *FS) flushMappingLocked(mapping *Mapping) {
+	if mapping.offset >= uint64(len(mapping.node.data)) {
+		return
+	}
+	copy(mapping.node.data[mapping.offset:], mapping.data)
+}
+
 func (fs *FS) truncateMappingsLocked(n *node, size, previous uint64) {
 	for mapping := range fs.mappings {
-		if mapping.node != n || size >= uint64(len(mapping.data)) {
+		if mapping.node != n || size >= mapping.offset+uint64(len(mapping.data)) {
 			continue
 		}
-		end := min(previous, uint64(len(mapping.data)))
-		clear(mapping.data[size:end])
+		start := uint64(0)
+		if size > mapping.offset {
+			start = size - mapping.offset
+		}
+		end := uint64(len(mapping.data))
+		if previous < mapping.offset+end {
+			if previous <= mapping.offset {
+				continue
+			}
+			end = previous - mapping.offset
+		}
+		clear(mapping.data[start:end])
 	}
 }
 
 func (fs *FS) updateMappingsLocked(n *node, offset uint64, source []byte) {
+	end := offset + uint64(len(source))
 	for mapping := range fs.mappings {
-		if mapping.node != n || offset >= uint64(len(mapping.data)) {
+		mappingEnd := mapping.offset + uint64(len(mapping.data))
+		if mapping.node != n || offset >= mappingEnd || end <= mapping.offset {
 			continue
 		}
-		copy(mapping.data[offset:], source)
+		from := max(offset, mapping.offset)
+		to := min(end, mappingEnd)
+		copy(mapping.data[from-mapping.offset:to-mapping.offset], source[from-offset:to-offset])
 	}
 }
 

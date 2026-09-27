@@ -153,7 +153,7 @@ func applyProcessVolumeHandleOperation(resource processVolumeResource, request g
 	case gomadmodelwire.VolumeHandleSync:
 		return gomadmodelwire.Response{Error: encodeProcessVolumeError(handle.Sync())}
 	case gomadmodelwire.VolumeHandleMap:
-		mapping, err := handle.Map(request.Uint1)
+		mapping, err := handle.Map(request.Int1, request.Uint1, false)
 		if err != nil {
 			return gomadmodelwire.Response{Error: encodeProcessVolumeError(err)}
 		}

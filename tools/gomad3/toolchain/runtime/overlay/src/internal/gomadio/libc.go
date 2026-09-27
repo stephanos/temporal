@@ -26,8 +26,8 @@ var libcDescriptors = struct {
 
 var libcMappings = struct {
 	sync.Mutex
-	mappings map[uintptr]libcMapping
-}{mappings: make(map[uintptr]libcMapping)}
+	mappings map[uintptr][]libcMapping
+}{mappings: make(map[uintptr][]libcMapping)}
 
 type libcDescriptor struct {
 	file    *os.File
@@ -40,7 +40,7 @@ type libcMapping struct {
 }
 
 //go:linkname gomadMapFile os.gomadMapFile
-func gomadMapFile(*os.File, uint64) (*gomadfs.Mapping, []byte, error)
+func gomadMapFile(*os.File, int64, uint64, bool) (*gomadfs.Mapping, []byte, error)
 
 //go:linkname LibcOpen
 func LibcOpen(name string, flags int, mode uint32) (int32, syscall.Errno) {
@@ -162,22 +162,25 @@ func LibcSync(descriptor int32) syscall.Errno {
 }
 
 //go:linkname LibcMmap
-func LibcMmap(descriptor int32, length uint64) (uintptr, syscall.Errno) {
+func LibcMmap(descriptor int32, offset int64, length uint64, writable bool) (uintptr, syscall.Errno) {
 	state, found := libcFile(descriptor)
 	if !found || state.file == nil {
 		return 0, syscall.EBADF
 	}
-	mapping, contents, err := gomadMapFile(state.file, length)
+	mapping, contents, err := gomadMapFile(state.file, offset, length, writable)
 	if err != nil {
 		return 0, libcErrno(err)
 	}
 	address := uintptr(unsafe.Pointer(unsafe.SliceData(contents)))
 	libcMappings.Lock()
-	if _, found := libcMappings.mappings[address]; found {
-		libcMappings.Unlock()
-		return 0, libcErrno(errors.Join(syscall.EBUSY, mapping.Close()))
+	// Mappings of one region share an address; each is unmapped separately.
+	for _, existing := range libcMappings.mappings[address] {
+		if existing.length != length {
+			libcMappings.Unlock()
+			return 0, libcErrno(errors.Join(syscall.EBUSY, mapping.Close()))
+		}
 	}
-	libcMappings.mappings[address] = libcMapping{mapping: mapping, length: length}
+	libcMappings.mappings[address] = append(libcMappings.mappings[address], libcMapping{mapping: mapping, length: length})
 	libcMappings.Unlock()
 	return address, 0
 }
@@ -185,12 +188,17 @@ func LibcMmap(descriptor int32, length uint64) (uintptr, syscall.Errno) {
 //go:linkname LibcMunmap
 func LibcMunmap(address uintptr, length uint64) syscall.Errno {
 	libcMappings.Lock()
-	state, found := libcMappings.mappings[address]
-	if !found || state.length != length {
+	states := libcMappings.mappings[address]
+	if len(states) == 0 || states[0].length != length {
 		libcMappings.Unlock()
 		return syscall.EINVAL
 	}
-	delete(libcMappings.mappings, address)
+	state := states[len(states)-1]
+	if len(states) == 1 {
+		delete(libcMappings.mappings, address)
+	} else {
+		libcMappings.mappings[address] = states[:len(states)-1]
+	}
 	libcMappings.Unlock()
 	return libcErrno(state.mapping.Close())
 }

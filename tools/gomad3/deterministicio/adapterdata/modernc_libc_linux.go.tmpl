@@ -40,7 +40,7 @@ func gomadLibcTruncate(int32, int64) syscall.Errno
 func gomadLibcSync(int32) syscall.Errno
 
 //go:linkname gomadLibcMmap internal/gomadio.LibcMmap
-func gomadLibcMmap(int32, uint64) (uintptr, syscall.Errno)
+func gomadLibcMmap(int32, int64, uint64, bool) (uintptr, syscall.Errno)
 
 //go:linkname gomadLibcMunmap internal/gomadio.LibcMunmap
 func gomadLibcMunmap(uintptr, uint64) syscall.Errno
@@ -236,9 +236,9 @@ func gomadSysGetcwd(address uintptr, size uint64) long {
 }
 
 func gomadSysMmap(address uintptr, length uint64, prot, flags, fd int32, offset int64) long {
-	if address != 0 || length == 0 || prot != PROT_READ || flags != MAP_SHARED || offset != 0 { return -long(EINVAL) }
+	if address != 0 || length == 0 || prot != PROT_READ && prot != PROT_READ|PROT_WRITE || flags != MAP_SHARED || offset < 0 || offset%4096 != 0 { return -long(EINVAL) }
 	if !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
-	result, errno := gomadLibcMmap(fd, length)
+	result, errno := gomadLibcMmap(fd, offset, length, prot&PROT_WRITE != 0)
 	if errno != 0 { return -long(errno) }
 	return long(result)
 }
