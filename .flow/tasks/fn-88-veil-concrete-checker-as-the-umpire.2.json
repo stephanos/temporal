@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T00:52:57.241919Z",
+  "depends_on": [
+    "fn-88-veil-concrete-checker-as-the-umpire.1"
+  ],
+  "id": "fn-88-veil-concrete-checker-as-the-umpire.2",
+  "priority": null,
+  "spec": "fn-88-veil-concrete-checker-as-the-umpire",
+  "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.2.md",
+  "status": "todo",
+  "title": "Backend seam inside Umpire.Search, frozen reference, receipt v2",
+  "updated_at": "2026-09-27T01:11:27.745476Z"
+}

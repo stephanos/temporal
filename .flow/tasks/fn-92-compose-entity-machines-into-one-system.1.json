@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T01:34:21.262833Z",
+  "depends_on": [],
+  "id": "fn-92-compose-entity-machines-into-one-system.1",
+  "priority": null,
+  "spec": "fn-92-compose-entity-machines-into-one-system",
+  "spec_path": ".flow/tasks/fn-92-compose-entity-machines-into-one-system.1.md",
+  "status": "todo",
+  "title": "Worker entity module and the feature-entity-uniqueness lint",
+  "updated_at": "2026-09-27T01:48:46.735441Z"
+}

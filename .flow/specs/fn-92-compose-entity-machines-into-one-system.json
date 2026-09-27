@@ -1,0 +1,396 @@
+{
+  "branch_name": "fn-92-compose-entity-machines-into-one-system",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T01:23:20.521223Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-88-veil-concrete-checker-as-the-umpire",
+    "fn-89-one-contract-rule-per-entity",
+    "fn-85-model-side-effects-as-typed-actions-and",
+    "fn-86-retire-hand-written-models-one",
+    "fn-90-resolve-the-intermittent-live-testpilot"
+  ],
+  "id": "fn-92-compose-entity-machines-into-one-system",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T01:48:28.997935Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "963bfd7e4ed3bf2711f919ed80fa7d96668d7c9ea7e6fb4b4ff1c4efebce0f17",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "classification": "introduced",
+            "findingId": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d39775371f8401a65f56b9a08ceda094",
+            "classification": "introduced",
+            "findingId": "finding-d39775371f8401a65f56b9a08ceda094",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "classification": "introduced",
+            "findingId": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "classification": "introduced",
+            "findingId": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "classification": "introduced",
+            "findingId": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "classification": "introduced",
+            "findingId": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-099ee773b087e29caf329a81958cfbf0",
+            "classification": "introduced",
+            "findingId": "finding-099ee773b087e29caf329a81958cfbf0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "classification": "introduced",
+            "findingId": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "classification": "introduced",
+            "findingId": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c39927b13af82b7885973eb61f48a25e8bdcb31",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 10637,
+      "output_sha256": "988a4e2641d260ccb20a2b89c1c8273423f304b99b919594928a1d313fdf8259",
+      "reservation_id": "8d263331ef6f44688d86134ed86a5db9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T01:42:19.985523Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d2593fbeb0d8911440937b47fa3df1abcff1cf68eb02471204e8ea8bb7315bca",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "classification": "introduced",
+            "findingId": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d39775371f8401a65f56b9a08ceda094",
+            "classification": "introduced",
+            "findingId": "finding-d39775371f8401a65f56b9a08ceda094",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "classification": "introduced",
+            "findingId": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-efa678bd15c7eaf777745b7c7401435e",
+            "classification": "introduced",
+            "findingId": "finding-efa678bd15c7eaf777745b7c7401435e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "classification": "introduced",
+            "findingId": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "classification": "introduced",
+            "findingId": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "classification": "introduced",
+            "findingId": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-099ee773b087e29caf329a81958cfbf0",
+            "classification": "introduced",
+            "findingId": "finding-099ee773b087e29caf329a81958cfbf0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "classification": "introduced",
+            "findingId": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "classification": "introduced",
+            "findingId": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c39927b13af82b7885973eb61f48a25e8bdcb31",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4551,
+      "output_sha256": "d45fb3a70b818546172dae78f19cac1de1a7112510b9e2047b98fe8cc8531267",
+      "reservation_id": "9f23d13d0dc34fb3b3aef63872194941",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T01:47:29.527426Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2a412f913fe995b8f30c6289fd2f965223f13174e9e788ebc9f46265f19a5b13",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "classification": "introduced",
+            "findingId": "finding-99c957679cf7eb9e6d9b95daf2a81692",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d39775371f8401a65f56b9a08ceda094",
+            "classification": "introduced",
+            "findingId": "finding-d39775371f8401a65f56b9a08ceda094",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "classification": "introduced",
+            "findingId": "finding-22e3cc7a1aac2ae8d3fc439e9df4c931",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-efa678bd15c7eaf777745b7c7401435e",
+            "classification": "introduced",
+            "findingId": "finding-efa678bd15c7eaf777745b7c7401435e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "classification": "introduced",
+            "findingId": "finding-e4009188a2bbad1f0dd32f39875b5864",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "classification": "introduced",
+            "findingId": "finding-ff551e67d8da407a59a4c3eaa8c89044",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "classification": "introduced",
+            "findingId": "finding-8db6a23b2784c9701247935dd8e90b52",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-099ee773b087e29caf329a81958cfbf0",
+            "classification": "introduced",
+            "findingId": "finding-099ee773b087e29caf329a81958cfbf0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "classification": "introduced",
+            "findingId": "finding-ef5cf6fcd451dc1f3de68a3989cdc223",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "classification": "introduced",
+            "findingId": "finding-4e4d5f44a8d974afa40294922a1dc354",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c306f3da5f50b038af4c15b8a55ad611",
+            "classification": "introduced",
+            "findingId": "finding-c306f3da5f50b038af4c15b8a55ad611",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c39927b13af82b7885973eb61f48a25e8bdcb31",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2048,
+      "output_sha256": "2c75c45afbba990c01038cd8b2308faa33147f09813e76de4af3f6833dd33988",
+      "reservation_id": "37fc479a6d894efe8a6ea206cc134272",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T01:48:28.994426Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-92-compose-entity-machines-into-one-system.md",
+  "status": "open",
+  "title": "Compose entity machines into one system Model",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T01:48:28.998543Z"
+}

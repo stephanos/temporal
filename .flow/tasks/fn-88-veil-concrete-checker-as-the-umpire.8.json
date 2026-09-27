@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T01:08:50.511749Z",
+  "depends_on": [
+    "fn-88-veil-concrete-checker-as-the-umpire.1"
+  ],
+  "id": "fn-88-veil-concrete-checker-as-the-umpire.8",
+  "priority": null,
+  "spec": "fn-88-veil-concrete-checker-as-the-umpire",
+  "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.8.md",
+  "status": "todo",
+  "title": "GOV-02 amendment drafts for every rule the Veil dependency contradicts",
+  "updated_at": "2026-09-27T01:08:50.511749Z"
+}

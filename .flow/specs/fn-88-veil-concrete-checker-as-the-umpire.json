@@ -1,11 +1,96 @@
 {
   "branch_name": "fn-88-veil-concrete-checker-as-the-umpire",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T00:34:43.301905Z",
-  "depends_on_epics": [],
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-85-model-side-effects-as-typed-actions-and",
+    "fn-86-retire-hand-written-models-one",
+    "fn-84-deepen-five-shallow-module-clusters-in",
+    "fn-82-unify-the-umpire-and-testpilot",
+    "fn-80-close-the-model-to-case-seam-and-harden",
+    "fn-78-typed-temporal-authoring-and-checked",
+    "fn-34-enforce-lean-model-boundaries-with",
+    "fn-46-export-lean-model-module-impact-index"
+  ],
   "id": "fn-88-veil-concrete-checker-as-the-umpire",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T01:10:47.806451Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "e537167fa0cb85abea007a89782d04020741d06bbe27bd87a18515e60ff1d575",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e795f0a13695689c0de82bd7308f3af49b25ec4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 17784,
+      "output_sha256": "7beeefda77aba9df1cb23edfcde5d48e07b23dba93d4547afdf8d587f22f984e",
+      "reservation_id": "6acefb7d47b34361a9d381acb0cd072c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T01:01:36.917283Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "75f36c3dd3d1451f3173f9a3a234368cd290cbd48c52a15966e76aa32bd1395d",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c39927b13af82b7885973eb61f48a25e8bdcb31",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5043,
+      "output_sha256": "b8c495de4eee0bff6d99599853c40d8ec24aba8deb2691183fee72a390ca9cd8",
+      "reservation_id": "0d1fc4c71f074635b182c3bfb2bc08d8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T01:10:47.802042Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md",
   "status": "open",
   "title": "Veil concrete checker as the Umpire search engine",
@@ -20,5 +105,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T00:34:43.305171Z"
+  "updated_at": "2026-09-27T01:11:49.062480Z"
 }

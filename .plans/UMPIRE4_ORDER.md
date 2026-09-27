@@ -6,7 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-fn-88 to fn-91 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
+fn-88 to fn-92 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
 fn-29 are delivered, each with SHIP implementation and completion reviews; their task receipts in
 `.flow/` and the git history carry the details.
 
@@ -44,6 +44,15 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    behavior-preserving rename of the Driver seam's hand-written Go from capability to the opaque
    handle family, with the retired-vocabulary gate holding the old names. Independent of the others;
    land it before fn-79 resumes on the same seam.
+
+4. **fn-92 — Compose entity machines into one Model**
+   ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)). Adds a `compose`
+   command that builds one Model from entity machines with declared action synchronization over a
+   reachable-state enumeration, `restrict:` and `extend:` keys that derive machines from a source
+   table, and `Workflow` and `Worker` entity modules the Start and Outage use cases share; hosts the
+   first cross-entity claims as `verify` Queries. Version one realizes no Case over a composition and
+   leaves the caller module, its fixtures, and the canary's pinned Case identity untouched; moving
+   the operation entity is the named follow-up. Depends on fn-88, fn-89 and fn-90.
 
 ### Carried forward, not specs
 

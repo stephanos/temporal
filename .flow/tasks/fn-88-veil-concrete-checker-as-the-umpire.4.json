@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T00:52:57.241990Z",
+  "depends_on": [
+    "fn-88-veil-concrete-checker-as-the-umpire.2",
+    "fn-88-veil-concrete-checker-as-the-umpire.3"
+  ],
+  "id": "fn-88-veil-concrete-checker-as-the-umpire.4",
+  "priority": null,
+  "spec": "fn-88-veil-concrete-checker-as-the-umpire",
+  "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.4.md",
+  "status": "todo",
+  "title": "Property monitor lowering v1 with evaluator agreement",
+  "updated_at": "2026-09-27T01:11:28.169942Z"
+}
