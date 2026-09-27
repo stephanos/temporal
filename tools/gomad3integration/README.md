@@ -11,11 +11,14 @@ make gomad3-integration-test
 make gomad3-qualification
 ```
 
-The v3 manifest owns 16 tier 2 package workloads, the tier 3
+The v3 manifest owns 15 tier 2 package workloads, the tier 3
 `frontend-system-info` functional probe (`./tests/gomadfunctional`, guarded
 capability mode), the tier 3 `user-timers-workflow` functional suite
 (`./tests`, `TestUserTimersTestSuite`, closure mode under the `gomad` build tag
-with the schema directory mounted read-only), and two fixed seeds. Gomad analyzes
+with the schema directory mounted read-only), the tier 3
+`activity-batch-cancel-boundary` functional suite (`./tests`,
+`TestActivityAPIBatchCancelClientTestSuite`, built and mounted the same way),
+and two fixed seeds. Gomad analyzes
 the complete corpus first, executes only supported workloads, retains and
 replays every successful repetition with bounded choice coverage, and writes a
 path-free `gomad3.qualification-set-report/v1` to
@@ -35,6 +38,15 @@ evidence reproduces on some seeds and repetitions but not all (seed 11 eight of
 eight, seed 17 five of eight on 2026-09-27) because of the collector-side
 divergence GOMAD_MILESTONES.md F5 records; the report keeps whichever of
 `qualified`, `nondeterministic`, or `replay_divergence` the run produced.
+The activity batch cancel suite's expectation is `intermittent` for the same
+reason: it runs the one-box cluster to a successful exit on both seeds, and on
+darwin/arm64 a seed has both qualified with exact choice replay and diverged
+(stderr between repetitions, or a choice-profile divergence on replay).
+Nine package workloads build with the `gomad` tag, which cuts the cloud
+credential providers that import `os/exec`. On darwin/arm64 they and
+`temporal-cache-concurrent` qualify through the `temporal-leaf-*` packs; on
+linux/amd64 their expectation is the amd64 xxhash assembly, which no linux
+pack admits for these closures.
 
 The functional test package itself has a closed capability closure on
 linux/amd64 and darwin/arm64 under the `gomad` build tag:
