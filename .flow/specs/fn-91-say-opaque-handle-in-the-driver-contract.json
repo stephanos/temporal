@@ -1,13 +1,216 @@
 {
   "branch_name": "fn-91-say-opaque-handle-in-the-driver-contract",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T01:04:42.373470Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-87-tighten-the-testpilot-protocol-glossary"
   ],
   "id": "fn-91-say-opaque-handle-in-the-driver-contract",
+  "impl_review_rounds": {
+    "fn-91-say-opaque-handle-in-the-driver-contract.1": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T05:42:31.395452Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "be641482f442144dc19472dec9ed77add41461dfedf5fd3f71718284f246ca50",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a3f1ec8ed85656e78d9fdd1759cb4a96",
+            "classification": "introduced",
+            "findingId": "finding-a3f1ec8ed85656e78d9fdd1759cb4a96",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c16a2238973077e34481e42a92ce459d",
+            "classification": "introduced",
+            "findingId": "finding-c16a2238973077e34481e42a92ce459d",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0b9f0e92546e0089b3537532388729b4",
+            "classification": "introduced",
+            "findingId": "finding-0b9f0e92546e0089b3537532388729b4",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9252da0d6cb92e1a4f8b917ae2f5813c",
+            "classification": "introduced",
+            "findingId": "finding-9252da0d6cb92e1a4f8b917ae2f5813c",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d3dd12b2f08cb97762cd5df6824229d6",
+            "classification": "introduced",
+            "findingId": "finding-d3dd12b2f08cb97762cd5df6824229d6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be465e5966ec2cbc9bf2c8628d98c8ced1ecbc55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 6083,
+      "output_sha256": "f1654eb1a8e6a3fd8de7f2b6588de6dc963d84c85f72c8d8b22e4174fe56f856",
+      "reservation_id": "a77bea757b364df0885cc5c178241380",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T05:41:31.112875Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2e1a8e6ae886b63a4d98975845650c12c4c20dfc13064abb34d5d7ae9f26b286",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a3f1ec8ed85656e78d9fdd1759cb4a96",
+            "classification": "introduced",
+            "findingId": "finding-a3f1ec8ed85656e78d9fdd1759cb4a96",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c16a2238973077e34481e42a92ce459d",
+            "classification": "introduced",
+            "findingId": "finding-c16a2238973077e34481e42a92ce459d",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0b9f0e92546e0089b3537532388729b4",
+            "classification": "introduced",
+            "findingId": "finding-0b9f0e92546e0089b3537532388729b4",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9252da0d6cb92e1a4f8b917ae2f5813c",
+            "classification": "introduced",
+            "findingId": "finding-9252da0d6cb92e1a4f8b917ae2f5813c",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d3dd12b2f08cb97762cd5df6824229d6",
+            "classification": "introduced",
+            "findingId": "finding-d3dd12b2f08cb97762cd5df6824229d6",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be465e5966ec2cbc9bf2c8628d98c8ced1ecbc55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 1982,
+      "output_sha256": "46b269dbd26cffb3db34ae7e3cf884b7e646249e766331d08e0a5afd46a231fd",
+      "reservation_id": "8fc8262146ca4623860ccf1643fe5edc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T05:42:31.392552Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "01768d82fafe088e92658cc4852501bf9c411b27b453df8957f650316fcbf94a",
+      "backend": "claude",
+      "base_sha": "be465e5966ec2cbc9bf2c8628d98c8ced1ecbc55",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e2f4c4d696b51bdb2cb183af2a590586a75a7694",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5008,
+      "output_sha256": "a4a41dd7875da4f5442d574ac29600f78a0ac938df21d5eb2cc779022c8abd97",
+      "reservation_id": "dd69ff016639484e911864d9cdb5e01a",
+      "round_consumed": true,
+      "scope": "impl:fn-91-say-opaque-handle-in-the-driver-contract.1",
+      "superseded_by": null,
+      "task": "fn-91-say-opaque-handle-in-the-driver-contract.1",
+      "timestamp": "2026-09-27T06:12:02.077538Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-91-say-opaque-handle-in-the-driver-contract.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-91-say-opaque-handle-in-the-driver-contract.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-91-say-opaque-handle-in-the-driver-contract.md",
   "status": "open",
   "title": "Say opaque handle in the Driver contract",
@@ -22,5 +225,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T01:04:43.576555Z"
+  "updated_at": "2026-09-27T06:12:02.081835Z"
 }
