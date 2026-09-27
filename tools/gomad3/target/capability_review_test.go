@@ -110,7 +110,10 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 	directory := t.TempDir()
 	replacement := filepath.Join(directory, "replacement")
 	requireTestNoError(t, os.Mkdir(replacement, 0o700))
-	requireTestNoError(t, os.WriteFile(filepath.Join(replacement, "main.go"), []byte("package adapter\n"), 0o600))
+	contents := []byte("package adapter\n")
+	requireTestNoError(t, os.WriteFile(filepath.Join(replacement, "main.go"), contents, 0o600))
+	replacementInventory, err := DigestAdapterSourceInventory(replacement)
+	requireTestNoError(t, err)
 	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 	adapter := AdapterReplacement{
 		Original:        ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
@@ -119,8 +122,10 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 		ProfileName:     "gomad3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
 		Adapter:                          ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
-		ReplacementSourceInventorySHA256: "sha256:4ddea8f6f238465a2a12e9b32c32a17421d205dbf318d75f49e9fc3378c9b64b",
-		PreparedSourceSetSHA256:          "sha256:bb21537d27aaf3797c51cc354bfca8306defdbd42e1757b04fc682000bbeb12f",
+		ReplacementSourceInventorySHA256: replacementInventory,
+		PreparedSourceSetSHA256: compatibility.DigestSources([]compatibility.Source{{
+			Name: "main.go", SHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(contents)),
+		}}),
 	}
 
 	review, err := projectCapabilityReview([]listedPackage{{
@@ -182,12 +187,18 @@ func TestProjectCapabilityReviewValidatesNestedAdapterPreparedPackage(t *testing
 		t.Fatal("projectCapabilityReview() accepted the wrong nested prepared source set")
 	}
 
-	adapter.PreparedSourceSetSHA256 = compatibility.DigestSources([]compatibility.Source{{
-		Name: "internal.go", SHA256: sourceSHA256,
-	}})
+	// An adapter rewrites only its prepared package and copies the rest of the
+	// module verbatim, so a closure that compiles other packages of the module
+	// but not the prepared one carries an inert adapter: the replacement is
+	// still recorded, and nothing remains to verify against the prepared set.
+	adapter.PreparedSourceSetSHA256 = "sha256:" + strings.Repeat("0", 64)
 	packages[0].ImportPath = "example.com/adapter/other"
-	if _, err := projectCapabilityReview(packages, nil, nil, []AdapterReplacement{adapter}); err == nil {
-		t.Fatal("projectCapabilityReview() accepted adapter evidence without its prepared package")
+	review, err := projectCapabilityReview(packages, nil, nil, []AdapterReplacement{adapter})
+	if err != nil {
+		t.Fatalf("projectCapabilityReview() rejected an inert adapter: %v", err)
+	}
+	if module := review.Closure.Packages[0].Module; module == nil || module.Adapter == nil || module.Adapter.ReplacementSourceInventorySHA256 != replacementInventory {
+		t.Fatalf("inert adapter module = %#v", module)
 	}
 }
 

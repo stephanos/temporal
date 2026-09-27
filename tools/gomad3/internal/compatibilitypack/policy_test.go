@@ -78,7 +78,7 @@ func TestSelectValidatedPackRequiresCompleteSourceInventory(t *testing.T) {
 		GoSources:       []Source{{Name: "runtime.go", SHA256: "sha256:4444444444444444444444444444444444444444444444444444444444444444"}},
 		ForeignSources:  []ForeignSource{},
 	}
-	selection, err := SelectPacks([]ValidatedPack{validated}, []Package{pkg})
+	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, []Package{pkg}, validated.pack.Governance.Platforms[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestSelectValidatedPackRequiresCompleteSourceInventory(t *testing.T) {
 	}
 
 	pkg.GoSources[0].SHA256 = "sha256:5555555555555555555555555555555555555555555555555555555555555555"
-	selection, err = SelectPacks([]ValidatedPack{validated}, []Package{pkg})
+	selection, err = SelectPacksForPlatform([]ValidatedPack{validated}, []Package{pkg}, validated.pack.Governance.Platforms[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testi
 func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
 	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
 	packages := generatedExactPackages(validated.pack)
-	selection, err := Select(packages)
+	selection, err := selectGeneratedPacksForTest(t, validated, packages)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +178,7 @@ func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
 func TestSelectRequiresExactLinknameSourceIdentity(t *testing.T) {
 	validated := loadGeneratedPackForTest(t, "reflect2-go126")
 	packages := generatedExactPackages(validated.pack)
-	selection, err := Select(packages)
+	selection, err := selectGeneratedPacksForTest(t, validated, packages)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func TestSelectRequiresExactLinknameSourceIdentity(t *testing.T) {
 
 func TestVerifyIdentitiesRejectsUnknownOrModifiedPacks(t *testing.T) {
 	validated := loadGeneratedPackForTest(t, "reflect2-go126")
-	selection, err := Select(generatedExactPackages(validated.pack))
+	selection, err := selectGeneratedPacksForTest(t, validated, generatedExactPackages(validated.pack))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,6 +206,18 @@ func TestVerifyIdentitiesRejectsUnknownOrModifiedPacks(t *testing.T) {
 	if err := VerifyIdentities(identities); err == nil {
 		t.Fatal("VerifyIdentities() accepted a modified pack")
 	}
+}
+
+// selectGeneratedPacksForTest selects among every generated pack for the
+// platform the pack under test governs, so the assertions hold on hosts other
+// than that platform; Select itself always answers for the running host.
+func selectGeneratedPacksForTest(t *testing.T, validated ValidatedPack, packages []Package) (Selection, error) {
+	t.Helper()
+	packs, err := loadPacksV2()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return SelectPacksForPlatform(packs, packages, validated.pack.Governance.Platforms[0])
 }
 
 func loadGeneratedPackForTest(t *testing.T, id string) ValidatedPack {
