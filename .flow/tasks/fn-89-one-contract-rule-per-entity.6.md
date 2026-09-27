@@ -21,6 +21,11 @@ Draft the Rule glossary Amendment and the SEM-17 Restatement and update the docs
 - `.plans/UMPIRE4_SPEC.md:56,78-101,159-175,204` — glossary entries, SEM-16/17/19, marker examples
 - `common/testing/testpilot/README.md`, `common/testing/testpilot/internal/verification/README.md`
 
+### Carried from fn-89.5 (2026-09-27)
+- Replace the duplicated has-rule-instances check in `execution` and `verification` with one shared `ir.HasRuleInstances`.
+- Record in the docs that the corpus does not pin the expanded Case-size charge (a fixture large enough exceeds the corpus's 16 MiB small-fixture rule); a Go unit test in `execution` covers it.
+- `make umpire-check-regression` was red at fn-89.5 only because of fn-88.5's in-progress Veil pin check (TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs); run the closing gates after fn-88.5 lands its fix.
+
 ## Acceptance
 - [ ] the Amendment and Restatement are drafted with GOV-02 markers; no approved rule text is edited
 - [ ] every doc listed describes Rule instances in the spec's vocabulary (no "monitor" for a Rule)
