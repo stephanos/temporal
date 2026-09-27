@@ -314,7 +314,11 @@ make umpire-check-regression   # final gate
   monitor's answer on a trace equals `clauseEndpointAnswer` for that clause under both endings, or
   an exhaustive differential test over every trace of every checked-in model within its Limits,
   and the receipt records `kernel` or `testing` per clause kind. Errors: a supported kind with
-  neither fails the build.
+  neither fails the build. (Amended 2026-09-27 by fn-88.9: a Model over several interleaved
+  instances has too many traces within its Limits to enumerate -- the Pair has 28513 within four of
+  its six steps -- so on the Temporal feature Models the evaluator comparison reads every Model
+  trace to the deepest depth within a stated cost, and the test prints that depth per Query; every
+  trace within the Limits is compared for the Umpire Models and the synthetic alphabet.)
 - **R7:** The Veil adapter proves, over the product, that adapter transitions and product
   transitions coincide in both directions and that initial states agree, with axiom inventories
   limited to `propext`, `Quot.sound`, `Classical.choice`, pinned by `#guard_msgs in #print
