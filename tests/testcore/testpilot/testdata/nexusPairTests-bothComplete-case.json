@@ -133,6 +133,10 @@
         "definitionId": "temporal.nexus.caller.source.history"
       },
       {
+        "localName": "relation",
+        "definitionId": "temporal.nexus.pair.property.completionReferencesSchedule.relation"
+      },
+      {
         "localName": "relation-1",
         "definitionId": "temporal.nexus.pair.property.completionReferencesSchedule.relation-1"
       },
@@ -750,7 +754,7 @@
     "contractId": "temporal.case.nexusPairTests.bothComplete.contract",
     "rules": [
       {
-        "ruleId": "relation-1",
+        "ruleId": "relation",
         "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
@@ -769,7 +773,7 @@
         ],
         "captures": [
           {
-            "captureId": "nexusOperationScheduled-relation-1",
+            "captureId": "nexusOperationScheduled-relation",
             "type": {
               "message": {
                 "protobufType": "temporal.api.history.v1.HistoryEvent"
@@ -779,13 +783,13 @@
         ],
         "transitions": [
           {
-            "transitionId": "capture-nexusOperationScheduled-relation-1",
+            "transitionId": "capture-nexusOperationScheduled-relation",
             "sourceStateId": "pending",
             "targetStateId": "nexusOperationScheduled",
             "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
             "captureAssignments": [
               {
-                "captureId": "nexusOperationScheduled-relation-1",
+                "captureId": "nexusOperationScheduled-relation",
                 "observationId": "history-event"
               }
             ],
@@ -820,8 +824,8 @@
                         }
                       },
                       "right": {
-                        "literal": {
-                          "textValue": "complete-1"
+                        "reference": {
+                          "instanceValueId": "operation"
                         }
                       }
                     }
@@ -831,7 +835,7 @@
             }
           },
           {
-            "transitionId": "match-nexusOperationCompleted-relation-1",
+            "transitionId": "match-nexusOperationCompleted-relation",
             "sourceStateId": "nexusOperationScheduled",
             "targetStateId": "satisfied",
             "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
@@ -847,7 +851,7 @@
                     "present": {
                       "operand": {
                         "reference": {
-                          "captureId": "nexusOperationScheduled-relation-1"
+                          "captureId": "nexusOperationScheduled-relation"
                         }
                       }
                     }
@@ -859,7 +863,7 @@
                         "path": {
                           "operand": {
                             "reference": {
-                              "captureId": "nexusOperationScheduled-relation-1"
+                              "captureId": "nexusOperationScheduled-relation"
                             }
                           },
                           "path": "event_id"
@@ -881,139 +885,39 @@
               }
             }
           }
-        ]
-      },
-      {
-        "ruleId": "relation-2",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
-        "initialStateId": "pending",
-        "states": [
-          {
-            "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_PENDING"
-          },
-          {
-            "stateId": "nexusOperationScheduled",
-            "status": "CONTRACT_STATE_STATUS_PENDING"
-          },
-          {
-            "stateId": "satisfied",
-            "status": "CONTRACT_STATE_STATUS_SATISFIED"
-          }
         ],
-        "captures": [
+        "instanceValues": [
           {
-            "captureId": "nexusOperationScheduled-relation-2",
+            "instanceValueId": "operation",
             "type": {
-              "message": {
-                "protobufType": "temporal.api.history.v1.HistoryEvent"
+              "scalar": {
+                "kind": "SCALAR_KIND_TEXT"
               }
             }
           }
         ],
-        "transitions": [
+        "instances": [
           {
-            "transitionId": "capture-nexusOperationScheduled-relation-2",
-            "sourceStateId": "pending",
-            "targetStateId": "nexusOperationScheduled",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "captureAssignments": [
+            "ruleId": "relation-1",
+            "assignments": [
               {
-                "captureId": "nexusOperationScheduled-relation-2",
-                "observationId": "history-event"
+                "instanceValueId": "operation",
+                "value": {
+                  "textValue": "complete-1"
+                }
               }
-            ],
-            "eventFilter": {
-              "kinds": [
-                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
-              ]
-            },
-            "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "observationId": "history-event"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                        }
-                      },
-                      "right": {
-                        "literal": {
-                          "textValue": "complete-2"
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
+            ]
           },
           {
-            "transitionId": "match-nexusOperationCompleted-relation-2",
-            "sourceStateId": "nexusOperationScheduled",
-            "targetStateId": "satisfied",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "eventFilter": {
-              "kinds": [
-                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
-              ]
-            },
-            "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "captureId": "nexusOperationScheduled-relation-2"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "captureId": "nexusOperationScheduled-relation-2"
-                            }
-                          },
-                          "path": "event_id"
-                        }
-                      },
-                      "right": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
-                        }
-                      }
-                    }
-                  }
-                ]
+            "ruleId": "relation-2",
+            "assignments": [
+              {
+                "instanceValueId": "operation",
+                "value": {
+                  "textValue": "complete-2"
+                }
               }
-            }
+            ]
           }
         ]
       }

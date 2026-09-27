@@ -146,23 +146,44 @@ private def producedRules : Option (List (String × List (String × String) × L
         (transition.transition_id, transition.target_state_id),
       rule.captures.toList.map (·.capture_id)))
 
-/- One capture rule per instance: it retains the scheduled event that records the instance's own
-operation, then matches the completion's reference against the retained event's id. -/
+/- One capture Rule for both instances: it retains the scheduled event that records the operation
+its Rule instance names, then matches the completion's reference against the retained event's id.
+Its capture and transitions carry no instance suffix. -/
 #guard producedRules == some [
-  ("relation-1",
-    [("capture-nexusOperationScheduled-relation-1", "nexusOperationScheduled"),
-      ("match-nexusOperationCompleted-relation-1", "satisfied")],
-    ["nexusOperationScheduled-relation-1"]),
-  ("relation-2",
-    [("capture-nexusOperationScheduled-relation-2", "nexusOperationScheduled"),
-      ("match-nexusOperationCompleted-relation-2", "satisfied")],
-    ["nexusOperationScheduled-relation-2"])]
+  ("relation",
+    [("capture-nexusOperationScheduled-relation", "nexusOperationScheduled"),
+      ("match-nexusOperationCompleted-relation", "satisfied")],
+    ["nexusOperationScheduled-relation"])]
 
-/-- The literal a rule's capture transition compares the recorded operation name with. -/
-private def captureLiteral (ruleId : String) : Option String := do
+/-- The Rule's instance values, and each Rule instance's rule ID with the text it assigns each. -/
+private def producedInstances :
+    Option (List (String × Bool) × List (String × List (String × Option String))) := do
   let output ← produced
   let contract ← output.contract
-  let rule ← contract.rules.toList.find? (·.rule_id == ruleId)
+  let rule ← contract.rules.toList.head?
+  pure (rule.instance_values.toList.map fun declared =>
+      (declared.instance_value_id, match declared.type.bind (·.type) with
+        | some (.scalar scalar) => match scalar.kind with
+          | .SCALAR_KIND_TEXT => true
+          | _ => false
+        | _ => false),
+    rule.instances.toList.map fun ruleInstance =>
+      (ruleInstance.rule_id, ruleInstance.assignments.toList.map fun assignment =>
+        (assignment.instance_value_id, assignment.value.bind fun value => match value.value with
+          | some (.text_value text) => some text
+          | _ => none)))
+
+/- The compared literal is the Rule's one text instance value, named after the field it fills; each
+instance assigns its own operation's name, under the rule ID its Verdict entry carries. -/
+#guard producedInstances == some ([("operation", true)],
+  [("relation-1", [("operation", some "complete-1")]),
+    ("relation-2", [("operation", some "complete-2")])])
+
+/-- The instance value the Rule's capture transition compares the recorded operation name with. -/
+private def captureOperand : Option String := do
+  let output ← produced
+  let contract ← output.contract
+  let rule ← contract.rules.toList.head?
   let transition ← rule.transitions.toList.head?
   let predicate ← transition.predicate
   let some (.all conjunction) := predicate.expression | none
@@ -171,13 +192,12 @@ private def captureLiteral (ruleId : String) : Option String := do
     | _ => none
   let right ← compare.right
   match right.expression with
-  | some (.literal value) => match value.value with
-    | some (.text_value text) => some text
+  | some (.reference reference) => match reference.reference with
+    | some (.instance_value_id instanceValueId) => some instanceValueId
     | _ => none
   | _ => none
 
-#guard captureLiteral "relation-1" == some "complete-1"
-#guard captureLiteral "relation-2" == some "complete-2"
+#guard captureOperand == some "operation"
 
 /- The Query's two Known Gaps are the Case's, each against the Property it limits, and the path
 carries no silent step. -/

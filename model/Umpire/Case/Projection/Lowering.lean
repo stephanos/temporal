@@ -44,6 +44,11 @@ it, and
 `rule.observation-type` for an Observation that carries no single message. A coordinate with no
 read path rejects with the reason `Projection.readPath` gives. `rule.certificate` names a lowering
 that failed its own correspondence check, which the derivation never produces.
+
+A Case over several instances lowers a Property once per instance. `InstancedRule.fold` folds those
+derivations into one Rule whose compared literal is an instance value and which carries one Rule
+instance per placement; each placement keeps its `DerivedRule`, and placements that disagree once
+their literal is erased reject as `relation.instance-shape`.
 -/
 
 namespace Umpire.Case.Projection
@@ -154,16 +159,17 @@ private def Read.of (root : String) (path : PropertyFieldPath) : Except String R
     | .field name => Testpilot.Authoring.Path.field name
     | .oneof group member => Testpilot.Authoring.Path.oneofMember group member).toArray⟩
 
-/-- One realized literal and the exact wire value it constructs. -/
+/-- One realized literal, the coordinate that supplied it, and the exact wire value it constructs. -/
 structure Literal where
   private mk ::
+  path : PropertyFieldPath
   scalar : Operation.Scalar
   wire : temporal.server.api.testpilot.v1.Value
 
 /-- The literal `scalar` constructs, an enum value named by the schema of the coordinate `path` that
 supplied it. -/
 private def Literal.of (path : PropertyFieldPath) (scalar : Operation.Scalar) : Except String Literal := do
-  pure ⟨scalar, ← Coverage.scalarValue (sideSchema path) scalar⟩
+  pure ⟨path, scalar, ← Coverage.scalarValue (sideSchema path) scalar⟩
 
 /-- The two rule shapes, before rendering. `negated` holds for a `notEqual` comparison. -/
 inductive Shape where
@@ -176,9 +182,13 @@ def Shape.reads : Shape → List PropertyFieldPath
   | .safety _ observed _ => [observed.path]
   | .capture _ captured observed selector _ _ _ => [selector.path, captured.path, observed.path]
 
+/-- The one literal a shape compares against. -/
+def Shape.literal : Shape → Literal
+  | .safety _ _ literal | .capture _ _ _ _ literal _ _ => literal
+
 /-- Every literal a shape compares against. -/
-def Shape.literals : Shape → List Operation.Scalar
-  | .safety _ _ literal | .capture _ _ _ _ literal _ _ => [literal.scalar]
+def Shape.literals (shape : Shape) : List Operation.Scalar :=
+  [shape.literal.scalar]
 
 private def comparison (negated : Bool) (left right : Expression) : Expression :=
   let equal := Testpilot.Authoring.Expr.equal left right
@@ -191,21 +201,21 @@ private def compared (negated : Bool) (read left right : Expression) : Array Exp
   if negated then #[Testpilot.Authoring.Expr.present read, comparison negated left right]
   else #[comparison negated left right]
 
-/-- Render a shape as the one Contract rule it denotes. The rule distinguishes the answers the model
-Property does: an event that establishes the observed field and disagrees is a violation, not an
-absence, and an event that never establishes it leaves the rule pending, so a Run that produced no
-such event still closes inconclusive. A capture rule has no violated state: the event it captured
-decides which later event it waits for, and one that never arrives leaves it pending. -/
-def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
-    ContractRule :=
+/-- Render a shape as the one Contract rule it denotes, comparing against `value` where the shape
+compares against its literal. The rule distinguishes the answers the model Property does: an event
+that establishes the observed field and disagrees is a violation, not an absence, and an event that
+never establishes it leaves the rule pending, so a Run that produced no such event still closes
+inconclusive. A capture rule has no violated state: the event it captured decides which later event
+it waits for, and one that never arrives leaves it pending. -/
+private def Shape.renderComparing (shape : Shape) (value : Expression)
+    (ruleId suffix observation root : String) : ContractRule :=
   let observed := Testpilot.Authoring.Expr.observation observation
   let projected := Testpilot.Authoring.Expr.path
   let present := Testpilot.Authoring.Expr.present
   let all := Testpilot.Authoring.Expr.all
   let completed := #[RunEventKind.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
   match shape with
-  | .safety negated read literal =>
-      let value := Testpilot.Authoring.Expr.literal literal.wire
+  | .safety negated read _ =>
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
         #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
@@ -220,7 +230,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
             (all (#[present observed] ++ compared (!negated) (projected observed read.segments)
               (projected observed read.segments) value))
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-  | .capture negated captured read selector literal state response =>
+  | .capture negated captured read selector _ state response =>
       let captureId := state ++ "-" ++ suffix
       let retained := Testpilot.Authoring.Expr.capture captureId
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
@@ -229,8 +239,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
         #[Testpilot.Authoring.Contract.transition ("capture-" ++ captureId) "pending" state
             completed
-            (all #[present observed, comparison false (projected observed selector.segments)
-              (Testpilot.Authoring.Expr.literal literal.wire)])
+            (all #[present observed, comparison false (projected observed selector.segments) value])
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
             #[Testpilot.Authoring.Contract.captureAssignment captureId observation],
           Testpilot.Authoring.Contract.transition ("match-" ++ response ++ "-" ++ suffix) state
@@ -240,6 +249,11 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
         (captures := #[Testpilot.Authoring.Contract.capture captureId
           (Testpilot.Authoring.Types.messageType root)])
+
+/-- Render a shape as the one Contract rule it denotes, comparing against its own literal. -/
+def Shape.render (shape : Shape) (ruleId suffix observation root : String) : ContractRule :=
+  shape.renderComparing (Testpilot.Authoring.Expr.literal shape.literal.wire) ruleId suffix
+    observation root
 
 /-! ### The certificate and the lowering -/
 
@@ -270,11 +284,16 @@ structure DerivedRule (property : CheckedFieldProperty) (realization : Realizati
     path ∈ comparedFields property ∨ path ∈ realization.selectorPaths
   literals_assigned : ∀ value ∈ shape.literals, value ∈ realization.assigned
 
+/-- The rule ID this derivation's rule concludes under: the Property's ID and the realization's
+suffix. -/
+def DerivedRule.ruleId {property : CheckedFieldProperty} {realization : Realization}
+    (_ : DerivedRule property realization) : String :=
+  property.property.id.value ++ "." ++ realization.ruleSuffix
+
 /-- The generated Contract rule this derivation denotes. -/
 def DerivedRule.rule {property : CheckedFieldProperty} {realization : Realization}
     (derived : DerivedRule property realization) : ContractRule :=
-  derived.shape.render (property.property.id.value ++ "." ++ realization.ruleSuffix)
-    realization.ruleSuffix derived.observation derived.root
+  derived.shape.render derived.ruleId realization.ruleSuffix derived.observation derived.root
 
 /-- A checked field Property lowered for one Case: its derived rule, if the Property compares any
 field, and the request coverage that rule's literals require. -/
@@ -290,6 +309,138 @@ def Lowered.contractLowering {property : CheckedFieldProperty} {realization : Re
   lowered.rule.map fun derived =>
     .monitor ⟨property.property.id.value, property.property.behaviorFingerprint.render, .property⟩
       derived.rule
+
+/-! ### One Rule over several placements
+
+A Case over several instances of an entity lowers a relation once per instance, and the derivations
+differ only in the literal each compares against and in their suffixes. `InstancedRule.fold` lets one
+Rule stand for all of them: the compared literal becomes the Rule's one instance value, and each
+derivation contributes a Rule instance that concludes under the derivation's own rule ID and assigns
+the derivation's own literal. Every derivation keeps its `DerivedRule`, so the fold restates no
+certificate; what it adds is the check that the derivations agree once their literals are erased,
+which is what lets the Rule rendered from the first stand for the rest. -/
+
+/-- A literal's value erased to its type: the constructor and the integer kind or enum name. -/
+private def erasedScalar : Operation.Scalar → Operation.Scalar
+  | .boolean _ => .boolean false
+  | .text _ => .text ""
+  | .bytes _ => .bytes []
+  | .integer kind _ => .integer kind 0
+  | .enumeration name _ => .enumeration name 0
+  | .floating double _ => .floating double 0
+
+/-- Everything a derivation renders except its compared literal's value: the Observation it reads
+and its message, the shape kind with its capture state names, the negation, every read with its
+segments, and the compared literal's coordinate and type. -/
+structure Erased where
+  observation : String
+  root : String
+  capture : Option (String × String)
+  negated : Bool
+  reads : List (PropertyFieldPath × String)
+  literal : PropertyFieldPath
+  literalType : Operation.Scalar
+  deriving DecidableEq
+
+/-- A derivation with its compared literal's value erased. -/
+def DerivedRule.erased {property : CheckedFieldProperty} {realization : Realization}
+    (derived : DerivedRule property realization) : Erased :=
+  let (capture, negated, reads) := match derived.shape with
+    | .safety negated observed _ => (none, negated, [observed])
+    | .capture negated captured observed selector _ state response =>
+        (some (state, response), negated, [captured, observed, selector])
+  { observation := derived.observation, root := derived.root, capture, negated
+    reads := reads.map fun read => (read.path, read.segments)
+    literal := derived.shape.literal.path
+    literalType := erasedScalar derived.shape.literal.scalar }
+
+/-- The instance value type of a compared field, by its schema type. Only text, integer and enum
+fields have one: preparation admits no other instance value type, and a boolean in particular is
+excluded because capture analysis prunes on boolean literals, which a Rule analyzed once for all of
+its instances cannot do per instance. -/
+private def instanceType : Operation.Singular → Option SingularType
+  | .text => some (Testpilot.Authoring.Types.scalar .SCALAR_KIND_TEXT)
+  | .integer kind => some (Testpilot.Authoring.Types.scalar (match kind with
+      | .int32 => .SCALAR_KIND_INT32 | .int64 => .SCALAR_KIND_INT64
+      | .uint32 => .SCALAR_KIND_UINT32 | .uint64 => .SCALAR_KIND_UINT64
+      | .sint32 => .SCALAR_KIND_SINT32 | .sint64 => .SCALAR_KIND_SINT64
+      | .fixed32 => .SCALAR_KIND_FIXED32 | .fixed64 => .SCALAR_KIND_FIXED64
+      | .sfixed32 => .SCALAR_KIND_SFIXED32 | .sfixed64 => .SCALAR_KIND_SFIXED64))
+  | .enumeration name => some (Testpilot.Authoring.Types.enumeration name)
+  | .boolean | .bytes | .message _ | .floating _ | .unsupported _ => none
+
+/-- The name of the last field a coordinate steps through, from its side's schema. -/
+private def lastFieldName (path : PropertyFieldPath) : Option String := do
+  let .field containing number ← (path.steps.filter fun step => match step with
+      | .field _ _ => true
+      | _ => false).getLast?
+    | none
+  let field ← (Value.Field.schemaFields (sideSchema path)).find? fun item =>
+    item.1 == containing && item.2.number == number
+  pure field.2.name
+
+/-- One placement's derivation of a checked field Property, under that placement's realization. -/
+structure Placed (property : CheckedFieldProperty) where
+  realization : Realization
+  derived : DerivedRule property realization
+
+/-- One Rule standing for every placement of a checked field Property. The certificate is each
+placement's own `DerivedRule`, so the value each Rule instance assigns is a literal its placement's
+realization assigns, and the agreement of every placement's erased derivation with the first's, so
+the Rule rendered from the first reads what every placement reads and compares at the same type.
+Only `fold` constructs one. -/
+structure InstancedRule (property : CheckedFieldProperty) where
+  private mk ::
+  /-- Appended to the Property ID to name the Rule, its capture and its transitions. -/
+  ruleSuffix : String
+  /-- The one value every Rule instance assigns: the compared literal. -/
+  instanceValue : ContractInstanceValue
+  first : Placed property
+  rest : List (Placed property)
+  shapes_agree : ∀ placed ∈ rest, placed.derived.erased = first.derived.erased
+
+/-- Fold the placements of one checked field Property into one Rule named by `ruleSuffix`. `none`
+leaves each placement its own plain rule: over at most one placement there is nothing to share, and
+a compared literal whose type has no instance value type cannot be shared. Placements that disagree
+once their literal is erased reject as `relation.instance-shape`, as does a compared coordinate that
+names no field. -/
+def InstancedRule.fold (property : CheckedFieldProperty) (ruleSuffix : String) :
+    List (Placed property) → Except String (Option (InstancedRule property))
+  | [] | [_] => pure none
+  | first :: rest =>
+      if agree : ∀ placed ∈ rest, placed.derived.erased = first.derived.erased then
+        let literal := first.derived.shape.literal
+        match instanceType literal.path.type with
+        | none => pure none
+        | some type => do
+            let some name := lastFieldName literal.path | throw "relation.instance-shape"
+            pure (some ⟨ruleSuffix, Testpilot.Authoring.Contract.instanceValue name type, first,
+              rest, agree⟩)
+      else throw "relation.instance-shape"
+
+/-- The Rule the fold denotes: rendered once from the first placement under the unsuffixed
+`ruleSuffix`, comparing against the instance value where each placement compared against its
+literal, with one Rule instance per placement in placement order, each concluding under that
+placement's rule ID and assigning that placement's literal. -/
+def InstancedRule.rule {property : CheckedFieldProperty} (instanced : InstancedRule property) :
+    ContractRule :=
+  let first := instanced.first.derived
+  let valueId := instanced.instanceValue.instance_value_id
+  let rendered := first.shape.renderComparing (Testpilot.Authoring.Expr.instanceValue valueId)
+    (property.property.id.value ++ "." ++ instanced.ruleSuffix) instanced.ruleSuffix
+    first.observation first.root
+  { rendered with
+    instance_values := #[instanced.instanceValue]
+    instances := ((instanced.first :: instanced.rest).map fun placed =>
+      Testpilot.Authoring.Contract.ruleInstance placed.derived.ruleId
+        #[Testpilot.Authoring.Contract.instanceAssignment valueId
+          placed.derived.shape.literal.wire]).toArray }
+
+/-- The folded Rule as the Compiler admits it, bound to the checked Property it came from. -/
+def InstancedRule.contractLowering {property : CheckedFieldProperty}
+    (instanced : InstancedRule property) : Compiler.ContractLowering :=
+  .monitor ⟨property.property.id.value, property.property.behaviorFingerprint.render, .property⟩
+    instanced.rule
 
 /-- Where one comparison operand comes from at runtime. -/
 private inductive Source where
