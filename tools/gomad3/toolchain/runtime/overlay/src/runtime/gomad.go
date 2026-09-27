@@ -105,6 +105,7 @@ func gomadInit() {
 
 	gomadEnabled = true
 	gomadSeed = seed
+	gomadChoiceSeedRandom()
 	faketime = gomadInitialTime
 	gomadSimulationTimeInit()
 	debug.asyncpreemptoff = 1
@@ -291,22 +292,31 @@ func gomadChoiceRecord(kind, flags uint8, siteOffset uint64, alternatives, selec
 	gomadChoiceAppendRecord(gomadChoiceRecordValue{kind: kind, flags: flags, siteOffset: siteOffset, alternatives: alternatives, selected: selected, data: data})
 }
 
+// The scheduler draws from process-wide seeded states rather than the per-M
+// streams: the P changes hands between Ms during runtime initialization and
+// around blocking syscalls, and which M picks it up is a host-timing race.
+func gomadChoiceSeedRandom() {
+	gomadChoiceRunqRandom.Init64([4]uint64{gomadSeed})
+	gomadChoiceSchedulerRandom.Init64([4]uint64{gomadSeed, 0x676f6d6164736368})
+	gomadChoiceSelectRandom = gomadSeed
+}
+
 func gomadChoiceRunqSeeded(n uint32) uint32 {
-	if !gomadChoiceEnabled {
+	if !gomadEnabled {
 		return randn(n)
 	}
 	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
 }
 
 func gomadChoiceRunnextSeeded(n uint32) uint32 {
-	if !gomadChoiceEnabled {
+	if !gomadEnabled {
 		return randn(n)
 	}
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
 }
 
 func gomadChoiceShuffleSeeded(n uint32) uint32 {
-	if !gomadChoiceEnabled {
+	if !gomadEnabled {
 		return cheaprandn(n)
 	}
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
@@ -323,7 +333,7 @@ func gomadChoiceRandom(random *chacha8rand.State, n uint32) uint32 {
 }
 
 func gomadChoiceSelectSeeded(n uint32) uint32 {
-	if !gomadChoiceEnabled {
+	if !gomadEnabled {
 		return cheaprandn(n)
 	}
 	gomadChoiceSelectRandom += 0xa0761d6478bd642f
@@ -678,10 +688,10 @@ func gomadChoiceSelectIdentity(site uint64, siteFlags uint8, ordinal, nsends int
 }
 
 func gomadStartUserCode(mp *m) {
+	if gomadEnabled {
+		gomadChoiceSeedRandom()
+	}
 	if gomadChoiceEnabled {
-		gomadChoiceRunqRandom.Init64([4]uint64{gomadSeed})
-		gomadChoiceSchedulerRandom.Init64([4]uint64{gomadSeed, 0x676f6d6164736368})
-		gomadChoiceSelectRandom = gomadSeed
 		gomadChoiceRootIdentity(mp.curg)
 		if !gomadChoiceHookRegistered {
 			exithook.Add(exithook.Hook{F: gomadChoiceFinalize, RunOnFailure: true})
