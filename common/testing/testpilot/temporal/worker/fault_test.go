@@ -25,6 +25,23 @@ func TestWorkerProfileAdmitsTheFaultCapability(t *testing.T) {
 	require.False(t, validWorkerProfile(profile))
 }
 
+// The worker Driver's own Profile limits must be positive and within its ceiling at construction.
+func TestWorkerProfileRejectsLimitsOutsideTheCeiling(t *testing.T) {
+	prepared := preparedSymbolicRuntimeFixture(t)
+	for name, mutate := range map[string]func(*testpilotspb.ProgramLimits){
+		"zero":           func(limits *testpilotspb.ProgramLimits) { limits.MaxNodes = 0 },
+		"above ceiling":  func(limits *testpilotspb.ProgramLimits) { limits.MaxExpressionDepth = 65 },
+		"unknown fields": func(limits *testpilotspb.ProgramLimits) { limits.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 0x01}) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			profile := symbolicRuntimeDriver(t, prepared.Limits()).options.profile
+			require.True(t, validWorkerProfile(profile))
+			mutate(profile.ProgramLimits)
+			require.False(t, validWorkerProfile(profile))
+		})
+	}
+}
+
 type blockingManagedWorker struct{ release <-chan struct{} }
 
 func (w *blockingManagedWorker) Start() error { return nil }

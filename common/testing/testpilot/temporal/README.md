@@ -21,8 +21,10 @@ generic opaque handle claims. Composite Close and quarantine preserve that split
 a fault; the server Session refuses every fault the way it refuses worker reservations.
 
 Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` before server dispatch. The
-Carrier validates the prepared reservation topology and physical workflow binding, injects only the
-reserved delivery header, checks the final request size, and pins the returned Temporal Run ID.
+Carrier takes the reservation topology preparation compiled as admitted, checks the physical workflow
+binding against the reserved workflow entrypoint and each reservation handle against the topology,
+bounds the bundle by its route limit, injects only the reserved delivery header, checks the final
+request size, and pins the returned Temporal Run ID.
 Calls without a declared carrier retain ordinary RPC request and response behavior.
 
 The SDK's system callback identifier is resolved only against the trusted

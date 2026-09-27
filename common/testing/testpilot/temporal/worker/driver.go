@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/sdk/worker"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
@@ -86,13 +87,8 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
 	}
-	fields := limits.ProtoReflect().Descriptor().Fields()
-	for index := 0; index < fields.Len(); index++ {
-		field := fields.Get(index)
-		value := limits.ProtoReflect().Get(field).Int()
-		if value <= 0 || value > ceiling.ProtoReflect().Get(field).Int() {
-			return false
-		}
+	if ir.CheckCeilings(limits, ceiling, func(string) error { return ErrInvalid }) != nil {
+		return false
 	}
 	methods, carriers, shapes := 0, 0, 0
 	for _, role := range profile.Roles {
@@ -359,31 +355,11 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 }
 
 func (h *Driver) validateSymbolicRoles(roles map[string]testpilot.PreparedRole, requireWorker bool) error {
-	if requireWorker {
-		workerRole, ok := roles[h.options.workerRoleID]
-		if !ok || workerRole.Kind != testpilotspb.ROLE_KIND_WORKER || workerRole.NamespaceBindingID == "" || workerRole.Namespace == "" || workerRole.ResourceBindingID != "" || workerRole.Resource != "" {
-			return ErrInvalid
-		}
+	if requireWorker && roles[h.options.workerRoleID].Kind != testpilotspb.ROLE_KIND_WORKER {
+		return ErrInvalid
 	}
 	for _, role := range roles {
-		switch role.Kind {
-		case testpilotspb.ROLE_KIND_ENDPOINT:
-			if role.NamespaceBindingID != "" || role.Namespace != "" || (role.ResourceBindingID != "" && (role.Resource == "" || h.profileRoleHasMethods(role.ID))) {
-				return ErrInvalid
-			}
-		case testpilotspb.ROLE_KIND_WORKER:
-			if role.NamespaceBindingID == "" || role.Namespace == "" || role.ResourceBindingID != "" || role.Resource != "" {
-				return ErrInvalid
-			}
-		case testpilotspb.ROLE_KIND_TASK_QUEUE:
-			if role.NamespaceBindingID == "" || role.Namespace == "" || role.ResourceBindingID == "" || role.Resource == "" {
-				return ErrInvalid
-			}
-		case testpilotspb.ROLE_KIND_PARTICIPANT:
-			if role.NamespaceBindingID != "" || role.Namespace != "" || role.ResourceBindingID != "" || role.Resource != "" {
-				return ErrInvalid
-			}
-		default:
+		if role.Kind == testpilotspb.ROLE_KIND_ENDPOINT && role.ResourceBindingID != "" && h.profileRoleHasMethods(role.ID) {
 			return ErrInvalid
 		}
 	}

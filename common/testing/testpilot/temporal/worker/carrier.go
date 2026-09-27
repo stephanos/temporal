@@ -58,13 +58,9 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 	}
 	var workflowEntrypoint string
 	for _, reservation := range plan.Reservations {
-		if reservation.Kind != testpilot.WorkflowEntrypoint {
-			continue
+		if reservation.Kind == testpilot.WorkflowEntrypoint {
+			workflowEntrypoint = reservation.EntrypointID
 		}
-		if workflowEntrypoint != "" || reservation.Count != 1 {
-			return false
-		}
-		workflowEntrypoint = reservation.EntrypointID
 	}
 	entry, exists := s.definition.entries[workflowEntrypoint]
 	return exists && entry.plan.Kind() == testpilot.WorkflowEntrypoint && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
