@@ -48,7 +48,7 @@ type Session struct {
 	reservations       map[string]*reservation
 	carriers           map[testpilot.Coordinate]*Carrier
 	nexusResults       map[string]*nexusResult
-	workflowKeys       map[workflowRouteIndex]struct{}
+	workflowKeys       map[delivery.WorkflowBinding]struct{}
 	nexusKeys          map[nexusRouteIndex]struct{}
 	nexusDispatch      map[nexusDispatchKey]nexus.Header
 	workflowAdmissions map[workflowAdmissionKey]*workflowAdmission
@@ -77,7 +77,7 @@ func newSession(host *Driver, runID, sessionID string, definition programDefinit
 	}
 	return &Session{host: host, mu: primitive.NewMutex(), closeMu: primitive.NewMutex(), runID: runID, id: sessionID, definition: definition, ledger: ledger, options: options,
 		reservations: make(map[string]*reservation), carriers: make(map[testpilot.Coordinate]*Carrier), nexusResults: make(map[string]*nexusResult),
-		workflowKeys: make(map[workflowRouteIndex]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
+		workflowKeys: make(map[delivery.WorkflowBinding]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
 		workflowAdmissions: make(map[workflowAdmissionKey]*workflowAdmission), nexusAdmissions: make(map[nexusRouteIndex]nexusAdmission)}, nil
 }
 

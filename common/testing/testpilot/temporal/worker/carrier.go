@@ -17,7 +17,7 @@ type Carrier struct {
 	origin  testpilot.Coordinate
 }
 
-func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, binding WorkflowBinding, handles []testpilot.ReservationHandle) (*Carrier, error) {
+func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, binding delivery.WorkflowBinding, handles []testpilot.ReservationHandle) (*Carrier, error) {
 	if s == nil || origin.RunID != s.runID || !s.validCarrierBinding(plan, binding) {
 		return nil, ErrInvalid
 	}
@@ -38,21 +38,20 @@ func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate
 	if s.host.sessions[s.runID] != s {
 		return nil, ErrClosed
 	}
-	key := workflowRouteIndexFor(binding)
-	if err := s.host.checkRouteCapacityLocked(s, key); err != nil {
+	if err := s.host.checkRouteCapacityLocked(s, binding); err != nil {
 		return nil, err
 	}
-	bundle, err := s.ledger.CreateBundle(ctx, origin, plan, delivery.WorkflowBinding(binding), handles)
+	bundle, err := s.ledger.CreateBundle(ctx, origin, plan, binding, handles)
 	if err != nil {
 		return nil, err
 	}
 	carrier := &Carrier{session: s, bundle: bundle, origin: origin}
 	s.carriers[origin] = carrier
-	s.host.addWorkflowRouteLocked(s, key)
+	s.host.addWorkflowRouteLocked(s, binding)
 	return carrier, nil
 }
 
-func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, binding WorkflowBinding) bool {
+func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, binding delivery.WorkflowBinding) bool {
 	if binding.WorkflowID == "" {
 		return false
 	}

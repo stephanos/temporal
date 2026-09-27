@@ -65,6 +65,33 @@ func TestPrepareRPCRejectsCollisionBindingAndByteErrors(t *testing.T) {
 	require.ErrorIs(t, err, ErrCapacity)
 }
 
+// StartBinding serves the composite Driver and PrepareRPC alike, so it reads a dynamic request and
+// rejects one that is not a StartWorkflow request or lacks a binding field.
+func TestStartBindingReadsDynamicStartRequestsOnly(t *testing.T) {
+	f := newFixture(t, "run", "session")
+	request := workflowRequest(f)
+	request.Header = &commonpb.Header{Fields: map[string]*commonpb.Payload{"application": {Data: []byte("kept")}}}
+	encoded, err := proto.Marshal(request)
+	require.NoError(t, err)
+	dynamicRequest := dynamicpb.NewMessage(startMethod(t).Input())
+	require.NoError(t, proto.Unmarshal(encoded, dynamicRequest))
+	binding, header, err := StartBinding(dynamicRequest)
+	require.NoError(t, err)
+	require.Equal(t, f.binding, binding)
+	require.True(t, header.IsValid())
+
+	for name, message := range map[string]proto.Message{
+		"not a start request": &workflowservice.SignalWorkflowExecutionRequest{Namespace: "namespace"},
+		"workflow type":       &workflowservice.StartWorkflowExecutionRequest{Namespace: "namespace", WorkflowId: "workflow-id", TaskQueue: request.TaskQueue},
+		"task queue":          &workflowservice.StartWorkflowExecutionRequest{Namespace: "namespace", WorkflowId: "workflow-id", WorkflowType: request.WorkflowType},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, _, err := StartBinding(message.ProtoReflect())
+			require.ErrorIs(t, err, ErrInvalid)
+		})
+	}
+}
+
 func TestPrepareRPCPassesUnrelatedCallsThrough(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	request := workflowRequest(f)

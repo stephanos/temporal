@@ -33,7 +33,7 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
 
 	var suite testsuite.WorkflowTestSuite
@@ -67,7 +67,7 @@ func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
 	prepared := preparedRuntimeFixtureForNamespace(t, "ReplayNamespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "ReplayNamespace", WorkflowID: "replay-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "ReplayNamespace", WorkflowID: "replay-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "replay-run", binding, SessionOptions{Bridge: newTestBridge()})
 
 	routed, err := host.admitWorkflow(workflowDelivery(request, "replay-run"))
@@ -145,7 +145,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
 	entered, proceed := make(chan struct{}), make(chan struct{})
 
@@ -187,7 +187,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 func TestSDKFailedTriggerRejectsWorkflowBeforeExecution(t *testing.T) {
 	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	_, _, request := runtimeTestSessionWithDisposition(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()}, delivery.TriggerNonSuccess)
 
 	var suite testsuite.WorkflowTestSuite
@@ -204,13 +204,13 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	bindingA := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-a", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
-	bindingB := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-b", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	bindingA := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-a", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	bindingB := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-b", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	sessionA, _, requestA := runtimeTestSessionWithBinding(t, host, definition, prepared, "run-a", "default-test-run-id", bindingA, SessionOptions{Bridge: newTestBridge()})
 	sessionB, _, requestB := runtimeTestSessionWithBinding(t, host, definition, prepared, "run-b", "default-test-run-id", bindingB, SessionOptions{Bridge: newTestBridge()})
 	enteredB, proceedB := make(chan struct{}), make(chan struct{})
 
-	newEnvironment := func(binding WorkflowBinding, request *commonpb.Header, dynamic func(workflow.Context, converter.EncodedValues) (*testpilotspb.Value, error)) *testsuite.TestWorkflowEnvironment {
+	newEnvironment := func(binding delivery.WorkflowBinding, request *commonpb.Header, dynamic func(workflow.Context, converter.EncodedValues) (*testpilotspb.Value, error)) *testsuite.TestWorkflowEnvironment {
 		var suite testsuite.WorkflowTestSuite
 		environment := suite.NewTestWorkflowEnvironment()
 		environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
@@ -262,7 +262,7 @@ func reservationForEntrypoint(t *testing.T, session *Session, entrypoint string)
 	return nil
 }
 
-func workflowReplayHistory(t *testing.T, binding WorkflowBinding, header *commonpb.Header, nexusHeader nexus.Header) []*historypb.HistoryEvent {
+func workflowReplayHistory(t *testing.T, binding delivery.WorkflowBinding, header *commonpb.Header, nexusHeader nexus.Header) []*historypb.HistoryEvent {
 	t.Helper()
 	dataConverter := converter.GetDefaultDataConverter()
 	arguments, err := dataConverter.ToPayloads("untouched", 42, []byte("arguments"))

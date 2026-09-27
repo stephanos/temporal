@@ -73,7 +73,7 @@ func TestSDKWorkflowIssuesTheCarriedScheduleCommand(t *testing.T) {
 	}))
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "typed-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "typed-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, start := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
 
 	var suite testsuite.WorkflowTestSuite
@@ -113,7 +113,7 @@ func TestPreparedNexusHeaderCarriesTheCaseHeader(t *testing.T) {
 		Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", NexusHeader: map[string]string{"x-case": "carried"},
 	}))
 	host, definition := runtimeTestDriver(t, prepared)
-	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, SessionOptions{Bridge: newTestBridge()})
+	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, SessionOptions{Bridge: newTestBridge()})
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
 	header, err := session.preparedNexusHeader(workflowRoute.activation, "start", nexus.Header{"x-case": "carried"})
@@ -135,7 +135,7 @@ func TestSDKScheduleCommandCarriesItsOwnTimeouts(t *testing.T) {
 	})
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "timeout-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+	binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "timeout-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	_, _, start := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
 
 	var suite testsuite.WorkflowTestSuite
@@ -219,7 +219,7 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 			options := SessionOptions{Bridge: bridge, NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 				return &struct{}{}, nil
 			}}
-			session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
+			session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
 			workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 			require.NoError(t, err)
 			header, err := session.preparedNexusHeader(workflowRoute.activation, "start", nil)
@@ -264,7 +264,7 @@ func TestSessionAnswersTheRetriedStartWithTheNextReply(t *testing.T) {
 	options := SessionOptions{Bridge: newTestBridge(), NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 		return &struct{}{}, nil
 	}}
-	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
+	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
 	header, err := session.preparedNexusHeader(workflowRoute.activation, "start", nil)
