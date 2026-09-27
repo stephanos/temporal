@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
@@ -53,7 +53,7 @@ func (h *fakeReservation) Wait(ctx context.Context) (testpilot.EffectResult, err
 	case <-ctx.Done():
 		return testpilot.EffectResult{}, ctx.Err()
 	case <-h.done:
-		return cloneEffectResult(h.result), h.waitErr
+		return primitive.CloneEffectResult(h.result), h.waitErr
 	}
 }
 func (h *fakeReservation) Cancel(ctx context.Context) error {
@@ -97,7 +97,7 @@ func newFixture(t *testing.T, runID, sessionID string) *fixture {
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start-workflow", Attempt: 1}
 	plan := testpilot.ReservationCarrierPlan{
 		EndpointRoleID: "temporal",
-		Method:         startWorkflowPath,
+		Method:         primitive.StartWorkflowPath,
 		Reservations: []testpilot.ReservationTopology{
 			{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 1},
 			{EntrypointID: "handler", Kind: testpilot.NexusHandlerEntrypoint, Count: 1},
@@ -153,10 +153,6 @@ func admitWorkflow(t *testing.T, f *fixture, temporalRunID string) Activation {
 	})
 	require.NoError(t, err)
 	return activation
-}
-
-func cloneEffectResult(result testpilot.EffectResult) testpilot.EffectResult {
-	return testpilot.EffectResult{Outcome: proto.CloneOf(result.Outcome), Response: proto.Clone(result.Response)}
 }
 
 func requireContextError(t *testing.T, err error) {

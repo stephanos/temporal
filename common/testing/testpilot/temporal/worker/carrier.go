@@ -21,20 +21,20 @@ func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate
 	if s == nil || origin.RunID != s.runID || !s.validCarrierBinding(plan, binding) {
 		return nil, ErrInvalid
 	}
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	if s.closed || s.failure != nil {
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
 	if len(s.carriers) >= boundedInt(s.definition.limits.GetMaxActivations()) || s.carriers[origin] != nil {
 		return nil, ErrCapacity
 	}
-	if err := s.host.mu.lock(ctx); err != nil {
+	if err := s.host.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer s.host.mu.unlock()
+	defer s.host.mu.Unlock()
 	if s.host.sessions[s.runID] != s {
 		return nil, ErrClosed
 	}
@@ -74,10 +74,10 @@ func (c *Carrier) PrepareRPC(ctx context.Context, role string, method protorefle
 	if c == nil || c.session == nil {
 		return nil, ErrInvalid
 	}
-	if err := c.session.mu.lock(ctx); err != nil {
+	if err := c.session.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer c.session.mu.unlock()
+	defer c.session.mu.Unlock()
 	if c.session.closed || c.session.failure != nil {
 		return nil, errors.Join(ErrClosed, c.session.failure)
 	}
@@ -88,10 +88,10 @@ func (c *Carrier) PinStartResponse(ctx context.Context, response *workflowservic
 	if c == nil || c.session == nil {
 		return ErrInvalid
 	}
-	if err := c.session.mu.lock(ctx); err != nil {
+	if err := c.session.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	defer c.session.mu.unlock()
+	defer c.session.mu.Unlock()
 	if c.session.closed {
 		return ErrClosed
 	}
@@ -102,10 +102,10 @@ func (c *Carrier) TriggerTerminal(ctx context.Context, disposition delivery.Trig
 	if c == nil || c.session == nil {
 		return 0, ErrInvalid
 	}
-	if err := c.session.mu.lock(ctx); err != nil {
+	if err := c.session.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return 0, err
 	}
-	defer c.session.mu.unlock()
+	defer c.session.mu.Unlock()
 	if c.session.closed {
 		return 0, ErrClosed
 	}

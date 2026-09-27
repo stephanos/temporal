@@ -8,6 +8,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -36,7 +37,7 @@ type Session struct {
 }
 
 func (s *Session) Reserve(ctx context.Context, _ testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	return nil, errUnauthorized
@@ -46,7 +47,7 @@ func (s *Session) Reserve(ctx context.Context, _ testpilot.ReservationRequest) (
 // no worker, so it declines them the way it declines reservations rather than pretending to
 // realize one.
 func (s *Session) InjectFault(ctx context.Context, _ testpilot.Coordinate, _ string, _ testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	return nil, errUnauthorized
@@ -71,7 +72,7 @@ func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.Instruct
 }
 
 func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	n, err := s.controllerNode(c)
@@ -79,10 +80,10 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 		return nil, err
 	}
 	rpc := n.GetInstruction().GetInvokeRpc()
-	if rpc == nil || nilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || nilValue(request) {
+	if rpc == nil || primitive.NilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || primitive.NilValue(request) {
 		return nil, errUnauthorized
 	}
-	path := "/" + string(method.Parent().FullName()) + "/" + string(method.Name())
+	path := primitive.MethodPath(method)
 	endpoint, ok := s.host.endpoints[role]
 	if !ok || !endpoint.methods[path] || rpc.EndpointRoleId != role || rpc.Method != path || request.ProtoReflect().Descriptor() != method.Input() {
 		return nil, errUnauthorized
@@ -110,7 +111,7 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 // accepts a response or the instruction's timeout ends it. One effect, one attempt: the polls are
 // the effect's own calls, so the Session's attempt and identity accounting sees the instruction once.
 func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	n, err := s.controllerNode(c)
@@ -119,10 +120,10 @@ func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role stri
 	}
 	read := n.GetInstruction().GetReadEvidence()
 	declaration := s.evidence[read.GetEvidenceId()]
-	if read == nil || declaration.GetRead() == nil || nilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || nilValue(request) || interval <= 0 || satisfied == nil {
+	if read == nil || declaration.GetRead() == nil || primitive.NilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || primitive.NilValue(request) || interval <= 0 || satisfied == nil {
 		return nil, errUnauthorized
 	}
-	path := "/" + string(method.Parent().FullName()) + "/" + string(method.Name())
+	path := primitive.MethodPath(method)
 	endpoint, ok := s.host.endpoints[role]
 	if !ok || !endpoint.methods[path] || read.EndpointRoleId != role || declaration.GetRead().GetMethod() != path || request.ProtoReflect().Descriptor() != method.Input() {
 		return nil, errUnauthorized
@@ -183,7 +184,7 @@ type effect struct {
 }
 
 func (s *Session) start(ctx context.Context, c testpilot.Coordinate, bounds *testpilotspb.InstructionLimits, call func(context.Context) testpilot.EffectResult) (*effect, error) {
-	if err := s.host.mu.LockContext(ctx); err != nil {
+	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	defer s.host.mu.Unlock()
@@ -191,7 +192,7 @@ func (s *Session) start(ctx context.Context, c testpilot.Coordinate, bounds *tes
 }
 
 func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, bounds *testpilotspb.InstructionLimits, call func(context.Context) testpilot.EffectResult) (*effect, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	if s.closed || s.host.closed {
@@ -232,25 +233,25 @@ func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, bound
 }
 
 func (e *effect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return testpilot.EffectResult{}, err
 	}
 	select {
 	case <-ctx.Done():
 		return testpilot.EffectResult{}, ctx.Err()
 	case <-e.done:
-		return testpilot.EffectResult{Outcome: proto.CloneOf(e.result.Outcome), Response: proto.Clone(e.result.Response)}, nil
+		return primitive.CloneEffectResult(e.result), nil
 	}
 }
 func (e *effect) Cancel(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
 	e.cancel()
 	return nil
 }
 func (e *effect) Drain(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
 	select {
@@ -261,14 +262,14 @@ func (e *effect) Drain(ctx context.Context) error {
 	}
 }
 func (s *Session) Quarantine(ctx context.Context, handle testpilot.EffectHandle) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
 	e, ok := handle.(*effect)
 	if !ok || e == nil || e.session != s {
 		return errUnauthorized
 	}
-	if err := s.host.mu.LockContext(ctx); err != nil {
+	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return err
 	}
 	defer s.host.mu.Unlock()
@@ -276,10 +277,10 @@ func (s *Session) Quarantine(ctx context.Context, handle testpilot.EffectHandle)
 	return nil
 }
 func (s *Session) Close(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
-	if err := s.host.mu.LockContext(ctx); err != nil {
+	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return err
 	}
 	defer s.host.mu.Unlock()
@@ -305,10 +306,10 @@ func (s *Session) closeLocked() {
 	}
 }
 func (s *Session) Diagnose(ctx context.Context, runID string, _ *testpilotspb.RunDiagnostic) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
-	if err := s.host.mu.LockContext(ctx); err != nil {
+	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return err
 	}
 	defer s.host.mu.Unlock()

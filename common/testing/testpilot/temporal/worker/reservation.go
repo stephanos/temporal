@@ -6,7 +6,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
 type cancelActivation func(context.Context, string, string, string) error
@@ -73,7 +73,7 @@ func (r *reservation) Wait(ctx context.Context) (testpilot.EffectResult, error) 
 	case <-r.done:
 		r.mu.Lock()
 		defer r.mu.Unlock()
-		return cloneEffectResult(r.result), r.err
+		return primitive.CloneEffectResult(r.result), r.err
 	}
 }
 
@@ -145,10 +145,6 @@ func (r *reservation) completeLocked(result testpilot.EffectResult, err error) {
 		return
 	}
 	r.completed = true
-	r.result, r.err = cloneEffectResult(result), err
+	r.result, r.err = primitive.CloneEffectResult(result), err
 	close(r.done)
-}
-
-func cloneEffectResult(result testpilot.EffectResult) testpilot.EffectResult {
-	return testpilot.EffectResult{Outcome: cloneOutcome(result.Outcome), Response: proto.Clone(result.Response)}
 }

@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
+	"maps"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -15,17 +15,15 @@ import (
 	"go.temporal.io/sdk/worker"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
-const (
-	startWorkflowMethod = "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
-	getHistoryMethod    = "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
-)
+const getHistoryMethod = "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 
 type Driver struct {
 	options           hostOptions
 	registry          *workerRegistry
-	mu                contextMutex
+	mu                primitive.Mutex
 	sessions          map[string]*Session
 	tombstones        []*Session
 	workflowRoutes    map[workflowRouteIndex][]*Session
@@ -47,7 +45,7 @@ type hostOptions struct {
 }
 
 func New(options Options) (*Driver, error) {
-	if nilValue(options.Client) || options.WorkerRoleID == "" || !validWorkerProfile(options.Profile) {
+	if primitive.NilValue(options.Client) || options.WorkerRoleID == "" || !validWorkerProfile(options.Profile) {
 		return nil, ErrInvalid
 	}
 	if _, err := options.Profile.BindingFingerprint(); err != nil {
@@ -60,7 +58,7 @@ func New(options Options) (*Driver, error) {
 	}
 	maximum, diagnostics := boundedInt(limits.GetMaxActivations()), min(boundedInt(limits.GetMaxRunEvents()), 64)
 	h := &Driver{
-		mu:             newContextMutex(),
+		mu:             primitive.NewMutex(),
 		sessions:       make(map[string]*Session),
 		tombstones:     make([]*Session, 0, diagnostics),
 		workflowRoutes: make(map[workflowRouteIndex][]*Session),
@@ -138,7 +136,7 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	// A fault needs a worker to stop, so a Program that requests one is only realizable when it
 	// also brings a worker. Validate applies the same rule Open does rather than admitting a
 	// Program that could only fail at dispatch.
-	requireWorker := hasWorkerEntrypoint(plans) || DeclaresFault(plans)
+	requireWorker := primitive.HasWorkerEntrypoint(plans) || DeclaresFault(plans)
 	_, err := h.prepareDefinitionResources(program.Snapshot(), program.Limits(), plans, program.Roles(), requireWorker)
 	return err
 }
@@ -167,17 +165,8 @@ func DeclaresFault(plans []testpilot.EntrypointPlan) bool {
 	return false
 }
 
-func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
-	for _, plan := range plans {
-		if plan.Kind() == testpilot.WorkflowEntrypoint || plan.Kind() == testpilot.ActivityEntrypoint || plan.Kind() == testpilot.NexusHandlerEntrypoint {
-			return true
-		}
-	}
-	return false
-}
-
 func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilot.PreparedProgram, options SessionOptions) (*Session, error) {
-	if h == nil || ctx == nil || runID == "" || nilValue(options.Bridge) {
+	if h == nil || ctx == nil || runID == "" || primitive.NilValue(options.Bridge) {
 		return nil, ErrInvalid
 	}
 	definition, err := h.prepareDefinition(program)
@@ -187,21 +176,21 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	if definition.hasAsync && options.NewHandle == nil {
 		return nil, ErrInvalid
 	}
-	if err := h.mu.lock(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
 	if len(h.sessions) >= h.options.maximum || h.sessions[runID] != nil {
-		h.mu.unlock()
+		h.mu.Unlock()
 		return nil, ErrCapacity
 	}
 	sessionID := fmt.Sprintf("session-%d", h.nextSession.Add(1))
 	session, err := newSession(h, runID, sessionID, definition, options)
 	if err != nil {
-		h.mu.unlock()
+		h.mu.Unlock()
 		return nil, err
 	}
 	h.sessions[runID] = session
-	h.mu.unlock()
+	h.mu.Unlock()
 
 	outage, err := h.registry.acquireOutage(ctx, runID, definition.registrations, definition.outages, func(queue string, failure error) {
 		session.workerFailed(queue, failure)
@@ -421,7 +410,7 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 	}
 	workerRole := roles[h.options.workerRoleID]
 	switch invoke.GetMethod() {
-	case startWorkflowMethod:
+	case primitive.StartWorkflowPath:
 		queueRole, ok := reservedWorkflowQueueRole(instruction, program)
 		if !ok {
 			return ErrInvalid
@@ -500,7 +489,7 @@ func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegi
 		queues[queue] = struct{}{}
 	}
 	for queue := range queues {
-		registration, err := (queueRegistration{queue: queue, workflows: setKeys(d.queueWorkflows[queue]), nexus: nexusSetKeys(queueNexus[queue])}).canonical()
+		registration, err := (queueRegistration{queue: queue, workflows: slices.Collect(maps.Keys(d.queueWorkflows[queue])), nexus: slices.Collect(maps.Keys(queueNexus[queue]))}).canonical()
 		if err != nil {
 			return err
 		}
@@ -510,39 +499,10 @@ func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegi
 	return nil
 }
 
-func setKeys(values map[string]struct{}) []string {
-	result := make([]string, 0, len(values))
-	for value := range values {
-		result = append(result, value)
-	}
-	return result
-}
-
-func nexusSetKeys(values map[nexusRegistration]struct{}) []nexusRegistration {
-	result := make([]nexusRegistration, 0, len(values))
-	for value := range values {
-		result = append(result, value)
-	}
-	return result
-}
-
 func boundedInt(value int64) int {
 	maximum := int64(^uint(0) >> 1)
 	if value <= 0 || value > maximum {
 		return 0
 	}
 	return int(value)
-}
-
-func nilValue(value any) bool {
-	if value == nil {
-		return true
-	}
-	v := reflect.ValueOf(value)
-	switch v.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-		return v.IsNil()
-	default:
-		return false
-	}
 }

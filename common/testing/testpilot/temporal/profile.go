@@ -8,6 +8,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 )
 
@@ -72,11 +73,6 @@ func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, e
 	}
 	return values, nil
 }
-
-// startWorkflowExecutionMethod is the one reservation carrier the Temporal Driver realizes: the start
-// request carries the reservations of the workflow it starts and of the Nexus handlers that workflow
-// reaches.
-const startWorkflowExecutionMethod = "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
 
 // DefaultInstructionLimits returns the limits a Temporal Profile gives an instruction that writes
 // none: the most common timeout and attempts across the checked-in Temporal Cases when the defaults
@@ -282,7 +278,10 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		u.methodSeen[key] = true
 		u.methods[key.role] = append(u.methods[key.role], key.method)
 	}
-	if !controller || key.method != startWorkflowExecutionMethod || len(u.reservable) == 0 || u.shapes[key] != nil {
+	// StartWorkflowExecution is the one reservation carrier the Temporal Driver realizes: the start
+	// request carries the reservations of the workflow it starts and of the Nexus handlers that workflow
+	// reaches.
+	if !controller || key.method != primitive.StartWorkflowPath || len(u.reservable) == 0 || u.shapes[key] != nil {
 		return nil
 	}
 	u.shapes[key] = u.reservable

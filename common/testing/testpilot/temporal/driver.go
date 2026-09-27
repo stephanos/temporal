@@ -14,6 +14,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"go.temporal.io/server/common/testing/testpilot/temporal/server"
 	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 	"google.golang.org/protobuf/proto"
@@ -91,7 +92,7 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	if err != nil {
 		return nil, err
 	}
-	if !hasWorkerEntrypoint(program) && !hasFaultInstruction(program) {
+	if !primitive.HasWorkerEntrypoint(program.Entrypoints()) && !hasFaultInstruction(program) {
 		return newPreparedCompositeSession(controller, nil, program), nil
 	}
 	bridge, err := controller.Bridge(ctx)
@@ -114,17 +115,6 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 // realizable at all.
 func hasFaultInstruction(program testpilot.PreparedProgram) bool {
 	return workerhost.DeclaresFault(workerhost.ProgramPlans(program))
-}
-
-func hasWorkerEntrypoint(program testpilot.PreparedProgram) bool {
-	for _, entrypoint := range program.Entrypoints() {
-		if entrypoint.Kind() == testpilot.WorkflowEntrypoint ||
-			entrypoint.Kind() == testpilot.ActivityEntrypoint ||
-			entrypoint.Kind() == testpilot.NexusHandlerEntrypoint {
-			return true
-		}
-	}
-	return false
 }
 
 func (h *Driver) Close(ctx context.Context) error {

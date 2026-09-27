@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"slices"
 	"strings"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
@@ -69,7 +70,7 @@ func (i *workflowInboundInterceptor) Init(outbound interceptor.WorkflowOutboundI
 
 func (i *workflowInboundInterceptor) ExecuteWorkflow(ctx workflow.Context, input *interceptor.ExecuteWorkflowInput) (interface{}, error) {
 	info := workflow.GetInfo(ctx)
-	if info == nil || info.TaskQueueName != i.worker.queue || !slicesContains(i.worker.registration.workflows, info.WorkflowType.Name) {
+	if info == nil || info.TaskQueueName != i.worker.queue || !slices.Contains(i.worker.registration.workflows, info.WorkflowType.Name) {
 		return nil, workflowError(ErrRegistrationConflict)
 	}
 	deliveryInput := delivery.WorkflowDelivery{
@@ -254,13 +255,4 @@ func boundedText(value string) string {
 		value = value[:maximum]
 	}
 	return strings.ToValidUTF8(value, "")
-}
-
-func slicesContains(values []string, value string) bool {
-	for _, candidate := range values {
-		if candidate == value {
-			return true
-		}
-	}
-	return false
 }
