@@ -45,6 +45,10 @@ Property clause or Scenario construct version one cannot encode.
 
 namespace Umpire.Search.Product
 
+-- The product is `Umpire.Search.Product.Product`: its namespace names the module the whole state
+-- space lives in, and renaming the structure would move every caller of `Product.build`.
+set_option linter.extra.dupNamespace false
+
 /-- The Property monitors a product runs beside the Scenario automaton. `start` gives the monitor
 states at a root and `advance` steps them along one transition from a Model state; each also
 returns the bits of the clauses whose trigger fired, which the product ORs into its fired-clause
