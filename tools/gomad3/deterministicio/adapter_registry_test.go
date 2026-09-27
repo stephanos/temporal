@@ -111,7 +111,7 @@ func TestDetectModuleVersionRejectsDuplicateRequirements(t *testing.T) {
 
 func TestProfileVerifiesSelectedAdapterIdentities(t *testing.T) {
 	selected := []Adapter{
-		{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="},
+		{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="},
 		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
 	}
 	if err := Default().VerifyAdapters(selected); err != nil {

@@ -181,7 +181,11 @@ since 2026-08-23 (re-pinned); and the root module rebuilt on upstream
 `951c5516e` carries `golang.org/x/net v0.58.0` and `google.golang.org/grpc v1.83.2` while the
 adapters pin `v0.57.0` and `v1.80.0`, so every Temporal-corpus analysis fails with
 "unsupported golang.org/x/net version" until the adapters are re-pinned (COMPAT-5 upgrade
-flow; the two rewritten x/net files are byte-identical between the versions).
+flow; the two rewritten x/net files are byte-identical between the versions). Re-pinned on
+2026-09-27 to `golang.org/x/net v0.58.0` and `google.golang.org/grpc v1.83.2`: the three
+rewritten files and both prepared packages are byte-identical to the previous pins, so only the
+module inventories moved; the gRPC `internal` prepared source set is now recorded per platform
+like the x/net one.
 
 **Details.**
 
@@ -261,7 +265,8 @@ a GOROOT nested inside it, and the seeded scheduler drew from per-M random strea
 choice trace (see F1's status). Not done here: the macOS `upgrade-dossier` run, the DTrace
 audit, and the `GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256` variable for the go1.26.4-v2 to
 go1.27.1-v1 boundary diff, all of which need the darwin/arm64 runner; and the Temporal corpus
-acceptance, which stays blocked on the adapter re-pin from F1.
+acceptance, which the adapter re-pin (F1 status) has since unblocked but which still needs the
+darwin/arm64 run.
 
 **Constraints.**
 

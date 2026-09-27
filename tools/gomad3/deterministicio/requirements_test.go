@@ -12,11 +12,11 @@ func TestRequirementsProjectsKnownInventoryDomainsConservatively(t *testing.T) {
 	closure := target.CapabilityClosure{Packages: []target.CapabilityPackage{
 		{ImportPath: "example.com/dependency", Name: "dependency", Imports: []string{"path/filepath"}},
 		{ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{"crypto/rand", "net", "os", "time"}},
-		{ImportPath: "google.golang.org/grpc/internal", Name: "internal", Module: &target.CapabilityModule{Path: "google.golang.org/grpc", Version: "v1.80.0"}},
+		{ImportPath: "google.golang.org/grpc/internal", Name: "internal", Module: &target.CapabilityModule{Path: "google.golang.org/grpc", Version: "v1.83.2"}},
 		{ImportPath: "modernc.org/libc", Name: "libc", Module: &target.CapabilityModule{Path: "modernc.org/libc", Version: "v1.72.3"}},
 	}}
 	adapters := []Adapter{
-		{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="},
+		{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="},
 		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
 	}
 
