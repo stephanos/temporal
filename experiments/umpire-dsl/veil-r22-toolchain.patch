@@ -1,0 +1,130 @@
+--- a/model/Umpire/Command/Syntax.lean
++++ b/model/Umpire/Command/Syntax.lean
+@@ -1,5 +1,6 @@
+ import Lean.Elab.Command
+ import Lean.Elab.ElabRules
++import Lean.Linter.UnusedVariables
+ import Umpire.Command.Catalog
+ import Umpire.Command.Finite
+ import Umpire.Command.Records
+@@ -134,7 +135,7 @@
+ -- A member's own doc comment goes after its bar, not before it. Before the bar it would be
+ -- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
+ -- repetition would swallow it.
+-elab doc?:(docComment)? &"enum" name:ident
++elab (name := enumDeclaration) doc?:(docComment)? &"enum" name:ident
+     constructors:("|" (docComment)? ident (bracketedBinder)*)+ : command => do
+   let declared ← constructors.mapM fun constructor => do
+     let parts := constructor.raw
+@@ -168,7 +169,13 @@
+       name := name.getId.toString
+       id := ← definitionIdHere "enum" name.getId.toString })
+ 
++/-- A constructor field an `enum` declares is a field name, as it is in the `inductive` the command
++expands to, which the unused-variables linter already leaves alone. -/
++@[unused_variables_ignore_fn]
++def ignoreEnumFields : Lean.Linter.IgnoreFunction := fun _ stack _ =>
++  stack.any fun (syntaxNode, _) => syntaxNode.isOfKind ``enumDeclaration
+ 
++
+ /-! ### The `property` command
+ 
+ A Property names its machine and a Lean predicate over the machine's steps: `Step → Bool` for a
+@@ -801,8 +808,8 @@
+ 
+ private unsafe def evalDiagnosticUnsafe (diagnosticName : Name) :
+     Elab.Term.TermElabM (Option (String × String)) :=
+-  let pair := mkApp2 (.const ``Prod [levelZero, levelZero]) (.const ``String []) (.const ``String [])
+-  Meta.evalExpr (Option (String × String)) (.app (.const ``Option [levelZero]) pair)
++  let pair := mkApp2 (.const ``Prod [Level.zero, Level.zero]) (.const ``String []) (.const ``String [])
++  Meta.evalExpr (Option (String × String)) (.app (.const ``Option [Level.zero]) pair)
+     (.const diagnosticName [])
+ 
+ @[implemented_by evalDiagnosticUnsafe]
+@@ -811,12 +818,12 @@
+ 
+ private unsafe def evalStuckStateUnsafe (diagnosticName : Name) :
+     Elab.Term.TermElabM (Option String) :=
+-  Meta.evalExpr (Option String) (.app (.const ``Option [levelZero]) (.const ``String []))
++  Meta.evalExpr (Option String) (.app (.const ``Option [Level.zero]) (.const ``String []))
+     (.const diagnosticName [])
+ 
+ private unsafe def evalStringListUnsafe (diagnosticName : Name) :
+     Elab.Term.TermElabM (List String) :=
+-  Meta.evalExpr (List String) (.app (.const ``List [levelZero]) (.const ``String []))
++  Meta.evalExpr (List String) (.app (.const ``List [Level.zero]) (.const ``String []))
+     (.const diagnosticName [])
+ 
+ /-- A list of keys read off a table the command just emitted. -/
+@@ -1501,7 +1508,7 @@
+   if bindings.isEmpty then constructor.getId.toString
+   else
+     let written := bindings.toList.map fun (field, value) =>
+-      let rendered := (value.raw.reprint.getD "").trim
++      let rendered := (value.raw.reprint.getD "").trimAscii.toString
+       s!"{field.getId} := {rendered}"
+     let joined := ", ".intercalate written
+     s!"{constructor.getId} ({joined})"
+@@ -1863,7 +1870,7 @@
+         | throwErrorAt stepRef (stepSignatureMessage declName)
+       pure (outcomeName, factName)
+ 
+-elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => do
++elab (docComment)? machineKeyword name:ident keys:machineKey+ : command => do
+   -- A machine's generated definitions are as long as its state space: `DESIGN.md` section 3's
+   -- protocol machine has 224 states, so its key array, its terminal list and its enumerated table
+   -- are lists of that length, and building a list term that long recurses deeper than a Lean file
+--- a/model/Umpire/Search/Tests/Fixtures.lean
++++ b/model/Umpire/Search/Tests/Fixtures.lean
+@@ -313,7 +313,7 @@
+       simp [orderedQuery, fixtureQuery, policy, ModelCompleteness.ofTarget, target,
+         CheckedModel.withEquivalentMachine, baseTarget, model, targetAuthoring,
+         DraftModel.make, modelSpec, finitePlanning] at evidenceEq
+-      cases Option.some.inj evidenceEq
++      subst evidenceEq
+       simp)
+     (by
+       intro _ _ candidate
+--- a/model/Umpire/Value/Encoding.lean
++++ b/model/Umpire/Value/Encoding.lean
+@@ -63,7 +63,8 @@
+   | ind n ih =>
+     by_cases zero : n = 0
+     · subst n
+-      simp [encodeNat, decodeNat]
++      rw [encodeNat]
++      simp [decodeNat]
+     · have smaller : n / 2 < n := by omega
+       have prior :=  ih (n / 2) smaller
+       by_cases even : n % 2 = 0
+--- a/model/lake-manifest.json
++++ b/model/lake-manifest.json
+@@ -15,10 +15,10 @@
+    "type": "git",
+    "subDir": null,
+    "scope": "leanprover-community",
+-   "rev": "4488d40d070b9700d4d5a6aa342f0d40c31b2a2d",
++   "rev": "023ce7d62a0531e22a5331e20b587817a80d49ff",
+    "name": "batteries",
+    "manifestFile": "lake-manifest.json",
+-   "inputRev": "v4.33.0",
++   "inputRev": "v4.32.0",
+    "inherited": false,
+    "configFile": "lakefile.toml"},
+   {"url": "https://github.com/Lean-zh/binary.git",
+--- a/model/lakefile.lean
++++ b/model/lakefile.lean
+@@ -6,7 +6,7 @@
+   lintDriver := "umpire-lint"
+   builtinLint? := true
+ 
+-require "leanprover-community" / batteries @ git "v4.33.0"
++require "leanprover-community" / batteries @ git "v4.32.0"
+ 
+ require protobuf from git
+   "https://github.com/Lean-zh/protobuf.git"@"406da521c0ebb47207be28e3d9ef738de95a4dd3"
+--- a/model/lean-toolchain
++++ b/model/lean-toolchain
+@@ -1 +1 @@
+-leanprover/lean4:v4.33.1
++leanprover/lean4:v4.32.0

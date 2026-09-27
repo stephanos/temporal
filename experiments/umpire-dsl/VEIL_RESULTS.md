@@ -187,3 +187,73 @@ applicable, and each cites this receipt (R13). The real `model/lakefile.lean` an
 `lake-manifest.json` were not touched. The next attempt needs either a Veil revision that declares
 a Lean toolchain at or above the model's, or a model toolchain that Veil supports. Such an attempt
 should re-check the purity condition too, because the entry is `IO` whatever the toolchain.
+
+## fn-88 R22 probe: concrete checker under Veil's declared toolchain
+
+Date: 2026-09-26 (local). Task `fn-88-veil-concrete-checker-as-the-umpire.11`. **Decision: `adopt`**
+under the amended adopt conditions (spec Edge Cases, 2026-09-27). On Lean 4.32.0 the checker
+closure builds unchanged, the whole model builds, and `umpire-check-goldens` passes byte-identical.
+`lint-model`'s steps pass in the copy with Veil required. The model needs 17 inserted and 9 deleted
+lines in three Lean files plus the three pin files. None of it alters a Property, a fingerprint, or
+a golden.
+
+### Setup
+
+- The copy was taken the way R1 took it: `git archive HEAD model` plus the nine testpilot `.proto`
+  inputs and the checkout's `proto/api.binpb`, at `59ca34bf47`. It lived in a session scratch
+  directory outside the repository, was built cold without the checkout's `.lake`, and was deleted
+  after the run. The real `model/` was not touched.
+- Lean 4.32.0 was installed with `elan toolchain install leanprover/lean4:v4.32.0` (39 s). Lake ran
+  from that toolchain's `bin` with the Makefile's macOS `SDKROOT`/`CC`/`CXX`, the pinned `protoc`
+  29.5 (`Testpilot.Protocol` shells out to it), and Node 24.14.1 on `PATH`.
+- Edits to the copy: `lean-toolchain` set to `leanprover/lean4:v4.32.0`; Batteries moved from
+  `v4.33.0` to `v4.32.0`; one `require veil from git
+  "https://github.com/verse-lab/veil.git"@"517f2badbf9a7ba2b18a72242351ff20943cbdd7"` added
+  after `protobuf`; then the model-side changes below.
+
+### Receipt
+
+| Field | Value |
+| --- | --- |
+| Commit | `verse-lab/veil@517f2badbf9a7ba2b18a72242351ff20943cbdd7`. Re-checked `main` with `git ls-remote` on the probe date: still HEAD, the R1 commit. |
+| Toolchain | `leanprover/lean4:v4.32.0` (Lean 4.32.0, commit `8c9756b2`), Veil's declared toolchain. |
+| Requirement revisions | Batteries `v4.32.0` = `023ce7d62a0531e22a5331e20b587817a80d49ff`, the same revision Veil pins. protobuf stays at `406da521c0ebb47207be28e3d9ef738de95a4dd3` and binary at `c1adb7380ea3a538cd800bc5974a1fa05d8b488e`: both already declare `leanprover/lean4:v4.32.0` in their own `lean-toolchain` at those revisions, so neither moves. Veil's graph resolves as in R1: proofwidgets `6e311e2a`, aesop `a7dbf0c6` (`v4.32.0`), Loom `27c03ba8`, smt `922af463`, Qq `38d591e7`, cvc5 `a3ffc29a`, auto `1175ff6b`. Batteries no longer shadows Veil's pin. |
+| Checker closure builds unchanged | Yes. `lake build Veil.Core.Tools.ModelChecker.Concrete.Checker` completed (362 jobs) with no Veil source edit. R1's first error (`Veil/Util/TreeSetMisc.lean:71:30`) and the `Veil.Frontend.DSL.State.Types` failures do not occur. |
+| Imported closure | Unchanged from R1: 31 Veil modules, 132 Aesop, Batteries, `Init`/`Lean`/`Std`. Batteries arrived as a prebuilt Lake cache archive (`build.barrel`, 97 MB) instead of a source build; Aesop and Veil were compiled. Veil's own `preferReleaseBuild` fetch failed ("building from source; failed to fetch GitHub release") and fell back to source. |
+| Loom, lean-smt, mathlib, widget modules in the closure | None as Lean imports, as in R1. `lake update` still clones Loom, smt, cvc5, auto, Qq, and proofwidgets. `veil/widgetJsAll` still runs `npm` and a rollup build (5.2 s, 88 MiB of `node_modules`), so **Node and npm are build prerequisites** of any model that requires Veil. `mise.toml` pins no Node today. |
+| Model-side changes on 4.32.0 | 6 files, 21 insertions and 13 deletions, saved as [`veil-r22-toolchain.patch`](veil-r22-toolchain.patch) (applies to `HEAD` with `git apply`). Counts are inserted/deleted lines. Pin files: `model/lean-toolchain` (1/1), `model/lakefile.lean` (1/1, the Batteries tag), `model/lake-manifest.json` (2/2, the Batteries `rev` and `inputRev`). Lean files: `model/Umpire/Search/Tests/Fixtures.lean` (1/1), `model/Umpire/Value/Encoding.lean` (2/1), `model/Umpire/Command/Syntax.lean` (14/7). The patch omits the Veil `require` and its manifest entries, which belong to task .5. Outside `model/`, task .12 must also move `mise.toml` (`"github:leanprover/lean4" = "4.32.0"`); CI installs Lean through `jdx/mise-action` from that file, and `.github/workflows/umpire.yml` pins no Lean version itself. |
+| Why each Lean change | `Fixtures.lean:316`: 4.32's `simp` also rewrites `some a = some b` to `a = b`, so `cases Option.some.inj evidenceEq` becomes `subst evidenceEq` (a compiler error without it). `Encoding.lean:66`: the builtin lint's looping-simp check flags `simp [encodeNat, …]` on the `n = 0` branch, so the branch unfolds once with `rw [encodeNat]`. `Syntax.lean`: 4.32 reports 23 warnings that 4.33.1 does not, and `lint-model` builds with `--wfail`: `Lean.levelZero` and `String.trim` are deprecated (now `Level.zero` and `trimAscii.toString`); the `machine` command's unused `doc?` binding is dropped; and the unused-variables linter flags every constructor field an `enum` declares (17 warnings in `Nexus/Caller/Model.lean`, `Nexus/Success/Tests.lean`, and `Nexus/Tests/Commands.lean`). Field names are authored vocabulary (`handlerError (retryable := false)`), so they are not renamed. The `enum` elaborator gets a syntax-kind name and an `@[unused_variables_ignore_fn]` for its own syntax, the same exemption the linter already gives `inductive` constructor binders. |
+| Properties, fingerprints, goldens | Unchanged. `umpire-goldens --output-root` compared with `diff -ru` against the four `UMPIRE_GOLDEN_DIRECTORIES` produced no difference, both before and after the Lean changes. No Property, Scenario, Query, or model table is edited by the patch. |
+| Whole-model build | `lake build` of every default target completed (599 jobs) with zero warnings after the patch. |
+| `lake update` | 30.89 s wall, cold, with the 4.32.0 toolchain already installed. `.lake/packages` was 81,184 KiB (79 MiB) after the update and 1,232,156 KiB (1.2 GiB) after the model build. The copy's whole `.lake` was 2.3 GiB after the model build. |
+| Cold build of the checker closure | 73.52 s wall (161.83 s user), 362 jobs. |
+| Warm build of the checker closure | 1.21 s wall. |
+| Cold build of the whole model | 1,803 s wall in two passes: 278.48 s until the first pass stopped on the `Fixtures.lean` error and a missing `protoc` on `PATH`, then 1,524.93 s. The long poles were `Temporal.Feature.Nexus.Caller.Tests` (635 s), `Testpilot.Carried` (159 s), and `Temporal.API.Types` (108 s). Rebuilding after the `Syntax.lean` change took 1,003.48 s. |
+| Peak RSS | 917,798,912 bytes for the checker closure build and 3,348,480,000 bytes for the model build: `maximum resident set size` from `/usr/bin/time -l`, the largest single process in the tree. |
+| `lint-model` in the copy | Passes with Veil required, run as the Makefile's steps under `LEAN_NUM_THREADS=1`. `umpire-check-inventory` matched. `umpire-lint-tests`, both controlled violations, and `umpire-lint` passed; `umpire-lint`, the complete-mode import-graph walk, took 66 s. The `lake --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs` step first failed its build phase on the 23 warnings above (2,094 s single-threaded). With the patch, the build phase completed all 409 jobs with no warning. The lint pass after it was killed with `SIGKILL` three times while another agent's `lint-model` ran on the checkout, once with the Veil `require` removed. On a quiet host it passed: 66.66 s wall, 0 warnings, 6,020,644,864 bytes peak RSS for the `lake` process, and a 19.6 GB peak memory footprint (compressed). A sampled 4.33.1 run of the same step on the checkout reached 5.09 GB RSS, so most of the memory belongs to the step itself, not to Veil or to 4.32.0. |
+| Checker entry purity | Unchanged from R1: `findReachable` is monadic, `[MonadLiftT BaseIO m] [MonadLiftT IO m]`, takes an `IO.CancelToken`, and drives an unfueled `while` loop in `breadthFirstSearchSequential`; `retraceSteps` is `partial`. |
+| Running it during command elaboration | Shown. A throwaway file importing only `Lean` and `Veil.Core.Tools.ModelChecker.Concrete.Checker` defined a five-state counter `EnumerableTransitionSystem` with one `tick` action. It called `findReachable (m := IO)` with `parallelCfg := none` from an `elab … : command` (`CommandElabM`) and from `#eval` in `TermElabM`. Both lift `IO` implicitly. With the invariant `n < 3` it returned `foundViolation … safetyFailure [belowThree]` with a trace from state 0 of 3 steps; with `True` it returned `noViolationFound` after exploring 5 states. Elaboration took 2.12 s wall and printed no progress output. A second throwaway file importing `Umpire`, `Temporal`, and the checker together elaborated with no name clash. |
+| Frontier order and threading | Unchanged from R1: a deterministic single-threaded FIFO with first-discovery parents when `parallelCfg = none`, and `IO.asTask` shards otherwise. `findReachable` fixes the fingerprint to `UInt64` (`hash`), so distinct states with equal 64-bit hashes merge. Under the amended conditions this is the trust assumption of a `veil` absence answer, which `AUTHORING.md` must state. |
+| `@[expose]` facts | Unchanged from R1, re-read at the same commit: `TransitionSystem`, `ExecutionOutcome`, `Trace`, `Interface`, `Concrete/Core`, `Concrete/Containers`, and `Concrete/Subtypes` are `@[expose] public section`, so the definitions R7 unfolds are exposed. `Checker`, `Sequential`, `SearchContext`, `MapReduce`, and `Progress` are not. |
+| Bounds the checker supports | Unchanged from R1: a depth bound, stop at first violation, deadlock, and assertion stops. There is no state-count bound. |
+
+Concurrent load: the host is a macOS arm64 machine with 8 cores and 16 GiB of RAM. Other agents'
+`lake` builds and a `lint-model` run shared it. One-minute load averages were 13 during the checker
+build, 8 to 18 during the model build, 6 to 13 during the first lint run, and 45 to 68 while the
+builtin lint was being killed, and 3 when it passed. Free disk fell from 15 GiB to 6 GiB. All times are contended single
+runs, not baselines, and no decision depends on them.
+
+### Decision
+
+Each amended `adopt` condition holds. The closure builds unchanged under Veil's declared toolchain.
+It imports no Loom, lean-smt, mathlib, or widget module. The `IO` entry runs from a command
+elaborator. The definitions R7 unfolds are exposed. The R22 `defer-incompatible` clause does not
+apply, because no model file needed a change to a Property, a fingerprint, or a golden. Three
+obligations carry forward:
+
+- Task .12 applies `veil-r22-toolchain.patch`, moves `mise.toml`, and re-runs every gate on the
+  real checkout, where `Umpire/Command/Syntax.lean` and `Umpire/Value/Encoding.lean` may have moved
+  since `59ca34bf47`. The builtin lint needs a host with no concurrent `lint-model`.
+- Task .5 adds the `require` and names Node and npm as build prerequisites.
+- Task .6 wraps every `veil` witness in the R10 replay gate, and `AUTHORING.md` states the 64-bit
+  hash-compaction assumption.
