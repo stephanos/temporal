@@ -153,7 +153,9 @@ takes about 4 s in the gate, against about 35 s before fn-90.4 removed its 30 s 
 
 **Environment notes.** On macOS, mise's lean4 `clang` shadows the system one and fails cgo builds
 with `stddef.h not found`; `mise.toml` sources `develop/mise-env.sh`, which sets `CC=/usr/bin/clang`
-unless `CC` is already set, and the Makefile exports the xcrun clang, so no manual `CC` is needed.
+unless `CC` is already set, and the Makefile exports the xcrun clang, so `make` targets need no
+manual `CC`. A direct `go test` or `go vet` in a shell with no mise hook still does (see the
+carried-forward item).
 Live tests still need a physical `TMPDIR`
 (`TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P)`; the default macOS path traverses the `/var` symlink).
 `go vet -tags test_dep` is not the gate: the live suite builds with `-tags 'test_dep integration'`,
@@ -166,7 +168,8 @@ lives in the clone's `.git` common-dir, so every task reads `todo` and `start`, 
 `spec close` refuse until they are replayed there.
 
 **Repeating a live test.** `make umpire-repeat-run SELECT='<regex>' COUNT=<n> MODE=process|in-process
-RECORD=<file.jsonl>` runs a `^TestTestpilot...` selection `n` times. `process` starts one test
+[RECORD=<file.jsonl>] [UMPIRE_REPEAT_FLAGS=...]` runs a `^TestTestpilot...` selection `n` times;
+`RECORD` defaults to a timestamped file under `./.build/umpire-repeat/`. `process` starts one test
 process per iteration; `in-process` runs one process with `-count=n`. It builds the test binary
 once and appends one JSON record per iteration, with the failure signature each failing test
 prints (`TESTPILOT-SIGNATURE`) and, through `UMPIRE_REPEAT_RUN_DIR`, the captured Runs. It then
