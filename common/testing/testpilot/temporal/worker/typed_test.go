@@ -173,6 +173,16 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 				require.True(t, proto.Equal(answer, raw.Payload()))
 				require.False(t, bridge.published)
 			}},
+		// A synchronous reply that carries no payload answers the caller with the SDK's nil
+		// payload, which the caller's Await reads as its VALUE.
+		{"synchronous without payload", &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{}}}}},
+			func(t *testing.T, result nexus.HandlerStartOperationResult[any], err error, bridge *testBridge) {
+				require.NoError(t, err)
+				payload, err := converter.GetDefaultDataConverter().ToPayload(result.(*nexus.HandlerStartOperationResultSync[any]).Value)
+				require.NoError(t, err)
+				require.True(t, proto.Equal(&commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/null")}}, payload), "payload %v", payload)
+				require.False(t, bridge.published)
+			}},
 		{"asynchronous handle", &testpilotspb.NexusHandlerReply{HandleSlotId: "handle", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}}}}},
 			func(t *testing.T, result nexus.HandlerStartOperationResult[any], err error, bridge *testBridge) {
 				require.NoError(t, err)
