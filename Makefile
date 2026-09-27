@@ -929,14 +929,17 @@ umpire-check-veil-manifest:
 umpire-check-veil-pin:
 	@printf $(COLOR) "Check the pinned Veil commit..."
 	@$(MAKE) --no-print-directory umpire-check-veil-manifest
-	@planted=$$(mktemp); diagnostics=$$(mktemp); \
+	@set -eu; \
+		planted=$$(mktemp); diagnostics=$$(mktemp); \
 		trap 'rm -f "$$planted" "$$diagnostics"' EXIT; \
-		sed 's/"rev": "517f2badbf9a7ba2b18a72242351ff20943cbdd7"/"rev": "0000000000000000000000000000000000000000"/' model/lake-manifest.json >"$$planted"; \
+		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
+		other=0000000000000000000000000000000000000000; \
+		awk -v other="$$other" '/"rev":/ {line[++n]=$$0; rev=n; next} {line[++n]=$$0} /"name": "veil"/ {sub(/"rev": "[0-9a-f]*"/, "\"rev\": \"" other "\"", line[rev])} END {for (i = 1; i <= n; i++) print line[i]}' model/lake-manifest.json >"$$planted"; \
 		status=0; \
 		$(MAKE) --no-print-directory umpire-check-veil-manifest UMPIRE_VEIL_MANIFEST="$$planted" 2>"$$diagnostics" >/dev/null || status=$$?; \
-		test "$$status" -ne 0; \
-		expected="$$planted resolves Veil '0000000000000000000000000000000000000000', model/lakefile.lean requires 517f2badbf9a7ba2b18a72242351ff20943cbdd7"; \
-		grep -qxF "$$expected" "$$diagnostics"
+		test "$$status" -ne 0 || { echo "umpire-check-veil-manifest accepted a manifest that resolves Veil $$other" >&2; exit 1; }; \
+		expected="$$planted resolves Veil '$$other', model/lakefile.lean requires $$required"; \
+		grep -qxF "$$expected" "$$diagnostics" || { echo "unexpected diagnostic:" >&2; cat "$$diagnostics" >&2; exit 1; }
 
 umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \

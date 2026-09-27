@@ -215,28 +215,30 @@ private def observeEndpoint (query : CheckedQuery LawStatement)
   let requested := monitored.monitors.requested
   let fired := monitored.monitors.firedClauses state.fired
   let covered := !query.requireFiring || requested.all fired.contains
-  let trace := traceOf context state
-  let mut triggers := #[]
-  let mut witnessed := observer.witnessed
-  for (propertyId, clauseId) in fired do
-    unless witnessed.contains (propertyId, clauseId) do
-      triggers := triggers ++ (← clauseEvidence query trace propertyId clauseId)
-      witnessed := witnessed ++ [(propertyId, clauseId)]
-  let observations := observer.observations
-  let observations := { observations with
-    nonempty := true
-    unresolved := observations.unresolved || unresolved
-    required := (observations.required ++ requested).eraseDups
-    triggers := observations.triggers ++ triggers.toList
-    counterexample := if violated && observations.counterexample.isNone then some trace
-      else observations.counterexample }
   let stops := match query.form with
     | .verify _ => false
     | .findViolation _ => violated
     | .find _ => !violated && !unresolved && covered
     | .pick _ => covered
+  let newlyFired := fired.filter (!observer.witnessed.contains ·)
+  let firstCounterexample := violated && observer.observations.counterexample.isNone
+  -- Rebuilding a trace walks the parent log, so only an endpoint that reports one pays for it.
+  let trace? := if stops || firstCounterexample || !newlyFired.isEmpty then
+    some (traceOf context state) else none
+  let mut triggers := []
+  if let some trace := trace? then
+    for (propertyId, clauseId) in newlyFired do
+      triggers := triggers ++ (← clauseEvidence query trace propertyId clauseId)
+  let observations := observer.observations
+  let observations := { observations with
+    nonempty := true
+    unresolved := observations.unresolved || unresolved
+    required := (observations.required ++ requested).eraseDups
+    triggers := observations.triggers ++ triggers
+    counterexample := if firstCounterexample then trace? else observations.counterexample }
+  let witnessed := observer.witnessed ++ newlyFired
   pure ({ observer with observations, witnessed, endpoints := observer.endpoints + 1 },
-    if stops then some trace else none)
+    if stops then trace? else none)
 
 private def Observer.finish (query : CheckedQuery LawStatement) (observer : Observer)
     (context : Context) : PlanningObservations := { observer.observations with
