@@ -198,7 +198,7 @@ func sortedByID[T any](entries []T, noun, idNoun, path string, fields func(T) (i
 	previous := ""
 	for i, entry := range sorted {
 		id, value := fields(entry)
-		if !validEnvironmentID(id) || !utf8.ValidString(id) {
+		if !ir.ValidID(id) || !utf8.ValidString(id) {
 			return nil, preparationError(fmt.Errorf("%s %d has an invalid %s", noun, i, idNoun), path)
 		}
 		if value == "" || !utf8.ValidString(value) {
@@ -215,18 +215,4 @@ func sortedByID[T any](entries []T, noun, idNoun, path string, fields func(T) (i
 		}
 	}
 	return sorted, nil
-}
-
-func validEnvironmentID(id string) bool {
-	if len(id) == 0 || len(id) > 256 {
-		return false
-	}
-	for _, c := range id {
-		switch {
-		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '_', c == '-', c == '.':
-		default:
-			return false
-		}
-	}
-	return true
 }

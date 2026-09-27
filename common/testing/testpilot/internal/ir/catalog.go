@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"iter"
 	"math/bits"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -40,12 +39,10 @@ type Error struct {
 
 func (e *Error) Error() string { return fmt.Sprintf("%s at %s: %s", e.Category, e.Path, e.Detail) }
 
-func invalid(category ErrorCategory, path, detail string) error {
-	if len(path) > 256 {
-		path = path[:256]
-	}
-	return &Error{Category: category, Path: path, Detail: detail}
-}
+var (
+	invalid = Invalid
+	missing = IsNil
+)
 
 type Limits struct{ Depth, Work, Bytes, Fanout int64 }
 
@@ -269,19 +266,6 @@ func (c *Catalog) Method(name string) (protoreflect.MethodDescriptor, error) {
 		return nil, invalid(Unsupported, "method", "streaming methods are unsupported")
 	}
 	return method, nil
-}
-
-func missing(value any) bool {
-	if value == nil {
-		return true
-	}
-	reflected := reflect.ValueOf(value)
-	switch reflected.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
-		return reflected.IsNil()
-	default:
-		return false
-	}
 }
 
 func inspectSurface(message protoreflect.Message, b *budget, path string) error {
