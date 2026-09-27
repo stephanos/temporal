@@ -234,6 +234,7 @@ func TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext(t *testin
 		"capture_id":             {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "capture"}},
 		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "request", Value: "request"}}},
 		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
+		"instance_value_id":      {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "value"}},
 	} {
 		reference := correlatedReference(value)
 		for site, mutate := range map[string]func(*testpilotspb.CorrelatedRule){

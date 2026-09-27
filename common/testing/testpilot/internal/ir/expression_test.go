@@ -371,7 +371,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		admitted []protoreflect.Name
 	}{
 		{programSite, []protoreflect.Name{"slot_id", "outcome", "run", "environment_binding_id"}},
-		{contractSite, []protoreflect.Name{"observation_id", "run_event", "capture_id"}},
+		{contractSite, []protoreflect.Name{"observation_id", "run_event", "capture_id", "instance_value_id"}},
 		{Site{Context: CorrelatedContext, Path: "correlated"}, []protoreflect.Name{"evidence_field_id", "correlated_capture", "correlated_step"}},
 		{Site{Context: EvidenceLiftContext, Path: "lift"}, []protoreflect.Name{"projected_value"}},
 	} {
@@ -399,6 +399,77 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 	}
 	_, err := c.BindExpression(Site{Path: "unset"}, literal(boolean(true)), nil, nil, DefaultLimits())
 	require.Equal(t, &Error{Category: Malformed, Path: "expression", Detail: "expression context is required"}, err)
+}
+
+func instanceValue(id string) *testpilotspb.Expression {
+	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: id}})
+}
+
+// An instance value stands for the literal each Rule instance inlines: it binds where its declared
+// type is the type the literal would take there (its context's, or text without one), costs what
+// that literal costs over its reference, and is reported once per read.
+func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
+	c := fixtureCatalog(t)
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
+	intType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_INT64))
+	enumType := boundType(t, c, named("fixture.State", true))
+	scope := map[Reference]Binding{
+		{Kind: ObservationReference, ID: "text"}:  {Type: textType, Available: true},
+		{Kind: ObservationReference, ID: "int"}:   {Type: intType, Available: true},
+		{Kind: ObservationReference, ID: "state"}: {Type: enumType, Available: true},
+		{Kind: InstanceValueReference, ID: "t"}:   {Type: textType, Available: true},
+		{Kind: InstanceValueReference, ID: "n"}:   {Type: intType, Available: true},
+		{Kind: InstanceValueReference, ID: "e"}:   {Type: enumType, Available: true},
+	}
+	observation := func(id string) *testpilotspb.Expression {
+		return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: id}})
+	}
+	mismatch := func(path string) *Error {
+		return &Error{Category: TypeMismatch, Path: contractSite.Path + path + ".reference.instance_value_id", Detail: "instance value is used where its declared type is not the expected type"}
+	}
+	for _, tc := range []struct {
+		name       string
+		expression *testpilotspb.Expression
+		reads      []string
+		want       *Error
+	}{
+		{"context right", equal(observation("int"), instanceValue("n")), []string{"n"}, nil},
+		{"context left", equal(instanceValue("e"), observation("state")), []string{"e"}, nil},
+		{"text without context", all(present(instanceValue("t")), equal(instanceValue("t"), literal(text("x")))), []string{"t", "t"}, nil},
+		{"integer without context", present(instanceValue("n")), nil, mismatch(".present")},
+		{"enum beside a literal", equal(instanceValue("e"), literal(enumLiteral("READY"))), nil, mismatch(".compare.left")},
+		{"declared type not expected", equal(observation("int"), instanceValue("t")), nil, mismatch(".compare.right")},
+		{"boolean context", negate(instanceValue("t")), nil, mismatch(".not")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			bound, err := c.BindExpression(contractSite, tc.expression, nil, scope, DefaultLimits())
+			if tc.want != nil {
+				require.Equal(t, tc.want, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.reads, bound.InstanceValueReads())
+		})
+	}
+	for _, tc := range []struct {
+		id, observation string
+		value           *testpilotspb.Value
+		typ             Type
+	}{
+		{"t", "text", text("a longer text value"), textType},
+		{"n", "int", signed("-42"), intType},
+		{"e", "state", enumLiteral("READY"), enumType},
+	} {
+		t.Run("work/"+tc.id, func(t *testing.T) {
+			referenced, err := c.BindExpression(contractSite, equal(observation(tc.observation), instanceValue(tc.id)), nil, scope, DefaultLimits())
+			require.NoError(t, err)
+			inlined, err := c.BindExpression(contractSite, equal(observation(tc.observation), literal(tc.value)), nil, scope, DefaultLimits())
+			require.NoError(t, err)
+			work, err := c.InstanceValueWork(tc.id, tc.value, tc.typ)
+			require.NoError(t, err)
+			require.Equal(t, inlined.BindingWork(), referenced.BindingWork()+work)
+		})
+	}
 }
 
 // AdmitReferences locates a rejected reference at the path BindExpression reports, through every

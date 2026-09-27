@@ -82,6 +82,7 @@ func TestPrepareLocatesAReferenceOutsideTheProgramContext(t *testing.T) {
 		"model_value":        {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "definition", Value: "value"}}},
 		"correlated_step":    {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "definition"}}},
 		"projected_value":    {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
+		"instance_value_id":  {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "value"}},
 	}
 	for name, value := range references {
 		expression := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}}

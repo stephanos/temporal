@@ -12,7 +12,7 @@ import (
 
 func (a *admission) bindCaptures(m *machine) error {
 	limits := a.prepared.limits
-	if err := add(&a.captures, int64(len(m.source.Captures)), limits.MaxCaptures); err != nil {
+	if err := a.count(&a.captures, int64(len(m.source.Captures)), limits.MaxCaptures, nil); err != nil {
 		return err
 	}
 	for i, capture := range m.source.Captures {
@@ -33,7 +33,7 @@ func (a *admission) bindCaptures(m *machine) error {
 			return err
 		}
 		bytes := a.valueBytes(bound)
-		if err := add(&a.captureBytes, bytes+8, limits.MaxCaptureBytes); err != nil {
+		if err := a.count(&a.captureBytes, bytes+8, limits.MaxCaptureBytes, nil); err != nil {
 			return err
 		}
 		m.captures[capture.CaptureId] = i
@@ -45,6 +45,9 @@ func (a *admission) scopeFor(m *machine, assigned []byte, allAvailable bool) map
 	scope := maps.Clone(a.scope)
 	for id, index := range m.captures {
 		scope[ir.Reference{Kind: ir.CaptureReference, ID: id}] = ir.Binding{Type: m.captureTypes[index], Available: allAvailable || assigned[index] != 0}
+	}
+	for id, typ := range m.instanceValues {
+		scope[ir.Reference{Kind: ir.InstanceValueReference, ID: id}] = ir.Binding{Type: typ, Available: true}
 	}
 	// Structural checking permits references; reachable configurations check availability below.
 	if allAvailable {
@@ -211,7 +214,8 @@ func (a *admission) refine(e *ir.Expression, desired bool, facts map[ir.Referenc
 			}
 			break
 		}
-		if ref.Kind != 0 {
+		// An instance value, like the literal each Rule instance inlines for it, is always present.
+		if ref.Kind != 0 && ref.Kind != ir.InstanceValueReference {
 			if value, known := facts[ref]; known {
 				if value != desired {
 					return nil, nil
@@ -234,23 +238,31 @@ func (a *admission) refine(e *ir.Expression, desired bool, facts map[ir.Referenc
 	return []map[ir.Reference]bool{facts}, nil
 }
 
+// boundWork charges each Rule instance's per-event bound, a plain Rule as one instance, with each
+// instance value read costing what that instance's inlined literal would.
 func (a *admission) boundWork() error {
 	limits := a.prepared.limits
 	for _, m := range a.prepared.rules {
-		maximum := int64(1)
-		for _, outgoing := range m.outgoing {
-			for _, indexes := range outgoing {
-				work, err := a.transitionWork(m, indexes)
-				if err != nil {
-					return err
-				}
-				if work > maximum {
-					maximum = work
+		instances := m.instances
+		if len(instances) == 0 {
+			instances = []ruleInstance{{}}
+		}
+		for _, instance := range instances {
+			maximum := int64(1)
+			for _, outgoing := range m.outgoing {
+				for _, indexes := range outgoing {
+					work, err := a.transitionWork(m, indexes, instance.values)
+					if err != nil {
+						return err
+					}
+					if work > maximum {
+						maximum = work
+					}
 				}
 			}
-		}
-		if err := add(&a.prepared.workPerEvent, maximum, limits.MaxWorkPerEvent); err != nil {
-			return err
+			if err := add(&a.prepared.workPerEvent, maximum, limits.MaxWorkPerEvent); err != nil {
+				return err
+			}
 		}
 	}
 	events := a.prepared.program.Limits().MaxRunEvents
@@ -259,18 +271,30 @@ func (a *admission) boundWork() error {
 	}
 	return nil
 }
-func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
+
+// inlined is the literal e is, or the value the Rule instance assigning values inlines for it.
+func inlined(e *ir.Expression, values map[string]*testpilotspb.Value) (*testpilotspb.Value, bool) {
+	if e.Operator() == ir.Literal {
+		return e.Literal(), true
+	}
+	if e.Operator() == ir.ReferenceValue && e.Reference().Kind == ir.InstanceValueReference {
+		return values[e.Reference().ID], true
+	}
+	return nil, false
+}
+
+func (a *admission) expressionWork(e *ir.Expression, values map[string]*testpilotspb.Value) (int64, error) {
 	if err := a.charge(1); err != nil {
 		return 0, err
 	}
 	work := int64(1)
-	if e.Operator() == ir.Literal {
-		if err := add(&work, int64(proto.Size(e.Literal())), a.prepared.limits.MaxWorkPerEvent); err != nil {
+	if literal, ok := inlined(e, values); ok {
+		if err := add(&work, int64(proto.Size(literal)), a.prepared.limits.MaxWorkPerEvent); err != nil {
 			return 0, err
 		}
 	}
 	for _, child := range e.Children() {
-		cost, err := a.expressionWork(child)
+		cost, err := a.expressionWork(child, values)
 		if err != nil {
 			return 0, err
 		}
@@ -282,8 +306,8 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 	if e.Operator() == ir.Compare {
 		for _, child := range e.Children() {
 			bytes := a.valueBytes(child.Type())
-			if child.Operator() == ir.Literal {
-				bytes = int64(proto.Size(child.Literal()))
+			if literal, ok := inlined(child, values); ok {
+				bytes = int64(proto.Size(literal))
 			}
 			if err := add(&work, bytes, a.prepared.limits.MaxWorkPerEvent); err != nil {
 				return 0, err
@@ -334,11 +358,11 @@ func (a *admission) refineLogical(e *ir.Expression, desired bool, facts map[ir.R
 	return result, nil
 }
 
-func (a *admission) transitionWork(m *machine, indexes []int) (int64, error) {
+func (a *admission) transitionWork(m *machine, indexes []int, values map[string]*testpilotspb.Value) (int64, error) {
 	limits := a.prepared.limits
 	work := int64(1)
 	for _, index := range indexes {
-		cost, err := a.expressionWork(m.transitions[index])
+		cost, err := a.expressionWork(m.transitions[index], values)
 		if err != nil {
 			return 0, err
 		}
