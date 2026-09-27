@@ -1,6 +1,7 @@
 import Temporal.Feature.Nexus.Pair.Model
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
+import Umpire.Search.Tests.Differential
 
 /-!
 # What the pair Model says
@@ -82,6 +83,20 @@ property unknownArmField
   machine: pair
   when: complete (succeeded)
   relates: nexusOperationCompleted.scheduled_event_id = nexusOperationScheduled.attempt
+
+/-! ### The product state space (fn-88 R9)
+
+`completed` verified over `twoAsync`, both instances' interleaved path, within `six`, the Pair's
+declared Limits: both search backends complete and agree, `veil` over seven product states. Wall
+times are recorded in the fn-88.9 evidence, never asserted. The comparison of `bothComplete`
+itself, with the Scenario automaton and monitor checks, is in
+`TemporalModelTests.SearchDifferential`. -/
+
+open Umpire.SearchTests.Differential in
+#guard ((admitQuery (pair.instances 2) "bothCompleteVerified"
+    (liftedProperty pair 2 · completed.names) (some (liftedScenario pair 2 · twoAsync.names)) .verifyClaim six).toOption.map
+    fun ⟨_, admitted⟩ => admittedLine admitted) ==
+  some "veil default, verified-within-limits 7 paths, verified-within-limits 7 states"
 
 /-! ### The Query and the Case -/
 

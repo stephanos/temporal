@@ -33,15 +33,12 @@ def observe (monitors : QueryMonitors)
     (next, fired ||| bits, step.state)) (states, fired, trace.initialState)
   (states, fired)
 
-private def sortedProperties (properties : List CheckedProperty) : List CheckedProperty :=
-  properties.mergeSort fun left right => decide (left.id.value ≤ right.id.value)
-
 /-- The evaluator's answer per Property, by Definition ID, and its realized `(Property, clause)`
 triggers, as the reference search computes them. -/
 def evaluated (properties : List CheckedProperty) (stateFields : ModelValue → List ModelValue)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) (partialTrace : Bool) :
     Option (List PropertyEndpointAnswer × List (DefinitionId × DefinitionId)) := do
-  let evaluations ← (sortedProperties properties).mapM fun property =>
+  let evaluations ← (CheckedProperty.sortedById properties).mapM fun property =>
     (checkPropertyEvaluationInput property trace stateFields).toOption.map fun input =>
       (property.id, evaluatePropertyEndpoint property input partialTrace)
   pure (evaluations.map (·.2.answer),
@@ -365,7 +362,8 @@ private def switchView (query : CheckedQuery LawStatement) : Option (SearchView 
 
 /-- Every product path of a Query's `MonitoredProduct` within `depth`: the answers read off its
 last state and its fired bits are the evaluator's on the trace it decodes to. -/
-def productAgrees (query : CheckedQuery LawStatement) (view : SearchView query.target)
+def productAgrees {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
+    (view : SearchView query.target)
     (depth : Nat) : Bool :=
   match MonitoredProduct.build query view with
   | .error _ => false

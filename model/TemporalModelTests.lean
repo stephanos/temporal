@@ -22,6 +22,7 @@ import Temporal.System.Nexus.ImplementationLinkTests
 import Temporal.TestpilotTests
 import Temporal.Tool.InspectTests
 import TemporalModelTests.Nexus.ImplementationLink
+import TemporalModelTests.SearchDifferential
 
 /-! The Temporal-side compatibility families (`nexus-lifecycle`, the three `nexus-operations-*`)
 retired with the hand-written Nexus models (fn-86 .5); the one family that remains, `switch`, is

@@ -89,6 +89,11 @@ def Query.Form.properties : Query.Form → List CheckedProperty
   | .verify property | .find property | .findViolation property => [property]
   | .pick properties => properties
 
+/-- Properties by Definition ID: the order a search evaluates a Query's Properties in, and the order
+its Property monitors number their clauses in. -/
+def CheckedProperty.sortedById (properties : List CheckedProperty) : List CheckedProperty :=
+  properties.mergeSort fun left right => decide (left.id.value ≤ right.id.value)
+
 /-- Exhaustive evidence is propositionally tied to the selected model's setup enumeration and
 authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
 structure FiniteCompletenessEvidence
