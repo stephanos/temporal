@@ -1,15 +1,194 @@
 {
   "branch_name": "fn-94-simplify-the-testpilot-go-runtime",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T05:44:32.279601Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-89-one-contract-rule-per-entity",
     "fn-90-resolve-the-intermittent-live-testpilot",
     "fn-91-say-opaque-handle-in-the-driver-contract"
   ],
   "id": "fn-94-simplify-the-testpilot-go-runtime",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T15:39:23.685310Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "46dca47dd6db2e9c408bbbd061fbddcead610d666977a3dfb131ed9d9fad30a7",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aaa923a3c3f2f0f3816157c264a76dc1",
+            "classification": "introduced",
+            "findingId": "finding-aaa923a3c3f2f0f3816157c264a76dc1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-16e1d53fc4f6f1030183af7a6dc5d30d",
+            "classification": "introduced",
+            "findingId": "finding-16e1d53fc4f6f1030183af7a6dc5d30d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4e62ec2315f497ef955f337dc9ce0f67",
+            "classification": "introduced",
+            "findingId": "finding-4e62ec2315f497ef955f337dc9ce0f67",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-02a9fd7c8a6e56ea8c7f41c83189d624",
+            "classification": "introduced",
+            "findingId": "finding-02a9fd7c8a6e56ea8c7f41c83189d624",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e72c2b842d8ae74f85d2f41eeba92c21",
+            "classification": "introduced",
+            "findingId": "finding-e72c2b842d8ae74f85d2f41eeba92c21",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "404af68cca8ed6febf966ff69036b71cf6e3c745",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 513988,
+      "output_sha256": "e4d93978560e8eeaf12fd2f82b918d5b1c78d91bbc8e59d4e63c7c02fa7745de",
+      "reservation_id": "651bb85f13b94ce7a5643849e6e94c1f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:33:57.874764Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "250f556bf7a48fc1f1a04e8fbaaa9afffe10d982e3151afea126042069aa96ed",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aaa923a3c3f2f0f3816157c264a76dc1",
+            "classification": "introduced",
+            "findingId": "finding-aaa923a3c3f2f0f3816157c264a76dc1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-16e1d53fc4f6f1030183af7a6dc5d30d",
+            "classification": "introduced",
+            "findingId": "finding-16e1d53fc4f6f1030183af7a6dc5d30d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4e62ec2315f497ef955f337dc9ce0f67",
+            "classification": "introduced",
+            "findingId": "finding-4e62ec2315f497ef955f337dc9ce0f67",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-02a9fd7c8a6e56ea8c7f41c83189d624",
+            "classification": "introduced",
+            "findingId": "finding-02a9fd7c8a6e56ea8c7f41c83189d624",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e72c2b842d8ae74f85d2f41eeba92c21",
+            "classification": "introduced",
+            "findingId": "finding-e72c2b842d8ae74f85d2f41eeba92c21",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0014aed06b50fc7dd21c6712d5db2a3e",
+            "classification": "introduced",
+            "findingId": "finding-0014aed06b50fc7dd21c6712d5db2a3e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "df12505cfa641dde4effa0c048f7d9425f7a8d9a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1105,
+      "output_sha256": "ff8f238616c510023d6d4cd8b1f63c2a7a162da4592b35a52ea9db3ab8352ffe",
+      "reservation_id": "404642142eb24a62a24ea022185e0b5c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:39:23.679521Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-94-simplify-the-testpilot-go-runtime.md",
   "status": "open",
   "title": "Simplify the Testpilot Go runtime",
@@ -24,5 +203,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T05:44:33.416221Z"
+  "updated_at": "2026-09-27T15:41:26.241481Z"
 }

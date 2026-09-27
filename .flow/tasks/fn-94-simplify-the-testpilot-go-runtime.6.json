@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078075Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.2",
+    "fn-94-simplify-the-testpilot-go-runtime.4"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.6",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.6.md",
+  "status": "todo",
+  "title": "Validate once in the core: bindings, one Profile clone, no ProfileSpec mirror",
+  "updated_at": "2026-09-27T15:29:30.078075Z"
+}
