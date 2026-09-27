@@ -26,6 +26,10 @@ Add the `static-preparation-rejection/instance-value` conformance sub-entry (R10
 - Conformance bytes come from the Lean encoder, never from Go `protojson.Marshal`.
 - `.flow/memory/bug/integration/moved-conformance-tests-must-not-import-2026-09-06.md`: conformance tests must not import functional adapters.
 
+### Carried from fn-89.3 (2026-09-27)
+- R3 gap at Case level: `execution.Prepare` checks the Case's surface size as written, not as expanded, so a very large instanced Case could pass where its expansion is rejected. Charge it as expanded (like `ir.CheckExpandedSurface` for the Contract) and cover it in the corpus sub-entry.
+- The production expansion helpers in `verification/prepare.go` nearly duplicate the test's `expand`/`inline`; share one so they cannot drift. Add `t.Helper()` to `nexusWorld` and `nexusRun`.
+
 ## Acceptance
 - [ ] the `instance-value` sub-entry exists, generated only by `make umpire-gen-case-runtime-conformance`, and rejects at the pinned category and location
 - [ ] every other conformance entry and fixture is byte-identical; `make umpire-check-case-runtime-conformance` passes

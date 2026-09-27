@@ -31,6 +31,11 @@ Add the differential test that runs every Query reachable through `AdmittedQuery
 - R14's differential in `Umpire/Search/Tests/Product.lean` reaches only the Umpire test roots (Switch, Search fixture, parameterized Model). Apply its public `Umpire.SearchTests.Product.productAgrees` to the Caller and Pair Scenarios (and any other Temporal feature Scenario this task's modules reach) within their Limits, beside the product-state pins, so `ScenarioAutomaton.admits = CheckedScenario.admits` is checked trace-by-trace on them.
 - The automaton lowers `ordering`/`adjacencies` when `actionsExactly`/`traceExactly` pins the schedule (every `scenario`-command Scenario does); only free-schedule `ordering`/`adjacencies` is `Unsupported`. Plan the selection reasons and R18 flip list against that.
 
+### Carried from fn-88.3 and fn-88.4 (2026-09-27)
+- Run the monitor agreement check (`Umpire/Search/Tests/Monitor.lean`, evaluator vs monitor under both endings) and the product check (`productAgrees`, fn-88.3) over the Temporal feature Models too: Nexus Caller, Pair, Control, Success, Workflow Start/Outage, which Umpire tests cannot import.
+- Replace the three copies of the Property ordering with one shared helper.
+- Rename `Product.Product` and re-enable `linter.extra.dupNamespace` in `Umpire/Search/Product.lean`.
+
 ## Acceptance
 - [ ] Differential test over every `AdmittedQuery.search` Query passes with exactly the stated exemptions
 - [ ] Same-depth fixture proves witness order on both backends
