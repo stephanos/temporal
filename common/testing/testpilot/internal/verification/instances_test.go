@@ -170,7 +170,7 @@ func instanceDifference(t *testing.T, world instanceWorld, source, expanded *tes
 		return fmt.Sprintf("run %s: Verdict bytes differ", run.name)
 	}
 	if !slices.EqualFunc(want.violations, got.violations, func(a, b Violation) bool {
-		return a.RuleID == b.RuleID && a.Sequence == b.Sequence && a.Kind == b.Kind && slices.Equal(a.ObservationIDs, b.ObservationIDs)
+		return a.RuleID == b.RuleID && a.Sequence == b.Sequence && a.CorrelatedKind == b.CorrelatedKind && slices.Equal(a.ObservationIDs, b.ObservationIDs)
 	}) {
 		return fmt.Sprintf("run %s: violations differ: %v, %v", run.name, want.violations, got.violations)
 	}

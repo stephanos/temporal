@@ -15,7 +15,7 @@ func runtimeBudget(ctx context.Context, limits Limits) (*budget, error) {
 		return nil, err
 	}
 	if ctx == nil || limits.Work <= 0 {
-		return nil, invalid(Malformed, "value", "context and positive runtime work required")
+		return nil, Invalid(Malformed, "value", "context and positive runtime work required")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func SnapshotValue(ctx context.Context, value *testpilotspb.Value, typ Type, lim
 	}
 	if err = validateValue(value, typ, b); err == nil {
 		if int64(proto.Size(value)) > limits.Bytes {
-			err = invalid(LimitExceeded, "value", "encoded value exceeds byte ceiling")
+			err = Invalid(LimitExceeded, "value", "encoded value exceeds byte ceiling")
 		} else {
 			err = b.charge(1, int64(proto.Size(value)), 0, "value")
 		}
@@ -44,7 +44,7 @@ func SnapshotValue(ctx context.Context, value *testpilotspb.Value, typ Type, lim
 }
 func validateValue(value *testpilotspb.Value, typ Type, b *budget) error {
 	if value == nil || typ.catalog == nil || typ.opaque {
-		return invalid(TypeMismatch, "value", "ordinary typed value required")
+		return Invalid(TypeMismatch, "value", "ordinary typed value required")
 	}
 	if err := inspectSurface(value.ProtoReflect(), b, "value"); err != nil {
 		return err
@@ -62,8 +62,8 @@ func SnapshotMessage(ctx context.Context, source proto.Message, descriptor proto
 	return result, b.work, err
 }
 func snapshotMessage(source proto.Message, descriptor protoreflect.MessageDescriptor, bytes int64, b *budget) (proto.Message, error) {
-	if missing(source) || descriptor == nil || source.ProtoReflect().Descriptor().FullName() != descriptor.FullName() {
-		return nil, invalid(TypeMismatch, "message", "wrong protobuf response type")
+	if IsNil(source) || descriptor == nil || source.ProtoReflect().Descriptor().FullName() != descriptor.FullName() {
+		return nil, Invalid(TypeMismatch, "message", "wrong protobuf response type")
 	}
 	if err := compatibleMessage(source.ProtoReflect().Descriptor(), descriptor, b); err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func snapshotMessage(source proto.Message, descriptor protoreflect.MessageDescri
 	}
 	size := int64(proto.Size(source))
 	if size > bytes {
-		return nil, invalid(LimitExceeded, "message", "encoded message exceeds byte ceiling")
+		return nil, Invalid(LimitExceeded, "message", "encoded message exceeds byte ceiling")
 	}
 	if err := b.charge(1, 2*size, 0, "message"); err != nil {
 		return nil, err

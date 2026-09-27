@@ -69,8 +69,8 @@ func (t Type) Element() Type {
 }
 
 func (c *Catalog) BindType(schema *testpilotspb.ValueType) (Type, error) {
-	if schema == nil || missing(schema.Shape) {
-		return Type{}, invalid(Malformed, "type", "type is required")
+	if schema == nil || IsNil(schema.Shape) {
+		return Type{}, Invalid(Malformed, "type", "type is required")
 	}
 	b := budget{limits: DefaultLimits()}
 	if err := inspect(schema.ProtoReflect(), 1, &b, "type"); err != nil {
@@ -90,13 +90,13 @@ func (c *Catalog) BindType(schema *testpilotspb.ValueType) (Type, error) {
 		singular = shape.Map.GetValue()
 		result.key = shape.Map.GetKey().GetKind()
 		if !mapKeyKind(result.key) {
-			return Type{}, invalid(TypeMismatch, "type", "invalid protobuf map key kind")
+			return Type{}, Invalid(TypeMismatch, "type", "invalid protobuf map key kind")
 		}
 	default:
-		return Type{}, invalid(Malformed, "type", "missing type shape")
+		return Type{}, Invalid(Malformed, "type", "missing type shape")
 	}
-	if singular == nil || missing(singular.Type) {
-		return Type{}, invalid(Malformed, "type", "missing singular type")
+	if singular == nil || IsNil(singular.Type) {
+		return Type{}, Invalid(Malformed, "type", "missing singular type")
 	}
 	if err := c.bindSingular(singular, &result); err != nil {
 		return Type{}, err
@@ -109,7 +109,7 @@ func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type
 	case *testpilotspb.SingularType_Scalar:
 		result.scalar = value.Scalar.GetKind()
 		if result.scalar < testpilotspb.SCALAR_KIND_TEXT || result.scalar > testpilotspb.SCALAR_KIND_DOUBLE {
-			return invalid(Unknown, "type", "unknown scalar kind")
+			return Invalid(Unknown, "type", "unknown scalar kind")
 		}
 	case *testpilotspb.SingularType_Enumeration:
 		var descriptor protoreflect.Descriptor
@@ -124,30 +124,30 @@ func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type
 			descriptor, err = c.files.FindDescriptorByName(protoreflect.FullName(value.Enumeration.GetProtobufType()))
 		}
 		if err != nil {
-			return invalid(Unknown, "type", "unknown enumeration")
+			return Invalid(Unknown, "type", "unknown enumeration")
 		}
 		var ok bool
 		result.enumeration, ok = descriptor.(protoreflect.EnumDescriptor)
 		if !ok {
-			return invalid(TypeMismatch, "type", "expected enumeration descriptor")
+			return Invalid(TypeMismatch, "type", "expected enumeration descriptor")
 		}
 	case *testpilotspb.SingularType_Message:
 		descriptor, err := c.files.FindDescriptorByName(protoreflect.FullName(value.Message.GetProtobufType()))
 		if err != nil {
-			return invalid(Unknown, "type", "unknown message")
+			return Invalid(Unknown, "type", "unknown message")
 		}
 		var ok bool
 		result.message, ok = descriptor.(protoreflect.MessageDescriptor)
 		if !ok || result.message.IsMapEntry() {
-			return invalid(TypeMismatch, "type", "expected ordinary message descriptor")
+			return Invalid(TypeMismatch, "type", "expected ordinary message descriptor")
 		}
 		if result.message.FullName() == "google.protobuf.Any" {
-			return invalid(TypeMismatch, "type", "Any requires the explicit Any type")
+			return Invalid(TypeMismatch, "type", "Any requires the explicit Any type")
 		}
 	case *testpilotspb.SingularType_Any:
 		result.any = true
 	default:
-		return invalid(Malformed, "type", "missing singular type variant")
+		return Invalid(Malformed, "type", "missing singular type variant")
 	}
 	return nil
 }
@@ -178,11 +178,11 @@ func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limit
 	if err := limits.validate(); err != nil {
 		return err
 	}
-	if value == nil || missing(value.Value) {
-		return invalid(Malformed, "literal", "literal is required")
+	if value == nil || IsNil(value.Value) {
+		return Invalid(Malformed, "literal", "literal is required")
 	}
 	if !c.owns(typ) {
-		return invalid(TypeMismatch, "literal", "type does not belong to this catalog")
+		return Invalid(TypeMismatch, "literal", "type does not belong to this catalog")
 	}
 	b := budget{limits: limits}
 	if err := inspectSurface(value.ProtoReflect(), &b, "literal"); err != nil {
@@ -192,17 +192,17 @@ func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limit
 }
 
 func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	if value == nil || missing(value.Value) || typ.schema == nil && !typ.opaque {
-		return invalid(Malformed, "literal", "missing literal or type")
+	if value == nil || IsNil(value.Value) || typ.schema == nil && !typ.opaque {
+		return Invalid(Malformed, "literal", "missing literal or type")
 	}
 	if err := b.charge(depth, 1, 0, "literal"); err != nil {
 		return err
 	}
 	if typ.opaque {
-		return invalid(Unsupported, "literal", "opaque handle literals are not representable")
+		return Invalid(Unsupported, "literal", "opaque handle literals are not representable")
 	}
 	if item, ok := value.Value.(*testpilotspb.Value_EnumValue); ok && (typ.enumeration == nil || typ.cardinality != Singular) {
-		return invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetName()))
+		return Invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetName()))
 	}
 	if typ.cardinality == Repeated {
 		return c.checkList(value, typ, b, depth)
@@ -220,7 +220,7 @@ func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, d
 }
 
 func literalMismatch() error {
-	return invalid(TypeMismatch, "literal", "literal does not match its declared type")
+	return Invalid(TypeMismatch, "literal", "literal does not match its declared type")
 }
 
 func (c *Catalog) checkList(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
@@ -229,7 +229,7 @@ func (c *Catalog) checkList(value *testpilotspb.Value, typ Type, b *budget, dept
 		return literalMismatch()
 	}
 	if int64(len(list.ListValue.Values)) > b.limits.Fanout {
-		return invalid(LimitExceeded, "literal", "collection ceiling exceeded")
+		return Invalid(LimitExceeded, "literal", "collection ceiling exceeded")
 	}
 	for _, item := range list.ListValue.Values {
 		if err := c.checkLiteral(item, typ.Element(), b, depth+1); err != nil {
@@ -245,19 +245,19 @@ func (c *Catalog) checkMap(value *testpilotspb.Value, typ Type, b *budget, depth
 		return literalMismatch()
 	}
 	if int64(len(entries.MapValue.Entries)) > b.limits.Fanout {
-		return invalid(LimitExceeded, "literal", "collection ceiling exceeded")
+		return Invalid(LimitExceeded, "literal", "collection ceiling exceeded")
 	}
 	seen := make(map[string]bool, len(entries.MapValue.Entries))
 	for _, entry := range entries.MapValue.Entries {
 		if entry == nil {
-			return invalid(Malformed, "literal", "nil map entry")
+			return Invalid(Malformed, "literal", "nil map entry")
 		}
 		if err := c.checkLiteral(entry.Key, c.scalarType(typ.key), b, depth+1); err != nil {
 			return err
 		}
 		key := entry.Key.String()
 		if seen[key] {
-			return invalid(Malformed, "literal", "duplicate map key")
+			return Invalid(Malformed, "literal", "duplicate map key")
 		}
 		seen[key] = true
 		if err := c.checkLiteral(entry.Value, typ.Element(), b, depth+1); err != nil {
@@ -273,7 +273,7 @@ func checkEnum(value *testpilotspb.Value, typ Type) error {
 		return literalMismatch()
 	}
 	if typ.enumeration.Values().ByName(protoreflect.Name(item.EnumValue.GetName())) == nil {
-		return invalid(Unknown, "literal", fmt.Sprintf("enum %s declares no value %q", typ.enumeration.FullName(), item.EnumValue.GetName()))
+		return Invalid(Unknown, "literal", fmt.Sprintf("enum %s declares no value %q", typ.enumeration.FullName(), item.EnumValue.GetName()))
 	}
 	return nil
 }
@@ -286,7 +286,7 @@ func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, d
 	envelope := item.MessageValue
 	slash := strings.LastIndexByte(envelope.TypeUrl, '/')
 	if slash < 0 || !protoreflect.FullName(envelope.TypeUrl[slash+1:]).IsValid() {
-		return invalid(Malformed, "literal", "invalid message type URL")
+		return Invalid(Malformed, "literal", "invalid message type URL")
 	}
 	if typ.any {
 		return nil
@@ -299,7 +299,7 @@ func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, d
 	}
 	message := dynamicpb.NewMessage(typ.message)
 	if err := (proto.UnmarshalOptions{RecursionLimit: int(b.limits.Depth)}).Unmarshal(envelope.Value, message); err != nil {
-		return invalid(Malformed, "literal", "invalid message wire payload")
+		return Invalid(Malformed, "literal", "invalid message wire payload")
 	}
 	return inspect(message.ProtoReflect(), depth+1, b, "literal.message")
 }
@@ -386,18 +386,18 @@ func scanFields(data []byte, descriptor protoreflect.MessageDescriptor, b *budge
 		}
 		number, wireType, tagBytes := protowire.ConsumeTag(data)
 		if tagBytes < 0 {
-			return nil, invalid(Malformed, "literal.message", "invalid wire tag")
+			return nil, Invalid(Malformed, "literal.message", "invalid wire tag")
 		}
 		data = data[tagBytes:]
 		if wireType == protowire.EndGroupType {
 			if end == 0 || number != end {
-				return nil, invalid(Malformed, "literal.message", "mismatched group terminator")
+				return nil, Invalid(Malformed, "literal.message", "mismatched group terminator")
 			}
 			return data, nil
 		}
 		field := descriptor.Fields().ByNumber(number)
 		if field == nil {
-			return nil, invalid(Unknown, "literal.message", "unknown message field")
+			return nil, Invalid(Unknown, "literal.message", "unknown message field")
 		}
 		consumed, count, err := scanField(data, field, wireType, b, depth)
 		if err != nil {
@@ -405,14 +405,14 @@ func scanFields(data []byte, descriptor protoreflect.MessageDescriptor, b *budge
 		}
 		if field.IsList() || field.IsMap() {
 			if count > b.limits.Fanout-counts[number] {
-				return nil, invalid(LimitExceeded, "literal.message", "collection ceiling exceeded")
+				return nil, Invalid(LimitExceeded, "literal.message", "collection ceiling exceeded")
 			}
 			counts[number] += count
 		}
 		data = data[consumed:]
 	}
 	if end != 0 {
-		return nil, invalid(Malformed, "literal.message", "missing group terminator")
+		return nil, Invalid(Malformed, "literal.message", "missing group terminator")
 	}
 	return nil, nil
 }
@@ -420,21 +420,21 @@ func scanFields(data []byte, descriptor protoreflect.MessageDescriptor, b *budge
 func scanField(data []byte, field protoreflect.FieldDescriptor, wireType protowire.Type, b *budget, depth int64) (int, int64, error) {
 	if wireType == protowire.StartGroupType {
 		if field.Kind() != protoreflect.GroupKind {
-			return 0, 0, invalid(TypeMismatch, "literal.message", "group wire type requires a group descriptor")
+			return 0, 0, Invalid(TypeMismatch, "literal.message", "group wire type requires a group descriptor")
 		}
 		remaining, err := scanFields(data, field.Message(), b, depth+1, field.Number())
 		return len(data) - len(remaining), 1, err
 	}
 	consumed := protowire.ConsumeFieldValue(field.Number(), wireType, data)
 	if consumed < 0 {
-		return 0, 0, invalid(Malformed, "literal.message", "invalid wire field")
+		return 0, 0, Invalid(Malformed, "literal.message", "invalid wire field")
 	}
 	if wireType != protowire.BytesType {
 		return consumed, 1, nil
 	}
 	payload, n := protowire.ConsumeBytes(data)
 	if n < 0 {
-		return 0, 0, invalid(Malformed, "literal.message", "invalid length-delimited field")
+		return 0, 0, Invalid(Malformed, "literal.message", "invalid length-delimited field")
 	}
 	if field.Message() != nil {
 		return consumed, 1, scanMessage(payload, field.Message(), b, depth+1)
@@ -462,11 +462,11 @@ func scanPacked(data []byte, kind protoreflect.Kind, b *budget, depth int64) (in
 			_, consumed = protowire.ConsumeVarint(data)
 		}
 		if consumed < 0 {
-			return 0, invalid(Malformed, "literal.message", "invalid packed value")
+			return 0, Invalid(Malformed, "literal.message", "invalid packed value")
 		}
 		count++
 		if count > b.limits.Fanout {
-			return 0, invalid(LimitExceeded, "literal.message", "packed collection ceiling exceeded")
+			return 0, Invalid(LimitExceeded, "literal.message", "packed collection ceiling exceeded")
 		}
 		data = data[consumed:]
 	}
@@ -497,7 +497,7 @@ func EnumNumber(enumeration protoreflect.EnumDescriptor, value *testpilotspb.Enu
 	}
 	number, err := strconv.ParseInt(value.GetName(), 10, 32)
 	if err != nil {
-		return 0, invalid(Unknown, "request", fmt.Sprintf("enum %s declares no value %q", enumeration.FullName(), value.GetName()))
+		return 0, Invalid(Unknown, "request", fmt.Sprintf("enum %s declares no value %q", enumeration.FullName(), value.GetName()))
 	}
 	return protoreflect.EnumNumber(number), nil
 }

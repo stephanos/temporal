@@ -101,17 +101,9 @@ type Driver interface {
 	Open(context.Context, string, PreparedProgram) (Session, error)
 }
 
-// driverAdapter exists only because Validate and Open take the facade's PreparedProgram; every
-// Session value and handle crosses to execution unwrapped.
+// driverAdapter exists only because Open takes the facade's PreparedProgram; every Session value
+// and handle crosses to execution unwrapped.
 type driverAdapter struct{ driver Driver }
-
-func (d driverAdapter) Identity(ctx context.Context) (DriverIdentity, error) {
-	return d.driver.Identity(ctx)
-}
-
-func (d driverAdapter) Validate(ctx context.Context, program *execution.PreparedProgram) error {
-	return d.driver.Validate(ctx, PreparedProgram{program: program})
-}
 
 func (d driverAdapter) Open(ctx context.Context, runID string, program *execution.PreparedProgram) (Session, error) {
 	return d.driver.Open(ctx, runID, PreparedProgram{program: program})

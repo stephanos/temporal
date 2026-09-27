@@ -15,9 +15,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// workflowRouteIndex is the key the Driver indexes workflow routes by.
-type workflowRouteIndex = delivery.WorkflowBinding
-
 type nexusRouteIndex struct {
 	name, value string
 }

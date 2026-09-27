@@ -450,10 +450,10 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 					if violations[0].Sequence > 0 {
 						var evidence testpilotspb.CorrelatedEvidence
 						require.NoError(t, run.Events[violations[0].Sequence-1].Observations[0].Value.GetMessageValue().UnmarshalTo(&evidence))
-						require.Equal(t, evidence.GetKind(), violations[0].Kind)
+						require.Equal(t, evidence.GetKind(), violations[0].CorrelatedKind)
 						violationsWithEvidence.Add(1)
 					} else {
-						require.Empty(t, violations[0].Kind)
+						require.Empty(t, violations[0].CorrelatedKind)
 					}
 				} else {
 					require.Empty(t, violations)

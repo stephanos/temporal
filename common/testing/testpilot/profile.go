@@ -41,15 +41,11 @@ func (c *Catalog) Identity() string {
 // InstructionOpcode is the Opcode one declared instruction requires, or zero when the
 // instruction is unset or outside the version-one table. Callers deriving a Profile from a Case
 // read it rather than restating the mapping.
-func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
-	return execution.InstructionOpcode(instruction)
-}
+var InstructionOpcode = execution.InstructionOpcode
 
 // EnvironmentBindingIDs is the symbolic binding graph a Program references, the set Prepare resolves
 // against a Profile. Callers deriving a Profile from a Case read it rather than restating it.
-func EnvironmentBindingIDs(program *testpilotspb.Program) []string {
-	return execution.EnvironmentBindingIDs(program)
-}
+var EnvironmentBindingIDs = execution.EnvironmentBindingIDs
 
 // CheckMethod reports whether this catalog admits one unary gRPC method by its full path.
 // Rejections expose *PreparationError through errors.As.

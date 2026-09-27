@@ -41,7 +41,7 @@ func compatibleMessage(source, target protoreflect.MessageDescriptor, b *budget)
 	return nil
 }
 func crossedDescriptor() error {
-	return invalid(TypeMismatch, "message", "response descriptor differs from pinned schema")
+	return Invalid(TypeMismatch, "message", "response descriptor differs from pinned schema")
 }
 func compatibleField(a, z protoreflect.FieldDescriptor, b *budget) error {
 	if z == nil {
@@ -117,7 +117,7 @@ func compatibleOptions(a, z proto.Message, b *budget) error {
 	b.limits.Fanout = DefaultLimits().Fanout
 	defer func() { b.limits.Fanout = fanout }()
 	for _, options := range []proto.Message{a, z} {
-		if missing(options) {
+		if IsNil(options) {
 			continue
 		}
 		if err := inspectSurface(options.ProtoReflect(), b, "descriptor.options"); err != nil {

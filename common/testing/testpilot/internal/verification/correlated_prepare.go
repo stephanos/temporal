@@ -12,7 +12,7 @@ import (
 )
 
 func validModelValue(v *testpilotspb.ModelValue) bool {
-	return v != nil && validID(v.DefinitionId)
+	return v != nil && ir.ValidID(v.DefinitionId)
 }
 func validModelValues(vs []*testpilotspb.ModelValue) bool {
 	return !slices.ContainsFunc(vs, func(v *testpilotspb.ModelValue) bool { return !validModelValue(v) })
@@ -26,7 +26,7 @@ func sameResult(a, b *testpilotspb.CorrelatedTransition) bool {
 func uniqueIDs(ids []string) bool {
 	seen := map[string]bool{}
 	for _, id := range ids {
-		if !validID(id) || seen[id] {
+		if !ir.ValidID(id) || seen[id] {
 			return false
 		}
 		seen[id] = true
@@ -72,7 +72,7 @@ func admitRuleCondition(e *testpilotspb.Expression, path, detail string, fields 
 		return false, err
 	}
 	condition, ok := readStepCondition(e)
-	if !ok || !validID(condition.definitionID) {
+	if !ok || !ir.ValidID(condition.definitionID) {
 		return false, nil
 	}
 	if !slices.Contains(fields, condition.field) {
@@ -95,7 +95,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if s == nil {
 		return nil
 	}
-	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) || !validModelValues(s.InitialStateFields) {
+	if !ir.ValidID(s.ProjectionId) || s.ProjectionFingerprint == "" || !ir.ValidID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) || !validModelValues(s.InitialStateFields) {
 		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
@@ -177,7 +177,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	// against, so reading it rejects rather than comparing values of different kinds.
 	kinds, retained, ambiguous := map[string]bool{}, map[string]testpilotspb.ScalarKind{}, map[string]bool{}
 	for _, r := range s.ProjectionRules {
-		if !validID(r.Kind) || kinds[r.Kind] {
+		if !ir.ValidID(r.Kind) || kinds[r.Kind] {
 			return invalid(ir.Malformed, "invalid or repeated correlated evidence kind")
 		}
 		kinds[r.Kind] = true
@@ -209,7 +209,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		}
 		fields := map[string]bool{}
 		for _, f := range r.Fields {
-			if !validID(f.FieldId) || fields[f.FieldId] || !correlatedFieldKind(f.GetType().GetKind()) || f.Disposition < testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT {
+			if !ir.ValidID(f.FieldId) || fields[f.FieldId] || !correlatedFieldKind(f.GetType().GetKind()) || f.Disposition < testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT {
 				return invalid(ir.Malformed, "invalid field policy")
 			}
 			fields[f.FieldId] = true
@@ -255,7 +255,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	// its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
 	declared := map[string]bool{}
 	for _, c := range s.Rules {
-		if !validID(c.RuleId) || seen[c.RuleId] {
+		if !ir.ValidID(c.RuleId) || seen[c.RuleId] {
 			return invalid(ir.Malformed, "invalid clause provenance")
 		}
 		seen[c.RuleId] = true
@@ -274,7 +274,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		captures := map[string]correlatedCapture{}
 		for _, d := range c.Captures {
 			kind, ok := retained[d.FieldId]
-			if !validID(d.CaptureId) || declared[d.CaptureId] || !validID(d.FieldId) || d.Lifetime <= 0 || !ok || ambiguous[d.FieldId] {
+			if !ir.ValidID(d.CaptureId) || declared[d.CaptureId] || !ir.ValidID(d.FieldId) || d.Lifetime <= 0 || !ok || ambiguous[d.FieldId] {
 				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in correlated rule %s", c.RuleId))
 			}
 			declared[d.CaptureId] = true
@@ -290,17 +290,6 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		}
 	}
 	return nil
-}
-
-func validCorrelatedLiteral(v *testpilotspb.Value) bool {
-	switch literal := v.GetValue().(type) {
-	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue:
-		return true
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		return canonicalUint64(literal.UnsignedIntegerValue)
-	default:
-		return false
-	}
 }
 
 // correlatedFieldKind reports whether kind is one the portable evidence domain declares: text,
@@ -322,17 +311,21 @@ type correlatedCapture struct {
 	kind     testpilotspb.ScalarKind
 }
 
+// correlatedLiteralKind is the scalar kind of a literal the portable evidence domain admits, or
+// SCALAR_KIND_UNSPECIFIED for any other literal, an unsigned integer not in canonical text included.
 func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
-	switch v.GetValue().(type) {
+	switch literal := v.GetValue().(type) {
 	case *testpilotspb.Value_TextValue:
 		return testpilotspb.SCALAR_KIND_TEXT
 	case *testpilotspb.Value_UnsignedIntegerValue:
-		return testpilotspb.SCALAR_KIND_UINT64
+		if canonicalUint64(literal.UnsignedIntegerValue) {
+			return testpilotspb.SCALAR_KIND_UINT64
+		}
 	case *testpilotspb.Value_BoolValue:
 		return testpilotspb.SCALAR_KIND_BOOLEAN
 	default:
-		return testpilotspb.SCALAR_KIND_UNSPECIFIED
 	}
+	return testpilotspb.SCALAR_KIND_UNSPECIFIED
 }
 
 // validOperand reports the operand's declared scalar kind, so a comparison is checked against the
@@ -341,15 +334,16 @@ func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 // occurrence of a declared capture.
 func validOperand(o *testpilotspb.Expression, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture) (testpilotspb.ScalarKind, error) {
 	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
-		if !validCorrelatedLiteral(literal.Literal) {
+		kind := correlatedLiteralKind(literal.Literal)
+		if kind == testpilotspb.SCALAR_KIND_UNSPECIFIED {
 			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
 		}
-		return correlatedLiteralKind(literal.Literal), nil
+		return kind, nil
 	}
 	switch v := o.GetReference().GetReference().(type) {
 	case *testpilotspb.Reference_EvidenceFieldId:
 		kind, ok := retained[v.EvidenceFieldId]
-		if !validID(v.EvidenceFieldId) || !ok {
+		if !ir.ValidID(v.EvidenceFieldId) || !ok {
 			return 0, invalid(ir.Malformed, "unretained correlation field operand")
 		}
 		if ambiguous[v.EvidenceFieldId] {
@@ -376,7 +370,7 @@ func validCorrelation(c *testpilotspb.Expression, retained map[string]testpilots
 		return invalid(ir.LimitExceeded, "correlation depth exhausted")
 	}
 	if condition, ok := readStepCondition(c); ok {
-		if !validID(condition.definitionID) || condition.field < testpilotspb.CORRELATED_STEP_FIELD_ACTION || condition.field > testpilotspb.CORRELATED_STEP_FIELD_FACT {
+		if !ir.ValidID(condition.definitionID) || condition.field < testpilotspb.CORRELATED_STEP_FIELD_ACTION || condition.field > testpilotspb.CORRELATED_STEP_FIELD_FACT {
 			return invalid(ir.Unknown, "unsupported correlation predicate")
 		}
 		return nil

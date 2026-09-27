@@ -161,7 +161,7 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 	for i := 0; i < fields.Len(); i++ {
 		f := fields.Get(i)
 		t.Run(string(f.Name()), func(t *testing.T) {
-			for _, v := range []int64{0, hardLimits().ProtoReflect().Get(f).Int() + 1} {
+			for _, v := range []int64{0, ProgramCeiling().ProtoReflect().Get(f).Int() + 1} {
 				policy := p
 				policy.Limits = proto.CloneOf(p.Limits)
 				policy.Limits.ProtoReflect().Set(f, protoreflect.ValueOfInt64(v))
@@ -427,8 +427,8 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
-	require.Equal(t, resolvedRole{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["endpoint"])
-	require.Equal(t, resolvedRole{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["queue"])
+	require.Equal(t, contract.PreparedRole{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["endpoint"])
+	require.Equal(t, contract.PreparedRole{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["queue"])
 	store, err := newValueStore(prepared, "run")
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")

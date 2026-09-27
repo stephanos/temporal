@@ -38,7 +38,7 @@ func (a *admission) deriveReservations() error {
 					return err
 				}
 				if previous, claimed := carriedBy[target.id]; claimed {
-					return invalid(ir.Unsupported, nodePath(controller, carrierNode), fmt.Sprintf("instructions %s and %s both carry the reservation of entrypoint %s", previous.source.InstructionId, carrierNode.source.InstructionId, target.id))
+					return ir.Invalid(ir.Unsupported, nodePath(controller, carrierNode), fmt.Sprintf("instructions %s and %s both carry the reservation of entrypoint %s", previous.source.InstructionId, carrierNode.source.InstructionId, target.id))
 				}
 				carriedBy[target.id] = carrierNode
 				carrierNode.reservations = append(carrierNode.reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: 1})
@@ -78,7 +78,7 @@ func (a *admission) checkCarrierShape(controller *graph, node *node, carrier con
 	for _, reservation := range node.reservations {
 		count := counts[reservation.Kind]
 		if allowed := maximum[reservation.Kind]; reservation.Count > allowed-count {
-			return invalid(ir.Unsupported, nodePath(controller, node), "carrier reservation shape or cardinality is unauthorized")
+			return ir.Invalid(ir.Unsupported, nodePath(controller, node), "carrier reservation shape or cardinality is unauthorized")
 		}
 		counts[reservation.Kind] = count + reservation.Count
 	}
@@ -107,7 +107,7 @@ func (a *admission) compileCarrierTopology(controller *graph, node *node) (contr
 			return contract.ReservationCarrierPlan{}, err
 		}
 		if handlerOrdinals[handler.graph.id] != handler.count {
-			return contract.ReservationCarrierPlan{}, invalid(ir.Malformed, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
+			return contract.ReservationCarrierPlan{}, ir.Invalid(ir.Malformed, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
 		}
 	}
 	return plan, nil
@@ -141,7 +141,7 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]contra
 			binding := target.activation.GetNexusHandler()
 			operation := nexusOperation{service: binding.Service, operation: binding.Operation}
 			if _, exists := handlerIndex[operation]; exists {
-				return nil, nil, nil, invalid(ir.Malformed, nodePath(controller, node), "ambiguous reserved Nexus handler mapping")
+				return nil, nil, nil, ir.Invalid(ir.Malformed, nodePath(controller, node), "ambiguous reserved Nexus handler mapping")
 			}
 			handlerIndex[operation] = handler
 			handlers = append(handlers, handler)
@@ -162,12 +162,12 @@ func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow
 		started := nexusOperationOf(source.source.Instruction)
 		handler, ok := handlers[started]
 		if !ok {
-			return invalid(ir.Unavailable, nodePath(controller, node), "missing or crossed reserved Nexus handler mapping")
+			return ir.Invalid(ir.Unavailable, nodePath(controller, node), "missing or crossed reserved Nexus handler mapping")
 		}
 		for workflowOrdinal := int64(0); workflowOrdinal < count; workflowOrdinal++ {
 			handlerOrdinal := ordinals[handler.graph.id]
 			if handlerOrdinal >= handler.count {
-				return invalid(ir.LimitExceeded, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
+				return ir.Invalid(ir.LimitExceeded, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
 			}
 			if err := a.charge(1); err != nil {
 				return err

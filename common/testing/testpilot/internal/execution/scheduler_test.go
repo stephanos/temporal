@@ -452,7 +452,7 @@ func TestSchedulerBoundsBufferedCompletionPublication(t *testing.T) {
 			s.completions <- schedulerCompletion{node: &task, result: effectResponse(prepared, "result")}
 
 			if mode == "drain expiry" {
-				require.Error(t, s.settleBufferedCompletions(false))
+				require.Error(t, s.drainCompletions(false))
 			} else {
 				s.beginClose()
 			}

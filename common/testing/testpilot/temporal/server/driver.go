@@ -7,6 +7,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
@@ -90,21 +91,12 @@ func New(options Options) (*Driver, error) {
 	return h, nil
 }
 
-// programCeiling is the Program ceiling execution admits a Profile under.
-var programCeiling = &testpilotspb.ProgramLimits{
-	MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000,
-	MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000,
-	MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
-	MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
-	MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20,
-}
-
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
 	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || len(p.Roles) > 10000 {
 		return false
 	}
-	if ir.CheckCeilings(l, programCeiling, func(string) error { return errInvalid }) != nil {
+	if ir.CheckCeilings(l, execution.ProgramCeiling(), func(string) error { return errInvalid }) != nil {
 		return false
 	}
 	total := 0

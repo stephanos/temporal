@@ -36,11 +36,11 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 		if err := a.charge(1); err != nil {
 			return err
 		}
-		if source == nil || !validID(source.GetEvidenceId()) || !validID(source.GetEvidenceSource()) || source.GetOperation() == "" {
-			return invalid(ir.Malformed, location, "evidence declaration requires an identity, a source and an operation key path")
+		if source == nil || !ir.ValidID(source.GetEvidenceId()) || !ir.ValidID(source.GetEvidenceSource()) || source.GetOperation() == "" {
+			return ir.Invalid(ir.Malformed, location, "evidence declaration requires an identity, a source and an operation key path")
 		}
 		if _, exists := a.prepared.evidence[source.EvidenceId]; exists {
-			return invalid(ir.Malformed, location+".evidence_id", "duplicate evidence declaration")
+			return ir.Invalid(ir.Malformed, location+".evidence_id", "duplicate evidence declaration")
 		}
 		bound, err := a.bindEvidenceDeclaration(location, source)
 		if err != nil {
@@ -48,7 +48,7 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 		}
 		key := bound.source + "\x00" + bound.operation.Text()
 		if keys[key] {
-			return invalid(ir.Malformed, location, "evidence source and operation key path are declared twice")
+			return ir.Invalid(ir.Malformed, location, "evidence source and operation key path are declared twice")
 		}
 		keys[key] = true
 		a.prepared.evidence[bound.id] = bound
@@ -62,7 +62,7 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 		a.prepared.view.evidence = append(a.prepared.view.evidence, view)
 	}
 	if len(a.prepared.runEventLifts) > 0 && a.prepared.correlatedObservationID == "" {
-		return invalid(ir.TypeMismatch, "program.evidence", "a Run Event declaration requires exactly one declared CorrelatedEvidence Observation")
+		return ir.Invalid(ir.TypeMismatch, "program.evidence", "a Run Event declaration requires exactly one declared CorrelatedEvidence Observation")
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 		arm := recorded.HistoryEvent.GetAttributesField()
 		oneof := element.Message().Oneofs().ByName("attributes")
 		if oneof == nil || oneof.Fields().ByName(protoreflect.Name(arm)) == nil {
-			return nil, invalid(ir.Unknown, location+".history_event.attributes_field", "history evidence requires an attributes arm of the recorded event")
+			return nil, ir.Invalid(ir.Unknown, location+".history_event.attributes_field", "history evidence requires an attributes arm of the recorded event")
 		}
 		bound.element, bound.attributesField = element, arm
 		bound.guard, err = a.liftGuard(location+".history_event", element, presentExpression(projectedPath("attributes<"+arm+">")))
@@ -91,11 +91,11 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 		kind := recorded.RunEvent.GetKind()
 		payload := ir.RunEventPayloadOf(kind)
 		if kind <= 0 || kind > ir.MaxRunEventKind || payload.Arm == "" {
-			return nil, invalid(ir.Unsupported, location+".run_event.kind", "Run Event evidence requires a kind that carries a payload")
+			return nil, ir.Invalid(ir.Unsupported, location+".run_event.kind", "Run Event evidence requires a kind that carries a payload")
 		}
 		element, ok := a.prepared.catalog.RunEventPayloadType(payload.Arm)
 		if !ok {
-			return nil, invalid(ir.Unknown, location+".run_event.kind", "Run Event payload arm is not in the catalog")
+			return nil, ir.Invalid(ir.Unknown, location+".run_event.kind", "Run Event payload arm is not in the catalog")
 		}
 		bound.element, bound.runEventKind, bound.payloadArm = element, kind, payload.Arm
 		var err error
@@ -119,15 +119,15 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 		}
 		element := path.Type()
 		if element.Cardinality() != ir.Repeated {
-			return nil, invalid(ir.TypeMismatch, location+".read.path", "read evidence requires a repeated field")
+			return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", "read evidence requires a repeated field")
 		}
 		element = element.Element()
 		if element.Message() == nil || element.Opaque() || element.Any() {
-			return nil, invalid(ir.TypeMismatch, location+".read.path", "read evidence requires repeated messages")
+			return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", "read evidence requires repeated messages")
 		}
 		bound.element, bound.method, bound.readPath = element, method, path
 	default:
-		return nil, invalid(ir.Malformed, location+".source", "evidence declaration requires a source")
+		return nil, ir.Invalid(ir.Malformed, location+".source", "evidence declaration requires a source")
 	}
 	var err error
 	if bound.operation, err = a.bindEvidencePath(location, bound.element, location+".operation", source.Operation, evidenceKeyKinds...); err != nil {
@@ -136,16 +136,16 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 	seen := map[string]bool{}
 	for index, scope := range source.Scope {
 		text, isText := scope.GetValue().GetValue().(*testpilotspb.Value_TextValue)
-		if scope == nil || !validID(scope.GetFieldId()) || seen[scope.GetFieldId()] || !isText || text.TextValue == "" {
-			return nil, invalid(ir.Malformed, fmt.Sprintf("%s.scope[%d]", location, index), "evidence scope requires one unique declared field with a text value")
+		if scope == nil || !ir.ValidID(scope.GetFieldId()) || seen[scope.GetFieldId()] || !isText || text.TextValue == "" {
+			return nil, ir.Invalid(ir.Malformed, fmt.Sprintf("%s.scope[%d]", location, index), "evidence scope requires one unique declared field with a text value")
 		}
 		seen[scope.FieldId] = true
 		bound.scope = append(bound.scope, evidenceBinding{fieldID: scope.FieldId, literal: text.TextValue})
 	}
 	fields := map[string]bool{}
 	for index, field := range source.Fields {
-		if field == nil || !validID(field.GetFieldId()) || fields[field.GetFieldId()] {
-			return nil, invalid(ir.Malformed, fmt.Sprintf("%s.fields[%d]", location, index), "evidence field requires one unique declared field")
+		if field == nil || !ir.ValidID(field.GetFieldId()) || fields[field.GetFieldId()] {
+			return nil, ir.Invalid(ir.Malformed, fmt.Sprintf("%s.fields[%d]", location, index), "evidence field requires one unique declared field")
 		}
 		fields[field.FieldId] = true
 		path, err := a.bindEvidencePath(location, bound.element, fmt.Sprintf("%s.fields[%d].path", location, index), field.GetPath(), evidenceFieldKinds...)
@@ -185,17 +185,17 @@ func projectedPath(path string) *testpilotspb.Expression {
 // guard, scope, key and fields are the declaration's.
 func (a *admission) bindDeclaredRule(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
 	if source.GetGuard() != nil || len(source.GetScope()) > 0 || len(source.GetFields()) > 0 || source.GetOperation() != "" || source.GetKind() != "" || source.GetEvidenceSource() != "" {
-		return nil, invalid(ir.Malformed, location, "a rule naming a declaration spells nothing else")
+		return nil, ir.Invalid(ir.Malformed, location, "a rule naming a declaration spells nothing else")
 	}
 	declaration, exists := a.prepared.evidence[source.GetEvidenceId()]
 	if !exists {
-		return nil, invalid(ir.Unknown, location+".evidence_id", "evidence rule names an undeclared evidence kind")
+		return nil, ir.Invalid(ir.Unknown, location+".evidence_id", "evidence rule names an undeclared evidence kind")
 	}
 	if declaration.kind != HistoryEventSource {
-		return nil, invalid(ir.Unsupported, location+".evidence_id", "only a history event declaration is lifted by a read")
+		return nil, ir.Invalid(ir.Unsupported, location+".evidence_id", "only a history event declaration is lifted by a read")
 	}
 	if !typ.Equal(declaration.element) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "declared history evidence requires a history event read")
+		return nil, ir.Invalid(ir.TypeMismatch, nodePath(g, n), "declared history evidence requires a history event read")
 	}
 	rule := declaration.lift("", declaration.guard).rules[0]
 	return &rule, nil
@@ -208,32 +208,32 @@ func (a *admission) bindDeclaredRule(g *graph, n *node, location string, source 
 func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	read := n.source.Instruction.GetReadEvidence()
 	if read == nil {
-		return invalid(ir.Malformed, nodePath(g, n), "nil ReadEvidence")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "nil ReadEvidence")
 	}
 	declaration, exists := a.prepared.evidence[read.GetEvidenceId()]
 	if !exists {
-		return invalid(ir.Unknown, expressionPath(g, n, "instruction.read_evidence.evidence_id"), "ReadEvidence names an undeclared evidence kind")
+		return ir.Invalid(ir.Unknown, expressionPath(g, n, "instruction.read_evidence.evidence_id"), "ReadEvidence names an undeclared evidence kind")
 	}
 	if declaration.kind != ReadSource {
-		return invalid(ir.TypeMismatch, expressionPath(g, n, "instruction.read_evidence.evidence_id"), "ReadEvidence requires a read declaration")
+		return ir.Invalid(ir.TypeMismatch, expressionPath(g, n, "instruction.read_evidence.evidence_id"), "ReadEvidence requires a read declaration")
 	}
 	if err := a.role(read.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
 	if !a.methods[read.EndpointRoleId][methodName(declaration.method)] {
-		return invalid(ir.Unsupported, nodePath(g, n), "unauthorized RPC method")
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "unauthorized RPC method")
 	}
 	if a.prepared.correlatedObservationID == "" {
-		return invalid(ir.TypeMismatch, nodePath(g, n), "ReadEvidence requires exactly one declared CorrelatedEvidence Observation")
+		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "ReadEvidence requires exactly one declared CorrelatedEvidence Observation")
 	}
 	if read.PollIntervalMilliseconds <= 0 {
-		return invalid(ir.Malformed, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "ReadEvidence requires a positive poll interval")
+		return ir.Invalid(ir.Malformed, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "ReadEvidence requires a positive poll interval")
 	}
 	if read.PollIntervalMilliseconds > n.timeoutMilliseconds {
-		return invalid(ir.LimitExceeded, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "poll interval exceeds the instruction timeout")
+		return ir.Invalid(ir.LimitExceeded, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "poll interval exceeds the instruction timeout")
 	}
 	if a.prepared.limits.MaxPathFanout > a.prepared.limits.MaxInstructionEmittedEvents {
-		return invalid(ir.LimitExceeded, nodePath(g, n), "read evidence emission exceeds instruction bound")
+		return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "read evidence emission exceeds instruction bound")
 	}
 	until, err := a.liftGuard(expressionPath(g, n, "instruction.read_evidence.until"), declaration.element, read.Until)
 	if err != nil {
@@ -241,7 +241,7 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	}
 	owner := contract.Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
 	if claimed, exists := a.evidenceSources[declaration.source]; exists && claimed != owner {
-		return invalid(ir.Malformed, nodePath(g, n), "evidence source is already lifted by another instruction")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "evidence source is already lifted by another instruction")
 	}
 	a.evidenceSources[declaration.source] = owner
 	lift := declaration.lift(a.prepared.correlatedObservationID, until)
@@ -270,10 +270,10 @@ func (a *activationValues) readSatisfied(ctx context.Context, c contract.Coordin
 		return false, 0, err
 	}
 	if n.opcode != contract.ReadEvidence || len(n.responseReads) != 1 || n.until == nil {
-		return false, w.work, invalid(ir.TypeMismatch, "read_evidence", "poll requires a ReadEvidence instruction")
+		return false, w.work, ir.Invalid(ir.TypeMismatch, "read_evidence", "poll requires a ReadEvidence instruction")
 	}
-	if isNil(response) {
-		return false, w.work, invalid(ir.Unavailable, "read_evidence", "poll returned no response")
+	if ir.IsNil(response) {
+		return false, w.work, ir.Invalid(ir.Unavailable, "read_evidence", "poll returned no response")
 	}
 	snapshot, work, err := ir.SnapshotMessage(ctx, response, n.method.Output(), w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
 	w.work += work

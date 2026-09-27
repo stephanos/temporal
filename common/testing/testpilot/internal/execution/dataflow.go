@@ -83,7 +83,7 @@ func init() {
 			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindNexusOperationCompletion(g, n) },
 			dataflow: func(_ *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, _ scopedBind) error {
 				if !scope[ir.Reference{Kind: ir.SlotReference, ID: n.source.Instruction.GetNexusOperationCompletion().GetHandleSlotId()}].Available {
-					return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
+					return ir.Invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 				}
 				return nil
 			},
@@ -147,7 +147,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	n.opcode = InstructionOpcode(n.source.Instruction)
 	row := opcodes[n.opcode]
 	if n.opcode == 0 || row.context != g.context || !a.opcodes[n.opcode] {
-		return invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
 	}
 	if err := a.bindNodeBounds(g, n); err != nil {
 		return err
@@ -158,21 +158,21 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 
 func (a *admission) bindAwaitSlot(g *graph, n *node) error {
 	if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
-		return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
+		return ir.Invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 	}
 	return nil
 }
 
 func (a *admission) bindAwaitSlotDataflow(g *graph, n *node) error {
 	if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
-		return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
+		return ir.Invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
 	}
 	return nil
 }
 
 func (a *admission) bindFinish(g *graph, n *node) error {
 	if n.source.Instruction.GetFinish() == nil {
-		return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 	}
 	return nil
 }
@@ -183,11 +183,11 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
 	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
-		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
+		return ir.Invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
 	started := g.nodes[dependency].source.Instruction
 	if !startsNexusOperation(started) {
-		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus schedule command")
+		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus schedule command")
 	}
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.any
 	return nil
@@ -199,7 +199,7 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.GetLimits()
 	n.timeoutMilliseconds, n.maxAttempts = a.prepared.instructionDefaults.Resolve(bounds)
 	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
-		return invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
 	}
 	limits := a.prepared.limits
 	duration := limits.MaxTotalDurationMilliseconds
@@ -207,20 +207,20 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 		duration = limits.MaxCleanupDurationMilliseconds
 	}
 	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > duration || n.maxAttempts <= 0 || n.maxAttempts > limits.MaxAttempts {
-		return invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
+		return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
 	}
 	return nil
 }
 func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	rpc := n.source.Instruction.GetInvokeRpc()
 	if rpc == nil {
-		return invalid(ir.Malformed, nodePath(g, n), "nil RPC")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "nil RPC")
 	}
 	if err := a.role(rpc.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
 	if !a.methods[rpc.EndpointRoleId][rpc.Method] {
-		return invalid(ir.Unsupported, nodePath(g, n), "unauthorized RPC method")
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "unauthorized RPC method")
 	}
 	method, err := a.prepared.catalog.Method(rpc.Method)
 	if err != nil {
@@ -235,12 +235,12 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 func (a *admission) bindFault(g *graph, n *node) error {
 	fault := n.source.Instruction.GetInjectFault()
 	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_WORKER_RESUME {
-		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a known fault kind")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "fault injection requires a known fault kind")
 	}
 	// The role check does not go through a.role: a fault aimed at the wrong role kind is a
 	// malformed instruction, not an unknown role reference.
 	if a.roles[fault.RoleId] != testpilotspb.ROLE_KIND_TASK_QUEUE {
-		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role")
 	}
 	return nil
 }
@@ -263,7 +263,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) {
 }
 func (a *admission) addWriter(id string, writer slotWriter) error {
 	if _, exists := a.writers[id]; exists {
-		return invalid(ir.Malformed, "slots", "Slot has multiple writers")
+		return ir.Invalid(ir.Malformed, "slots", "Slot has multiple writers")
 	}
 	a.writers[id] = writer
 	return nil
@@ -277,7 +277,7 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 	var events int64
 	for read, source := range n.source.Instruction.GetInvokeRpc().ResponseReads {
 		if source == nil || len(source.Targets) == 0 {
-			return invalid(ir.Malformed, nodePath(g, n), "response read requires a path and targets")
+			return ir.Invalid(ir.Malformed, nodePath(g, n), "response read requires a path and targets")
 		}
 		path, err := a.prepared.catalog.BindPath(output, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.response_reads[%d].path", read)), source.Path, a.expressionLimits())
 		if err != nil {
@@ -289,12 +289,12 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 		case testpilotspb.READ_CARDINALITY_ONE:
 		case testpilotspb.READ_CARDINALITY_EMIT_EACH:
 			if typ.Cardinality() != ir.Repeated {
-				return invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
+				return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
 			}
 			typ = typ.Element()
 			count = a.prepared.limits.MaxPathFanout
 		default:
-			return invalid(ir.Unknown, nodePath(g, n), "unknown response read cardinality")
+			return ir.Invalid(ir.Unknown, nodePath(g, n), "unknown response read cardinality")
 		}
 		lifts, emits, err := a.bindReadTargets(g, index, n, read, source, path, typ, seen)
 		if err != nil {
@@ -302,7 +302,7 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 		}
 		if emits {
 			if count > a.prepared.limits.MaxInstructionEmittedEvents-events {
-				return invalid(ir.LimitExceeded, nodePath(g, n), "response read emission exceeds instruction bound")
+				return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "response read emission exceeds instruction bound")
 			}
 			events += count
 		}
@@ -314,8 +314,8 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
 	for i, readTarget := range source.Targets {
-		if readTarget == nil || isNil(readTarget.Target) {
-			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing response read target")
+		if readTarget == nil || ir.IsNil(readTarget.Target) {
+			return nil, false, ir.Invalid(ir.Malformed, nodePath(g, n), "missing response read target")
 		}
 		var target ir.Type
 		var exists bool
@@ -325,7 +325,7 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
 			if source.Cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
-				return nil, false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
+				return nil, false, ir.Invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
 				return nil, false, err
@@ -343,18 +343,18 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 			lifts[i], emits = lift, true
 			key = "observation:" + lift.observationID
 			if seen[key] {
-				return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
+				return nil, false, ir.Invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
 			}
 			seen[key] = true
 			continue
 		default:
-			return nil, false, invalid(ir.Unsupported, nodePath(g, n), "unknown response read target")
+			return nil, false, ir.Invalid(ir.Unsupported, nodePath(g, n), "unknown response read target")
 		}
 		if !exists || target.Opaque() || !typ.Equal(target) {
-			return nil, false, invalid(ir.TypeMismatch, nodePath(g, n), "response read type differs from declared target")
+			return nil, false, ir.Invalid(ir.TypeMismatch, nodePath(g, n), "response read type differs from declared target")
 		}
 		if seen[key] {
-			return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
+			return nil, false, ir.Invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
 		}
 		seen[key] = true
 	}
@@ -369,20 +369,20 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
 	target, exists := a.observations[source.GetObservationId()]
 	if !exists || target.Cardinality() != ir.Singular || !ir.SameMessage(target.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared CorrelatedEvidence Observation")
+		return nil, ir.Invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared CorrelatedEvidence Observation")
 	}
 	if typ.Cardinality() != ir.Singular || typ.Message() == nil || typ.Opaque() || typ.Any() {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message read")
+		return nil, ir.Invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message read")
 	}
 	if len(source.GetRules()) == 0 {
-		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
+		return nil, ir.Invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
 	}
 	// A source ordinal is dense per Run and only the emitting instruction counts it, so one source
 	// belongs to one instruction on an entrypoint that activates exactly once. A worker entrypoint
 	// activates per task and a second instruction would restart the count, and either would be
 	// rejected by the verifier's ordering rather than here.
 	if g.context != contract.ControllerEntrypoint {
-		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence lift requires a controller entrypoint")
+		return nil, ir.Invalid(ir.Unsupported, nodePath(g, n), "evidence lift requires a controller entrypoint")
 	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
 	owner := contract.Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
@@ -392,7 +392,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 			return nil, err
 		}
 		if claimed, exists := a.evidenceSources[bound.source]; exists && claimed != owner {
-			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence source is already lifted by another instruction")
+			return nil, ir.Invalid(ir.Malformed, nodePath(g, n), "evidence source is already lifted by another instruction")
 		}
 		a.evidenceSources[bound.source] = owner
 		lift.rules = append(lift.rules, *bound)
@@ -403,8 +403,8 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	if source.GetEvidenceId() != "" {
 		return a.bindDeclaredRule(g, n, location, source, typ)
 	}
-	if !validID(source.GetEvidenceSource()) || !validID(source.GetKind()) {
-		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
+	if !ir.ValidID(source.GetEvidenceSource()) || !ir.ValidID(source.GetKind()) {
+		return nil, ir.Invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
 	// The guard reads only the projected value, which every rule of the lift is offered whole.
 	boolean, err := a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_BOOLEAN))
@@ -460,8 +460,8 @@ func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
 	for index, source := range sources {
-		if source == nil || !validID(source.GetFieldId()) || seen[source.GetFieldId()] {
-			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires one unique declared field")
+		if source == nil || !ir.ValidID(source.GetFieldId()) || seen[source.GetFieldId()] {
+			return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires one unique declared field")
 		}
 		seen[source.GetFieldId()] = true
 		site := ir.Site{Context: ir.EvidenceLiftContext, Path: fmt.Sprintf("%s[%d].value", location, index)}
@@ -472,16 +472,16 @@ func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type
 		case *testpilotspb.Expression_Literal:
 			literal, isText := supply.Literal.GetValue().(*testpilotspb.Value_TextValue)
 			if !isText {
-				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a text")
+				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence literal binding requires a text")
 			}
 			text := literal.TextValue
 			if text == "" {
-				return nil, invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
+				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: text})
 		case *testpilotspb.Expression_Path:
 			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
-				return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
+				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 			}
 			path, err := a.bindEvidencePath(errorPath, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
 			if err != nil {
@@ -489,7 +489,7 @@ func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), path: path})
 		default:
-			return nil, invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
+			return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
 		}
 	}
 	return bound, nil
@@ -501,7 +501,7 @@ func (a *admission) bindEvidencePath(errorPath string, typ ir.Type, location, so
 	}
 	read := path.Type()
 	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
-		return nil, invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
+		return nil, ir.Invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
 	}
 	return path, nil
 }
@@ -670,18 +670,18 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 	}
 	for index, source := range sources {
 		if source == nil {
-			return invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
+			return ir.Invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
 		}
 		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("%s.request_assignments[%d].target", field, index)), source.Target, a.expressionLimits())
 		if err != nil {
 			return err
 		}
 		if target.Fanout() {
-			return invalid(ir.Unsupported, nodePath(g, n), "assignment cannot fan out across destination elements")
+			return ir.Invalid(ir.Unsupported, nodePath(g, n), "assignment cannot fan out across destination elements")
 		}
 		for _, step := range target.Steps() {
 			if step.Selector == ir.Presence {
-				return invalid(ir.Unsupported, nodePath(g, n), "presence is not an assignment destination")
+				return ir.Invalid(ir.Unsupported, nodePath(g, n), "presence is not an assignment destination")
 			}
 		}
 		for _, previous := range n.assignments {
@@ -689,14 +689,14 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 				return err
 			}
 			if previous.target.Conflicts(target) {
-				return invalid(ir.Malformed, nodePath(g, n), "request assignments overlap")
+				return ir.Invalid(ir.Malformed, nodePath(g, n), "request assignments overlap")
 			}
 		}
 		typ := target.Type()
 		valueSource := source.Value
 		if reference, ok := source.Value.GetReference().GetReference().(*testpilotspb.Reference_EnvironmentBindingId); ok {
 			if reference == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
-				return invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
+				return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
 			}
 			resolved, err := a.resolveEnvironment(reference.EnvironmentBindingId)
 			if err != nil {

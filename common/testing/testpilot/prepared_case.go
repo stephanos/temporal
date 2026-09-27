@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/verification"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -23,32 +25,20 @@ type Evaluation struct {
 // the evidence whose release resolved the obligation and the event that carried that evidence,
 // or neither (Sequence 0, no kind) when the violation was found at closure with the obligation
 // still pending under a final ending.
-type RuleViolation struct {
-	RuleID         string
-	Sequence       int64
-	ObservationIDs []string
-	CorrelatedKind string
-}
+type RuleViolation = verification.Violation
 
 // Evaluate replays a closed Run's events through the same prepared Contract the Monitor ran, with
 // no Driver and no target, and returns the Verdict that reading gives with its Evaluation. A Run
 // that is not closed, or that names another Program, errs.
 func (p *PreparedCase) Evaluate(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, *Evaluation, error) {
-	if p == nil || p.contract == nil || isNil(ctx) {
+	if p == nil || p.contract == nil || ir.IsNil(ctx) {
 		return nil, nil, errors.New("prepared Case and context are required")
 	}
 	verdict, violations, err := p.contract.Evaluate(ctx, proto.CloneOf(run))
 	if err != nil {
 		return verdict, nil, err
 	}
-	evaluation := &Evaluation{}
-	for _, violation := range violations {
-		evaluation.Violations = append(evaluation.Violations, RuleViolation{
-			RuleID: violation.RuleID, Sequence: violation.Sequence,
-			ObservationIDs: append([]string(nil), violation.ObservationIDs...), CorrelatedKind: violation.Kind,
-		})
-	}
-	return verdict, evaluation, nil
+	return verdict, &Evaluation{Violations: violations}, nil
 }
 
 func (p *PreparedCase) Run(ctx context.Context, driver Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {

@@ -39,11 +39,6 @@ type Error struct {
 
 func (e *Error) Error() string { return fmt.Sprintf("%s at %s: %s", e.Category, e.Path, e.Detail) }
 
-var (
-	invalid = Invalid
-	missing = IsNil
-)
-
 type Limits struct{ Depth, Work, Bytes, Fanout int64 }
 
 func DefaultLimits() Limits { return Limits{Depth: 64, Work: 100_000, Bytes: 16 << 20, Fanout: 10_000} }
@@ -58,7 +53,7 @@ func (l Limits) validateStructure() error {
 func (l Limits) validate() error {
 	hard := DefaultLimits()
 	if l.Depth <= 0 || l.Depth > hard.Depth || l.Work <= 0 || l.Work > hard.Work || l.Bytes <= 0 || l.Bytes > hard.Bytes || l.Fanout <= 0 || l.Fanout > hard.Fanout {
-		return invalid(LimitExceeded, "$", "limits must be positive and within hard ceilings")
+		return Invalid(LimitExceeded, "$", "limits must be positive and within hard ceilings")
 	}
 	return nil
 }
@@ -76,12 +71,12 @@ func (b *budget) charge(depth, work, bytes int64, path string) error {
 			return err
 		}
 		if bytes > b.limits.Work-work {
-			return invalid(LimitExceeded, path, "runtime work ceiling exceeded")
+			return Invalid(LimitExceeded, path, "runtime work ceiling exceeded")
 		}
 		work += bytes
 	}
 	if depth > b.limits.Depth || work < 0 || bytes < 0 || work > b.limits.Work-b.work || bytes > b.limits.Bytes-b.bytes {
-		return invalid(LimitExceeded, path, "depth, work, or byte ceiling exceeded")
+		return Invalid(LimitExceeded, path, "depth, work, or byte ceiling exceeded")
 	}
 	b.work += work
 	b.bytes += bytes
@@ -90,13 +85,13 @@ func (b *budget) charge(depth, work, bytes int64, path string) error {
 
 func inspect(message protoreflect.Message, depth int64, b *budget, path string) error {
 	if !message.IsValid() {
-		return invalid(Malformed, path, "nil message")
+		return Invalid(Malformed, path, "nil message")
 	}
 	if err := b.charge(depth, 1, 0, path); err != nil {
 		return err
 	}
 	if len(message.GetUnknown()) != 0 {
-		return invalid(Unknown, path, "unknown protobuf fields")
+		return Invalid(Unknown, path, "unknown protobuf fields")
 	}
 
 	if b.ctx == nil {
@@ -145,7 +140,7 @@ func inspectField(field protoreflect.FieldDescriptor, value protoreflect.Value, 
 			return inspectExpandedList(field, value.List(), depth, b, path)
 		}
 		if int64(value.List().Len()) > b.limits.Fanout {
-			return invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
+			return Invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
 		}
 		for i := 0; i < value.List().Len(); i++ {
 			if err := inspectValue(field, value.List().Get(i), depth, b, path); err != nil {
@@ -168,7 +163,7 @@ func inspectExpandedList(field protoreflect.FieldDescriptor, list protoreflect.L
 			count = int64(expanded)
 		}
 		if length += count; length > b.limits.Fanout {
-			return invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
+			return Invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
 		}
 	}
 	for i := 0; i < list.Len(); i++ {
@@ -193,7 +188,7 @@ func inspectValue(field protoreflect.FieldDescriptor, value protoreflect.Value, 
 		return inspect(value.Message(), depth+1, b, path)
 	}
 	if field.Enum() != nil && field.Enum().Values().ByNumber(value.Enum()) == nil {
-		return invalid(Unknown, path, "undefined enum value")
+		return Invalid(Unknown, path, "undefined enum value")
 	}
 	size := int64(8)
 	if field.Kind() == protoreflect.StringKind {
@@ -212,7 +207,7 @@ type Catalog struct {
 
 func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 	if source == nil {
-		return nil, invalid(Malformed, "catalog", "descriptor set is required")
+		return nil, Invalid(Malformed, "catalog", "descriptor set is required")
 	}
 	b := budget{limits: DefaultLimits()}
 	if err := inspect(source.ProtoReflect(), 1, &b, "catalog"); err != nil {
@@ -222,26 +217,26 @@ func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 	seen := make(map[string]bool, len(snapshot.File))
 	for _, file := range snapshot.File {
 		if file.GetName() == "" || seen[file.GetName()] {
-			return nil, invalid(Malformed, "catalog", "missing or duplicate file name")
+			return nil, Invalid(Malformed, "catalog", "missing or duplicate file name")
 		}
 		seen[file.GetName()] = true
 	}
 	files, err := protodesc.NewFiles(snapshot)
 	if err != nil {
-		return nil, invalid(Malformed, "catalog", "invalid descriptor graph")
+		return nil, Invalid(Malformed, "catalog", "invalid descriptor graph")
 	}
 	for _, intrinsic := range intrinsicEnums() {
 		if supplied, err := files.FindDescriptorByName(intrinsic.FullName()); err == nil {
 			enumeration, ok := supplied.(protoreflect.EnumDescriptor)
 			if !ok || !proto.Equal(protodesc.ToEnumDescriptorProto(enumeration), protodesc.ToEnumDescriptorProto(intrinsic)) {
-				return nil, invalid(TypeMismatch, "catalog", "conflicting intrinsic enum definition")
+				return nil, Invalid(TypeMismatch, "catalog", "conflicting intrinsic enum definition")
 			}
 		}
 	}
 	slices.SortFunc(snapshot.File, func(a, b *descriptorpb.FileDescriptorProto) int { return strings.Compare(a.GetName(), b.GetName()) })
 	encoded, err := (proto.MarshalOptions{Deterministic: true}).Marshal(snapshot)
 	if err != nil {
-		return nil, invalid(Malformed, "catalog", "descriptor serialization failed")
+		return nil, Invalid(Malformed, "catalog", "descriptor serialization failed")
 	}
 	sum := sha256.Sum256(encoded)
 	return &Catalog{files: files, identity: fmt.Sprintf("%x", sum)}, nil
@@ -252,18 +247,18 @@ func (c *Catalog) Identity() string { return c.identity }
 func (c *Catalog) Method(name string) (protoreflect.MethodDescriptor, error) {
 	parts := strings.Split(name, "/")
 	if len(parts) != 3 || parts[0] != "" || !protoreflect.FullName(parts[1]).IsValid() || !protoreflect.Name(parts[2]).IsValid() {
-		return nil, invalid(Malformed, "method", "expected /fully.qualified.Service/Method")
+		return nil, Invalid(Malformed, "method", "expected /fully.qualified.Service/Method")
 	}
 	descriptor, err := c.files.FindDescriptorByName(protoreflect.FullName(parts[1] + "." + parts[2]))
 	if err != nil {
-		return nil, invalid(Unknown, "method", "method is not in the catalog")
+		return nil, Invalid(Unknown, "method", "method is not in the catalog")
 	}
 	method, ok := descriptor.(protoreflect.MethodDescriptor)
 	if !ok {
-		return nil, invalid(TypeMismatch, "method", "descriptor is not a method")
+		return nil, Invalid(TypeMismatch, "method", "descriptor is not a method")
 	}
 	if method.IsStreamingClient() || method.IsStreamingServer() {
-		return nil, invalid(Unsupported, "method", "streaming methods are unsupported")
+		return nil, Invalid(Unsupported, "method", "streaming methods are unsupported")
 	}
 	return method, nil
 }
@@ -281,8 +276,8 @@ func CheckSurface(source proto.Message, limits Limits) error {
 	if err := limits.validate(); err != nil {
 		return err
 	}
-	if missing(source) {
-		return invalid(Malformed, "$", "message is required")
+	if IsNil(source) {
+		return Invalid(Malformed, "$", "message is required")
 	}
 	b := budget{limits: limits}
 	return inspectSurface(source.ProtoReflect(), &b, "$")
@@ -299,8 +294,8 @@ func CheckExpandedSurface(source proto.Message, limits Limits, expand Expansion)
 	if err := limits.validate(); err != nil {
 		return err
 	}
-	if missing(source) || expand == nil {
-		return invalid(Malformed, "$", "message and expansion are required")
+	if IsNil(source) || expand == nil {
+		return Invalid(Malformed, "$", "message and expansion are required")
 	}
 	b := budget{limits: limits, expand: expand}
 	return inspectSurface(source.ProtoReflect(), &b, "$")
@@ -350,9 +345,9 @@ func CheckRunEventPayload(event *testpilotspb.RunEvent) error {
 	}
 	switch {
 	case carried != nil && carried.Name() != expected.Arm:
-		return invalid(Malformed, "run_event.payload", fmt.Sprintf("%s cannot carry the %s payload", kind, carried.Name()))
+		return Invalid(Malformed, "run_event.payload", fmt.Sprintf("%s cannot carry the %s payload", kind, carried.Name()))
 	case carried == nil && expected.Required:
-		return invalid(Malformed, "run_event.payload", fmt.Sprintf("%s requires the %s payload", kind, expected.Arm))
+		return Invalid(Malformed, "run_event.payload", fmt.Sprintf("%s requires the %s payload", kind, expected.Arm))
 	default:
 		return nil
 	}
@@ -385,7 +380,7 @@ func RunEventPayloadValue(event *testpilotspb.RunEvent, arm protoreflect.Name) *
 
 func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
 	if int64(value.Map().Len()) > b.limits.Fanout {
-		return invalid(LimitExceeded, path, "map collection ceiling exceeded")
+		return Invalid(LimitExceeded, path, "map collection ceiling exceeded")
 	}
 
 	if b.ctx == nil {
@@ -421,7 +416,7 @@ func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, de
 		return true
 	})
 	if orderingExceeded {
-		return invalid(LimitExceeded, path, "runtime work ceiling exceeded")
+		return Invalid(LimitExceeded, path, "runtime work ceiling exceeded")
 	}
 	if err := b.charge(depth, orderingWork, 0, path); err != nil {
 		return err

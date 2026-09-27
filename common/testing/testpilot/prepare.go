@@ -25,7 +25,7 @@ type PreparedCase struct {
 // Prepare snapshots and admits a Case without Driver I/O. Rejections expose
 // *PreparationError through errors.As.
 func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) {
-	if isNil(profile) {
+	if ir.IsNil(profile) {
 		return nil, preparationError(errors.New("Profile is required"), "profile")
 	}
 	// The snapshot is Prepare's one clone of the Profile; admission holds its values as given.
@@ -54,7 +54,7 @@ func (p *PreparedCase) Snapshot() *testpilotspb.Case { return proto.CloneOf(p.so
 func (p *PreparedCase) Identity() DriverIdentity     { return p.identity }
 
 func (p *PreparedCase) preflight(ctx context.Context, driver Driver) (execution.Driver, execution.Monitor, error) {
-	if p == nil || p.program == nil || isNil(ctx) || isNil(driver) || isNil(p.factory) {
+	if p == nil || p.program == nil || ir.IsNil(ctx) || ir.IsNil(driver) || ir.IsNil(p.factory) {
 		return nil, nil, errors.New("prepared Case, context, Driver and Contract factory are required")
 	}
 	if err := ctx.Err(); err != nil {
@@ -76,5 +76,3 @@ func (p *PreparedCase) preflight(ctx context.Context, driver Driver) (execution.
 	}
 	return driverAdapter{driver: driver}, monitor, nil
 }
-
-var isNil = ir.IsNil
