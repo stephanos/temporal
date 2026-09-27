@@ -14,7 +14,7 @@ import (
 
 const (
 	// PluginName is the name of the plugin
-	PluginName = "mysql8"
+	PluginName = sqlplugin.MySQLPluginName
 )
 
 type plugin struct {
