@@ -15,8 +15,6 @@ import (
 	"go.temporal.io/sdk/worker"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/internal/execution"
-	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
@@ -82,7 +80,7 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
 	}
-	if ir.CheckCeilings(limits, execution.ProgramCeiling(), func(string) error { return ErrInvalid }) != nil {
+	if !testpilot.WithinProgramCeiling(limits) {
 		return false
 	}
 	methods, carriers, shapes := 0, 0, 0

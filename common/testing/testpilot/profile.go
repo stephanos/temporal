@@ -97,6 +97,14 @@ type ProfileSpec struct {
 	InstructionDefaults InstructionDefaults
 }
 
+// WithinProgramCeiling reports whether every ProgramLimits field is positive and within the ceiling
+// admission enforces. Drivers check a Profile's limits with it once, at construction.
+func WithinProgramCeiling(limits *testpilotspb.ProgramLimits) bool {
+	return ir.CheckCeilings(limits, execution.ProgramCeiling(), func(string) error { return errOutsideCeiling }) == nil
+}
+
+var errOutsideCeiling = errors.New("program limit outside the ceiling")
+
 func (p ProfileSpec) Snapshot() ProfileSpec {
 	snapshot := p
 	snapshot.ProgramLimits = proto.CloneOf(p.ProgramLimits)
