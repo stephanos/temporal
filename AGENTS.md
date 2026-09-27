@@ -162,7 +162,10 @@ reviewer: gpt-5.6-sol at high
 
 <!-- Pinned rather than left unset: the worker implements in-session on Claude
      Code, and these are Lean proof tasks that degrade badly on a cheaper tier,
-     so the pin holds even if the session model is switched down. -->
+     so the pin holds even if the session model is switched down. Escalate a
+     task to fable (Claude Fable 5.1) only when it is a hard proof or design
+     task, such as an equivalence or agreement theorem; routine tasks stay on
+     opus, which is 2.5x cheaper and much faster. -->
 
 implementer: opus at high
 
@@ -174,7 +177,12 @@ fast scout: haiku
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
 
-thinking scout: opus at high
+<!-- Spec writing, task breakdown (/flow-next:plan) and mid-flight design
+     decisions run here: they are low-volume, and a gap they miss surfaces
+     later as rework in implementation. Reviews stay on the cross-family
+     reviewer above, never on this tier. -->
+
+thinking scout: fable at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
