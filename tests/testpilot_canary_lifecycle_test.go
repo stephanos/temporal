@@ -93,7 +93,11 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 			// skip its cleanup.
 			if path := os.Getenv("UMPIRE_CANARY_RECORD"); path != "" && !recordedOnce {
 				recordedOnce = true
-				encoded, err := recordedrun.Encode(canary.CaseIdentity, scope.Prepared.Identity(), run)
+				recorded, err := machineFreeRun(run)
+				var encoded []byte
+				if err == nil {
+					encoded, err = recordedrun.Encode(canary.CaseIdentity, scope.Prepared.Identity(), recorded)
+				}
 				if err == nil {
 					err = os.WriteFile(path, encoded, 0o644)
 				}

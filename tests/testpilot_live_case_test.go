@@ -4,7 +4,9 @@ package tests
 
 import (
 	"context"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,6 +21,9 @@ import (
 	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // testpilotLiveResources names the physical resources one Case's Program binds symbolically. A
@@ -111,8 +116,109 @@ func (live testpilotLiveCase) runRecording(t *testing.T, ctx context.Context, ca
 	t.Helper()
 	run, verdict, err := live.prepared.Run(ctx, live.driver)
 	require.NoError(t, err)
-	require.NoError(t, replay.WriteRecordedRun(path, caseBytes, live.prepared.Identity(), run))
+	recorded, err := machineFreeRun(run)
+	require.NoError(t, err)
+	require.NoError(t, replay.WriteRecordedRun(path, caseBytes, live.prepared.Identity(), recorded))
 	return run, verdict
+}
+
+// recordedHost stands in for the recording machine's hostname, which the SDK worker writes into
+// its default identity (pid@host@) and its sticky task queue name (host:uuid), so a pinned record
+// re-recorded on any machine names none.
+const recordedHost = "vm"
+
+// machineFreeRun is a copy of run with the SDK worker's hostname replaced by recordedHost in every
+// string, the ones inside an Any's message included. No Query reads a worker identity or a sticky
+// queue name, so the recorded Run replays to the Verdict the live one reached.
+func machineFreeRun(run *testpilotpb.Run) (*testpilotpb.Run, error) {
+	host, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
+	scrubbed := proto.CloneOf(run)
+	if host == recordedHost {
+		return scrubbed, nil
+	}
+	replace := func(value string) string {
+		value = strings.ReplaceAll(value, "@"+host+"@", "@"+recordedHost+"@")
+		if rest, ok := strings.CutPrefix(value, host+":"); ok {
+			value = recordedHost + ":" + rest
+		}
+		return value
+	}
+	if _, err := scrubHost(scrubbed.ProtoReflect(), replace); err != nil {
+		return nil, err
+	}
+	return scrubbed, nil
+}
+
+// scrubHost rewrites message's strings in place with replace and reports whether any changed.
+func scrubHost(message protoreflect.Message, replace func(string) string) (bool, error) {
+	if packed, ok := message.Interface().(*anypb.Any); ok {
+		return scrubAny(packed, replace)
+	}
+	changed := false
+	var err error
+	// scrub rewrites one value of field, a string it returns changed or a message in place.
+	scrub := func(field protoreflect.FieldDescriptor, value protoreflect.Value) (protoreflect.Value, bool) {
+		if field.Kind() == protoreflect.StringKind {
+			next := replace(value.String())
+			return protoreflect.ValueOfString(next), next != value.String()
+		}
+		if field.Message() != nil && err == nil {
+			var nested bool
+			nested, err = scrubHost(value.Message(), replace)
+			changed = changed || nested
+		}
+		return value, false
+	}
+	message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+		switch {
+		case field.IsList():
+			list := value.List()
+			for index := range list.Len() {
+				if next, ok := scrub(field, list.Get(index)); ok {
+					list.Set(index, next)
+					changed = true
+				}
+			}
+		case field.IsMap():
+			entries := value.Map()
+			entries.Range(func(key protoreflect.MapKey, entry protoreflect.Value) bool {
+				if next, ok := scrub(field.MapValue(), entry); ok {
+					entries.Set(key, next)
+					changed = true
+				}
+				return true
+			})
+		default:
+			if next, ok := scrub(field, value); ok {
+				message.Set(field, next)
+				changed = true
+			}
+		}
+		return err == nil
+	})
+	return changed, err
+}
+
+// scrubAny rewrites the message an Any carries and re-packs it only when a string changed, so an
+// Any with nothing to replace keeps its bytes.
+func scrubAny(packed *anypb.Any, replace func(string) string) (bool, error) {
+	inner, err := packed.UnmarshalNew()
+	if err != nil {
+		return false, err
+	}
+	changed, err := scrubHost(inner.ProtoReflect(), replace)
+	if err != nil || !changed {
+		return false, err
+	}
+	value, err := proto.MarshalOptions{Deterministic: true}.Marshal(inner)
+	if err != nil {
+		return false, err
+	}
+	packed.Value = value
+	return true, nil
 }
 
 // runEventAt resolves one recorded Run Event by its one-based sequence, which is the only place
