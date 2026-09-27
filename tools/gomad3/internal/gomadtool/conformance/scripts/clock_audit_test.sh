@@ -5,7 +5,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$script_dir/../../../.." && pwd)
 go_bin="$root/.toolchain/bin/go"
-probe="$script_dir/clock_audit.d"
+probe="$root/clock_audit.d"
 test_tmp=$(mktemp -d "$root/.toolchain/clock-audit.XXXXXX")
 cleanup() {
 	find "$test_tmp" -depth -delete
