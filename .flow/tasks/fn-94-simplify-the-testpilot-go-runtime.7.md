@@ -37,9 +37,10 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+`ir` now exports `Invalid` (256-byte path truncation), `ValidID`, `IsNil` and `CheckCeilings` in the new `internal/ir/admission.go`. `execution`, `verification` and the facade dropped their copies: `CheckCeilings` replaces the three core ceiling loops through a rejection builder plus skipped field names, so every pinned path and detail is unchanged, and `admission_test.go` pins all three call shapes in a table test. The four primitives are gone as copies, but the files outside the declared Touches still call the old lowercase names (`invalid`, `validID`, `isNil`, `missing`, `invalidAt`), so each package keeps one-line `var` bindings to the `ir` exports. Follow-up: rename those call sites to the exported names and drop the bindings. `ir/expression.go`'s `isNilMessage` stays, since it is outside Touches and is a narrower pointer-only check.
 
+stage: impl-review - ran [codex fan-out, 3 draws SHIP, rid 89047cf85cb947a5bc6b43d554cb19a8]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c482bb58ec93973fe9c83357624958405c7d5bf1
+- Tests: go test -race -tags test_dep ./common/testing/testpilot/..., make umpire-check-case-runtime-conformance, make lint-code (golangci-lint, new-from merge-base with main) on ./common/testing/testpilot, internal/ir, internal/execution, internal/verification: 0 issues, baseline: green (go test -race suite); conformance baseline red pre-edit from a concurrent lake build race (missing Testpilot/Protocol.olean.private), green on re-run post-change
 - PRs:
