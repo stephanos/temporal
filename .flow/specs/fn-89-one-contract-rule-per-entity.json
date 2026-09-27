@@ -18,6 +18,8 @@
     "fn-89-one-contract-rule-per-entity.2": 0,
     "fn-89-one-contract-rule-per-entity.3": 0,
     "fn-89-one-contract-rule-per-entity.4": 0,
+    "fn-89-one-contract-rule-per-entity.5": 0,
+    "fn-89-one-contract-rule-per-entity.6": 0,
     "fn-89-one-contract-rule-per-entity.7": 0
   },
   "next_task": 1,
@@ -358,6 +360,97 @@
       "task": "fn-89-one-contract-rule-per-entity.4",
       "timestamp": "2026-09-27T13:10:54.470891Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ab4e16ee48074149d1c62970f66b430b9fe1909e99e9af766cb2bae2c9ba9b1c",
+      "backend": "claude",
+      "base_sha": "f559ed9566dae28b56ce070dc72c8d5b2aa0277a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e33c6be0529fb6b6668cd1d1d563834d7218c21d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3105,
+      "output_sha256": "49e4397cd812856c1528cad5057921d6d5203e4206e72fe286f2f7783c5fa935",
+      "reservation_id": "295aff6657ae485f8d4555573bb05ff2",
+      "round_consumed": true,
+      "scope": "impl:fn-89-one-contract-rule-per-entity.5",
+      "superseded_by": null,
+      "task": "fn-89-one-contract-rule-per-entity.5",
+      "timestamp": "2026-09-27T14:19:08.271698Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f1d2ab36984eb967806d9cd0c299b9430b8ccdbfe65fa1023a32901c1fc5762d",
+      "backend": "codex",
+      "base_sha": "b6e479de181abc511209813bd3f4b5137a2760b1",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5a317db0e41b3e39af561f0765895142b20caed2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "06b160382305c67f920f83540f0004166a2a28635a746b3c3bda28a4a693e5c8",
+      "reservation_id": "5e247caadcfa4399bc9dbdac12cb0241",
+      "round_consumed": false,
+      "scope": "impl:fn-89-one-contract-rule-per-entity.6",
+      "superseded_by": null,
+      "task": "fn-89-one-contract-rule-per-entity.6",
+      "timestamp": "2026-09-27T15:45:42.058665Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "5d944eac9738649f2b682abc61d22830d6c0465e44c3281a1108695e86755ff7",
+      "backend": "codex",
+      "base_sha": "b6e479de181abc511209813bd3f4b5137a2760b1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "231a7ea3131a1b5ccd1f216150c5ce66c152d2d8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1202,
+      "output_sha256": "57adcd6f827c193fb0fcf78f67275972e69c9340ced9181a9218c3eafda36cfe",
+      "reservation_id": "7e651f3b2e2c417b82c0807a9fce6907",
+      "round_consumed": true,
+      "scope": "impl:fn-89-one-contract-rule-per-entity.6",
+      "superseded_by": null,
+      "task": "fn-89-one-contract-rule-per-entity.6",
+      "timestamp": "2026-09-27T15:48:47.935506Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -365,6 +458,8 @@
     "impl:fn-89-one-contract-rule-per-entity.2": 1,
     "impl:fn-89-one-contract-rule-per-entity.3": 1,
     "impl:fn-89-one-contract-rule-per-entity.4": 1,
+    "impl:fn-89-one-contract-rule-per-entity.5": 1,
+    "impl:fn-89-one-contract-rule-per-entity.6": 1,
     "impl:fn-89-one-contract-rule-per-entity.7": 1,
     "plan": 1,
     "plan#completion": 0
@@ -376,6 +471,8 @@
     "impl:fn-89-one-contract-rule-per-entity.2": 0,
     "impl:fn-89-one-contract-rule-per-entity.3": 0,
     "impl:fn-89-one-contract-rule-per-entity.4": 0,
+    "impl:fn-89-one-contract-rule-per-entity.5": 0,
+    "impl:fn-89-one-contract-rule-per-entity.6": 0,
     "impl:fn-89-one-contract-rule-per-entity.7": 0,
     "plan": 0
   },
@@ -393,5 +490,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T13:10:54.473311Z"
+  "updated_at": "2026-09-27T15:48:47.937777Z"
 }

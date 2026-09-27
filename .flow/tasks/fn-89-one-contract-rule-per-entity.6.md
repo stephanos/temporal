@@ -32,9 +32,17 @@ Draft the Rule glossary Amendment and the SEM-17 Restatement and update the docs
 - [ ] `make umpire-check-regression`, `LEAN_NUM_THREADS=1 make lint-model` (no new findings) and `make lint-code-fast` pass
 
 ## Done summary
-TBD
+Drafted the Rule glossary Amendment and the SEM-17 Restatement in `.plans/UMPIRE4_SPEC.md` with fn-89 GOV-02 markers; no approved text was edited. The docs now describe Rule instances: the Testpilot README (intro, extension checklist, the `instance_value_id` arm), the verification README, the Case Runtime design's Contract IR, the Producer's typed field lowering, and the model README's Pair example. Prose in those docs no longer calls a Rule a "monitor". `.plans/UMPIRE4_ORDER.md` records fn-89 as delivered; only its queue item was edited.
 
+Carried items:
+- `execution` and `verification` now share `ir.HasRuleInstances` instead of each duplicating the check.
+- The Testpilot README records that the corpus does not pin the expanded Case-size charge, and that `TestPrepareBoundsTheCaseSurfaceAsExpanded` covers it instead.
+- The closing gates ran after fn-88.5 landed. Two earlier attempts collided with concurrent fn-88 work on the shared tree and `model/.lake`, and were discarded.
+
+The lint-model run is at 650d307e9d and the regression run at df1a7c927f; this task changed no Lean.
+
+stage: impl-review - ran (codex fan-out, 3 draws SHIP, no findings; first dispatch re-run because fn-88.5 committed onto HEAD mid-review)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5a317db0e41b3e39af561f0765895142b20caed2, dd8decf644494952574ba10de2e11d270c2bddb9
+- Tests: baseline: green (go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/...), go test -count=1 -tags test_dep ./common/testing/testpilot/internal/... ./tools/umpire/vocabulary/..., make lint-code-fast (0 issues), LEAN_NUM_THREADS=1 make lint-model (exit 0, no findings; run after fn-88.5 landed, at 650d307e9d), TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (exit 0 at df1a7c927f, 45 passing live identities)
 - PRs:
