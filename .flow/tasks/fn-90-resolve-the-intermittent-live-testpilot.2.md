@@ -42,9 +42,17 @@ boundary. Runs in parallel with fn-90.1; the one-line JSON format is the only th
 - [ ] `go test -v -count=1 -tags 'test_dep integration' ./tests -run '^(TestTestpilotNexusPairCase|TestTestpilotNexusCallerAsyncCompletion|TestTestpilotWorkerOutageCase.*|TestTestpilotUmpireRun.*)$'` passes.
 - [ ] With `UMPIRE_REPEAT_RUN_DIR` set, one run of the pair test leaves one recorded Run file per closed Run; unset, none.
 ## Done summary
-TBD
+The affected live Testpilot tests (pair, caller Query, both worker-outage, umpire-run) print one `TESTPILOT-SIGNATURE` line on a failing disposition, Verdict, rule-status or evidence assertion, and capture every closed Run under `UMPIRE_REPEAT_RUN_DIR`. umpire-run reports one `diagnostic <kind> <code>` line per Run diagnostic. The pure signature lives in `tests/testcore/testpilot/signature.go`. A new umpire-repeat test reads that encoder's `t.Log`-decorated line back through the harness parser, field for field, so the two ends of the contract cannot drift apart.
 
+Deliberately broken expectation (VIOLATED required in the pair test, not committed) printed exactly one line, which parses with its keys in canonical order:
+`testpilot_signature_test.go:43: TESTPILOT-SIGNATURE {"test":"TestTestpilotNexusPairCase","assertion":"verdict status","run_disposition":"Completed","verdict_status":"Satisfied","unresolved_rules":[],"diagnostics":[],"leaks":[]}`
+
+Follow-up (review P3, outside this task's Touches): `runCapturedCase`/`runCapturedCaseWithBinding`/`runCapturedBoundCase` duplicate `runCase`/`runBoundCase` in `tests/testpilot_run_case_test.go`. Letting `runBoundCase` return the bound live case would remove the copies.
+
+The full live gate `make umpire-check-live-tests` was not run: it takes about 30 minutes, over the 10-minute live-command bound. The affected selection passed; see the evidence.
+
+stage: impl-review - ran [2026-09-27T02:33Z..2026-09-27T02:34:16Z] SHIP (claude:opus:high)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6e368d4378f80f6da5a79799b1193b6e3e11fd50, 82b96aa0d9d6c708883b6696d318d728848a0ac9
+- Tests: baseline: green (offline quick commands, pre-edit), go test -count=1 -tags test_dep ./tests/testcore/testpilot -run Signature, go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-run/... ./tools/umpire/cmd/umpire-repeat/..., go vet -tags 'test_dep integration' ./tests, make lint-code-fast, go test -v -count=1 -tags 'test_dep integration' ./tests -run '^(TestTestpilotNexusPairCase|TestTestpilotNexusCallerAsyncCompletion|TestTestpilotWorkerOutageCase.*|TestTestpilotUmpireRun.*)$' (PASS, 45s), UMPIRE_REPEAT_RUN_DIR=<dir> go test ... -run '^TestTestpilotNexusPairCase$' (2 recorded Run files for 2 closed Runs; unset run wrote none), make umpire-repeat-run SELECT='^(TestTestpilotNexusPairCase|TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint)$' COUNT=2 MODE=process (2/2 PASS, 3 runs captured per iteration), GATE_NOT_RUN:live-suite:make umpire-check-live-tests - 30 min full live gate exceeds the conductor's 10-minute live-command bound; the affected selection ran green instead
 - PRs:
