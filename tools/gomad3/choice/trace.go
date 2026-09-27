@@ -28,6 +28,9 @@ type Summary struct {
 	SelectPoll   uint64
 	SelectResult uint64
 	Terminal     TerminalState
+	// PeakGoroutines is the highest live goroutine count the target reached,
+	// sampled by the runtime whenever a goroutine was created.
+	PeakGoroutines uint32
 }
 
 type Trace struct {
@@ -394,7 +397,7 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		Bytes:   append([]byte(nil), payload...),
 		SHA256:  digest,
 		Records: make([]Record, 0, terminal.Records),
-		Summary: Summary{Records: terminal.Records, Terminal: terminal.State},
+		Summary: Summary{Records: terminal.Records, Terminal: terminal.State, PeakGoroutines: terminal.PeakGoroutines},
 	}
 	for offset := 0; offset < len(payload); offset += traceRecordBytes {
 		record, decodeErr := decodeRecord(payload[offset : offset+traceRecordBytes])

@@ -75,6 +75,19 @@ index 018fe01..f99542c 100644
  // fatal is [runtime.fatal], pushed via linkname.
  //
  //go:linkname fatal
+diff --git a/src/runtime/lock_spinbit.go b/src/runtime/lock_spinbit.go
+index 6f21c54..fb87322 100644
+--- a/src/runtime/lock_spinbit.go
++++ b/src/runtime/lock_spinbit.go
+@@ -348,7 +348,7 @@ func unlock2Wake(l *mutex, haveStackLock bool, endTicks int64) {
+ 
+ 	// On occasion, seek out and wake the M at the bottom of the stack so it
+ 	// doesn't starve.
+-	antiStarve := cheaprandn(mutexTailWakePeriod) == 0
++	antiStarve := gomadHostCheapRandN(mutexTailWakePeriod) == 0
+ 
+ 	if haveStackLock {
+ 		goto useStackLock
 diff --git a/src/runtime/panic.go b/src/runtime/panic.go
 index f28807d..d2fe134 100644
 --- a/src/runtime/panic.go
@@ -89,8 +102,23 @@ index f28807d..d2fe134 100644
  
  	fatalpanic(&p)   // should not return
  	*(*int)(nil) = 0 // not reached
+diff --git a/src/runtime/preempt.go b/src/runtime/preempt.go
+index 892f900..48e285b 100644
+--- a/src/runtime/preempt.go
++++ b/src/runtime/preempt.go
+@@ -115,6 +115,10 @@ func suspendG(gp *g) suspendGState {
+ 	const yieldDelay = 10 * 1000
+ 	var nextYield int64
+ 
++	if gomadEnabled {
++		gomadAwaitHostSyscallExit(gp)
++	}
++
+ 	// Drive the goroutine to a preemption point.
+ 	stopped := false
+ 	var asyncM *m
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index b8d4d15..720734e 100644
+index b8d4d15..5ffeed4 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -257,6 +257,10 @@ func main() {
@@ -201,6 +229,15 @@ index b8d4d15..720734e 100644
  	if !mp.spinning && sched.needspinning.Load() == 1 {
  		// See "Delicate dance" comment below.
  		mp.becomeSpinning()
+@@ -3849,7 +3879,7 @@ func stealWork(now int64) (gp *g, inheritTime bool, rnow, pollUntil int64, newWo
+ 	for i := 0; i < stealTries; i++ {
+ 		stealTimersOrRunNextG := i == stealTries-1
+ 
+-		for enum := stealOrder.start(cheaprand()); !enum.done(); enum.next() {
++		for enum := stealOrder.start(gomadHostCheapRand()); !enum.done(); enum.next() {
+ 			if sched.gcwaiting.Load() {
+ 				// GC work may be available.
+ 				return nil, false, now, pollUntil, true
 @@ -5081,7 +5111,7 @@ func exitsyscallTryGetP(oldp *p) *p {
  	}
  
@@ -659,6 +696,19 @@ index 219bcb9..27dadf9 100644
  		{runtime.Sudog{}, 64, 104},            // sudog, but exported for testing
  	}
  
+diff --git a/src/runtime/symtab.go b/src/runtime/symtab.go
+index aa84a6f..bcc234f 100644
+--- a/src/runtime/symtab.go
++++ b/src/runtime/symtab.go
+@@ -1100,7 +1100,7 @@ func pcvalue(f funcInfo, off uint32, targetpc uintptr, strict bool) (int32, uint
+ 				cache.inUse++
+ 				if cache.inUse == 1 {
+ 					e := &cache.entries[ck]
+-					ci := cheaprandn(uint32(len(cache.entries[ck])))
++					ci := gomadHostCheapRandN(uint32(len(cache.entries[ck])))
+ 					e[ci] = e[0]
+ 					e[0] = pcvalueCacheEnt{
+ 						targetpc: targetpc,
 diff --git a/src/runtime/time.go b/src/runtime/time.go
 index 6c569b5..570e531 100644
 --- a/src/runtime/time.go

@@ -593,6 +593,9 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		result.PID = started.PID
 		result.PGID = started.PGID
 	}
+	if simulationCoordinator != nil {
+		result.VirtualTimeElapsedNanos = uint64(simulationCoordinator.time.currentTime() - simulationInitialTime)
+	}
 	if final != nil {
 		result.Termination = final.Termination
 		result.ExitCode = final.ExitCode

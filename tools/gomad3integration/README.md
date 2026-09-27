@@ -13,7 +13,9 @@ make gomad3-qualification
 
 The v3 manifest owns 16 tier 2 package workloads, the tier 3
 `frontend-system-info` functional probe (`./tests/gomadfunctional`, guarded
-capability mode), and two fixed seeds. Gomad analyzes
+capability mode), the tier 3 `user-timers-workflow` functional suite
+(`./tests`, `TestUserTimersTestSuite`, closure mode under the `gomad` build tag
+with the schema directory mounted read-only), and two fixed seeds. Gomad analyzes
 the complete corpus first, executes only supported workloads, retains and
 replays every successful repetition with bounded choice coverage, and writes a
 path-free `gomad3.qualification-set-report/v1` to
@@ -25,6 +27,12 @@ The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
 exit under guarded mode, but its same-seed evidence does not yet reproduce in
 every run, and the report records `nondeterministic` or `replay_divergence`
 as observed; darwin/arm64 expects `qualified`.
+The user-timers suite's expectation is `intermittent`: it runs the one-box
+cluster to a successful exit with exact I/O evidence, and its same-seed choice
+evidence reproduces on some seeds and repetitions but not all (seed 11 eight of
+eight, seed 17 five of eight on 2026-09-27) because of the collector-side
+divergence GOMAD_MILESTONES.md F5 records; the report keeps whichever of
+`qualified`, `nondeterministic`, or `replay_divergence` the run produced.
 
 The functional test package itself has a closed capability closure on
 linux/amd64 under the `gomad` build tag:

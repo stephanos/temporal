@@ -581,7 +581,7 @@ func validateExpectation(expectation WorkloadExpectation) error {
 		if expectation.ImportPath == "" || expectation.Capability == "" {
 			return errors.New("unsupported expectation requires exact import and capability")
 		}
-	case "target_failure", "nondeterministic", "replay_divergence", "unrepeatable":
+	case "target_failure", "nondeterministic", "replay_divergence", "unrepeatable", "intermittent":
 		if expectation.ImportPath != "" || expectation.Capability != "" {
 			return errors.New("failure expectation cannot include an unsupported boundary")
 		}

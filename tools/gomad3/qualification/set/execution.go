@@ -84,10 +84,23 @@ func matchesUnsupportedAnalysis(expected WorkloadExpectation, analysis capabilit
 // a surprise.
 var unrepeatableClassifications = map[string]bool{"nondeterministic": true, "replay_divergence": true}
 
+// intermittentClassifications are the outcomes an "intermittent" expectation
+// accepts: the workload runs to success and its same-seed evidence reproduces
+// in some runs but not in all of them, because a known divergence channel
+// (today the collector's view of live memory, GOMAD_MILESTONES.md F5) only
+// crosses a scheduling boundary on some seeds and repetitions. A manifest
+// states it so the report records the outcome each run produced while that
+// channel is being closed, without a fully repeatable run counting as a
+// surprise.
+var intermittentClassifications = map[string]bool{"qualified": true, "nondeterministic": true, "replay_divergence": true}
+
 func matchesSupportedExpectation(expected WorkloadExpectation, workload WorkloadReport) bool {
 	accepts := func(classification string) bool {
-		if expected.Classification == "unrepeatable" {
+		switch expected.Classification {
+		case "unrepeatable":
 			return unrepeatableClassifications[classification]
+		case "intermittent":
+			return intermittentClassifications[classification]
 		}
 		return classification == expected.Classification
 	}
