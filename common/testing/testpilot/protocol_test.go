@@ -44,6 +44,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.Equal(t, []protoreflect.Name{
 		"slot_id", "outcome", "run", "environment_binding_id", "observation_id", "run_event", "capture_id",
 		"evidence_field_id", "correlated_capture", "model_value", "correlated_step", "projected_value",
+		"instance_value_id",
 	}, fieldNames(reference))
 	rule := messageDescriptor(t, "CorrelatedRule")
 	evidenceRule := messageDescriptor(t, "CorrelatedEvidenceRule")

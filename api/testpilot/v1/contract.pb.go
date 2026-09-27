@@ -283,11 +283,15 @@ type ContractRule struct {
 	Kind           ContractRuleKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ContractRuleKind" json:"kind,omitempty"`
 	InitialStateId string                 `protobuf:"bytes,3,opt,name=initial_state_id,json=initialStateId,proto3" json:"initial_state_id,omitempty"`
 	States         []*ContractState       `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
-	// Rule-local values its transitions assign.
+	// Values local to one Rule instance that its transitions assign.
 	Captures    []*ContractCapture    `protobuf:"bytes,5,rep,name=captures,proto3" json:"captures,omitempty"`
 	Transitions []*ContractTransition `protobuf:"bytes,6,rep,name=transitions,proto3" json:"transitions,omitempty"`
 	// A bounded-liveness rule has one deadline; a safety rule has none.
-	Deadline      *Deadline `protobuf:"bytes,7,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	Deadline *Deadline `protobuf:"bytes,7,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	// Values each Rule instance assigns; a predicate reads one through Reference.instance_value_id.
+	InstanceValues []*ContractInstanceValue `protobuf:"bytes,8,rep,name=instance_values,json=instanceValues,proto3" json:"instance_values,omitempty"`
+	// Empty: the Rule is evaluated once under rule_id. Otherwise once per instance, never under rule_id.
+	Instances     []*ContractRuleInstance `protobuf:"bytes,9,rep,name=instances,proto3" json:"instances,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -371,6 +375,185 @@ func (x *ContractRule) GetDeadline() *Deadline {
 	return nil
 }
 
+func (x *ContractRule) GetInstanceValues() []*ContractInstanceValue {
+	if x != nil {
+		return x.InstanceValues
+	}
+	return nil
+}
+
+func (x *ContractRule) GetInstances() []*ContractRuleInstance {
+	if x != nil {
+		return x.Instances
+	}
+	return nil
+}
+
+// ContractInstanceValue declares one value every Rule instance of its Rule assigns.
+type ContractInstanceValue struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Unique within its Rule; Reference.instance_value_id names it.
+	InstanceValueId string `protobuf:"bytes,1,opt,name=instance_value_id,json=instanceValueId,proto3" json:"instance_value_id,omitempty"`
+	// A scalar or enum type.
+	Type          *SingularType `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractInstanceValue) Reset() {
+	*x = ContractInstanceValue{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractInstanceValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractInstanceValue) ProtoMessage() {}
+
+func (x *ContractInstanceValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractInstanceValue.ProtoReflect.Descriptor instead.
+func (*ContractInstanceValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ContractInstanceValue) GetInstanceValueId() string {
+	if x != nil {
+		return x.InstanceValueId
+	}
+	return ""
+}
+
+func (x *ContractInstanceValue) GetType() *SingularType {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
+// ContractRuleInstance is one evaluation of its Rule, concluding under its own rule ID.
+type ContractRuleInstance struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Unique among every rule ID the Contract's Verdict can name.
+	RuleId string `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	// Exactly one assignment per declared instance value, in declaration order.
+	Assignments   []*ContractInstanceAssignment `protobuf:"bytes,2,rep,name=assignments,proto3" json:"assignments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractRuleInstance) Reset() {
+	*x = ContractRuleInstance{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractRuleInstance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractRuleInstance) ProtoMessage() {}
+
+func (x *ContractRuleInstance) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractRuleInstance.ProtoReflect.Descriptor instead.
+func (*ContractRuleInstance) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ContractRuleInstance) GetRuleId() string {
+	if x != nil {
+		return x.RuleId
+	}
+	return ""
+}
+
+func (x *ContractRuleInstance) GetAssignments() []*ContractInstanceAssignment {
+	if x != nil {
+		return x.Assignments
+	}
+	return nil
+}
+
+// ContractInstanceAssignment gives one instance value its value for one Rule instance.
+type ContractInstanceAssignment struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The declared instance value this assignment gives a value.
+	InstanceValueId string `protobuf:"bytes,1,opt,name=instance_value_id,json=instanceValueId,proto3" json:"instance_value_id,omitempty"`
+	// A value of the instance value's declared type.
+	Value         *Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractInstanceAssignment) Reset() {
+	*x = ContractInstanceAssignment{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractInstanceAssignment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractInstanceAssignment) ProtoMessage() {}
+
+func (x *ContractInstanceAssignment) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractInstanceAssignment.ProtoReflect.Descriptor instead.
+func (*ContractInstanceAssignment) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ContractInstanceAssignment) GetInstanceValueId() string {
+	if x != nil {
+		return x.InstanceValueId
+	}
+	return ""
+}
+
+func (x *ContractInstanceAssignment) GetValue() *Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
 // ContractState is one state of a rule's machine; its status is the rule's status while in it.
 type ContractState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -382,7 +565,7 @@ type ContractState struct {
 
 func (x *ContractState) Reset() {
 	*x = ContractState{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -394,7 +577,7 @@ func (x *ContractState) String() string {
 func (*ContractState) ProtoMessage() {}
 
 func (x *ContractState) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -407,7 +590,7 @@ func (x *ContractState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractState.ProtoReflect.Descriptor instead.
 func (*ContractState) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ContractState) GetStateId() string {
@@ -424,7 +607,8 @@ func (x *ContractState) GetStatus() ContractStateStatus {
 	return CONTRACT_STATE_STATUS_UNSPECIFIED
 }
 
-// ContractCapture declares a rule-local value, assigned at most once from an Observation.
+// ContractCapture declares a value local to one Rule instance, assigned at most once from an
+// Observation.
 type ContractCapture struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	CaptureId string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
@@ -436,7 +620,7 @@ type ContractCapture struct {
 
 func (x *ContractCapture) Reset() {
 	*x = ContractCapture{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -448,7 +632,7 @@ func (x *ContractCapture) String() string {
 func (*ContractCapture) ProtoMessage() {}
 
 func (x *ContractCapture) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -461,7 +645,7 @@ func (x *ContractCapture) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractCapture.ProtoReflect.Descriptor instead.
 func (*ContractCapture) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ContractCapture) GetCaptureId() string {
@@ -497,7 +681,7 @@ type ContractTransition struct {
 
 func (x *ContractTransition) Reset() {
 	*x = ContractTransition{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +693,7 @@ func (x *ContractTransition) String() string {
 func (*ContractTransition) ProtoMessage() {}
 
 func (x *ContractTransition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +706,7 @@ func (x *ContractTransition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractTransition.ProtoReflect.Descriptor instead.
 func (*ContractTransition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ContractTransition) GetTransitionId() string {
@@ -586,7 +770,7 @@ type ContractCaptureAssignment struct {
 
 func (x *ContractCaptureAssignment) Reset() {
 	*x = ContractCaptureAssignment{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -598,7 +782,7 @@ func (x *ContractCaptureAssignment) String() string {
 func (*ContractCaptureAssignment) ProtoMessage() {}
 
 func (x *ContractCaptureAssignment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -611,7 +795,7 @@ func (x *ContractCaptureAssignment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractCaptureAssignment.ProtoReflect.Descriptor instead.
 func (*ContractCaptureAssignment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ContractCaptureAssignment) GetCaptureId() string {
@@ -644,7 +828,7 @@ type Deadline struct {
 
 func (x *Deadline) Reset() {
 	*x = Deadline{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -656,7 +840,7 @@ func (x *Deadline) String() string {
 func (*Deadline) ProtoMessage() {}
 
 func (x *Deadline) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -669,7 +853,7 @@ func (x *Deadline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Deadline.ProtoReflect.Descriptor instead.
 func (*Deadline) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Deadline) GetViolationStateId() string {
@@ -752,7 +936,7 @@ type ContractLimits struct {
 
 func (x *ContractLimits) Reset() {
 	*x = ContractLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -764,7 +948,7 @@ func (x *ContractLimits) String() string {
 func (*ContractLimits) ProtoMessage() {}
 
 func (x *ContractLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +961,7 @@ func (x *ContractLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractLimits.ProtoReflect.Descriptor instead.
 func (*ContractLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ContractLimits) GetMaxRules() int64 {
@@ -847,7 +1031,7 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x05rules\x18\x02 \x03(\v2..temporal.server.api.testpilot.v1.ContractRuleR\x05rules\x12T\n" +
 	"\n" +
 	"correlated\x18\x03 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedContractR\n" +
-	"correlated\"\xd1\x03\n" +
+	"correlated\"\x89\x05\n" +
 	"\fContractRule\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12F\n" +
 	"\x04kind\x18\x02 \x01(\x0e22.temporal.server.api.testpilot.v1.ContractRuleKindR\x04kind\x12(\n" +
@@ -855,7 +1039,18 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x06states\x18\x04 \x03(\v2/.temporal.server.api.testpilot.v1.ContractStateR\x06states\x12M\n" +
 	"\bcaptures\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.ContractCaptureR\bcaptures\x12V\n" +
 	"\vtransitions\x18\x06 \x03(\v24.temporal.server.api.testpilot.v1.ContractTransitionR\vtransitions\x12F\n" +
-	"\bdeadline\x18\a \x01(\v2*.temporal.server.api.testpilot.v1.DeadlineR\bdeadline\"y\n" +
+	"\bdeadline\x18\a \x01(\v2*.temporal.server.api.testpilot.v1.DeadlineR\bdeadline\x12`\n" +
+	"\x0finstance_values\x18\b \x03(\v27.temporal.server.api.testpilot.v1.ContractInstanceValueR\x0einstanceValues\x12T\n" +
+	"\tinstances\x18\t \x03(\v26.temporal.server.api.testpilot.v1.ContractRuleInstanceR\tinstances\"\x87\x01\n" +
+	"\x15ContractInstanceValue\x12*\n" +
+	"\x11instance_value_id\x18\x01 \x01(\tR\x0finstanceValueId\x12B\n" +
+	"\x04type\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x04type\"\x8f\x01\n" +
+	"\x14ContractRuleInstance\x12\x17\n" +
+	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12^\n" +
+	"\vassignments\x18\x02 \x03(\v2<.temporal.server.api.testpilot.v1.ContractInstanceAssignmentR\vassignments\"\x87\x01\n" +
+	"\x1aContractInstanceAssignment\x12*\n" +
+	"\x11instance_value_id\x18\x01 \x01(\tR\x0finstanceValueId\x12=\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"y\n" +
 	"\rContractState\x12\x19\n" +
 	"\bstate_id\x18\x01 \x01(\tR\astateId\x12M\n" +
 	"\x06status\x18\x02 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractStateStatusR\x06status\"t\n" +
@@ -918,43 +1113,52 @@ func file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_temporal_server_api_testpilot_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
-	(ContractRuleKind)(0),             // 0: temporal.server.api.testpilot.v1.ContractRuleKind
-	(ContractStateStatus)(0),          // 1: temporal.server.api.testpilot.v1.ContractStateStatus
-	(ContractSupportKind)(0),          // 2: temporal.server.api.testpilot.v1.ContractSupportKind
-	(*Contract)(nil),                  // 3: temporal.server.api.testpilot.v1.Contract
-	(*ContractRule)(nil),              // 4: temporal.server.api.testpilot.v1.ContractRule
-	(*ContractState)(nil),             // 5: temporal.server.api.testpilot.v1.ContractState
-	(*ContractCapture)(nil),           // 6: temporal.server.api.testpilot.v1.ContractCapture
-	(*ContractTransition)(nil),        // 7: temporal.server.api.testpilot.v1.ContractTransition
-	(*ContractCaptureAssignment)(nil), // 8: temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	(*Deadline)(nil),                  // 9: temporal.server.api.testpilot.v1.Deadline
-	(*ContractLimits)(nil),            // 10: temporal.server.api.testpilot.v1.ContractLimits
-	(*CorrelatedContract)(nil),        // 11: temporal.server.api.testpilot.v1.CorrelatedContract
-	(*SingularType)(nil),              // 12: temporal.server.api.testpilot.v1.SingularType
-	(*RunEventFilter)(nil),            // 13: temporal.server.api.testpilot.v1.RunEventFilter
-	(*Expression)(nil),                // 14: temporal.server.api.testpilot.v1.Expression
+	(ContractRuleKind)(0),              // 0: temporal.server.api.testpilot.v1.ContractRuleKind
+	(ContractStateStatus)(0),           // 1: temporal.server.api.testpilot.v1.ContractStateStatus
+	(ContractSupportKind)(0),           // 2: temporal.server.api.testpilot.v1.ContractSupportKind
+	(*Contract)(nil),                   // 3: temporal.server.api.testpilot.v1.Contract
+	(*ContractRule)(nil),               // 4: temporal.server.api.testpilot.v1.ContractRule
+	(*ContractInstanceValue)(nil),      // 5: temporal.server.api.testpilot.v1.ContractInstanceValue
+	(*ContractRuleInstance)(nil),       // 6: temporal.server.api.testpilot.v1.ContractRuleInstance
+	(*ContractInstanceAssignment)(nil), // 7: temporal.server.api.testpilot.v1.ContractInstanceAssignment
+	(*ContractState)(nil),              // 8: temporal.server.api.testpilot.v1.ContractState
+	(*ContractCapture)(nil),            // 9: temporal.server.api.testpilot.v1.ContractCapture
+	(*ContractTransition)(nil),         // 10: temporal.server.api.testpilot.v1.ContractTransition
+	(*ContractCaptureAssignment)(nil),  // 11: temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	(*Deadline)(nil),                   // 12: temporal.server.api.testpilot.v1.Deadline
+	(*ContractLimits)(nil),             // 13: temporal.server.api.testpilot.v1.ContractLimits
+	(*CorrelatedContract)(nil),         // 14: temporal.server.api.testpilot.v1.CorrelatedContract
+	(*SingularType)(nil),               // 15: temporal.server.api.testpilot.v1.SingularType
+	(*Value)(nil),                      // 16: temporal.server.api.testpilot.v1.Value
+	(*RunEventFilter)(nil),             // 17: temporal.server.api.testpilot.v1.RunEventFilter
+	(*Expression)(nil),                 // 18: temporal.server.api.testpilot.v1.Expression
 }
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
 	4,  // 0: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
-	11, // 1: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
+	14, // 1: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
 	0,  // 2: temporal.server.api.testpilot.v1.ContractRule.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
-	5,  // 3: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
-	6,  // 4: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
-	7,  // 5: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
-	9,  // 6: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
-	1,  // 7: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
-	12, // 8: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
-	2,  // 9: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
-	8,  // 10: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	13, // 11: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	14, // 12: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	8,  // 3: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
+	9,  // 4: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
+	10, // 5: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
+	12, // 6: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
+	5,  // 7: temporal.server.api.testpilot.v1.ContractRule.instance_values:type_name -> temporal.server.api.testpilot.v1.ContractInstanceValue
+	6,  // 8: temporal.server.api.testpilot.v1.ContractRule.instances:type_name -> temporal.server.api.testpilot.v1.ContractRuleInstance
+	15, // 9: temporal.server.api.testpilot.v1.ContractInstanceValue.type:type_name -> temporal.server.api.testpilot.v1.SingularType
+	7,  // 10: temporal.server.api.testpilot.v1.ContractRuleInstance.assignments:type_name -> temporal.server.api.testpilot.v1.ContractInstanceAssignment
+	16, // 11: temporal.server.api.testpilot.v1.ContractInstanceAssignment.value:type_name -> temporal.server.api.testpilot.v1.Value
+	1,  // 12: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
+	15, // 13: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
+	2,  // 14: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
+	11, // 15: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	17, // 16: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
+	18, // 17: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_contract_proto_init() }
@@ -966,7 +1170,7 @@ func file_temporal_server_api_testpilot_v1_contract_proto_init() {
 	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9].OneofWrappers = []any{
 		(*Deadline_RuleEvents)(nil),
 		(*Deadline_ElapsedMilliseconds)(nil),
 	}
@@ -976,7 +1180,7 @@ func file_temporal_server_api_testpilot_v1_contract_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

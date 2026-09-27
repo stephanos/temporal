@@ -272,6 +272,11 @@ def runEventPayload : Expression :=
 def capture (captureId : String) : Expression :=
   reference { reference := some (.capture_id captureId) }
 
+/-- Read one value the evaluated Rule instance assigns; admitted only in a Contract transition
+predicate. -/
+def instanceValue (instanceValueId : String) : Expression :=
+  reference { reference := some (.instance_value_id instanceValueId) }
+
 /-- Read one declared evidence field of the correlated step being admitted. -/
 def evidenceField (fieldId : String) : Expression :=
   reference { reference := some (.evidence_field_id fieldId) }
@@ -611,13 +616,33 @@ resets when the rule transitions into a new state. -/
 def deadline (bound : Deadline.bound_Type) (violationStateId : String) : Deadline :=
   { violation_state_id := violationStateId, bound := some bound }
 
-/-- Assemble one deterministic rule while preserving state and transition order. -/
+/-- Declare one value every Rule instance of its Rule assigns, of a `Types.scalar` or
+`Types.enumeration` type; preparation rejects any other singular type. -/
+def instanceValue (instanceValueId : String) (type : SingularType) : ContractInstanceValue :=
+  { instance_value_id := instanceValueId, type := some type }
+
+/-- Give one declared instance value its value for one Rule instance. -/
+def instanceAssignment (instanceValueId : String) (value : temporal.server.api.testpilot.v1.Value) :
+    ContractInstanceAssignment :=
+  { instance_value_id := instanceValueId, value := some value }
+
+/-- Define one Rule instance, concluding under `ruleId`, with one assignment per declared instance
+value in declaration order. -/
+def ruleInstance (ruleId : String) (assignments : Array ContractInstanceAssignment) :
+    ContractRuleInstance :=
+  { rule_id := ruleId, assignments }
+
+/-- Assemble one deterministic rule while preserving state, transition and instance order. A rule
+with no instances is evaluated once under `ruleId`; otherwise once per instance, never under
+`ruleId`. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
     (states : Array ContractState) (transitions : Array ContractTransition)
     (deadline : Option Deadline := none)
-    (captures : Array ContractCapture := #[]) : ContractRule :=
+    (captures : Array ContractCapture := #[])
+    (instanceValues : Array ContractInstanceValue := #[])
+    (instances : Array ContractRuleInstance := #[]) : ContractRule :=
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
-    deadline, captures }
+    deadline, captures, instance_values := instanceValues, instances }
 
 /-- Assemble one correlated rule: the operation-local window one checked clause lowers to. The
 clock is the only one version one admits, so callers never choose it. `trigger` and `response` are
