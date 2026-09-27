@@ -170,13 +170,37 @@ to 1 percent of runs of the allocation-heavy fixtures (`channels`, `sync`, `auto
 scheduler drawing from per-M random streams whenever no choice trace was attached, so which M
 picked up the P after a hand-off changed the interleaving; the scheduler now draws from
 process-wide seeded states and the runtime tier's repeatability sweep passes on linux/amd64
-(the GC-dimension risk this document names remains a risk, not an observed defect). Still missing, each with the test that drives it:
-`io_filesystem`, `io_net`, `io_signal`, and `io_user`
-(`runner/internal/execution/io_*_toolchain_test.go`; `libc_adapter` and `sqlite_adapter` were
-added on 2026-09-27 and pass on Linux), `io_net_races`, `io_entropy`,
-`io_ro_mount`, `io_failure`, and `io_ro_mount_failure` (the remaining `*_toolchain_test.go`
-and `replay_io_integration_test.go`). Nothing references a `compatibilitypack/testdata/v041`
-fixture any more. Three more defects surfaced while qualifying on Linux: the run-queue choice
+(the GC-dimension risk this document names remains a risk, not an observed defect; on
+2026-09-27 one `automatic_gc` seed diverged on its fourth same-seed run while the runtime tier
+shared the machine with two other test suites, and the tier passed when rerun alone, so keep
+the sweep on an unloaded runner until that risk is closed). The I/O fixture corpus was
+completed on 2026-09-27: `io_filesystem` (every modeled and every refused
+`os` operation, the `isolated` host-escape mode), `io_net` (every modeled and refused `net`
+operation over the loopback model), `io_net_races` (the ten close, deadline, backlog, and
+port-exhaustion cases), `io_signal` and `io_user` (guarded mode), `io_entropy`, `io_ro_mount`,
+`io_ro_mount_failure`, and the `io_failure` go-test fixture; `libc_adapter` and `sqlite_adapter`
+landed the same day. On linux/amd64 `TestBoundaryManifestSemanticCanaries` now observes a
+positive probe for all 131 manifest entries and every `io_*_toolchain_test.go` and
+`replay_io_integration_test.go` passes. Authoring `io_signal` exposed a Linux-only defect in
+guarded mode: the compiler guards every exported entry point of the `syscall` package, and on
+Linux `syscall.Syscall` has a Go body (darwin's is a body-less libc trampoline), so a guarded
+target tripped `GOMAD_CAPABILITY_DENIED` on its own `fmt.Println`. `syscall.Write` now hands the
+descriptors it still allows (stdout, stderr, and the trace transport) to
+`runtime.gomadSyscallWrite`, which reaches the kernel without the guarded trampoline; the
+guard on `syscall.Syscall` itself stays. CONSIDER(gomad): gosim's approach, a syscall-number
+dispatcher behind `syscall.Syscall*` that models the few numbers the stdlib reaches and denies
+the rest, would subsume this routing on Linux and is the natural next step if guarded mode
+needs more than output; it does not make the boundary platform-agnostic, because the stock
+runtime's netpoll, clock, and output paths stay host-specific unless the scheduler is replaced
+by source translation, which this plan rules out. Still open in the host tier on Linux, all
+pre-existing and reproduced on the commit before the fixtures landed: the `runner` package's
+fake preparer pins `darwin/arm64` and `go1.26.4` provenance, so its campaign, inspect, portable
+plan, and umask tests fail with "deterministic I/O requires Go go1.27.1 on linux/amd64" and
+`TestRunReportsPeriodicProgressWhileTargetIsRunning` waits forever for an executor that never
+starts; the two world-transport replay tests report "invalid I/O terminal frame"; and the
+execution package's choice-trace tests report "choice trace unterminated" and its process-group
+cleanup test finds the group still present. Nothing references a
+`compatibilitypack/testdata/v041` fixture any more. Three more defects surfaced while qualifying on Linux: the run-queue choice
 decision kept two 8 KiB candidate buffers on the system stack, which Linux sizes at 16 KiB for
 non-main threads, so every seeded run with choice tracing died with `morestack on g0` (the
 buffers now live in static scheduler scratch); the adapters' source-inventory pins were
