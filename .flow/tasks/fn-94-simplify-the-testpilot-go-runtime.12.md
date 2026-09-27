@@ -52,9 +52,16 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+Lane D1's remaining consolidations are done, and each now has one definition. `node.evaluateGuarded` serves `activationValues.request`, `scheduler.prepareInput` and `InstructionPlan.EvaluateInput`. `takeCompletion` and `drainCompletions` replace the five completion selects, and `execute`/`executeCleanup` stay separate. One `abandon` helper closes the Session when Run setup fails. `correlatedLiteralKind` is the single correlated literal switch, and `ir.BindExpression` now calls `bindConditionedExpression(nil, …)`. `resolvedRole` is now `contract.PreparedRole`. `verification.Violation.Kind` is renamed `CorrelatedKind`, and the facade `RuleViolation` is an alias of that type. `execution.Driver` holds only `Open`, and `driverAdapter` has lost `Identity`/`Validate`. `EntrypointKindOf`, `InstructionOpcode` and `EnvironmentBindingIDs` are `var` aliases.
 
+Carried items are also done. The `invalid`/`validID`/`isNil`/`missing`/`invalidAt` aliases are deleted from execution, verification, the facade and ir: call sites now use `ir.Invalid`, `ir.ValidID` and `ir.IsNil`, and `isNilMessage` is folded into `ir.IsNil`. `execution.ProgramCeiling()` is the one Program ceiling for Prepare, the server Driver and the worker Driver. `acceptEffect`/`admitDispatch` no longer take the unread input.
+
+Two further changes came up along the way. `slotBridge` is renamed `handleBridge`: the retired-vocabulary gate was red at HEAD because of it. At the conductor's request, the worker uses `delivery.WorkflowBinding` directly, and the `workflowRouteIndex` alias is gone. Goldens and conformance fixtures are unchanged. The rejection-order pin `TestPrepareRejectsTheFirstOfTwoDefects` still passes.
+
+The review base is d546dc3967, the parent of the task commit. fn-94.9 and fn-94.13 receipts and commits landed between the recorded base and this commit. The unittest gate receipt was not written, because other workers had dirty `model/` files in the tree.
+
+stage: impl-review - ran [codex fan-out rid c0f833ffe878435896cb28ef97a450a9, 3 draws SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ab5756d01668a35258bd24b8bc1da29745a977c2
+- Tests: go test -race -count=3 -tags test_dep ./common/testing/testpilot/..., go test -tags test_dep ./tools/umpire/replay/..., make umpire-check-retired-vocabulary, make lint-code-fast, baseline: green (testpilot -race -count=3, replay)
 - PRs:
