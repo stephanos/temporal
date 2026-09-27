@@ -44,6 +44,9 @@ func (campaign *runtimeCampaign) requireRepeatability(binaries map[string]string
 			return err
 		}
 	}
+	if err := campaign.requireStaticAddressesUnderLargeEnvironment(); err != nil {
+		return err
+	}
 	for _, seed := range seeds {
 		result, err := campaign.command(
 			"scheduler-direct-seed-"+seed+"-0", []string{binaries["scheduler"]}, campaign.testdata, 10*time.Second,
@@ -155,6 +158,32 @@ func (campaign *runtimeCampaign) requireRepeatable(packageName, seed string, run
 				actual,
 			)
 		}
+	}
+	return nil
+}
+
+// requireStaticAddressesUnderLargeEnvironment runs the static-address fixture
+// with more environment entries than any fixed vector would hold: the darwin
+// re-execution copies the environment it was given, and the copy must neither
+// truncate it nor move the addresses.
+func (campaign *runtimeCampaign) requireStaticAddressesUnderLargeEnvironment() error {
+	expected, err := campaign.runEnabled("1", "./static_addresses", "large-environment-baseline", 0)
+	if err != nil {
+		return err
+	}
+	values := []string{"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1"}
+	for index := range 1100 {
+		values = append(values, fmt.Sprintf("GOMAD3_TEST_FILLER_%d=%d", index, index))
+	}
+	result, err := campaign.command(
+		"static_addresses-seed-1-large-environment-0", []string{campaign.config.Go, "run", "-exec", campaign.execWrapper, "./static_addresses"}, campaign.testdata, time.Minute,
+		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"}, values...,
+	)
+	if err != nil {
+		return err
+	}
+	if actual := commandOutput(result); actual != expected {
+		return campaign.repeatabilityMismatch("static addresses diverged under a 1100-entry environment", expected, actual)
 	}
 	return nil
 }
