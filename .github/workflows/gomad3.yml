@@ -113,6 +113,21 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # The functional test package's capability closure is closed on Linux under
+      # the gomad build tag (GOMAD_MILESTONES.md F4): build seams cut the server's
+      # host-only providers and the fx, SDK, otel, and gRPC adapters remove the
+      # remaining forbidden imports, so closure mode reports zero blockers.
+      - name: Close the functional test capability closure
+        run: >-
+          make gomad3-runner &&
+          tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
+          --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
+          go-test ./tests > tools/gomad3/.toolchain/tests-closure.json;
+          jq -e '
+          .classification == "supported" and (.blockers | length) == 0 and
+          ([.packs[].id] | index("temporal-functional-tests-linux-amd64") != null)
+          ' tools/gomad3/.toolchain/tests-closure.json
+
       # The Temporal corpus on Linux: the five package suites qualify with exact
       # replay, the eleven expected boundaries hold, and the tier 3 probe runs to
       # a successful exit under guarded mode but its same-seed evidence does not
