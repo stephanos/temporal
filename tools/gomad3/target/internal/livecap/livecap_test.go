@@ -3,6 +3,7 @@ package livecap
 import (
 	"bytes"
 	"crypto/sha256"
+	"debug/elf"
 	"debug/macho"
 	"encoding/binary"
 	"strings"
@@ -70,6 +71,40 @@ func TestExtractMachORecordRequiresOneReadOnlyInBoundsSymbol(t *testing.T) {
 	shortRead.ReaderAt = bytes.NewReader(sectionBytes[:len(sectionBytes)-1])
 	if _, err := extractMachORecord(symbols, []*macho.Section{&shortRead}); err == nil || !strings.Contains(err.Error(), "read live capability record") {
 		t.Fatalf("extractMachORecord(short read) error = %v", err)
+	}
+}
+
+func TestExtractELFRecordRequiresOneReadOnlyAllocatedSection(t *testing.T) {
+	payload := []byte("payload")
+	record := liveCapabilityRecord(payload, 0)
+	sectionBytes := append([]byte("prefix"), record...)
+	section := &elf.Section{
+		SectionHeader: elf.SectionHeader{Name: ".rodata", Type: elf.SHT_PROGBITS, Flags: elf.SHF_ALLOC, Addr: 0x1000, Size: uint64(len(sectionBytes))},
+		ReaderAt:      bytes.NewReader(sectionBytes),
+	}
+	symbols := []elf.Symbol{{Name: ReservedSymbol, Value: section.Addr + uint64(len("prefix"))}}
+	got, err := extractELFRecord(symbols, []*elf.Section{section})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, record) {
+		t.Fatalf("extractELFRecord() = %x, want %x", got, record)
+	}
+
+	writable := *section
+	writable.Flags |= elf.SHF_WRITE
+	if _, err := extractELFRecord(symbols, []*elf.Section{&writable}); err == nil || !strings.Contains(err.Error(), "read-only") {
+		t.Fatalf("extractELFRecord(writable) error = %v", err)
+	}
+	unallocated := *section
+	unallocated.Flags = 0
+	if _, err := extractELFRecord(symbols, []*elf.Section{&unallocated}); err == nil || !strings.Contains(err.Error(), "exactly one section") {
+		t.Fatalf("extractELFRecord(unallocated) error = %v", err)
+	}
+	bss := *section
+	bss.Type = elf.SHT_NOBITS
+	if _, err := extractELFRecord(symbols, []*elf.Section{&bss}); err == nil || !strings.Contains(err.Error(), "exactly one section") {
+		t.Fatalf("extractELFRecord(nobits) error = %v", err)
 	}
 }
 
