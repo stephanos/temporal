@@ -72,11 +72,20 @@ qualification-set: runner
 		--manifest="$(GOMAD3_QUALIFICATION_MANIFEST)" --working-dir="$(GOMAD3_QUALIFICATION_WORKDIR)" \
 		--artifacts="$(GOMAD3_QUALIFICATION_ARTIFACTS)" --output="$(GOMAD3_QUALIFICATION_OUTPUT)"
 
+# Packs are scoped to one platform, so each host qualifies only the requests
+# that name it.
+GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
+ifeq ($(GOMAD3_HOST_PLATFORM),linux/amd64)
+COMPATIBILITY_PACK_QUALIFICATIONS := modernc-libc-xsys-v047-linux-amd64:$(CURDIR)/qualification/corpus
+else
+COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../..
+endif
+
 compatibility-pack-qualification: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/reflect2-go126.json --working-dir=$(CURDIR)/../..
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/modernc-libc-xsys-v041.json --working-dir=$(CURDIR)/internal/compatibilitypack/testdata/v041
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/modernc-libc-xsys-v047.json --working-dir=$(CURDIR)/qualification/corpus
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/modernc-libc-xsys-v047-isatty-v021.json --working-dir=$(CURDIR)/../..
+	@for entry in $(COMPATIBILITY_PACK_QUALIFICATIONS); do \
+		request=$${entry%%:*}; working=$${entry#*:}; \
+		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$$working || exit 1; \
+	done
 
 core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus

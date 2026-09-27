@@ -1078,13 +1078,26 @@ func validateAdapterReplacementInputs(spec Spec) error {
 	if len(spec.AdapterReplacements) == 0 {
 		return nil
 	}
-	root, err := filepath.EvalSymlinks(spec.PreparationRoot)
-	if err != nil {
-		return fmt.Errorf("resolve adapter preparation root: %w", err)
+	// Replacements live either in the private preparation root or in the
+	// toolchain's adapter cache, which the deterministic I/O profile owns.
+	roots := []string{spec.PreparationRoot}
+	if spec.ToolchainRoot != "" {
+		roots = append(roots, filepath.Join(spec.ToolchainRoot, "adapters"))
 	}
-	root, err = filepath.Abs(root)
-	if err != nil {
-		return fmt.Errorf("resolve adapter preparation root: %w", err)
+	resolvedRoots := make([]string, 0, len(roots))
+	for _, candidate := range roots {
+		root, err := filepath.EvalSymlinks(candidate)
+		if err != nil {
+			if candidate != spec.PreparationRoot && errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return fmt.Errorf("resolve adapter preparation root: %w", err)
+		}
+		root, err = filepath.Abs(root)
+		if err != nil {
+			return fmt.Errorf("resolve adapter preparation root: %w", err)
+		}
+		resolvedRoots = append(resolvedRoots, root)
 	}
 	for _, replacement := range spec.AdapterReplacements {
 		path, err := filepath.EvalSymlinks(replacement.ReplacementPath)
@@ -1095,8 +1108,15 @@ func validateAdapterReplacementInputs(spec Spec) error {
 		if err != nil {
 			return fmt.Errorf("resolve adapter replacement path: %w", err)
 		}
-		relative, err := filepath.Rel(root, path)
-		if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) || filepath.IsAbs(relative) {
+		inside := false
+		for _, root := range resolvedRoots {
+			relative, err := filepath.Rel(root, path)
+			if err == nil && relative != "." && relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)) && !filepath.IsAbs(relative) {
+				inside = true
+				break
+			}
+		}
+		if !inside {
 			return errors.New("adapter replacement path is outside the private preparation root")
 		}
 	}

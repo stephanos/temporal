@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -41,8 +42,12 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared.Adapters = recordAdapters(adapters)
-	if len(prepared.Compatibility) != 1 || prepared.Compatibility[0].ID != "modernc-libc-xsys-v047" {
-		t.Fatalf("compatibility packs = %#v", prepared.Compatibility)
+	wantPack := "modernc-libc-xsys-v047"
+	if runtime.GOOS == "linux" {
+		wantPack += "-" + runtime.GOOS + "-" + runtime.GOARCH
+	}
+	if len(prepared.Compatibility) != 1 || prepared.Compatibility[0].ID != wantPack {
+		t.Fatalf("compatibility packs = %#v, want %s", prepared.Compatibility, wantPack)
 	}
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {

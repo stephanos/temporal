@@ -1,0 +1,276 @@
+// Copyright 2026 The Libc Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+//go:build linux && amd64
+
+package libc
+
+import (
+	"os"
+	"strconv"
+	"sync"
+	"syscall"
+	"time"
+	"unsafe"
+)
+
+//go:linkname gomadLibcEnabled internal/gomadio.Enabled
+func gomadLibcEnabled() bool
+
+//go:linkname gomadLibcOpen internal/gomadio.LibcOpen
+func gomadLibcOpen(string, int, uint32) (int32, syscall.Errno)
+
+//go:linkname gomadLibcClose internal/gomadio.LibcClose
+func gomadLibcClose(int32) syscall.Errno
+
+//go:linkname gomadLibcRead internal/gomadio.LibcRead
+func gomadLibcRead(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
+
+//go:linkname gomadLibcWrite internal/gomadio.LibcWrite
+func gomadLibcWrite(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
+
+//go:linkname gomadLibcSeek internal/gomadio.LibcSeek
+func gomadLibcSeek(int32, int64, int) (int64, syscall.Errno)
+
+//go:linkname gomadLibcTruncate internal/gomadio.LibcTruncate
+func gomadLibcTruncate(int32, int64) syscall.Errno
+
+//go:linkname gomadLibcSync internal/gomadio.LibcSync
+func gomadLibcSync(int32) syscall.Errno
+
+//go:linkname gomadLibcMmap internal/gomadio.LibcMmap
+func gomadLibcMmap(int32, uint64) (uintptr, syscall.Errno)
+
+//go:linkname gomadLibcMunmap internal/gomadio.LibcMunmap
+func gomadLibcMunmap(uintptr, uint64) syscall.Errno
+
+//go:linkname gomadLibcRemove internal/gomadio.LibcRemove
+func gomadLibcRemove(string) syscall.Errno
+
+//go:linkname gomadLibcRename internal/gomadio.LibcRename
+func gomadLibcRename(string, string) syscall.Errno
+
+//go:linkname gomadLibcMkdir internal/gomadio.LibcMkdir
+func gomadLibcMkdir(string, uint32) syscall.Errno
+
+//go:linkname gomadLibcAccess internal/gomadio.LibcAccess
+func gomadLibcAccess(string) syscall.Errno
+
+//go:linkname gomadLibcStat internal/gomadio.LibcStat
+func gomadLibcStat(string, int32) (uint32, int64, syscall.Errno)
+
+//go:linkname gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor
+func gomadLibcIsDescriptor(int32) bool
+
+//go:linkname gomadLibcNow internal/gomadio.LibcNow
+func gomadLibcNow() (int64, int64)
+
+// The musl translation reaches the kernel only through the syscall
+// trampolines, so the model dispatches on the syscall number. Open flags the
+// kernel would consume but the deterministic filesystem does not model are
+// dropped before the boundary sees them.
+const gomadLibcHostOpenFlags = O_LARGEFILE | O_CLOEXEC | O_NONBLOCK
+
+var gomadLibcEntropy struct {
+	once       sync.Once
+	descriptor int32
+	errno      syscall.Errno
+}
+
+func gomadSyscall(tls *TLS, n, a1, a2, a3, a4, a5, a6 long) (long, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	switch n {
+	case SYS_sched_yield:
+		return 0, false
+	case SYS_open:
+		return gomadSysOpen(uintptr(a1), int32(a2), uint32(a3)), true
+	case SYS_openat:
+		if int32(a1) != AT_FDCWD { return -long(EBADF), true }
+		return gomadSysOpen(uintptr(a2), int32(a3), uint32(a4)), true
+	case SYS_close:
+		if !gomadLibcIsDescriptor(int32(a1)) { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcClose(int32(a1))), true
+	case SYS_read:
+		return gomadSysRead(int32(a1), uintptr(a2), uint64(a3), 0, false), true
+	case SYS_pread64:
+		return gomadSysRead(int32(a1), uintptr(a2), uint64(a3), a4, true), true
+	case SYS_write:
+		return gomadSysWrite(int32(a1), uintptr(a2), uint64(a3), 0, false), true
+	case SYS_pwrite64:
+		return gomadSysWrite(int32(a1), uintptr(a2), uint64(a3), a4, true), true
+	case SYS_lseek:
+		if !gomadLibcIsDescriptor(int32(a1)) { return -long(EBADF), true }
+		result, errno := gomadLibcSeek(int32(a1), a2, int(a3))
+		if errno != 0 { return -long(errno), true }
+		return result, true
+	case SYS_fstat:
+		return gomadSysStat("", int32(a1), uintptr(a2)), true
+	case SYS_newfstatat:
+		if int32(a1) == AT_FDCWD { return gomadSysStat(GoString(uintptr(a2)), -1, uintptr(a3)), true }
+		if int32(a4)&AT_EMPTY_PATH != 0 && GoString(uintptr(a2)) == "" { return gomadSysStat("", int32(a1), uintptr(a3)), true }
+		return -long(EBADF), true
+	case SYS_stat, SYS_lstat:
+		return gomadSysStat(GoString(uintptr(a1)), -1, uintptr(a2)), true
+	case SYS_statx:
+		return -long(ENOSYS), true
+	case SYS_ftruncate:
+		if !gomadLibcIsDescriptor(int32(a1)) { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcTruncate(int32(a1), a2)), true
+	case SYS_fsync, SYS_fdatasync:
+		if !gomadLibcIsDescriptor(int32(a1)) { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcSync(int32(a1))), true
+	case SYS_fcntl:
+		return gomadSysFcntl(int32(a1), int32(a2), uintptr(a3)), true
+	case SYS_unlink, SYS_rmdir:
+		return gomadSysErrno(gomadLibcRemove(GoString(uintptr(a1)))), true
+	case SYS_unlinkat:
+		if int32(a1) != AT_FDCWD { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcRemove(GoString(uintptr(a2)))), true
+	case SYS_rename:
+		return gomadSysErrno(gomadLibcRename(GoString(uintptr(a1)), GoString(uintptr(a2)))), true
+	case SYS_renameat:
+		if int32(a1) != AT_FDCWD || int32(a3) != AT_FDCWD { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcRename(GoString(uintptr(a2)), GoString(uintptr(a4)))), true
+	case SYS_mkdir:
+		return gomadSysErrno(gomadLibcMkdir(GoString(uintptr(a1)), uint32(a2))), true
+	case SYS_mkdirat:
+		if int32(a1) != AT_FDCWD { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcMkdir(GoString(uintptr(a2)), uint32(a3))), true
+	case SYS_access:
+		return gomadSysErrno(gomadLibcAccess(GoString(uintptr(a1)))), true
+	case SYS_faccessat:
+		if int32(a1) != AT_FDCWD { return -long(EBADF), true }
+		return gomadSysErrno(gomadLibcAccess(GoString(uintptr(a2)))), true
+	case SYS_readlink, SYS_readlinkat:
+		return -long(EINVAL), true
+	case SYS_getcwd:
+		return gomadSysGetcwd(uintptr(a1), uint64(a2)), true
+	case SYS_mmap:
+		return gomadSysMmap(uintptr(a1), uint64(a2), int32(a3), int32(a4), int32(a5), a6), true
+	case SYS_munmap:
+		return gomadSysErrno(gomadLibcMunmap(uintptr(a1), uint64(a2))), true
+	case SYS_mremap:
+		return -long(ENOMEM), true
+	case SYS_fchmod, SYS_fchown:
+		if !gomadLibcIsDescriptor(int32(a1)) { return -long(EBADF), true }
+		return 0, true
+	case SYS_utimensat, SYS_futimesat, SYS_utimes:
+		return 0, true
+	case SYS_clock_gettime:
+		return gomadSysClockGettime(uintptr(a2)), true
+	case SYS_gettimeofday:
+		return gomadSysGettimeofday(uintptr(a1)), true
+	case SYS_time:
+		seconds, _ := gomadLibcNow()
+		if a1 != 0 { *(*Ttime_t)(unsafe.Pointer(uintptr(a1))) = Ttime_t(seconds) }
+		return long(seconds), true
+	case SYS_nanosleep:
+		return gomadSysSleep(uintptr(a1)), true
+	case SYS_clock_nanosleep:
+		if int32(a2)&TIMER_ABSTIME != 0 { return -long(EINVAL), true }
+		return gomadSysSleep(uintptr(a3)), true
+	case SYS_getpid:
+		return long(os.Getpid()), true
+	case SYS_getuid, SYS_geteuid, SYS_getgid, SYS_getegid:
+		return 0, true
+	case SYS_getrandom:
+		return gomadSysGetrandom(uintptr(a1), uint64(a2)), true
+	}
+	panic("gomad: unsupported modernc libc syscall " + strconv.FormatInt(n, 10))
+}
+
+func gomadSysErrno(errno syscall.Errno) long {
+	if errno == 0 { return 0 }
+	return -long(errno)
+}
+
+func gomadSysOpen(path uintptr, flags int32, mode uint32) long {
+	descriptor, errno := gomadLibcOpen(GoString(path), int(flags&^gomadLibcHostOpenFlags), mode)
+	if errno != 0 { return -long(errno) }
+	return long(descriptor)
+}
+
+func gomadSysRead(fd int32, address uintptr, size uint64, offset int64, positional bool) long {
+	if !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
+	result, errno := gomadLibcRead(fd, address, size, offset, positional)
+	if errno != 0 { return -long(errno) }
+	return result
+}
+
+func gomadSysWrite(fd int32, address uintptr, size uint64, offset int64, positional bool) long {
+	if !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
+	result, errno := gomadLibcWrite(fd, address, size, offset, positional)
+	if errno != 0 { return -long(errno) }
+	return result
+}
+
+func gomadSysStat(name string, fd int32, address uintptr) long {
+	if fd >= 0 && !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
+	mode, size, errno := gomadLibcStat(name, fd)
+	if errno != 0 { return -long(errno) }
+	if address == 0 { return -long(EFAULT) }
+	*(*Tstat)(unsafe.Pointer(address)) = Tstat{Fst_mode: Tmode_t(mode), Fst_nlink: 1, Fst_size: Toff_t(size), Fst_blksize: 4096, Fst_blocks: Tblkcnt_t((size + 511) / 512)}
+	return 0
+}
+
+func gomadSysFcntl(fd, cmd int32, argument uintptr) long {
+	if !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
+	switch cmd {
+	case F_GETLK, F_OFD_GETLK:
+		if argument == 0 { return -long(EFAULT) }
+		(*Tflock)(unsafe.Pointer(argument)).Fl_type = F_UNLCK
+		return 0
+	case F_SETLK, F_SETLKW, F_OFD_SETLK, F_OFD_SETLKW, F_GETFL, F_SETFL, F_GETFD, F_SETFD:
+		return 0
+	default:
+		return -long(ENOTSUP)
+	}
+}
+
+func gomadSysGetcwd(address uintptr, size uint64) long {
+	if address == 0 || size < 2 { return -long(ERANGE) }
+	buffer := unsafe.Slice((*byte)(unsafe.Pointer(address)), 2)
+	buffer[0], buffer[1] = '/', 0
+	return 2
+}
+
+func gomadSysMmap(address uintptr, length uint64, prot, flags, fd int32, offset int64) long {
+	if address != 0 || length == 0 || prot != PROT_READ || flags != MAP_SHARED || offset != 0 { return -long(EINVAL) }
+	if !gomadLibcIsDescriptor(fd) { return -long(EBADF) }
+	result, errno := gomadLibcMmap(fd, length)
+	if errno != 0 { return -long(errno) }
+	return long(result)
+}
+
+func gomadSysClockGettime(address uintptr) long {
+	if address == 0 { return -long(EFAULT) }
+	seconds, microseconds := gomadLibcNow()
+	*(*Ttimespec)(unsafe.Pointer(address)) = Ttimespec{Ftv_sec: Ttime_t(seconds), Ftv_nsec: microseconds * 1000}
+	return 0
+}
+
+func gomadSysGettimeofday(address uintptr) long {
+	if address == 0 { return -long(EFAULT) }
+	seconds, microseconds := gomadLibcNow()
+	*(*Ttimeval)(unsafe.Pointer(address)) = Ttimeval{Ftv_sec: Ttime_t(seconds), Ftv_usec: Tsuseconds_t(microseconds)}
+	return 0
+}
+
+func gomadSysSleep(request uintptr) long {
+	if request == 0 { return -long(EFAULT) }
+	duration := *(*Ttimespec)(unsafe.Pointer(request))
+	if duration.Ftv_sec < 0 || duration.Ftv_nsec < 0 || duration.Ftv_nsec >= 1000000000 { return -long(EINVAL) }
+	time.Sleep(time.Duration(duration.Ftv_sec)*time.Second + time.Duration(duration.Ftv_nsec))
+	return 0
+}
+
+func gomadSysGetrandom(address uintptr, length uint64) long {
+	gomadLibcEntropy.once.Do(func() {
+		gomadLibcEntropy.descriptor, gomadLibcEntropy.errno = gomadLibcOpen("/dev/urandom", O_RDONLY, 0)
+	})
+	if gomadLibcEntropy.errno != 0 { return -long(gomadLibcEntropy.errno) }
+	result, errno := gomadLibcRead(gomadLibcEntropy.descriptor, address, length, 0, false)
+	if errno != 0 { return -long(errno) }
+	return result
+}
