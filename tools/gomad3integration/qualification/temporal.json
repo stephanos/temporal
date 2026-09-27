@@ -13,21 +13,21 @@
   "suites": [
     {
       "id": "activity-batch-cancel-boundary",
-      "name": "Activity batch cancel boundary",
-      "tier": 2,
+      "name": "Activity batch cancel",
+      "tier": 3,
       "capability_mode": "closure",
-      "invariant": "activity batch cancellation exposes the current Temporal support boundary",
+      "invariant": "batch activity cancellation cancels the selected activities through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestActivityAPIBatchCancelClientTestSuite",
-      "choice_bytes": 8388608,
+      "build_tags": ["disable_grpc_modules", "gomad", "test_dep"],
+      "read_only_mounts": [{"source": "./schema", "target": "/go.temporal.io/server/schema"}],
+      "choice_bytes": 67108864,
       "replay_successes": true,
       "success_artifact_limit": 1,
-      "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
-      }
+      "success_bytes_limit": 1073741824,
+      "execution_timeout": "6m",
+      "overall_timeout": "20m",
+      "expectation": {"classification": "intermittent"}
     },
     {
       "id": "clock-context-timeout",
@@ -83,18 +83,22 @@
       "name": "SQLite persistence boundary",
       "tier": 2,
       "capability_mode": "closure",
-      "invariant": "SQLite queue persistence exposes the current Temporal support boundary",
+      "invariant": "SQLite queue persistence operations preserve queue state",
       "package": "./common/persistence/tests",
       "test": "TestSQLiteQueuePersistence",
+      "build_tags": ["gomad"],
       "read_only_mounts": [{"source": "./schema", "target": "/schema"}],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -125,11 +129,7 @@
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "github.com/cespare/xxhash/v2",
-        "capability": "foreign:assembly:xxhash_arm64.s"
-      },
+      "expectation": {"classification": "qualified"},
       "platform_expectations": {
         "linux/amd64": {
           "classification": "unsupported_target",
@@ -146,14 +146,18 @@
       "invariant": "matching dither decisions preserve fairness bounds",
       "package": "./service/matching",
       "test": "TestDitherPass",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -178,14 +182,18 @@
       "invariant": "poller history updates and expiry preserve matching invariants",
       "package": "./service/matching",
       "test": "TestPollerHistory",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -196,14 +204,18 @@
       "invariant": "queue-key encoding is deterministic",
       "package": "./common/persistence",
       "test": "TestQueueKey_Determinism",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "github.com/aws/aws-sdk-go-v2/credentials/processcreds",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -214,14 +226,18 @@
       "invariant": "schema rewriting preserves required varchar checks",
       "package": "./common/persistence/sql/sqlplugin/sqlite",
       "test": "TestRewriteSchemaStatements_EnforcesVarcharLengthChecks",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "github.com/aws/aws-sdk-go-v2/credentials/processcreds",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -232,14 +248,18 @@
       "invariant": "transition-history updates preserve ordering",
       "package": "./service/history/workflow",
       "test": "TestUpdatedTranstionHistory",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -250,14 +270,18 @@
       "invariant": "update abort reasons agree with update states",
       "package": "./service/history/workflow/update",
       "test": "TestAbortReasonUpdateStateMatrix",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -268,14 +292,18 @@
       "invariant": "version-set merge preserves members and the maximum timestamp",
       "package": "./service/matching",
       "test": "TestSetMerge_AdditionalBuildIdAndGreaterUpdateTimestamp_MergesBuildIdsAndSetsMaxUpdateTimestamp",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {
@@ -286,14 +314,18 @@
       "invariant": "workflow retry intervals follow backoff policy",
       "package": "./service/history/workflow",
       "test": "Test_nextBackoffInterval",
+      "build_tags": ["gomad"],
       "choice_bytes": 8388608,
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
-      "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
-        "capability": "import:os/exec"
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {

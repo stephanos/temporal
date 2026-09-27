@@ -272,8 +272,11 @@ lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 and the direct modernc/libc file boundary. The aggregate and all evidence are
 retained below `.toolchain/core-qualification*`.
 
-The checked sixteen-workload Temporal corpus currently qualifies 5 workloads
-and retains 11 exact unsupported analyses. Every qualified workload runs two
+The checked Temporal corpus holds fifteen tier 2 package workloads and three
+tier 3 functional suites. On darwin/arm64 all fifteen package workloads
+qualify; nine of them build with the `gomad` tag. On linux/amd64 five qualify and ten retain
+exact unsupported analyses (the amd64 xxhash assembly), because the packs that
+admit their facts are scoped to darwin/arm64. Every qualified workload runs two
 seeds and requires matching execution, World, I/O, and choice-tape replay.
 
 An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
@@ -683,6 +686,10 @@ server's `gomad` build seams and the fx, SDK, otel, and gRPC adapters it closes
 On darwin/arm64 `temporal-functional-compute-darwin-arm64` admits the arm64
 assembly and `temporal-functional-tests-darwin-arm64` admits the Prometheus
 client's darwin process-collector imports, which close the same analysis.
+`temporal-leaf-xsys-darwin-arm64` and `temporal-leaf-xxhash-darwin-arm64`
+admit the `golang.org/x/sys/unix` and arm64 xxhash facts that the smaller
+`gomad` closures of the Temporal leaf test packages reach without the modules
+that activate the functional packs.
 The obsolete `temporal-backoff-overflow` and
 `xnet-socket-activity-candidate` requests were retired after exact gRPC and
 x/net adapters removed their active blockers. The gRPC workload qualifies
