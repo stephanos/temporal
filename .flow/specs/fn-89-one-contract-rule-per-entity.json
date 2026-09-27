@@ -583,7 +583,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-89-one-contract-rule-per-entity.md",
-  "status": "open",
+  "status": "done",
   "title": "One Contract Rule per entity",
   "tracker": {
     "baseHashFlow": null,
@@ -596,5 +596,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T17:52:53.749782Z"
+  "updated_at": "2026-09-27T17:53:25.834273Z"
 }

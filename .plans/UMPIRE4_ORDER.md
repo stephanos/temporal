@@ -7,8 +7,8 @@ this document records delivery order. Architecture and terminology live in the
 ## Current work
 
 Status as of 2026-09-27. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91 and fn-90. Their task
-receipts in `.flow/` and the git history carry the details. The two delivered on 2026-09-27:
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90 and fn-89. Their task
+receipts in `.flow/` and the git history carry the details. Delivered on 2026-09-27:
 
 - **fn-90** re-measured the three intermittent live Testpilot failures with the
   `make umpire-repeat-run` harness; none reproduced on today's identities. It fixed two causes:
@@ -18,6 +18,10 @@ receipts in `.flow/` and the git history carry the details. The two delivered on
   exists.
 - **fn-91** renamed the Driver seam's Go to the opaque handle family and holds the eight retired
   names in the vocabulary gate.
+- **fn-89** sends a Rule over N instances once with its per-instance values instead of N lowered
+  copies; Verdicts and admission equal the expansion (except that the authored surface is bounded
+  as written), pinned by a differential test. `make umpire-rerecord-pinned-runs` refreshes every
+  catalog-pinned recorded Run after a protocol change, machine-free.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -41,38 +45,28 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    Caller, Pair and three-instance pins, .10 Exploration and Replay keys with the golden re-pin,
    and .7 docs and the rollback drill. The reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path.
-2. **fn-89 — One Contract Rule per entity**
-   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)); delivered, all 7 tasks done,
-   awaiting its completion review. A Rule over N instances crosses the wire once with its
-   per-instance values instead of N lowered copies; Verdicts and admission stay identical to the
-   expansion, pinned by a differential test, and only the multi-instance pair fixture changed.
-   `make umpire-rerecord-pinned-runs` (task .7) refreshes every catalog-pinned recorded Run and
-   receipt after a protocol change, machine-free. The Rule glossary Amendment and the SEM-17
-   Restatement are drafted in the specification, awaiting GOV-02 approval. Closing gates at
-   df1a7c927f: `make umpire-check-regression` exit 0 with 45 live identities, `make lint-model`
-   and `make lint-code-fast` clean.
-3. **fn-92 — Compose entity machines into one Model**
+2. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
-   after fn-88 and fn-89. A `compose` command builds one Model from entity machines with declared
+   after fn-88 (fn-89 is delivered). A `compose` command builds one Model from entity machines with declared
    action synchronization over a reachable-state enumeration; `restrict:` and `extend:` derive
    machines from a source table; `Workflow` and `Worker` entity modules are shared by the Start
    and Outage use cases; the first cross-entity claims are `verify` Queries. Version one realizes
    no Case over a composition and leaves the caller module, its fixtures and the canary's pinned
    Case identity untouched.
-4. **fn-93 — Simplify the Lean model**
-   ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); not yet planned, after everything
-   above. A simplification campaign over the roughly 88,100 handwritten of `model/`'s 128,630
+3. **fn-93 — Simplify the Lean model**
+   ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks
+   (Codex plan review SHIP), after fn-88, fn-89 and fn-92. A simplification campaign over the roughly 88,100 handwritten of `model/`'s 128,630
    Lean lines: fix the defects the investigation found, derive what is written out by hand, delete
    what retired rules left behind (per-task owner decisions), reuse core Lean (re-checked
    against Lean 4.32.0), and cut `model/` Markdown to one README and one ARCHITECTURE. Every
    golden, Case fixture, Definition ID and Behavior Fingerprint stays byte-identical. It absorbs
    fn-60's re-scoped aim.
-5. **fn-94 — Simplify the Testpilot Go runtime**
-   ([spec](../.flow/specs/fn-94-simplify-the-testpilot-go-runtime.md)); not yet planned, after
-   fn-89 (fn-90 and fn-91 are delivered). The Go counterpart of fn-93 over the 42,067 handwritten
+4. **fn-94 — Simplify the Testpilot Go runtime**
+   ([spec](../.flow/specs/fn-94-simplify-the-testpilot-go-runtime.md)); planned, 17 tasks
+   (Codex plan review SHIP), ready now that fn-89 is delivered. The Go counterpart of fn-93 over the 42,067 handwritten
    lines of `common/testing/testpilot`, `tests/testcore/testpilot`, the live tests and the
-   hand-written `.proto`; independent of fn-93. It settles the unread `initial_state_fields` and
-   `prior_fields`, removes dead and test-only code, validates admitted data once (SEM-16), shares
+   hand-written `.proto`; independent of fn-93. It makes Go read `initial_state_fields` and
+   `prior_fields` as Lean's correlated monitor does, removes dead and test-only code, validates admitted data once (SEM-16), shares
    copied primitives, and removes protocol arms no producer emits behind per-arm decisions. The
    corpus, Driver identity bytes, route wire bytes and the live identity count stay as they are;
    a protocol change re-records pinned Runs with `make umpire-rerecord-pinned-runs`.
