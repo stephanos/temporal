@@ -244,6 +244,12 @@ make umpire-check-regression   # final gate
   receipt records it and `AUTHORING.md` states it as the trust assumption of a `veil` absence
   answer. The other `adopt` conditions stand. Tasks after .1 wait on R22 instead of closing under
   R13; a `defer-*` R22 decision closes them under R13 with the R22 receipt.
+- **As built (fn-88.5, 2026-09-27).** The adapter does not call the `IO` entry `findReachable`: it
+  drives Veil's pure one-step function `bfsStep` itself, at most `Limits.search` steps, so
+  `AdmittedQuery.search` stays pure and nothing runs during elaboration. Visited states are
+  compared as whole product states, not by Veil's 64-bit hash, so the hash-collision trust
+  assumption above does not apply; a `veil` absence answer rests on the adapter's equivalence
+  theorems and the differential test.
 - **Selecting roots is not vendoring.** Lake building only the imported modules of an unmodified
   pinned checkout is allowed. Patching, copying, or forking any Veil source is not.
 - **Nondeterministic frontier order.** If R1 shows the checker iterates a hash map or runs in

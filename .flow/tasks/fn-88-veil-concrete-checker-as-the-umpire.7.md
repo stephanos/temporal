@@ -28,6 +28,11 @@ Update the model documentation for the landed backend, run the rollback drill ag
 - The CLAUDE.md cold-build note ("~12 minutes") is loaded by the harness but the file is deleted in the working tree; update it only if restored.
 - Docs describe the landed state; do not restate spec rationale.
 
+### Carried from fn-88.5 (2026-09-27)
+- The adapter is pure (`bfsStep` bounded by `Limits.search`) and deduplicates by exact product state. Correct every GOV-02 draft fn-88.8 wrote (UMPIRE4_SPEC.md, SPEC_MODEL_ARCH, DSL, SPEC_COMPS, COMPONENTS) and AUTHORING.md: drop the `IO`-during-elaboration and 64-bit-hash trust statements; a `veil` absence answer rests on the adapter theorems and the differential test.
+- R20: measure one cold CI run once .6 makes CI build Veil (push to the fork and read the run, or record why not); add a `.lake` cache to `.github/workflows/umpire.yml` if it does not fit the 30/40-minute job timeouts. Pin Node for CI if the runner's default is not enough for Veil's widget build.
+- Rerun `LEAN_NUM_THREADS=1 make lint-model` on a quiet host; its last `lake lint` step was inconclusive at .5.
+
 ## Acceptance
 - [ ] Model docs updated as listed; `make umpire-check-inventory` and `make umpire-check-plan-index` pass
 - [ ] `UMPIRE4_ORDER.md` records the adopt (or defer) result and the R1 receipt
