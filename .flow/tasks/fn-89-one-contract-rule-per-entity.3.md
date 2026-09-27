@@ -25,6 +25,10 @@ Evaluate one Run-local state per Rule instance (R3) and prove Verdict and admiss
 **Optional**:
 - `.flow/memory/bug/runtime-errors/freeze-contract-transitions-when-2026-09-05.md` — transitions freeze on incomplete execution
 
+### Carried from fn-89.2 (2026-09-27)
+- R3 gap: the whole-Contract size check (`ir.CheckSurface`) is not charged per instance, so an instanced Contract whose instance values are large and read many times can pass while its expansion fails. Charge it per instance like the other ceilings, and make the differential admission test cover a Contract that the expansion rejects on surface size.
+- Review notes: the admission struct's recording state could be a small recorder owned by `bindRule`; `literalLike` should check `ok` before using `expression`.
+
 ## Acceptance
 - [ ] one `RuleVerdict` per instance in declaration order; Executor stop, traces, satisfied count and correlated offset count instances
 - [ ] online and offline answers are identical for instanced Contracts
@@ -33,10 +37,23 @@ Evaluate one Run-local state per Rule instance (R3) and prove Verdict and admiss
 - [ ] `go test -count=1 -tags test_dep ./common/testing/testpilot/...` passes; `make lint-code-fast` clean on changed packages
 
 ## Done summary
-TBD
+The Evaluator now keeps one Run-local state and one `RuleVerdict` per Rule instance, in Rule then instance declaration order (R3). A plain Rule counts as its own single instance. Transition traces, the Executor-stop `Violation`, the all-satisfied count and the correlated offset all count instances. The resolver reads each instance's values. `ir.Evaluate` now charges an instance-value read at the inlined literal's size, so remaining per-event budgets match the expansion's.
 
+Carried R3 gap closed: `Prepare` also runs `ir.CheckExpandedSurface` over the Contract's expansion. That function walks each instance as its inlined plain Rule without building the whole expansion. An instanced Contract now rejects on surface size with the same diagnostic as its expansion. The fn-89.2 review notes are done: the admission ledger is a small recorder owned by `bindRule`, and `literalLike` checks `ok` first.
+
+Tests:
+- `TestRuleInstancesEvaluateAsTheirExpansion` (`instances_test.go`) covers the R4 matrix: satisfied; violated (safety reject on the instance value); inconclusive (pair capture shape with a crossed completion); incomplete; `rule_events` deadline expiry; an event carrying no instance's value and one matching no instance; a plain Rule beside instanced ones; a one-instance Rule; a correlated rule after the instances. Verdicts must be byte-identical online and offline. Failures name the Run and the first differing rule ID. Swapping two instances' values fails every case.
+- `TestRuleInstancesRejectOnTheExpansionsCeiling` covers the states ceiling and surface size.
+- The runtime charge is pinned in `TestInstanceValuesBindAsTheLiteralEachInstanceInlines`.
+
+Every new test was confirmed red without its fix. No protocol or catalog change, so no pinned Runs were re-recorded.
+
+Follow-ups: (1) `execution.Prepare` still checks the whole Case surface as authored, not as expanded. (2) The instanced Contract's own surface check can reject where the expansion would pass, if large declared values are never read (reviewer P3, pre-existing). (3) Reviewer FYIs: `inlineInstanceValues` duplicates the test's `inline`; `nexusWorld` and `nexusRun` lack `t.Helper()`.
+
+Base note: commit a94bfa142c (fn-88, another worker) landed between base 9daf0bd and this task's commit. The review was scoped with `--base a94bfa142c`.
+
+stage: impl-review - ran (claude, first-pass SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2178a1c70b8ff4cbac69f7aca2c363919525073e
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD
 - PRs:
-
