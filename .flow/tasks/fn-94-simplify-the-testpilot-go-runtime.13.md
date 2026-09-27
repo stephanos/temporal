@@ -38,9 +38,17 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+One comparable, JSON-tagged `delivery.WorkflowBinding` now replaces the codec's `binding`, the ledger's and the worker's `WorkflowBinding`, the worker's `workflowRouteIndex`, and the binding half of `startRequestFields`, and it serves as the route key. The route golden (`codec_test.go`) is byte-identical to dd3b7bf278; a test-only alias `binding = WorkflowBinding` in `delivery_test.go` keeps it compiling. `delivery.StartBinding` reads the binding and header by descriptor, and both `PrepareRPC` and the composite Driver call it. The composite Driver's Marshal/Unmarshal round trip is gone. Its `carrierBinding` keeps the old rejection of empty binding fields with the composite `ErrInvalid`: the review found that this check had been dropped, and it is now restored and pinned by `TestCarrierBindingRejectsIncompleteStartRequests`. `CreateCarrier` still runs before `PrepareRPC`.
 
+`AdmitWorkflow` and `AdmitNexus` share `consumeLocked`, and `Driver.admitWorkflow` and `admitNexus` share `admitFirst`. The Session caches are unchanged, and `TestAdmittedWorkflowUsesImmutableNexusDispatchAfterStop` passes unedited. The new `TestConcurrentReplayAndCompletionOfOneAdmission` landed before the admit changes and was checked against two mutations. Bypassing the Session cache made it fail with ErrRouteStale, and removing the completion lock made `-race` fail. `TestStartBindingReadsDynamicStartRequestsOnly` pins R6's extraction rejections, and it was run red first.
+
+The worker Driver (`worker/driver.go`, outside this task's Touches and being edited by fn-94.12) still names `workflowRouteIndex`, so that name stays as an alias of `delivery.WorkflowBinding`. Follow-up: drop the alias once that file is free.
+
+baseline: green (race suite, run with -overlay because other workers' uncommitted edits broke the shared build)
+Live tests ran at b85202b97d, before the review fix, with 45 passing identities and 0 failing. That equals the fn-94.2 count. They ran with -overlay and the existing model/.lake binaries, without the lake prelude.
+
+stage: impl-review - ran [codex fan-out rid 8d9caab4c5e74f3580eff1707f919315: correctness SHIP, contracts NEEDS_WORK, integration SHIP -> fix 940a020b0a -> re-review SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b85202b97d920c681d57cf51b37ab2bf45d00c79, 940a020b0aade27117c9e2823d32afd59751dce6
+- Tests: go test -race -count=3 -tags test_dep ./common/testing/testpilot/temporal/... (with -overlay pinning other workers' uncommitted files to HEAD; green pre-edit and at 940a020b0a), make umpire-check-live-tests (Go step only, with -overlay, existing model/.lake binaries; run at b85202b97d: 45 passing identities, 0 failing), make lint-code-fast (on an exported HEAD copy plus this task's diff, GOLANGCI_LINT_FIX=false: 0 issues)
 - PRs:
