@@ -51,8 +51,8 @@ The workflow implementation receives arbitrary SDK arguments through `converter.
 then rejects workflow types outside that allowlist before reservation admission.
 
 Controller code reserves worker activations before dispatch and creates a `Carrier` from the
-prepared carrier plan. `Carrier` delegates route injection, start-response pinning, trigger
-terminal release, parent terminal release, and quarantine to the delivery ledger. The worker
+prepared carrier plan. `Carrier` delegates route injection, start-response pinning and trigger
+terminal release to the delivery ledger. The worker
 validates callback URLs, resolves the SDK system callback against the trusted configured base, and
 builds the protocol completion effect. Only that generic effect crosses the package boundary through
 `HandleFactory`; its callback data remains opaque and the resulting opaque handle is published

@@ -95,8 +95,10 @@ func beginAndSettle(ctx context.Context, outage *Outage, roleID string, kind tes
 
 func requireStopped(t *testing.T, outage *Outage, want ...string) {
 	t.Helper()
-	stopped, err := outage.Stopped(t.Context())
-	require.NoError(t, err)
+	registry := outage.lease.registry
+	require.NoError(t, registry.mu.lock(t.Context()))
+	stopped := outage.stoppedLocked()
+	registry.mu.unlock()
 	require.Equal(t, want, stopped)
 }
 
@@ -382,7 +384,7 @@ func TestFaultTransitionsAreSafeBesidePeerAcquisitions(t *testing.T) {
 				peers <- err
 				return
 			}
-			peers <- held.release(context.Background())
+			peers <- newOutage(held, OutagePlan{}).Restore(context.Background())
 		}()
 	}
 	for range 4 {

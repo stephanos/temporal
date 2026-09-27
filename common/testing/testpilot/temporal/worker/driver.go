@@ -35,16 +35,15 @@ type Driver struct {
 }
 
 type hostOptions struct {
-	profile        testpilot.ProfileSpec
-	workerRoleID   string
-	client         client.Client
-	workerOptions  worker.Options
-	sessionOptions func(context.Context, string) (SessionOptions, error)
-	maximum        int
-	diagnostics    int
-	requestBytes   int64
-	now            func() time.Time
-	completion     *completionTransport
+	profile       testpilot.ProfileSpec
+	workerRoleID  string
+	client        client.Client
+	workerOptions worker.Options
+	maximum       int
+	diagnostics   int
+	requestBytes  int64
+	now           func() time.Time
+	completion    *completionTransport
 }
 
 func New(options Options) (*Driver, error) {
@@ -68,9 +67,9 @@ func New(options Options) (*Driver, error) {
 		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
 		options: hostOptions{
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
-			workerOptions:  worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
-			sessionOptions: options.SessionOptions, maximum: maximum, diagnostics: diagnostics,
-			requestBytes: limits.GetMaxRequestBytes(), now: time.Now, completion: completion,
+			workerOptions: worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
+			maximum:       maximum, diagnostics: diagnostics, requestBytes: limits.GetMaxRequestBytes(),
+			now: time.Now, completion: completion,
 		},
 	}
 	h.registry = newWorkerRegistry(maximum, h.newSDKWorker)
@@ -177,17 +176,6 @@ func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
 	return false
 }
 
-func (h *Driver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if h == nil || ctx == nil || h.options.sessionOptions == nil {
-		return nil, ErrInvalid
-	}
-	options, err := h.options.sessionOptions(ctx, runID)
-	if err != nil {
-		return nil, err
-	}
-	return h.OpenSession(ctx, runID, program, options)
-}
-
 func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilot.PreparedProgram, options SessionOptions) (*Session, error) {
 	if h == nil || ctx == nil || runID == "" || nilValue(options.Bridge) {
 		return nil, ErrInvalid
@@ -249,10 +237,6 @@ func (h *Driver) Close(ctx context.Context) error {
 
 func (h *Driver) prepareDefinition(program testpilot.PreparedProgram) (programDefinition, error) {
 	return h.prepareDefinitionResources(program.Snapshot(), program.Limits(), ProgramPlans(program), program.Roles(), true)
-}
-
-func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, limits *testpilotspb.ProgramLimits, plans []testpilot.EntrypointPlan) (programDefinition, error) {
-	return h.prepareDefinitionResources(snapshot, limits, plans, nil, true)
 }
 
 func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limits *testpilotspb.ProgramLimits, plans []testpilot.EntrypointPlan, preparedRoles []testpilot.PreparedRole, requireWorker bool) (programDefinition, error) {

@@ -124,12 +124,6 @@ func (a Activation) Reservation() testpilot.ReservationIdentity {
 func (a Activation) TemporalRunID() string { return a.data.temporalRunID }
 func (a Activation) RequestID() string     { return a.data.requestID }
 func (a Activation) Replay() bool          { return a.replay }
-func (a Activation) Handle() testpilot.EffectHandle {
-	if a.state == nil {
-		return nil
-	}
-	return a.state.retained.proxy
-}
 
 type Release struct{ unused int }
 

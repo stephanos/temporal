@@ -225,19 +225,6 @@ func stopBounded(ctx context.Context, worker managedWorker) error {
 	}
 }
 
-// Stopped names the queues this Run left stopped, read under the registry lock.
-func (o *Outage) Stopped(ctx context.Context) ([]string, error) {
-	if o == nil {
-		return nil, ErrInvalid
-	}
-	registry := o.lease.registry
-	if err := registry.mu.lock(ctx); err != nil {
-		return nil, err
-	}
-	defer registry.mu.unlock()
-	return o.stoppedLocked(), nil
-}
-
 func (o *Outage) stoppedLocked() []string {
 	var stopped []string
 	for _, requirement := range o.lease.requirements {

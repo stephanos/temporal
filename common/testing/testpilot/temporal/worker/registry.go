@@ -322,21 +322,6 @@ func (r *workerRegistry) newLease(runID string, requirements []queueRegistration
 	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: newContextMutex()}
 }
 
-// release ends a hold that has no outage to restore.
-func (l *workerLease) release(ctx context.Context) error {
-	if l == nil || ctx == nil {
-		return ErrInvalid
-	}
-	if err := l.mu.lock(ctx); err != nil {
-		return err
-	}
-	defer l.mu.unlock()
-	if l.released {
-		return nil
-	}
-	return l.releaseLocked(ctx, nil)
-}
-
 // releaseLocked removes the hold from the registry on a cleanup-bounded context of its own, and
 // reports prior alongside any removal failure. The lease lock must already be held.
 func (l *workerLease) releaseLocked(ctx context.Context, prior error) error {

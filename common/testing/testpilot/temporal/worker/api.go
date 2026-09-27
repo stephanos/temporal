@@ -29,8 +29,7 @@ type Options struct {
 	WorkerStopTimeout     time.Duration
 	SystemCallbackBaseURL string
 	// HTTPClient and its transport must honor request cancellation. Redirects are disabled.
-	HTTPClient     *http.Client
-	SessionOptions func(context.Context, string) (SessionOptions, error)
+	HTTPClient *http.Client
 }
 
 type HandleFactory func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error)

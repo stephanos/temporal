@@ -366,7 +366,7 @@ func TestCompletionEffectAcceptsTypedCompletions(t *testing.T) {
 	require.False(t, effect.Accepts(t.Context(), payload, &failurepb.Failure{}))
 	require.False(t, effect.Accepts(t.Context(), failure, &commonpb.Payload{}))
 	require.False(t, effect.Accepts(t.Context(), other, &commonpb.Payload{}))
-	require.False(t, effect.Accepts(t.Context(), payload, callbackValue()))
+	require.False(t, effect.Accepts(t.Context(), payload, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}))
 	require.Equal(t, "invalid_argument", effect.Invoke(t.Context(), &testpilotspb.InstructionOutcome{}, 4096).Outcome.ProtocolCode)
 }
 

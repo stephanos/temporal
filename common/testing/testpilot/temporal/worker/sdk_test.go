@@ -72,7 +72,7 @@ func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
 
 	routed, err := host.admitWorkflow(workflowDelivery(request, "replay-run"))
 	require.NoError(t, err)
-	header, _, err := session.preparedNexusDispatch(routed.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	header, err := session.preparedNexusHeader(routed.activation, "start")
 	require.NoError(t, err)
 	history := workflowReplayHistory(t, binding, request.GetHeader(), header)
 	replayer, err := sdkworker.NewWorkflowReplayerWithOptions(sdkworker.WorkflowReplayerOptions{Interceptors: []interceptor.WorkerInterceptor{
@@ -111,7 +111,7 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
-	header, value, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	header, err := session.preparedNexusHeader(workflowRoute.activation, "start")
 	require.NoError(t, err)
 
 	operation := &genericNexusOperation{queue: "task-queue", service: "service", operation: "operation"}
@@ -123,7 +123,7 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 	require.NoError(t, err)
 	terminal := &registeredNexusTerminal{handler: handler, service: "service", operation: "operation"}
 	inbound := (&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}).InterceptNexusOperation(t.Context(), terminal)
-	input := interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
+	input := interceptor.NexusStartOperationInput{Input: converter.NewRawValue(runtimePayload("request")), Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
 	result, err := inbound.StartOperation(t.Context(), input)
 	require.NoError(t, err)
 	raw, ok := result.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
@@ -137,7 +137,7 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 	require.True(t, ok)
 	require.True(t, proto.Equal(runtimePayload("accepted"), replayed.Payload()))
 	require.Len(t, session.nexusAdmissions, 1)
-	_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
+	_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: input.Input, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
 	require.Error(t, err)
 }
 
@@ -262,16 +262,6 @@ func reservationForEntrypoint(t *testing.T, session *Session, entrypoint string)
 	return nil
 }
 
-func workflowAdmissionForTest(t *testing.T, session *Session) *workflowAdmission {
-	t.Helper()
-	require.Len(t, session.workflowAdmissions, 1)
-	for _, admission := range session.workflowAdmissions {
-		return admission
-	}
-	require.FailNow(t, "missing workflow admission")
-	return nil
-}
-
 func workflowReplayHistory(t *testing.T, binding WorkflowBinding, header *commonpb.Header, nexusHeader nexus.Header) []*historypb.HistoryEvent {
 	t.Helper()
 	dataConverter := converter.GetDefaultDataConverter()
@@ -367,7 +357,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 				if err != nil {
 					return "", err
 				}
-				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture), typed: make(map[string]bool)}
+				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
 				instructions := entry.Instructions()
 				_, enabled, err := state.Evaluate(context.Background(), 0)
 				if err != nil || !enabled {

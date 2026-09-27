@@ -24,9 +24,9 @@ func TestTestpilotWorkflowStartCase(t *testing.T) {
 	binding := CaseBinding{
 		Identity: "workflow-start-profile", Namespace: "umpire-workflow-start", TaskQueue: "umpire-workflow-start-queue",
 	}
-	// The single-shot happy path: runCase loads the fixture, derives the Profile, provisions,
-	// prepares and runs once.
-	run, verdict := runCaseWithBinding(t, env, testpilotfixture.WorkflowStartFixture, binding)
+	// The single-shot happy path: runCapturedCaseWithBinding loads the fixture, derives the
+	// Profile, provisions, prepares and runs once.
+	run, verdict := runCapturedCaseWithBinding(t, env, testpilotfixture.WorkflowStartFixture, binding)
 	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	requireSubmittedWorkflowTypeEvidence(t, run, verdict, binding.TaskQueue)

@@ -74,9 +74,9 @@ func TestIdenticalConcurrentRunsRouteByIdentityUnderReorderedDelivery(t *testing
 	firstWorkflow, err := first.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: firstHeader, Namespace: first.binding.Namespace, WorkflowID: first.binding.WorkflowID, WorkflowType: first.binding.WorkflowType, TaskQueue: first.binding.TaskQueue, TemporalRunID: "temporal-one"})
 	require.NoError(t, err)
 
-	firstNexus, err := first.ledger.PrepareNexus(context.Background(), firstWorkflow, "start-nexus", nil, nil)
+	firstNexus, err := first.ledger.PrepareNexus(context.Background(), firstWorkflow, "start-nexus")
 	require.NoError(t, err)
-	secondNexus, err := second.ledger.PrepareNexus(context.Background(), secondWorkflow, "start-nexus", nil, nil)
+	secondNexus, err := second.ledger.PrepareNexus(context.Background(), secondWorkflow, "start-nexus")
 	require.NoError(t, err)
 	firstHandler, err := first.ledger.AdmitNexus(context.Background(), NexusDelivery{Header: firstNexus.Header(), RequestID: "request-one"})
 	require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestMatchingReplayReusesAdmissionAndConflictsReject(t *testing.T) {
 	require.ErrorIs(t, err, ErrRouteConflict)
 	require.Equal(t, int64(1), f.workflow.consumeCount.Load())
 
-	nexusDispatch, err := f.ledger.PrepareNexus(context.Background(), first, "start-nexus", nil, nil)
+	nexusDispatch, err := f.ledger.PrepareNexus(context.Background(), first, "start-nexus")
 	require.NoError(t, err)
 	handler, err := f.ledger.AdmitNexus(context.Background(), NexusDelivery{Header: nexusDispatch.Header(), RequestID: "request"})
 	require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestTriggerFailuresRetireRoutesAndCancelAdmittedWork(t *testing.T) {
 	require.Zero(t, release.Unused())
 	require.Zero(t, f.workflow.cancelCount.Load())
 	require.Zero(t, f.handler.cancelCount.Load())
-	_, err = f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", nil, nil)
+	_, err = f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.NoError(t, err)
 }
 
@@ -210,7 +210,7 @@ func TestParentTerminalReleasesUnusedOnce(t *testing.T) {
 	require.Zero(t, f.workflow.cancelCount.Load())
 	require.Equal(t, int64(2), f.handler.cancelCount.Load())
 
-	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", nil, nil)
+	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.ErrorIs(t, err, ErrRouteStale)
 	require.Empty(t, dispatch.Header())
 }
@@ -218,7 +218,7 @@ func TestParentTerminalReleasesUnusedOnce(t *testing.T) {
 func TestParentTerminalDoesNotCancelAdmittedHandler(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	workflow := admitWorkflow(t, f, "temporal-run")
-	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", nil, nil)
+	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.NoError(t, err)
 	_, err = f.ledger.AdmitNexus(context.Background(), NexusDelivery{Header: dispatch.Header(), RequestID: "request"})
 	require.NoError(t, err)
@@ -654,7 +654,14 @@ func TestWaitReturnsIndependentFailureSnapshotAfterStop(t *testing.T) {
 	f.workflow.result.Outcome.ProtocolCode = "worker_failure"
 	f.workflow.waitErr = errors.New("activation failed")
 	f.workflow.finish()
-	result, err := activation.Handle().Wait(context.Background())
+	var handle testpilot.EffectHandle
+	for _, retained := range f.bundle.Handles() {
+		if retained.(testpilot.ReservationHandle).Identity().EntrypointID == "workflow" {
+			handle = retained
+		}
+	}
+	require.NotNil(t, handle)
+	result, err := handle.Wait(context.Background())
 	require.EqualError(t, err, "activation failed")
 	require.Equal(t, "worker_failure", result.Outcome.ProtocolCode)
 

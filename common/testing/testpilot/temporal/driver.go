@@ -150,19 +150,12 @@ type compositeSession struct {
 	controller   testpilot.Session
 	worker       workerSession
 	program      testpilot.PreparedProgram
-	carrierPlan  func(string, string) (testpilot.ReservationCarrierPlan, bool)
 	mu           sync.Mutex
 	reservations map[testpilot.Coordinate][]testpilot.ReservationHandle
 }
 
-func newCompositeSession(controller testpilot.Session, worker workerSession, program testpilot.PreparedProgram) *compositeSession {
-	return &compositeSession{controller: controller, worker: worker, program: program, reservations: make(map[testpilot.Coordinate][]testpilot.ReservationHandle)}
-}
-
 func newPreparedCompositeSession(controller testpilot.Session, worker workerSession, program testpilot.PreparedProgram) *compositeSession {
-	session := newCompositeSession(controller, worker, program)
-	session.carrierPlan = program.ReservationCarrier
-	return session
+	return &compositeSession{controller: controller, worker: worker, program: program, reservations: make(map[testpilot.Coordinate][]testpilot.ReservationHandle)}
 }
 
 func (s *compositeSession) Reserve(ctx context.Context, request testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
@@ -184,11 +177,7 @@ func (s *compositeSession) PollRPC(ctx context.Context, coordinate testpilot.Coo
 }
 
 func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	var plan testpilot.ReservationCarrierPlan
-	var carrierRequired bool
-	if s.carrierPlan != nil {
-		plan, carrierRequired = s.carrierPlan(coordinate.EntrypointID, coordinate.InstructionID)
-	}
+	plan, carrierRequired := s.program.ReservationCarrier(coordinate.EntrypointID, coordinate.InstructionID)
 	if !carrierRequired {
 		return s.controller.InvokeRPC(ctx, coordinate, role, method, request)
 	}
