@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.371859Z",
+  "depends_on": [],
+  "id": "fn-93-simplify-the-lean-model.1",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.1.md",
+  "status": "todo",
+  "title": "Install the schema and catalog checks for production Models (E1)",
+  "updated_at": "2026-09-27T15:37:05.371859Z"
+}

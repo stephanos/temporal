@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.375082Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.36"
+  ],
+  "id": "fn-93-simplify-the-lean-model.37",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.37.md",
+  "status": "todo",
+  "title": "Retire the handwritten-inventory ledger and dead lint policy (D-lint)",
+  "updated_at": "2026-09-27T15:37:05.375082Z"
+}

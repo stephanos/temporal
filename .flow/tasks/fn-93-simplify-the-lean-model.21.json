@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.373957Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.20"
+  ],
+  "id": "fn-93-simplify-the-lean-model.21",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.21.md",
+  "status": "todo",
+  "title": "Delete the Bool/Prop denotation copies (B7, decision D7)",
+  "updated_at": "2026-09-27T15:42:15.346087Z"
+}

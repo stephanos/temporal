@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.373137Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.9"
+  ],
+  "id": "fn-93-simplify-the-lean-model.10",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.10.md",
+  "status": "todo",
+  "title": "Retire Umpire.Variations (B1, decision D1)",
+  "updated_at": "2026-09-27T15:37:05.373137Z"
+}
