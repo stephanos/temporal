@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"iter"
 	"math/bits"
 	"reflect"
 	"slices"
@@ -69,6 +70,7 @@ type budget struct {
 	ctx         context.Context
 	limits      Limits
 	work, bytes int64
+	expand      Expansion
 }
 
 func (b *budget) charge(depth, work, bytes int64, path string) error {
@@ -142,6 +144,9 @@ func inspectField(field protoreflect.FieldDescriptor, value protoreflect.Value, 
 		return inspectMap(field, value, depth, b, path)
 	}
 	if field.IsList() {
+		if b.expand != nil && field.Message() != nil {
+			return inspectExpandedList(field, value.List(), depth, b, path)
+		}
 		if int64(value.List().Len()) > b.limits.Fanout {
 			return invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
 		}
@@ -153,6 +158,37 @@ func inspectField(field protoreflect.FieldDescriptor, value protoreflect.Value, 
 		return nil
 	}
 	return inspectValue(field, value, depth, b, path)
+}
+
+// inspectExpandedList inspects a repeated message field as the list b.expand writes it out as. The
+// written-out length is bounded before any element is inspected, as the written-out message's own
+// check bounds it.
+func inspectExpandedList(field protoreflect.FieldDescriptor, list protoreflect.List, depth int64, b *budget, path string) error {
+	var length int64
+	for i := 0; i < list.Len(); i++ {
+		count := int64(1)
+		if expanded, _, ok := b.expand(field, list.Get(i).Message()); ok {
+			count = int64(expanded)
+		}
+		if length += count; length > b.limits.Fanout {
+			return invalid(LimitExceeded, path, "repeated collection ceiling exceeded")
+		}
+	}
+	for i := 0; i < list.Len(); i++ {
+		_, elements, ok := b.expand(field, list.Get(i).Message())
+		if !ok {
+			if err := inspectValue(field, list.Get(i), depth, b, path); err != nil {
+				return err
+			}
+			continue
+		}
+		for element := range elements {
+			if err := inspect(element.ProtoReflect(), depth+1, b, path); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func inspectValue(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
@@ -265,6 +301,24 @@ func CheckSurface(source proto.Message, limits Limits) error {
 		return invalid(Malformed, "$", "message is required")
 	}
 	b := budget{limits: limits}
+	return inspectSurface(source.ProtoReflect(), &b, "$")
+}
+
+// Expansion writes out one element of a repeated message field as the count messages elements
+// yields, or reports false when the element stands for itself.
+type Expansion func(field protoreflect.FieldDescriptor, element protoreflect.Message) (count int, elements iter.Seq[proto.Message], ok bool)
+
+// CheckExpandedSurface is CheckSurface over the message source stands for once expand writes out its
+// repeated message fields' elements, without building that message. Callers check source's own
+// surface first.
+func CheckExpandedSurface(source proto.Message, limits Limits, expand Expansion) error {
+	if err := limits.validate(); err != nil {
+		return err
+	}
+	if missing(source) || expand == nil {
+		return invalid(Malformed, "$", "message and expansion are required")
+	}
+	b := budget{limits: limits, expand: expand}
 	return inspectSurface(source.ProtoReflect(), &b, "$")
 }
 

@@ -627,8 +627,11 @@ func (b *compiler) literalLike(source proto.Message) bool {
 		return true
 	}
 	expression, ok := source.(*testpilotspb.Expression)
+	if !ok {
+		return false
+	}
 	_, instance := expression.GetReference().GetReference().(*testpilotspb.Reference_InstanceValueId)
-	return ok && instance && admittedReferences[b.context]["instance_value_id"]
+	return instance && admittedReferences[b.context]["instance_value_id"]
 }
 
 func (b *compiler) logical(operands []proto.Message, path string, facts map[string]bool, continuing bool, depth int64) ([]*Expression, error) {
