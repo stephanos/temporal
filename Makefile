@@ -880,9 +880,10 @@ umpire-rerecord-pinned-runs:
 			set -- $$(printf '%s' "$$pinned" | tr ':' ' '); \
 			live=$$1; variable=$$2; record=$$3; package=$$4; probe=$$5; \
 			status=0; \
-			TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags test_dep "$$package" \
+			TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -tags test_dep "$$package" \
 				-run "^$$probe"'$$' > "$$log" 2>&1 || status=$$?; \
 			if [ "$$status" -eq 0 ]; then \
+				grep -q "^--- PASS: $$probe " "$$log" || { printf '%s matched no test in %s.\n' "$$probe" "$$package"; exit 1; }; \
 				printf '%s is current.\n' "$$record"; \
 				continue; \
 			fi; \
