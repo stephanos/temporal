@@ -301,6 +301,28 @@ and shuts down under virtual time repeatably.
   qualifies without policy widening; this probe is that workload.
 - Record transcript and choice-tape utilization for the run. These two numbers size milestone F5.
 
+**Status.** Started on 2026-09-27 on linux/amd64. With the adapters re-pinned, `gomad analyze`
+of the probe (`go-test ./tests/gomadfunctional -- -test.run '^TestFrontendSystemInfo$'`, tags
+`disable_grpc_modules,test_dep`) runs to completion over 1666 packages and classifies the probe
+`unsupported` in all three capability modes; linked and guarded mode first needed the
+live-capability extractor to read ELF executables (it parsed Mach-O only). The blockers are the
+linux/amd64 counterparts of what `temporal-functional-compute-darwin-arm64` admits on darwin,
+and every compatibility pack is scoped to `darwin/arm64`: `add_exact_pack` for the amd64
+assembly in xxhash (both modules), snappy, klauspost/compress (zstd, huff0, cpuinfo, xxhash),
+murmur3, go-farm, edwards25519, chacha20poly1305, poly1305, x/sys/cpu, and reflect2, plus the
+linknames in x/sys/unix (`auxv.go`, `syscall_linux.go`, `vgetrandom_linux.go`), reflect2,
+bigfft, and modernc/memory (`mmap_unix.go`); `add_adapter` for modernc.org/libc, whose adapter
+rewrites the darwin sources only (`abi0_linux_amd64.s`, `tls_linux_amd64.s`); and, in linked
+mode, `model_operation` for nine denied boundaries (DNS lookups, interface addresses, raw
+connections, UDP resolution, `process.kill`, symlinks, raw descriptors). Closure mode also
+reports `os/exec`, `os/signal`, and `os/user` as `remain_unsupported`. Qualifying the probe on
+Linux therefore needs a `temporal-functional-compute-linux-amd64` pack, a Linux modernc libc
+adapter, and either the denied-boundary models or guarded mode; on darwin/arm64 the milestone
+proceeds as written. The Linux host tier also carries a pre-existing failure unrelated to this
+work: the simulated-target choice-trace tests in `runner/internal/execution` report "choice
+trace unterminated" on Linux with the go1.26.4 toolchain too, while the real-target choice
+paths (runtime tier, core qualification) replay exactly.
+
 **Constraints.**
 
 - No new pack unless the analyzer names a blocker not already in
