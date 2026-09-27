@@ -7900,12 +7900,14 @@ structure WorkflowExecutionInfo where
   lastNotifiedTargetVersion : Option LastNotifiedTargetVersion
   declinedTargetVersionUpgrade : Option Temporal.Api.History.V1.DeclinedTargetVersionUpgrade
   timeSkippingInfo : Option TimeSkippingInfo
+  mutableStateRebuildTime : Option Google.Protobuf.Timestamp
   lastWorkflowTaskFailure : WorkflowExecutionInfo.LastWorkflowTaskFailure
   deriving Repr
 
 structure RequestIDInfo where
   eventType : Temporal.Api.Enums.V1.EventType
   eventId : Int
+  attachTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
 structure WorkflowExecutionState where
@@ -9045,6 +9047,9 @@ structure SyncReplicationState where
   inclusiveLowWatermarkTime : Option Google.Protobuf.Timestamp
   highPriorityState : Option ReplicationState
   lowPriorityState : Option ReplicationState
+  throttleHighNamespaceIds : List String
+  isolatedLaneStates : List (String × ReplicationState)
+  supportsNamespaceIsolation : Bool
   deriving Repr
 
 end Temporal.Server.Api.Replication.V1
@@ -9069,6 +9074,8 @@ structure WorkflowReplicationMessages where
   exclusiveHighWatermark : Int
   exclusiveHighWatermarkTime : Option Google.Protobuf.Timestamp
   priority : Temporal.Server.Api.Enums.V1.TaskPriority
+  isolatedNamespaceId : String
+  retireIsolatedLane : Bool
   deriving Repr
 
 end Temporal.Server.Api.Replication.V1
@@ -9922,6 +9929,10 @@ structure DescribeWorkflowExecutionResponse where
   workflowExtendedInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionExtendedInfo
   deriving Repr
 
+structure OrphanedChildReplacementInfo where
+  parentCurrentVersionHistoryItems : List Temporal.Server.Api.History.V1.VersionHistoryItem
+  deriving Repr
+
 end Temporal.Server.Api.Historyservice.V1
 
 namespace Temporal.Server.Api.Workflow.V1
@@ -9963,6 +9974,7 @@ structure StartWorkflowExecutionRequest where
   inheritedAutoUpgradeInfo : Option Temporal.Api.Deployment.V1.InheritedAutoUpgradeInfo
   declinedTargetVersionUpgrade : Option Temporal.Api.History.V1.DeclinedTargetVersionUpgrade
   timeSkippingStatePropagation : Option Temporal.Api.Common.V1.TimeSkippingStatePropagation
+  orphanedChildReplacementInfo : Option OrphanedChildReplacementInfo
   deriving Repr
 
 structure UpdateWorkflowExecutionRequest where
@@ -10828,6 +10840,7 @@ structure VerifyFirstWorkflowTaskScheduledRequest where
   namespaceId : String
   workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  resendChild : Bool
   deriving Repr
 
 structure VerifyFirstWorkflowTaskScheduledResponse where
@@ -12624,6 +12637,7 @@ structure SchedulerState where
   sentinel : Bool
   workflowMigration : Option WorkflowMigrationState
   idleCloseTime : Option Google.Protobuf.Timestamp
+  lastEventTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
 structure SchedulerMigrationState where

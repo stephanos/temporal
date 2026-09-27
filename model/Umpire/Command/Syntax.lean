@@ -134,7 +134,7 @@ one it would have written. -/
 -- A member's own doc comment goes after its bar, not before it. Before the bar it would be
 -- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
 -- repetition would swallow it.
-elab doc?:(docComment)? &"enum" name:ident
+elab (name := enumCommand) doc?:(docComment)? &"enum" name:ident
     constructors:("|" (docComment)? ident (bracketedBinder)*)+ : command => do
   let declared ← constructors.mapM fun constructor => do
     let parts := constructor.raw
@@ -167,6 +167,13 @@ elab doc?:(docComment)? &"enum" name:ident
       declName
       name := name.getId.toString
       id := ← definitionIdHere "enum" name.getId.toString })
+
+/-- A binder in an `enum` member names a constructor field, as it does in the `inductive` the command
+declares: the name is what an example's `(field := ...)` spells, so it is never a local to use. The
+builtin rule that spares constructor fields matches only `inductive` syntax, not this command's. -/
+@[unused_variables_ignore_fn]
+def ignoreEnumFields : Lean.Linter.IgnoreFunction := fun _ stack _ =>
+  stack.any fun (syntaxNode, _) => syntaxNode.isOfKind ``enumCommand
 
 
 /-! ### The `property` command
@@ -801,8 +808,8 @@ the part of the block it belongs to. -/
 
 private unsafe def evalDiagnosticUnsafe (diagnosticName : Name) :
     Elab.Term.TermElabM (Option (String × String)) :=
-  let pair := mkApp2 (.const ``Prod [levelZero, levelZero]) (.const ``String []) (.const ``String [])
-  Meta.evalExpr (Option (String × String)) (.app (.const ``Option [levelZero]) pair)
+  let pair := mkApp2 (.const ``Prod [Level.zero, Level.zero]) (.const ``String []) (.const ``String [])
+  Meta.evalExpr (Option (String × String)) (.app (.const ``Option [Level.zero]) pair)
     (.const diagnosticName [])
 
 @[implemented_by evalDiagnosticUnsafe]
@@ -811,12 +818,12 @@ private opaque evalDiagnostic (diagnosticName : Name) :
 
 private unsafe def evalStuckStateUnsafe (diagnosticName : Name) :
     Elab.Term.TermElabM (Option String) :=
-  Meta.evalExpr (Option String) (.app (.const ``Option [levelZero]) (.const ``String []))
+  Meta.evalExpr (Option String) (.app (.const ``Option [Level.zero]) (.const ``String []))
     (.const diagnosticName [])
 
 private unsafe def evalStringListUnsafe (diagnosticName : Name) :
     Elab.Term.TermElabM (List String) :=
-  Meta.evalExpr (List String) (.app (.const ``List [levelZero]) (.const ``String []))
+  Meta.evalExpr (List String) (.app (.const ``List [Level.zero]) (.const ``String []))
     (.const diagnosticName [])
 
 /-- A list of keys read off a table the command just emitted. -/
@@ -1501,7 +1508,7 @@ private def exampleWritten (constructor : Ident) (bindings : Array (Ident × Ter
   if bindings.isEmpty then constructor.getId.toString
   else
     let written := bindings.toList.map fun (field, value) =>
-      let rendered := (value.raw.reprint.getD "").trim
+      let rendered := (value.raw.reprint.getD "").trimAscii.toString
       s!"{field.getId} := {rendered}"
     let joined := ", ".intercalate written
     s!"{constructor.getId} ({joined})"
@@ -2392,7 +2399,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
 
   let origin ← originTerm
   elabGenerated (← `(command|
-    def $name := Umpire.Command.declareModel $origin $names ($setupName)
+    $[$doc?:docComment]? def $name := Umpire.Command.declareModel $origin $names ($setupName)
       (Umpire.Command.members (α := $stateType))
       ($actionsName)
       (Umpire.Command.members (α := $(mkIdent outcomeType)))

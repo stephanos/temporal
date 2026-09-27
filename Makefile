@@ -109,14 +109,14 @@ _UMPIRE_INVENTORY_DOCUMENT ?= model/INVENTORY.md
 _UMPIRE_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe umpire-inventory
 UMPIRE_REGRESSION_FIXTURES := \
 	umpire.switch.query.exactAction:Umpire/Examples/testdata/switch-experiment-spec.json
-UMPIRE_GEN_LEAN_API_ARGS = \
+UMPIRE_GEN_LEAN_API_INPUT_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
 	--descriptor $(API_BINPB) \
 	--descriptor $(INTERNAL_BINPB) \
 	--descriptor $(CHASM_BINPB) \
 	--skip-package temporal.server.api.testpilot.v1 \
-	--lean-root Temporal \
-	--output-root model
+	--lean-root Temporal
+UMPIRE_GEN_LEAN_API_ARGS = $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root model
 
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
@@ -516,7 +516,15 @@ tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb: tools/umpi
 umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR) tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb
 	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^Test(Basic|EmptyService)Fixture$$' -rewrite
 
-umpire-check-lean-api:
+umpire-check-lean-api: PROTOC = mise exec -- protoc
+umpire-check-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
+	@printf $(COLOR) "Check generated Temporal API Lean modules..."
+	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		temporary=$$(mktemp -d "$$temporary_root/umpire-lean-api.XXXXXX"); \
+		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
+		$(UMPIRE_GEN_LEAN_API_COMMAND) $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root "$$temporary"; \
+		diff -u model/Temporal/API.lean "$$temporary/Temporal/API.lean"; \
+		diff -ru model/Temporal/API "$$temporary/Temporal/API"
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 	@cd model && $(LEAN_LAKE) build Umpire.Operation.Tests Temporal.API
 	@cd model && $(LEAN_LAKE) env sh ../tools/umpire/cmd/umpire-gen-lean-api/check-fixtures.sh
