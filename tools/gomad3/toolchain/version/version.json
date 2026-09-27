@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "go_version": "go1.26.4",
+  "go_version": "go1.27.1",
   "archive": {
-    "name": "go1.26.4.src.tar.gz",
-    "url": "https://go.dev/dl/go1.26.4.src.tar.gz",
-    "sha256": "4f668a32fbfc1132e6a881fb968c2f1dada631492a339211735fbb255a42602d"
+    "name": "go1.27.1.src.tar.gz",
+    "url": "https://go.dev/dl/go1.27.1.src.tar.gz",
+    "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
   },
   "supported_platforms": [
     "darwin/arm64",
     "linux/amd64"
   ],
-  "boundary_manifest_version": "go1.26.4-v2",
-  "patch": "toolchain/runtime/go1.26.4.patch",
+  "boundary_manifest_version": "go1.27.1-v1",
+  "patch": "toolchain/runtime/go1.27.1.patch",
   "adapters": [
     {
       "module": "golang.org/x/net",
@@ -58,7 +58,7 @@
     "src/cmd/compile/internal/gomadguard/guard.go",
     "src/cmd/compile/internal/gomadintercept/intercept.go",
     "src/cmd/compile/internal/gomadintercept/simulation_specs.go",
-    "src/cmd/compile/internal/gomadintercept/spec_go126.go",
+    "src/cmd/compile/internal/gomadintercept/spec_go127.go",
     "src/cmd/internal/gomadcap/encode.go",
     "src/cmd/internal/gomadcap/encode_test.go",
     "src/cmd/internal/gomadcap/protocol_generated.go",

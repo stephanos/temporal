@@ -11,7 +11,7 @@ import (
 	"internal/goarch"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
-	"internal/runtime/math"
+	"math/bits"
 )
 
 var gomadEnabled bool
@@ -330,7 +330,7 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
 	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
 		goarch.IsPpc64le|goarch.IsMips64|goarch.IsMips64le|
 		goarch.IsS390x|goarch.IsRiscv64|goarch.IsLoong64 == 1 {
-		hi, lo := math.Mul64(gomadChoiceSelectRandom, gomadChoiceSelectRandom^0xe7037ed1a0b428db)
+		hi, lo := bits.Mul64(gomadChoiceSelectRandom, gomadChoiceSelectRandom^0xe7037ed1a0b428db)
 		return uint32((uint64(uint32(hi^lo)) * uint64(n)) >> 32)
 	}
 	t := (*[2]uint32)(unsafe.Pointer(&gomadChoiceSelectRandom))
@@ -709,6 +709,14 @@ func gomadDeterministicEnabled() bool {
 //go:linkname gomadSimulationDomain
 func gomadSimulationDomain() uint64 {
 	return getg().gomadSimulationDomain
+}
+
+// gomadWallNanotime exposes the host monotonic clock to the deterministic I/O
+// packages; Go 1.27 no longer lets them pull the assembly nanotime1 directly.
+//
+//go:linkname gomadWallNanotime
+func gomadWallNanotime() int64 {
+	return nanotime1()
 }
 
 //go:linkname gomadSimulationSetDomain

@@ -1,5 +1,5 @@
 diff --git a/src/cmd/compile/internal/gc/main.go b/src/cmd/compile/internal/gc/main.go
-index afa1650..215d103 100644
+index 2b8ecda..d9b8a9d 100644
 --- a/src/cmd/compile/internal/gc/main.go
 +++ b/src/cmd/compile/internal/gc/main.go
 @@ -13,6 +13,8 @@ import (
@@ -11,7 +11,7 @@ index afa1650..215d103 100644
  	"cmd/compile/internal/inline"
  	"cmd/compile/internal/inline/interleaved"
  	"cmd/compile/internal/ir"
-@@ -223,6 +225,8 @@ func Main(archInit func(*ssagen.ArchInfo)) {
+@@ -225,6 +227,8 @@ func Main(archInit func(*ssagen.ArchInfo)) {
  		types.LocalPkg.Path = "main"
  		types.LocalPkg.Prefix = "main"
  	}
@@ -33,10 +33,10 @@ index 2da9a17..2d87993 100644
  	"cmd/internal/hash",
  	"cmd/internal/macho",
 diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
-index 1427f9c..794125d 100644
+index 9cbc129..b98bc90 100644
 --- a/src/cmd/link/internal/ld/lib.go
 +++ b/src/cmd/link/internal/ld/lib.go
-@@ -816,6 +816,13 @@ func (ctxt *Link) linksetup() {
+@@ -817,6 +817,13 @@ func (ctxt *Link) linksetup() {
  		sb.SetType(sym.SNOPTRDATA)
  		sb.AddUint8(1)
  	}
@@ -76,10 +76,10 @@ index 018fe01..f99542c 100644
  //
  //go:linkname fatal
 diff --git a/src/runtime/panic.go b/src/runtime/panic.go
-index d467e93..0937fbd 100644
+index f28807d..d2fe134 100644
 --- a/src/runtime/panic.go
 +++ b/src/runtime/panic.go
-@@ -875,6 +875,9 @@ func gopanic(e any) {
+@@ -874,6 +874,9 @@ func gopanic(e any) {
  	// the world, we call preprintpanics to invoke all necessary Error
  	// and String methods to prepare the panic strings before startpanic.
  	preprintpanics(&p)
@@ -90,10 +90,10 @@ index d467e93..0937fbd 100644
  	fatalpanic(&p)   // should not return
  	*(*int)(nil) = 0 // not reached
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index 005c875..282f361 100644
+index b8d4d15..f58cfe4 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
-@@ -246,6 +246,10 @@ func main() {
+@@ -257,6 +257,10 @@ func main() {
  		cgocall(_cgo_notify_runtime_init_done, nil)
  	}
  
@@ -104,15 +104,15 @@ index 005c875..282f361 100644
  	// Run the initializing tasks. Depending on build mode this
  	// list can arrive a few different ways, but it will always
  	// contain the init tasks computed by the linker for all the
-@@ -873,6 +877,7 @@ func schedinit() {
+@@ -886,6 +890,7 @@ func schedinit() {
  	ticks.init() // run as early as possible
  	moduledataverify()
  	stackinit()
 +	gomadInit()
- 	randinit() // must run before mallocinit, alginit, mcommoninit
+ 	randinit() // must run before mallocinit, AlgInit, mcommoninit
  	mallocinit()
- 	cpuinit(godebug) // must run before alginit
-@@ -919,7 +924,10 @@ func schedinit() {
+ 	cpuinit(godebug) // must run before AlgInit
+@@ -932,7 +937,10 @@ func schedinit() {
  	lock(&sched.lock)
  	sched.lastpoll.Store(nanotime())
  	var procs int32
@@ -124,7 +124,7 @@ index 005c875..282f361 100644
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -5352,6 +5360,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
+@@ -5391,6 +5399,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
  	gostartcallfn(&newg.sched, fn)
  	newg.parentGoid = callergp.goid
  	newg.gopc = callerpc
@@ -135,7 +135,7 @@ index 005c875..282f361 100644
  	newg.ancestors = saveAncestors(callergp)
  	newg.startpc = fn.fn
  	newg.runningCleanups.Store(false)
-@@ -6393,7 +6405,7 @@ func checkdead() {
+@@ -6444,7 +6456,7 @@ func checkdead() {
  		run0 = 1
  	}
  
@@ -144,7 +144,7 @@ index 005c875..282f361 100644
  	if run > run0 {
  		return
  	}
-@@ -6404,10 +6416,15 @@ func checkdead() {
+@@ -6455,10 +6467,15 @@ func checkdead() {
  	}
  
  	grunning := 0
@@ -160,7 +160,7 @@ index 005c875..282f361 100644
  		s := readgstatus(gp)
  		switch s &^ _Gscan {
  		case _Gwaiting,
-@@ -6416,11 +6433,18 @@ func checkdead() {
+@@ -6467,11 +6484,18 @@ func checkdead() {
  		case _Grunnable,
  			_Grunning,
  			_Gsyscall:
@@ -179,7 +179,7 @@ index 005c875..282f361 100644
  	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
  		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
  		fatal("no goroutines (main called runtime.Goexit) - deadlock!")
-@@ -6428,12 +6452,56 @@ func checkdead() {
+@@ -6479,12 +6503,56 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -239,7 +239,7 @@ index 005c875..282f361 100644
  				// There should always be a free P since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6441,6 +6509,10 @@ func checkdead() {
+@@ -6492,6 +6560,10 @@ func checkdead() {
  			}
  			mp := mget()
  			if mp == nil {
@@ -250,7 +250,7 @@ index 005c875..282f361 100644
  				// There should always be a free M since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6468,6 +6540,34 @@ func checkdead() {
+@@ -6519,6 +6591,34 @@ func checkdead() {
  	fatal("all goroutines are asleep - deadlock!")
  }
  
@@ -285,7 +285,7 @@ index 005c875..282f361 100644
  // forcegcperiod is the maximum time in nanoseconds between garbage
  // collections. If we go this long without a garbage collection, one
  // is forced to run.
-@@ -6478,7 +6578,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+@@ -6529,7 +6629,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -294,7 +294,7 @@ index 005c875..282f361 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6525,7 +6625,7 @@ func sysmon() {
+@@ -6576,7 +6676,7 @@ func sysmon() {
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -303,7 +303,7 @@ index 005c875..282f361 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7468,7 +7568,7 @@ func runqempty(pp *p) bool {
+@@ -7519,7 +7619,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -312,7 +312,7 @@ index 005c875..282f361 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7487,7 +7587,7 @@ func runqput(pp *p, gp *g, next bool) {
+@@ -7538,7 +7638,7 @@ func runqput(pp *p, gp *g, next bool) {
  		// risk starvation.
  		next = false
  	}
@@ -321,7 +321,7 @@ index 005c875..282f361 100644
  		next = false
  	}
  
-@@ -7540,7 +7640,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+@@ -7591,7 +7691,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
  
  	if randomizeScheduler {
  		for i := uint32(1); i <= n; i++ {
@@ -330,7 +330,7 @@ index 005c875..282f361 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7581,7 +7681,7 @@ func runqputbatch(pp *p, q *gQueue) {
+@@ -7632,7 +7732,7 @@ func runqputbatch(pp *p, q *gQueue) {
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
  		for i := uint32(1); i < n; i++ {
@@ -339,7 +339,7 @@ index 005c875..282f361 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7605,6 +7705,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7656,6 +7756,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -361,7 +361,7 @@ index 005c875..282f361 100644
  		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
  		t := pp.runqtail
 diff --git a/src/runtime/rand.go b/src/runtime/rand.go
-index 1739e9f..68ab02a 100644
+index d2ad7aa..759e58c 100644
 --- a/src/runtime/rand.go
 +++ b/src/runtime/rand.go
 @@ -42,7 +42,9 @@ func randinit() {
@@ -375,13 +375,14 @@ index 1739e9f..68ab02a 100644
  		// Check that at least the first two words of startupRand weren't
  		// cleared by any libc initialization.
  		!allZero(startupRand[:8]) && !allZero(startupRand[8:16]) {
-@@ -186,6 +188,12 @@ func maps_rand() uint64 {
+@@ -189,6 +191,13 @@ func maps_rand() uint64 {
  
  // mrandinit initializes the random state of an m.
  func mrandinit(mp *m) {
 +	if gomadEnabled {
 +		mp.chacha8.Init64([4]uint64{gomadSeed})
-+		mp.cheaprand = gomadSeed
++		mp.cheaprand = uint32(gomadSeed)
++		mp.cheaprand64 = gomadSeed
 +		return
 +	}
 +
@@ -389,10 +390,10 @@ index 1739e9f..68ab02a 100644
  	for i := range seed {
  		seed[i] = bootstrapRand()
 diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
-index be33932..16bc0b3 100644
+index 9e0e0df..0325dfc 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
-@@ -503,13 +503,17 @@ type g struct {
+@@ -501,13 +501,17 @@ type g struct {
  	//    closure in the runtime is forbidden.
  	// 4. When a panic is recovered and control returns to the respective frame,
  	//    param may point to a savedOpenDeferState.
@@ -478,7 +479,7 @@ index 219bcb9..27dadf9 100644
  	}
  
 diff --git a/src/runtime/time.go b/src/runtime/time.go
-index 81a4c6b..1612f32 100644
+index 6c569b5..f59a27f 100644
 --- a/src/runtime/time.go
 +++ b/src/runtime/time.go
 @@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
@@ -491,7 +492,7 @@ index 81a4c6b..1612f32 100644
  	return time_now()
  }
  
-@@ -62,7 +65,8 @@ type timer struct {
+@@ -68,7 +71,8 @@ type timer struct {
  	isFake bool         // timer is using fake time; immutable; can be read without lock
  
  	blocked uint32 // number of goroutines blocked on timer's channel
@@ -501,7 +502,7 @@ index 81a4c6b..1612f32 100644
  
  	// Timer wakes up at when, and then at when+period, ... (period > 0 only)
  	// each time calling f(arg, seq, delay) in the timer goroutine, so f must be
-@@ -302,6 +306,10 @@ func (t *timer) updateHeap() (updated bool) {
+@@ -307,6 +311,10 @@ func (t *timer) updateHeap() (updated bool) {
  
  	if t.state&timerModified != 0 {
  		// Update ts.heap[0].when and move within heap.
@@ -512,7 +513,7 @@ index 81a4c6b..1612f32 100644
  		t.state &^= timerModified
  		ts.heap[0].when = t.when
  		ts.siftDown(0)
-@@ -736,10 +744,11 @@ func (t *timer) maybeAdd() {
+@@ -709,10 +717,11 @@ func (t *timer) maybeAdd() {
  	when := int64(0)
  	wake := false
  	if t.needsAdd() {
@@ -525,7 +526,7 @@ index 81a4c6b..1612f32 100644
  			t.rand = cheaprand()
  		}
  		t.state |= timerHeaped
-@@ -959,6 +968,10 @@ func (ts *timers) adjust(now int64, force bool) {
+@@ -932,6 +941,10 @@ func (ts *timers) adjust(now int64, force bool) {
  			changed = true
  
  		case t.state&timerModified != 0:
@@ -536,7 +537,7 @@ index 81a4c6b..1612f32 100644
  			tw.when = t.when
  			t.state &^= timerModified
  			changed = true
-@@ -1319,8 +1332,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
+@@ -1281,8 +1294,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
  // timeSleepUntil returns the time when the next timer should fire. Returns
  // maxWhen if there are no timers.
  // This is only called by sysmon and checkdead.
@@ -547,7 +548,7 @@ index 81a4c6b..1612f32 100644
  
  	// Prevent allp slice changes. This is like retake.
  	lock(&allpLock)
-@@ -1332,12 +1346,13 @@ func timeSleepUntil() int64 {
+@@ -1294,12 +1308,13 @@ func timeSleepUntil() int64 {
  		}
  
  		if w := pp.timers.wakeTime(); w != 0 {
@@ -633,7 +634,7 @@ index 3812303..708cd42 100644
  
  func Setrlimit(resource int, rlim *Rlimit) error {
 diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
-index d957b77..7860ae9 100644
+index ffe4112..96b3f6e 100644
 --- a/src/syscall/syscall_unix.go
 +++ b/src/syscall/syscall_unix.go
 @@ -199,6 +199,9 @@ func Read(fd int, p []byte) (n int, err error) {
@@ -657,7 +658,7 @@ index d957b77..7860ae9 100644
  	n, err = pread(fd, p, offset)
  	if race.Enabled {
 diff --git a/src/testing/testing.go b/src/testing/testing.go
-index 34b45b4..a81f5dc 100644
+index 832d9e5..da0007a 100644
 --- a/src/testing/testing.go
 +++ b/src/testing/testing.go
 @@ -404,6 +404,7 @@ import (
@@ -668,7 +669,7 @@ index 34b45b4..a81f5dc 100644
  	"internal/race"
  	"io"
  	"math/rand"
-@@ -1992,6 +1993,9 @@ func tRunner(t *T, fn func(t *T)) {
+@@ -2141,6 +2142,9 @@ func tRunner(t *T, fn func(t *T)) {
  			for _, sub := range t.sub {
  				<-sub.signal
  			}
@@ -678,7 +679,7 @@ index 34b45b4..a81f5dc 100644
  
  			// Run any cleanup callbacks, marking the test as running
  			// in case the cleanup hangs.
-@@ -2034,6 +2038,9 @@ func tRunner(t *T, fn func(t *T)) {
+@@ -2191,6 +2195,9 @@ func tRunner(t *T, fn func(t *T)) {
  	t.start = highPrecisionTimeNow()
  	t.resetRaces()
  	fn(t)
@@ -688,7 +689,7 @@ index 34b45b4..a81f5dc 100644
  
  	// code beyond here will not be executed when FailNow is invoked
  	t.mu.Lock()
-@@ -2340,6 +2347,7 @@ var (
+@@ -2497,6 +2504,7 @@ var (
  func (m *M) Run() (code int) {
  	defer func() {
  		code = m.exitCode

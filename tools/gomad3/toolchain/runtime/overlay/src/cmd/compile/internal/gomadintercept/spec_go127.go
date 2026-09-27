@@ -6,8 +6,8 @@
 
 package gomadintercept
 
-const boundaryManifestVersion = "go1.26.4-v2"
-const boundaryManifestSHA256 = "sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63"
+const boundaryManifestVersion = "go1.27.1-v1"
+const boundaryManifestSHA256 = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
 
 var specs = []spec{
 	{PackagePath: "os", Function: "OpenFile", Hook: "gomadInterceptOpenFile", DeclarationSHA256: "sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522", ProbeID: 7387584446895609212},
@@ -33,7 +33,7 @@ var specs = []spec{
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Truncate", Hook: "gomadInterceptFileTruncate", DeclarationSHA256: "sha256:9c1e7820fc44dcdf6cad39c7d3693d72307c2f7d9f7c5976f4ba6b37068ea9bf", ProbeID: 5823526232136919872},
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Sync", Hook: "gomadInterceptFileSync", DeclarationSHA256: "sha256:48629a643d6fa98cc200e0e0a28963287d8734df6aa906bc9da490c4d6f3b312", ProbeID: 6457834522518862406},
 	{PackagePath: "os", Function: "Chtimes", Hook: "gomadInterceptChtimes", DeclarationSHA256: "sha256:cb2fc580b0da21440168ae3deca1442aa73b9380817998d30e8782636d7e76c5", ProbeID: 4796023142280208747},
-	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Chdir", Hook: "gomadInterceptFileChdir", DeclarationSHA256: "sha256:867cdc5da961fb436e09b7c0ed9100636f8a4eb5982f39a2eb03da8ccc52a8c3", ProbeID: 1522341843842461335},
+	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Chdir", Hook: "gomadInterceptFileChdir", DeclarationSHA256: "sha256:eac53648d8380ef54c5c8358e0bd2f1bcc2ab4d2e2dd5339ff0e6ee1184d4dd7", ProbeID: 1522341843842461335},
 	{PackagePath: "os", Function: "Truncate", Hook: "gomadInterceptTruncate", DeclarationSHA256: "sha256:51e6b7770e7cdc6bada9088f443e2d9d7a4d90efc001e5f0678e717b7313e9bd", ProbeID: 2421116317249567317},
 	{PackagePath: "os", Function: "Remove", Hook: "gomadInterceptRemove", DeclarationSHA256: "sha256:7b56cd3fa691ef27e81a73bf020a66543de23795d5a9f375fbae52d0dc1c96af", ProbeID: 5852290863153066195},
 	{PackagePath: "os", Function: "Link", Hook: "gomadInterceptLink", DeclarationSHA256: "sha256:1ef48c49872d49499167f3e510a56bb8816931c1e3b07fcc163bc6132da62a65", ProbeID: 893040545309825941},
@@ -96,7 +96,7 @@ var specs = []spec{
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupNetIP", Hook: "gomadInterceptResolverLookupNetIP", DeclarationSHA256: "sha256:babf5353a77bcdb3b3f4672ad5b76357ccbec768331b57bc4d5c0007190ce4d6", ProbeID: 8368377061011337212},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupPort", Hook: "gomadInterceptResolverLookupPort", DeclarationSHA256: "sha256:f24ee9e626e219b2780b74a05d7c0e8bf53807b257406d3373a982dce8392d7a", ProbeID: 1537643592051563780},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupCNAME", Hook: "gomadInterceptResolverLookupCNAME", DeclarationSHA256: "sha256:c4a94cf3ab8991dd0bbca612e72427a862cde0a2b39d927c78cb3fe8b3d43aa7", ProbeID: 4720654525662607006},
-	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupSRV", Hook: "gomadInterceptResolverLookupSRV", DeclarationSHA256: "sha256:815db3a4383c1417754928576003c472d963cc19241ac8226a54c53ba2dbf469", ProbeID: 8380648225233149334},
+	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupSRV", Hook: "gomadInterceptResolverLookupSRV", DeclarationSHA256: "sha256:041fa9c5fa6486b6e3aeadb1b2c61aebeaa4117cddb09be980a09f466b7927ae", ProbeID: 8380648225233149334},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupMX", Hook: "gomadInterceptResolverLookupMX", DeclarationSHA256: "sha256:40fb2f51195f55e6dfe8ba00333cd77aa3a3efff1aa9ada24bae7a89ff2da0ea", ProbeID: 4963433906901702655},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupNS", Hook: "gomadInterceptResolverLookupNS", DeclarationSHA256: "sha256:328845213f64725b7160fac71bc4e1e601a85f724a3162059ff34c39acf3805b", ProbeID: 8048813128777581056},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Resolver", Pointer: true}, Function: "LookupTXT", Hook: "gomadInterceptResolverLookupTXT", DeclarationSHA256: "sha256:7626ba0f66d5b27744775dabdc08df9b5e7ea012a430941dfc5d2c7f6c624f22", ProbeID: 4278667104723993235},

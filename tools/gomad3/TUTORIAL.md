@@ -80,7 +80,7 @@ events, and artifacts tie their evidence together.
 ## First, Gomad builds its own Go
 
 Gomad is not a test wrapper around the stock `go` command. Its core behavior
-lives inside a pinned Go 1.26.4 toolchain containing a small runtime patch and a
+lives inside a pinned Go 1.27.1 toolchain containing a small runtime patch and a
 source overlay.
 
 Building Gomad from the repository root creates both that toolchain and the CLI:

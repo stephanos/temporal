@@ -109,7 +109,7 @@ runtime choices, and starts a virtual clock
 ([activation](../tools/gomad3/ARCHITECTURE.md#activation)). The runtime patch
 implements seeded run-queue and `select` choices, deterministic runtime
 randomness, and `faketime`
-([patch](../tools/gomad3/toolchain/runtime/go1.26.4.patch)).
+([patch](../tools/gomad3/toolchain/runtime/go1.27.1.patch)).
 
 Time advances to the earliest native timer only when no goroutine is runnable.
 A busy loop or unsupported blocking host I/O prevents logical advancement and
