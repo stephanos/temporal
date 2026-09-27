@@ -10,3 +10,4 @@ import Umpire.Search.Tests.Admission
 import Umpire.Search.Tests.Product
 import Umpire.Search.Tests.Monitor
 import Umpire.Search.Tests.BackendVeil
+import Umpire.Search.Tests.Replay

@@ -116,7 +116,7 @@ private def selectRoleFallback
       .propertyEvaluationFailure => .property
   | .invalidLimit | .unitMismatch => .limits
   | .incompatibleStrategy => .policy
-  | .emptyDefinitionId | .invalidDefinitionId => .parent
+  | .emptyDefinitionId | .invalidDefinitionId | .unreplayableWitness => .parent
 
 private def selectQuerySourceRef
     (error : QueryError)
