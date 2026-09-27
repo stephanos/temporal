@@ -458,8 +458,10 @@ source-bound. Ordinary Umpire and Temporal imports must remain usable without im
 compiling Veil modules.
 
 *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The last sentence of the paragraph above
-and the first paragraph of this section are superseded for Veil's concrete checker, which is not
-optional. `Umpire.Search` runs it as its default search backend: `Umpire.Search.Product` builds the
+and the first sentence of this section are superseded for Veil's concrete checker, which is not
+optional. The rest of the first paragraph stands: the checker replaces only `Umpire.Search`'s
+traversal, and Property, Behavior, Query, Observation, Artifact, canonical replay, and every
+Planning step but that traversal stay Umpire's. `Umpire.Search` runs it as its default search backend: `Umpire.Search.Product` builds the
 product of the checked table's `SearchView`, the Scenario's progress automaton, and the Property
 monitors, and `Umpire.Search.Backend.Veil` hands that product to the checker. The product is checker
 input derived from `FiniteTable`, not Veil source, and authors keep the commands; there is no Veil
