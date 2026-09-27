@@ -7,8 +7,6 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/internal/execution"
-	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -96,7 +94,7 @@ func validProfile(p testpilot.ProfileSpec) bool {
 	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || len(p.Roles) > 10000 {
 		return false
 	}
-	if ir.CheckCeilings(l, execution.ProgramCeiling(), func(string) error { return errInvalid }) != nil {
+	if !testpilot.WithinProgramCeiling(l) {
 		return false
 	}
 	total := 0
