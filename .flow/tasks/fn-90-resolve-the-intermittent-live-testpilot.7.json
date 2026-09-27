@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-90-resolve-the-intermittent-live-testpilot.4",
     "fn-90-resolve-the-intermittent-live-testpilot.5",
-    "fn-90-resolve-the-intermittent-live-testpilot.6"
+    "fn-90-resolve-the-intermittent-live-testpilot.6",
+    "fn-90-resolve-the-intermittent-live-testpilot.8"
   ],
   "id": "fn-90-resolve-the-intermittent-live-testpilot.7",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-90-resolve-the-intermittent-live-testpilot.7.md",
   "status": "todo",
   "title": "Definition-of-done loops, gates and plan retirement",
-  "updated_at": "2026-09-27T01:23:40.450590Z"
+  "updated_at": "2026-09-27T06:07:19.154022Z"
 }

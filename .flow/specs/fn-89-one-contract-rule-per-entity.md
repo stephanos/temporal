@@ -1,5 +1,7 @@
 # fn-89-one-contract-rule-per-entity One Contract Rule per entity
 
+> HTML render lens (local): open `.flow/artifacts/fn-89-one-contract-rule-per-entity/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Umpire4 architecture reconciliation
 
 This spec lets a Contract Rule be declared once for an entity and instantiated once per instance of
@@ -10,14 +12,16 @@ per-instance evaluation a **Rule instance**. `FormatVersion` stays `1.0` (fn-87'
 has no compatibility promise and no Case outside the repository exists), and the change is additive,
 so ART-04 needs no migration: a Rule that declares no instances is evaluated exactly as today.
 
-Two rule texts need a restatement drafted under GOV-02 (R9):
+Two rule texts need a draft under GOV-02 (R9), in the document's existing marker style (an indented
+`*Amendment|Restatement (drafted by fn-89; awaiting GOV-02 approval.)*` line under the unchanged
+original):
 
-- **Glossary, Rule.** Add: a Rule MAY declare typed instance values and a list of Rule instances,
+- **Glossary, Rule (Amendment, since it only adds).** Add: a Rule MAY declare typed instance values and a list of Rule instances,
   each assigning every instance value and naming its own rule ID; each Rule instance is evaluated as
   its own state machine and concludes in its own `RuleVerdict`. Where a rule text says "rule" of a
   conclusion, a Deadline counter or support (EVD-12, EVD-13, EVD-21, Verdict), it means one Rule
   instance, and a Rule with no instances is its own single instance.
-- **SEM-17.** "bounded captures are rule-local and Run-local" becomes "local to one Rule instance
+- **SEM-17 (Restatement).** "bounded captures are rule-local and Run-local" becomes "local to one Rule instance
   and Run-local".
 
 ART-09, ART-13, SEM-16 and EVD-18 are unaffected: the Contract stays closed and producer-neutral,
@@ -70,20 +74,45 @@ Scenario instances: N ──Placement per instance──▶ N Rule instances { r
   new `Reference` arm, admitted only in the Contract transition-predicate context. A Rule with no
   instance values and no instances is a plain Rule, evaluated once under its own `rule_id`.
 - **Preparation (Go, verification).** Binds the Rule's states, captures, transitions and predicates
-  once with every instance value typed, then checks each instance's assignments. Capture analysis
-  runs once. Contract ceilings are charged per Rule instance, exactly as they would be for the
-  expanded copies, so every Case admitted today is admitted after, and no ceiling loosens.
+  once with every instance value typed by its declaration and always available (like a literal, an
+  instance value is never absent), then checks each instance's assignments. Every use of an
+  instance value must sit where its declared type is the expected type, so the expansion (each
+  value inlined as a literal of its declared type) binds the same way. Instance values are text,
+  integer or enum typed; a boolean is rejected, because capture analysis prunes paths on boolean
+  literals and a Rule analyzed once cannot prune per instance. Capture analysis runs once.
+  **Admission equals the expansion's:** every Contract ceiling (rule count, states, transitions,
+  captures, binding work, per-event and total work) is charged per Rule instance as the expanded
+  copy would charge it, with each instance value reference charged what the inlined literal costs
+  (its literal check and value surface in binding, its size in expression work). The work is done
+  once; only the accounting is multiplied. So a Contract that passes the instance checks is
+  admitted exactly when its expansion is, rejecting on the same ceiling, and no instanced Contract
+  is admitted whose expansion would be rejected.
 - **Evaluator (Go, verification).** One `ruleState` per Rule instance (state, captures, Deadline
-  counter, support), each reading its own instance values. Rule instances are evaluated in Rule
-  declaration order, then instance order, which is the order the expanded copies had. Online
-  `Observe` and offline `Evaluate` share the path (SEM-17 unchanged).
-- **Producer (Lean, `Umpire.Case.Producer` and `Umpire.Case.Projection.lower`).** For a Scenario
-  over N > 1 instances, a relation lowers once with every realization-assigned literal (request
-  literals and the capture selector's value) replaced by an instance value; each `Placement`
-  contributes one Rule instance whose rule ID is the Rule's ID plus `Placement.suffix` and whose
-  values are that placement's literals. The `DerivedRule` certificate's `literals_assigned`
-  obligation becomes: every instance value any Rule instance assigns is one that instance's
-  realization assigns. Over one instance the Producer emits today's plain Rule unchanged.
+  counter, support), each reading its own instance values; runtime work charges an instance value
+  reference what the inlined literal would cost, so remaining per-event budgets match the
+  expansion's. Rule instances are evaluated in Rule
+  declaration order, then instance declaration order (never ID order), which is the order the
+  expanded copies had. Everything the Evaluator names by rule ID (the `RuleVerdict`, transition
+  traces, the Executor-stop `Violation`, the all-satisfied count, the offset where correlated
+  verdicts start) names and counts Rule instances. Online `Observe` and offline `Evaluate` share the
+  path (SEM-17 unchanged).
+- **Producer (Lean, `Umpire.Case.Producer` and `Umpire.Case.Projection`).** Lowering stays per
+  placement: each `Placement` is lowered as today to a `DerivedRule` with its own certificate. Over
+  N > 1 instances the Producer then folds a relation's N derivations into one instanced Rule:
+  the N shapes must agree once their literal is erased (same shape kind, negation, reads, capture
+  state names, and literal type), else `relation.instance-shape`. The one literal the shape's
+  predicate compares against (a request literal in the safety shape, the capture selector's value
+  in the capture shape) becomes the Rule's single instance value, named by the last segment of that
+  literal's field path (`operation` in the pair Case; the safety shape keeps its literal's path for
+  this) and typed by the field's schema type; a boolean literal is not folded, and its relation
+  keeps today's per-placement plain Rules; each placement contributes one Rule
+  instance whose rule ID is the Rule's ID plus `Placement.suffix` and whose value is that
+  placement's literal. The Rule renders once with the unsuffixed rule suffix, so its capture and
+  transition IDs carry no instance suffix. The certificate of the folded Rule is the list of the N
+  per-placement `DerivedRule`s plus the shape agreement, so `literals_assigned` holds per instance
+  by construction: every value an instance assigns is one that instance's realization assigns.
+  Request coverage (`coverage.inputs`) stays one mapping per placement, unchanged. Over one instance
+  the Producer emits today's plain Rule unchanged.
 - **Tools.** `umpire-assess`'s rule-set check derives the expected Verdict rule IDs from Rule
   instances; nothing else in `tools/` reads Contract rules.
 
@@ -141,8 +170,10 @@ gains the constructors for the three messages and the reference arm.
 - **Verdict identity.** For every Case and Run, the Verdict of the instanced Contract is
   byte-identical to the Verdict of its expansion (each Rule instance written as a plain Rule with the
   instance values inlined as literals and the capture and transition IDs suffixed). Rule-ID set,
-  order, statuses, terminal states and supporting sequences all match; a violated pairing
-  (crossed operations, as `Temporal.Feature.Nexus.Pair.Tests` states it) stays violated.
+  order, statuses, terminal states and supporting sequences all match. The pair Case's capture
+  shape has no violated state (a crossed completion leaves it pending, the Known Gap
+  `crossed-completion-is-inconclusive`); a violated outcome is exercised with a safety-shaped Rule
+  whose reject transition compares against the instance value.
 - **Byte stability.** Every committed Case fixture other than `nexusPairTests-bothComplete-case.json`
   (the 13 other functional fixtures, the canary's `nexusCallerCanary-syncCompletion-case.json`, and
   the conformance corpus) regenerates byte-identical. The pair fixture changes only in
@@ -152,8 +183,26 @@ gains the constructors for the three messages and the reference arm.
 - **Local names.** The Rule's ID maps to `<property>.relation`; each Rule instance's rule ID keeps
   its row (`relation-1` → `<property>.relation-1`) so a Verdict's rule IDs stay resolvable through
   provenance. The capture and transition IDs lose their suffix.
-- **Admission cost.** Ceilings are charged per Rule instance (rules, states, transitions, captures,
-  per-event and total work), matching the expansion. Binding work is charged once.
+- **Admission cost.** Every ceiling, binding work included, is charged per Rule instance at the
+  inlined literal's cost, matching the expansion; the rule-count ceiling is checked against the total instance count before any
+  per-instance state is allocated, so a Case declaring many instances rejects before it costs
+  memory.
+- **Names.** Every Rule ID, Rule-instance rule ID and correlated rule ID is distinct: an instance
+  may not reuse its own Rule's ID, another Rule's, another instance's, or a correlated rule's. The
+  Rule's own ID names no Verdict entry but stays reserved, since provenance maps it.
+- **Locations.** Preparation diagnostics follow today's grammar, which names rules by ID:
+  `contract.rules[<rule_id>].instance_values[<instance_value_id>]` and
+  `contract.rules[<rule_id>].instances[<instance rule_id>].assignments[<instance_value_id>]`; a
+  failure specific to one instance names that instance. An instance value reference that is empty
+  or names an undeclared value is located at the transition predicate that holds it, validated
+  before binding, since the shared expression binder reports unlocated scope errors.
+- **Degenerate but admitted.** A Rule with exactly one instance, and a declared instance value no
+  predicate reads, are admitted: each is equivalent to its expansion. The Lean Producer emits
+  neither.
+- **Instance count.** fn-85's Syntax caps `instances:` at nine; the runtime imposes no instance
+  count beyond the rule-count ceiling and orders by declaration, so `relation-10` after
+  `relation-9` is no special case.
+- **Coverage.** Request coverage is per placement and unchanged; only the Contract shares.
 - **Deadlines.** Each Rule instance has its own `rule_events` counter, reset, stopped and frozen per
   EVD-21; one instance's transition does not reset another's.
 - **Executor stop.** A safety violation of any Rule instance stops the Run (EVD-14) exactly as the
@@ -166,32 +215,54 @@ gains the constructors for the three messages and the reference arm.
 
 - **R1:** The protocol adds `ContractRule.instance_values`, `ContractRule.instances`,
   `ContractInstanceValue`, `ContractRuleInstance`, `ContractInstanceAssignment` and
-  `Reference.instance_value_id` as shown; `make proto` and `make umpire-check-testpilot-protocol`
+  `Reference.instance_value_id` as shown, and `Testpilot.Authoring` gains their constructors;
+  `make proto`, `make umpire-check-testpilot-protocol` and `make umpire-check-testpilot-authoring`
   pass and every new message carries a leading comment. Errors: no error surface beyond the protocol
-  tests (`TestProtocolMessagesCarryLeadingComments`, the Case import closure test).
+  tests (`TestProtocolMessagesCarryLeadingComments`, the Case import closure test) and the Authoring
+  tests.
 - **R2:** Preparation binds a Rule with instances once and admits it when every instance assigns
-  every declared value exactly once with a value of its declared type. Errors, each rejected before
-  Driver I/O with a location under `contract.rules[i]`: instance values declared with no instances;
-  instances with no instance values; an instance value typed other than scalar or enum; a duplicate
-  instance value ID; an instance omitting, repeating or naming an undeclared value; a value of the
-  wrong type; an invalid or duplicate Rule-instance rule ID, including one equal to another Rule's
-  ID, another instance's, or a correlated rule's; `instance_value_id` naming an undeclared value, or
-  used outside a Contract transition predicate.
+  every declared value exactly once, in declaration order, with a value of its declared type.
+  Errors, each rejected before Driver I/O with a location in today's by-ID grammar
+  (`contract.rules[<rule_id>]…`, naming the instance when the failure is one instance's): instance
+  values declared with no instances; instances with no instance values; an instance value ID empty,
+  invalid or duplicated; an instance value type unset, boolean, or other than scalar or enum; an
+  instance value used where its declared type is not the expected type; an instance
+  omitting, repeating, reordering or naming an undeclared value; an assignment value unset or of the
+  wrong type, including an enum value its enum does not define; an empty, invalid or duplicate
+  Rule-instance rule ID, including one equal to its own Rule's ID, another Rule's ID, another
+  instance's, or a correlated rule's; `instance_value_id` empty, naming an undeclared value, or used
+  outside a Contract transition predicate. A Rule with one instance, or with a declared value no
+  predicate reads, is admitted.
 - **R3:** The Evaluator keeps one Run-local state per Rule instance and produces one `RuleVerdict`
-  per instance, in Rule declaration then instance order; online `Observe` and offline `Evaluate`
-  answer identically. Errors: ceilings are charged per instance and a Case over them rejects at
-  preparation naming the ceiling; runtime work and capture ceilings fail as today.
+  per instance, in Rule declaration then instance declaration order; the Executor-stop `Violation`,
+  transition traces, the all-satisfied count and the correlated verdicts' position count Rule
+  instances; online `Observe` and offline `Evaluate` answer identically. A Contract that passes R2 is
+  admitted exactly when its expansion is. Errors: every ceiling (rules, states, transitions,
+  captures, binding, per-event and total work) is charged per instance with each instance value
+  reference charged the inlined literal's cost, and a Case over one rejects at preparation naming
+  the same ceiling its expansion would; the rule-count ceiling is checked before per-instance
+  allocation; runtime work and capture ceilings fail as today.
 - **R4:** A differential Go test proves Verdict identity: for Contracts with instances and their
-  test-built expansion, over recorded Runs covering satisfied, violated (crossed pairing),
-  inconclusive, incomplete and deadline-expired outcomes, the two Verdicts are byte-identical.
-  Errors: any differing Verdict fails naming the Run and the first differing rule ID.
+  test-built expansion (each Rule instance a plain Rule with its values inlined as literals of their
+  declared type), over Runs covering satisfied, violated (a safety-shaped Rule keyed on the instance
+  value), inconclusive (the pair capture shape under a crossed completion), incomplete and
+  deadline-expired outcomes, an event carrying no instance's value and an event matching no instance, the two
+  Verdicts are byte-identical online and offline, and the two admissions agree. The cases include a
+  plain Rule beside an instanced one, a one-instance Rule, a correlated rule after the instances,
+  and ceiling cases where both admissions reject on the same ceiling.
+  Errors: any differing Verdict fails naming the Run and the first differing rule ID (or the
+  differing rule-ID sets); a mutation check (two instances' values swapped) must make the test
+  fail, so the harness is not vacuous.
 - **R5:** The Producer emits one Rule per relation per Case for a Scenario over N > 1 instances,
-  with N Rule instances whose rule IDs are the Rule ID plus `Placement.suffix` and whose values are
-  each placement's realization-assigned literals, and emits today's plain Rule over one instance.
-  The `DerivedRule` certificate proves every assigned instance value is one its instance's
-  realization assigns. Errors: per-instance lowerings that do not share one shape reject as
-  `relation.instance-shape`; a missing per-instance literal rejects under the existing
-  `relation.capture-literal-unassigned` / `relation.literal-unassigned` codes.
+  with one instance value (the literal the rule's predicate compares against, named by the last
+  segment of its field path and typed by its schema type) and N Rule instances whose rule IDs are the Rule ID plus
+  `Placement.suffix` and whose values are each placement's literal; capture and transition IDs carry
+  no instance suffix, request coverage stays per placement, and over one instance the Producer emits
+  today's plain Rule, as it does for a relation whose compared literal is boolean. The folded Rule's certificate carries each placement's `DerivedRule`, so every
+  assigned instance value is one its instance's realization assigns. Errors: per-placement
+  derivations whose shapes disagree once the literal is erased (kind, negation, reads, capture state
+  names, literal type) reject as `relation.instance-shape`; a missing per-instance literal rejects
+  under the existing `relation.capture-literal-unassigned` / `relation.literal-unassigned` codes.
 - **R6:** `nexusPairTests-bothComplete-case.json` regenerates to one Rule `relation` with instances
   `relation-1` and `relation-2`; every other Case fixture and conformance entry regenerates
   byte-identical; `make umpire-check-case-runtime-conformance` and `make canary-check-case` pass.
@@ -203,11 +274,13 @@ gains the constructors for the three messages and the reference arm.
 - **R8:** `umpire-assess` derives the Contract's expected rule IDs from Rule instances (plain Rules
   and correlated rules as today). Errors: a Verdict naming the Rule's own ID instead of its
   instances, or missing an instance, is reported by the existing rule-set check.
-- **R9:** The Rule glossary and SEM-17 restatements are drafted in `.plans/UMPIRE4_SPEC.md`, marked
-  awaiting GOV-02 approval; `.plans/UMPIRE4_ORDER.md` moves the carried-forward item into the queue
-  and the Testpilot README's extension checklist and verification README describe Rule instances.
-  Errors: no error surface.
-- **R10:** A `static-preparation-rejection/instance-value` conformance sub-entry pins the R2
+- **R9:** The Rule glossary Amendment and the SEM-17 Restatement are drafted in `.plans/UMPIRE4_SPEC.md`,
+  marked awaiting GOV-02 approval; `.plans/UMPIRE4_ORDER.md` records fn-89 as delivered at close
+  (the carried-forward item already moved into the queue); the Testpilot README's extension
+  checklist, the verification README, the Case Runtime design's Contract IR section and the
+  Producer's typed-field-lowering architecture notes describe Rule instances. Errors: no error
+  surface.
+- **R10:** A `static-preparation-rejection/instance-value` conformance sub-entry pins one R2
   rejection a non-Lean Producer sees; `make umpire-check-regression`, `make lint-model`
   (`LEAN_NUM_THREADS=1`, no new findings over the baseline) and `make lint-code-fast` pass.
   Errors: no error surface beyond the gates.
@@ -224,6 +297,26 @@ gains the constructors for the three messages and the reference arm.
 - No change to model syntax, `instances:`, Search, or fn-88's Property monitor lowering.
 - No per-instance parameterization of anything but predicate operands (no per-instance states,
   transitions, Deadlines or kinds).
+- No change to the Realization modules or request coverage; no Rule instances across entities
+  (fn-92's later Producer spec owns that, and builds on this surface).
+- No change to the Lean toolchain; see Dependencies.
+
+## Dependencies & sequencing
+
+- **fn-90** (open, finishing): its pair-test work closed as not reproduced with no Model, Producer,
+  fixture or Contract change, and confirmed the pair test correlates evidence by rule ID and
+  scheduled event ID, not position. This spec keeps both, so R7 holds unchanged. The remaining
+  dependency is ordering the `UMPIRE4_ORDER.md` edits.
+- **fn-88.12** may move the model toolchain from Lean 4.33.1 to 4.32.0. The Lean work here uses no
+  4.33-only API and keeps its proofs structural (membership through the existing `decideMem`,
+  `rw`/`subst`/`cases`, no `grind`, no `native_decide`), so it builds on either. A Lean task lands
+  wholly on one toolchain; if the move lands mid-task, rebase and rebuild before the gates.
+- **fn-93 A6** edits the Producer's raw-Property round-trip in the same file as R5's fold; the fold
+  stays in its own declarations so the two merge textually. fn-93 A7 already waits for this spec,
+  which leaves the Realization modules alone.
+- **fn-92** depends on this spec only for the pair fixture's ordering. Its later cross-entity
+  Producer spec composes with this surface: a Rule instance names its own rule ID and assigns
+  declared values, with no assumption that instances come from one entity's `Placement`.
 
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
@@ -234,18 +327,30 @@ discovery by observed key like the correlated contract (changes Verdict shape an
 the Producer already knows every instance).
 
 **Each Rule instance names its own rule ID** over a runtime naming convention (`rule_id + "-" + n`):
-the Verdict stays byte-identical and the runtime invents no names (SEM-16).
+the Verdict stays byte-identical and the runtime invents no names (SEM-16). It also keeps the
+surface open to instances that are not numbered placements of one entity (fn-92).
 
 **Plain Rule over one instance** over always emitting instances: mirrors `Placement.suffix` (no
 suffix over one instance), keeps every single-instance fixture byte-identical, and a one-instance
 Rule carries nothing to share.
 
-**Every realization-assigned literal becomes an instance value** over only the literals that
-differ across instances: the realization is what varies per instance, and the `DerivedRule`
-certificate already names exactly those literals, so the proof obligation generalizes directly.
+**The compared literal becomes the instance value** over every request literal of the realization:
+a rendered shape compares against exactly one literal (`Shape.literals`), which is the only thing
+that differs between the per-placement rules; request literals the predicate never reads stay in
+per-placement coverage, and declaring them would add values no predicate reads.
 
-**Ceilings charged per instance** over per declaration: evaluation cost is per instance, and it
-keeps admission identical to the expansion, so no Case's admission changes.
+**Fold N certified derivations** over a new N-realization lowering: each placement keeps today's
+`DerivedRule` certificate unchanged, and the folded Rule's obligation is the conjunction of theirs
+plus a decidable shape agreement, so no existing proof is restated and the proofs stay
+toolchain-neutral.
+
+**Admission charged per instance, binding work included,** over charging binding once: admission
+then equals the expansion's for every Case, so "no ceiling loosens" is true by construction rather
+than by argument.
+
+**No boolean instance values** over per-instance capture analysis: capture analysis prunes on
+boolean literals, so a once-analyzed Rule could reject where its expansion is admitted; a boolean
+compared literal keeps today's per-placement Rules, which no current Case uses over N > 1.
 
 **Word choice.** The carried-forward title says "monitor"; SEM-19 reserves Monitor for the Run-local
 Contract state machine, so the protocol and prose say Rule and Rule instance.
@@ -264,3 +369,27 @@ make umpire-check-case-runtime-conformance canary-check-case
 LEAN_NUM_THREADS=1 make lint-model
 TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression
 ```
+
+## Early proof point
+
+Task fn-89-one-contract-rule-per-entity.3 validates the core approach: the differential test shows
+an instanced Contract prepared once and evaluated per instance yields the expansion's Verdict and
+admission byte for byte. If it fails, re-evaluate binding once (fall back to expanding in Prepare
+behind the same wire format) before the Producer fold (.4), which depends on it, lands.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1  | Protocol messages, reference arm and Authoring constructors | fn-89-one-contract-rule-per-entity.1 | — |
+| R2  | Preparation binds once, rejects malformed instances | fn-89-one-contract-rule-per-entity.2 | — |
+| R3  | Per-instance evaluation, admission equals expansion | fn-89-one-contract-rule-per-entity.2, fn-89-one-contract-rule-per-entity.3 | — |
+| R4  | Differential Verdict-identity test | fn-89-one-contract-rule-per-entity.3 | — |
+| R5  | Producer folds per-placement rules into one instanced Rule | fn-89-one-contract-rule-per-entity.4 | — |
+| R6  | Pair fixture regenerates; everything else byte-identical | fn-89-one-contract-rule-per-entity.4, fn-89-one-contract-rule-per-entity.5 | — |
+| R7  | Pair tests assert one Rule, two instances; Verdict unchanged | fn-89-one-contract-rule-per-entity.4 | — |
+| R8  | `umpire-assess` rule set from instances | fn-89-one-contract-rule-per-entity.5 | — |
+| R9  | GOV-02 drafts and docs | fn-89-one-contract-rule-per-entity.6 | — |
+| R10 | Conformance sub-entry and gates | fn-89-one-contract-rule-per-entity.5, fn-89-one-contract-rule-per-entity.6 | — |
+
+

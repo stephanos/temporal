@@ -4,7 +4,8 @@
   "depends_on_epics": [
     "fn-82-unify-the-umpire-and-testpilot",
     "fn-85-model-side-effects-as-typed-actions-and",
-    "fn-92-compose-entity-machines-into-one-system"
+    "fn-92-compose-entity-machines-into-one-system",
+    "fn-91-say-opaque-handle-in-the-driver-contract"
   ],
   "id": "fn-79-deferred-nexus-operation-cancellation",
   "next_task": 1,
@@ -24,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T01:34:20.899817Z"
+  "updated_at": "2026-09-27T05:44:15.560266Z"
 }
