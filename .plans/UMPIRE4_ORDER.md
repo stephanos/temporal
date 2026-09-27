@@ -86,6 +86,10 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 - **The server dates a completion-before-start started event in local time labelled UTC**
   (fn-90.7): the synthesized `NEXUS_OPERATION_STARTED` carried PDT wall time marked `Z`. No Verdict
   reads `EventTime`; an upstream issue is the next step.
+- **`TestTestpilotNexusCallerScheduleToStartTimeout/chasm` failed once** (fn-94.17, 2026-09-28):
+  the handler ran and completed without a reply when its worker should already have been stopped,
+  suggesting a race around the stopped worker; it passed five times since. Measure it with
+  `make umpire-repeat-run` before fixing.
 - **A multi-instance Case with a retryable handler error** (fn-90.8): its controller would run
   `pending-attempts` before the moved scheduled read. No such Case exists; the first one needs the
   order settled.
