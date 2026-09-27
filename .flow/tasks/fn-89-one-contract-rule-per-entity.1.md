@@ -50,6 +50,6 @@ Follow-up: re-recorded Runs carry the local worker hostname (`...@Stephans-MacBo
 
 stage: impl-review - ran (claude:opus:high, first-pass SHIP)
 ## Evidence
-- Commits: 4dfc90dedf4f2f142233cd02bc0a14f1be199748, 964b57e54d2a533603354e98ca426f9ce4fd4865
+- Commits: 4dfc90dedf4f2f142233cd02bc0a14f1be199748
 - Tests: baseline: green (go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/... pre-edit), make lint-protos protoc proto-codegen (generated api/testpilot/v1 byte-identical to the patch), make umpire-rerecord-pinned-runs (re-recorded 2 Runs + 3 receipts; only catalog/run identities changed), go build ./..., go vet -tags test_dep ./common/testing/testpilot/..., go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., make lint-code-fast, make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, make umpire-check-case-runtime-conformance (no fixture byte changed), make canary-check-case, INCONCLUSIVE: LEAN_NUM_THREADS=1 make lint-model - fails only on concurrent fn-88.4 uncommitted Umpire.Search.Product/MonitorProofs WIP and a stale Temporal/API/Types.olean build artifact from overlapping builds; neither touched by this diff
 - PRs:
