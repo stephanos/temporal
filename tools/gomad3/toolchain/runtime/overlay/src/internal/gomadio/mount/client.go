@@ -37,7 +37,7 @@ var Default = New(
 	gomadwire.MountLimits{PathBytes: 4096, FileBytes: 16 << 20, DirectoryEntries: 100_000},
 )
 
-//go:linkname runtimeBlockingRead runtime.gomadBlockingRead
+//go:linkname runtimeBlockingRead runtime.gomadHostRead
 func runtimeBlockingRead(int32, unsafe.Pointer, int32) int32
 
 //go:linkname runtimeBlockingWrite runtime.gomadBlockingWrite
