@@ -837,8 +837,9 @@ admitted against the Model with the operands' schemas as field bindings, and
 `Umpire.Case.Projection.lower` derives the rule from it, reading the observation the realization
 records history into and the literal the action's binding assigns to the input field. -/
 
-/-- One relation lowered for a Case: the checked Property's definition binding, the monitor
-lowering and the request literals the rule's coverage requires. -/
+/-- One relation lowered for a Case, for one placement or folded over all of them: the checked
+Property's definition binding, the monitor lowering and the request literals the rule's coverage
+requires. -/
 structure LoweredRelation where
   definition : Provenance.DefinitionBinding
   lowering : Compiler.ContractLowering
@@ -884,25 +885,20 @@ private def captureSelector {LawStatement : Law → Prop}
     | throw (rejects "relation.capture-literal-unassigned")
   pure { path := { selector with member := captured.member }.path reference, value }
 
-private def lowerRelation {LawStatement : Law → Prop}
+/-- One placement of a relation: the Program's literals for the placement's instance and the
+capture policy that selects the instance's own event, lowered to its derived rule and coverage. -/
+private def lowerPlacement {LawStatement : Law → Prop}
     (input : Input LawStatement)
-    (placement : Placement)
     (realization : Realization)
     (rules : List EvidenceRule)
-    (relation : FieldRelation) : Except Error LoweredRelation := do
+    (relation : FieldRelation)
+    (checked : CheckedFieldProperty)
+    (observation : Observation)
+    (action : ModelValue)
+    (operands : List (FieldOperand × DefinitionId))
+    (placement : Placement) :
+    Except Error (Case.Projection.Placed checked × List Coverage.InputMapping) := do
   let rejects := productionError input.source relation.id.value
-  let action := input.vocabulary.namedAction relation.action
-  let leftReference := operandReference input.vocabulary action relation.left
-  let rightReference := match relation.right with
-    | some right => operandReference input.vocabulary action right
-    | none => leftReference
-  let checked ← (relation.check (.ofTarget input.target) input.property.requires leftReference
-    rightReference).mapError rejects
-  let some observation := realization.plan.observations.find?
-      (·.observation_id == realization.historyObservation)
-    | throw (rejects "relation.observation-undeclared")
-  let operands := [(relation.left, leftReference)] ++
-    (relation.right.map fun right => (right, rightReference)).toList
   -- The literal the Program assigns to each input operand: the action's binding states it by the
   -- field's dotted path, and the node it builds is where the rule's coverage looks for it.
   let requestOperands := operands.filter (·.1.root == .request)
@@ -930,18 +926,55 @@ private def lowerRelation {LawStatement : Law → Prop}
           captured reference
         pure (.crossEvent selector captured.observed observed.observed)
     | _, _ => throw (rejects "relation.capture-shape")
-  let lowered ← Case.Projection.lower checked observation
+  let realized : Case.Projection.Realization :=
     { literals, ruleSuffix := FieldRelation.ruleSuffix ++ placement.suffix, capture }
-  let some lowering := lowered.contractLowering
+  let lowered ← Case.Projection.lower checked observation realized
+  let some derived := lowered.rule
     | throw (rejects "relation.no-rule")
-  pure {
-    definition := {
-      definitionId := checked.property.id.value
-      behaviorFingerprint := checked.property.behaviorFingerprint.render
-      kind := .«property» }
-    lowering
-    inputs := lowered.coverage.inputs
-    source := relation.source }
+  pure (⟨realized, derived⟩, lowered.coverage.inputs)
+
+/-- A relation lowered over every placement. Over one placement it is today's plain rule. Over
+several, the placements' derivations fold into one Rule with one Rule instance per placement, unless
+the compared literal has no instance value type, in which case each placement keeps its own plain
+rule. Coverage stays one mapping per placement either way. -/
+private def lowerRelation {LawStatement : Law → Prop}
+    (input : Input LawStatement)
+    (placements : List Placement)
+    (realization : Realization)
+    (rules : List EvidenceRule)
+    (relation : FieldRelation) : Except Error (List LoweredRelation) := do
+  let rejects := productionError input.source relation.id.value
+  let action := input.vocabulary.namedAction relation.action
+  let leftReference := operandReference input.vocabulary action relation.left
+  let rightReference := match relation.right with
+    | some right => operandReference input.vocabulary action right
+    | none => leftReference
+  let checked ← (relation.check (.ofTarget input.target) input.property.requires leftReference
+    rightReference).mapError rejects
+  let some observation := realization.plan.observations.find?
+      (·.observation_id == realization.historyObservation)
+    | throw (rejects "relation.observation-undeclared")
+  let operands := [(relation.left, leftReference)] ++
+    (relation.right.map fun right => (right, rightReference)).toList
+  let placed ← placements.mapM
+    (lowerPlacement input realization rules relation checked observation action operands)
+  let definition : Provenance.DefinitionBinding := {
+    definitionId := checked.property.id.value
+    behaviorFingerprint := checked.property.behaviorFingerprint.render
+    kind := .«property» }
+  let plain := placed.map fun (placement, inputs) =>
+    { definition
+      lowering := .monitor definition placement.derived.rule
+      inputs
+      source := relation.source : LoweredRelation }
+  match ← (Case.Projection.InstancedRule.fold checked FieldRelation.ruleSuffix
+      (placed.map (·.1))).mapError rejects with
+  | none => pure plain
+  | some instanced =>
+      pure [{ definition
+              lowering := instanced.contractLowering
+              inputs := placed.flatMap (·.2)
+              source := relation.source }]
 
 /-! ### The outage-order rule
 
@@ -1093,14 +1126,13 @@ def produce {LawStatement : Law → Prop}
   -- compares.
   let program := input.program.getD (occurrences.map (·, 1))
   let performed := program.map (·.1)
-  -- One rule per instance: the literal a rule compares against and the event it captures are the
-  -- instance's own.
+  -- One Rule instance per instance: the literal a rule compares against and the event it captures
+  -- are the instance's own.
   let placements := (List.range input.instances).map fun slot =>
     ({ identity, number := slot + 1, count := input.instances } : Placement)
   let relations ← (input.relations.filter fun relation =>
     performed.contains (input.vocabulary.namedAction relation.action).definitionId).flatMapM
-    fun relation => placements.mapM fun placement =>
-      lowerRelation input placement realization (witnessRules.map (·.1)) relation
+    (lowerRelation input placements realization (witnessRules.map (·.1)))
   let assembled ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
     program (some input.vocabulary) input.instances
   compile {

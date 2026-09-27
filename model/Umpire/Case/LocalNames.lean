@@ -319,12 +319,16 @@ private def program (value : Program) : m Program := do
     evidence := ← value.evidence.mapM (declaration visitor) }
 
 /-- Visit every name and model value position of a Case's Program, Contract rules and correlated
-contract, in that order. -/
+contract, in that order; a Rule's own ID before its Rule instances' rule IDs. -/
 private def visitCase (value : Program) (rules : Array ContractRule)
     (capability : Option CorrelatedContract) :
     m (Program × Array ContractRule × Option CorrelatedContract) := do
   let value ← program visitor value
-  let rules ← rules.mapM fun rule => do pure { rule with rule_id := ← visitor.name rule.rule_id }
+  let rules ← rules.mapM fun rule => do
+    pure { rule with
+      rule_id := ← visitor.name rule.rule_id
+      instances := ← rule.instances.mapM fun ruleInstance => do
+        pure { ruleInstance with rule_id := ← visitor.name ruleInstance.rule_id } }
   pure (value, rules, ← capability.mapM (correlatedContract visitor))
 
 /-! ### Localization -/

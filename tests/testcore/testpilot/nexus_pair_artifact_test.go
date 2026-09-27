@@ -25,29 +25,46 @@ const (
 	nexusPairArtifactHandlerTaskQueue = "nexus-pair-handler-task-queue"
 	nexusPairArtifactEndpoint         = "nexus-pair-endpoint"
 	nexusPairRelationDefinitionID     = "temporal.nexus.pair.property.completionReferencesSchedule"
+	nexusPairRuleID                   = "relation"
+	nexusPairInstanceValueID          = "operation"
 )
 
-// TestNexusPairCaseCarriesOneCaptureRulePerInstance prepares the unchanged pair Case bytes offline.
-// The Model's one field relation, over two instances of the operation, lowers to one capture rule
-// per instance: each retains the scheduled event that records its own operation and matches the
-// completion's reference against it; the two operations share no handler, slot or instruction; and
-// the correlated capability the Query's Property lowered into sits beside them.
-func TestNexusPairCaseCarriesOneCaptureRulePerInstance(t *testing.T) {
+// TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances prepares the unchanged pair Case bytes
+// offline. The Model's one field relation, over two instances of the operation, lowers to one
+// capture Rule with one Rule instance per operation: the Rule retains the scheduled event that
+// records the operation its instance names and matches the completion's reference against it; the
+// two operations share no handler, slot or instruction; and the correlated capability the Query's
+// Property lowered into sits beside them.
+func TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances(t *testing.T) {
 	source := loadLeanCase(t, NexusPairFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
 	rules := source.GetContract().GetRules()
-	require.Len(t, rules, 2)
-	for index, ruleID := range []string{NexusPairFirstRuleID, NexusPairSecondRuleID} {
-		rule := rules[index]
-		require.Equal(t, ruleID, rule.GetRuleId())
-		require.Equal(t, nexusPairRelationDefinitionID+"."+ruleID, localNameDefinition(t, source, ruleID))
-		require.Equal(t, testpilotspb.CONTRACT_RULE_KIND_SAFETY, rule.GetKind())
-		require.Len(t, rule.GetCaptures(), 1)
-		require.Len(t, rule.GetTransitions(), 2)
-		require.Equal(t, "capture-nexusOperationScheduled-"+ruleID, rule.GetTransitions()[0].GetTransitionId())
-		require.Equal(t, "match-nexusOperationCompleted-"+ruleID, rule.GetTransitions()[1].GetTransitionId())
+	require.Len(t, rules, 1)
+	rule := rules[0]
+	require.Equal(t, nexusPairRuleID, rule.GetRuleId())
+	require.Equal(t, nexusPairRelationDefinitionID+"."+nexusPairRuleID, localNameDefinition(t, source, nexusPairRuleID))
+	require.Equal(t, testpilotspb.CONTRACT_RULE_KIND_SAFETY, rule.GetKind())
+	require.Len(t, rule.GetCaptures(), 1)
+	require.Equal(t, "nexusOperationScheduled-"+nexusPairRuleID, rule.GetCaptures()[0].GetCaptureId())
+	require.Len(t, rule.GetTransitions(), 2)
+	require.Equal(t, "capture-nexusOperationScheduled-"+nexusPairRuleID, rule.GetTransitions()[0].GetTransitionId())
+	require.Equal(t, "match-nexusOperationCompleted-"+nexusPairRuleID, rule.GetTransitions()[1].GetTransitionId())
+	require.Len(t, rule.GetInstanceValues(), 1)
+	require.Equal(t, nexusPairInstanceValueID, rule.GetInstanceValues()[0].GetInstanceValueId())
+	require.Equal(t, testpilotspb.SCALAR_KIND_TEXT, rule.GetInstanceValues()[0].GetType().GetScalar().GetKind())
+	require.Len(t, rule.GetInstances(), 2)
+	for index, instance := range []struct{ ruleID, operation string }{
+		{NexusPairFirstRuleID, NexusPairFirstOperation},
+		{NexusPairSecondRuleID, NexusPairSecondOperation},
+	} {
+		ruleInstance := rule.GetInstances()[index]
+		require.Equal(t, instance.ruleID, ruleInstance.GetRuleId())
+		require.Equal(t, nexusPairRelationDefinitionID+"."+instance.ruleID, localNameDefinition(t, source, instance.ruleID))
+		require.Len(t, ruleInstance.GetAssignments(), 1)
+		require.Equal(t, nexusPairInstanceValueID, ruleInstance.GetAssignments()[0].GetInstanceValueId())
+		require.Equal(t, instance.operation, ruleInstance.GetAssignments()[0].GetValue().GetTextValue())
 	}
 	require.NotNil(t, source.GetContract().GetCorrelated())
 

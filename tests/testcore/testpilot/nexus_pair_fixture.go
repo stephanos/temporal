@@ -11,7 +11,8 @@ import (
 const NexusPairFixture = "nexusPairTests-bothComplete"
 
 // The two operations the pair schedules, named after the realization's operation and the
-// instance, and the one monitor rule per instance the field relation lowers to.
+// instance, and the rule IDs of the one Rule instance per instance of the Rule the field relation
+// lowers to.
 const (
 	NexusPairService         = "umpire.case.service"
 	NexusPairFirstOperation  = "complete-1"

@@ -781,6 +781,113 @@ private def monitorCase (assigned : Int := 7) : Except String CaseArtifact := do
 #guard rejects (monitorCase (assigned := 8))
   "request assignment constructs a different value than the modeled field"
 
+/-! ### One Rule over several placements
+
+A Case over two instances lowers the monitor Property once per instance, each placement assigning
+its own literal under its own suffix. The fold renders one Rule under the unsuffixed suffix, reads the
+compared literal through one instance value named after the field it fills, and gives each placement
+a Rule instance under the placement's own rule ID. -/
+
+/-- Lower the monitor Property once per realization and fold the placements. A rejection is its
+construct name; `none` means each placement keeps its own plain rule. -/
+private def folded (expectation : PropertyPredicate)
+    (placements : List (Projection.Realization × Observation)) :
+    Except String (Option ContractRule) := do
+  let target ← targetResult.mapError fun _ => "target"
+  let property ← (fieldProperty target expectation).mapError fun _ => "property"
+  let placed ← placements.mapM fun (realization, observation) => do
+    let result ← (Projection.lower property observation realization).mapError (·.construct)
+    let some derived := result.rule | throw "no rule"
+    pure (⟨realization, derived⟩ : Projection.Placed property)
+  pure ((← Projection.InstancedRule.fold property "count" placed).map (·.rule))
+
+private def safetyPlacement (number : Nat) (assigned : Int)
+    (observation := monitorObservation) : Projection.Realization × Observation :=
+  ({ literals := [inputCoverage assigned], ruleSuffix := s!"count-{number}" }, observation)
+
+private def capturePlacement (number : Nat) (selected : Int) (state := "requested") :
+    Projection.Realization × Observation :=
+  ({ ruleSuffix := s!"count-{number}"
+     capture := .crossEvent ⟨acceptedPath, .integer .int32 selected⟩ state "reply" },
+    monitorObservation)
+
+private def foldRejection : Except String (Option ContractRule) → Option String
+  | .error construct => some construct
+  | .ok _ => none
+
+/-- A Rule's identity, instance values and instances, its transitions, its captures, and per
+transition the instance value its comparison reads, if any. -/
+private def ruleParts (rule : ContractRule) :
+    String × List (String × Bool) × List (String × List (String × Option String)) ×
+      List String × List String × List (Option String) :=
+  (rule.rule_id,
+    rule.instance_values.toList.map fun declared =>
+      (declared.instance_value_id, match declared.type.bind (·.type) with
+        | some (.scalar scalar) => match scalar.kind with
+          | .SCALAR_KIND_INT32 => true
+          | _ => false
+        | _ => false),
+    rule.instances.toList.map fun ruleInstance =>
+      (ruleInstance.rule_id, ruleInstance.assignments.toList.map fun assignment =>
+        (assignment.instance_value_id, assignment.value.bind fun value => match value.value with
+          | some (.signed_integer_value number) => some number
+          | _ => none)),
+    rule.transitions.toList.map (·.transition_id),
+    rule.captures.toList.map (·.capture_id),
+    rule.transitions.toList.map fun transition => do
+      let predicate ← transition.predicate
+      let some (.all conjunction) := predicate.expression | none
+      conjunction.operands.toList.findSome? fun operand => do
+        let compared ← match operand.expression with
+          | some (.not negated) => negated.operand.bind (·.expression)
+          | expression => expression
+        let .compare comparison := compared | none
+        let right ← comparison.right
+        let some (.reference reference) := right.expression | none
+        let some (.instance_value_id instanceValueId) := reference.reference | none
+        pure instanceValueId)
+
+-- Two safety placements fold into one Rule whose match and reject both compare the observed count
+-- with the instance value, each instance assigning its own placement's literal.
+#guard (folded (compares requestPath acceptedPath) [safetyPlacement 1 7, safetyPlacement 2 8]).toOption.map
+    (·.map ruleParts) ==
+  some (some ("test.property.monitor.count", [("count", true)],
+    [("test.property.monitor.count-1", [("count", some "7")]),
+      ("test.property.monitor.count-2", [("count", some "8")])],
+    ["match-count", "reject-count"], [], [some "count", some "count"]))
+
+-- Two capture placements fold the same way: the selector's value is the instance value, and the
+-- capture and its transitions carry no instance suffix.
+#guard (folded (compares priorCountPath acceptedPath) [capturePlacement 1 1, capturePlacement 2 2]).toOption.map
+    (·.map ruleParts) ==
+  some (some ("test.property.monitor.count", [("count", true)],
+    [("test.property.monitor.count-1", [("count", some "1")]),
+      ("test.property.monitor.count-2", [("count", some "2")])],
+    ["capture-requested-count", "match-reply-count"], ["requested-count"], [some "count", none]))
+
+-- One placement has nothing to share: it keeps the plain rule `DerivedRule.rule` renders.
+#guard (folded (compares requestPath acceptedPath) [safetyPlacement 1 7]).toOption.map
+    Option.isNone == some true
+
+-- A compared literal with no instance value type is not folded: a boolean selector keeps each
+-- placement's plain rule.
+#guard (folded (compares priorCountPath acceptedPath) [
+    ({ ruleSuffix := "count-1", capture := .crossEvent ⟨{ acceptedPath with type := .boolean },
+      .boolean true⟩ "requested" "reply" }, monitorObservation),
+    ({ ruleSuffix := "count-2", capture := .crossEvent ⟨{ acceptedPath with type := .boolean },
+      .boolean false⟩ "requested" "reply" }, monitorObservation)]).toOption.map Option.isNone ==
+  some true
+
+-- Placements that disagree once their literal is erased reject by name: one reading another
+-- Observation, and one waiting in a differently named capture state.
+#guard foldRejection (folded (compares requestPath acceptedPath) [safetyPlacement 1 7,
+    safetyPlacement 2 8 (Testpilot.Authoring.Program.observation "other"
+      (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.messageType "M")))]) ==
+  some "relation.instance-shape"
+#guard foldRejection (folded (compares priorCountPath acceptedPath)
+    [capturePlacement 1 1, capturePlacement 2 2 (state := "retained")]) ==
+  some "relation.instance-shape"
+
 /-! ### Trust -/
 
 /-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -795,5 +902,8 @@ private def monitorCase (assigned : Int := 7) : Except String CaseArtifact := do
 /-- info: 'Umpire.Case.Projection.lower' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Case.Projection.lower
+/-- info: 'Umpire.Case.Projection.InstancedRule.fold' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms Umpire.Case.Projection.InstancedRule.fold
 
 end Umpire.Case.FieldLoweringTests
