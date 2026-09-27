@@ -135,6 +135,10 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
 	require.Contains(t, normalizedDryRun, conformanceTargetCommand)
 	require.Contains(t, normalizedDryRun, retiredVocabularyTarget)
+	// The Veil pin check and its planted-mismatch self-test run in the gate, listed rather than run
+	// by the dry run.
+	require.Contains(t, normalizedDryRun, "check_veil_manifest model/lake-manifest.json")
+	require.Contains(t, normalizedDryRun, `check_veil_manifest "$planted"`)
 
 	// The gate selects by prefix and compares the whole failure identity set
 	// against an empty baseline, so a new live Testpilot test joins without
