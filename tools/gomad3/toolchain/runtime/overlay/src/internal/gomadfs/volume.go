@@ -726,6 +726,7 @@ func (fs *FS) rebuildAfterLifecycleLocked() {
 		clear(mapping.data)
 	}
 	fs.mappings = make(map[*Mapping]struct{})
+	fs.mappedBytes = 0
 	fs.generation++
 	fs.openHandles = 0
 	fs.cwd = "/"

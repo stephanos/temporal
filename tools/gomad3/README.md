@@ -367,7 +367,13 @@ hostname, and entropy with process-local in-memory implementations. The
 in-memory filesystem starts with the root and the process temp directory
 (`/tmp`, plus the directory `TMPDIR` names when it is set), so a program that
 writes scratch files where `os.TempDir` points finds the directory a host would
-provide instead of failing closed on the first open. Optional
+provide instead of failing closed on the first open. File mappings are modeled
+as shared memory: every mapping of one file region shares a single buffer, a
+store through it becomes visible to file reads on the next read, sync, or
+unmap, and a file write lands in the mapped bytes. A writable mapping is
+available only for volatile files, because stores through memory bypass the
+volume journal; overlapping regions with different bounds and the total mapped
+bytes (64 MiB) fail closed. That is the contract SQLite's WAL index needs. Optional
 built-in adapters are an immutable collection generated from `version.json`.
 The current version-pinned `modernc.org/libc` adapter redirects supported
 filesystem, entropy, and time operations to those same generic boundaries.

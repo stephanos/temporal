@@ -20,21 +20,21 @@ const (
 	libcDarwinSHA256       = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
 	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
 	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	gomadLibcAdapterSHA256 = "sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd"
+	gomadLibcAdapterSHA256 = "sha256:82981437bb24c229922a45d01f4620fc2087775d7df6e9140bee83e55c1b95c5"
 	// The linux/amd64 build is a musl translation that reaches the kernel only
 	// through the trampolines in syscall_musl.go, so the Linux model hooks the
 	// syscall number there instead of individual libc functions.
 	libcSyscallMuslSHA256       = "sha256:16a646a7d874493b0145fb13a45458c5b59eb9a131b975c93392a3f44b605578"
 	libcMuslSHA256              = "sha256:2ae49f1d62addfa66305cd75b1ed67cee20cd0adb7bbff52ddf166b2e0e82d92"
 	libcMuslLinuxAmd64SHA256    = "sha256:97cd9c7f1c6f1063e29685cf115c8f3f0530b3b9ce992935035dd52800fca8b1"
-	gomadLibcLinuxAdapterSHA256 = "sha256:dc8e6f1bf6311e909d079a303857a5001a2d983afa34ea2465715e159b5c824f"
+	gomadLibcLinuxAdapterSHA256 = "sha256:0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0"
 )
 
 // Both platforms' sources are rewritten in every copy; the prepared source set
 // differs because each platform compiles its own file set.
 var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
 	"darwin/arm64": "sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833",
-	"linux/amd64":  "sha256:7dc5085b840868004fdccdf1526242f3da62cae0df0f06a0c772432e487ba403",
+	"linux/amd64":  "sha256:3575840edd9cd3e3d8cfbcb98dc4316ebb4b2a359ab25b0880d65c4a3dcf3771",
 })
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
