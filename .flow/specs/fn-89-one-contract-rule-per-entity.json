@@ -1,6 +1,11 @@
 {
   "branch_name": "fn-89-one-contract-rule-per-entity",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T01:02:51.320553Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-85-model-side-effects-as-typed-actions-and",
     "fn-86-retire-hand-written-models-one",
@@ -8,9 +13,182 @@
     "fn-90-resolve-the-intermittent-live-testpilot"
   ],
   "id": "fn-89-one-contract-rule-per-entity",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T05:51:29.974577Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "af71f5b7e4d4e8cc6cd17bd089bde119d206bf2f6db229de2c3c15371fe13806",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-76ee976d0408ad649541b564452142ea",
+            "classification": "introduced",
+            "findingId": "finding-76ee976d0408ad649541b564452142ea",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c35619b0eaa58c3df3ac8e4825a04555",
+            "classification": "introduced",
+            "findingId": "finding-c35619b0eaa58c3df3ac8e4825a04555",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-076284407e8b429e5779026a10affdf9",
+            "classification": "introduced",
+            "findingId": "finding-076284407e8b429e5779026a10affdf9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a3d4a8024bf9fc5b5020ce093b1aca5c",
+            "classification": "introduced",
+            "findingId": "finding-a3d4a8024bf9fc5b5020ce093b1aca5c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d8587bd9b76efc90a55ca5b308552cc1",
+            "classification": "introduced",
+            "findingId": "finding-d8587bd9b76efc90a55ca5b308552cc1",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be465e5966ec2cbc9bf2c8628d98c8ced1ecbc55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 7909,
+      "output_sha256": "4e7d18ecc0bc0064384016977cd4c3b35240e419dba4f12a4d687f52279c158c",
+      "reservation_id": "459842b1b5da4f1a925278eba5f63a5c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T05:48:18.491937Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8623192840054d6e9959e2361ca237904d9d133d4616e2029c7621f51ffc079d",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-76ee976d0408ad649541b564452142ea",
+            "classification": "introduced",
+            "findingId": "finding-76ee976d0408ad649541b564452142ea",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c35619b0eaa58c3df3ac8e4825a04555",
+            "classification": "introduced",
+            "findingId": "finding-c35619b0eaa58c3df3ac8e4825a04555",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-076284407e8b429e5779026a10affdf9",
+            "classification": "introduced",
+            "findingId": "finding-076284407e8b429e5779026a10affdf9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a3d4a8024bf9fc5b5020ce093b1aca5c",
+            "classification": "introduced",
+            "findingId": "finding-a3d4a8024bf9fc5b5020ce093b1aca5c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d8587bd9b76efc90a55ca5b308552cc1",
+            "classification": "introduced",
+            "findingId": "finding-d8587bd9b76efc90a55ca5b308552cc1",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3333f83fd021d743725c8ea8e22f6aed",
+            "classification": "introduced",
+            "findingId": "finding-3333f83fd021d743725c8ea8e22f6aed",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be465e5966ec2cbc9bf2c8628d98c8ced1ecbc55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 3313,
+      "output_sha256": "bdd64e9100b43c1e59881e091bedc8b9d760ca459ab7ec8cb78304f84584cc76",
+      "reservation_id": "f4fb4c350945420b9084bab4261fb46a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T05:51:29.971741Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-89-one-contract-rule-per-entity.md",
   "status": "open",
   "title": "One Contract Rule per entity",
@@ -25,5 +203,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T01:04:18.318063Z"
+  "updated_at": "2026-09-27T05:56:41.680640Z"
 }
