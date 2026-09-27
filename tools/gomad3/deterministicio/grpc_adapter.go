@@ -17,7 +17,7 @@ const (
 	grpcOriginalSourceInventorySHA256     = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
 	grpcKeepaliveSourceSHA256             = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
 	grpcKeepaliveReplacementSHA256        = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
-	grpcReplacementSourceInventorySHA256  = "sha256:e5b5ccd1aaca2b8e3919660bb267c504219d8cb0bc3835aa933abfd2e135c4a1"
+	grpcReplacementSourceInventorySHA256  = "sha256:564d80fd13bb88861c7f5e5da650dd4a82699aae2e40043a85cb5a06c38936a3"
 	grpcKeepalivePath                     = "internal/tcp_keepalive_unix.go"
 	grpcChannelzLinuxPath                 = "internal/channelz/syscall_linux.go"
 	grpcChannelzNonLinuxPath              = "internal/channelz/syscall_nonlinux.go"
@@ -66,6 +66,58 @@ type grpcLinuxRewrite struct {
 	constraint, replacement                        []byte
 }
 
+// grpcSyscallRewrites names the portable gRPC files that reach the syscall
+// package on every platform: errno classification for the disconnect metric
+// label, the syscall.Conn wrapper credentials install around TLS connections,
+// and the raw-connection reader. Each rewrite keeps the exported surface and
+// takes the path the module already takes when the connection is not a
+// syscall.Conn, so the adapted module never asks the kernel for a descriptor.
+var grpcSyscallRewrites = []sourceRewrite{
+	{
+		path:              "clientconn_disconnect_reason_noplan9.go",
+		sourceSHA256:      "sha256:23f1d780ca5185a832b94dc81111af6ea8916360631b450268adf288fad0e68a",
+		replacementSHA256: "sha256:308091ae5dc8440b748302f3ba47442bec3f0e203b0d7707b444764b9bff5a6e",
+		rewrites: []anchorRewrite{
+			{anchor: []byte("\t\"syscall\"\n")},
+			{anchor: []byte("\tvar sysErr syscall.Errno\n")},
+			{anchor: []byte("\tcase errors.Is(err, syscall.ECONNRESET):\n\t\treturn \"connection reset\"\n")},
+			{
+				anchor:      []byte("\tcase errors.Is(err, syscall.ETIMEDOUT), errors.Is(err, context.DeadlineExceeded), errors.Is(err, os.ErrDeadlineExceeded):\n"),
+				replacement: []byte("\tcase errors.Is(err, context.DeadlineExceeded), errors.Is(err, os.ErrDeadlineExceeded):\n"),
+			},
+			{anchor: []byte("\tcase errors.Is(err, syscall.ECONNABORTED):\n\t\treturn \"connection aborted\"\n")},
+			{anchor: []byte("\tcase errors.As(err, &sysErr):\n\t\treturn \"socket error\"\n")},
+		},
+	},
+	{
+		path:              "internal/credentials/syscallconn.go",
+		sourceSHA256:      "sha256:47cb93c2b159a3d1e9373a49a44dc50744e51f40ff3f16414cd15c7ceb390ef7",
+		replacementSHA256: "sha256:47138dcc61cefa213a4172c426bbf8230e22f0a6f59d8eb2cdef5d763aded021",
+		rewrites: []anchorRewrite{
+			{anchor: []byte("import (\n\t\"net\"\n\t\"syscall\"\n)\n"), replacement: []byte("import (\n\t\"net\"\n)\n")},
+			{anchor: []byte("type sysConn = syscall.Conn\n\n")},
+			{anchor: []byte("type syscallConn struct {\n\tnet.Conn\n\t// sysConn is a type alias of syscall.Conn. It's necessary because the name\n\t// `Conn` collides with `net.Conn`.\n\tsysConn\n}\n\n")},
+			{
+				anchor:      []byte("func WrapSyscallConn(rawConn, newConn net.Conn) net.Conn {\n\tsysConn, ok := rawConn.(syscall.Conn)\n\tif !ok {\n\t\treturn newConn\n\t}\n\treturn &syscallConn{\n\t\tConn:    newConn,\n\t\tsysConn: sysConn,\n\t}\n}\n"),
+				replacement: []byte("func WrapSyscallConn(_, newConn net.Conn) net.Conn {\n\treturn newConn\n}\n"),
+			},
+		},
+	},
+	{
+		path:              "internal/transport/readyreader/ready_reader.go",
+		sourceSHA256:      "sha256:aefa4f5b55e10c0ff86d5cf5b5d77a44eb79ca00c412dc9218087f23537fdb00",
+		replacementSHA256: "sha256:0d7d71fc3c499a71b9489fe1ebbe6f970af76636e2a8f4100341a965059e1510",
+		rewrites: []anchorRewrite{
+			{anchor: []byte("\t\"net\"\n\t\"syscall\"\n"), replacement: []byte("\t\"net\"\n")},
+			{anchor: []byte("\traw syscall.RawConn\n"), replacement: []byte("\traw interface {\n\t\tRead(f func(fd uintptr) (done bool)) error\n\t}\n")},
+			{
+				anchor:      []byte("\tsysConn, ok := r.(syscall.Conn)\n\tif !ok {\n\t\treturn nil\n\t}\n\traw, err := sysConn.SyscallConn()\n\tif err != nil {\n\t\treturn nil\n\t}\n\trr := &nonBlockingReader{raw: raw}\n\trr.doRead = func(fd uintptr) bool {\n\t\ts := &rr.state\n\n\t\ts.buf = s.pool.Get(s.bufSize)\n\t\ts.bytesRead, s.readError = sysRead(fd, *s.buf)\n\n\t\tif s.readError != nil {\n\t\t\ts.pool.Put(s.buf)\n\t\t\ts.buf = nil\n\t\t}\n\t\treturn !wouldBlock(s.readError)\n\t}\n\treturn rr\n}\n"),
+				replacement: []byte("\treturn nil\n}\n"),
+			},
+		},
+	},
+}
+
 var grpcPreparedInternalSourceSetSHA256 = hostPin(map[string]string{
 	"darwin/arm64": "sha256:348f37231e8391fd9361eb84ed9d5a39b9cacc4136461ce103ccc828be7db250",
 	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
@@ -102,6 +154,16 @@ func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity
 			return adapterPreparation{}, err
 		}
 		replacements[rewrite.linuxPath], err = rewriteGRPCLinuxSource(rewrite, linuxSource, nonLinuxSource)
+		if err != nil {
+			return adapterPreparation{}, err
+		}
+	}
+	for _, rewrite := range grpcSyscallRewrites {
+		portableSource, err := readGRPCAdapterSource(moduleSource, rewrite.path)
+		if err != nil {
+			return adapterPreparation{}, err
+		}
+		replacements[rewrite.path], err = rewriteAdapterSource(grpcModulePath, rewrite, portableSource)
 		if err != nil {
 			return adapterPreparation{}, err
 		}

@@ -71,9 +71,30 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 	{
 		module: grpcModulePath,
 		inventory: inventoryEntry{
-			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression"},
+			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression", "portable-syscall-removal"},
 		},
 		prepare: prepareGRPC,
+	},
+	{
+		module: fxModulePath,
+		inventory: inventoryEntry{
+			Boundary: fxModulePath, Disposition: "target-adapter", Operations: []string{"signal-relay-suppression"},
+		},
+		prepare: prepareFx,
+	},
+	{
+		module: temporalSDKModulePath,
+		inventory: inventoryEntry{
+			Boundary: temporalSDKModulePath, Disposition: "target-adapter", Operations: []string{"interrupt-channel-suppression"},
+		},
+		prepare: prepareTemporalSDK,
+	},
+	{
+		module: otelSDKModulePath,
+		inventory: inventoryEntry{
+			Boundary: otelSDKModulePath, Disposition: "target-adapter", Operations: []string{"process-owner-placeholder", "uname-placeholder", "host-command-denial"},
+		},
+		prepare: prepareOtelSDK,
 	},
 	{
 		module: libcModulePath,

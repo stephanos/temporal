@@ -14,6 +14,21 @@
   "patch": "toolchain/runtime/go1.27.1.patch",
   "adapters": [
     {
+      "module": "go.opentelemetry.io/otel/sdk",
+      "version": "v1.44.0",
+      "sum": "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="
+    },
+    {
+      "module": "go.temporal.io/sdk",
+      "version": "v1.48.0",
+      "sum": "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="
+    },
+    {
+      "module": "go.uber.org/fx",
+      "version": "v1.24.0",
+      "sum": "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="
+    },
+    {
       "module": "golang.org/x/net",
       "version": "v0.58.0",
       "sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="
