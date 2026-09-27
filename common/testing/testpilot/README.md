@@ -141,7 +141,7 @@ first planned use.
    or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
    `internal/verification`.
 5. **The table that classifies it.** `ir.RunEventPayloadOf` for payloads, `ir.admittedReferences` for
-   references, `execution.InstructionOpcode` for instructions.
+   references, one row in `execution.opcodes` for instructions.
 6. **Profile Opcode and Driver.** `contract.Opcode` and `contract.Session` in the Driver leaf, then the
    Temporal Drivers under `temporal/`.
 7. **Conformance class or unit test.** The six Driver-independent classes under
@@ -169,10 +169,10 @@ Verdict and admission.
    number is its Opcode; a removed arm's successors move up, so the numbers stay dense from 1.
 2. `make proto`.
 3. A `Testpilot.Authoring.Program` constructor beside `Program.injectFault`.
-4. `execution.InstructionOpcode` and `opcodeContext` (which entrypoint kind may declare it), a binder in
-   `admission.bindInstruction` and `admission.bindNodeDataflow`, its outcome fields in
-   `admission.bindOutcomes`, dispatch in `scheduler.acceptEffect` and any event it records in
-   `scheduler.publishCompletion`. An instruction that reads evidence back names a declaration, which
+4. One row in `opcodes` (`internal/execution/dataflow.go`): the oneof arm, the entrypoint kind that
+   may declare it, whether its outcome carries a protocol code, its binder, its dataflow binder and
+   its scheduler dispatch; and any event it records in `scheduler.publishCompletion`. An
+   instruction that reads evidence back names a declaration, which
    `admission.bindEvidence` (`execution/evidence.go`) binds; a new evidence source kind is a new arm
    of `EvidenceDeclaration.source`, bound there, lifted where its data appears (`liftRunEvents` for
    a recorded event, the instruction's response reads for a read), and listed in the Lean catalog
@@ -185,8 +185,8 @@ Verdict and admission.
    Driver-reach table (`execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
    name every field of every carried message, and the Driver's interpreter reads only the fields
    the row names realized.
-5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
-   oneof arm to map to the Opcode of its field number, the numbers dense from 1.
+5. `opcodes` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every oneof arm
+   to have a row that names it, at the Opcode of its field number, the numbers dense from 1.
 6. Append the Opcode to `contract.Opcode`, move `contract.MaxOpcode` and alias it in the facade's
    `contract.go`; `temporal.DeriveProfile` authorizes it through `testpilot.InstructionOpcode`, and
    a workflow command's type through `worker.CommandTypes`. A new Driver effect adds a
@@ -278,8 +278,9 @@ several MiB, too large to commit as a fixture, so `TestPrepareBoundsTheCaseSurfa
    in an exhaustive match, so a new kind is a Lean error there until it is named.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
    kinds from `FAULT_KIND_WORKER_STOP` to `FAULT_KIND_WORKER_RESUME` on a task-queue role.
-   `scheduler.acceptEffect` calls `Session.InjectFault` with the kind, and `scheduler.publishCompletion`
-   records `RUN_EVENT_KIND_FAULT_INJECTED` with the `fault_injected` payload after a successful outcome.
+   Its `opcodes` row dispatches through `scheduler.acceptFault`, which calls `Session.InjectFault`
+   with the kind, and `scheduler.publishCompletion` records `RUN_EVENT_KIND_FAULT_INJECTED` with the
+   `fault_injected` payload after a successful outcome.
    The outage-order rule the Producer derives for a fault-bearing path compares
    `path(run_event.payload, fault_injected.kind)` with `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`,
    which preparation resolves against that field's enum.

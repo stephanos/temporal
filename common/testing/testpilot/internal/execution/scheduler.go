@@ -700,56 +700,66 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 	}
 	return reservations, nil
 }
-func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (contract.EffectHandle, contract.HandleBridge, error) {
+func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, _ *testpilotspb.Value) (contract.EffectHandle, contract.HandleBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
-	c := s.coordinate(task)
-	var effect contract.EffectHandle
-	var bridge contract.HandleBridge
-	var err error
-	switch n.opcode {
-	case contract.InvokeRPC:
-		effect, err = s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
-	case contract.ReadEvidence:
-		a := task.activation.values
-		effect, err = s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
-			satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
-			return satisfied, err
-		})
-	case contract.InjectFault:
-		fault := n.source.Instruction.GetInjectFault()
-		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
-	case contract.AwaitSlot, contract.NexusOperationCompletion:
-		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
-		// A typed completion delivers the payload or failure it carries.
-		var delivered proto.Message = input
-		switch n.opcode {
-		case contract.NexusOperationCompletion:
-			completion := n.source.Instruction.GetNexusOperationCompletion()
-			slot, delivered = completion.GetHandleSlotId(), carriedCompletion(completion)
-		default:
-			// An AwaitSlot consumes nothing.
-		}
-		if s.values.program.slots[slot].Opaque() {
-			bridge, err = s.session.Bridge(ctx)
-			if err == nil && isNil(bridge) {
-				err = invalid(ir.Malformed, "bridge", "nil bridge")
-			}
-		}
-		if err == nil && n.opcode != contract.AwaitSlot {
-			var handle contract.OpaqueHandle
-			handle, err = bridge.Consume(ctx, slot)
-			if err == nil && isNil(handle) {
-				err = invalid(ir.Malformed, "bridge", "nil opaque handle")
-			}
-			if err == nil {
-				effect, err = s.session.InvokeHandle(ctx, c, handle, delivered)
-			}
-		}
-	default:
-		err = invalid(ir.Unsupported, "scheduler", "controller capability required")
+	accept := opcodes[n.opcode].accept
+	if accept == nil {
+		return nil, nil, invalid(ir.Unsupported, "scheduler", "controller capability required")
 	}
+	return accept(s, ctx, task, s.coordinate(task), n, request)
+}
+func (s *scheduler) acceptRPC(ctx context.Context, _ scheduledNode, c contract.Coordinate, n *node, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
+	effect, err := s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
+	return effect, nil, err
+}
+func (s *scheduler) acceptReadEvidence(ctx context.Context, task scheduledNode, c contract.Coordinate, n *node, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
+	a := task.activation.values
+	effect, err := s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
+		satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
+		return satisfied, err
+	})
+	return effect, nil, err
+}
+func (s *scheduler) acceptFault(ctx context.Context, _ scheduledNode, c contract.Coordinate, n *node, _ proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
+	fault := n.source.Instruction.GetInjectFault()
+	effect, err := s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
+	return effect, nil, err
+}
 
+// An AwaitSlot consumes nothing: it only takes the bridge an opaque Slot is awaited through.
+func (s *scheduler) acceptAwaitSlot(ctx context.Context, _ scheduledNode, _ contract.Coordinate, n *node, _ proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
+	bridge, err := s.slotBridge(ctx, n.source.Instruction.GetAwaitSlot().GetSlotId())
+	return nil, bridge, err
+}
+
+// A typed completion consumes its handle Slot and delivers the payload or failure it carries.
+func (s *scheduler) acceptOperationCompletion(ctx context.Context, _ scheduledNode, c contract.Coordinate, n *node, _ proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
+	completion := n.source.Instruction.GetNexusOperationCompletion()
+	bridge, err := s.slotBridge(ctx, completion.GetHandleSlotId())
+	if err != nil {
+		return nil, bridge, err
+	}
+	handle, err := bridge.Consume(ctx, completion.GetHandleSlotId())
+	if err == nil && isNil(handle) {
+		err = invalid(ir.Malformed, "bridge", "nil opaque handle")
+	}
+	if err != nil {
+		return nil, bridge, err
+	}
+	effect, err := s.session.InvokeHandle(ctx, c, handle, carriedCompletion(completion))
 	return effect, bridge, err
+}
+
+// slotBridge is the Session's bridge for an opaque Slot; a value Slot needs none.
+func (s *scheduler) slotBridge(ctx context.Context, slot string) (contract.HandleBridge, error) {
+	if !s.values.program.slots[slot].Opaque() {
+		return nil, nil
+	}
+	bridge, err := s.session.Bridge(ctx)
+	if err == nil && isNil(bridge) {
+		err = invalid(ir.Malformed, "bridge", "nil bridge")
+	}
+	return bridge, err
 }
 func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect contract.EffectHandle, bridge contract.HandleBridge) (contract.EffectResult, error) {
 	a := task.activation.values
