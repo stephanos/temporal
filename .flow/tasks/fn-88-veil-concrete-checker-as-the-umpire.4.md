@@ -40,9 +40,29 @@ Lower `CheckedPropertyClause` to bounded three-valued monitors for the seven ver
 - [ ] Defer mode: closed as not applicable citing the R1 receipt identity, nothing added
 
 ## Done summary
-TBD
+Added `Umpire.Search.Product.Monitor`: it lowers the seven version-one clause kinds to bounded three-valued monitors. Each monitor's state and its closed and partial answers are read off the evaluator. The kinds are `stateInvariant`, `transitionContract`, `identityRelation`, `inputOutput`, `ordered`, `eventuallyWithin` and `neverWithin`; the countdown kinds use `steps` or `actions` Limits. The monitors see the same view the evaluator does: capability-admitted values, state fields admitted with their state, and prior-state occurrences one position back when counting steps. Everything else returns a typed `MonitorUnsupported` naming the Property, the clause and its kind: `branches`, the guarded kinds, correlated clauses, and `logicalTime` (or search/plans) Limits. `QueryMonitors` combines the clause answers per Property in the reference order and exposes fired-clause bits. `MonitorFamily.ofQuery` and `MonitoredProduct.build`/`answers` plug them into `Umpire.Search.Product`.
 
+R6 evidence is testing for every kind (`MonitorKind.trustBasis`). The evaluator's clause semantics are private to `Evaluate.lean`/`Check.lean`, which are outside this task's Touches, so a kernel proof could not unfold them. `Umpire/Search/Tests/Monitor.lean` (registered in `Tests.lean`) compares answers under both endings, and the fired bits, with `evaluatePropertyEndpoint`:
+- over 682 synthetic traces (every trace of up to four steps, from two initial states), for a 124-Property table covering every kind, field, unit and bounds 0 to 2;
+- over every trace within and past the Limits of the Switch, Search-fixture and parameterized Models, with clause tables generated from their values;
+- through `MonitoredProduct` over the Switch Queries' own Property.
+
+Answer counts per kind are pinned so the comparison is not vacuous. A deliberately wrong `eventuallyWithin` monitor was caught by four guards and then reverted. `MonitorProofs.lean` proves that closed answers are never `unresolved`, that budgets stay within the clause Limit at a root and across every step, and that untriggered clauses never fire. Axioms are pinned (propext, Quot.sound, Classical.choice only).
+
+Deviations: the step helpers are public under `Monitor.` so the proofs module can unfold them. `Product.lean` disables `linter.extra.dupNamespace`: fn-88.3's `Umpire.Search.Product.Product` tripped it under `make lint-model`, and renaming it would touch `Tests/Product.lean`, which is outside this task's Touches.
+
+Follow-ups (reviewer P3s, not blocking):
+- Apply `monitorsAgree`/`modelAgrees` to the Temporal feature Models (Nexus Success and others) alongside fn-88.9's Caller and Pair pins.
+- Share one Property-order helper between `observeCandidate`, `QueryMonitors.lower` and the test oracle.
+- Rename `Product.Product` so the linter suppression can go.
+- `HANDWRITTEN_INVENTORY.md`'s Switch importer count gains `Tests/Monitor.lean`.
+
+`make lint-model` was inconclusive: it failed only on .olean files missing because of concurrent builds and on another session's in-progress `Umpire/Case/Tests/FieldLowering.lean`. The same lint (`lake --wfail lint --builtin-only`) passes on this task's modules.
+
+Defer mode: not applicable (R22 adopt).
+
+stage: impl-review - ran [2026-09-27..2026-09-27] (claude backend; SHIP, re-reviewed SHIP after the lint fix; range 4dfc90dedf..HEAD because other sessions' commits landed after the pre-edit base 928f7deb34)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 964b57e54d2a533603354e98ca426f9ce4fd4865, a94bfa142c92275cf74603853522472e941dbc41
+- Tests: mise exec -- lake build Umpire.Search Umpire.Search.Product Umpire.Search.Tests Umpire.Search.VisibilityTests (green), make umpire-check-goldens (green), mise exec -- lake --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs Umpire.Search.Product.Monitor Umpire.Search.Product.MonitorProofs Umpire.Search.Product Umpire.Search.Tests.Monitor (green), LEAN_NUM_THREADS=1 make lint-model: INCONCLUSIVE - import-graph and Batteries lint passed and every module of this task built warning-free under --wfail; the run failed only on missing .olean files clobbered by concurrent builds and on Umpire/Case/Tests/FieldLowering.lean from another session's in-progress edits, baseline: green (focused lake build of the Search targets, pre-edit)
 - PRs:
