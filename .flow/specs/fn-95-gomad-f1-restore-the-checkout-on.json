@@ -1,11 +1,65 @@
 {
   "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T15:27:40.451790Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-95-gomad-f1-restore-the-checkout-on",
+  "impl_review_rounds": {
+    "fn-95-gomad-f1-restore-the-checkout-on.2": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "88c929682894ecb032eda49c40aa800d8872fbf1f657e121e239ec10ad7a4abe",
+      "backend": "codex",
+      "base_sha": "9a6280ce7d9196fe9f4865696b05b49b234521ce",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "45e6788d97c429f1ab1e94abf54c12085ee32927",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 935,
+      "output_sha256": "430ea4cbb6912c3fd0f857c09e321c3525c1643404ccac70fd4f78a858c6241c",
+      "reservation_id": "d8f62a5fed9949fb908a65cf0b516e03",
+      "round_consumed": true,
+      "scope": "impl:fn-95-gomad-f1-restore-the-checkout-on.2",
+      "superseded_by": null,
+      "task": "fn-95-gomad-f1-restore-the-checkout-on.2",
+      "timestamp": "2026-09-27T16:14:38.376852Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-95-gomad-f1-restore-the-checkout-on.2": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-95-gomad-f1-restore-the-checkout-on.2": 0
+  },
   "spec_path": ".flow/specs/fn-95-gomad-f1-restore-the-checkout-on.md",
   "status": "open",
   "title": "Gomad F1: restore the checkout on darwin/arm64",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:27:40.453923Z"
+  "updated_at": "2026-09-27T16:14:38.379066Z"
 }
