@@ -2,3 +2,6 @@
 go = "1.27.0"
 "github:leanprover/lean4" = "4.33.1"
 protoc = "29.5"
+
+[env]
+_.source = "develop/mise-env.sh"
