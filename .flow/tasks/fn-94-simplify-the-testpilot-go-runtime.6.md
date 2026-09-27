@@ -34,14 +34,17 @@ make lint-code-fast
 ## Acceptance
 - [ ] Bindings are validated only in `BindingFingerprint`; pinned paths unchanged.
 - [ ] One Profile clone per `Prepare`; the caller-mutation test passes.
-- [ ] `execution.Profile` no longer mirrors `ProfileSpec` field by field.
+- [ ] `execution.Profile` keeps only what execution reads, filled by exactly one explicit copy from `ProfileSpec` at the facade boundary in `Prepare` (owner decision 2026-09-27: `ProfileSpec`'s public shape stays, `execution` cannot import the facade, and verification tests build `execution.Profile` directly, so one boundary copy is accepted; no second mirror or re-clone exists).
 - [ ] Corpus and fingerprint golden unchanged; tests and lint pass.
 
 
 ## Done summary
-TBD
+BindingFingerprint is now the only validator of environment bindings. Prepare takes one Profile snapshot, and admission holds its values without re-cloning them. One `sortedByID` helper admits both the binding and the configuration entries. `execution.Profile` drops `EnvironmentFingerprint`, and `PreparedProgram` holds its limits and instruction defaults directly instead of a mirrored Profile snapshot. `Prepare` makes one commented boundary copy into `execution.Profile`, under the amended AC3 (owner decision 2026-09-27). The Profile interface doc now requires Snapshot to return a spec the caller owns.
 
+`TestPrepareHoldsItsOwnProfileClone` failed first against a shallow Snapshot, then passed with the fix. The execution-side binding rejection test went with its checks. The Profile-mutation lines in `TestPrepareSlotDataflowAndImmutableViews` also went, because the facade test now pins ownership. This change also fixes the gofmt/gci misalignment that fn-94.4 left in `prepare.go`.
+
+stage: impl-review - ran [fan-out rid 3c1d3c2e149441c2bcdfe33db88dc05a NEEDS_WORK on the mirror criterion, refunded after a concurrent HEAD move; after the owner amended AC3, fan-out rid c3ce74f9731e4a158e978475fc28cb26: 3/3 draws SHIP, review base 5bc236723d]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d996b7dc53ad9d18b84a28e0b2e468c836134624, cb4b3a34d458d77c0d3547917291f7dd21121df1
+- Tests: baseline: green (go test -race -tags test_dep ./common/testing/testpilot/ ./common/testing/testpilot/contract/... ./common/testing/testpilot/internal/...; temporal/** was mid-edit by fn-94.5), go test -race -tags test_dep ./common/testing/testpilot/... (HEAD d996b7dc53: 11 packages ok), make umpire-check-case-runtime-conformance equivalent in a HEAD export + this diff: both generator modes, diff -ru clean on both testdata trees, generator tests and TestCaseRuntimePublicFacadeConformance ok (Lean binaries reused from model/.lake), make lint-code LINT_CODE_TARGETS='./common/testing/testpilot/ ./common/testing/testpilot/internal/execution/' GOLANGCI_LINT_BASE_REV=951c5516e9: 0 issues; gci list -s standard -s default on the facade and execution: clean, go test -race -tags test_dep ./common/testing/testpilot/ after cb4b3a34d4 (comment-only): ok, make lint-code-fast: not observed green in the shared checkout; another task's uncommitted temporal/worker edits fail typecheck; targeted lint-code on the touched packages: 0 issues
 - PRs:
