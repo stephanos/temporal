@@ -59,7 +59,7 @@
       "success_bytes_limit": 268435456,
       "expectation": {"classification": "qualified"},
       "platform_expectations": {
-        "darwin/arm64": {"classification": "intermittent"},
+        "darwin/arm64": {"classification": "qualified"},
         "linux/amd64": {"classification": "unrepeatable"}
       }
     },
