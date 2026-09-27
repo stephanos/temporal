@@ -133,9 +133,10 @@ variable {LawStatement : Law → Prop} {target : QueryModel LawStatement}
 def scenario (admitted : AdmittedQuery target) : CheckedScenario :=
   admitted.query.behavior
 
-/-- Search the admitted Query through its own view. -/
+/-- Search the admitted Query through its own view on the reference backend. -/
 def search (admitted : AdmittedQuery target) : Except KnownGapError PlanResult :=
-  Umpire.search admitted.query (admitted.view.retarget admitted.targetEq.symm)
+  let view := admitted.view.retarget admitted.targetEq.symm
+  finalizeBackendResult admitted.query view (Backend.reference admitted.query view)
 
 /-- Search the admitted Query and project the checked Artifact intent onto a selected Plan. -/
 def searchWithIntent

@@ -16,14 +16,14 @@ def stepOrderKey
     modelValueOrderKey result.state ++ "\u001e" ++
     String.intercalate "\u001d" (result.facts.map modelValueOrderKey)
 
-/-- A backend exposes a single candidate and continuation per pull; Query owns policy and result
-semantics, while implementations own only incremental enumeration state. -/
+/-- An enumerator exposes a single candidate and continuation per pull; Query owns policy and
+result semantics, while implementations own only incremental enumeration state. -/
 private inductive PlannerPull (State Candidate : Type) where
   | yield (candidate : Candidate) (nextState : State)
   | complete
   deriving BEq, DecidableEq, Repr
 
-private structure PlannerBackend (Input State Candidate : Type) where
+private structure PlannerEnumerator (Input State Candidate : Type) where
   start : Input → State
   pull : Input → State → PlannerPull State Candidate
 
@@ -490,14 +490,61 @@ private structure PurePlannerState where
   stepKernelPulls : Nat := 0
   deriving BEq, DecidableEq, Repr
 
+/-- The search backend that answered a Query: the frozen path-enumerating `reference`, or `veil`,
+Veil's concrete breadth-first checker over the product state space. -/
+inductive SearchBackend where
+  | reference
+  | veil
+  deriving BEq, DecidableEq, Repr
+
+def SearchBackend.name : SearchBackend → String
+  | .reference => "reference"
+  | .veil => "veil"
+
+/-- Why a Query ran on its backend. `default` is the ordinary selection; every other reason names
+the clause kind, Scenario construct, strategy, or Query form that routed the Query to
+`reference`. -/
+inductive BackendReason where
+  | default
+  | unsupportedClause (kind : String)
+  | unsupportedScenario (construct : String)
+  | unsupportedStrategy (strategy : SearchStrategy)
+  | unsupportedForm (form : String)
+  deriving BEq, DecidableEq, Repr
+
+def BackendReason.name : BackendReason → String
+  | .default => "default"
+  | .unsupportedClause kind => "unsupported-clause:" ++ kind
+  | .unsupportedScenario construct => "unsupported-scenario:" ++ construct
+  | .unsupportedStrategy strategy => "unsupported-strategy:" ++ strategy.name
+  | .unsupportedForm form => "unsupported-form:" ++ form
+
+/-- What `Limits.search` counts: candidate paths on `reference`, visited product states on
+`veil`. -/
+inductive SearchUnit where
+  | paths
+  | states
+  deriving BEq, DecidableEq, Repr
+
+def SearchUnit.name : SearchUnit → String
+  | .paths => "paths"
+  | .states => "states"
+
+/-- Search accounting and backend identity. The counters are backend-specific work measures; the
+last four fields say which backend ran, why, what its search bound counts, and, under `veil`,
+the pinned Veil commit. -/
 structure SearchStats where
-  backendPulls : Nat := 0
+  enumeratorPulls : Nat := 0
   generatedCandidates : Nat := 0
   retainedPendingCandidates : Nat := 0
   peakActiveFrontierDepth : Nat := 0
   actionDomainPulls : Nat := 0
   initialKernelPulls : Nat := 0
   stepKernelPulls : Nat := 0
+  searchBackend : SearchBackend := .reference
+  backendReason : BackendReason := .default
+  searchUnit : SearchUnit := .paths
+  veilCommit : Option String := none
   deriving BEq, DecidableEq, Repr
 
 inductive PlanningOutcome where
@@ -621,11 +668,21 @@ private def receiptTrace (trace : Scenario.Trace) : Lean.Json :=
       ("state", receiptValue step.state),
       ("facts", .arr (step.facts.map receiptValue).toArray)]).toArray)]
 
+structure PlanResult where
+  result : PlanningResult
+  artifact : Option Plan
+  instrumentation : SearchStats
+  deriving BEq, DecidableEq, Repr
+
 /-- Canonical endpoint receipt binds independent claims, all Query limits and policies, the
 assurance method, and exact model paths supporting realized trigger coverage. Its `formatVersion`
 names the in-memory projection, not a persisted artifact format: nothing stores these bytes and no
-reader outside this module parses them, so the tag carries no compatibility promise. -/
-def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
+reader outside this module parses them, so the tag carries no compatibility promise. Version 2 adds
+the backend that answered the Query, the reason it was selected, the unit its search bound counts,
+the enumerator pull count, and, only under `veil`, the pinned Veil commit. -/
+def canonicalPlanningReceiptJson (run : PlanResult) : String :=
+  let result := run.result
+  let stats := run.instrumentation
   let validity := result.metadata.validity
   let satisfiability := match validity.satisfiability with
     | .unknown => "unknown" | .nonempty => "nonempty" | .impossible => "impossible"
@@ -635,8 +692,11 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
     | .unknown => "unknown" | .witness => "witness" | .verified => "verified"
     | .counterexample => "counterexample" | .stillPending => "still-pending"
   let limits := result.metadata.completeness.limits
-  Lean.Json.compress <| .mkObj [
-    ("formatVersion", .str "umpire-planning-receipt/v1"),
+  let veilCommit := match stats.veilCommit with
+    | some commit => [("veilCommit", Lean.Json.str commit)]
+    | none => []
+  Lean.Json.compress <| .mkObj <| veilCommit ++ [
+    ("formatVersion", .str "umpire-planning-receipt/v2"),
     ("query", .str validity.queryMetadata),
     ("ending", .str validity.ending.name),
     ("requireFiring", .bool validity.requireFiring),
@@ -660,6 +720,10 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
       ("traces", Lean.toJson result.metadata.explored.traces),
       ("transitions", Lean.toJson result.metadata.explored.transitions),
       ("propertyEvaluations", Lean.toJson result.metadata.explored.propertyEvaluations)]),
+    ("searchBackend", .str stats.searchBackend.name),
+    ("backendReason", .str stats.backendReason.name),
+    ("searchUnit", .str stats.searchUnit.name),
+    ("enumeratorPulls", Lean.toJson stats.enumeratorPulls),
     ("triggers", .arr (validity.triggers.map fun evidence => .mkObj [
       ("trace", receiptTrace evidence.trace),
       ("propertyId", .str evidence.trigger.propertyId.value),
@@ -669,12 +733,6 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
       ("coordinateUnit", .str evidence.trigger.occurrence.coordinateUnit.name),
       ("coordinate", Lean.toJson evidence.trigger.occurrence.coordinate),
       ("value", evidence.trigger.occurrence.value.map receiptValue |>.getD .null)]).toArray)]
-
-structure PlanResult where
-  result : PlanningResult
-  artifact : Option Plan
-  instrumentation : SearchStats
-  deriving BEq, DecidableEq, Repr
 
 /-- Typed failures that can reject a complete planning and Artifact-intent request. -/
 inductive PlanningRequestError where
@@ -924,26 +982,40 @@ private partial def pullCandidate
               activePath := { cursor with currentAction := none, nextOutcome := 0 } :: parents
             }
 
-private def pureSearchBackend
+private def pureSearchEnumerator
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target) :
-    PlannerBackend Unit PurePlannerState Scenario.Trace := {
+    PlannerEnumerator Unit PurePlannerState Scenario.Trace := {
   start := fun _ => {}
   pull := fun _ => pullCandidate query kernel
 }
 
-private structure PlanningObservations where
+/-- Everything a search backend observed about one Query, which is all `finalizeBackendResult`
+needs to build the Plan and receipt: whether any trace was admitted (`nonempty`), whether any
+admitted endpoint was `unresolved`, the requested and realized triggers, the first violating trace,
+the `ExploredCounts` behind the Plan's `explored` and `boundWasHit`, and the backend's
+`SearchStats`. -/
+structure PlanningObservations where
   nonempty : Bool := false
   unresolved : Bool := false
   required : List (DefinitionId × DefinitionId) := []
   triggers : List PlanningTriggerEvidence := []
   counterexample : Option Scenario.Trace := none
+  explored : ExploredCounts := {}
+  instrumentation : SearchStats := {}
+  deriving BEq, DecidableEq, Repr
 
 private def coverageMet
     (query : CheckedQuery LawStatement) (state : PlanningObservations) : Bool :=
   !query.requireFiring || state.required.all fun (propertyId, clauseId) =>
     state.triggers.any fun evidence =>
       evidence.trigger.propertyId == propertyId && evidence.trigger.clauseId == clauseId
+
+/-- The selection reason of a trace that stops the search, fixed by the Query form. -/
+private def stopReason : Query.Form → SelectionReason
+  | .verify _ | .findViolation _ => .violatingCounterexample
+  | .find _ => .satisfyingWitness
+  | .pick _ => .behaviorSelection
 
 private def observeCandidate
     (query : CheckedQuery LawStatement)
@@ -975,17 +1047,12 @@ private def observeCandidate
     required := (state.required ++ current.required).eraseDups
     triggers := state.triggers ++ current.triggers
     counterexample := if violated && state.counterexample.isNone then some candidate else state.counterexample }
-  match query.form with
-  | .verify _ => pure (.continue next)
-  | .findViolation _ =>
-      if violated then pure (.stop next candidate .violatingCounterexample) else pure (.continue next)
-  | .find _ =>
-      if !violated && !unresolved && coverageMet query current then
-        pure (.stop next candidate .satisfyingWitness)
-      else pure (.continue next)
-  | .pick _ =>
-      if coverageMet query current then pure (.stop next candidate .behaviorSelection)
-      else pure (.continue next)
+  let stops := match query.form with
+    | .verify _ => false
+    | .findViolation _ => violated
+    | .find _ => !violated && !unresolved && coverageMet query current
+    | .pick _ => coverageMet query current
+  if stops then pure (.stop next candidate (stopReason query.form)) else pure (.continue next)
 
 private def noteCandidate
     (candidate : Scenario.Trace)
@@ -1008,7 +1075,7 @@ private def notePull
     (next : PurePlannerState)
     (instrumentation : SearchStats) : SearchStats := {
   instrumentation with
-  backendPulls := instrumentation.backendPulls + 1
+  enumeratorPulls := instrumentation.enumeratorPulls + 1
   generatedCandidates := instrumentation.generatedCandidates + 1
   retainedPendingCandidates := 0
   peakActiveFrontierDepth := Nat.max instrumentation.peakActiveFrontierDepth
@@ -1055,7 +1122,7 @@ private def traversalResult
 
 private def traverseLoop
     (query : CheckedQuery LawStatement)
-    (backend : PlannerBackend Unit PurePlannerState Scenario.Trace)
+    (enumerator : PlannerEnumerator Unit PurePlannerState Scenario.Trace)
     (cursor : PurePlannerState)
     (consumerState : State)
     (visit : State → Scenario.Trace → Except QueryError (BoundedTraversalStep State))
@@ -1065,15 +1132,15 @@ private def traverseLoop
     (instrumentation : SearchStats) : BoundedTraversalResult State :=
   match remaining with
   | 0 =>
-      match backend.pull () cursor with
+      match enumerator.pull () cursor with
       | .complete => traversalResult query consumerState (.complete behaviorAdmitted) explored
-          { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
+          { instrumentation with enumeratorPulls := instrumentation.enumeratorPulls + 1 }
       | .yield _ _ => traversalResult query consumerState .limitReached explored instrumentation
   | remaining + 1 =>
-      match backend.pull () cursor with
+      match enumerator.pull () cursor with
       | .complete =>
           traversalResult query consumerState (.complete behaviorAdmitted) explored
-            { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
+            { instrumentation with enumeratorPulls := instrumentation.enumeratorPulls + 1 }
       | .yield candidate next =>
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
@@ -1086,14 +1153,16 @@ private def traverseLoop
             | .ok (.stop state trace reason) =>
                 traversalResult query state (.stopped trace reason) explored instrumentation
             | .ok (.continue state) =>
-                traverseLoop query backend next state visit remaining true explored instrumentation
+                traverseLoop query enumerator next state visit remaining true explored
+                  instrumentation
           else
-            traverseLoop query backend next consumerState visit remaining behaviorAdmitted explored
-              instrumentation
+            traverseLoop query enumerator next consumerState visit remaining behaviorAdmitted
+              explored instrumentation
 termination_by remaining
 
 /-- Fold admitted traces through the planner's bounded candidate stream. The private cursor and
-backend stay hidden; candidate order, Behavior filtering, accounting, and completion are shared. -/
+enumerator stay hidden; candidate order, Behavior filtering, accounting, and completion are
+shared. -/
 def traverseBoundedCandidates
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
@@ -1103,24 +1172,82 @@ def traverseBoundedCandidates
   if query.behavior.isUnsatisfiable then
     traversalResult query initial (.complete false) {} {}
   else
-    let backend := pureSearchBackend query kernel
-    traverseLoop query backend (backend.start ()) initial visit query.limits.search.value false {} {}
+    let enumerator := pureSearchEnumerator query kernel
+    traverseLoop query enumerator (enumerator.start ()) initial visit query.limits.search.value
+      false {} {}
 
-/-- Search a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
-def search
-    (query : CheckedQuery LawStatement)
-    (kernel : SearchView query.target) : Except KnownGapError PlanResult := do
-  let knownGaps ← composeSearchKnownGaps query
+/-- How a search backend's run over one Query ended. A backend explores to its own bounds and
+reports what it saw; `finalizeBackendResult` owns every claim built from that.
+
+- `violationFound`: the backend stopped on `trace`, the trace the Query form asks for (a
+  violation under `verify` and `findViolation`, a witness under `find`, a selection under `pick`).
+- `complete`: every state within the Query's depth bound was explored. Exhausting the depth bound
+  is `complete`, not a Limit hit.
+- `stateBound`: the backend stopped at `Limits.search` after `visited` units of its search unit.
+- `invalid`: evaluating a Property on an explored trace failed with `error`.
+
+There is no cancellation: a backend is a pure total function. -/
+inductive BackendResult where
+  | violationFound (trace : Scenario.Trace) (observations : PlanningObservations)
+  | complete (observations : PlanningObservations)
+  | stateBound (visited : Nat) (observations : PlanningObservations)
+  | invalid (error : QueryError) (observations : PlanningObservations)
+  deriving BEq, DecidableEq, Repr
+
+def BackendResult.observations : BackendResult → PlanningObservations
+  | .violationFound _ observations
+  | .complete observations
+  | .stateBound _ observations
+  | .invalid _ observations => observations
+
+/-- A search backend: it searches a checked Query through that Query's search view, reading its
+Limits and strategy from the Query. -/
+abbrev Backend (LawStatement : Law → Prop) :=
+  (query : CheckedQuery LawStatement) → SearchView query.target → BackendResult
+
+/-- The frozen reference backend: iterative-deepening enumeration of candidate paths through the
+private traversal, observing every admitted trace. Under `verify` it explores past a violation and
+reports it through `PlanningObservations.counterexample`. -/
+def Backend.reference : Backend LawStatement := fun query kernel =>
   let traversed := traverseBoundedCandidates query kernel {} (observeCandidate query)
-  let state := traversed.state
-  let searchComplete := match traversed.termination with
+  let observations := { traversed.state with
+    explored := traversed.metadata.explored
+    instrumentation := traversed.instrumentation }
+  match traversed.termination with
+  | .stopped trace _ => .violationFound trace observations
+  | .complete _ => .complete observations
+  | .limitReached => .stateBound observations.explored.traces observations
+  | .invalid error => .invalid error observations
+
+/-- The traversal termination a backend result stands for. A `complete` run admitted a behavior
+trace exactly when it observed one. -/
+private def BackendResult.termination
+    (query : CheckedQuery LawStatement) : BackendResult → BoundedTraversalTermination
+  | .violationFound trace _ => .stopped trace (stopReason query.form)
+  | .complete observations => .complete observations.nonempty
+  | .stateBound _ _ => .limitReached
+  | .invalid error _ => .invalid error
+
+/-- Turn one backend result into the Query's `PlanResult`: compose the Known Gaps, apply the
+planner's claim-strength finalization, turn a `verify` counterexample into the selected trace,
+refine a complete verdict into `still-pending` or `never-triggered` from the observations, and
+record the validity dimensions. Every backend's result goes through this one finalization. -/
+def finalizeBackendResult
+    (query : CheckedQuery LawStatement)
+    (_kernel : SearchView query.target)
+    (backendResult : BackendResult) : Except KnownGapError PlanResult := do
+  let knownGaps ← composeSearchKnownGaps query
+  let state := backendResult.observations
+  let traversed := backendResult.termination query
+  let metadata := traversalMetadata query state.explored traversed
+  let searchComplete := match traversed with
     | .complete _ => query.policy.strategy == .exhaustive && query.completeness.isSome
     | _ => false
   let covered := coverageMet query state
   let termination := match state.counterexample, query.form with
     | some trace, .verify _ => .stopped trace .violatingCounterexample
-    | _, _ => traversed.termination
-  let run := finish query traversed.metadata.explored traversed.instrumentation termination knownGaps
+    | _, _ => traversed
+  let run := finish query state.explored state.instrumentation termination knownGaps
   let outcome := match run.result.outcome with
     | .verified | .noneFound =>
         if state.unresolved then .stillPending
@@ -1139,15 +1266,21 @@ def search
       if searchComplete then .unexercised else .unknown
     answer
     searchComplete
-    searchTermination := traversed.termination.name
+    searchTermination := traversed.name
     requestedTriggers := state.required
     ending := query.ending
     requireFiring := query.requireFiring
     queryMetadata := query.canonicalMetadata
     triggers := state.triggers
   }
-  let result := PlanningResult.mk outcome { traversed.metadata with validity }
+  let result := PlanningResult.mk outcome { metadata with validity }
   pure { run with result }
+
+/-- Search a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
+def search
+    (query : CheckedQuery LawStatement)
+    (kernel : SearchView query.target) : Except KnownGapError PlanResult :=
+  finalizeBackendResult query kernel (Backend.reference query kernel)
 
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.

@@ -78,7 +78,42 @@ private def endpointRun
 
 #guard (endpointRun .final true
   (.verify (temporalProperty true true))).map (fun run =>
-    (canonicalPlanningReceiptJson run.result).contains "checked-finite-enumeration/v1") == some true
+    (canonicalPlanningReceiptJson run).contains "checked-finite-enumeration/v1") == some true
+
+/-! Receipt v2 names the backend that answered, why, the unit its search bound counts, and the
+enumerator pull count; the Veil commit appears only when a run carries one. -/
+private def receiptHas (run : PlanResult) (fragments : List String) : Bool :=
+  fragments.all fun fragment => (canonicalPlanningReceiptJson run).contains fragment
+
+#guard (endpointRun .final true (.verify (temporalProperty true true))).map (fun run =>
+    (receiptHas run ["\"formatVersion\":\"umpire-planning-receipt/v2\"",
+      "\"searchBackend\":\"reference\"", "\"backendReason\":\"default\"",
+      "\"searchUnit\":\"paths\"",
+      s!"\"enumeratorPulls\":{run.instrumentation.enumeratorPulls}"],
+      (canonicalPlanningReceiptJson run).contains "veilCommit")) == some (true, false)
+
+#guard (endpointRun .final true (.verify (temporalProperty true true))).map (fun run =>
+    receiptHas { run with instrumentation := { run.instrumentation with
+        searchBackend := .veil, searchUnit := .states, veilCommit := some "0123abc" } }
+      ["\"searchBackend\":\"veil\"", "\"searchUnit\":\"states\"",
+        "\"veilCommit\":\"0123abc\""]) == some true
+
+/-! The reference backend reports a stopping trace, an exhausted depth bound, and the search bound
+as the three `BackendResult` endings. -/
+private def referenceEnding (form : Query.Form) (budget : Nat) : String :=
+  match Backend.reference (fixtureQuery 0 form .exhaustive budget) (incrementalKernel 0) with
+  | .violationFound _ _ => "violationFound"
+  | .complete _ => "complete"
+  | .stateBound visited _ => s!"stateBound {visited}"
+  | .invalid _ _ => "invalid"
+
+#guard [referenceEnding (.verify property) 10, referenceEnding (.find property) 10,
+    referenceEnding (.verify property) 0] == ["complete", "violationFound", "stateBound 0"]
+
+#guard [BackendReason.default, .unsupportedClause "branches", .unsupportedScenario "ordering",
+    .unsupportedStrategy .seeded, .unsupportedForm "verify"].map BackendReason.name ==
+  ["default", "unsupported-clause:branches", "unsupported-scenario:ordering",
+    "unsupported-strategy:seeded", "unsupported-form:verify"]
 
 #print axioms evaluatePropertyEndpoint_closed
 #print axioms PlanningOutcome.constructorClassifiers_exactlyOne
