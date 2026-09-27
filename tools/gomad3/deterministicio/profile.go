@@ -123,7 +123,7 @@ var deterministicProfile = mustSpec(profileDefinition{
 func mustSpec(definition profileDefinition) Spec {
 	entries := []inventoryEntry{
 		{Boundary: "crypto/rand", Disposition: "in-memory", Operations: []string{"Reader.Read", "Read"}},
-		{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir"}},
+		{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir", "map"}},
 		{Boundary: "io-transcript", Disposition: "shared-memory", Operations: []string{"expected-replay", "record", "terminal"}},
 	}
 	entries = append(entries, definition.adapters.inventory()...)

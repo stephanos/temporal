@@ -150,8 +150,14 @@ func processHandleReadDir(handle *Handle, count int) ([]Entry, error) {
 	return entries, err
 }
 
-func processHandleMap(handle *Handle, length uint64) (*Mapping, error) {
-	response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleMap, 0, 0, length)
+func processHandleMap(handle *Handle, offset int64, length uint64, writable bool) (*Mapping, error) {
+	// A process volume serves mapping bytes by copy over the model exchange,
+	// so a store through the copy cannot reach the volume; writable mappings
+	// stay unsupported there instead of silently detaching.
+	if writable {
+		return nil, syscall.ENOTSUP
+	}
+	response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleMap, offset, 0, length)
 	if err != nil {
 		return nil, err
 	}

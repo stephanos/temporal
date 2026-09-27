@@ -741,12 +741,17 @@ func gomadHandle(file *File) *gomadfs.Handle {
 
 //go:linkname gomadMapFile
 //go:noinline
-func gomadMapFile(file *File, length uint64) (*gomadfs.Mapping, []byte, error) {
+func gomadMapFile(file *File, offset int64, length uint64, writable bool) (*gomadfs.Mapping, []byte, error) {
 	handle := gomadHandle(file)
 	if handle == nil {
 		return nil, nil, syscall.EBADF
 	}
-	mapping, err := handle.Map(length)
+	arguments := append(gomadTwoInt64Arguments(offset, int64(length)), byte(0))
+	if writable {
+		arguments[len(arguments)-1] = 1
+	}
+	mapping, err := handle.Map(offset, length, writable)
+	gomadRecordFile("os.mmap", handle.Path(), arguments, nil, length, err)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -105,7 +105,7 @@ test-host: toolchain
 		./deterministicio/... ./world/... ./simulation/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
 
 overlay-test: toolchain
-	.toolchain/bin/go test -tags test_dep internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
+	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
 
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
