@@ -28,7 +28,7 @@ milestone's status here.
 | --- | --- | --- |
 | F0 | none | done |
 | F1 | `fn-95-gomad-f1-restore-the-checkout-on` | done |
-| F2 | `fn-96-gomad-f2-close-the-go127-port-on` | open on darwin/arm64 |
+| F2 | `fn-96-gomad-f2-close-the-go127-port-on` | done (the DTrace clock audit needs a root run) |
 | F3 | `fn-97-gomad-f3-qualify-the-frontend` | open |
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | open on darwin/arm64 |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
@@ -354,6 +354,63 @@ go1.27.1-v1 boundary diff, all of which need the darwin/arm64 runner; and the Te
 acceptance, which the adapter re-pin (F1 status) has since unblocked but which still needs the
 darwin/arm64 run.
 
+Done on darwin/arm64 on 2026-09-27. `tools/gomad3/.toolchain/bin/go version` reports go1.27.1
+darwin/arm64 and `validate-toolchain` passes. `make -C tools/gomad3 upgrade-dossier` against the
+go1.26.4 baseline `75f4d101c5` passes every gate except `host-clock-escape`, which needs root:
+manifest-validation, toolchain-and-compiler, host-world-and-probes, builder, runtime, and
+disabled-upstream pass, the retained gomad3-core corpus is 5/5 supported with exact replay, and
+the dossier stays `qualified=false` only for the clock audit. The first run's clock-audit gate
+failed for a different reason: the `testdata/clock_audit` test program was lost in the gomadv3
+rename (the root `.gitignore` ignores `testdata/`) and the script looked for `clock_audit.d`
+under `scripts/` instead of the module root; commit `68d36aadfe` restores both. The boundary
+diff from go1.26.4-v2 to go1.27.1-v1 (0 added, 0 removed, 131 changed) was reviewed entry by
+entry and approved by rerunning with the digest
+`sha256:86f18fc8cda31fe234d345f70384e8d5ae94e9cbb883beb5f8399e73f6d4798f`, which is the value
+the `GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256` repository variable needs; setting it needs a repo
+admin and is not done. The reviewed entries:
+
+- **Manifest.** `go_version` moved from go1.26.4 to go1.27.1 and `manifest_version` from
+  go1.26.4-v2 to go1.27.1-v1; `hook_policies`, `reviewed_candidates`, and `platforms` are
+  unchanged, and the linux/amd64 `os.Pipe` override only moved within its entry, which
+  canonical JSON ignores.
+- **`os.(*File).Chdir`.** Its declaration changed because upstream logs `Getwd()` through
+  `testlog.Logger()` after a successful `Fchdir`. The entry is modeled, so the hook replaces the
+  body and the testlog record never runs under the model.
+- **`net.(*Resolver).LookupSRV`.** Only a doc comment on the returned cname changed; the body is
+  identical.
+- **128 package-hash-only entries.** 59 in `os`, 68 in `net`, and `os/signal.Stop`, whose own
+  body hashes identically. The upstream changes behind the new package hashes (`dirFS.ReadLink`'s
+  error path, the `ReadFile` doc comment, darwin `readdir`'s EBADF skip, `root_*.go`, the lazy
+  `signal.Notify` handler, `signalError.Is`) all lie outside the intercepted declarations.
+  `os/user` is byte-identical upstream.
+
+The DTrace clock audit did not run: the session had no non-interactive root (`sudo -n true`
+asks for a password). `make -C tools/gomad3 clock-audit` passes its generator and validation
+checks, finds the toolchain ready, and stops with exit 2 at `gomad3 clock audit requires root
+DTrace privileges`, so root is the only thing missing; `sudo make -C tools/gomad3 clock-audit`
+completes it.
+
+`make gomad3-qualification` reproduces the Temporal corpus with expectations met: 5 supported
+and 11 `unsupported_target` tier 2 workloads with the same first-blocker paths as the manifest
+(temporal-cache-concurrent's darwin blocker is `xxhash_arm64.s`), both tier 3 workloads
+`nondeterministic` inside their `intermittent` expectations, and 0 infrastructure errors over
+18/18 completed. Three defects stood in the way, all fixed in commit `a8777f5d73`.
+`temporal-functional-compute-darwin-arm64` pinned `golang.org/x/crypto` v0.54.0 while the
+module is at v0.55.0, so the pack never activated; it is refreshed through discover, review, and
+generate (review `sha256:f17760eeb6fa02c315586cf99923c0f55aa3bf92f75f8508728e61fd7b32614f`,
+only the module pin moved). The new `temporal-functional-tests-darwin-arm64` pack (review
+`sha256:b009df6c9380eeb9766b3bf7144df7d6477018ee879ae8586ed2a2742b841ce6`) admits the
+`syscall` and `golang.org/x/sys/unix` imports of the Prometheus client's darwin process
+collector, the counterpart of the linux procfs admission, and closes the `./tests` closure on
+darwin (see F4's status); both darwin packs pass `compatibility-pack-qualification`. And a replay
+whose choice tape replays exactly while a stream digest diverges was rejected as invalid, so the
+child `gomad qualify` exited 3 and the set counted an infrastructure error; it is now classified
+`replay_divergence` and no longer projected as exact seed replay. The frontend probe's darwin/arm64
+expectation changed from `qualified` to `intermittent` on the observed darwin runs: seed 17
+qualified with exact choice replay in one run, and both seeds were `nondeterministic` (a
+`choice_profile` or stderr divergence) in others. The darwin CI assertion now also pins the
+platform, `unsupported == 11`, and `supported + failed == 7`.
+
 **Constraints.**
 
 - The patch applies with zero fuzz. A hunk that needs fuzz is rewritten.
@@ -600,13 +657,11 @@ four steps, each measured with the same command:
   `compatibility-pack-qualification` qualifies all three linux requests.
 - **Profile identity.** New adapters change the deterministic I/O inventory, so the profile
   implementation digest moved and `modernc-libc-xsys-v047-linux-amd64` was regenerated
-  through the same review flow. The darwin/arm64 packs already pinned an older profile digest
-  (`9002aafa…`, from before the gRPC and x/net adapters) and cannot be regenerated from a
-  linux host, because discovery reviews the host platform; they need one `discover`, `review`,
-  `generate` pass on a darwin machine. The darwin prepared source-set pins of the three new
-  adapters were computed with `GOOS=darwin GOARCH=arm64 go list` over the rewritten modules,
-  not observed by a darwin review, so the first darwin run either confirms them or reports the
-  exact digest to record.
+  through the same review flow. The darwin/arm64 packs could not be regenerated from a linux
+  host, because discovery reviews the host platform; on 2026-09-27 F1's darwin run regenerated
+  the libc packs and F2's refreshed the compute pack. The darwin prepared source-set pins of
+  the three new adapters were computed with `GOOS=darwin GOARCH=arm64 go list` over the
+  rewritten modules; F2's darwin run analyzed the closure with them unchanged.
 
 The remaining acceptance items, measured on linux/amd64:
 
@@ -632,12 +687,18 @@ The remaining acceptance items, measured on linux/amd64:
   87k choice records, 8.4 MiB choice tape), the other times out a test at the 90 s virtual
   deadline, so the run classifies `nondeterministic`. The suite's `choice_bytes` of 8 MiB
   overflows (`choice_trace_overflow`); 64 MiB is enough. That is the F5 starting point, and the
-  F3 repeatability gap is the same one. The manifest entry is unchanged for the darwin reason
-  above; the linux CI job asserts the closed closure directly instead.
+  F3 repeatability gap is the same one. The manifest entry is unchanged; the linux CI job
+  asserts the closed closure directly instead.
 
 With the new adapters in place the core set still qualifies 5/5 with expectations met, and the
 frontend probe under guarded mode still lands inside its `unrepeatable` expectation
 (`replay_divergence` on this run).
+
+On darwin/arm64 the `./tests` closure is closed at commit `a8777f5d73` (F2's darwin run): with
+the `gomad` tag, `gomad analyze --capability-mode=closure go-test ./tests` reports `supported`
+with zero blockers. The new `temporal-functional-tests-darwin-arm64` pack admits the
+Prometheus client's darwin process-collector `syscall` and `x/sys/unix` imports, and both darwin
+packs pass `compatibility-pack-qualification`.
 
 **Constraints.**
 
