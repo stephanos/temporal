@@ -5,7 +5,6 @@ package tests
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,6 +17,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/dynamicconfig"
+	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/tests/testcore"
 	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
@@ -91,17 +91,15 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 			"the Nexus endpoint %s umpire-run created was not deleted on exit", endpointName)
 	})
 
-	// The delete renames the namespace to `<name>-deleted-<id>` and reclaims it asynchronously, so its
-	// original name answers not-found only eventually.
+	// The delete returns once the namespace is renamed to `<name>-deleted-<id>`; only reclaiming it
+	// runs on afterwards. The bounded wait keeps a slow rename a named failure, not a hang.
 	signed("namespace deleted", func() {
 		require.NotContains(t, output, "delete namespace", process)
-		require.Eventually(t, func() bool {
-			describeCtx, cancelDescribe := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancelDescribe()
-			_, err := env.FrontendClient().DescribeNamespace(describeCtx,
+		await.Requiref(t.Context(), t, func(t *await.T) {
+			_, err := env.FrontendClient().DescribeNamespace(t.Context(),
 				&workflowservice.DescribeNamespaceRequest{Namespace: namespaceName})
-			_, notFound := errors.AsType[*serviceerror.NamespaceNotFound](err)
-			return notFound
+			var notFound *serviceerror.NamespaceNotFound
+			require.ErrorAs(t, err, &notFound)
 		}, 30*time.Second, 100*time.Millisecond,
 			"the namespace %s umpire-run created was not deleted on exit", namespaceName)
 	})
