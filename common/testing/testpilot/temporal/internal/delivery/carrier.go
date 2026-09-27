@@ -27,6 +27,10 @@ type WorkflowDelivery struct {
 	TaskQueue, TemporalRunID            string
 }
 
+func (d WorkflowDelivery) Binding() WorkflowBinding {
+	return WorkflowBinding{Namespace: d.Namespace, WorkflowID: d.WorkflowID, WorkflowType: d.WorkflowType, TaskQueue: d.TaskQueue}
+}
+
 type NexusDelivery struct {
 	Header    nexus.Header
 	RequestID string
@@ -34,11 +38,6 @@ type NexusDelivery struct {
 
 type NexusDispatch struct {
 	header nexus.Header
-}
-
-type startRequestFields struct {
-	namespace, workflowID, workflowType, taskQueue string
-	header                                         protoreflect.Message
 }
 
 func (d NexusDispatch) Header() nexus.Header { return maps.Clone(d.header) }
@@ -53,14 +52,14 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 	if primitive.NilValue(method) || primitive.NilValue(request) || maximumBytes <= 0 || method.IsStreamingClient() || method.IsStreamingServer() || primitive.MethodPath(method) != primitive.StartWorkflowPath || request.ProtoReflect().Descriptor() != method.Input() {
 		return nil, ErrInvalid
 	}
-	fields, err := startFields(request.ProtoReflect())
+	binding, header, err := StartBinding(request.ProtoReflect())
 	if err != nil {
 		return nil, err
 	}
-	if hasReservedWorkflowHeader(fields.header) {
+	if hasReservedWorkflowHeader(header) {
 		return nil, ErrReservedHeader
 	}
-	route, err := l.prepareWorkflowRoute(ctx, *carrier, role, method, fields)
+	route, err := l.prepareWorkflowRoute(ctx, *carrier, role, method, binding)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 	return prepared, nil
 }
 
-func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role string, method protoreflect.MethodDescriptor, fields startRequestFields) (route, error) {
+func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role string, method protoreflect.MethodDescriptor, binding WorkflowBinding) (route, error) {
 	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return route{}, err
 	}
@@ -96,7 +95,7 @@ func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role 
 		l.mu.Unlock()
 		return route{}, ErrRouteCrossed
 	}
-	if fields.namespace != state.binding.Namespace || fields.workflowID != state.binding.WorkflowID || fields.workflowType != state.binding.WorkflowType || fields.taskQueue != state.binding.TaskQueue {
+	if binding != state.binding {
 		l.mu.Unlock()
 		return route{}, ErrBindingMismatch
 	}
@@ -114,7 +113,7 @@ func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (
 	if err != nil {
 		return Activation{}, err
 	}
-	providedBinding := binding{Namespace: delivery.Namespace, WorkflowID: delivery.WorkflowID, WorkflowType: delivery.WorkflowType, TaskQueue: delivery.TaskQueue}
+	providedBinding := delivery.Binding()
 	if !validBinding(providedBinding) || !validRouteText(delivery.TemporalRunID) {
 		return Activation{}, ErrInvalid
 	}
@@ -157,30 +156,7 @@ func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (
 		l.mu.Unlock()
 		return activation, nil
 	}
-	coordinate, consumeErr := state.retained.handle.Consume(ctx)
-	if consumeErr != nil || ctx.Err() != nil {
-		state.authority = canceled
-		if ctx.Err() != nil {
-			l.mu.Unlock()
-			return Activation{}, ctx.Err()
-		}
-		pending := l.pendingCancellationLocked([]*routeState{state})
-		l.mu.Unlock()
-		_ = l.cancel(ctx, pending)
-		return Activation{}, ErrLifecycle
-	}
-	if !validActivationCoordinate(coordinate, l.config.RunID, state.identity.EntrypointID) {
-		state.authority = canceled
-		pending := l.pendingCancellationLocked([]*routeState{state})
-		l.mu.Unlock()
-		_ = l.cancel(ctx, pending)
-		return Activation{}, ErrRouteConflict
-	}
-	state.authority = admitted
-	state.activation = activationData{coordinate: coordinate, temporalRunID: delivery.TemporalRunID}
-	activation := Activation{ledger: l, state: state, data: state.activation}
-	l.mu.Unlock()
-	return activation, nil
+	return l.consumeLocked(ctx, state, activationData{temporalRunID: delivery.TemporalRunID})
 }
 
 func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceInstructionID string) (NexusDispatch, error) {
@@ -279,6 +255,12 @@ func (l *Ledger) AdmitNexus(ctx context.Context, delivery NexusDelivery) (Activa
 		l.mu.Unlock()
 		return Activation{}, ErrRouteCrossed
 	}
+	return l.consumeLocked(ctx, state, activationData{temporalRunID: state.bundle.workflow.activation.temporalRunID, requestID: delivery.RequestID})
+}
+
+// consumeLocked consumes the route's reservation and admits the route with the given activation
+// data. It releases l.mu.
+func (l *Ledger) consumeLocked(ctx context.Context, state *routeState, data activationData) (Activation, error) {
 	coordinate, consumeErr := state.retained.handle.Consume(ctx)
 	if consumeErr != nil || ctx.Err() != nil {
 		state.authority = canceled
@@ -298,9 +280,10 @@ func (l *Ledger) AdmitNexus(ctx context.Context, delivery NexusDelivery) (Activa
 		_ = l.cancel(ctx, pending)
 		return Activation{}, ErrRouteConflict
 	}
+	data.coordinate = coordinate
 	state.authority = admitted
-	state.activation = activationData{coordinate: coordinate, temporalRunID: state.bundle.workflow.activation.temporalRunID, requestID: delivery.RequestID}
-	activation := Activation{ledger: l, state: state, data: state.activation}
+	state.activation = data
+	activation := Activation{ledger: l, state: state, data: data}
 	l.mu.Unlock()
 	return activation, nil
 }
@@ -314,7 +297,9 @@ func (l *Ledger) nexusRoute(state *routeState) route {
 	return route{Version: routeVersion, Kind: nexusRoute, SessionID: l.config.SessionID, RunID: l.config.RunID, Origin: state.bundle.origin, Reservation: state.identity, Binding: state.bundle.binding, WorkflowReservation: workflow.identity.ID, WorkflowEntrypoint: state.source.workflowEntrypoint, WorkflowOrdinal: state.source.workflowOrdinal, WorkflowRunID: workflow.activation.temporalRunID, SourceInstructionID: state.source.sourceInstruction}
 }
 
-func startFields(message protoreflect.Message) (startRequestFields, error) {
+// StartBinding reads the workflow binding a StartWorkflow request names, and the header it carries
+// beside the binding. It reads by descriptor, because requests are dynamic messages.
+func StartBinding(message protoreflect.Message) (WorkflowBinding, protoreflect.Message, error) {
 	fields := message.Descriptor().Fields()
 	namespace := fields.ByName("namespace")
 	workflowID := fields.ByName("workflow_id")
@@ -322,23 +307,24 @@ func startFields(message protoreflect.Message) (startRequestFields, error) {
 	taskQueue := fields.ByName("task_queue")
 	header := fields.ByName("header")
 	if namespace == nil || workflowID == nil || workflowType == nil || taskQueue == nil || header == nil || !message.Has(workflowType) || !message.Has(taskQueue) {
-		return startRequestFields{}, ErrInvalid
+		return WorkflowBinding{}, nil, ErrInvalid
 	}
 	typeName := workflowType.Message().Fields().ByName("name")
 	queueName := taskQueue.Message().Fields().ByName("name")
 	if typeName == nil || queueName == nil {
-		return startRequestFields{}, ErrInvalid
+		return WorkflowBinding{}, nil, ErrInvalid
 	}
-	result := startRequestFields{
-		namespace:    message.Get(namespace).String(),
-		workflowID:   message.Get(workflowID).String(),
-		workflowType: message.Get(workflowType).Message().Get(typeName).String(),
-		taskQueue:    message.Get(taskQueue).Message().Get(queueName).String(),
+	binding := WorkflowBinding{
+		Namespace:    message.Get(namespace).String(),
+		WorkflowID:   message.Get(workflowID).String(),
+		WorkflowType: message.Get(workflowType).Message().Get(typeName).String(),
+		TaskQueue:    message.Get(taskQueue).Message().Get(queueName).String(),
 	}
+	var headerMessage protoreflect.Message
 	if message.Has(header) {
-		result.header = message.Get(header).Message()
+		headerMessage = message.Get(header).Message()
 	}
-	return result, nil
+	return binding, headerMessage, nil
 }
 
 func hasReservedWorkflowHeader(header protoreflect.Message) bool {

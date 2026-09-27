@@ -33,10 +33,6 @@ type Config struct {
 	Limits           Limits
 }
 
-type WorkflowBinding struct {
-	Namespace, WorkflowID, WorkflowType, TaskQueue string
-}
-
 type Ledger struct {
 	mu            primitive.Mutex
 	config        Config
@@ -63,7 +59,7 @@ type bundleState struct {
 	id              uint64
 	origin          testpilot.Coordinate
 	plan            testpilot.ReservationCarrierPlan
-	binding         binding
+	binding         WorkflowBinding
 	workflow        *routeState
 	nexus           map[sourceKey]*routeState
 	routes          []*routeState
@@ -205,7 +201,7 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
-	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, binding(workflowBinding), handles, l.config.Limits)
+	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, workflowBinding, handles, l.config.Limits)
 	if err != nil {
 		return cleanup, err
 	}
@@ -234,7 +230,7 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 		proxies = append(proxies, proxy)
 	}
 	l.nextBundle++
-	state := &bundleState{id: l.nextBundle, origin: origin, plan: clonePlan(plan), binding: binding(workflowBinding), nexus: make(map[sourceKey]*routeState), active: len(ordered)}
+	state := &bundleState{id: l.nextBundle, origin: origin, plan: clonePlan(plan), binding: workflowBinding, nexus: make(map[sourceKey]*routeState), active: len(ordered)}
 	byIdentity := make(map[reservationKey]*routeState, len(ordered))
 	for _, proxy := range proxies {
 		identity := proxy.Identity()
@@ -271,7 +267,7 @@ type reservationKey struct {
 	ordinal    int64
 }
 
-func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding binding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
+func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding WorkflowBinding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
 	if origin.RunID != runID || !validCoordinate(origin) || plan.Method != primitive.StartWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
 		return nil, nil, ErrInvalid
 	}

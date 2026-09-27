@@ -26,7 +26,9 @@ const (
 	nexusRoute    routeKind = "nexus"
 )
 
-type binding struct {
+// WorkflowBinding is the physical Temporal workflow a reservation carrier starts. It is the route
+// key, and its JSON tags are the route's wire format.
+type WorkflowBinding struct {
 	Namespace    string `json:"namespace"`
 	WorkflowID   string `json:"workflow_id"`
 	WorkflowType string `json:"workflow_type"`
@@ -40,7 +42,7 @@ type route struct {
 	RunID               string                        `json:"run_id"`
 	Origin              testpilot.Coordinate          `json:"origin"`
 	Reservation         testpilot.ReservationIdentity `json:"reservation"`
-	Binding             binding                       `json:"binding"`
+	Binding             WorkflowBinding               `json:"binding"`
 	WorkflowReservation string                        `json:"workflow_reservation,omitempty"`
 	WorkflowEntrypoint  string                        `json:"workflow_entrypoint,omitempty"`
 	WorkflowOrdinal     int64                         `json:"workflow_ordinal"`
@@ -129,7 +131,7 @@ func validReservation(value testpilot.ReservationIdentity) bool {
 	return validRouteText(value.EntrypointID) && validRouteText(value.ID) && value.Ordinal >= 0
 }
 
-func validBinding(value binding) bool {
+func validBinding(value WorkflowBinding) bool {
 	return validRouteText(value.Namespace) && validRouteText(value.WorkflowID) && validRouteText(value.WorkflowType) && validRouteText(value.TaskQueue)
 }
 

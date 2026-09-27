@@ -76,6 +76,9 @@ func (h *fakeReservation) Drain(ctx context.Context) error {
 }
 func (h *fakeReservation) finish() { h.finishOnce.Do(func() { close(h.done) }) }
 
+// binding keeps the codec tests, the route wire golden among them, compiling unedited.
+type binding = WorkflowBinding
+
 type fixture struct {
 	ledger   *Ledger
 	origin   testpilot.Coordinate

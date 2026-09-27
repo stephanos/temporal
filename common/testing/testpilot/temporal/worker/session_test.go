@@ -85,9 +85,62 @@ func TestAdmittedWorkflowUsesImmutableNexusDispatchAfterStop(t *testing.T) {
 	require.ErrorIs(t, err, delivery.ErrRouteStale)
 }
 
+// Replays of one admission race its completion: every replay shares the Session's admission, even
+// after the ledger has released the parent, and the reservation completes once.
+func TestConcurrentReplayAndCompletionOfOneAdmission(t *testing.T) {
+	prepared := preparedRuntimeFixture(t, replySynchronous)
+	host, definition := runtimeTestDriver(t, prepared)
+	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
+	routed, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
+	require.NoError(t, err)
+
+	const racers = 8
+	failed := errors.New("activation failed")
+	replays := make(chan routedWorkflow, racers)
+	errs := make(chan error, 2*racers)
+	var wg sync.WaitGroup
+	for i := range racers {
+		wg.Go(func() {
+			replay, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
+			errs <- err
+			replays <- replay
+		})
+		wg.Go(func() {
+			var executionErr error
+			if i%2 == 1 {
+				executionErr = failed
+			}
+			if err := session.completeWorkflow(routed.admission, routed.activation, executionErr); !errors.Is(err, executionErr) {
+				errs <- err
+			}
+		})
+	}
+	wg.Wait()
+	close(errs)
+	close(replays)
+	for err := range errs {
+		require.NoError(t, err)
+	}
+	for replay := range replays {
+		require.True(t, replay.replay)
+		require.Same(t, routed.admission, replay.admission)
+		require.Equal(t, routed.activation.Coordinate(), replay.activation.Coordinate())
+	}
+	require.True(t, routed.admission.terminal)
+	raw, err := session.rawReservation(routed.activation.Reservation().ID)
+	require.NoError(t, err)
+	result, err := raw.Wait(t.Context())
+	if err != nil {
+		require.ErrorIs(t, err, failed)
+		require.Equal(t, sdkFailureOutcome(failed).GetStatus(), result.Outcome.GetStatus())
+	} else {
+		require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.GetStatus())
+	}
+}
+
 func TestCreateCarrierRejectsForeignPhysicalWorkflowBinding(t *testing.T) {
 	prepared := preparedRuntimeFixture(t, replySynchronous)
-	tests := map[string]WorkflowBinding{
+	tests := map[string]delivery.WorkflowBinding{
 		"namespace": {Namespace: "foreign", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"},
 		"type":      {Namespace: "namespace", WorkflowID: "workflow", WorkflowType: "foreign", TaskQueue: "task-queue"},
 		"queue":     {Namespace: "namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "foreign"},
@@ -306,15 +359,15 @@ func runtimeTestSession(t *testing.T, host *Driver, definition programDefinition
 
 func runtimeTestSessionWithOptions(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, workflowID string, options SessionOptions) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
 	t.Helper()
-	return runtimeTestSessionWithBinding(t, host, definition, prepared, runID, "temporal-"+runID, WorkflowBinding{Namespace: "namespace", WorkflowID: workflowID, WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
+	return runtimeTestSessionWithBinding(t, host, definition, prepared, runID, "temporal-"+runID, delivery.WorkflowBinding{Namespace: "namespace", WorkflowID: workflowID, WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
 }
 
-func runtimeTestSessionWithBinding(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding WorkflowBinding, options SessionOptions) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
+func runtimeTestSessionWithBinding(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding delivery.WorkflowBinding, options SessionOptions) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
 	t.Helper()
 	return runtimeTestSessionWithDisposition(t, host, definition, prepared, runID, temporalRunID, binding, options, delivery.TriggerSucceeded)
 }
 
-func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding WorkflowBinding, options SessionOptions, disposition delivery.TriggerStatus) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
+func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding delivery.WorkflowBinding, options SessionOptions, disposition delivery.TriggerStatus) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
 	t.Helper()
 	session, err := newSession(host, runID, "session-"+runID, definition, options)
 	require.NoError(t, err)

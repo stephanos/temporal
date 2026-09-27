@@ -15,9 +15,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type workflowRouteIndex struct {
-	namespace, workflowID, workflowType, taskQueue string
-}
+// workflowRouteIndex is the key the Driver indexes workflow routes by.
+type workflowRouteIndex = delivery.WorkflowBinding
 
 type nexusRouteIndex struct {
 	name, value string
@@ -28,7 +27,7 @@ type nexusDispatchKey struct {
 }
 
 type workflowAdmissionKey struct {
-	route  workflowRouteIndex
+	route  delivery.WorkflowBinding
 	header string
 }
 
@@ -44,14 +43,6 @@ type nexusAdmission struct {
 	requestID  string
 }
 
-func workflowRouteIndexFor(binding WorkflowBinding) workflowRouteIndex {
-	return workflowRouteIndex{namespace: binding.Namespace, workflowID: binding.WorkflowID, workflowType: binding.WorkflowType, taskQueue: binding.TaskQueue}
-}
-
-func workflowDeliveryIndex(input delivery.WorkflowDelivery) workflowRouteIndex {
-	return workflowRouteIndex{namespace: input.Namespace, workflowID: input.WorkflowID, workflowType: input.WorkflowType, taskQueue: input.TaskQueue}
-}
-
 func workflowAdmissionKeyFor(input delivery.WorkflowDelivery, maximumBytes int64) (workflowAdmissionKey, error) {
 	if input.Header == nil || int64(proto.Size(input.Header)) > maximumBytes {
 		return workflowAdmissionKey{}, ErrInvalid
@@ -60,7 +51,7 @@ func workflowAdmissionKeyFor(input delivery.WorkflowDelivery, maximumBytes int64
 	if err != nil {
 		return workflowAdmissionKey{}, err
 	}
-	return workflowAdmissionKey{route: workflowDeliveryIndex(input), header: string(wire)}, nil
+	return workflowAdmissionKey{route: input.Binding(), header: string(wire)}, nil
 }
 
 func nexusRouteIndexFromHeader(header nexus.Header) (nexusRouteIndex, error) {
@@ -78,7 +69,7 @@ func (h *Driver) workflowCandidates(input delivery.WorkflowDelivery) []*Session 
 		return nil
 	}
 	defer h.mu.Unlock()
-	return append([]*Session(nil), h.workflowRoutes[workflowDeliveryIndex(input)]...)
+	return append([]*Session(nil), h.workflowRoutes[input.Binding()]...)
 }
 
 func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*Session, error) {
@@ -99,24 +90,34 @@ func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*S
 }
 
 func (h *Driver) admitWorkflow(input delivery.WorkflowDelivery) (routedWorkflow, error) {
-	var matched error
-	for _, session := range h.workflowCandidates(input) {
+	return admitFirst(context.Background(), h.workflowCandidates(input), "workflow_delivery_late", func(session *Session) (routedWorkflow, error) {
 		activation, admission, replay, err := session.admitWorkflow(input)
-		if err != nil {
-			if !errors.Is(err, delivery.ErrRouteCrossed) {
-				matched = err
-				if errors.Is(err, delivery.ErrRouteStale) {
-					session.lateDiagnostic(context.Background(), "workflow_delivery_late")
-				}
-			}
-			continue
+		return routedWorkflow{session: session, activation: activation, admission: admission, replay: replay}, err
+	})
+}
+
+// admitFirst offers a delivery to each candidate Session in turn and returns the first admission.
+// A Session that does not own the route crosses it; any other rejection is the delivery's result
+// when no Session admits it, and a stale one is diagnosed as late.
+func admitFirst[R any](ctx context.Context, candidates []*Session, lateCode string, admit func(*Session) (R, error)) (R, error) {
+	var matched error
+	for _, session := range candidates {
+		routed, err := admit(session)
+		if err == nil {
+			return routed, nil
 		}
-		return routedWorkflow{session: session, activation: activation, admission: admission, replay: replay}, nil
+		if !errors.Is(err, delivery.ErrRouteCrossed) {
+			matched = err
+			if errors.Is(err, delivery.ErrRouteStale) {
+				session.lateDiagnostic(ctx, lateCode)
+			}
+		}
 	}
+	var none R
 	if matched != nil {
-		return routedWorkflow{}, matched
+		return none, matched
 	}
-	return routedWorkflow{}, delivery.ErrRouteCrossed
+	return none, delivery.ErrRouteCrossed
 }
 
 func (s *Session) admitWorkflow(input delivery.WorkflowDelivery) (delivery.Activation, *workflowAdmission, bool, error) {
@@ -248,27 +249,11 @@ func (h *Driver) admitNexus(ctx context.Context, queue string, input delivery.Ne
 	if err != nil {
 		return routedNexus{}, err
 	}
-	var matched error
-	for _, session := range candidates {
-		if !session.dependsOnQueue(queue) {
-			continue
-		}
+	candidates = slices.DeleteFunc(candidates, func(session *Session) bool { return !session.dependsOnQueue(queue) })
+	return admitFirst(ctx, candidates, "nexus_delivery_late", func(session *Session) (routedNexus, error) {
 		activation, replay, err := session.admitNexus(ctx, input, cancel)
-		if err != nil {
-			if !errors.Is(err, delivery.ErrRouteCrossed) {
-				matched = err
-				if errors.Is(err, delivery.ErrRouteStale) {
-					session.lateDiagnostic(ctx, "nexus_delivery_late")
-				}
-			}
-			continue
-		}
-		return routedNexus{session: session, activation: activation, replay: replay}, nil
-	}
-	if matched != nil {
-		return routedNexus{}, matched
-	}
-	return routedNexus{}, delivery.ErrRouteCrossed
+		return routedNexus{session: session, activation: activation, replay: replay}, err
+	})
 }
 
 func (s *Session) admitNexus(ctx context.Context, input delivery.NexusDelivery, cancel context.CancelFunc) (delivery.Activation, bool, error) {
@@ -337,19 +322,19 @@ func (s *Session) nexusAdmissionKeyLocked(header nexus.Header) (nexusRouteIndex,
 	return result, nil
 }
 
-func (h *Driver) checkRouteCapacityLocked(session *Session, key workflowRouteIndex) error {
+func (h *Driver) checkRouteCapacityLocked(session *Session, key delivery.WorkflowBinding) error {
 	if slices.Contains(h.workflowRoutes[key], session) {
 		return nil
 	}
 	return h.ensureRouteCapacityLocked(1)
 }
 
-func (h *Driver) addWorkflowRouteLocked(session *Session, key workflowRouteIndex) {
+func (h *Driver) addWorkflowRouteLocked(session *Session, key delivery.WorkflowBinding) {
 	if slices.Contains(h.workflowRoutes[key], session) {
 		return
 	}
 	if h.workflowRoutes == nil {
-		h.workflowRoutes = make(map[workflowRouteIndex][]*Session)
+		h.workflowRoutes = make(map[delivery.WorkflowBinding][]*Session)
 	}
 	h.workflowRoutes[key] = append(h.workflowRoutes[key], session)
 	session.workflowKeys[key] = struct{}{}

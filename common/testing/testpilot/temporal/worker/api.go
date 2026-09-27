@@ -43,7 +43,3 @@ type SessionOptions struct {
 	Diagnose   DiagnosticSink
 	Quarantine QuarantineFunc
 }
-
-type WorkflowBinding struct {
-	Namespace, WorkflowID, WorkflowType, TaskQueue string
-}

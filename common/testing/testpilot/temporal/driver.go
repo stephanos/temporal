@@ -133,7 +133,7 @@ type workerSession interface {
 }
 
 type carrierSession interface {
-	CreateCarrier(context.Context, testpilot.Coordinate, testpilot.ReservationCarrierPlan, workerhost.WorkflowBinding, []testpilot.ReservationHandle) (*workerhost.Carrier, error)
+	CreateCarrier(context.Context, testpilot.Coordinate, testpilot.ReservationCarrierPlan, delivery.WorkflowBinding, []testpilot.ReservationHandle) (*workerhost.Carrier, error)
 }
 
 type compositeSession struct {
@@ -172,12 +172,12 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 		return s.controller.InvokeRPC(ctx, coordinate, role, method, request)
 	}
 	worker, ok := s.worker.(carrierSession)
-	if !ok || method == nil || request == nil {
+	if !ok || method == nil || primitive.NilValue(request) {
 		return nil, ErrInvalid
 	}
-	binding, err := workflowBinding(request)
+	binding, _, err := delivery.StartBinding(request.ProtoReflect())
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrInvalid, err)
 	}
 	s.mu.Lock()
 	handles := append([]testpilot.ReservationHandle(nil), s.reservations[coordinate]...)
@@ -202,24 +202,6 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	s.mu.Unlock()
 	cleanupTimeout := time.Duration(s.program.Limits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
 	return &carrierEffect{EffectHandle: handle, carrier: carrier, cleanupTimeout: cleanupTimeout}, nil
-}
-
-func workflowBinding(request proto.Message) (workerhost.WorkflowBinding, error) {
-	wire, err := proto.Marshal(request)
-	if err != nil {
-		return workerhost.WorkflowBinding{}, err
-	}
-	var start workflowservice.StartWorkflowExecutionRequest
-	if err := proto.Unmarshal(wire, &start); err != nil {
-		return workerhost.WorkflowBinding{}, ErrInvalid
-	}
-	if start.GetNamespace() == "" || start.GetWorkflowId() == "" || start.GetWorkflowType().GetName() == "" || start.GetTaskQueue().GetName() == "" {
-		return workerhost.WorkflowBinding{}, ErrInvalid
-	}
-	return workerhost.WorkflowBinding{
-		Namespace: start.GetNamespace(), WorkflowID: start.GetWorkflowId(),
-		WorkflowType: start.GetWorkflowType().GetName(), TaskQueue: start.GetTaskQueue().GetName(),
-	}, nil
 }
 
 func (s *compositeSession) InvokeHandle(ctx context.Context, coordinate testpilot.Coordinate, handle testpilot.OpaqueHandle, value proto.Message) (testpilot.EffectHandle, error) {
