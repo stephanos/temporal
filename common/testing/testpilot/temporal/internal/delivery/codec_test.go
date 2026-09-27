@@ -52,6 +52,47 @@ func TestRouteCodecRoundTripIsExactAndCanonical(t *testing.T) {
 	require.True(t, bytes.Equal(encoded, reencoded))
 }
 
+// The route rides in a reservation carrier between a Session and the worker that decodes it, so
+// its wire bytes are pinned for both kinds: a change to the binding or route shape shows here.
+func TestRouteCodecWireBytesGolden(t *testing.T) {
+	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start", Attempt: 1}
+	workflow := route{
+		Version:     routeVersion,
+		Kind:        workflowRoute,
+		SessionID:   "session",
+		RunID:       "run",
+		Origin:      origin,
+		Reservation: testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "workflow-reservation"},
+		Binding:     binding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"},
+	}
+	nexus := workflow
+	nexus.Kind = nexusRoute
+	nexus.Reservation = testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", Ordinal: 1, ID: "handler-reservation"}
+	nexus.WorkflowReservation = "workflow-reservation"
+	nexus.WorkflowEntrypoint = "workflow"
+	nexus.WorkflowOrdinal = 2
+	nexus.WorkflowRunID = "temporal-run"
+	nexus.SourceInstructionID = "start-nexus"
+	codec := routeCodec{maximumBytes: 2048}
+
+	for name, test := range map[string]struct {
+		value route
+		want  string
+	}{
+		"workflow": {value: workflow, want: `{"version":1,"kind":"workflow","session_id":"session","run_id":"run","origin":{"RunID":"run","EntrypointID":"controller","ActivationID":"controller.0","InstructionID":"start","Attempt":1},"reservation":{"Origin":{"RunID":"run","EntrypointID":"controller","ActivationID":"controller.0","InstructionID":"start","Attempt":1},"EntrypointID":"workflow","Ordinal":0,"ID":"workflow-reservation"},"binding":{"namespace":"namespace","workflow_id":"workflow-id","workflow_type":"workflow-type","task_queue":"task-queue"},"workflow_ordinal":0}`},
+		"nexus":    {value: nexus, want: `{"version":1,"kind":"nexus","session_id":"session","run_id":"run","origin":{"RunID":"run","EntrypointID":"controller","ActivationID":"controller.0","InstructionID":"start","Attempt":1},"reservation":{"Origin":{"RunID":"run","EntrypointID":"controller","ActivationID":"controller.0","InstructionID":"start","Attempt":1},"EntrypointID":"handler","Ordinal":1,"ID":"handler-reservation"},"binding":{"namespace":"namespace","workflow_id":"workflow-id","workflow_type":"workflow-type","task_queue":"task-queue"},"workflow_reservation":"workflow-reservation","workflow_entrypoint":"workflow","workflow_ordinal":2,"workflow_run_id":"temporal-run","source_instruction_id":"start-nexus"}`},
+	} {
+		t.Run(name, func(t *testing.T) {
+			encoded, err := codec.encode(test.value)
+			require.NoError(t, err)
+			require.Equal(t, test.want, string(encoded))
+			decoded, err := codec.decode([]byte(test.want), test.value.Kind)
+			require.NoError(t, err)
+			require.Equal(t, test.value, decoded)
+		})
+	}
+}
+
 func TestRouteCodecRejectsInvalidInput(t *testing.T) {
 	codec := routeCodec{maximumBytes: 2048}
 	valid := route{
