@@ -12,6 +12,7 @@
     "fn-90-resolve-the-intermittent-live-testpilot.1": 0,
     "fn-90-resolve-the-intermittent-live-testpilot.2": 0,
     "fn-90-resolve-the-intermittent-live-testpilot.3": 0,
+    "fn-90-resolve-the-intermittent-live-testpilot.4": 0,
     "fn-90-resolve-the-intermittent-live-testpilot.5": 0,
     "fn-90-resolve-the-intermittent-live-testpilot.6": 0
   },
@@ -580,12 +581,101 @@
       "task": "fn-90-resolve-the-intermittent-live-testpilot.6",
       "timestamp": "2026-09-27T04:43:49.529886Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6ad507959ea67383f15ee2d3e02b52ae090a74776e9c3ba54ca1a749687fd169",
+      "backend": "claude",
+      "base_sha": "ed55fb064614445297bb722bf9915d4f53941ef4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e901435d3a31f8c235dcaff8a56e1b33",
+            "classification": "introduced",
+            "findingId": "finding-e901435d3a31f8c235dcaff8a56e1b33",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "301e23526ed0ffd7b53f32ec6ec5e2bc8edf11a0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 4171,
+      "output_sha256": "351be22536a8c703ff75ef25c8f9bc0c2fc512518f04d167282ad9f0c3b16d00",
+      "reservation_id": "aea6904cbee340cca81cefcace6a98fe",
+      "round_consumed": true,
+      "scope": "impl:fn-90-resolve-the-intermittent-live-testpilot.4",
+      "superseded_by": null,
+      "task": "fn-90-resolve-the-intermittent-live-testpilot.4",
+      "timestamp": "2026-09-27T04:56:35.586148Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cd1a4c71066084f23b7ec52834e3fff36be7657e34a27b8819eae92385988acb",
+      "backend": "claude",
+      "base_sha": "ed55fb064614445297bb722bf9915d4f53941ef4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e901435d3a31f8c235dcaff8a56e1b33",
+            "classification": "introduced",
+            "findingId": "finding-e901435d3a31f8c235dcaff8a56e1b33",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "bdf949c1e253d5f43699d7af597820d70d875473",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 1127,
+      "output_sha256": "4e48e6d6580f49db3ff09dc3b2649dc5050ac68407e350d5db107ce5824b2829",
+      "reservation_id": "390d8081e8f245cb823b3baf746fc695",
+      "round_consumed": true,
+      "scope": "impl:fn-90-resolve-the-intermittent-live-testpilot.4",
+      "superseded_by": null,
+      "task": "fn-90-resolve-the-intermittent-live-testpilot.4",
+      "timestamp": "2026-09-27T05:03:23.853485Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-90-resolve-the-intermittent-live-testpilot.1": 1,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.2": 2,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.3": 1,
+    "impl:fn-90-resolve-the-intermittent-live-testpilot.4": 2,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.5": 1,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.6": 1,
     "plan": 1,
@@ -597,6 +687,7 @@
     "impl:fn-90-resolve-the-intermittent-live-testpilot.1": 0,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.2": 0,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.3": 0,
+    "impl:fn-90-resolve-the-intermittent-live-testpilot.4": 0,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.5": 0,
     "impl:fn-90-resolve-the-intermittent-live-testpilot.6": 0,
     "plan": 0
@@ -615,5 +706,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T04:43:49.533834Z"
+  "updated_at": "2026-09-27T05:03:23.857022Z"
 }
