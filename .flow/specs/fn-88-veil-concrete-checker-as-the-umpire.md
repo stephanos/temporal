@@ -207,7 +207,10 @@ Data shapes:
   backend fields, every `SearchStats` counter (`enumeratorPulls`, `generatedCandidates`,
   `peakActiveFrontierDepth`, the kernel-pull counts), the `triggers` evidence, and, for a `verify`
   that found a counterexample, `validity.searchComplete`, `searchTermination`, and `coverage`.
-  Nothing else is exempt.
+  Nothing else is exempt. (Amended 2026-09-27 by fn-88.9: the receipt's `explored` object is the
+  same `ExploredCounts` as the Plan's exempt `explored`, and under `veil` its `traces` count product
+  states by design (Data shapes), so it is exempt in the receipt too; each run's receipt `explored`
+  must still equal its own Plan's.)
 - Determinism: identical `CheckedQuery` and `Limits` produce identical Plan bytes, receipt JSON,
   and witness on one machine and across machines (PLN-02).
 - The Veil dependency is a normal Lake requirement of `model/`. `make umpire-build-model`,
