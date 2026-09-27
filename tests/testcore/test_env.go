@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/dgryski/go-farm"
 	"github.com/stretchr/testify/require"
@@ -31,7 +30,8 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
 	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
-	"go.temporal.io/server/common/rpc/faultinjection"
+	"go.temporal.io/server/common/rpc/grpcfaults"
+	"go.temporal.io/server/common/rpc/httpfaults"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testhooks"
@@ -116,6 +116,15 @@ type versionHeadersContextKey struct{}
 func WithDedicatedCluster() TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
+	}
+}
+
+// WithSpanExporter enables OpenTelemetry tracing with exporter on a dedicated test cluster.
+func WithSpanExporter(exporter sdktrace.SpanExporter) TestOption {
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.clusterOptions = append(o.clusterOptions, withSpanExporter(exporter))
+		o.dedicatedReason = "span exporter configured"
 	}
 }
 
@@ -314,32 +323,6 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 		t.Fatalf("Failed to register namespace: %v", err)
 	}
 
-	// Wait until the namespace is visible through the frontend API.
-	// Under GoMaD the namespace registry's background polling timer may not
-	// fire between creation and the first test RPC.
-	//
-	// A synchronous ticker loop is used here instead of require.Eventually: under
-	// GoMaD's simulated time the absolute timeout timer require.Eventually starts
-	// can fire before its (asynchronous) condition goroutine is scheduled, so it
-	// reports "condition never satisfied" even when the namespace is already
-	// visible. Checking the condition synchronously avoids that race, and works
-	// identically under real time.
-	namespaceVisibleDeadline := time.Now().Add(10 * time.Second)
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
-	for {
-		resp, describeErr := cluster.FrontendClient().DescribeNamespace(NewContext(), &workflowservice.DescribeNamespaceRequest{
-			Id: nsID.String(),
-		})
-		if describeErr == nil && resp != nil {
-			break
-		}
-		if time.Now().After(namespaceVisibleDeadline) {
-			t.Fatalf("namespace %s not visible through frontend API before deadline", nsID)
-		}
-		<-ticker.C
-	}
-
 	tv := testvars.New(t)
 	if options.testVars != nil {
 		tv = options.testVars(tv)
@@ -402,11 +385,6 @@ func (e *TestEnv) Namespace() namespace.Name {
 
 func (e *TestEnv) NamespaceID() namespace.ID {
 	return e.nsID
-}
-
-// GetFaultInjector returns the cluster's RPC fault generator.
-func (e *TestEnv) GetFaultInjector() *faultinjection.RPCFaultGenerator {
-	return e.cluster.Host().GetFaultInjector()
 }
 
 // InjectHook sets a test hook inside the cluster.
@@ -496,16 +474,78 @@ func (e *TestEnv) Tv() *testvars.TestVars {
 	return e.tv
 }
 
-// InjectRPCFault registers a fault injection scoped to this test's namespace.
+// InjectRequestFault registers a pre-handler gRPC fault injection scoped to this test's namespace.
 // Requests match either the namespace ID or name filter, depending on which
 // namespace field they expose. Requests without either field are ignored.
 // Returns a cleanup function that disables the fault.
-func (e *TestEnv) InjectRPCFault(fault RPCFault, opts ...RPCFaultOption) func() {
-	opts = append([]RPCFaultOption{
-		WithNamespaceID(e.nsID.String()),
-		WithNamespaceName(e.nsName.String()),
-	}, opts...)
-	return InjectRPCFault(e.t, e.GetTestCluster(), fault, opts...)
+func (e *TestEnv) InjectRequestFault(fault RequestFault) func() {
+	scope := grpcfaults.Scope{
+		NamespaceID:   e.nsID,
+		NamespaceName: e.nsName,
+	}
+	tracker := newFaultTracker(e.t)
+	unregister := e.GetTestCluster().Host().GetGRPCFaultGenerator().RegisterRequestCallback(scope, func(_ context.Context, _ string, req any) *grpcfaults.Outcome {
+		if injectedErr := fault(req); injectedErr != nil {
+			tracker.markFired(req)
+			return &grpcfaults.Outcome{Error: injectedErr}
+		}
+		return nil
+	})
+	return tracker.attach(unregister)
+}
+
+// InjectResponseFault registers a post-handler gRPC fault injection scoped to this test's namespace.
+// Requests match either the namespace ID or name filter, depending on which
+// namespace field they expose. Requests without either field are ignored.
+// Returns a cleanup function that disables the fault.
+func (e *TestEnv) InjectResponseFault(fault ResponseFault) func() {
+	scope := grpcfaults.Scope{
+		NamespaceID:   e.nsID,
+		NamespaceName: e.nsName,
+	}
+	tracker := newFaultTracker(e.t)
+	unregister := e.GetTestCluster().Host().GetGRPCFaultGenerator().RegisterResponseCallback(scope, func(_ context.Context, _ string, req, resp any, err error) *grpcfaults.Outcome {
+		if injectedErr := fault(req, resp, err); injectedErr != nil {
+			tracker.markFired(req)
+			return &grpcfaults.Outcome{Error: injectedErr}
+		}
+		return nil
+	})
+	return tracker.attach(unregister)
+}
+
+// InjectHTTPRequestFault registers a fault for HTTP requests in this namespace.
+func (e *TestEnv) InjectHTTPRequestFault(fault HTTPRequestFault) func() {
+	scope := httpfaults.Scope{
+		NamespaceID:   e.nsID,
+		NamespaceName: e.nsName,
+	}
+	tracker := newFaultTracker(e.t)
+	unregister := e.GetTestCluster().Host().GetHTTPFaultGenerator().RegisterRequestCallback(scope, func(ctx context.Context, _ string, req *httpfaults.Request) *httpfaults.Outcome {
+		if outcome := fault(ctx, req.Raw); outcome != nil {
+			tracker.markFired(req.Raw)
+			return outcome
+		}
+		return nil
+	})
+	return tracker.attach(unregister)
+}
+
+// InjectHTTPResponseFault registers a fault for HTTP results in this namespace.
+func (e *TestEnv) InjectHTTPResponseFault(fault HTTPResponseFault) func() {
+	scope := httpfaults.Scope{
+		NamespaceID:   e.nsID,
+		NamespaceName: e.nsName,
+	}
+	tracker := newFaultTracker(e.t)
+	unregister := e.GetTestCluster().Host().GetHTTPFaultGenerator().RegisterResponseCallback(scope, func(ctx context.Context, _ string, req *httpfaults.Request, resp *http.Response, callErr error) *httpfaults.Outcome {
+		if outcome := fault(ctx, req.Raw, resp, callErr); outcome != nil {
+			tracker.markFired(req.Raw)
+			return outcome
+		}
+		return nil
+	})
+	return tracker.attach(unregister)
 }
 
 // Context returns the test-level timeout context with RPC version headers already included.

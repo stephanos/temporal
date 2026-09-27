@@ -21,7 +21,9 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/rpc"
-	"go.temporal.io/server/common/rpc/faultinjection"
+	"go.temporal.io/server/common/rpc/httpfaults"
+	"go.temporal.io/server/common/telemetry"
+	"go.temporal.io/server/common/testing/httpfaultstest"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.uber.org/fx"
 )
@@ -92,11 +94,10 @@ func endpointRegistryLifetimeHooks(lc fx.Lifecycle, registry commonnexus.Endpoin
 // NexusTransportProvider allows customization of the HTTP transport used for Nexus requests.
 type NexusTransportProvider func(namespaceID, serviceName string) http.RoundTripper
 
-func defaultNexusTransportProvider(testHooks testhooks.TestHooks) NexusTransportProvider {
-	return func(namespaceID, serviceName string) http.RoundTripper {
-		// Route outbound Nexus HTTP calls through the same fault seam as gRPC, so tests can
-		// hold/fail a handler invocation. No-op in non-test builds.
-		return faultinjection.HTTPRoundTripper(http.DefaultTransport, namespaceID, testHooks)
+func defaultNexusTransportProvider() (NexusTransportProvider, error) {
+	transport, err := common.NewHTTPTransport(nil)
+	if err != nil {
+		return nil, err
 	}
 	return func(namespaceID, serviceName string) http.RoundTripper {
 		return transport

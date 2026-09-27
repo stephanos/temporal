@@ -21,59 +21,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func Test_ServerStatsHandler(t *testing.T) {
-	type serverStatsResult struct {
-		mainSpanAttrs    map[string]attribute.KeyValue
-		requestSpanAttrs map[string]attribute.KeyValue
-	}
-
-	makeRequest := func(responseErr error) serverStatsResult {
-		t.Helper()
-
-		exporter := tracetest.NewInMemoryExporter()
-		tp := trace.NewTracerProvider(trace.WithSyncer(exporter))
-		tmp := propagation.TraceContext{}
-		otelStatsHandler := telemetry.NewServerStatsHandler(tp, tmp, nil)
-
-		ctx := otelStatsHandler.TagRPC(context.Background(), &stats.RPCTagInfo{
-			FullMethodName: api.WorkflowServicePrefix,
-		})
-		otelStatsHandler.HandleRPC(ctx, &stats.InPayload{
-			Payload: &workflowservice.TerminateWorkflowExecutionRequest{
-				WorkflowExecution: &commonpb.WorkflowExecution{
-					WorkflowId: "WF-ID",
-					RunId:      "RUN-ID",
-				},
-			},
-		})
-		if responseErr == nil {
-			otelStatsHandler.HandleRPC(ctx, &stats.OutPayload{
-				Payload: &workflowservice.TerminateWorkflowExecutionResponse{},
-			})
-		}
-		otelStatsHandler.HandleRPC(ctx, &stats.End{
-			Error: responseErr,
-		})
-
-		result := serverStatsResult{}
-		for _, span := range exporter.GetSpans() {
-			attrByKey := map[string]attribute.KeyValue{}
-			for _, a := range span.Attributes {
-				attrByKey[string(a.Key)] = a
-			}
-			if span.Name == api.WorkflowServicePrefix+"/request" {
-				result.requestSpanAttrs = attrByKey
-			} else {
-				result.mainSpanAttrs = attrByKey
-			}
-		}
-		require.NotNil(t, result.mainSpanAttrs)
-		require.NotNil(t, result.requestSpanAttrs)
-		return result
-	}
-
+func TestServerStatsHandler(t *testing.T) {
 	t.Run("annotate span with workflow tags", func(t *testing.T) {
-		result := makeRequest(nil)
+		t.Parallel()
 
 		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
 

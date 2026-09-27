@@ -2,112 +2,58 @@ package testcore
 
 import (
 	"context"
+	"net/http"
+	"sync"
 	"sync/atomic"
 	"testing"
+
+	"go.temporal.io/server/common/rpc/httpfaults"
 )
 
-// RPCFault determines whether a fault should be injected for a given RPC.
-// It receives the request, response, and error.
-// For pre-handler calls, resp and err are nil.
+// RequestFault determines whether a fault should be injected before a gRPC handler runs.
 // Return the error to inject, or nil to not inject a fault.
-type RPCFault func(req, resp any, err error) error
+type RequestFault func(req any) error
 
-// RPCFaultOption configures the behavior of [InjectRPCFault].
-type RPCFaultOption func(*rpcFaultOptions)
+// ResponseFault determines whether a fault should be injected after a gRPC handler runs.
+// Return the error to inject, or nil to preserve the handler response and error.
+type ResponseFault func(req, resp any, handlerErr error) error
 
-type rpcFaultOptions struct {
-	namespaceID   string
-	namespaceName string
+// HTTPRequestFault checks a request before the HTTP call.
+type HTTPRequestFault func(context.Context, *http.Request) *httpfaults.Outcome
+
+// HTTPResponseFault checks a result after the HTTP call.
+type HTTPResponseFault func(context.Context, *http.Request, *http.Response, error) *httpfaults.Outcome
+
+type faultTracker struct {
+	t     testing.TB
+	fired atomic.Bool
+
+	mu             sync.Mutex
+	loggingEnabled bool
 }
 
-func (o rpcFaultOptions) matchesNamespace(req any) bool {
-	if o.namespaceID == "" && o.namespaceName == "" {
-		return true
-	}
-
-	if o.namespaceID != "" {
-		if r, ok := req.(interface{ GetNamespaceId() string }); ok && r.GetNamespaceId() == o.namespaceID {
-			return true
-		}
-	}
-	if o.namespaceName != "" {
-		if r, ok := req.(interface{ GetNamespace() string }); ok && r.GetNamespace() == o.namespaceName {
-			return true
-		}
-	}
-	return false
-}
-
-// WithNamespaceID matches requests that expose the given namespace ID.
-// When combined with [WithNamespaceName], matching either option is sufficient.
-func WithNamespaceID(id string) RPCFaultOption {
-	return func(o *rpcFaultOptions) {
-		o.namespaceID = id
-	}
-}
-
-// WithNamespaceName matches requests that expose the given namespace name.
-// When combined with [WithNamespaceID], matching either option is sufficient.
-func WithNamespaceName(name string) RPCFaultOption {
-	return func(o *rpcFaultOptions) {
-		o.namespaceName = name
-	}
-}
-
-// InjectRPCFault registers a fault injection that applies to all services
-// (frontend, history, matching). The fault function determines which requests
-// trigger a fault and what error to return.
-//
-// The fault function is called twice per RPC: before the handler (resp=nil, err=nil)
-// and after. Returning an error before handler short-circuits; returning after
-// modifies the response.
-//
-// Returns a cleanup function that disables the fault injection when called.
-// The test fails if the fault is never injected before the test completes.
-//
-// Example:
-//
-//	testcore.InjectRPCFault(s.T(), s.GetTestCluster(),
-//	    func(req, _ any, _ error) error {
-//	        r, ok := req.(*matchingservice.AddWorkflowTaskRequest)
-//	        if ok {
-//	            return serviceerror.NewNotFound("injected fault")
-//	        }
-//	        return nil
-//	    })
-func InjectRPCFault(t testing.TB, tc *TestCluster, fault RPCFault, opts ...RPCFaultOption) func() {
+func newFaultTracker(t testing.TB) *faultTracker {
 	t.Helper()
+	return &faultTracker{t: t, loggingEnabled: true}
+}
 
-	var options rpcFaultOptions
-	for _, opt := range opts {
-		opt(&options)
+func (f *faultTracker) markFired(req any) {
+	f.fired.Store(true)
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.loggingEnabled {
+		f.t.Logf("Fault injection fired: %T", req)
 	}
+}
 
-	generator := tc.Host().GetFaultInjector()
-	if generator == nil {
-		t.Fatal("fault injector is nil")
-		return func() {}
-	}
-
-	var fired atomic.Bool
-
-	unregister := generator.RegisterCallback(func(ctx context.Context, fullMethod string, req, resp any, err error) (bool, any, error) {
-		if !options.matchesNamespace(req) {
-			return false, nil, nil
-		}
-
-		if injectedErr := fault(req, resp, err); injectedErr != nil {
-			fired.Store(true)
-			t.Logf("Fault injection fired: %T", req)
-			return true, nil, injectedErr
-		}
-		return false, nil, nil
-	})
-
-	t.Cleanup(func() {
+func (f *faultTracker) attach(unregister func()) func() {
+	f.t.Cleanup(func() {
+		f.mu.Lock()
+		f.loggingEnabled = false
+		f.mu.Unlock()
 		unregister()
-		if !fired.Load() {
-			t.Error("fault injection was registered but never fired - the fault was never injected")
+		if !f.fired.Load() {
+			f.t.Error("fault injection was registered but never fired - the fault was never injected")
 		}
 	})
 
