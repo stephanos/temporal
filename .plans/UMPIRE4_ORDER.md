@@ -23,13 +23,14 @@ task receipts in `.flow/` and the git history carry the details. Delivered on 20
   copies; Verdicts and admission equal the expansion (except that the authored surface is bounded
   as written), pinned by a differential test. `make umpire-rerecord-pinned-runs` refreshes every
   catalog-pinned recorded Run after a protocol change, machine-free.
-- **fn-94** simplified the handwritten Testpilot Go runtime with no Run, Verdict or identity-byte
-  change. Go's correlated monitor now reads `initial_state_fields` and `prior_fields` as Lean's
-  does. Dead and test-only code is gone, admitted data is validated once, one opcode table drives
-  instruction binding, copied primitives and test fakes are shared, and `Reference.model_value` is
-  removed from the wire. `evidence_field_id` and `correlated_capture` stay, because Lean's
-  correlated Producer emits both. The live identity count stayed at 45. The line-count floors were
-  missed; the fn-94.17 receipt reports the measurement and the reasons.
+- **fn-94** simplified the handwritten Testpilot Go runtime with no Run or Verdict change. The
+  `BindingFingerprint` and route wire bytes are unchanged; removing `Reference.model_value` moved
+  the Driver catalog identity, and that commit re-recorded the pinned Runs. Go's correlated monitor
+  now reads `initial_state_fields` and `prior_fields` as Lean's does. Dead and test-only code is
+  gone, admitted data is validated once, one opcode table drives instruction binding, and copied
+  primitives and test fakes are shared. `evidence_field_id` and `correlated_capture` stay, because
+  Lean's correlated Producer emits both. The live identity count stayed at 45. The line-count floors
+  were missed; the fn-94.17 receipt reports the measurement and the reasons.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
