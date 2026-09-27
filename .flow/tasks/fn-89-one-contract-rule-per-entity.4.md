@@ -46,9 +46,24 @@ Make the Lean Producer emit one Rule per relation with one Rule instance per pla
 - [ ] `LEAN_NUM_THREADS=1 make lint-model` shows no new findings over the baseline
 
 ## Done summary
-TBD
+The Producer now folds a relation's per-placement derivations into one instanced Contract Rule when a Case runs over N > 1 instances (R5). The new pieces live in `Projection/Lowering.lean`: `InstancedRule.fold`, the certificate `Placed`/`Erased`, and `InstancedRule.rule`. Each placement keeps its `DerivedRule`. The fold rejects disagreeing erased shapes as `relation.instance-shape`. A compared literal becomes one instance value, named by its field and typed by its schema type (text, integer or enum). One placement, or a literal type preparation cannot admit (boolean, bytes), keeps today's plain rules. `LocalNames` visits each instance's rule ID after its Rule's own.
 
+The pair fixture regenerated to one Rule `relation` with instances `relation-1`/`relation-2` (R6). Nothing else changed. A throwaway expansion check confirmed that expanding the new Rule reproduces the old two rules exactly, and that the only other change is one new `localNames` row.
+- New pair fixture sha256: `a6386baa354692dc3faec6b449d87b3d8afdef704c869ec4d33cfe83e3997a37`.
+- The Pair model tests and `TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances` assert one Rule with two instances (R7).
+- `TestTestpilotNexusPairCase` passes live, with its Verdict assertions unchanged.
+- Pinned runs are current; no re-record was needed.
+
+Deviation: the fold tests went into `model/Umpire/Case/Tests/FieldLowering.lean`, where the checked-Property scaffolding already lives, not into `Tests/Producer.lean`. They cover safety, capture, one placement → `none`, the boolean fallback, and two `relation.instance-shape` rejections (a different Observation, a different capture state name). The axiom inventory for `fold` is pinned at `[propext, Quot.sound]`.
+
+Follow-ups (reviewer P3s, not applied):
+1. The definition binding is built in three places. A `DerivedRule.contractLowering` would remove the duplication.
+2. `InstancedRule.rule` spells the rule-ID format by hand instead of sharing it with `DerivedRule.ruleId`.
+3. `fold` checks agreement before instance type, so disagreeing boolean placements would reject rather than fall back. No path reaches this today.
+4. A coordinate that names no field shares the `relation.instance-shape` code.
+
+stage: impl-review - ran (claude, first-pass SHIP, base 3da9d25f3b)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1cacff8a2224904711df01d79f1f0c1832f2f30d
+- Tests: baseline: green (go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/... pre-edit at fb20aac509771fba480ea02f3efcfa7146b775b6), go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., go test -count=1 -tags test_dep ./tests/testcore/testpilot/..., go test -count=1 -tags test_dep,integration ./tests/ -run ^TestTestpilotNexusPairCase$, lake build Umpire.Case.Tests.FieldLowering Umpire.Case.Tests.Producer Temporal.Feature.Nexus.Pair.Tests, make umpire-gen-case-runtime-conformance (git diff: only nexusPairTests-bothComplete-case.json; sha256 a6386baa354692dc3faec6b449d87b3d8afdef704c869ec4d33cfe83e3997a37), make umpire-check-case-runtime-conformance, make canary-check-case, LEAN_NUM_THREADS=1 make lint-model (rc=0), pinned-run probes TestControlRecordPinsTheCorrelatedKey + TestAdmitRecordsAClosedRunAndAdmitsIt green (no rerecord needed), make lint-code-fast: 1 inherited finding in common/testing/testpilot/internal/ir/expression_test.go:370 (untouched)
 - PRs:
