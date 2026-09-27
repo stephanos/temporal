@@ -911,33 +911,33 @@ umpire-rerecord-pinned-runs:
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
 			./tools/umpire/replay ./tools/umpire/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
 
-UMPIRE_VEIL_MANIFEST ?= model/lake-manifest.json
-
-# The Veil commit `model/lakefile.lean` requires, the revision the manifest resolves and the commit
-# the `veil` search backend reports (`Umpire.Search.Backend.Veil.commit`) must be one commit.
-umpire-check-veil-manifest:
-	@set -eu; \
+# A shell function: `check_veil_manifest <manifest>` fails unless the manifest resolves the Veil
+# commit `model/lakefile.lean` requires, and that commit is the one the `veil` search backend
+# reports (`Umpire.Search.Backend.Veil.commit`). A function rather than a sub-make, so `make -n`
+# lists the check instead of running it.
+_UMPIRE_CHECK_VEIL_MANIFEST = check_veil_manifest() { \
 		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
-		resolved=$$(awk '/"rev":/ {rev=$$2} /"name": "veil"/ {gsub(/[",]/, "", rev); print rev}' "$(UMPIRE_VEIL_MANIFEST)"); \
+		resolved=$$(awk '/"rev":/ {rev=$$2} /"name": "veil"/ {gsub(/[",]/, "", rev); print rev}' "$$1"); \
 		reported=$$(sed -n 's/^def commit : String := "\([0-9a-f]\{40\}\)"$$/\1/p' model/Umpire/Search/Backend/Veil.lean); \
-		test -n "$$required" || { echo "model/lakefile.lean requires no pinned Veil commit" >&2; exit 1; }; \
-		test "$$resolved" = "$$required" || { echo "$(UMPIRE_VEIL_MANIFEST) resolves Veil '$$resolved', model/lakefile.lean requires $$required" >&2; exit 1; }; \
-		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lakefile.lean requires $$required" >&2; exit 1; }
+		test -n "$$required" || { echo "model/lakefile.lean requires no pinned Veil commit" >&2; return 1; }; \
+		test "$$resolved" = "$$required" || { echo "$$1 resolves Veil '$$resolved', model/lakefile.lean requires $$required" >&2; return 1; }; \
+		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lakefile.lean requires $$required" >&2; return 1; }; \
+	}
 
 # Check the Veil pin, then plant a manifest that resolves another revision and require the check to
 # reject it with its diagnostic.
 umpire-check-veil-pin:
 	@printf $(COLOR) "Check the pinned Veil commit..."
-	@$(MAKE) --no-print-directory umpire-check-veil-manifest
-	@set -eu; \
+	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); check_veil_manifest model/lake-manifest.json
+	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); \
 		planted=$$(mktemp); diagnostics=$$(mktemp); \
 		trap 'rm -f "$$planted" "$$diagnostics"' EXIT; \
 		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
 		other=0000000000000000000000000000000000000000; \
 		awk -v other="$$other" '/"rev":/ {line[++n]=$$0; rev=n; next} {line[++n]=$$0} /"name": "veil"/ {sub(/"rev": "[0-9a-f]*"/, "\"rev\": \"" other "\"", line[rev])} END {for (i = 1; i <= n; i++) print line[i]}' model/lake-manifest.json >"$$planted"; \
 		status=0; \
-		$(MAKE) --no-print-directory umpire-check-veil-manifest UMPIRE_VEIL_MANIFEST="$$planted" 2>"$$diagnostics" >/dev/null || status=$$?; \
-		test "$$status" -ne 0 || { echo "umpire-check-veil-manifest accepted a manifest that resolves Veil $$other" >&2; exit 1; }; \
+		check_veil_manifest "$$planted" 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -ne 0 || { echo "check_veil_manifest accepted a manifest that resolves Veil $$other" >&2; exit 1; }; \
 		expected="$$planted resolves Veil '$$other', model/lakefile.lean requires $$required"; \
 		grep -qxF "$$expected" "$$diagnostics" || { echo "unexpected diagnostic:" >&2; cat "$$diagnostics" >&2; exit 1; }
 
@@ -1061,7 +1061,7 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-manifest umpire-check-veil-pin umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-pin umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
