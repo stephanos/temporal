@@ -25,7 +25,7 @@ const (
 )
 
 var xnetPreparedSocketSourceSetSHA256 = hostPin(map[string]string{
-	"darwin/arm64": "sha256:10df56ce136dff1eca6c15283ddee843f7ef016fb994fa915d321dca77566c97",
+	"darwin/arm64": "sha256:968ad4efba03776d6c3a6e453babac7447e8d9621ce084ac84364a521e108227",
 	"linux/amd64":  "sha256:0e4623e6b79e4340c7a3f7e750f73ccab334a4449365f3c1038bb18be7b773f1",
 })
 

@@ -75,6 +75,16 @@ func NormalizeTags(supplied []string) ([]string, error) {
 	return tags, nil
 }
 
+// experiment selects the classic collector, whose scan-work accounting does not
+// depend on which M marked an object.
+const experiment = "nogreenteagc"
+
+// BinaryGoVersion is the build-info Go version the go command stamps into a
+// target built by toolchain goVersion under Environment.
+func BinaryGoVersion(goVersion string) string {
+	return goVersion + "-X:" + experiment
+}
+
 func Environment() []string {
 	reserved := map[string]struct{}{
 		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMAD3_CHILD_SEED": {},
@@ -87,7 +97,7 @@ func Environment() []string {
 			environment = append(environment, entry)
 		}
 	}
-	return append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT=nogreenteagc", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
+	return append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT="+experiment, "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
 }
 
 func PrepareCache(toolchainRoot, buildKey string) (string, error) {

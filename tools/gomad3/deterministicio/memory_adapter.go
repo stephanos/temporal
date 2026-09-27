@@ -22,7 +22,7 @@ const (
 )
 
 var memoryPreparedSourceSetSHA256 = hostPin(map[string]string{
-	"darwin/arm64": "sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36",
+	"darwin/arm64": "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
 	"linux/amd64":  "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
 })
 

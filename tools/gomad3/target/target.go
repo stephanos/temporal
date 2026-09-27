@@ -510,7 +510,7 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 	if err != nil {
 		return preparation{}, fmt.Errorf("encode exec target build info: %w", err)
 	}
-	if actualBuildInfo.GoVersion != provenance.GoVersion || string(actualBuildInfoBytes) != string(recordedBuildInfo) {
+	if actualBuildInfo.GoVersion != targetbuild.BinaryGoVersion(provenance.GoVersion) || string(actualBuildInfoBytes) != string(recordedBuildInfo) {
 		return preparation{}, errors.New("exec target build info does not match provenance")
 	}
 	if err := writePreparedFile(filepath.Join(filepath.Dir(targetPath), "provenance.json"), provenanceBytes, 0o400); err != nil {

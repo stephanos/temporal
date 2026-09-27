@@ -119,7 +119,7 @@ var grpcSyscallRewrites = []sourceRewrite{
 }
 
 var grpcPreparedInternalSourceSetSHA256 = hostPin(map[string]string{
-	"darwin/arm64": "sha256:348f37231e8391fd9361eb84ed9d5a39b9cacc4136461ce103ccc828be7db250",
+	"darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
 	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
 })
 
