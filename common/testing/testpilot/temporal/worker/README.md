@@ -55,7 +55,7 @@ prepared carrier plan. `Carrier` delegates route injection, start-response pinni
 terminal release, parent terminal release, and quarantine to the delivery ledger. The worker
 validates callback URLs, resolves the SDK system callback against the trusted configured base, and
 builds the protocol completion effect. Only that generic effect crosses the package boundary through
-`CapabilityFactory`; its callback data remains opaque and the resulting opaque handle is published
+`HandleFactory`; its callback data remains opaque and the resulting opaque handle is published
 through the Run's handle bridge.
 
 Each actual workflow or Nexus-handler interpretation constructs a fresh private

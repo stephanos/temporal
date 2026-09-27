@@ -43,7 +43,6 @@ var downstreamSpecs = []string{
 	"fn-46-export-lean-model-module-impact-index",
 	"fn-70-scheduled-canary-proof-of-concept-as-a",
 	"fn-74-deepen-testpilot-worker-activation",
-	"fn-78-typed-temporal-authoring-and-checked",
 	"fn-79-deferred-nexus-operation-cancellation",
 }
 
@@ -592,9 +591,7 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"selected" + "Actions",
 		"semantic" + "Transitions",
 		"observation" + "Positions",
-		// The Go instruction kind, now `Opcode`. `CapabilityBridge` and `CapabilityEffect`
-		// are the live Driver seam and keep their names; the identifier boundary separates
-		// them from the bare type.
+		// The Go instruction kind, now `Opcode`.
 		"testpilot." + "Capability",
 		"model" + "Lint",
 		"model" + "LintTests",
@@ -736,6 +733,16 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"MapKey" + "Selector",
 		"Presence" + "Selector",
 		"Oneof" + "Selector",
+		// fn-91 renames the Driver seam's opaque capability to an opaque handle, matching the wire's
+		// `OpaqueHandleType`; the lowerCamel rule also holds the server Driver's unexported types.
+		"Opaque" + "Capability",
+		"Capability" + "Effect",
+		"Capability" + "Bridge",
+		"Capability" + "Factory",
+		"New" + "Capability",
+		"Invoke" + "Capability",
+		"Capability" + "Slot",
+		"Capability" + "Claim",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

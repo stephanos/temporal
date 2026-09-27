@@ -31,7 +31,7 @@ Case wire schema. `Testpilot.Protocol` exposes generated Lean declarations, `Tes
 constructs them, and `Testpilot.ProtoJSON` delegates encoding to `Protobuf.Json`.
 `common/testing/testpilot` owns `Profile`, `Driver`, `PreparedCase`, `Prepare`, and
 `PreparedCase.Run`. The vocabulary a `Driver` and its `Session` speak (coordinates, effect and
-reservation handles, the capability bridge, Profile role policy, and Opcodes) is declared once in the
+reservation handles, the handle bridge, Profile role policy, and Opcodes) is declared once in the
 `common/testing/testpilot/contract` leaf, which the facade re-exports by alias and private execution
 imports directly. Testpilot's private execution package owns scheduling, recording, effects, private
 Slots, and cleanup. Its private verification package owns static Contract preparation, fresh Run-local
