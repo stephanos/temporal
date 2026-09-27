@@ -41,6 +41,7 @@ var gomadChoiceTapeBytes uint64
 var gomadChoiceTapeRecords uint64
 var gomadChoiceTapeCursor uint64
 var gomadChoiceDecisionRecords uint64
+var gomadChoicePeakGoroutines uint32
 var gomadRuntimeGoroutineOrdinal atomic.Uint64
 var gomadChoiceNext atomic.Uint64
 var gomadChoiceRecords atomic.Uint64
@@ -347,6 +348,27 @@ func gomadRuntimeCheapRand() uint32 {
 	return hi ^ lo
 }
 
+// gomadHostCheapRand draws from the M's own stream for decisions that only
+// shape host-side scheduling: lock hand-off fairness, work-steal order, and
+// pcvalue-cache eviction. Those draws happen at host-timed moments (contended
+// runtime locks, idle windows whose length the runner decides, stack walks on
+// whichever M holds the P), so taking them from the process-wide stream moved
+// every later type-assertion cache fill and semaphore ticket between same-seed
+// runs.
+//
+//go:nosplit
+func gomadHostCheapRand() uint32 {
+	mp := getg().m
+	mp.cheaprand += 0x53c5ca59
+	hi, lo := bits.Mul32(mp.cheaprand, mp.cheaprand^0x74743c1b)
+	return hi ^ lo
+}
+
+//go:nosplit
+func gomadHostCheapRandN(n uint32) uint32 {
+	return uint32(uint64(gomadHostCheapRand()) * uint64(n) >> 32)
+}
+
 func gomadChoiceRunqSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)
@@ -626,6 +648,7 @@ func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadCh
 	gomadChoicePut64(terminal[16:24], records)
 	gomadChoicePut64(terminal[24:32], mappingBytes)
 	copy(terminal[32:64], digest[:])
+	gomadChoicePut32(terminal[66:70], gomadChoicePeakGoroutines)
 	gomadChoicePut64(terminal[80:88], gomadChoiceTapeRecords)
 	if terminal[12] == gomadChoiceTerminalDiverged {
 		gomadChoicePut64(terminal[72:80], gomadChoiceDecisionRecords)
@@ -673,6 +696,9 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 		hasher.write(ordinal[:])
 	}
 	newg.gomadIdentity = hasher.sum()
+	if live := uint32(gcount(false)); live > gomadChoicePeakGoroutines {
+		gomadChoicePeakGoroutines = live
+	}
 }
 
 // The run-queue choice runs on the system stack, which Linux sizes at 16 KiB
@@ -1224,4 +1250,18 @@ func gomadParseSeed(value string) (uint64, bool) {
 		seed = seed*10 + digit
 	}
 	return seed, true
+}
+
+// gomadAwaitHostSyscallExit waits until gp, if it is inside a host syscall
+// that the runner answers on its own schedule (a pipe write, a read-only
+// mount lookup), has returned and queued itself as an arrival. A stack scan
+// or goroutine profile otherwise sees either the frames inside the syscall
+// or the frames after it depending on when the host answered, and the
+// collector's view of live memory would follow host time. Simulation
+// transport reads are excluded: they block until the simulation advances,
+// which the scanning goroutine may itself be needed for.
+func gomadAwaitHostSyscallExit(gp *g) {
+	for !gp.gomadSimulationTransport && readgstatus(gp)&^_Gscan == _Gsyscall {
+		osyield()
+	}
 }

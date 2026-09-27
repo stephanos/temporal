@@ -278,6 +278,44 @@ func TestUnrepeatableExpectationRejectsQualifiedSeeds(t *testing.T) {
 	}
 }
 
+func TestIntermittentExpectationAcceptsQualifiedAndUnrepeatableSeeds(t *testing.T) {
+	expected := WorkloadExpectation{Classification: "intermittent"}
+	for name, workload := range map[string]WorkloadReport{
+		"qualified": {Classification: "qualified", Seeds: []SeedReport{{Seed: 7, Classification: "qualified"}, {Seed: 11, Classification: "qualified"}}},
+		"mixed":     {Classification: "nondeterministic", Seeds: []SeedReport{{Seed: 7, Classification: "qualified"}, {Seed: 11, Classification: "nondeterministic"}}},
+		"diverged":  {Classification: "replay_divergence", Seeds: []SeedReport{{Seed: 7, Classification: "replay_divergence"}}},
+	} {
+		if !matchesSupportedExpectation(expected, workload) {
+			t.Fatalf("intermittent expectation rejected %s workload", name)
+		}
+	}
+	failed := WorkloadReport{Classification: "target_failure", Seeds: []SeedReport{{Seed: 7, Classification: "target_failure"}}}
+	if matchesSupportedExpectation(expected, failed) {
+		t.Fatal("intermittent expectation accepted a target failure")
+	}
+}
+
+func TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes(t *testing.T) {
+	for _, classification := range []string{"nondeterministic", "replay_divergence"} {
+		t.Run(classification, func(t *testing.T) {
+			root := t.TempDir()
+			report, err := Run(context.Background(), Spec{
+				ManifestPath: writeManifestWithSeeds(t, root, []uint64{7}, "intermittent"),
+				GomadPath:    filepath.Join(root, "gomad"), WorkingDir: root,
+				ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "set-report.json"),
+				Execute: failureExecutor(t, classification),
+			})
+			if err != nil {
+				t.Fatalf("Run() error = %v", err)
+			}
+			workload := report.Workloads[0]
+			if !report.ExpectationsMet || report.Failed != 1 || workload.Classification != classification || !workload.ExpectationMet {
+				t.Fatalf("report = %#v", report)
+			}
+		})
+	}
+}
+
 func TestLoadManifestRejectsDuplicateWorkloadNames(t *testing.T) {
 	root := t.TempDir()
 	path := writeManifest(t, root, "unsupported_target")

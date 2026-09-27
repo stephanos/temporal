@@ -48,7 +48,7 @@ func TestPackageArchitecture(t *testing.T) {
 			}
 		}
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "simulation", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs"} {
+	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -374,7 +374,7 @@ func listHostPackages(t *testing.T) []listedPackage {
 		"list", "-json", "-tags", "test_dep",
 		"./cmd/...", "./runner/...", "./qualification/...", "./target/...",
 		"./record/...", "./artifact/...", "./choice/...", "./deterministicio/...", "./world/...",
-		"./simulation/...", "./upgrade/...",
+		"./upgrade/...",
 		"./toolchain", "./toolchain/version", "./internal/...",
 	}
 	command := exec.Command("go", arguments...)

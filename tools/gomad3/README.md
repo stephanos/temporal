@@ -570,7 +570,13 @@ When v2 choice recording is enabled, exact replay forces stable logical
 goroutine and select-poll alternatives independent of their physical queue
 order, consumes the complete tape, and still compares final observation
 records. Choice traces and tapes remain explicitly byte-bounded; overflow is a
-Runner failure and cannot claim exact replay.
+Runner failure and cannot claim exact replay. The choice terminal frame also
+carries the peak live goroutine count, sampled at every goroutine creation, and
+execution evidence records it as `peak_goroutines` next to
+`virtual_time_elapsed_nanos`, how far the simulation clock advanced before the
+target exited; both are deterministic and compared between repetitions.
+Qualification reports add each execution's `wall_elapsed_nanos`, which is
+informational and outside the evidence digest.
 
 Deterministic mode supports internally linked pure-Go targets on the qualified
 `darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
@@ -591,6 +597,19 @@ The Go test driver retains at most 1 MiB from each child output stream while
 continuing to drain both streams. Every harness result directory records
 `output-truncated` separately from `timed-out` and the child `status`. The Gomad
 Runner has a separate configurable per-stream limit that defaults to 8 MiB.
+
+Runtime decisions that only shape host-side scheduling draw from the M's own
+random stream rather than the process-wide seeded one: lock hand-off
+anti-starvation wakes, work-steal order, and pcvalue-cache eviction all happen
+at host-timed moments (contended runtime locks, idle windows whose length the
+Runner decides, stack walks on whichever M holds the P), and drawing them from
+the seeded stream moved every later type-assertion-cache fill and semaphore
+ticket between same-seed runs. A garbage-collector stack scan, and any other
+`suspendG`, first waits for a goroutine inside a plain host syscall (a pipe
+write, a read-only mount lookup) to return and queue itself as an arrival, so
+the collector's view of live memory does not depend on when the host answered;
+simulation transport reads are exempt because they block until the simulation
+advances.
 
 The mode is intended only for trusted tests. Deterministic map seeds remove a
 hash-randomization defense and must not be enabled in production. Each process

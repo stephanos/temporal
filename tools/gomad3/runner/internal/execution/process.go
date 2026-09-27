@@ -104,6 +104,9 @@ type Result struct {
 	IOROMounts        romount.Snapshot
 	ChoiceTrace       ChoiceTrace
 	SimulationRecords [][]byte
+	// VirtualTimeElapsedNanos is how far the simulation clock advanced past
+	// its fixed epoch before the target exited; zero without a coordinator.
+	VirtualTimeElapsedNanos uint64
 }
 
 type ChoiceTrace struct {

@@ -24,7 +24,7 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 		workloads int
 	}{
 		{path: filepath.Join("..", "gomad3", "qualification", "core.json"), module: "gomad3.core.corpus", seeds: []uint64{17}, workloads: 5},
-		{path: filepath.Join("qualification", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 16},
+		{path: filepath.Join("qualification", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 18},
 	} {
 		contents, err := os.ReadFile(test.path)
 		if err != nil {

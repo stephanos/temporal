@@ -42,32 +42,34 @@ type ChoiceEvidence struct {
 	Runnable               record.Uint64String `json:"runnable"`
 	SelectPoll             record.Uint64String `json:"select_poll"`
 	SelectResult           record.Uint64String `json:"select_result"`
+	PeakGoroutines         record.Uint64String `json:"peak_goroutines"`
 	Features               []choice.Feature    `json:"features"`
 	AdjacentPairsObserved  record.Uint64String `json:"adjacent_pairs_observed"`
 	AdjacentPairsTruncated bool                `json:"adjacent_pairs_truncated"`
 }
 
 type ExecutionEvidence struct {
-	Schema               string                           `json:"schema"`
-	Seed                 record.Uint64String              `json:"seed"`
-	RunnerBuild          string                           `json:"runner_build"`
-	Toolchain            record.Toolchain                 `json:"toolchain"`
-	Target               record.Target                    `json:"target"`
-	IOProfile            deterministicio.Contract         `json:"io_profile"`
-	Environment          []record.Environment             `json:"environment"`
-	Limits               ExecutionLimitsEvidence          `json:"limits"`
-	Outcome              OutcomeEvidence                  `json:"outcome"`
-	GroupGone            bool                             `json:"group_gone"`
-	Stdout               record.Stream                    `json:"stdout"`
-	Stderr               record.Stream                    `json:"stderr"`
-	IOTranscriptSHA256   record.SHA256                    `json:"io_transcript_sha256"`
-	IOTranscriptRecords  record.Uint64String              `json:"io_transcript_records"`
-	IOTranscriptComplete bool                             `json:"io_transcript_complete"`
-	Choices              *ChoiceEvidence                  `json:"choices,omitempty"`
-	World                record.World                     `json:"world"`
-	ReadOnlyMountsSHA256 *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
-	SemanticCoverage     deterministicio.SemanticCoverage `json:"semantic_coverage"`
-	ChoiceExploration    *ChoiceExplorationEvidence       `json:"choice_exploration,omitempty"`
+	Schema                  string                           `json:"schema"`
+	Seed                    record.Uint64String              `json:"seed"`
+	RunnerBuild             string                           `json:"runner_build"`
+	Toolchain               record.Toolchain                 `json:"toolchain"`
+	Target                  record.Target                    `json:"target"`
+	IOProfile               deterministicio.Contract         `json:"io_profile"`
+	Environment             []record.Environment             `json:"environment"`
+	Limits                  ExecutionLimitsEvidence          `json:"limits"`
+	Outcome                 OutcomeEvidence                  `json:"outcome"`
+	GroupGone               bool                             `json:"group_gone"`
+	Stdout                  record.Stream                    `json:"stdout"`
+	Stderr                  record.Stream                    `json:"stderr"`
+	IOTranscriptSHA256      record.SHA256                    `json:"io_transcript_sha256"`
+	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
+	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
+	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
+	World                   record.World                     `json:"world"`
+	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
+	SemanticCoverage        deterministicio.SemanticCoverage `json:"semantic_coverage"`
+	ChoiceExploration       *ChoiceExplorationEvidence       `json:"choice_exploration,omitempty"`
 }
 
 type ChoiceExplorationEvidence struct {
@@ -109,14 +111,15 @@ func executionEvidence(
 			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 			ExitCode: cloneUint64String(outcome.ExitCode), Signal: cloneString(outcome.Signal), Deadline: cloneString(outcome.Deadline),
 		},
-		GroupGone:            completion.result.GroupGone,
-		Stdout:               streamRecord(completion.result.Stdout),
-		Stderr:               streamRecord(completion.result.Stderr),
-		IOTranscriptSHA256:   record.SHA256FromSum(completion.result.IOTranscript.SHA256),
-		IOTranscriptRecords:  record.Uint64String(completion.result.IOTranscript.Records),
-		IOTranscriptComplete: completion.result.IOTranscript.Complete,
-		World:                cloneWorld(worldRecord),
-		SemanticCoverage:     coverage,
+		GroupGone:               completion.result.GroupGone,
+		Stdout:                  streamRecord(completion.result.Stdout),
+		Stderr:                  streamRecord(completion.result.Stderr),
+		IOTranscriptSHA256:      record.SHA256FromSum(completion.result.IOTranscript.SHA256),
+		IOTranscriptRecords:     record.Uint64String(completion.result.IOTranscript.Records),
+		IOTranscriptComplete:    completion.result.IOTranscript.Complete,
+		VirtualTimeElapsedNanos: record.Uint64String(completion.result.VirtualTimeElapsedNanos),
+		World:                   cloneWorld(worldRecord),
+		SemanticCoverage:        coverage,
 	}
 	if config.ChoiceTraceLimit != 0 && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalComplete {
 		trace := completion.result.ChoiceTrace
@@ -126,7 +129,8 @@ func executionEvidence(
 			BranchingRecords: record.Uint64String(trace.Trace.Summary.Branching), TerminalState: "complete",
 			TapeSHA256: record.SHA256FromSum(trace.TapeSHA256), Decisions: record.Uint64String(trace.Decisions),
 			Runnable: record.Uint64String(trace.Trace.Summary.Runnable), SelectPoll: record.Uint64String(trace.Trace.Summary.SelectPoll), SelectResult: record.Uint64String(trace.Trace.Summary.SelectResult),
-			Features: []choice.Feature{},
+			PeakGoroutines: record.Uint64String(trace.Trace.Summary.PeakGoroutines),
+			Features:       []choice.Feature{},
 		}
 		if choiceFeatures != nil {
 			runRecord.Choices.Features = append([]choice.Feature(nil), choiceFeatures.Values...)

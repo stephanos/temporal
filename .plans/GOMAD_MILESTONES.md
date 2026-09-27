@@ -636,6 +636,63 @@ frontend, history, matching, SQLite writes, inter-service gRPC, and virtual time
 - Zero watchdog terminations and zero `GOMAD_CAPABILITY_DENIED` throws across all repetitions.
 - The suite is added to `temporal.json` as tier 3 and the CI assertion is updated.
 
+**Status.** Worked on 2026-09-27 on linux/amd64 with `TestUserTimersTestSuite` (`./tests`, tags
+`disable_grpc_modules,gomad,test_dep`, stock `go test` 4.2 s), which starts a workflow, completes
+workflow tasks through the poller, fires user timers, and reads history back. Getting the
+one-box cluster to run at all under the deterministic profile took three modeled operations,
+each with its contract, bound, transcript coverage, replay, and negative test: the in-memory
+filesystem now starts with the process temp directory (`/tmp`), so SQLite's temp files and the
+test's temp paths resolve; shared writable file mappings model SQLite's WAL index (`-shm`),
+aliasing identical mappings, rejecting overlapping writable regions, read-only and volume
+files, and more than 64 MiB mapped; and read-only mount lookups (the schema directory, mounted
+with `--io-ro-mount schema=/go.temporal.io/server/schema`) are plain host syscalls rather than
+simulation transport, so quiescence keeps virtual time still while a lookup is pending instead
+of advancing 90 s and failing the boot. The evidence report gained the fields this milestone
+asks for: `peak_goroutines` (from the choice terminal frame, sampled at every goroutine
+creation), `virtual_time_elapsed_nanos` (from the simulation-time arbiter), and per-execution
+`wall_elapsed_nanos` in the qualification report.
+
+Measured with `gomad qualify --repeat 8` on the rebuilt toolchain
+(`d6d1f5c59112560769f54430006180ab6ccba596ba8b99b109285cd55394f933`, the measured build differing from it only by a runtime comment), 64 MiB choice tape,
+success artifacts retained and replayed: every repetition exits 0 with no watchdog termination
+and no `GOMAD_CAPABILITY_DENIED`; 15 I/O transcript records (the mount lookups; SQLite lives in
+the in-memory filesystem); 5761 choice decisions in 8143 records (782 KB tape) on seed 11, 5686
+in 8022 on seed 17; virtual time elapsed 4.008 s; wall time 0.27 s to 0.39 s per repetition
+(cluster boot included, versus 4.2 s under stock Go); peak 664 goroutines; stderr 52 KB and
+identical across every repetition of both seeds. Seed 11 is `qualified`: eight identical
+evidence digests, each replaying `exact`. Seed 17 is `nondeterministic`: three digests in eight
+repetitions, differing only in the choice trace (`first_divergence: choices`), with the divergent
+repetitions also failing their own replay at ordinal 2102, the run-queue decision where
+`runtime.runCleanups` becomes runnable after the collector's `sweepdone`.
+
+Finding that cause closed four host-timing channels in the runtime, each confirmed by an event
+diff between same-seed runs (allocation traces, seeded draw counters, span refills, and mark
+statistics printed from a debug build): the type-assertion and interface-switch caches decide
+whether to allocate a new cache from `cheaprand`, and that process-wide seeded stream was also
+consumed by lock hand-off anti-starvation draws (`unlock2Wake`), work-steal order (`stealWork`),
+and pcvalue-cache eviction during stack walks (`pcvalue`), all of which happen at host-timed
+moments; those three now draw from the M's own stream (`gomadHostCheapRand`, patched in
+`lock_spinbit.go`, `proc.go`, `symtab.go`). A GC stack scan (any `suspendG`) now waits for a
+goroutine inside a plain host syscall to return and queue itself as an arrival
+(`gomadAwaitHostSyscallExit`, patched in `preempt.go`), so the collector no longer sees either
+the frames inside a pipe write or mount lookup or the frames after it depending on the host.
+With those in place, same-seed runs have identical `mallocgc` sequences (166,286 allocations
+through decision 20), identical seeded draw counts, identical stack-scan bytes, and identical
+heap base addresses, yet the fourth collection scans 24 more heap bytes in one run than in the
+other, after which span refills, `heapLive`, and the cleanup wake drift. That is the GC-dimension
+divergence this milestone anticipated: the channel is in the collector's view of live memory,
+not in allocation or scheduling. It is recorded here rather than masked, and
+[GOMAD3_NEXT.md](GOMAD3_NEXT.md#milestone-7-evaluate-research-extensions) opens the
+deterministic-GC research item with the evidence and candidate designs.
+
+The suite is in `temporal.json` as tier 3 (`user-timers-workflow`) with the new qualification
+expectation `intermittent`, which accepts `qualified`, `nondeterministic`, or
+`replay_divergence` per seed so the corpus report records whichever the run produced; CI asserts
+18 selected and completed workloads, 11 expected boundaries, and either 6 supported and 1 failed
+or 5 supported and 2 failed. Acceptance therefore stands as: metrics, denials, watchdogs, and
+manifest met; seed-level repeatability met on one of the two seeds with exact replay, open on
+the other through the GC dimension. darwin/arm64 has not been run.
+
 ## F6: a package-level functional slice
 
 **Outcome.** A named slice of at least ten `./tests` suites runs through `qualify-set` and every

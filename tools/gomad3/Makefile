@@ -102,7 +102,7 @@ upgrade-dossier: core-qualification
 test-host: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
-		./deterministicio/... ./world/... ./simulation/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
+		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
 
 overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
