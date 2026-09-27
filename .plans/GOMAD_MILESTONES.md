@@ -163,8 +163,11 @@ passed every clock, linking, scheduling, perturbation, host-load, map-family, or
 activation check and then found a same-seed divergence in the repeatability sweep: about 0.3
 to 1 percent of runs of the allocation-heavy fixtures (`channels`, `sync`, `automatic_gc`,
 `scheduler`) print a different interleaving for one seed, with `NumGC == 0`, a different
-`HeapAlloc`, and no divergence under `GOGC=off`. That is the GC-dimension risk this document
-names and is the top open Gomad defect. Still missing, each with the test that drives it:
+`HeapAlloc`, and no divergence under `GOGC=off`. F2 traced that divergence to the seeded
+scheduler drawing from per-M random streams whenever no choice trace was attached, so which M
+picked up the P after a hand-off changed the interleaving; the scheduler now draws from
+process-wide seeded states and the runtime tier's repeatability sweep passes on linux/amd64
+(the GC-dimension risk this document names remains a risk, not an observed defect). Still missing, each with the test that drives it:
 `io_filesystem`, `io_net`, `io_signal`, `io_user`, `libc_adapter`, and `sqlite_adapter`
 (`runner/internal/execution/io_*_toolchain_test.go`), `io_net_races`, `io_entropy`,
 `io_ro_mount`, `io_failure`, and `io_ro_mount_failure` (the remaining `*_toolchain_test.go`
@@ -233,6 +236,32 @@ packages build under it again.
   guide for the new version.
 - The DTrace clock audit needs root. Record whether it ran; a dossier without it stays
   `qualified=false` and that is the honest state, not a failure of this milestone.
+
+**Status.** Applied on 2026-09-27 on `gomad-linux`, pinned to go1.27.1 (go.dev and dl.google.com
+are unreachable from cloud sessions, so the official `go1.27.1.src.tar.gz` checksum
+`4e408aba…238b1` was cross-checked against the Homebrew, Void, and nixpkgs package sources; the
+source itself came from the `golang.org/toolchain` module, whose 16 patched files are identical
+to go1.27.0's). The go1.26.4 patch applied with one reject (`schedinit`'s comment text around
+`gomadInit()` changed) and needed two runtime follow-ups: the runtime split `m.cheaprand` into a
+32-bit and a 64-bit field, so the seeded `mrandinit` now sets both, and `internal/runtime/math`
+lost `Mul64`, so the select choice uses `math/bits`. Go 1.27's linker rejects a pull linkname
+to the assembly `runtime.nanotime1`, so `internal/gomadfs` reads the host clock through the
+push-linknamed `runtime.gomadWallNanotime`. The boundary manifest is `go1.27.1-v1`: only
+`(*File).Chdir` (gained a `testlog` record) and `(*Resolver).LookupSRV` (doc comment) changed
+bodies, the os.Pipe override for linux/amd64 is unchanged, and the intercept count stayed at
+131. The regenerated patch (`toolchain/runtime/go1.27.1.patch`) applies with zero fuzz and the
+generated compiler spec is now found by the `spec_go` prefix instead of a hard-coded name. On
+linux/amd64 every tier passes (`test-harness`, `test-toolchain`, `intercept-test`,
+`overlay-test`, `world-test`, `test-builder`, `test-live-capability`, `test-upstream`,
+`test-runtime`) and `core-qualification-set` reports 3 supported with exact replay and the 2
+expected `unsupported_target` results; the Linux CI job now gates on the runtime tier too. Two
+Linux-only findings were fixed along the way: the upstream tier pins `GOROOT` to its workspace
+link because go1.27's `go list` resolved GOROOT directories against this module when run from
+a GOROOT nested inside it, and the seeded scheduler drew from per-M random streams without a
+choice trace (see F1's status). Not done here: the macOS `upgrade-dossier` run, the DTrace
+audit, and the `GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256` variable for the go1.26.4-v2 to
+go1.27.1-v1 boundary diff, all of which need the darwin/arm64 runner; and the Temporal corpus
+acceptance, which stays blocked on the adapter re-pin from F1.
 
 **Constraints.**
 

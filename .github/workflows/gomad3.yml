@@ -77,14 +77,14 @@ jobs:
       - name: Build the toolchain and run the conformance tiers qualified on Linux
         run: >-
           make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test
-          world-test test-builder test-live-capability test-upstream
+          world-test test-builder test-live-capability test-upstream test-runtime
 
-      # The runtime tier still sees a rare same-seed divergence on linux/amd64 that
-      # GOGC=off removes, and the host tier waits on the remaining I/O fixtures, so
-      # both report without gating until GOMAD_MILESTONES.md closes them.
-      - name: Run the runtime and host tiers
+      # The host tier waits on the remaining I/O fixtures and on host tests that
+      # still assume darwin/arm64, so it reports without gating until
+      # GOMAD_MILESTONES.md closes them.
+      - name: Run the host tier
         continue-on-error: true
-        run: make -C tools/gomad3 test-runtime test-host
+        run: make -C tools/gomad3 test-host
 
       - name: Qualify the core corpus
         run: make -C tools/gomad3 core-qualification-set
