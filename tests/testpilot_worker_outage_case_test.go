@@ -34,12 +34,12 @@ func workerOutageBinding() CaseBinding {
 // outage is what the Run proves.
 func TestTestpilotWorkerOutageCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	run, verdict := runCaseWithBinding(t, env, testpilotcore.WorkerOutageFixture, workerOutageBinding())
+	run, verdict := runCapturedCaseWithBinding(t, env, testpilotcore.WorkerOutageFixture, workerOutageBinding())
 
-	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	requireWorkerOutageEvidence(t, run, verdict)
+	check := requireRunSatisfied(t, "", run, verdict)
+	check.require("outage evidence", func() {
+		requireWorkerOutageEvidence(t, run, verdict)
+	})
 }
 
 // TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone runs the outage Case beside a plain Nexus
@@ -47,8 +47,9 @@ func TestTestpilotWorkerOutageCase(t *testing.T) {
 // peer worker on the same physical queue would keep polling it, which is why the queues differ.
 func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	outage := bindCase(t, env, loadTestpilotCase(t, testpilotcore.WorkerOutageFixture), workerOutageBinding())
-	plain := bindCase(t, env, loadTestpilotCase(t, nexusCallerQueries[1].fixture()), CaseBinding{
+	fixtures := map[string]string{"outage": testpilotcore.WorkerOutageFixture, "plain": nexusCallerQueries[1].fixture()}
+	outage := bindCase(t, env, loadTestpilotCase(t, fixtures["outage"]), workerOutageBinding())
+	plain := bindCase(t, env, loadTestpilotCase(t, fixtures["plain"]), CaseBinding{
 		Identity: "nexus-caller-profile", Namespace: "umpire-worker-outage-peer",
 		TaskQueue: "umpire-worker-outage-peer-queue", NexusEndpoint: "umpire-worker-outage-peer-endpoint",
 		CreateEndpoint: true,
@@ -62,7 +63,8 @@ func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	}
 	results := make(chan liveResult, 2)
 	var runs sync.WaitGroup
-	for name, live := range map[string]testpilotLiveCase{"outage": outage, "plain": plain} {
+	lives := map[string]testpilotLiveCase{"outage": outage, "plain": plain}
+	for name, live := range lives {
 		runs.Go(func() {
 			run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 			results <- liveResult{name: name, run: run, verdict: verdict, err: err}
@@ -71,16 +73,24 @@ func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	runs.Wait()
 	close(results)
 
-	seen := map[string]struct{}{}
+	// Both closed Runs are captured before either is asserted on.
+	collected := make([]liveResult, 0, 2)
 	for result := range results {
+		captureRun(t, fixtures[result.name], lives[result.name], result.run)
+		collected = append(collected, result)
+	}
+	seen := map[string]struct{}{}
+	for _, result := range collected {
 		require.NoError(t, result.err)
-		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition(), result.name)
-		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus(), result.name)
-		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus(), result.name)
+		check := requireRunSatisfied(t, result.name, result.run, result.verdict)
 		if result.name == "outage" {
-			requireWorkerOutageEvidence(t, result.run, result.verdict)
+			check.require("outage evidence", func() {
+				requireWorkerOutageEvidence(t, result.run, result.verdict)
+			})
 		} else {
-			require.Empty(t, faultEvents(result.run))
+			check.require("fault events", func() {
+				require.Empty(t, faultEvents(result.run))
+			})
 		}
 		seen[result.name] = struct{}{}
 	}

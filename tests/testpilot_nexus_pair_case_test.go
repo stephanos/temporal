@@ -44,22 +44,24 @@ func TestTestpilotNexusPairCase(t *testing.T) {
 	for range 2 {
 		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 		require.NoError(t, err)
-		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition(), "diagnostics: %v", run.GetDiagnostics())
-		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
-		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus(), "diagnostics: %v", run.GetDiagnostics())
-		require.True(t, proto.Equal(verdict, run.GetVerdict()))
+		captureRun(t, testpilotfixture.NexusPairFixture, live, run)
+		check := requireRunSatisfied(t, "", run, verdict)
 		// One capture rule per instance, then the scoped clauses the Query's Property lowered into.
-		require.Greater(t, len(verdict.GetRules()), len(rules))
+		check.require("rule count", func() {
+			require.Greater(t, len(verdict.GetRules()), len(rules))
+		})
 		for index, ruleID := range rules {
 			rule := verdict.GetRules()[index]
-			require.Equal(t, ruleID, rule.GetRuleId())
-			require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-			requireCorrelatedNexusPairEvidence(t, run, rule.GetSupportingEventSequences(), operations[index], environment.NexusEndpoint)
+			check.require("capture rule "+ruleID+" evidence", func() {
+				require.Equal(t, ruleID, rule.GetRuleId())
+				requireCorrelatedNexusPairEvidence(t, run, rule.GetSupportingEventSequences(), operations[index], environment.NexusEndpoint)
+			})
 		}
-		for _, rule := range verdict.GetRules()[len(rules):] {
-			require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-			require.NotEmpty(t, rule.GetSupportingEventSequences())
-		}
+		check.require("clause evidence", func() {
+			for _, rule := range verdict.GetRules()[len(rules):] {
+				require.NotEmpty(t, rule.GetSupportingEventSequences())
+			}
+		})
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}

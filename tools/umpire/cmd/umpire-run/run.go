@@ -198,6 +198,11 @@ func report(stdout io.Writer, run *testpilotspb.Run, verdict *testpilotspb.Verdi
 	for _, rule := range verdict.GetRules() {
 		cli.WriteLine(stdout, "rule %s %s %s", rule.GetRuleId(), rule.GetStatus(), rule.GetTerminalStateId())
 	}
+	// A diagnostic's kind and code, never its detail: the detail names ids a caller comparing two
+	// Runs' reports would only have to strip again.
+	for _, diagnostic := range run.GetDiagnostics() {
+		cli.WriteLine(stdout, "diagnostic %s %s", diagnostic.GetKind(), diagnostic.GetCode())
+	}
 }
 
 func exitCode(verdict *testpilotspb.Verdict) int {
