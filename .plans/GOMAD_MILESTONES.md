@@ -731,7 +731,16 @@ On darwin/arm64 the `./tests` closure is closed at commit `a8777f5d73` (F2's dar
 the `gomad` tag, `gomad analyze --capability-mode=closure go-test ./tests` reports `supported`
 with zero blockers. The new `temporal-functional-tests-darwin-arm64` pack admits the
 Prometheus client's darwin process-collector `syscall` and `x/sys/unix` imports, and both darwin
-packs pass `compatibility-pack-qualification`.
+packs pass `compatibility-pack-qualification`. F4's darwin/arm64 run re-observed it at commit
+`a861e0dbb3`: the same command with `--format=json` reports `supported` with zero blockers and
+no `unsupported_target` findings over 1043 packages, selecting `modernc-libc-xsys-v047`,
+`modernc-libc-xsys-v047-isatty-v021`, `reflect2-go126`,
+`temporal-functional-compute-darwin-arm64`, and `temporal-functional-tests-darwin-arm64`.
+`temporal.json` names no packs: a pack binds to the workload its request names (both
+functional-tests packs name `functional-tests`), and the qualification set for packs is the
+per-platform `COMPATIBILITY_PACK_QUALIFICATIONS` list in `tools/gomad3/Makefile`, where the
+darwin tests pack sits exactly as the linux one does. The darwin `core` CI job now asserts the
+closed closure with the same step as the linux job.
 
 **Constraints.**
 

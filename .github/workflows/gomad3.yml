@@ -215,6 +215,21 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # The darwin/arm64 counterpart of the Linux closure step (GOMAD_MILESTONES.md
+      # F4 states its acceptance on darwin/arm64): the arm64 assembly and the
+      # Prometheus client's darwin process-collector imports are admitted by
+      # the darwin packs, so closure mode reports zero blockers.
+      - name: Close the functional test capability closure
+        run: >-
+          make gomad3-runner &&
+          tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
+          --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
+          go-test ./tests > tools/gomad3/.toolchain/tests-closure.json;
+          jq -e '
+          .classification == "supported" and (.blockers | length) == 0 and
+          ([.packs[].id] | index("temporal-functional-tests-darwin-arm64") != null)
+          ' tools/gomad3/.toolchain/tests-closure.json
+
   temporal-integration:
     needs: core
     runs-on: macos-15
