@@ -11,6 +11,8 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
@@ -103,8 +105,8 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 			program: func(program *testpilotspb.Program) {
 				invoke := program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc()
 				invoke.RequestAssignments = []*testpilotspb.RequestAssignment{
-					{Target: symbolicFieldPath("namespace"), Value: runtimeText("namespace")},
-					{Target: symbolicFieldPath("task_queue", "name"), Value: runtimeText("task-queue")},
+					{Target: symbolicFieldPath("namespace"), Value: facadetest.Text("namespace")},
+					{Target: symbolicFieldPath("task_queue", "name"), Value: facadetest.Text("task-queue")},
 				}
 			},
 		},
@@ -158,10 +160,10 @@ func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 				EndpointRoleId: "endpoint",
 				Method:         getHistoryMethod,
 				RequestAssignments: []*testpilotspb.RequestAssignment{{
-					Target: symbolicFieldPath("namespace"), Value: runtimeText("namespace"),
+					Target: symbolicFieldPath("namespace"), Value: facadetest.Text("namespace"),
 				}},
 			}}},
-			Limits: runtimeBounds(),
+			Limits: facadetest.Bounds(),
 		}}
 	}, authorizeGetHistory)
 	host := symbolicRuntimeDriver(t, prepared.Limits())
@@ -215,7 +217,7 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 }
 
 func TestNewFreezesSymbolicProfile(t *testing.T) {
-	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
 	limits := preparedRuntimeFixture(t, replySynchronous).Limits()
 	base := Options{Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}}}, Client: &recordingClient{}, WorkerRoleID: "worker"}
@@ -227,7 +229,7 @@ func TestNewFreezesSymbolicProfile(t *testing.T) {
 
 func preparedSymbolicRuntimeFixture(t *testing.T, modifiers ...any) testpilot.PreparedProgram {
 	t.Helper()
-	return capturePreparedProgram(t, preparedSymbolicRuntimeCase(t, modifiers...))
+	return facadetest.Capture(t, preparedSymbolicRuntimeCase(t, modifiers...))
 }
 
 func preparedSymbolicRuntimeCase(t *testing.T, modifiers ...any) *testpilot.PreparedCase {
@@ -259,7 +261,7 @@ func preparedSymbolicRuntimeCase(t *testing.T, modifiers ...any) *testpilot.Prep
 
 func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Driver {
 	t.Helper()
-	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
 	host, err := New(Options{
 		Profile: testpilot.ProfileSpec{
@@ -440,18 +442,18 @@ func TestActivationValuesOwnValidatedOutcome(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, enabled)
 	require.Nil(t, input)
-	original := carriedValue(t, "result")
+	original := facadetest.CarriedValue("result")
 	require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}))
 	original.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
 	result, enabled, err := state.Evaluate(t.Context(), 2)
 	require.NoError(t, err)
 	require.True(t, enabled)
-	require.Equal(t, "result", carriedText(t, result))
+	require.Equal(t, "result", facadetest.CarriedText(t, result))
 	i := workflowInterpreter{state: state}
 	result, finished, err := i.execute(2, prepared.Entrypoints()[1].Instructions()[2], result)
 	require.NoError(t, err)
 	require.True(t, finished)
-	require.Equal(t, "result", carriedText(t, result))
+	require.Equal(t, "result", facadetest.CarriedText(t, result))
 }
 
 func TestReservationBindingRejectsCrossedIdentity(t *testing.T) {

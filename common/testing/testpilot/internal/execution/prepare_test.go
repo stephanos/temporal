@@ -11,6 +11,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -20,7 +21,7 @@ func fixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
+	limits := testsupport.ProgramLimits()
 	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 32}, {Kind: contract.NexusHandlerEntrypoint, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.Await, contract.Finish, contract.WorkflowCommand, contract.NexusHandlerReply, contract.NexusOperationCompletion}, CommandTypes: []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}, Limits: proto.CloneOf(limits)}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{rpcNode("call")}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
@@ -572,31 +573,6 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: "value"}}
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("binding")}}
-}
-
-func TestConcurrentEnvironmentPreparationsResolveIndependently(t *testing.T) {
-	c, catalog, base := fixture(t)
-	configureEnvironmentCase(c, &base)
-	for i := 0; i < 8; i++ {
-		i := i
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			t.Parallel()
-			policy := base
-			value := fmt.Sprintf("environment-%d", i)
-			policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: value}}
-			prepared, err := Prepare(c, catalog, policy)
-			require.NoError(t, err)
-			store, err := newValueStore(prepared, "run")
-			require.NoError(t, err)
-			values, err := store.activate("controller", "activation")
-			require.NoError(t, err)
-			request, dispatched, _, err := values.request(t.Context(), contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
-			require.NoError(t, err)
-			require.True(t, dispatched)
-			textField := request.ProtoReflect().Descriptor().Fields().ByName("text")
-			require.Equal(t, value, request.ProtoReflect().Get(textField).String())
-		})
-	}
 }
 
 func TestConcurrentEnvironmentRequestsUsePreparedSnapshot(t *testing.T) {

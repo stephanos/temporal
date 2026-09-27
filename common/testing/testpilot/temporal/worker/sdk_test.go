@@ -24,6 +24,7 @@ import (
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
@@ -45,14 +46,14 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 	var operationInput converter.RawValue
 	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Run(func(arguments mock.Arguments) {
 		operationInput = arguments.Get(1).(converter.RawValue)
-	}).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
+	}).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(facadetest.Payload("done"))}, nil)
 	environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
 	require.NoError(t, environment.GetWorkflowError())
 	var result testpilotspb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
-	require.Equal(t, "done", carriedText(t, &result))
-	require.True(t, proto.Equal(runtimePayload("request"), operationInput.Payload()))
+	require.Equal(t, "done", facadetest.CarriedText(t, &result))
+	require.True(t, proto.Equal(facadetest.Payload("request"), operationInput.Payload()))
 	workflowReservation := reservationForEntrypoint(t, session, "workflow")
 	workflowResult, err := workflowReservation.Wait(t.Context())
 	require.NoError(t, err)
@@ -123,19 +124,19 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 	require.NoError(t, err)
 	terminal := &registeredNexusTerminal{handler: handler, service: "service", operation: "operation"}
 	inbound := (&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}).InterceptNexusOperation(t.Context(), terminal)
-	input := interceptor.NexusStartOperationInput{Input: converter.NewRawValue(runtimePayload("request")), Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
+	input := interceptor.NexusStartOperationInput{Input: converter.NewRawValue(facadetest.Payload("request")), Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
 	result, err := inbound.StartOperation(t.Context(), input)
 	require.NoError(t, err)
 	raw, ok := result.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
 	require.True(t, ok)
-	require.True(t, proto.Equal(runtimePayload("accepted"), raw.Payload()))
+	require.True(t, proto.Equal(facadetest.Payload("accepted"), raw.Payload()))
 	_, err = reservationForEntrypoint(t, session, "handler").Wait(t.Context())
 	require.NoError(t, err)
 	replay, err := inbound.StartOperation(t.Context(), input)
 	require.NoError(t, err)
 	replayed, ok := replay.(*nexus.HandlerStartOperationResultSync[any]).Value.(converter.RawValue)
 	require.True(t, ok)
-	require.True(t, proto.Equal(runtimePayload("accepted"), replayed.Payload()))
+	require.True(t, proto.Equal(facadetest.Payload("accepted"), replayed.Payload()))
 	require.Len(t, session.nexusAdmissions, 1)
 	_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: input.Input, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
 	require.Error(t, err)
@@ -155,7 +156,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	environment.SetHeader(request.GetHeader())
 	operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
-	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
+	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(facadetest.Payload("done"))}, nil)
 	environment.RegisterDynamicWorkflow(func(ctx workflow.Context, arguments converter.EncodedValues) (*testpilotspb.Value, error) {
 		close(entered)
 		<-proceed
@@ -177,7 +178,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	replayEnvironment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 	replayEnvironment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	replayEnvironment.SetHeader(request.GetHeader())
-	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
+	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(facadetest.Payload("done"))}, nil)
 	replayEnvironment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	replayEnvironment.ExecuteWorkflow("workflow-type", "untouched")
 	require.NoError(t, replayEnvironment.GetWorkflowError())
@@ -217,7 +218,7 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 		environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 		environment.SetHeader(request)
 		operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
-		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(runtimePayload("done"))}, nil)
+		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(facadetest.Payload("done"))}, nil)
 		environment.RegisterDynamicWorkflow(dynamic, workflow.DynamicRegisterOptions{})
 		return environment
 	}

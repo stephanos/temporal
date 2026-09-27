@@ -12,10 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
+// The typed-nil Profiles and Drivers stay local: each is a kind of nil the facade must reject.
 type nilProfileMap map[string]int
 
 func (nilProfileMap) Snapshot() ProfileSpec { panic("typed nil called") }
@@ -64,6 +66,7 @@ func (nilDriverChan) Open(context.Context, string, PreparedProgram) (Session, er
 	panic("typed nil called")
 }
 
+// facadeDriver stays local because the facade's in-package tests cannot import facadetest.
 type facadeDriver struct {
 	identity    DriverIdentity
 	session     Session
@@ -306,7 +309,7 @@ func TestPrepareAndRunRejectTypedNilInterfacesBeforeEffects(t *testing.T) {
 		require.Nil(t, verdict)
 	}
 
-	driver := &facadeDriver{identity: prepared.Identity(), session: (*facadeSession)(nil)}
+	driver := &facadeDriver{identity: prepared.Identity(), session: (*testsupport.Session)(nil)}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.Error(t, err)
 	require.Nil(t, run)
@@ -347,6 +350,7 @@ func TestRunChecksContextBeforeDriverIdentity(t *testing.T) {
 	require.Zero(t, driver.opens)
 }
 
+// countingMonitorFactory stays local: it wraps the prepared Case's unexported monitor factory.
 type countingMonitorFactory struct {
 	execution.MonitorFactory
 	created int
@@ -412,13 +416,10 @@ func TestRunCreatesMonitorBeforeOpen(t *testing.T) {
 	require.Zero(t, driver.opens)
 }
 
-type facadeSession struct{ Session }
-
 func facadeFixture(t testing.TB) (*testpilotspb.Case, ProfileSpec) {
 	t.Helper()
 	catalog, err := NewCatalog(&descriptorpb.FileDescriptorSet{})
 	require.NoError(t, err)
-	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	source := &testpilotspb.Case{
 		Version:  &testpilotspb.FormatVersion{Major: 1},
@@ -426,7 +427,7 @@ func facadeFixture(t testing.TB) (*testpilotspb.Case, ProfileSpec) {
 		Program:  &testpilotspb.Program{ProgramId: "program", Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}},
 		Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}}, Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}},
 	}
-	return source, ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: proto.CloneOf(programLimits), ContractLimits: contractLimits}
+	return source, ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: testsupport.ProgramLimits(), ContractLimits: contractLimits}
 }
 
 func TestIsRunID(t *testing.T) {

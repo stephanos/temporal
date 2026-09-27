@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
@@ -160,7 +161,7 @@ func TestCreateCarrierRejectsForeignPhysicalWorkflowBinding(t *testing.T) {
 }
 
 func TestNewRejectsProfileLimitsBeforeRetainedStateAllocation(t *testing.T) {
-	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
 	limits := proto.CloneOf(preparedRuntimeFixture(t, replySynchronous).Limits())
 	limits.MaxRunEvents = 100001

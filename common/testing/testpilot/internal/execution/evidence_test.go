@@ -13,10 +13,9 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -31,24 +30,11 @@ const (
 // pending operation back.
 func evidenceFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
-	descriptors := &descriptorpb.FileDescriptorSet{}
-	seen := map[string]bool{}
-	var add func(protoreflect.FileDescriptor)
-	add = func(file protoreflect.FileDescriptor) {
-		if seen[file.Path()] {
-			return
-		}
-		seen[file.Path()] = true
-		for index := 0; index < file.Imports().Len(); index++ {
-			add(file.Imports().Get(index))
-		}
-		descriptors.File = append(descriptors.File, protodesc.ToFileDescriptorProto(file))
-	}
-	add(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
-	add(workflowservice.File_temporal_api_workflowservice_v1_service_proto)
-	catalog, err := ir.NewCatalog(descriptors)
+	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto, workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 8, MaxRequestBytes: 4096, MaxResponseBytes: 8192, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 8192}
+	// A read emits up to the path fanout, which must fit the instruction's emitted-event bound.
+	limits := testsupport.ProgramLimits()
+	limits.MaxPathFanout = limits.MaxInstructionEmittedEvents
 	policy := Profile{
 		Identity: "host", CatalogIdentity: catalog.Identity(),
 		Roles: []contract.RolePolicy{
@@ -201,8 +187,8 @@ func TestSchedulerLiftsEveryDeclaredEvidenceSource(t *testing.T) {
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	polls := 0
-	host := &schedulerHost{
-		invoke: func(_ context.Context, c contract.Coordinate, _ proto.Message) (contract.EffectHandle, error) {
+	host := &testsupport.Session{
+		OnInvokeRPC: func(_ context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, _ proto.Message) (contract.EffectHandle, error) {
 			var recorded proto.Message
 			switch c.InstructionID {
 			case "history":
@@ -222,12 +208,12 @@ func TestSchedulerLiftsEveryDeclaredEvidenceSource(t *testing.T) {
 			encoded, err := proto.Marshal(recorded)
 			require.NoError(t, err)
 			require.NoError(t, proto.Unmarshal(encoded, response))
-			return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+			return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
 				return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}, nil
 			}}, nil
 		},
-		fault: func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error) {
-			return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+		OnInjectFault: func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error) {
+			return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
 				return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 			}}, nil
 		},

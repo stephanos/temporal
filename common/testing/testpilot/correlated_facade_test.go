@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -55,7 +57,7 @@ func correlatedFacadeInputs(t testing.TB, fixture correlatedFacadeFixture) (*tes
 // projection work is larger than any Temporal Case's.
 func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
-	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
+	descriptors := testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
 		Name: proto.String("test/correlated/source.proto"), Package: proto.String("test.correlated"), Syntax: proto.String("proto3"),
 		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_correlated_proto.Path()},
@@ -87,47 +89,40 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	}
 }
 
-type correlatedFacadeDriver struct {
-	identity testpilot.DriverIdentity
+// correlatedSource answers instruction read.N with its Nth evidence event. Reading event failAt
+// fails, after calling stop when set, and closing the Session returns closeErr.
+type correlatedSource struct {
 	events   []*testpilotspb.CorrelatedEvidence
 	failAt   int
 	closeErr error
 	stop     context.CancelFunc
 }
 
-func (d *correlatedFacadeDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
-	return d.identity, nil
-}
-func (*correlatedFacadeDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
-func (d *correlatedFacadeDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
-	return &correlatedFacadeSession{facadeSession: &facadeSession{driver: &facadeDriver{}}, driver: d}, nil
+func (s *correlatedSource) driver(identity testpilot.DriverIdentity) *facadetest.Driver {
+	return &facadetest.Driver{DriverIdentity: identity, OnOpen: func(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+		return &testsupport.Session{OnInvokeRPC: s.read, OnClose: func(context.Context) error { return s.closeErr }}, nil
+	}}
 }
 
-type correlatedFacadeSession struct {
-	*facadeSession
-	driver *correlatedFacadeDriver
-}
-
-func (s *correlatedFacadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, endpoint string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
+func (s *correlatedSource) read(_ context.Context, coordinate testpilot.Coordinate, endpoint string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
 	if endpoint != "source" || method.FullName() != "test.correlated.Source.Read" {
 		return nil, errors.New("unexpected correlated fixture RPC")
 	}
 	index, err := strconv.Atoi(strings.TrimPrefix(coordinate.InstructionID, "read."))
-	if err != nil || index < 0 || index >= len(s.driver.events) {
+	if err != nil || index < 0 || index >= len(s.events) {
 		return nil, errors.New("unexpected correlated fixture instruction")
 	}
-	if index == s.driver.failAt {
-		if s.driver.stop != nil {
-			s.driver.stop()
+	if index == s.failAt {
+		if s.stop != nil {
+			s.stop()
 		}
 		return nil, errors.New("evidence source lost")
 	}
-	return facadeEffect{result: testpilot.EffectResult{
+	return testsupport.Completed(testpilot.EffectResult{
 		Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
-		Response: proto.CloneOf(s.driver.events[index]),
-	}}, nil
+		Response: proto.CloneOf(s.events[index]),
+	}), nil
 }
-func (s *correlatedFacadeSession) Close(context.Context) error { return s.driver.closeErr }
 
 func TestCorrelatedPublicFacade(t *testing.T) {
 	for _, fixture := range correlatedFacadeFixtures(t) {
@@ -138,8 +133,8 @@ func TestCorrelatedPublicFacade(t *testing.T) {
 			source, events := correlatedFacadeInputs(t, fixture)
 			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t))
 			require.NoError(t, err)
-			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
-			run, verdict, err := prepared.Run(t.Context(), driver)
+			evidence := &correlatedSource{events: events, failAt: -1}
+			run, verdict, err := prepared.Run(t.Context(), evidence.driver(prepared.Identity()))
 			require.NoError(t, err)
 			want := map[int]testpilotspb.VerdictStatus{0: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.VERDICT_STATUS_SATISFIED, 3: testpilotspb.VERDICT_STATUS_VIOLATED}[fixture.Expected]
 			require.Equal(t, want, verdict.GetStatus())
@@ -171,23 +166,23 @@ func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
 			}
 			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t))
 			require.NoError(t, err)
-			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
+			evidence := &correlatedSource{events: events, failAt: -1}
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
 			switch name {
 			case "wrong-correlation":
 				events[1].Operation = "b"
 			case "lost":
-				driver.failAt = 1
+				evidence.failAt = 1
 			case "stopped":
-				driver.failAt = 1
-				driver.stop = cancel
+				evidence.failAt = 1
+				evidence.stop = cancel
 			case "cleanup-after-violation":
-				driver.closeErr = errors.New("cleanup unavailable")
+				evidence.closeErr = errors.New("cleanup unavailable")
 			default:
 				t.Fatalf("unknown failure fixture %q", name)
 			}
-			run, verdict, err := prepared.Run(ctx, driver)
+			run, verdict, err := prepared.Run(ctx, evidence.driver(prepared.Identity()))
 			require.NoError(t, err)
 			want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_DISPOSITION_COMPLETED
 			if name == "lost" || name == "stopped" {
@@ -214,9 +209,9 @@ func TestCorrelatedFacadeRepeatedConcurrentIsolation(t *testing.T) {
 		other[i] = proto.CloneOf(event)
 	}
 	other[len(other)-1].Operation = "b"
-	drivers := []*correlatedFacadeDriver{
-		{identity: prepared.Identity(), events: events, failAt: -1},
-		{identity: prepared.Identity(), events: other, failAt: -1},
+	drivers := []*facadetest.Driver{
+		(&correlatedSource{events: events, failAt: -1}).driver(prepared.Identity()),
+		(&correlatedSource{events: other, failAt: -1}).driver(prepared.Identity()),
 	}
 	type expectedResult struct {
 		facadeRunResult
@@ -290,8 +285,8 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 				}
 				prepared, err := testpilot.Prepare(source, profile)
 				require.NoError(t, err)
-				driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
-				run, verdict, err := prepared.Run(t.Context(), driver)
+				evidence := &correlatedSource{events: events, failAt: -1}
+				run, verdict, err := prepared.Run(t.Context(), evidence.driver(prepared.Identity()))
 				require.NoError(t, err)
 				want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_DISPOSITION_COMPLETED
 				if count == 2 && (kind == "evidence" || kind == "work") {

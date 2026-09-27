@@ -13,12 +13,11 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -32,21 +31,7 @@ func TestCorrelatedContractCarriesNoVersion(t *testing.T) {
 
 func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
 	t.Helper()
-	files := []*descriptorpb.FileDescriptorProto{}
-	seen := map[string]bool{}
-	var collect func(protoreflect.FileDescriptor)
-	collect = func(f protoreflect.FileDescriptor) {
-		if seen[f.Path()] {
-			return
-		}
-		seen[f.Path()] = true
-		for i := 0; i < f.Imports().Len(); i++ {
-			collect(f.Imports().Get(i).FileDescriptor)
-		}
-		files = append(files, protodesc.ToFileDescriptorProto(f))
-	}
-	collect(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
-	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: files})
+	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
 	require.NoError(t, err)
 	_, _, view, ceiling := fixture(t)
 	limits := view.Limits()

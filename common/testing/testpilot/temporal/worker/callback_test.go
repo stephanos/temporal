@@ -15,11 +15,12 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
 )
 
 func callbackPayload() *commonpb.Payload {
-	return runtimePayload("result")
+	return facadetest.Payload("result")
 }
 
 func callbackLimits() *testpilotspb.ProgramLimits {

@@ -9,8 +9,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -43,25 +43,12 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 			Name: proto.String("Read"), InputType: proto.String(".lift.Record"), OutputType: proto.String(".lift.Record"),
 		}}}},
 	}
-	descriptors := &descriptorpb.FileDescriptorSet{}
-	seen := map[string]bool{}
-	var add func(protoreflect.FileDescriptor)
-	add = func(file protoreflect.FileDescriptor) {
-		if seen[file.Path()] {
-			return
-		}
-		seen[file.Path()] = true
-		for index := 0; index < file.Imports().Len(); index++ {
-			add(file.Imports().Get(index))
-		}
-		descriptors.File = append(descriptors.File, protodesc.ToFileDescriptorProto(file))
-	}
-	add(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
+	descriptors := testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
 	descriptors.File = append(descriptors.File, source)
 	catalog, err := ir.NewCatalog(descriptors)
 	require.NoError(t, err)
 
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
+	limits := testsupport.ProgramLimits()
 	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []contract.Opcode{contract.InvokeRPC}, Limits: proto.CloneOf(limits)}
 	node := &testpilotspb.InstructionNode{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 	artifact := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "lift", Program: &testpilotspb.Program{

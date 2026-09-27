@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 )
 
 const faultQueue = "task-queue"
@@ -19,7 +20,7 @@ func faultInstruction(id, roleID string, kind testpilotspb.FaultKind) *testpilot
 	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: roleID, Kind: kind}}},
-		Limits:        runtimeBounds(),
+		Limits:        facadetest.Bounds(),
 	}
 }
 

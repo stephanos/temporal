@@ -10,77 +10,40 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
-
-type proofDriver struct {
-	identity  testpilot.DriverIdentity
-	openErr   error
-	closeErr  error
-	program   testpilot.PreparedProgram
-	validated int
-	opened    int
-	closed    int
-}
-
-func (d *proofDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
-	return d.identity, nil
-}
-
-func (d *proofDriver) Validate(_ context.Context, program testpilot.PreparedProgram) error {
-	d.program = program
-	d.validated++
-	return nil
-}
-
-func (d *proofDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
-	d.opened++
-	if d.openErr != nil {
-		return nil, d.openErr
-	}
-	return &proofSession{driver: d}, nil
-}
-
-type proofSession struct {
-	testpilot.Session
-	driver *proofDriver
-}
-
-func (s *proofSession) Close(context.Context) error {
-	s.driver.closed++
-	return s.driver.closeErr
-}
 
 func TestExternalDriverCleanupFailurePreservesVerdict(t *testing.T) {
 	source, profile := proofFixture(t)
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
 
-	driver := &proofDriver{identity: prepared.Identity(), closeErr: errors.New("cleanup unavailable")}
+	driver := &facadetest.Driver{DriverIdentity: prepared.Identity(), OnOpen: func(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+		return &testsupport.Session{OnClose: func(context.Context) error { return errors.New("cleanup unavailable") }}, nil
+	}}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	require.Equal(t, 1, driver.closed)
+	require.Equal(t, 1, driver.Closed())
 }
-
-var _ testpilot.Driver = (*proofDriver)(nil)
 
 func TestExternalDriverExecutesBoundedCase(t *testing.T) {
 	source, profile := proofFixture(t)
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
 
-	driver := &proofDriver{identity: prepared.Identity()}
+	driver := &facadetest.Driver{DriverIdentity: prepared.Identity()}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	require.Equal(t, 1, driver.validated)
-	require.Equal(t, 1, driver.opened)
-	require.Equal(t, 1, driver.closed)
+	require.Equal(t, 1, driver.Validated())
+	require.Len(t, driver.RunIDs(), 1)
+	require.Equal(t, 1, driver.Closed())
 }
 
 func TestExternalDriverReceivesCopiedPreparedRoles(t *testing.T) {
@@ -96,17 +59,17 @@ func TestExternalDriverReceivesCopiedPreparedRoles(t *testing.T) {
 	profile.EnvironmentBindings = []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}}
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
-	driver := &proofDriver{identity: prepared.Identity()}
+	driver := &facadetest.Driver{DriverIdentity: prepared.Identity()}
 
 	_, _, err = prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
 	require.Equal(t, []testpilot.PreparedRole{
 		{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"},
 		{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingID: "namespace", Namespace: "namespace-a"},
-	}, driver.program.Roles())
-	roles := driver.program.Roles()
+	}, driver.Program().Roles())
+	roles := driver.Program().Roles()
 	roles[0].Namespace = "changed"
-	require.Equal(t, "namespace-a", driver.program.Roles()[0].Namespace)
+	require.Equal(t, "namespace-a", driver.Program().Roles()[0].Namespace)
 }
 
 func TestExternalDriverFailureDoesNotRequireCleanup(t *testing.T) {
@@ -115,13 +78,15 @@ func TestExternalDriverFailureDoesNotRequireCleanup(t *testing.T) {
 	require.NoError(t, err)
 
 	driverErr := errors.New("driver unavailable")
-	driver := &proofDriver{identity: prepared.Identity(), openErr: driverErr}
+	driver := &facadetest.Driver{DriverIdentity: prepared.Identity(), OnOpen: func(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+		return nil, driverErr
+	}}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.ErrorIs(t, err, driverErr)
 	require.Nil(t, run)
 	require.Nil(t, verdict)
-	require.Equal(t, 1, driver.opened)
-	require.Zero(t, driver.closed)
+	require.Len(t, driver.RunIDs(), 1)
+	require.Zero(t, driver.Closed())
 }
 
 func TestPublicPackageDependencyBoundary(t *testing.T) {
@@ -139,7 +104,6 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 	t.Helper()
 	catalog, err := testpilot.NewCatalog(&descriptorpb.FileDescriptorSet{})
 	require.NoError(t, err)
-	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	source := &testpilotspb.Case{
 		Version: &testpilotspb.FormatVersion{Major: 1},
@@ -173,5 +137,5 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 			}},
 		},
 	}
-	return source, testpilot.ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: proto.CloneOf(programLimits), ContractLimits: contractLimits}
+	return source, testpilot.ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: testsupport.ProgramLimits(), ContractLimits: contractLimits}
 }

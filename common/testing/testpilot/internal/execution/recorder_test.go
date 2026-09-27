@@ -216,6 +216,8 @@ func TestRecorderAdmissionRetainsPartialHandlesBeforeUnlock(t *testing.T) {
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, closeRecorder(t, r).Disposition)
 }
 
+// recorderHandle stays local: it panics on every call, pinning that the recorder never waits,
+// cancels or drains a handle.
 type recorderHandle struct{}
 
 func (*recorderHandle) Wait(context.Context) (contract.EffectResult, error) {

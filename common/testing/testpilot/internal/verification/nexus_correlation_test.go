@@ -11,10 +11,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -67,21 +65,15 @@ func TestNexusHistoryCorrelationLiveAndOffline(t *testing.T) {
 
 func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.ProgramView) {
 	t.Helper()
-	catalog, err := ir.NewCatalog(nexusDescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
+	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
-	programLimits := &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32,
-		MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096,
-		MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000,
-		MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096,
-	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
-	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: programLimits})
+	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
 	require.NoError(t, err)
 	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	rule := &testpilotspb.ContractRule{
@@ -246,23 +238,4 @@ func nexusMutateHistoryRunEvent(t testing.TB, runEvent *testpilotspb.RunEvent, m
 		return
 	}
 	require.Fail(t, "history observation not found")
-}
-
-func nexusDescriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
-	seen := make(map[string]struct{})
-	result := &descriptorpb.FileDescriptorSet{}
-	var add func(protoreflect.FileDescriptor)
-	add = func(file protoreflect.FileDescriptor) {
-		if _, exists := seen[file.Path()]; exists {
-			return
-		}
-		seen[file.Path()] = struct{}{}
-		imports := file.Imports()
-		for index := 0; index < imports.Len(); index++ {
-			add(imports.Get(index))
-		}
-		result.File = append(result.File, protodesc.ToFileDescriptorProto(file))
-	}
-	add(root)
-	return result
 }

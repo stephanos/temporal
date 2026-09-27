@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 )
 
 // The worker Driver's own Profile validation is what admits the new Opcode; a Profile that
@@ -176,21 +177,6 @@ func TestSessionInjectFaultDefersBlockingWorkToWait(t *testing.T) {
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 }
 
-// faultRunDriver runs a prepared Case against the worker Driver alone: the controller entrypoint
-// holds nothing but faults, which the worker Session realizes.
-type faultRunDriver struct {
-	*Driver
-	identity testpilot.DriverIdentity
-}
-
-func (d *faultRunDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
-	return d.identity, nil
-}
-
-func (d *faultRunDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	return d.OpenSession(ctx, runID, program, SessionOptions{Bridge: newTestBridge()})
-}
-
 // A Settle that fails is a fault the Driver could not realize. The scheduler records a fault event
 // only for a succeeded outcome, so the failed resume leaves the Run carrying the stop it realized
 // and nothing for the resume it did not.
@@ -200,7 +186,7 @@ func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 		resume.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP), resume}
 	}, authorizeFaults)
-	program := capturePreparedProgram(t, prepared)
+	program := facadetest.Capture(t, prepared)
 	host := symbolicRuntimeDriver(t, program.Limits())
 	startErr := errors.New("cannot re-register")
 	factory := &recordingFactory{start: func(built int) error {
@@ -211,7 +197,11 @@ func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 	}}
 	host.registry = newWorkerRegistry(4, factory.build)
 
-	run, _, err := prepared.Run(t.Context(), &faultRunDriver{Driver: host, identity: prepared.Identity()})
+	// The worker Driver runs the Case alone: the controller entrypoint holds nothing but faults,
+	// which the worker Session realizes.
+	run, _, err := prepared.Run(t.Context(), &facadetest.Driver{DriverIdentity: prepared.Identity(), OnValidate: host.Validate, OnOpen: func(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+		return host.OpenSession(ctx, runID, program, SessionOptions{Bridge: newTestBridge()})
+	}})
 	require.NoError(t, err)
 
 	outcomes := map[string]testpilotspb.InstructionOutcomeStatus{}
