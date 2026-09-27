@@ -241,8 +241,9 @@ golden.
 Concurrent load: the host is a macOS arm64 machine with 8 cores and 16 GiB of RAM. Other agents'
 `lake` builds and a `lint-model` run shared it. One-minute load averages were 13 during the checker
 build, 8 to 18 during the model build, 6 to 13 during the first lint run, and 45 to 68 while the
-builtin lint was being killed, and 3 when it passed. Free disk fell from 15 GiB to 6 GiB. All times are contended single
-runs, not baselines, and no decision depends on them.
+builtin lint was being killed. The load was 3 when the builtin lint passed. Free disk fell from
+15 GiB to 6 GiB. All times are contended single runs, not baselines, and no decision depends on
+them.
 
 ### Decision
 
