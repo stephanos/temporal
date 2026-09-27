@@ -1574,11 +1574,11 @@
     {
       "id": "fn-90-resolve-the-intermittent-live-testpilot",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
     },
     {
