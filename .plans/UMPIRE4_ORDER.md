@@ -62,7 +62,7 @@ Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-86 closeout
 | Gate | This session |
 | ---- | ------------ |
 | `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** |
-| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report 163 findings, all in generated code (two unused-argument errors in `Temporal/API/Proto.lean` and 161 `simpNF` findings in `Temporal.API.Types`), and 40 warnings, none new; the target exits 2 on those |
+| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report no findings, and 40 warnings, none new. The target still exits 2: the final `lake --wfail lint --builtin-only` step, which the findings used to stop it short of, fails on 24 warnings in handwritten modules (unused variables in the Nexus feature and `Umpire/Command/Syntax.lean`, deprecated `Lean.levelZero` and `String.trim` there, and a possibly looping simp theorem in `Umpire/Value/Encoding.lean`). The 163 generated findings it reported before (two unused-argument errors in `Temporal/API/Proto.lean` and 161 `simpNF` findings in `Temporal.API.Types`) were fixed in `umpire-gen-lean-api`, which now writes `Method`'s `DecidableEq` and `Repr` instances without instances of its phantom payload types, and declares fieldless messages with no placeholder field and fieldless oneof arms as nullary constructors |
 | `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=9484405 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base |
 
 Measured 2026-09-26 on a macOS host at the fn-29 closeout, not a re-measured baseline:
@@ -71,7 +71,7 @@ Measured 2026-09-26 on a macOS host at the fn-29 closeout, not a re-measured bas
 error of a deliberately broken `tools/umpire` testdata fixture and staticcheck findings in untouched
 `tests/*.go`); `LEAN_NUM_THREADS=1 make lint-model` also reported an unused `[BEq α]` in
 `Umpire/Command/Refinement.lean` (present since 2026-09-19 and missed by the baseline above), since
-removed, so it reports only the 163 generated findings; `make umpire-check-plan-index` passes
+removed, and the 163 generated findings have since been fixed in the generator, so it now stops only on the 24 `--wfail` warnings of its builtin-lint step; `make umpire-check-plan-index` passes
 after `.plans/index.json` was resynced with Flow the same day.
 
 **`make lint-code` under-reports when the disk is low.** golangci-lint aborts with
