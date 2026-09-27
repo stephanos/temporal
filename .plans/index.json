@@ -1628,11 +1628,11 @@
     {
       "id": "fn-94-simplify-the-testpilot-go-runtime",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-89-one-contract-rule-per-entity",
         "fn-90-resolve-the-intermittent-live-testpilot",

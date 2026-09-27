@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-94-simplify-the-testpilot-go-runtime",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-27T23:18:46.684634Z",
   "created_at": "2026-09-27T05:44:32.279601Z",
   "default_impl": null,
   "default_review": null,
@@ -1100,6 +1100,36 @@
       "task": "fn-94-simplify-the-testpilot-go-runtime.17",
       "timestamp": "2026-09-27T21:31:22.167848Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3e75f64d6881db936169ec21cd097248a6b020f6abe6e48cd5869c9dbeedf672",
+      "backend": "codex",
+      "base_sha": "ea93a2bc8bc936b44b6654f1960492a8943a0683",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e8e474ef01e983a950366fbf9fe6a9dc57af4ced",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 949655,
+      "output_sha256": "c6c5bd988e0d7f5148b48bbe8c953f4786a4c68c7020bb8d1025aea1f291deb0",
+      "reservation_id": "4ec09dda1daf4881bd0d79c193d62909",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T23:18:46.652548Z",
+      "tool_calls": 30,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1121,11 +1151,12 @@
     "impl:fn-94-simplify-the-testpilot-go-runtime.8": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.1": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.10": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.11": 0,
@@ -1146,7 +1177,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-94-simplify-the-testpilot-go-runtime.md",
-  "status": "open",
+  "status": "done",
   "title": "Simplify the Testpilot Go runtime",
   "tracker": {
     "baseHashFlow": null,
@@ -1159,5 +1190,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T21:31:22.171331Z"
+  "updated_at": "2026-09-27T23:19:09.230575Z"
 }
