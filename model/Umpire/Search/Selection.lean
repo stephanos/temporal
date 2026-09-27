@@ -30,7 +30,7 @@ inductive BackendName where
 
 /-- The backend chosen for one Query: `veil` with the product it searches, or `reference` with
 the reason `veil` was ruled out. -/
-inductive Selection (query : CheckedQuery LawStatement) where
+inductive Choice (query : CheckedQuery LawStatement) where
   | veil (monitored : MonitoredProduct query.target)
   | reference (reason : BackendReason)
 
@@ -50,7 +50,7 @@ private def formReason : Query.Form → Option BackendReason
 
 /-- Choose the backend for a Query over its search view. -/
 def select (query : CheckedQuery LawStatement) (view : SearchView query.target) :
-    Selection query :=
+    Choice query :=
   match strategyReason query.policy.strategy <|> formReason query.form with
   | some reason => .reference reason
   | none =>
@@ -58,7 +58,7 @@ def select (query : CheckedQuery LawStatement) (view : SearchView query.target) 
       | .ok monitored => .veil monitored
       | .error unsupported => .reference (reasonOf unsupported)
 
-namespace Selection
+namespace Choice
 
 variable {query : CheckedQuery LawStatement}
 
@@ -68,8 +68,8 @@ private def withReason (reason : BackendReason) (observations : PlanningObservat
       backendReason := reason } }
 
 /-- Run the chosen backend; a `reference` run records the reason it was chosen. -/
-def run (selection : Selection query) (view : SearchView query.target) : BackendResult :=
-  match selection with
+def run (choice : Choice query) (view : SearchView query.target) : BackendResult :=
+  match choice with
   | .veil monitored => Backend.Veil.run query monitored
   | .reference reason =>
       match Backend.reference query view with
@@ -78,7 +78,7 @@ def run (selection : Selection query) (view : SearchView query.target) : Backend
       | .stateBound visited observations => .stateBound visited (withReason reason observations)
       | .invalid error observations => .invalid error (withReason reason observations)
 
-end Selection
+end Choice
 
 /-- Whether `search` runs a Query on `veil` when `select` chooses it. It stays `false` until the
 cutover re-pins, in one commit, the goldens `veil` changes (fn-88 R18); until then a Query `select`
@@ -89,18 +89,18 @@ def cutover : Bool := false
 replay gate. -/
 def search (query : CheckedQuery LawStatement) (view : SearchView query.target) :
     Except KnownGapError PlanResult :=
-  let selection : Selection query := match select query view with
+  let choice : Choice query := match select query view with
     | .veil monitored => if cutover then .veil monitored else .reference .default
     | .reference reason => .reference reason
-  finalizeBackendResult query view (selection.run view)
+  finalizeBackendResult query view (choice.run view)
 
 /-- Search a Query on a named backend. `veil` runs on `reference`, with the reason recorded, when
 `select` rules it out. -/
 def searchWith (backend : BackendName) (query : CheckedQuery LawStatement)
     (view : SearchView query.target) : Except KnownGapError PlanResult :=
-  let selection : Selection query := match backend with
+  let choice : Choice query := match backend with
     | .reference => .reference .default
     | .veil => select query view
-  finalizeBackendResult query view (selection.run view)
+  finalizeBackendResult query view (choice.run view)
 
 end Umpire.Search.Selection

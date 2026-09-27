@@ -191,10 +191,10 @@ Selection and replay add these public names. Replay itself stays private to `Sea
 #check endpointDecision
 #check projectPlanRequest
 #check Search.Selection.BackendName
-#check Search.Selection.Selection
+#check Search.Selection.Choice
 #check Search.Selection.select
 #check Search.Selection.reasonOf
-#check Search.Selection.Selection.run
+#check Search.Selection.Choice.run
 #check Search.Selection.cutover
 #check Search.Selection.search
 #check Search.Selection.searchWith
