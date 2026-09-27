@@ -78,7 +78,7 @@ func parseSystemCallbackBaseURL(raw string) (*url.URL, error) {
 	return base, nil
 }
 
-func (t *completionTransport) newEffect(info completionInfo) (testpilot.CapabilityEffect, error) {
+func (t *completionTransport) newEffect(info completionInfo) (testpilot.HandleEffect, error) {
 	target, err := url.Parse(info.URL)
 	if err == nil && (info.URL == commonnexus.SystemCallbackURL || info.URL == commonnexus.PathCompletionCallbackNoIdentifier) && t.systemCallbackBaseURL != nil {
 		target = t.systemCallbackBaseURL.ResolveReference(&url.URL{Path: commonnexus.PathCompletionCallbackNoIdentifier})

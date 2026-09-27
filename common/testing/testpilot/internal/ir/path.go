@@ -66,7 +66,7 @@ func (c *Catalog) BindPath(source Type, location, text string, limits Limits) (*
 		return nil, invalid(TypeMismatch, location, "source type does not belong to this catalog")
 	}
 	if source.opaque {
-		return nil, invalid(Unsupported, location, "capabilities cannot be inspected")
+		return nil, invalid(Unsupported, location, "opaque handles cannot be inspected")
 	}
 	b := budget{limits: limits}
 	if err := b.charge(1, 1, int64(len(text)), location); err != nil {

@@ -173,12 +173,12 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 				require.True(t, proto.Equal(answer, raw.Payload()))
 				require.False(t, bridge.published)
 			}},
-		{"asynchronous handle", &testpilotspb.NexusHandlerReply{HandleSlotId: "capability", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}}}}},
+		{"asynchronous handle", &testpilotspb.NexusHandlerReply{HandleSlotId: "handle", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}}}}},
 			func(t *testing.T, result nexus.HandlerStartOperationResult[any], err error, bridge *testBridge) {
 				require.NoError(t, err)
 				require.Equal(t, "request-id", result.(*nexus.HandlerStartOperationResultAsync).OperationToken)
 				require.True(t, bridge.published)
-				require.Equal(t, "capability", bridge.slot)
+				require.Equal(t, "handle", bridge.slot)
 			}},
 		{"handler error", &testpilotspb.NexusHandlerReply{Reply: &testpilotspb.NexusHandlerReply_Error{Error: &nexuspb.HandlerError{ErrorType: "BAD_REQUEST", Failure: &nexuspb.Failure{Message: "malformed request"}, RetryBehavior: enumspb.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE}}},
 			func(t *testing.T, result nexus.HandlerStartOperationResult[any], err error, bridge *testBridge) {
@@ -201,12 +201,12 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, func(program *testpilotspb.Program) {
-				program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
+				program.Slots = []*testpilotspb.Slot{{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
 				program.Entrypoints[2].Instructions[0].Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: tc.reply}}
 			})
 			host, definition := runtimeTestDriver(t, prepared)
 			bridge := newTestBridge()
-			options := SessionOptions{Bridge: bridge, NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+			options := SessionOptions{Bridge: bridge, NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 				return &struct{}{}, nil
 			}}
 			session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)
@@ -251,7 +251,7 @@ func TestSessionAnswersTheRetriedStartWithTheNextReply(t *testing.T) {
 		program.Entrypoints[2].Instructions = append(program.Entrypoints[2].Instructions, second)
 	})
 	host, definition := runtimeTestDriver(t, prepared)
-	options := SessionOptions{Bridge: newTestBridge(), NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+	options := SessionOptions{Bridge: newTestBridge(), NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 		return &struct{}{}, nil
 	}}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "temporal-run", WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, options)

@@ -28,8 +28,8 @@ type Session struct {
 	nodes                         map[nodeKey]*testpilotspb.InstructionNode
 	evidence                      map[string]*testpilotspb.EvidenceDeclaration
 	effects                       map[*effect]struct{}
-	capabilities                  map[*opaqueCapability]struct{}
-	slots                         map[string]*capabilitySlot
+	handles                       map[*opaqueHandle]struct{}
+	slots                         map[string]*handleSlot
 	minted, attempts, diagnostics int64
 	closed                        bool
 	closedSignal                  chan struct{}
@@ -295,10 +295,10 @@ func (s *Session) closeLocked() {
 	for e := range s.effects {
 		e.cancel()
 	}
-	for capability := range s.capabilities {
-		capability.invoke = nil
+	for handle := range s.handles {
+		handle.invoke = nil
 	}
-	clear(s.capabilities)
+	clear(s.handles)
 	clear(s.slots)
 	if len(s.effects) == 0 {
 		delete(s.host.sessions, s.runID)

@@ -376,7 +376,7 @@ func (s *facadeSession) PollRPC(ctx context.Context, coordinate testpilot.Coordi
 	}
 	return handle, nil
 }
-func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
+func (*facadeSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
 
@@ -385,8 +385,8 @@ func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, te
 func (*facadeSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	return facadeEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
 }
-func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
-	return nil, errors.New("facade conformance Cases do not use capability bridges")
+func (*facadeSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
+	return nil, errors.New("facade conformance Cases do not use handle bridges")
 }
 func (*facadeSession) Quarantine(context.Context, testpilot.EffectHandle) error {
 	return errors.New("facade conformance effects complete synchronously")

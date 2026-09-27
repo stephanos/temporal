@@ -178,7 +178,7 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 	if int64(len(h.sessions)) >= h.profile.ProgramLimits.MaxActivations {
 		return nil, errCapacity
 	}
-	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]struct{}), controllers: make(map[string]struct{}), nodes: make(map[nodeKey]*testpilotspb.InstructionNode), evidence: make(map[string]*testpilotspb.EvidenceDeclaration), slots: make(map[string]*capabilitySlot), capabilities: make(map[*opaqueCapability]struct{}), closedSignal: make(chan struct{})}
+	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]struct{}), controllers: make(map[string]struct{}), nodes: make(map[nodeKey]*testpilotspb.InstructionNode), evidence: make(map[string]*testpilotspb.EvidenceDeclaration), slots: make(map[string]*handleSlot), handles: make(map[*opaqueHandle]struct{}), closedSignal: make(chan struct{})}
 	for _, entry := range program.Entrypoints {
 		s.entries[entry.EntrypointId] = struct{}{}
 		if entry.GetController() != nil {
@@ -200,7 +200,7 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 	}
 	for _, slot := range program.Slots {
 		if slot.GetOpaqueHandle() != nil {
-			s.slots[slot.SlotId] = &capabilitySlot{ready: make(chan struct{})}
+			s.slots[slot.SlotId] = &handleSlot{ready: make(chan struct{})}
 		}
 	}
 	if err := contextError(ctx); err != nil {

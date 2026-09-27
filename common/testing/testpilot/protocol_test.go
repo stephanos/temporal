@@ -108,7 +108,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"RuleVerdictKind", "VerdictKind",
 		"Run" + "Status", "Correlated" + "Value", "ContractRule" + "Definition", "ContractState" + "Definition",
 		"ContractTransition" + "Definition", "ContractCapture" + "Definition",
-		"Response" + "Projection", "Projection" + "Target", "Projection" + "Kind", "OpaqueCapability" + "Type", "InvokeRPC",
+		"Response" + "Projection", "Projection" + "Target", "Projection" + "Kind", "Opaque" + "CapabilityType", "InvokeRPC",
 		"Role" + "Definition", "Slot" + "Definition", "Observation" + "Definition", "Entrypoint" + "Definition",
 		"Cleanup" + "Definition", "Instruction" + "Definition", "Instruction" + "Ref",
 		"ContractHorizon" + "Definition",

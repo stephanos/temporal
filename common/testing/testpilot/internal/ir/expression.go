@@ -313,7 +313,7 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 		result.absent = !binding.Available && !facts[result.key]
 	}
 	if result.typ.opaque {
-		return nil, invalid(Unsupported, "expression", "capabilities cannot be inspected")
+		return nil, invalid(Unsupported, "expression", "opaque handles cannot be inspected")
 	}
 	if expected != nil && !result.typ.Equal(*expected) {
 		return nil, invalid(TypeMismatch, "expression", "expression type does not match expected type")

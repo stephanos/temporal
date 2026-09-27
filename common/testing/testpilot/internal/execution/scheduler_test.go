@@ -17,8 +17,8 @@ import (
 
 type schedulerHost struct {
 	contract.Session
-	bridge   contract.CapabilityBridge
-	complete func(context.Context, contract.Coordinate, contract.OpaqueCapability, proto.Message) (contract.EffectHandle, error)
+	bridge   contract.HandleBridge
+	complete func(context.Context, contract.Coordinate, contract.OpaqueHandle, proto.Message) (contract.EffectHandle, error)
 	invoke   func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error)
 	reserve  func(context.Context, contract.ReservationRequest) ([]contract.ReservationHandle, error)
 	fault    func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error)
@@ -505,17 +505,17 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 	}
 }
 
-func (h *schedulerHost) Bridge(context.Context) (contract.CapabilityBridge, error) {
+func (h *schedulerHost) Bridge(context.Context) (contract.HandleBridge, error) {
 	return h.bridge, nil
 }
-func (h *schedulerHost) InvokeCapability(ctx context.Context, c contract.Coordinate, capability contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
-	return h.complete(ctx, c, capability, input)
+func (h *schedulerHost) InvokeHandle(ctx context.Context, c contract.Coordinate, handle contract.OpaqueHandle, input proto.Message) (contract.EffectHandle, error) {
+	return h.complete(ctx, c, handle, input)
 }
 
 type schedulerBridge struct {
-	contract.CapabilityBridge
-	ready      chan struct{}
-	capability contract.OpaqueCapability
+	contract.HandleBridge
+	ready  chan struct{}
+	handle contract.OpaqueHandle
 }
 
 func (b *schedulerBridge) Await(ctx context.Context, _ string) error {
@@ -526,24 +526,24 @@ func (b *schedulerBridge) Await(ctx context.Context, _ string) error {
 		return nil
 	}
 }
-func (b *schedulerBridge) Consume(context.Context, string) (contract.OpaqueCapability, error) {
-	return b.capability, nil
+func (b *schedulerBridge) Consume(context.Context, string) (contract.OpaqueHandle, error) {
+	return b.handle, nil
 }
 func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
-	for _, mode := range []string{"success", "nil-bridge", "nil-capability"} {
+	for _, mode := range []string{"success", "nil-bridge", "nil-handle"} {
 		t.Run(mode, func(t *testing.T) {
 			c, catalog, policy := handleFixture(t)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ready := make(chan struct{})
-			capability := &struct{}{}
-			bridge := &schedulerBridge{ready: ready, capability: capability}
+			handle := &struct{}{}
+			bridge := &schedulerBridge{ready: ready, handle: handle}
 			h := &schedulerHost{bridge: bridge}
 			if mode == "nil-bridge" {
 				h.bridge = (*schedulerBridge)(nil)
 			}
-			if mode == "nil-capability" {
-				bridge.capability = (*struct{})(nil)
+			if mode == "nil-handle" {
+				bridge.handle = (*struct{})(nil)
 			}
 			h.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
 				return []contract.ReservationHandle{&schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
@@ -555,8 +555,8 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
 			}
 			completed := false
-			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
-				require.Equal(t, capability, got)
+			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueHandle, input proto.Message) (contract.EffectHandle, error) {
+				require.Equal(t, handle, got)
 				require.Equal(t, []byte(`"done"`), input.(*commonpb.Payload).GetData())
 				require.Equal(t, "complete", c.InstructionID)
 				completed = true
@@ -581,7 +581,7 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 	}
 }
 
-// A typed completion delivers the payload or failure it carries to the capability, not an
+// A typed completion delivers the payload or failure it carries to the opaque handle, not an
 // evaluated interpreter value.
 func TestSchedulerDeliversTheCarriedCompletion(t *testing.T) {
 	for _, mode := range []string{"payload", "failure"} {
@@ -593,8 +593,8 @@ func TestSchedulerDeliversTheCarriedCompletion(t *testing.T) {
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ready := make(chan struct{})
-			capability := &struct{}{}
-			bridge := &schedulerBridge{ready: ready, capability: capability}
+			handle := &struct{}{}
+			bridge := &schedulerBridge{ready: ready, handle: handle}
 			h := &schedulerHost{bridge: bridge}
 			h.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
 				return []contract.ReservationHandle{&schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
@@ -606,8 +606,8 @@ func TestSchedulerDeliversTheCarriedCompletion(t *testing.T) {
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
 			}
 			var delivered proto.Message
-			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
-				require.Equal(t, capability, got)
+			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueHandle, input proto.Message) (contract.EffectHandle, error) {
+				require.Equal(t, handle, got)
 				require.Equal(t, "complete", c.InstructionID)
 				delivered = input
 				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {

@@ -512,7 +512,7 @@ func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot
 		return nil, temporal.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)
-	bridge := &artifactBridge{ready: make(chan struct{}), capability: &struct{}{}}
+	bridge := &artifactBridge{ready: make(chan struct{}), handle: &struct{}{}}
 	close(bridge.ready)
 	return &artifactSession{runID: runID, ordinal: ordinal, mode: h.mode, bridge: bridge}, nil
 }
@@ -626,7 +626,7 @@ func (s *artifactSession) PollRPC(ctx context.Context, coordinate testpilot.Coor
 	}
 	return handle, nil
 }
-func (s *artifactSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
+func (s *artifactSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 
@@ -634,7 +634,7 @@ func (s *artifactSession) InjectFault(context.Context, testpilot.Coordinate, str
 	return nil, temporal.ErrInvalid
 }
 
-func (s *artifactSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
+func (s *artifactSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
 	return s.bridge, nil
 }
 
@@ -671,12 +671,12 @@ func (r *artifactReservation) Consume(context.Context) (testpilot.Coordinate, er
 }
 
 type artifactBridge struct {
-	ready      chan struct{}
-	capability testpilot.OpaqueCapability
-	consumed   atomic.Bool
+	ready    chan struct{}
+	handle   testpilot.OpaqueHandle
+	consumed atomic.Bool
 }
 
-func (*artifactBridge) Publish(context.Context, testpilot.Coordinate, string, testpilot.OpaqueCapability) error {
+func (*artifactBridge) Publish(context.Context, testpilot.Coordinate, string, testpilot.OpaqueHandle) error {
 	return nil
 }
 func (b *artifactBridge) Await(ctx context.Context, _ string) error {
@@ -687,11 +687,11 @@ func (b *artifactBridge) Await(ctx context.Context, _ string) error {
 		return ctx.Err()
 	}
 }
-func (b *artifactBridge) Consume(context.Context, string) (testpilot.OpaqueCapability, error) {
+func (b *artifactBridge) Consume(context.Context, string) (testpilot.OpaqueHandle, error) {
 	if !b.consumed.CompareAndSwap(false, true) {
 		return nil, temporal.ErrInvalid
 	}
-	return b.capability, nil
+	return b.handle, nil
 }
 
 func succeededResult(response proto.Message) testpilot.EffectResult {

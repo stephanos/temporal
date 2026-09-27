@@ -227,7 +227,7 @@ func (a *admission) bindNexusOperationCompletion(g *graph, n *node) error {
 	}
 }
 
-// carriedCompletion is the message a typed completion delivers through its capability: the payload
+// carriedCompletion is the message a typed completion delivers through its opaque handle: the payload
 // or the failure the instruction carries.
 func carriedCompletion(completion *testpilotspb.NexusOperationCompletion) proto.Message {
 	switch typed := completion.GetResult().(type) {

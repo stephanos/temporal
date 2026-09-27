@@ -8,29 +8,29 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type opaqueCapability struct {
+type opaqueHandle struct {
 	session   *Session
 	origin    testpilot.Coordinate
-	invoke    testpilot.CapabilityEffect
+	invoke    testpilot.HandleEffect
 	used      bool
 	published string
 }
 
-type capabilitySlot struct {
-	ready      chan struct{}
-	capability *opaqueCapability
-	claim      *capabilityClaim
+type handleSlot struct {
+	ready  chan struct{}
+	handle *opaqueHandle
+	claim  *handleClaim
 }
 
-type capabilityClaim struct {
-	capability *opaqueCapability
-	context    context.Context
-	released   atomic.Bool
+type handleClaim struct {
+	handle   *opaqueHandle
+	context  context.Context
+	released atomic.Bool
 }
 
-// NewCapability is the injection seam for composite Driver wiring. The capability remains opaque
+// NewHandle is the injection seam for composite Driver wiring. The handle remains opaque
 // to execution, and minting performs no target I/O.
-func (s *Session) NewCapability(ctx context.Context, origin testpilot.Coordinate, invoke testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+func (s *Session) NewHandle(ctx context.Context, origin testpilot.Coordinate, invoke testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
@@ -50,15 +50,15 @@ func (s *Session) NewCapability(ctx context.Context, origin testpilot.Coordinate
 	if s.minted >= s.host.profile.ProgramLimits.MaxActivations {
 		return nil, errCapacity
 	}
-	capability := &opaqueCapability{session: s, origin: origin, invoke: invoke}
-	s.capabilities[capability] = struct{}{}
+	handle := &opaqueHandle{session: s, origin: origin, invoke: invoke}
+	s.handles[handle] = struct{}{}
 	s.minted++
-	return capability, nil
+	return handle, nil
 }
 
-func (s *Session) InvokeCapability(ctx context.Context, c testpilot.Coordinate, opaque testpilot.OpaqueCapability, input proto.Message) (testpilot.EffectHandle, error) {
-	claim, ok := opaque.(*capabilityClaim)
-	if !ok || claim == nil || claim.capability == nil || claim.capability.session != s {
+func (s *Session) InvokeHandle(ctx context.Context, c testpilot.Coordinate, claimed testpilot.OpaqueHandle, input proto.Message) (testpilot.EffectHandle, error) {
+	claim, ok := claimed.(*handleClaim)
+	if !ok || claim == nil || claim.handle == nil || claim.handle.session != s {
 		return nil, errUnauthorized
 	}
 	accepted := false
@@ -84,17 +84,17 @@ func (s *Session) InvokeCapability(ctx context.Context, c testpilot.Coordinate, 
 	if err := s.host.mu.LockContext(ctx); err != nil {
 		return nil, err
 	}
-	capability := claim.capability
-	slot := s.slots[capability.published]
-	if capability.used || nilValue(capability.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
+	opaque := claim.handle
+	slot := s.slots[opaque.published]
+	if opaque.used || nilValue(opaque.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
 		s.host.mu.Unlock()
 		return nil, errUnauthorized
 	}
-	if _, exists := s.capabilities[capability]; !exists {
+	if _, exists := s.handles[opaque]; !exists {
 		s.host.mu.Unlock()
 		return nil, errUnauthorized
 	}
-	invoke := capability.invoke
+	invoke := opaque.invoke
 	s.host.mu.Unlock()
 	if !invoke.Accepts(ctx, n.GetInstruction(), input) {
 		return nil, errUnauthorized
@@ -103,11 +103,11 @@ func (s *Session) InvokeCapability(ctx context.Context, c testpilot.Coordinate, 
 		return nil, err
 	}
 	defer s.host.mu.Unlock()
-	slot = s.slots[capability.published]
-	if capability.used || nilValue(capability.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
+	slot = s.slots[opaque.published]
+	if opaque.used || nilValue(opaque.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
 		return nil, errUnauthorized
 	}
-	if _, exists := s.capabilities[capability]; !exists {
+	if _, exists := s.handles[opaque]; !exists {
 		return nil, errUnauthorized
 	}
 	handle, err := s.startLocked(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
@@ -117,13 +117,13 @@ func (s *Session) InvokeCapability(ctx context.Context, c testpilot.Coordinate, 
 		return nil, err
 	}
 	accepted = true
-	capability.used = true
-	capability.invoke = nil
-	delete(s.capabilities, capability)
+	opaque.used = true
+	opaque.invoke = nil
+	delete(s.handles, opaque)
 	return handle, nil
 }
 
-func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
+func (s *Session) Bridge(ctx context.Context) (testpilot.HandleBridge, error) {
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error
 	return s, nil
 }
 
-func (s *Session) Publish(ctx context.Context, c testpilot.Coordinate, slotID string, opaque testpilot.OpaqueCapability) error {
+func (s *Session) Publish(ctx context.Context, c testpilot.Coordinate, slotID string, opaque testpilot.OpaqueHandle) error {
 	if err := contextError(ctx); err != nil {
 		return err
 	}
@@ -149,19 +149,19 @@ func (s *Session) Publish(ctx context.Context, c testpilot.Coordinate, slotID st
 		return errClosed
 	}
 	slot := s.slots[slotID]
-	capability, ok := opaque.(*opaqueCapability)
-	if slot == nil || !ok || capability == nil || capability.session != s || capability.origin != c || capability.used {
+	handle, ok := opaque.(*opaqueHandle)
+	if slot == nil || !ok || handle == nil || handle.session != s || handle.origin != c || handle.used {
 		return errUnauthorized
 	}
-	if _, exists := s.capabilities[capability]; !exists {
+	if _, exists := s.handles[handle]; !exists {
 		return errUnauthorized
 	}
-	if slot.claim != nil || slot.capability != nil && slot.capability != capability || capability.published != "" && capability.published != slotID {
+	if slot.claim != nil || slot.handle != nil && slot.handle != handle || handle.published != "" && handle.published != slotID {
 		return errInvalid
 	}
-	if slot.capability == nil {
-		slot.capability = capability
-		capability.published = slotID
+	if slot.handle == nil {
+		slot.handle = handle
+		handle.published = slotID
 		close(slot.ready)
 	}
 	return nil
@@ -196,14 +196,14 @@ func (s *Session) Await(ctx context.Context, slotID string) error {
 		if s.closed {
 			return errClosed
 		}
-		if slot.capability.used {
+		if slot.handle.used {
 			return errInvalid
 		}
 		return nil
 	}
 }
 
-func (s *Session) Consume(ctx context.Context, slotID string) (testpilot.OpaqueCapability, error) {
+func (s *Session) Consume(ctx context.Context, slotID string) (testpilot.OpaqueHandle, error) {
 	if err := s.host.mu.LockContext(ctx); err != nil {
 		return nil, err
 	}
@@ -212,13 +212,13 @@ func (s *Session) Consume(ctx context.Context, slotID string) (testpilot.OpaqueC
 		return nil, errClosed
 	}
 	slot := s.slots[slotID]
-	if slot == nil || slot.capability == nil || slot.capability.used {
+	if slot == nil || slot.handle == nil || slot.handle.used {
 		return nil, errUnauthorized
 	}
 	if old := slot.claim; old != nil && !old.released.Load() && old.context.Err() == nil {
 		return nil, errUnauthorized
 	}
-	claim := &capabilityClaim{capability: slot.capability, context: ctx}
+	claim := &handleClaim{handle: slot.handle, context: ctx}
 	slot.claim = claim
 	return claim, nil
 }
