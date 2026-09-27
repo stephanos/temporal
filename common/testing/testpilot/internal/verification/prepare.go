@@ -104,8 +104,6 @@ type admission struct {
 	declaredRuleIDs map[string]bool
 }
 
-func (p *PreparedContract) Snapshot() *testpilotspb.Contract   { return proto.CloneOf(p.source) }
-func (p *PreparedContract) ProgramView() execution.ProgramView { return p.program }
 func invalid(category ir.ErrorCategory, detail string) error {
 	return &ir.Error{Category: category, Path: "contract", Detail: detail}
 }

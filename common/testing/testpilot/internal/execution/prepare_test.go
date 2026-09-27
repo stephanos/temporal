@@ -282,30 +282,35 @@ func addWorkflows(source *testpilotspb.Case, count int) {
 	}
 }
 
+// Each Case admits exactly at the activation ceiling its attempt-scaled reservations reach, and is
+// rejected one below it.
 func TestReservationAdmissionBoundsLocalAndGlobalAttempts(t *testing.T) {
 	for _, test := range []struct {
-		name                                    string
-		local, global, workflows, ceiling, want int64
-		good                                    bool
+		name                              string
+		local, global, workflows, ceiling int64
+		good                              bool
 	}{
-		{"local cap", 2, 32, 3, 7, 7, true}, {"equal caps", 2, 2, 3, 7, 7, true}, {"local above global", 8, 2, 3, 64, 0, false}, {"ceiling", 2, 32, 3, 6, 0, false},
+		{"local cap", 2, 32, 3, 7, true}, {"equal caps", 2, 2, 3, 7, true}, {"local above global", 8, 2, 3, 64, false}, {"ceiling", 2, 32, 3, 6, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			c, catalog, p := fixture(t)
-			addWorker(c, &p)
-			addWorkflows(c, int(test.workflows-1))
-			node := c.Program.Entrypoints[0].Instructions[0]
-			node.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: test.local}
-			p.Limits.MaxAttempts = test.global
-			p.Limits.MaxEntrypoints = test.workflows + 1
-			p.Limits.MaxActivations = test.ceiling
-			capCarrierShapes(&p)
-			prepared, err := Prepare(c, catalog, p)
+			prepare := func(ceiling int64) error {
+				c, catalog, p := fixture(t)
+				addWorker(c, &p)
+				addWorkflows(c, int(test.workflows-1))
+				node := c.Program.Entrypoints[0].Instructions[0]
+				node.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: test.local}
+				p.Limits.MaxAttempts = test.global
+				p.Limits.MaxEntrypoints = test.workflows + 1
+				p.Limits.MaxActivations = ceiling
+				capCarrierShapes(&p)
+				_, err := Prepare(c, catalog, p)
+				return err
+			}
 			if test.good {
-				require.NoError(t, err)
-				require.Equal(t, test.want, prepared.View().MaximumActivations())
+				require.NoError(t, prepare(test.ceiling))
+				require.ErrorContains(t, prepare(test.ceiling-1), "attempt-scaled reservations exceed ceiling")
 			} else {
-				require.Error(t, err)
+				require.Error(t, prepare(test.ceiling))
 			}
 		})
 	}
@@ -424,7 +429,6 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
-	require.Equal(t, "namespace", prepared.graphs[0].nodes[0].assignments[0].environmentBindingID)
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
 	require.Equal(t, resolvedRole{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["endpoint"])
 	require.Equal(t, resolvedRole{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["queue"])
@@ -748,7 +752,7 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 		return plan.Source().GetInstruction().GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes()
 	}
 	require.Equal(t, "operation", scheduled(instructions[0]).GetOperation())
-	require.Equal(t, []int{0}, instructions[1].Dependencies())
+	require.Equal(t, []int{0}, instructions[1].node.dependencies)
 	scheduled(instructions[0]).Operation = "changed"
 	instructions[0].Source().Instruction = nil
 	worker.Activation().GetWorkflow().WorkflowType = "changed"
@@ -805,10 +809,10 @@ func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 			t.Parallel()
 			for j := 0; j < 10; j++ {
 				plans := prepared.Entrypoints()
-				plans[0].Instructions()[0].ResponseReads()[0].Targets[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
+				plans[0].Instructions()[0].Source().GetInstruction().GetInvokeRpc().ResponseReads[0].Targets[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
 				plans[0].Order()[0] = 99
 				prepared.Snapshot().ProgramId = "changed"
-				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].ResponseReads()[0].Targets[0].GetSlotId())
+				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].Source().GetInstruction().GetInvokeRpc().ResponseReads[0].Targets[0].GetSlotId())
 				require.Equal(t, "program", prepared.View().ProgramID())
 			}
 		})

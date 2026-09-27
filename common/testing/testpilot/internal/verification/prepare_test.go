@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -316,14 +318,13 @@ func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
 	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
-	snapshot := prepared.Snapshot()
+	snapshot := proto.CloneOf(c)
 	c.Rules[0].Transitions[0].TransitionId = "mutated"
 	policy.MaxStates = 1
-	prepared.Snapshot().Rules[0].States[0].StateId = "mutated"
-	observations := prepared.ProgramView().Observations()
+	observations := prepared.program.Observations()
 	observations[0].ID = "mutated"
-	require.Equal(t, snapshot, prepared.Snapshot())
-	require.Equal(t, "id", prepared.ProgramView().Observations()[0].ID)
+	require.True(t, proto.Equal(snapshot, prepared.source))
+	require.Equal(t, "id", prepared.program.Observations()[0].ID)
 	for name, mutate := range map[string]func(*testpilotspb.Contract, *testpilotspb.ContractLimits){
 		"state count": func(_ *testpilotspb.Contract, l *testpilotspb.ContractLimits) { l.MaxStates = 2 },
 		"capture bytes": func(c *testpilotspb.Contract, l *testpilotspb.ContractLimits) {
@@ -480,10 +481,18 @@ func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	path := prepared.rules[0].transitions[0].Children()[0].Path()
-	for _, count := range []int64{127, 128, 129} {
-		_, err := path.CheckFanout(1, count)
+	empty, err := catalog.BindType(messageType("example.Empty"))
+	require.NoError(t, err)
+	items := empty.Message().Fields().ByName("items")
+	for _, count := range []int{127, 128, 129} {
+		source := dynamicpb.NewMessage(empty.Message())
+		list := source.Mutable(items).List()
+		for range count {
+			list.Append(protoreflect.ValueOfString("item"))
+		}
+		_, _, err := path.Read(context.Background(), source, ir.DefaultLimits())
 		if count > 128 {
-			require.Error(t, err)
+			require.ErrorContains(t, err, "fan-out ceiling exceeded")
 		} else {
 			require.NoError(t, err)
 		}

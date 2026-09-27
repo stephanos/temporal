@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
-	"go.temporal.io/server/common/testing/testpilot/internal/verification"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -35,16 +34,10 @@ type RuleViolation struct {
 // no Driver and no target, and returns the Verdict that reading gives with its Evaluation. A Run
 // that is not closed, or that names another Program, errs.
 func (p *PreparedCase) Evaluate(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, *Evaluation, error) {
-	if p == nil || p.factory == nil || isNil(ctx) {
+	if p == nil || p.contract == nil || isNil(ctx) {
 		return nil, nil, errors.New("prepared Case and context are required")
 	}
-	replayer, ok := p.factory.(interface {
-		Evaluate(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, []verification.Violation, error)
-	})
-	if !ok {
-		return nil, nil, errors.New("prepared Contract cannot be replayed")
-	}
-	verdict, violations, err := replayer.Evaluate(ctx, proto.CloneOf(run))
+	verdict, violations, err := p.contract.Evaluate(ctx, proto.CloneOf(run))
 	if err != nil {
 		return verdict, nil, err
 	}

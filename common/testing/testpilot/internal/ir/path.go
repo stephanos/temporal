@@ -48,14 +48,6 @@ func (p *Path) Steps() []PathStep {
 	return steps
 }
 
-// CheckFanout charges expansion before allocating or enumerating the next level.
-func (p *Path) CheckFanout(current, count int64) (int64, error) {
-	if current < 0 || count < 0 || current > p.limit || count > p.limit || (count > 0 && current > p.limit/count) {
-		return 0, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
-	}
-	return current * count, nil
-}
-
 // BindPath parses text in the field path grammar and types it against source. location names where
 // text sits in the Case; every rejection is located there and quotes text.
 func (c *Catalog) BindPath(source Type, location, text string, limits Limits) (*Path, error) {

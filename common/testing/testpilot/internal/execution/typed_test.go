@@ -71,11 +71,11 @@ func TestPrepareAdmitsTypedInstructions(t *testing.T) {
 	require.NoError(t, err)
 	// The Await of a scheduled command yields the handler's payload whole, as an Any.
 	await := prepared.Entrypoints()[1].Instructions()[1]
-	value, ok := await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+	value, ok := outcomeType(await, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 	require.True(t, ok)
 	require.NotNil(t, value.GetSingular().GetAny())
 	// A typed completion is a controller protocol effect, so it produces a protocol code.
-	_, ok = prepared.Entrypoints()[0].Instructions()[2].OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
+	_, ok = outcomeType(prepared.Entrypoints()[0].Instructions()[2], testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
 	require.True(t, ok)
 }
 

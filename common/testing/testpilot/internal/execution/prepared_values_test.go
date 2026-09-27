@@ -37,12 +37,22 @@ func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
 	} {
 		plan := p.Entrypoints()[test.entry].Instructions()[test.node]
 		for field := testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS; field <= testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE; field++ {
-			typ, produced := plan.OutcomeType(field)
+			typ, produced := outcomeType(plan, field)
 			want, wanted := test.want[field]
 			require.Equal(t, wanted, produced, "%s %s", plan.Source().GetInstructionId(), field)
 			require.True(t, proto.Equal(want, typ), "%s %s", plan.Source().GetInstructionId(), field)
 		}
 	}
+}
+
+// outcomeType is the type preparation derived for one outcome field of the instruction, the one
+// ValidateOutcome checks that field against.
+func outcomeType(plan InstructionPlan, field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
+	typ, ok := plan.node.outcomes[field]
+	if !ok {
+		return nil, false
+	}
+	return typ.Schema(), true
 }
 
 // carriedType is the Await's VALUE type: the payload a schedule command's operation answers with,
@@ -157,20 +167,16 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 }
 
 // A Finish result or a NexusHandlerReply ends its activation rather than becoming an outcome value,
-// so its outcome carries none; an awaited operation's value type is read through a copy.
+// so its outcome carries none.
 func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	await := p.Entrypoints()[1].Instructions()[1]
-	typ, ok := await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+	typ, ok := outcomeType(await, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 	require.True(t, ok)
 	require.True(t, proto.Equal(carriedType(), typ))
-	typ.Shape = nil
-	typ, ok = await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
-	require.True(t, ok)
-	require.NotNil(t, typ.Shape)
-	typ, ok = await.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
+	typ, ok = outcomeType(await, testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
 	require.False(t, ok)
 	require.Nil(t, typ)
 	// A Finish evaluates its result; a NexusHandlerReply carries its own message and evaluates
@@ -181,7 +187,7 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	}{{1, 2, "done"}, {2, 0, ""}} {
 		entry := p.Entrypoints()[pair.entry]
 		n := entry.Instructions()[pair.node]
-		_, ok := n.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+		_, ok := outcomeType(n, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 		require.False(t, ok)
 		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *testpilotspb.Value {
 			if ref.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
