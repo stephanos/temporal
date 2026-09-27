@@ -30,6 +30,8 @@ Add the `static-preparation-rejection/instance-value` conformance sub-entry (R10
 - R3 gap at Case level: `execution.Prepare` checks the Case's surface size as written, not as expanded, so a very large instanced Case could pass where its expansion is rejected. Charge it as expanded (like `ir.CheckExpandedSurface` for the Contract) and cover it in the corpus sub-entry.
 - The production expansion helpers in `verification/prepare.go` nearly duplicate the test's `expand`/`inline`; share one so they cannot drift. Add `t.Helper()` to `nexusWorld` and `nexusRun`.
 
+- `make lint-code-fast` reports one finding at `common/testing/testpilot/internal/ir/expression_test.go:370` (from fn-89.1/.3); fix it here.
+
 ## Acceptance
 - [ ] the `instance-value` sub-entry exists, generated only by `make umpire-gen-case-runtime-conformance`, and rejects at the pinned category and location
 - [ ] every other conformance entry and fixture is byte-identical; `make umpire-check-case-runtime-conformance` passes
