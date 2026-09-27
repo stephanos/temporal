@@ -611,6 +611,20 @@ the collector's view of live memory does not depend on when the host answered;
 simulation transport reads are exempt because they block until the simulation
 advances.
 
+On darwin/arm64 an activated target re-executes itself once with ASLR
+disabled before runtime initialization continues. The darwin/arm64 linker
+produces only position-independent executables and the kernel slides every
+image, so the addresses of type descriptors, globals, and functions differed
+between two runs of one binary; caches keyed by those addresses (reflect2's
+type cache, reflect's lookup caches, `map[reflect.Type]`) then allocated a
+different number of hash-trie nodes during package initialization, and the
+heap layout, the first collection, and every later run-queue order followed
+the slide. The re-execution uses `posix_spawn` with `POSIX_SPAWN_SETEXEC` and
+the ASLR-disabling attribute debuggers use, so the pid, inherited descriptors,
+and process group the Runner supervises are unchanged; a kernel that ignores
+the attribute fails the target closed instead of looping. linux/amd64 targets
+are not position independent and need no re-execution.
+
 Targets build with `GOEXPERIMENT=nogreenteagc`. The Green Tea collector
 attributes scan work per span batch, so the pacer's view of a cycle followed
 the order in which the marker reached objects, and that order followed which
