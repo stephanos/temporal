@@ -40,9 +40,10 @@ Run the R1 probe and write its receipt. Copy `model/` to a temporary directory o
 - [ ] Temporary copy removed
 
 ## Done summary
-TBD
+Ran the R1 compatibility probe and appended its receipt to experiments/umpire-dsl/VEIL_RESULTS.md. The decision is `defer-incompatible`: Veil main 517f2ba (declared toolchain v4.32.0) compiles Batteries v4.33.0 and Aesop, but Veil.Util.TreeSetMisc fails under Lean 4.33.1 at `:71:30` (`clear` failed: target depends on 'l'). The checker entry is also IO rather than pure, so a toolchain fix alone would give `defer-closure`, not `adopt`. The throwaway copy was deleted, and the real model/ lakefile and manifest are unchanged.
 
+stage: impl-review - ran [2026-09-26..2026-09-26] triage_skip SHIP (docs-only)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: eefea06d1961ff53d3542d087aff7072e3dc59f8
+- Tests: baseline: none (the spec's Quick commands build modules that later fn-88 tasks introduce; the shared model/.lake was being rebuilt by another agent), probe: lake update (cold, 120.99s, rc=0) in a throwaway model copy with require veil@517f2badbf9a7ba2b18a72242351ff20943cbdd7, probe: lake build Veil.Core.Tools.ModelChecker.Concrete.Checker (cold 117.92s, rc=1; warm 16.16s, rc=1; first error Veil/Util/TreeSetMisc.lean:71:30), pin=veil@517f2badbf9a7ba2b18a72242351ff20943cbdd7; veil-toolchain=leanprover/lean4:v4.32.0; batteries-resolved=4488d40d070b9700d4d5a6aa342f0d40c31b2a2d (v4.33.0); checker-entry=IO (findReachable, unfueled while loop, IO.CancelToken), frontier=deterministic FIFO, single-threaded when parallelCfg=none, UInt64 fingerprint dedup; expose=TransitionSystem/ExecutionOutcome/Trace/Interface/Core are @[expose], Checker/Sequential are not; lint-model-complete=not measured (build failed; disk 1.5-2.4 GiB free); decision=defer-incompatible, gate classify --base b9bb1a58adf931e0830bcb5917849ae4f1ea894f: FULL because the dirty worktree holds another agent's uncommitted Makefile edit; the committed diff b9bb1a58adf931e0830bcb5917849ae4f1ea894f..HEAD touches only experiments/umpire-dsl/VEIL_RESULTS.md, GATE_SKIPPED:umpire-check-goldens:docs-only - cumulative committed diff is one markdown file (no executable paths touched), GATE_SKIPPED:lint-model:docs-only - cumulative committed diff is one markdown file (no executable paths touched), GATE_SKIPPED:umpire-check-regression:docs-only - cumulative committed diff is one markdown file (no executable paths touched), git status: no change under model/lakefile.lean or model/lake-manifest.json; the only model/ modifications are another agent's pre-existing edits
 - PRs:
