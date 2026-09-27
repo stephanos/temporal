@@ -300,7 +300,7 @@ func platformRuntimeFile(name string) bool {
 }
 
 func generatedOverlay(path string) bool {
-	return path == "src/cmd/compile/internal/gomadintercept/spec_go126.go" ||
+	return strings.HasPrefix(path, "src/cmd/compile/internal/gomadintercept/spec_go") ||
 		strings.HasSuffix(path, "_generated.go") || strings.HasSuffix(path, "_generated_test.go")
 }
 

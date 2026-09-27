@@ -3,9 +3,9 @@
 package deterministicio
 
 const (
-	generatedBoundaryManifestVersion = "go1.26.4-v2"
-	generatedBoundaryManifestSHA256  = "sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63"
-	generatedBoundaryGoVersion       = "go1.26.4"
+	generatedBoundaryManifestVersion = "go1.27.1-v1"
+	generatedBoundaryManifestSHA256  = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+	generatedBoundaryGoVersion       = "go1.27.1"
 )
 
 var generatedBoundaryPlatforms = []string{"darwin/arm64", "linux/amd64"}

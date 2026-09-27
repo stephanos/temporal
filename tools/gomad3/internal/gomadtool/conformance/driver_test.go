@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
 func TestRunUpstreamExecutesTypedGatesInOrder(t *testing.T) {
@@ -185,7 +186,7 @@ func TestRunInterceptionExecutesManifestDrivenCompilerCases(t *testing.T) {
 	}
 	goCommand := writeExecutable(t, filepath.Join(t.TempDir(), "go"))
 	compiler := writeExecutable(t, filepath.Join(t.TempDir(), "compile"))
-	expected, err := os.ReadFile(filepath.Join(root, "expected-intercepts-go1.26.4.txt"))
+	expected, err := os.ReadFile(filepath.Join(root, "expected-intercepts-"+gomadversion.GoVersion+".txt"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -493,7 +493,7 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		"choice/schema/choicewire.go.tmpl",
 		"choice/schema/choicewire_runtime.go.tmpl",
 		"toolchain/runtime/overlay/src/runtime/gomad.go",
-		"toolchain/runtime/go1.26.4.patch",
+		"toolchain/runtime/go1.27.1.patch",
 		"choice/trace.go",
 		"choice/tape.go",
 	}

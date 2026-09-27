@@ -1,6 +1,6 @@
 # Gomad v3
 
-Gomad v3 is an opt-in Go 1.26.4 toolchain with a small deterministic-runtime
+Gomad v3 is an opt-in Go 1.27.1 toolchain with a small deterministic-runtime
 patch and source overlay. It uses native Go goroutines, channels, `select`,
 maps, synchronization, `go run`, and `go test`.
 
@@ -429,7 +429,7 @@ for both Make and the recipe shell.
 
 The stable Go command is `tools/gomad3/.toolchain/bin/go`. The build verifies
 the official Go source checksum, snapshots and validates
-`toolchain/runtime/go1.26.4.patch` and `toolchain/runtime/overlay`, rejects
+`toolchain/runtime/go1.27.1.patch` and `toolchain/runtime/overlay`, rejects
 upstream overlay collisions, copies the exact overlay
 snapshot, applies the exact patch snapshot with zero fuzz, and caches immutable
 builds by the Go version, source checksum, patch and overlay checksums, host OS
@@ -680,7 +680,7 @@ in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.
 
 The suite compares disabled `go run` and `go test` behavior with a local stock
-Go 1.26.4 toolchain; benchmarks disabled clock reads against that toolchain;
+Go 1.27.1 toolchain; benchmarks disabled clock reads against that toolchain;
 covers the fixed clock, native timer behavior, context deadlines, logical test
 timeouts, nested synctest, cgo/link rejection, non-progress, bounded output,
 and deadlock; runs focused upstream `runtime`, `time`, and `testing/synctest`
