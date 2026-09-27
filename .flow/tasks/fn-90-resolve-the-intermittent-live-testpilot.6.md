@@ -78,12 +78,11 @@ Follow-ups, not built here: the Run-capture field for workflow and handler instr
 
 Baseline: green, with CC=/usr/bin/clang. `go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/...` and `go vet -tags 'test_dep integration' ./tests` both passed.
 
-GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt
+GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree
 GATE_SKIPPED:live:not-applicable - no source change; the 5x confirmation run is recorded above
 
 stage: impl-review - ran [claude: SHIP first pass, P3 monitor-condition wording fixed after]
-
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7d71f9ead9e7d5f004eef01a1bd4cc15169585df, 406ebf59449ef87317741bc9a764eacc4652c286
+- Tests: go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/... (baseline), go vet -tags 'test_dep integration' ./tests (baseline), go test -v -tags 'test_dep integration' -count=5 -run '^(TestTestpilotNexusCallerAsyncCompletion|TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone|TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone)$' ./tests (5/5 each), GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree, GATE_SKIPPED:live:not-applicable - no source change; the 5x confirmation run is recorded above
 - PRs:
