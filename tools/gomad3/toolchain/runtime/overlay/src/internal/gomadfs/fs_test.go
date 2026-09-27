@@ -26,6 +26,18 @@ func TestFilesystemEnforcesPathAndFileBounds(t *testing.T) {
 	}
 }
 
+func TestFilesystemStartsWithTempDirectory(t *testing.T) {
+	for name, fs := range map[string]*FS{"process": New(), "simulation": NewSimulation()} {
+		entry, err := fs.Stat(TempDirectory)
+		if err != nil || entry.Kind != KindDirectory {
+			t.Fatalf("%s filesystem temp directory = (%#v, %v)", name, entry, err)
+		}
+		if _, err := fs.Open(TempDirectory+"/scratch", OpenFlags{Read: true, Write: true, Create: true}, 0o600); err != nil {
+			t.Fatalf("%s filesystem rejected a temp file: %v", name, err)
+		}
+	}
+}
+
 func TestSimulationFilesystemDoesNotLoadAmbientHostPaths(t *testing.T) {
 	loaded := false
 	Default.SetLoader(func(string) (LoadEntry, MountStatus, error) {

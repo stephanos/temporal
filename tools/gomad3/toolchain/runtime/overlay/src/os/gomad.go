@@ -29,6 +29,19 @@ func gomadIOEnabled() bool {
 	return gomadDeterministicEnabled()
 }
 
+// The deterministic profile starts from an empty in-memory filesystem, so the
+// directory os.TempDir resolves to is created before user code runs: a program
+// that writes scratch files there finds the directory a host would provide,
+// wherever TMPDIR points.
+func init() {
+	if !gomadIOEnabled() {
+		return
+	}
+	if dir := TempDir(); dir != gomadfs.TempDirectory {
+		_ = gomadfs.Default.MkdirAll(dir, 0o1777)
+	}
+}
+
 func gomadObserveBoundary(id uint64) {
 	if !gomadProfileEnabled() {
 		return
