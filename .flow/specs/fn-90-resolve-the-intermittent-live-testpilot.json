@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-90-resolve-the-intermittent-live-testpilot",
   "impl_review_rounds": {
-    "fn-90-resolve-the-intermittent-live-testpilot.1": 0
+    "fn-90-resolve-the-intermittent-live-testpilot.1": 0,
+    "fn-90-resolve-the-intermittent-live-testpilot.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -351,10 +352,55 @@
       "task": "fn-90-resolve-the-intermittent-live-testpilot.1",
       "timestamp": "2026-09-27T01:54:22.076148Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "07981ccb4ced547eb7553dfa1cd18bd354255bec2d6d814fdd19bc0651786911",
+      "backend": "claude",
+      "base_sha": "48c0d45e2262186477b6d60a2bc3e95b0cae1795",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-20f8370248d44d205b6e8c10d7243f21",
+            "classification": "introduced",
+            "findingId": "finding-20f8370248d44d205b6e8c10d7243f21",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6e368d4378f80f6da5a79799b1193b6e3e11fd50",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4408,
+      "output_sha256": "11a23fd22c05f596e4d4971aeca9c190b9e3bceefd6d5c0507f218ab2b2dfedb",
+      "reservation_id": "f886920bf9ae49d6abb6a64328388425",
+      "round_consumed": true,
+      "scope": "impl:fn-90-resolve-the-intermittent-live-testpilot.2",
+      "superseded_by": null,
+      "task": "fn-90-resolve-the-intermittent-live-testpilot.2",
+      "timestamp": "2026-09-27T02:15:28.211802Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-90-resolve-the-intermittent-live-testpilot.1": 1,
+    "impl:fn-90-resolve-the-intermittent-live-testpilot.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -362,6 +408,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-90-resolve-the-intermittent-live-testpilot.1": 0,
+    "impl:fn-90-resolve-the-intermittent-live-testpilot.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-90-resolve-the-intermittent-live-testpilot.md",
@@ -378,5 +425,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T01:54:22.079406Z"
+  "updated_at": "2026-09-27T02:15:28.216458Z"
 }

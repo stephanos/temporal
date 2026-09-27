@@ -145,11 +145,12 @@ fixture or `expected.json` contains any of these strings.
 - **R4:** Doc comments and READMEs in the handle sense say opaque handle, handle effect, handle
   bridge or handle factory, including "generic capability factory" in the Temporal Driver README.
   Errors: none beyond R3; prose in the other senses listed in Edge Cases is left as is.
-- **R5:** `UMPIRE4_ORDER.md` drops the "Driver contract still says capability" bullet, and fn-78
+- **R5:** `UMPIRE4_ORDER.md` carries no "Driver contract still says capability" bullet (removed
+  when fn-91 was queued), and fn-78
   leaves the gate's downstream list. Errors: no other `.plans` document or spec record is edited.
 - **R6:** `make umpire-check-regression` exits 0 with the current count of passing live identities,
   and `make lint-code-fast` reports no new issues. Errors: a live identity that also fails at the
-  base commit (the known intermittent failures in `UMPIRE4_ORDER.md`) is re-run, not waived.
+  base commit (the intermittent failures fn-90 tracks) is re-run, not waived.
 
 ## Boundaries
 <!-- scope: business -->
