@@ -81,7 +81,11 @@ Record files are in `/private/tmp/fn-90/`: loop1..5.jsonl, loop6-01..13.jsonl, t
 
 Baseline: green. In the clone, `go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/...` passed and `go vet -tags 'test_dep integration' ./tests` passed. No source change (Touches: []).
 
+GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree
+GATE_SKIPPED:live:not-applicable - measurement-only task, no source change
+
+stage: impl-review - ran [claude: NEEDS_WORK (P2 pair switch-coverage wording, P3 capture total) -> fixed in 376943907d -> SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 71559d5f45290e4e7ef6659f33ef32206d0f8414, 376943907d726ca70bd5b714e859e546a62795ea
+- Tests: measured commit b9bb1a58adf931e0830bcb5917849ae4f1ea894f (clone umpire-fn90-measure, clean tree), make umpire-repeat-run SELECT='^TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint$' COUNT=50 MODE=process -> 0/50, make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotNexusCallerAsyncCompletion$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^(TestTestpilotNexusCallerAsyncCompletion|TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone)$' COUNT=4 MODE=in-process x13 + umpire-repeat summarize -> 0/52 each, baseline: green (go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/... ; go vet -tags 'test_dep integration' ./tests, in the clone at b9bb1a58ad), GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree, GATE_SKIPPED:live:not-applicable - measurement-only task, no source change (Touches: [])
 - PRs:
