@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"slices"
 	"sync"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -72,32 +74,28 @@ func nexusRouteIndexFromHeader(header nexus.Header) (nexusRouteIndex, error) {
 }
 
 func (h *Driver) workflowCandidates(input delivery.WorkflowDelivery) []*Session {
-	if h == nil || h.mu.lock(context.Background()) != nil {
+	if h == nil || h.mu.LockContext(context.Background(), ErrInvalid) != nil {
 		return nil
 	}
-	defer h.mu.unlock()
+	defer h.mu.Unlock()
 	return append([]*Session(nil), h.workflowRoutes[workflowDeliveryIndex(input)]...)
 }
 
 func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*Session, error) {
-	if h == nil || ctx == nil || nexusHeaderBytes(header) > h.options.requestBytes {
+	if h == nil || ctx == nil || int64(primitive.NexusHeaderBytes(header)) > h.options.requestBytes {
 		return nil, ErrInvalid
 	}
-	if err := h.mu.lock(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer h.mu.unlock()
+	defer h.mu.Unlock()
 	candidates := make(map[*Session]struct{})
 	for name, value := range header {
 		for _, session := range h.nexusRoutes[nexusRouteIndex{name: name, value: value}] {
 			candidates[session] = struct{}{}
 		}
 	}
-	result := make([]*Session, 0, len(candidates))
-	for session := range candidates {
-		result = append(result, session)
-	}
-	return result, nil
+	return slices.Collect(maps.Keys(candidates)), nil
 }
 
 func (h *Driver) admitWorkflow(input delivery.WorkflowDelivery) (routedWorkflow, error) {
@@ -126,10 +124,10 @@ func (s *Session) admitWorkflow(input delivery.WorkflowDelivery) (delivery.Activ
 	if err != nil {
 		return delivery.Activation{}, nil, false, err
 	}
-	if err := s.mu.lock(context.Background()); err != nil {
+	if err := s.mu.LockContext(context.Background(), ErrInvalid); err != nil {
 		return delivery.Activation{}, nil, false, err
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	if activation, admission, replay, err := s.workflowAdmissionLocked(key, input.TemporalRunID); replay || err != nil {
 		return activation, admission, replay, err
 	}
@@ -145,7 +143,7 @@ func (s *Session) admitWorkflow(input delivery.WorkflowDelivery) (delivery.Activ
 		if requestID != "" || workflowID != input.WorkflowID || runID != input.TemporalRunID {
 			return ErrInvalid
 		}
-		if nilValue(s.host.options.client) {
+		if primitive.NilValue(s.host.options.client) {
 			return ErrInvalid
 		}
 		return s.host.options.client.CancelWorkflow(ctx, workflowID, runID)
@@ -219,11 +217,11 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 // headers given and the Run's routing header, merged within the request byte ceiling. A name two of
 // them carry is refused, so no header can shadow the route.
 func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID string, headers ...nexus.Header) (nexus.Header, error) {
-	if s == nil || sourceID == "" || s.mu.lock(context.Background()) != nil {
+	if s == nil || sourceID == "" || s.mu.LockContext(context.Background(), ErrInvalid) != nil {
 		return nil, ErrInvalid
 	}
 	base := maps.Clone(s.nexusDispatch[nexusDispatchKey{workflowReservation: activation.Reservation().ID, sourceInstruction: sourceID}])
-	s.mu.unlock()
+	s.mu.Unlock()
 	if base == nil {
 		return nil, delivery.ErrRouteCrossed
 	}
@@ -236,7 +234,7 @@ func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID s
 			result[name] = value
 		}
 	}
-	if nexusHeaderBytes(result) > s.host.options.requestBytes {
+	if int64(primitive.NexusHeaderBytes(result)) > s.host.options.requestBytes {
 		return nil, ErrCapacity
 	}
 	return result, nil
@@ -274,10 +272,10 @@ func (h *Driver) admitNexus(ctx context.Context, queue string, input delivery.Ne
 }
 
 func (s *Session) admitNexus(ctx context.Context, input delivery.NexusDelivery, cancel context.CancelFunc) (delivery.Activation, bool, error) {
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return delivery.Activation{}, false, err
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	key, err := s.nexusAdmissionKeyLocked(input.Header)
 	if err != nil {
 		return delivery.Activation{}, false, err
@@ -340,14 +338,14 @@ func (s *Session) nexusAdmissionKeyLocked(header nexus.Header) (nexusRouteIndex,
 }
 
 func (h *Driver) checkRouteCapacityLocked(session *Session, key workflowRouteIndex) error {
-	if sessionIn(h.workflowRoutes[key], session) {
+	if slices.Contains(h.workflowRoutes[key], session) {
 		return nil
 	}
 	return h.ensureRouteCapacityLocked(1)
 }
 
 func (h *Driver) addWorkflowRouteLocked(session *Session, key workflowRouteIndex) {
-	if sessionIn(h.workflowRoutes[key], session) {
+	if slices.Contains(h.workflowRoutes[key], session) {
 		return
 	}
 	if h.workflowRoutes == nil {
@@ -359,16 +357,16 @@ func (h *Driver) addWorkflowRouteLocked(session *Session, key workflowRouteIndex
 }
 
 func (h *Driver) addNexusRoutes(ctx context.Context, session *Session, keys map[nexusRouteIndex]struct{}) error {
-	if err := h.mu.lock(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	defer h.mu.unlock()
+	defer h.mu.Unlock()
 	if h.sessions[session.runID] != session {
 		return ErrClosed
 	}
 	additional := 0
 	for key := range keys {
-		if !sessionIn(h.nexusRoutes[key], session) {
+		if !slices.Contains(h.nexusRoutes[key], session) {
 			additional++
 		}
 	}
@@ -379,7 +377,7 @@ func (h *Driver) addNexusRoutes(ctx context.Context, session *Session, keys map[
 		h.nexusRoutes = make(map[nexusRouteIndex][]*Session)
 	}
 	for key := range keys {
-		if sessionIn(h.nexusRoutes[key], session) {
+		if slices.Contains(h.nexusRoutes[key], session) {
 			continue
 		}
 		h.nexusRoutes[key] = append(h.nexusRoutes[key], session)
@@ -408,46 +406,19 @@ func (h *Driver) evictOldestTombstoneLocked() {
 
 func (h *Driver) removeRouteIndexesLocked(session *Session) {
 	for key := range session.workflowKeys {
-		h.workflowRoutes[key] = removeSessionFrom(h.workflowRoutes[key], session)
+		h.workflowRoutes[key] = slices.DeleteFunc(h.workflowRoutes[key], func(candidate *Session) bool { return candidate == session })
 		if len(h.workflowRoutes[key]) == 0 {
 			delete(h.workflowRoutes, key)
 		}
 		h.routeAssociations--
 	}
 	for key := range session.nexusKeys {
-		h.nexusRoutes[key] = removeSessionFrom(h.nexusRoutes[key], session)
+		h.nexusRoutes[key] = slices.DeleteFunc(h.nexusRoutes[key], func(candidate *Session) bool { return candidate == session })
 		if len(h.nexusRoutes[key]) == 0 {
 			delete(h.nexusRoutes, key)
 		}
 		h.routeAssociations--
 	}
-}
-
-func sessionIn(sessions []*Session, target *Session) bool {
-	for _, session := range sessions {
-		if session == target {
-			return true
-		}
-	}
-	return false
-}
-
-func removeSessionFrom(sessions []*Session, target *Session) []*Session {
-	result := sessions[:0]
-	for _, session := range sessions {
-		if session != target {
-			result = append(result, session)
-		}
-	}
-	return result
-}
-
-func nexusHeaderBytes(header nexus.Header) int64 {
-	var size int64
-	for name, value := range header {
-		size += int64(len(name) + len(value))
-	}
-	return size
 }
 
 func (s *Session) parentTerminal(ctx context.Context, activation delivery.Activation) (int, error) {

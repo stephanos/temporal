@@ -4,11 +4,11 @@ package server
 import (
 	"context"
 	"errors"
-	"reflect"
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -40,7 +40,7 @@ type endpoint struct {
 type Driver struct {
 	profile   testpilot.ProfileSpec
 	endpoints map[string]endpoint
-	mu        hostMutex
+	mu        primitive.Mutex
 	sessions  map[string]*Session
 	effects   int64
 	closed    bool
@@ -59,13 +59,13 @@ func New(options Options) (*Driver, error) {
 	if !validProfile(p) {
 		return nil, errInvalid
 	}
-	h := &Driver{mu: make(hostMutex, 1), profile: cloneProfile(p), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session)}
+	h := &Driver{mu: primitive.NewMutex(), profile: cloneProfile(p), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session)}
 	for _, role := range p.Roles {
 		if role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || len(role.Methods) == 0 {
 			continue
 		}
 		config, ok := options.Endpoints[role.ID]
-		if !ok || config.Target == "" || nilValue(config.Credentials) || len(role.Methods) > 10000 {
+		if !ok || config.Target == "" || primitive.NilValue(config.Credentials) || len(role.Methods) > 10000 {
 			return nil, errors.Join(errInvalid, h.closeConnections())
 		}
 		if _, duplicate := h.endpoints[role.ID]; duplicate {
@@ -73,7 +73,7 @@ func New(options Options) (*Driver, error) {
 		}
 		opts := []grpc.DialOption{grpc.WithTransportCredentials(config.Credentials.Clone()), grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(int(l.MaxRequestBytes)), grpc.MaxCallRecvMsgSize(int(l.MaxResponseBytes)))}
 		if config.PerRPCCredentials != nil {
-			if nilValue(config.PerRPCCredentials) {
+			if primitive.NilValue(config.PerRPCCredentials) {
 				return nil, errors.Join(errInvalid, h.closeConnections())
 			}
 			opts = append(opts, grpc.WithPerRPCCredentials(config.PerRPCCredentials))
@@ -120,7 +120,7 @@ func cloneProfile(p testpilot.ProfileSpec) testpilot.ProfileSpec {
 
 func (h *Driver) Snapshot() testpilot.ProfileSpec { return cloneProfile(h.profile) }
 func (h *Driver) Identity(ctx context.Context) (testpilot.DriverIdentity, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return testpilot.DriverIdentity{}, err
 	}
 	fingerprint, err := h.profile.BindingFingerprint()
@@ -134,7 +134,7 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	if h == nil {
 		return errInvalid
 	}
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
 	if program.Snapshot() == nil {
@@ -144,7 +144,7 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 }
 
 func (h *Driver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	return h.open(ctx, runID, program.Snapshot(), program.Limits())
@@ -152,20 +152,20 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 
 // OpenSession retains the concrete server session for composite Driver wiring.
 func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilot.PreparedProgram) (*Session, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	return h.open(ctx, runID, program.Snapshot(), program.Limits())
 }
 
 func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.Program, limits *testpilotspb.ProgramLimits) (*Session, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	if runID == "" || len(runID) > 256 || program == nil || limits == nil {
 		return nil, errInvalid
 	}
-	if err := h.mu.LockContext(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	defer h.mu.Unlock()
@@ -203,7 +203,7 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 			s.slots[slot.SlotId] = &handleSlot{ready: make(chan struct{})}
 		}
 	}
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	h.sessions[runID] = s
@@ -211,10 +211,10 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 }
 
 func (h *Driver) Close(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return err
 	}
-	if err := h.mu.LockContext(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, errInvalid); err != nil {
 		return err
 	}
 	if h.closed {
@@ -237,45 +237,4 @@ func (h *Driver) closeConnections() error {
 		}
 	}
 	return result
-}
-
-func nilValue(value any) bool {
-	if value == nil {
-		return true
-	}
-	v := reflect.ValueOf(value)
-	switch v.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
-		return v.IsNil()
-	default:
-		return false
-	}
-}
-func contextError(ctx context.Context) error {
-	if nilValue(ctx) {
-		return errInvalid
-	}
-	return ctx.Err()
-}
-
-// Driver operations can abandon serialization without a timeout goroutine. Internal completion
-// uses Lock so canceled callers cannot prevent capacity from being released.
-type hostMutex chan struct{}
-
-func (m hostMutex) Lock()   { m <- struct{}{} }
-func (m hostMutex) Unlock() { <-m }
-func (m hostMutex) LockContext(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
-		return err
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case m <- struct{}{}:
-	}
-	if err := ctx.Err(); err != nil {
-		m.Unlock()
-		return err
-	}
-	return nil
 }

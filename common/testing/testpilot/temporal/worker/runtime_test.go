@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -265,7 +266,7 @@ func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Dr
 			Identity: "profile", Catalog: catalog, ProgramLimits: proto.CloneOf(limits),
 			EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "nexus-endpoint"}, {ID: "other-namespace", Value: "namespace"}},
 			Roles: []testpilot.RolePolicy{
-				{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{startWorkflowMethod}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: startWorkflowMethod}}},
+				{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{primitive.StartWorkflowPath}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: primitive.StartWorkflowPath}}},
 				{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}, {ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 			},
 		},
@@ -503,9 +504,9 @@ func TestSessionCloseRetriesCancellationBeforeRelease(t *testing.T) {
 	host, definition := runtimeTestDriver(t, prepared)
 	session, err := newSession(host, "run", "session", definition, SessionOptions{Bridge: newTestBridge()})
 	require.NoError(t, err)
-	require.NoError(t, host.mu.lock(t.Context()))
+	require.NoError(t, host.mu.LockContext(t.Context(), ErrInvalid))
 	host.sessions[session.runID] = session
-	host.mu.unlock()
+	host.mu.Unlock()
 	handles, err := session.Reserve(t.Context(), testpilot.ReservationRequest{
 		Origin:       testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller", InstructionID: "call", Attempt: 1},
 		EntrypointID: "workflow", Count: 1,

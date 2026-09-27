@@ -96,9 +96,9 @@ func beginAndSettle(ctx context.Context, outage *Outage, roleID string, kind tes
 func requireStopped(t *testing.T, outage *Outage, want ...string) {
 	t.Helper()
 	registry := outage.lease.registry
-	require.NoError(t, registry.mu.lock(t.Context()))
+	require.NoError(t, registry.mu.LockContext(t.Context(), ErrInvalid))
 	stopped := outage.stoppedLocked()
-	registry.mu.unlock()
+	registry.mu.Unlock()
 	require.Equal(t, want, stopped)
 }
 

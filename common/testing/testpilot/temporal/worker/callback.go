@@ -17,6 +17,7 @@ import (
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexusrpc"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -58,7 +59,7 @@ func newCompletionTransport(client *http.Client, rawBaseURL string, limits *test
 		owned.MaxIdleConns = int(limits.GetMaxAttempts())
 		owned.MaxIdleConnsPerHost = int(limits.GetMaxAttempts())
 		transport.httpClient.Transport = owned
-	} else if nilValue(roundTripper) {
+	} else if primitive.NilValue(roundTripper) {
 		return nil, ErrInvalid
 	}
 	transport.httpClient.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }

@@ -114,10 +114,10 @@ func (o *Outage) Begin(ctx context.Context, roleID string, kind testpilotspb.Fau
 		return nil, err
 	}
 	registry := o.lease.registry
-	if err := registry.mu.lock(ctx); err != nil {
+	if err := registry.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer registry.mu.unlock()
+	defer registry.mu.Unlock()
 	group, err := o.lease.group(queue)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (o *Outage) finishResume(ctx context.Context, group *workerGroup) error {
 	// resume-before-release step for the rest of the Run.
 	settle, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
 	defer cancel()
-	if lockErr := registry.mu.lock(settle); lockErr != nil {
+	if lockErr := registry.mu.LockContext(settle, ErrInvalid); lockErr != nil {
 		if resumed != nil && err == nil {
 			resumed.Stop()
 		}
@@ -190,7 +190,7 @@ func (o *Outage) finishResume(ctx context.Context, group *workerGroup) error {
 	// The Run may have been released while the worker was starting. Recording the fresh worker in
 	// a retired group would leave it polling the queue with nothing left to stop it.
 	if registry.groups[group.key] != group {
-		registry.mu.unlock()
+		registry.mu.Unlock()
 		if resumed != nil && err == nil {
 			resumed.Stop()
 		}
@@ -198,11 +198,11 @@ func (o *Outage) finishResume(ctx context.Context, group *workerGroup) error {
 	}
 	if err != nil {
 		group.stopped = true
-		registry.mu.unlock()
+		registry.mu.Unlock()
 		return err
 	}
 	group.worker = resumed
-	registry.mu.unlock()
+	registry.mu.Unlock()
 	return ctx.Err()
 }
 
@@ -245,10 +245,10 @@ func (o *Outage) Restore(ctx context.Context) error {
 		return ErrInvalid
 	}
 	l := o.lease
-	if err := l.mu.lock(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	defer l.mu.unlock()
+	defer l.mu.Unlock()
 	if l.released {
 		return nil
 	}
@@ -267,17 +267,17 @@ func (o *Outage) Restore(ctx context.Context) error {
 // critical section, so no Begin can stop a group Restore has already decided to skip.
 func (o *Outage) beginRestore(ctx context.Context) ([]string, error) {
 	registry := o.lease.registry
-	if err := registry.mu.lock(ctx); err != nil {
+	if err := registry.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer registry.mu.unlock()
+	defer registry.mu.Unlock()
 	o.restoring = true
 	return o.stoppedLocked(), nil
 }
 
 func (o *Outage) resume(ctx context.Context, queue string) error {
 	registry := o.lease.registry
-	if err := registry.mu.lock(ctx); err != nil {
+	if err := registry.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	group, err := o.lease.group(queue)
@@ -285,7 +285,7 @@ func (o *Outage) resume(ctx context.Context, queue string) error {
 	if err == nil {
 		settle, err = o.flipLocked(group, false)
 	}
-	registry.mu.unlock()
+	registry.mu.Unlock()
 	if err != nil {
 		return err
 	}

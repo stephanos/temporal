@@ -3,13 +3,12 @@ package delivery
 import (
 	"context"
 	"errors"
-	"reflect"
 	"slices"
 	"sync/atomic"
 
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
 var (
@@ -39,7 +38,7 @@ type WorkflowBinding struct {
 }
 
 type Ledger struct {
-	mu            ledgerMutex
+	mu            primitive.Mutex
 	config        Config
 	bundles       map[uint64]*bundleState
 	routes        map[string]*routeState
@@ -164,24 +163,24 @@ func New(config Config) (*Ledger, error) {
 	if !validRouteText(config.RunID) || !validRouteText(config.SessionID) || limits.MaxRoutes <= 0 || limits.MaxRoutes > 100000 || limits.MaxHeaderBytes <= 0 || limits.MaxHeaderBytes > 16<<20 || limits.MaxHandles <= 0 || limits.MaxHandles > 100000 || limits.MaxDiagnostics <= 0 || limits.MaxDiagnostics > 100000 {
 		return nil, ErrInvalid
 	}
-	return &Ledger{mu: make(ledgerMutex, 1), config: config, bundles: make(map[uint64]*bundleState), routes: make(map[string]*routeState), retained: make(map[string]*retainedReservation)}, nil
+	return &Ledger{mu: primitive.NewMutex(), config: config, bundles: make(map[uint64]*bundleState), routes: make(map[string]*routeState), retained: make(map[string]*retainedReservation)}, nil
 }
 
 // RetainReservation attaches lifecycle accounting before the handle is returned from Session.Reserve.
 // The returned proxy is the handle that the Executor must retain and later Wait, Cancel or Drain.
 func (l *Ledger) RetainReservation(ctx context.Context, handle testpilot.ReservationHandle) (testpilot.ReservationHandle, error) {
-	if nilValue(handle) {
+	if primitive.NilValue(handle) {
 		return handle, ErrInvalid
 	}
 	cleanup := newCleanupProxy(handle)
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
 	identity := handle.Identity()
 	if identity.Origin.RunID != l.config.RunID || !validCoordinate(identity.Origin) || !validReservation(identity) {
 		return cleanup, ErrRouteConflict
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
 	defer l.mu.Unlock()
@@ -203,14 +202,14 @@ func (l *Ledger) RetainReservation(ctx context.Context, handle testpilot.Reserva
 
 func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding WorkflowBinding, handles []testpilot.ReservationHandle) (Bundle, error) {
 	cleanup := cleanupBundle(handles)
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
 	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, binding(workflowBinding), handles, l.config.Limits)
 	if err != nil {
 		return cleanup, err
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
 	defer l.mu.Unlock()
@@ -273,7 +272,7 @@ type reservationKey struct {
 }
 
 func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding binding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
-	if origin.RunID != runID || !validCoordinate(origin) || !validRouteText(plan.EndpointRoleID) || plan.Method != startWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
+	if origin.RunID != runID || !validCoordinate(origin) || !validRouteText(plan.EndpointRoleID) || plan.Method != primitive.StartWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
 		return nil, nil, ErrInvalid
 	}
 	expected, handlerCount, err := validateTopology(plan, limits)
@@ -328,7 +327,7 @@ func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]te
 	seenKeys := make(map[reservationKey]bool, len(handles))
 	seenIDs := make(map[string]bool, len(handles))
 	for _, handle := range handles {
-		if nilValue(handle) {
+		if primitive.NilValue(handle) {
 			return nil, ErrInvalid
 		}
 		identity := handle.Identity()
@@ -376,7 +375,7 @@ func clonePlan(plan testpilot.ReservationCarrierPlan) testpilot.ReservationCarri
 func cleanupBundle(handles []testpilot.ReservationHandle) Bundle {
 	result := Bundle{}
 	for _, handle := range handles {
-		if !nilValue(handle) {
+		if !primitive.NilValue(handle) {
 			result.handles = append(result.handles, handle)
 		}
 	}
@@ -384,13 +383,13 @@ func cleanupBundle(handles []testpilot.ReservationHandle) Bundle {
 }
 
 func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *workflowservice.StartWorkflowExecutionResponse) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	if nilValue(response) || !validRouteText(response.GetRunId()) {
+	if primitive.NilValue(response) || !validRouteText(response.GetRunId()) {
 		return ErrInvalid
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	defer l.mu.Unlock()
@@ -411,13 +410,13 @@ func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *
 }
 
 func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition TriggerStatus) (Release, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
 	if disposition < TriggerSucceeded || disposition > TriggerUncertain {
 		return Release{}, ErrInvalid
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
 	state, err := l.bundleLocked(bundle)
@@ -475,10 +474,10 @@ func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition
 }
 
 func (l *Ledger) ParentTerminal(ctx context.Context, workflow Activation) (Release, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
 	state, err := l.activationLocked(workflow, workflowRoute)
@@ -515,10 +514,10 @@ func (l *Ledger) ParentTerminal(ctx context.Context, workflow Activation) (Relea
 }
 
 func (l *Ledger) Stop(ctx context.Context) (Release, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return Release{}, err
 	}
 	if l.stopped {
@@ -547,17 +546,17 @@ func (l *Ledger) Stop(ctx context.Context) (Release, error) {
 }
 
 func (l *Ledger) Quarantine(ctx context.Context, handle testpilot.EffectHandle, quarantine QuarantineFunc) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	if nilValue(handle) || nilValue(quarantine) {
+	if primitive.NilValue(handle) || primitive.NilValue(quarantine) {
 		return ErrInvalid
 	}
 	proxy, ok := handle.(*reservationProxy)
 	if !ok || proxy == nil || proxy.retained == nil || proxy.retained.ledger != l {
 		return ErrRouteCrossed
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	if proxy.retained.quarantined.Load() {
@@ -651,7 +650,7 @@ func (l *Ledger) cancel(ctx context.Context, retained []*retainedReservation) er
 			result = ErrLifecycle
 		}
 	}
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	return result
@@ -692,28 +691,28 @@ func (h *reservationProxy) Consume(context.Context) (testpilot.Coordinate, error
 }
 
 func (h *reservationProxy) Wait(ctx context.Context) (testpilot.EffectResult, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return testpilot.EffectResult{}, err
 	}
 	result, err := h.retained.handle.Wait(ctx)
 	if contextErr := ctx.Err(); contextErr != nil {
-		return copyEffectResult(result), contextErr
+		return primitive.CloneEffectResult(result), contextErr
 	}
 	if completeErr := h.complete(ctx); completeErr != nil && err == nil {
 		err = completeErr
 	}
-	return copyEffectResult(result), err
+	return primitive.CloneEffectResult(result), err
 }
 
 func (h *reservationProxy) Cancel(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	l := h.retained.ledger
 	if l == nil {
 		return h.retained.handle.Cancel(ctx)
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	if h.retained.completed || h.retained.cancelSent.Load() {
@@ -729,7 +728,7 @@ func (h *reservationProxy) Cancel(ctx context.Context) error {
 }
 
 func (h *reservationProxy) Drain(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	err := h.retained.handle.Drain(ctx)
@@ -744,7 +743,7 @@ func (h *reservationProxy) complete(ctx context.Context) error {
 	if l == nil {
 		return nil
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	retained := h.retained
@@ -761,49 +760,5 @@ func (h *reservationProxy) complete(ctx context.Context) error {
 		}
 	}
 	l.mu.Unlock()
-	return nil
-}
-
-func copyEffectResult(result testpilot.EffectResult) testpilot.EffectResult {
-	return testpilot.EffectResult{Outcome: proto.CloneOf(result.Outcome), Response: proto.Clone(result.Response)}
-}
-
-func nilValue(value any) bool {
-	if value == nil {
-		return true
-	}
-	reflected := reflect.ValueOf(value)
-	switch reflected.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
-		return reflected.IsNil()
-	default:
-		return false
-	}
-}
-
-func contextError(ctx context.Context) error {
-	if nilValue(ctx) {
-		return ErrInvalid
-	}
-	return ctx.Err()
-}
-
-type ledgerMutex chan struct{}
-
-func (m ledgerMutex) Lock()   { m <- struct{}{} }
-func (m ledgerMutex) Unlock() { <-m }
-func (m ledgerMutex) LockContext(ctx context.Context) error {
-	if err := contextError(ctx); err != nil {
-		return err
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case m <- struct{}{}:
-	}
-	if err := ctx.Err(); err != nil {
-		m.Unlock()
-		return err
-	}
 	return nil
 }

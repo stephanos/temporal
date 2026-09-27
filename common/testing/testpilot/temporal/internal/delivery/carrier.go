@@ -9,13 +9,13 @@ import (
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
 const (
-	startWorkflowPath      = "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
 	reservedWorkflowHeader = "temporal-testpilot-reserved-workflow-v1"
 	reservedNexusHeader    = "temporal-testpilot-reserved-nexus-v1"
 	workflowRouteEncoding  = "binary/temporal-testpilot-reservation-route"
@@ -44,13 +44,13 @@ type startRequestFields struct {
 func (d NexusDispatch) Header() nexus.Header { return maps.Clone(d.header) }
 
 func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, method protoreflect.MethodDescriptor, request proto.Message, maximumBytes int64) (proto.Message, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
 	if carrier == nil {
 		return request, nil
 	}
-	if nilValue(method) || nilValue(request) || maximumBytes <= 0 || method.IsStreamingClient() || method.IsStreamingServer() || methodPath(method) != startWorkflowPath || request.ProtoReflect().Descriptor() != method.Input() {
+	if primitive.NilValue(method) || primitive.NilValue(request) || maximumBytes <= 0 || method.IsStreamingClient() || method.IsStreamingServer() || primitive.MethodPath(method) != primitive.StartWorkflowPath || request.ProtoReflect().Descriptor() != method.Input() {
 		return nil, ErrInvalid
 	}
 	fields, err := startFields(request.ProtoReflect())
@@ -79,7 +79,7 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 }
 
 func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role string, method protoreflect.MethodDescriptor, fields startRequestFields) (route, error) {
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return route{}, err
 	}
 	state, err := l.bundleLocked(carrier)
@@ -92,7 +92,7 @@ func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role 
 		l.mu.Unlock()
 		return route{}, ErrRouteStale
 	}
-	if role != state.plan.EndpointRoleID || methodPath(method) != state.plan.Method {
+	if role != state.plan.EndpointRoleID || primitive.MethodPath(method) != state.plan.Method {
 		l.mu.Unlock()
 		return route{}, ErrRouteCrossed
 	}
@@ -118,7 +118,7 @@ func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (
 	if !validBinding(providedBinding) || !validRouteText(delivery.TemporalRunID) {
 		return Activation{}, ErrInvalid
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return Activation{}, err
 	}
 	if wire.SessionID != l.config.SessionID || wire.RunID != l.config.RunID {
@@ -184,13 +184,13 @@ func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (
 }
 
 func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceInstructionID string) (NexusDispatch, error) {
-	if err := contextError(ctx); err != nil {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return NexusDispatch{}, err
 	}
 	if !validRouteText(sourceInstructionID) {
 		return NexusDispatch{}, ErrInvalid
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return NexusDispatch{}, err
 	}
 	workflowState, err := l.activationLocked(workflow, workflowRoute)
@@ -221,7 +221,7 @@ func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceIn
 		return NexusDispatch{}, err
 	}
 	preparedHeader := nexus.Header{reservedNexusHeader: base64.RawURLEncoding.EncodeToString(encoded)}
-	if nexusHeaderBytes(preparedHeader) > l.config.Limits.MaxHeaderBytes {
+	if primitive.NexusHeaderBytes(preparedHeader) > l.config.Limits.MaxHeaderBytes {
 		return NexusDispatch{}, ErrCapacity
 	}
 	return NexusDispatch{header: preparedHeader}, nil
@@ -239,7 +239,7 @@ func (l *Ledger) AdmitNexus(ctx context.Context, delivery NexusDelivery) (Activa
 	if !validRouteText(delivery.RequestID) {
 		return Activation{}, ErrInvalid
 	}
-	if err := l.mu.LockContext(ctx); err != nil {
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return Activation{}, err
 	}
 	if wire.SessionID != l.config.SessionID || wire.RunID != l.config.RunID {
@@ -406,18 +406,6 @@ func decodeNexusHeader(header nexus.Header, maximumBytes int) ([]byte, error) {
 		return nil, ErrRouteMalformed
 	}
 	return decoded, nil
-}
-
-func nexusHeaderBytes(header nexus.Header) int {
-	size := 0
-	for key, value := range header {
-		size += len(key) + len(value)
-	}
-	return size
-}
-
-func methodPath(method protoreflect.MethodDescriptor) string {
-	return "/" + string(method.Parent().FullName()) + "/" + string(method.Name())
 }
 
 func validActivationCoordinate(coordinate testpilot.Coordinate, runID, entrypointID string) bool {

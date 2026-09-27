@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -143,12 +144,12 @@ func outcomeForError(err error) *testpilotspb.InstructionOutcome {
 
 func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activation, _ any, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[any], error) {
 	key := delivered.Reservation().ID
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
 	existing := s.nexusResults[key]
 	if existing != nil && !existing.retryable {
-		s.mu.unlock()
+		s.mu.Unlock()
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -157,13 +158,13 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 		}
 	}
 	if s.closed || s.failure != nil {
-		s.mu.unlock()
+		s.mu.Unlock()
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
 	result := existing
 	if result == nil {
 		if len(s.nexusResults) >= boundedInt(s.definition.limits.GetMaxActivations()) {
-			s.mu.unlock()
+			s.mu.Unlock()
 			return nil, ErrCapacity
 		}
 		result = &nexusResult{}
@@ -173,7 +174,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 	// the reply the last delivery answered behind it.
 	result.retryable = false
 	result.done = make(chan struct{})
-	s.mu.unlock()
+	s.mu.Unlock()
 
 	func() {
 		defer func() {
@@ -189,9 +190,9 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 	// written there too, before the waiters are released.
 	var handlerErr *nexus.HandlerError
 	retryable := result.replied && result.err != nil && errors.As(result.err, &handlerErr) && handlerErr.Retryable()
-	if s.mu.lock(context.Background()) == nil {
+	if s.mu.LockContext(context.Background(), ErrInvalid) == nil {
 		result.retryable = retryable
-		s.mu.unlock()
+		s.mu.Unlock()
 	}
 	close(result.done)
 	return result.response()
@@ -252,9 +253,9 @@ func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr
 	if startErr == nil {
 		return terminalOutcome(), false, nil
 	}
-	if s.mu.lock(context.Background()) == nil {
+	if s.mu.LockContext(context.Background(), ErrInvalid) == nil {
 		result := s.nexusResults[delivered.Reservation().ID]
-		s.mu.unlock()
+		s.mu.Unlock()
 		if result != nil && result.retryable {
 			return nil, true, nil
 		}
@@ -269,7 +270,7 @@ func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr
 // asynchronously, publishes it as the opaque handle of the named handle Slot, and returns the
 // operation token the reply carries: the delivery's own request id.
 func (s *Session) publishCompletionAuthority(ctx context.Context, delivered delivery.Activation, handleSlotID string, options nexus.StartOperationOptions) (string, error) {
-	if s.options.NewHandle == nil || nilValue(s.options.Bridge) {
+	if s.options.NewHandle == nil || primitive.NilValue(s.options.Bridge) {
 		return "", ErrInvalid
 	}
 	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: delivered.RequestID(), StartTime: s.host.options.now()})
@@ -280,7 +281,7 @@ func (s *Session) publishCompletionAuthority(ctx context.Context, delivered deli
 	if err != nil {
 		return "", err
 	}
-	if nilValue(handle) {
+	if primitive.NilValue(handle) {
 		return "", ErrInvalid
 	}
 	if err := s.publicationAllowed(ctx); err != nil {
@@ -306,10 +307,10 @@ func (s *Session) publicationAllowed(ctx context.Context) error {
 		lockCtx, cancel = s.host.cleanupContext()
 	}
 	defer cancel()
-	if err := s.mu.lock(lockCtx); err != nil {
+	if err := s.mu.LockContext(lockCtx, ErrInvalid); err != nil {
 		return err
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	if s.closed || s.failure != nil {
 		return errors.Join(ErrClosed, s.failure)
 	}

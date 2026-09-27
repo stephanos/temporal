@@ -16,6 +16,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
@@ -265,10 +266,10 @@ func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Drive
 	completion, err := newCompletionTransport(nil, "", prepared.Limits())
 	require.NoError(t, err)
 	host := &Driver{
-		mu: newContextMutex(), sessions: make(map[string]*Session),
+		mu: primitive.NewMutex(), sessions: make(map[string]*Session),
 		options: hostOptions{
 			profile: testpilot.ProfileSpec{Roles: []testpilot.RolePolicy{
-				{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{startWorkflowMethod}},
+				{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{primitive.StartWorkflowPath}},
 				{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 				{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 				{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
@@ -285,9 +286,9 @@ func runtimeReservedSession(t *testing.T, host *Driver, definition programDefini
 	t.Helper()
 	session, err := newSession(host, runID, "session-"+runID, definition, SessionOptions{Bridge: newTestBridge()})
 	require.NoError(t, err)
-	require.NoError(t, host.mu.lock(t.Context()))
+	require.NoError(t, host.mu.LockContext(t.Context(), ErrInvalid))
 	host.sessions[runID] = session
-	host.mu.unlock()
+	host.mu.Unlock()
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "call", Attempt: 1}
 	var handles []testpilot.ReservationHandle
 	for _, entrypoint := range []string{"workflow", "handler"} {
@@ -317,9 +318,9 @@ func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition pr
 	t.Helper()
 	session, err := newSession(host, runID, "session-"+runID, definition, options)
 	require.NoError(t, err)
-	require.NoError(t, host.mu.lock(t.Context()))
+	require.NoError(t, host.mu.LockContext(t.Context(), ErrInvalid))
 	host.sessions[runID] = session
-	host.mu.unlock()
+	host.mu.Unlock()
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "call", Attempt: 1}
 	var handles []testpilot.ReservationHandle
 	for _, entrypoint := range []string{"workflow", "handler"} {

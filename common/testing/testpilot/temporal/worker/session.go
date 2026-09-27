@@ -12,6 +12,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -37,8 +38,8 @@ type entryDefinition struct {
 
 type Session struct {
 	host               *Driver
-	mu                 contextMutex
-	closeMu            contextMutex
+	mu                 primitive.Mutex
+	closeMu            primitive.Mutex
 	runID              string
 	id                 string
 	definition         programDefinition
@@ -74,7 +75,7 @@ func newSession(host *Driver, runID, sessionID string, definition programDefinit
 	if err != nil {
 		return nil, err
 	}
-	return &Session{host: host, mu: newContextMutex(), closeMu: newContextMutex(), runID: runID, id: sessionID, definition: definition, ledger: ledger, options: options,
+	return &Session{host: host, mu: primitive.NewMutex(), closeMu: primitive.NewMutex(), runID: runID, id: sessionID, definition: definition, ledger: ledger, options: options,
 		reservations: make(map[string]*reservation), carriers: make(map[testpilot.Coordinate]*Carrier), nexusResults: make(map[string]*nexusResult),
 		workflowKeys: make(map[workflowRouteIndex]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
 		workflowAdmissions: make(map[workflowAdmissionKey]*workflowAdmission), nexusAdmissions: make(map[nexusRouteIndex]nexusAdmission)}, nil
@@ -88,10 +89,10 @@ func (s *Session) Reserve(ctx context.Context, request testpilot.ReservationRequ
 	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint && entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
 		return nil, ErrInvalid
 	}
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	if s.closed || s.failure != nil {
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
@@ -223,11 +224,11 @@ func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, role
 	if err != nil {
 		return nil, err
 	}
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, err
 	}
 	closed, failure, outage := s.closed, s.failure, s.outage
-	s.mu.unlock()
+	s.mu.Unlock()
 	if closed || failure != nil {
 		return nil, errors.Join(ErrClosed, failure)
 	}
@@ -267,7 +268,7 @@ func (s *Session) Bridge(ctx context.Context) (testpilot.HandleBridge, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if nilValue(s.options.Bridge) {
+	if primitive.NilValue(s.options.Bridge) {
 		return nil, ErrInvalid
 	}
 	return s.options.Bridge, nil
@@ -286,16 +287,16 @@ func (s *Session) Close(ctx context.Context) error {
 	if s == nil || ctx == nil {
 		return ErrInvalid
 	}
-	if err := s.closeMu.lock(ctx); err != nil {
+	if err := s.closeMu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
-	defer s.closeMu.unlock()
-	if err := s.mu.lock(ctx); err != nil {
+	defer s.closeMu.Unlock()
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	s.closed = true
 	outage := s.outage
-	s.mu.unlock()
+	s.mu.Unlock()
 	if !s.stopComplete {
 		if _, err := s.ledger.Stop(ctx); err != nil {
 			return err
@@ -323,16 +324,16 @@ func (s *Session) Diagnose(ctx context.Context, runID string, diagnostic *testpi
 	if s == nil || ctx == nil || runID != s.runID || diagnostic == nil {
 		return ErrInvalid
 	}
-	if err := s.mu.lock(ctx); err != nil {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	if s.diagnostics >= boundedInt(s.definition.limits.GetMaxRunEvents()) {
-		s.mu.unlock()
+		s.mu.Unlock()
 		return ErrCapacity
 	}
 	s.diagnostics++
 	sink := s.options.Diagnose
-	s.mu.unlock()
+	s.mu.Unlock()
 	if sink == nil {
 		return nil
 	}
@@ -345,13 +346,13 @@ func (s *Session) workerFailed(queue string, failure error) {
 	}
 	ctx, cancel := s.host.cleanupContext()
 	defer cancel()
-	if s.mu.lock(ctx) != nil {
+	if s.mu.LockContext(ctx, ErrInvalid) != nil {
 		return
 	}
 	if s.failure == nil && s.dependsOnQueue(queue) {
 		s.failure = failure
 	}
-	s.mu.unlock()
+	s.mu.Unlock()
 }
 
 func (s *Session) dependsOnQueue(queue string) bool {
@@ -364,10 +365,10 @@ func (s *Session) dependsOnQueue(queue string) bool {
 }
 
 func (s *Session) rawReservation(id string) (*reservation, error) {
-	if s.mu.lock(context.Background()) != nil {
+	if s.mu.LockContext(context.Background(), ErrInvalid) != nil {
 		return nil, ErrClosed
 	}
-	defer s.mu.unlock()
+	defer s.mu.Unlock()
 	raw := s.reservations[id]
 	if raw == nil {
 		return nil, ErrClosed
@@ -386,11 +387,11 @@ func (h *Driver) removeSession(ctx context.Context, session *Session, tombstone 
 	if h == nil || session == nil || ctx == nil {
 		return ErrInvalid
 	}
-	if err := h.mu.lock(ctx); err != nil {
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	if h.sessions[session.runID] != session {
-		h.mu.unlock()
+		h.mu.Unlock()
 		return nil
 	}
 	delete(h.sessions, session.runID)
@@ -402,6 +403,6 @@ func (h *Driver) removeSession(ctx context.Context, session *Session, tombstone 
 		}
 		h.tombstones = append(h.tombstones, session)
 	}
-	h.mu.unlock()
+	h.mu.Unlock()
 	return nil
 }

@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"slices"
+
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
 type managedWorker interface {
@@ -68,34 +70,8 @@ func (r queueRegistration) compatible(other queueRegistration) bool {
 	return left.queue == right.queue && slices.Equal(left.workflows, right.workflows) && slices.Equal(left.nexus, right.nexus)
 }
 
-type contextMutex chan struct{}
-
-func newContextMutex() contextMutex {
-	mutex := make(contextMutex, 1)
-	mutex <- struct{}{}
-	return mutex
-}
-
-func (m contextMutex) lock(ctx context.Context) error {
-	if ctx == nil {
-		return ErrInvalid
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-m:
-		if err := ctx.Err(); err != nil {
-			m.unlock()
-			return err
-		}
-		return nil
-	}
-}
-
-func (m contextMutex) unlock() { m <- struct{}{} }
-
 type workerRegistry struct {
-	mu      contextMutex
+	mu      primitive.Mutex
 	maximum int
 	factory workerFactory
 	groups  map[string]*workerGroup
@@ -126,7 +102,7 @@ func groupKey(runID, queue string, dedicated bool) string {
 }
 
 func newWorkerRegistry(maximum int, factory workerFactory) *workerRegistry {
-	return &workerRegistry{mu: newContextMutex(), maximum: maximum, factory: factory, groups: make(map[string]*workerGroup), runIDs: make(map[string]struct{})}
+	return &workerRegistry{mu: primitive.NewMutex(), maximum: maximum, factory: factory, groups: make(map[string]*workerGroup), runIDs: make(map[string]struct{})}
 }
 
 func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements []queueRegistration, dedicated bool, onFatal func(string, error)) (*workerLease, error) {
@@ -158,10 +134,10 @@ func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements
 }
 
 func (r *workerRegistry) reserve(ctx context.Context, runID string, requirements []queueRegistration, dedicated bool) ([]*workerGroup, []<-chan struct{}, error) {
-	if err := r.mu.lock(ctx); err != nil {
+	if err := r.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return nil, nil, err
 	}
-	defer r.mu.unlock()
+	defer r.mu.Unlock()
 	if _, exists := r.runIDs[runID]; exists {
 		return nil, nil, ErrRegistrationConflict
 	}
@@ -252,11 +228,18 @@ func (r *workerRegistry) buildAndStart(ctx context.Context, created []*workerGro
 func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, requirements []queueRegistration, created []*workerGroup, startErr error, onFatal func(string, error), dedicated bool) error {
 	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), defaultCleanupTimeout)
 	defer cleanupCancel()
-	if err := r.mu.lock(cleanupCtx); err != nil {
+	if err := r.mu.LockContext(cleanupCtx, ErrInvalid); err != nil {
 		return errors.Join(startErr, err)
 	}
-	defer r.mu.unlock()
-	result := firstError(startErr, ctx.Err(), r.groupFailure(runID, requirements, dedicated))
+	defer r.mu.Unlock()
+	// cmp.Or would do, but staticcheck's SA4023 misreads cmp.Or[error] as never nil.
+	result := startErr
+	if result == nil {
+		result = ctx.Err()
+	}
+	if result == nil {
+		result = r.groupFailure(runID, requirements, dedicated)
+	}
 	for _, group := range created {
 		if result != nil {
 			delete(r.groups, group.key)
@@ -292,15 +275,6 @@ func (r *workerRegistry) groupFailure(runID string, requirements []queueRegistra
 	return nil
 }
 
-func firstError(candidates ...error) error {
-	for _, err := range candidates {
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func stopWorkers(workers []managedWorker) {
 	for _, worker := range workers {
 		worker.Stop()
@@ -314,12 +288,12 @@ type workerLease struct {
 	runID        string
 	requirements []queueRegistration
 	dedicated    bool
-	mu           contextMutex
+	mu           primitive.Mutex
 	released     bool
 }
 
 func (r *workerRegistry) newLease(runID string, requirements []queueRegistration, dedicated bool) *workerLease {
-	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: newContextMutex()}
+	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: primitive.NewMutex()}
 }
 
 // releaseLocked removes the hold from the registry on a cleanup-bounded context of its own, and
@@ -362,7 +336,7 @@ func (r *workerRegistry) release(ctx context.Context, runID string, requirements
 	if ctx == nil {
 		return ErrInvalid
 	}
-	if err := r.mu.lock(ctx); err != nil {
+	if err := r.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return err
 	}
 	var retired []managedWorker
@@ -382,21 +356,21 @@ func (r *workerRegistry) release(ctx context.Context, runID string, requirements
 			}
 		}
 	}
-	r.mu.unlock()
+	r.mu.Unlock()
 	// Stopping blocks, so it happens outside the lock every other Session of this Driver needs.
 	stopWorkers(retired)
 	return nil
 }
 
 func (r *workerRegistry) fail(key string, failure error) {
-	if failure == nil || r.mu.lock(context.Background()) != nil {
+	if failure == nil || r.mu.LockContext(context.Background(), ErrInvalid) != nil {
 		return
 	}
 	group := r.groups[key]
 	// A deliberate outage is not a Run failure: while the group is stopped, the SDK's fatal path
 	// is the expected consequence of the stop the Run asked for.
 	if group == nil || group.failure != nil || group.stopped {
-		r.mu.unlock()
+		r.mu.Unlock()
 		return
 	}
 	group.failure = failure
@@ -404,7 +378,7 @@ func (r *workerRegistry) fail(key string, failure error) {
 	for _, callback := range group.runs {
 		callbacks = append(callbacks, callback)
 	}
-	r.mu.unlock()
+	r.mu.Unlock()
 	for _, callback := range callbacks {
 		callback(failure)
 	}
