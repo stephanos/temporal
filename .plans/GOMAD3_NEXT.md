@@ -146,6 +146,17 @@ recorded points (today a mark worker scans between mutator slots); and only then
 address-independent marking. Any of these changes the choice contract and needs the COMPAT-5
 evidence set before it lands.
 
+Update, same day: listing every scanned object per cycle showed the 24 bytes came from Green
+Tea's accounting, not from liveness. Green Tea credits a span batch with `objects * elemsize`
+and a sparsely reached object with its pointer extent, so the same reachable set produced
+different scan-work totals when the marker reached the `m` structs in a different order, and the
+order followed which M held the P (through `p.m`, `g.m`, and the idle M list, all host-timed).
+The pacer turned that into a different trigger for the next cycle. Targets now build with
+`GOEXPERIMENT=nogreenteagc`; the classic collector attributes scan work by object layout, and
+`TestUserTimersTestSuite` reproduces eight of eight on both seeds. The research item stays open
+for the general question (a collector whose observations are recorded choices), but it is no
+longer on the F6 path.
+
 ## Complete track coverage
 
 The tables below account for every named capability and delivery stage in the four detailed roadmaps. The companion documents remain normative for their non-goals, module boundaries, protocols, error classifications, 10×-load behavior, trade-offs, verification plans, and exit criteria.

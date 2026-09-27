@@ -30,9 +30,12 @@ type ReplayExecutor interface {
 }
 
 type ReplaySpec struct {
-	ArtifactPath      string
-	VerifyOnly        bool
-	ToolchainRoot     string
+	ArtifactPath  string
+	VerifyOnly    bool
+	ToolchainRoot string
+	// ObservedDir, when set, receives the replayed target's stdout and stderr
+	// so a divergence can be diffed against the artifact's retained streams.
+	ObservedDir       string
 	SupervisorCommand []string
 	BootstrapCommand  []string
 	Executor          ReplayExecutor
@@ -228,6 +231,11 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 		}
 	}
 	observed, err := executor.Run(ctx, request)
+	if config.ObservedDir != "" {
+		if dumpErr := dumpObservedStreams(config.ObservedDir, observed); dumpErr != nil {
+			return ReplayResult{}, dumpErr
+		}
+	}
 	if err != nil {
 		if divergence, controlled := onlyChoiceReplayDivergence(err); controlled {
 			result.ChoiceReplayStatus = ChoiceReplayDiverged
@@ -695,4 +703,16 @@ func duration(value record.Uint64String) (time.Duration, error) {
 		return 0, fmt.Errorf("recorded duration exceeds host representation")
 	}
 	return time.Duration(value), nil
+}
+
+func dumpObservedStreams(directory string, observed execution.Result) error {
+	if err := os.MkdirAll(directory, 0o755); err != nil {
+		return fmt.Errorf("create replay observation directory: %w", err)
+	}
+	for name, data := range map[string][]byte{"stdout": observed.Stdout.Bytes, "stderr": observed.Stderr.Bytes} {
+		if err := os.WriteFile(filepath.Join(directory, name), data, 0o644); err != nil {
+			return fmt.Errorf("write replayed %s: %w", name, err)
+		}
+	}
+	return nil
 }

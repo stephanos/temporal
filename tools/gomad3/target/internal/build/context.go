@@ -87,7 +87,7 @@ func Environment() []string {
 			environment = append(environment, entry)
 		}
 	}
-	return append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT=", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
+	return append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT=nogreenteagc", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
 }
 
 func PrepareCache(toolchainRoot, buildKey string) (string, error) {
