@@ -6,11 +6,17 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-fn-88, fn-89, fn-90 and fn-92 to fn-94 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46,
-fn-33, fn-22, fn-26, fn-29 and fn-91 are delivered, each with SHIP implementation and completion
+fn-88, fn-89 and fn-92 to fn-94 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33,
+fn-22, fn-26, fn-29, fn-91 and fn-90 are delivered, each with SHIP implementation and completion
 reviews; their task receipts in `.flow/` and the git history carry the details. fn-91 (2026-09-27)
 renamed the Driver seam's Go to the opaque handle family and holds the eight retired names in the
-vocabulary gate.
+vocabulary gate. fn-90 (2026-09-27) re-measured the three intermittent live Testpilot failures with
+the `make umpire-repeat-run` harness; none reproduced on today's identities. It fixed two causes.
+The umpire-run test now runs on a cluster with the system worker, so the `--create` namespace
+deletion finishes and the test asserts it. The pair Case's controller read the scheduled events
+before the second operation was scheduled; it now reads them after the workflow closes. The
+evidence-ordering and async-Nexus failures closed as not reproduced on the successors. No
+quarantine exists.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -29,19 +35,12 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    engine and differential oracle. The reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path, and it neither
    runs fn-23's sandboxed gate nor resumes fn-24 or fn-25.
-2. **fn-90 — Resolve the intermittent live Testpilot failures**
-   ([spec](../.flow/specs/fn-90-resolve-the-intermittent-live-testpilot.md)). Re-measures the
-   umpire-run namespace-delete timeout, the Nexus evidence-ordering mismatch and the async-Nexus
-   INCONCLUSIVE Run on today's test identities with a repetition harness, then fixes each at its
-   cause; a retry is a signature-exact, issue-linked last resort inside the live test and never
-   applies to a VIOLATED Run. Done is zero failures over the per-test loops and five consecutive
-   green `make umpire-check-live-tests` runs.
-3. **fn-89 — One Contract Rule per entity**
-   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)), after fn-90, since both touch the
-   Nexus pair Case. A Rule over N instances crosses the wire once with its per-instance values
+2. **fn-89 — One Contract Rule per entity**
+   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)). It waited for fn-90, since both
+   touch the Nexus pair Case; fn-90 is delivered, and its pair Case program change is in place. A Rule over N instances crosses the wire once with its per-instance values
    instead of N lowered copies; Verdicts stay identical, pinned by a differential test, and only the
    multi-instance pair fixture changes.
-4. **fn-92 — Compose entity machines into one Model**
+3. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)). Adds a `compose`
    command that builds one Model from entity machines with declared action synchronization over a
    reachable-state enumeration, `restrict:` and `extend:` keys that derive machines from a source
@@ -49,7 +48,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    first cross-entity claims as `verify` Queries. Version one realizes no Case over a composition and
    leaves the caller module, its fixtures, and the canary's pinned Case identity untouched; moving
    the operation entity is the named follow-up. Depends on fn-88, fn-89 and fn-90.
-5. **fn-93 — Simplify the Lean model**
+4. **fn-93 — Simplify the Lean model**
    ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)), after everything above. A
    simplification campaign over the handwritten code in `model/`: about 88,100 of its 128,630 Lean
    lines, measured 2026-09-26. Purely generated code is out of scope. It starts by fixing the defects the investigation found. Production Models get the
@@ -63,7 +62,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    and the Lean-side correlated Monitors). It also reuses core Lean where hand-rolled helpers
    repeat, and cuts `model/` Markdown to one README and one ARCHITECTURE. Authoring gains shorthand without losing any
    construct. It absorbs fn-60's re-scoped aim, and fn-60 becomes superseded when fn-93 closes.
-6. **fn-94 — Simplify the Testpilot Go runtime**
+5. **fn-94 — Simplify the Testpilot Go runtime**
    ([spec](../.flow/specs/fn-94-simplify-the-testpilot-go-runtime.md)), after fn-89, fn-90 and
    fn-91. It is independent of fn-93 and may run beside it. It is the Go counterpart of fn-93, over
    the 42,067 handwritten lines of `common/testing/testpilot`, `tests/testcore/testpilot`, the live
@@ -87,6 +86,23 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   `.github/workflows/umpire.yml` is the first to build Lean targets (`canary-check-case`,
   `umpire-check-evaluation-profiles`) with `cache: false` inside a 30-minute timeout; confirm the
   first CI run fits.
+- **The worker ignores the timeouts a Case declares on Finish and NexusHandlerReply** (from
+  fn-90.6): the workflow interpreter runs Finish, and the handler interpreter returns its reply,
+  with no timeout, so the 5000 ms bounds on `finish-workflow` and `respond-async` bind nothing.
+  A Case-authority gap.
+- **Run capture records no workflow or handler instruction events** (from fn-90.3 and .6): a
+  recorded Run holds controller events only, so a bounded worker step's own latency cannot be read
+  from it. Sizing such a bound needs those events or a Driver-side timing field.
+- **Agent shells do not apply mise's `CC` fix** (from fn-90.5 to .7): with no mise shell hook, the
+  `_.source` of `develop/mise-env.sh` does not run, and cgo builds fail with `stddef.h not found`
+  until `CC=/usr/bin/clang` is set by hand.
+- **The server dates a completion-before-start started event in local time labelled UTC** (from
+  fn-90.7): the synthesized `NEXUS_OPERATION_STARTED` carried `2026-09-26T22:44:46Z` (PDT wall
+  time, whole seconds) between events at `05:44:46.xZ`. Testpilot never reads `EventTime`, so no
+  Verdict depends on it; an upstream issue is the next step.
+- **A multi-instance Case with a retryable handler error** (from fn-90.8): its controller would run
+  `pending-attempts` before the scheduled read that fn-90.8 moved after the workflow closes. No
+  such Case exists today; the first one needs that order settled.
 
 ## Gate baselines
 
@@ -112,6 +128,26 @@ after `.plans/index.json` was resynced with Flow the same day.
 11800, after processing: 1` in the failing case against `14507 -> 161` in a healthy one. Run
 `go clean -cache` before trusting this gate.
 
+**fn-90 closeout, 2026-09-27, macOS host, commit 7d0997b990.** The per-identity loops of
+`make umpire-repeat-run`, at the fn-90.3 baseline counts, all ran with zero failures. Before
+(b9bb1a58ad) and after, 95% Clopper-Pearson upper bounds:
+
+| Identity | Mode | Before | After |
+| -------- | ---- | ------ | ----- |
+| `TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint` | process | 0/50 (7.1%) | 0/50 (7.1%) |
+| `TestTestpilotNexusPairCase` | process | 0/200 (1.8%) | 0/200 (1.8%) |
+| `TestTestpilotNexusCallerAsyncCompletion` | process | 0/200 (1.8%) | 0/200 (1.8%) |
+| `TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone` | process | 0/200 (1.8%) | 0/200 (1.8%) |
+| `TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone` | process | 0/200 (1.8%) | 0/200 (1.8%) |
+| the two caller tests, `-count=4` | in-process | 0/52 each (6.9%) | 0/52 each (6.9%) |
+
+Between the two, a loop at be465e5966 found one new pair Case signature (1/200, Run INCOMPLETE,
+`observe_failed`: unauthorized operation transition), which fn-90.8 fixed. Host load stayed at
+about 2 to 9. Five consecutive `make umpire-check-live-tests` runs then passed with 45 passing
+identities, an empty failure set and no retry, in about 6 minutes each. The umpire-run test now
+takes about 4 s in the gate, against about 35 s before fn-90.4 removed its 30 s teardown wait. One
+`make umpire-check-regression` followed, exit 0 in about 14 minutes with the same 45 live identities.
+
 **`make umpire-check-retired-vocabulary` is the slowest offline gate** by an order of magnitude
 (about twenty minutes in a cloud session).
 
@@ -128,6 +164,16 @@ which compiles strictly more files. In a cloud session, `mise` is a passthrough 
 merge base, because the clone is shallow. A fresh clone cannot change task status: runtime state
 lives in the clone's `.git` common-dir, so every task reads `todo` and `start`, `done` and
 `spec close` refuse until they are replayed there.
+
+**Repeating a live test.** `make umpire-repeat-run SELECT='<regex>' COUNT=<n> MODE=process|in-process
+RECORD=<file.jsonl>` runs a `^TestTestpilot...` selection `n` times. `process` starts one test
+process per iteration; `in-process` runs one process with `-count=n`. It builds the test binary
+once and appends one JSON record per iteration, with the failure signature each failing test
+prints (`TESTPILOT-SIGNATURE`) and, through `UMPIRE_REPEAT_RUN_DIR`, the captured Runs. It then
+prints per-test and per-signature failure rates with 95% intervals. It stops when the tests' inputs
+change during a loop, and `umpire-repeat summarize` merges record files from one commit. It is a
+diagnostic tool, not a gate: nothing runs it in CI. A `--create` namespace deletion finishes only
+on a cluster that runs the system worker.
 
 ## Deferred and superseded
 
