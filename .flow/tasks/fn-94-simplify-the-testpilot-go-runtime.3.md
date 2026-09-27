@@ -46,9 +46,15 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+Go's correlated monitor now carries each operation's state as atom plus fields (`correlatedState` in correlated.go). The state starts from `initial_state` with `initial_state_fields` and moves to `state` with `state_fields`. Transition authorization and the candidate count behind obligation work both match `prior_state` together with `prior_fields`, compared in order with `proto.Equal`, as Lean's derived `StateValue` `BEq` does. `TestCorrelatedMonitorMatchesStatesOnAtomAndFields` (correlated_state_test.go) covers the three cases. (a) Prior fields that disagree with the reached fields are rejected as "unauthorized operation transition". This pins Lean's `invalidTransition` from `Shared.CorrelatedProjection`, since no Lean/Go differential harness covers correlated Cases. (b) Initial fields that disagree with the first prior are rejected. (c) A consistent Case keeps the outcome, transitions, obligations and obligation work of the atom-only fixture, even with an extra same-action row declared from other fields. Each subtest failed red on the base code for the intended reason; (c) went from 53 to 52 work units.
 
+Early proof point: the conformance corpus (expected.json work fields included) and the pinned testdata show no diff, and no fixture diverged.
+
+baseline: green (focused race tests, pre-edit)
+Gate note: another worker's uncommitted edits in internal/execution (fn-94.4) broke the shared tree's build. The conformance generator, diff and lint therefore ran on a `git archive` snapshot of 2a5323f43a, using the shared tree's freshly built model/.lake binaries. The range 735caa401c..HEAD also holds concurrent commit 744223b49a, which is not this task's.
+
+stage: impl-review - ran [codex fan-out rid da3a5c154f6c45769f5102919fe43c4e: correctness/contracts/integration all SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2a5323f43a83313a869a36f3fe42b04a6322cbbd
+- Tests: go test -race -tags test_dep ./common/testing/testpilot/internal/verification/..., make umpire-check-case-runtime-conformance (lake build in the shared tree; generator, diff and its go tests run on a git-archive snapshot of 2a5323f43a because a concurrent worker's uncommitted edits broke the shared tree's build), go test -tags test_dep ./common/testing/testpilot/..., golangci-lint run (make lint-code-fast config) + errortype vet on ./common/testing/testpilot/internal/verification/... on the same snapshot
 - PRs:
