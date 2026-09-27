@@ -7,8 +7,7 @@ this document records delivery order. Architecture and terminology live in the
 ## Current work
 
 Status as of 2026-09-28. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94
-(fn-94's completion review is running). Their task receipts in `.flow/` and the git history carry
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94. Their task receipts in `.flow/` and the git history carry
 the details.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
