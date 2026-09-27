@@ -8,6 +8,7 @@ package runtime
 
 import (
 	"internal/abi"
+	"internal/goarch"
 	"unsafe"
 )
 
@@ -98,16 +99,21 @@ func gomadDisableASLR() {
 	for argv_index(argv, argc+1+count) != nil {
 		count++
 	}
-	var envp [1024]*byte
-	if int(count)+2 > len(envp) {
-		print("runtime: Gomad ASLR re-execution environment is too large\n")
+	// The heap does not exist yet, so the vector (entries, marker, nil) and
+	// the marker's bytes are mapped directly, zeroed; the exec discards the
+	// mapping with the rest of this image.
+	vectorBytes := uintptr(count+2) * goarch.PtrSize
+	mapping := sysAlloc(vectorBytes+uintptr(len(gomadASLRMarker))+1, &memstats.other_sys, "gomad aslr")
+	if mapping == nil {
+		print("runtime: Gomad could not map the ASLR re-execution environment\n")
 		exit(2)
 	}
+	envp := unsafe.Slice((**byte)(mapping), int(count)+2)
+	marker := unsafe.Slice((*byte)(unsafe.Add(mapping, vectorBytes)), len(gomadASLRMarker)+1)
+	copy(marker, gomadASLRMarker)
 	for i := int32(0); i < count; i++ {
 		envp[i] = argv_index(argv, argc+1+i)
 	}
-	var marker [len(gomadASLRMarker) + 1]byte
-	copy(marker[:], gomadASLRMarker)
 	envp[count] = &marker[0]
 	var attr uintptr
 	if gomadPosixSpawnattrInit(&attr) != 0 || gomadPosixSpawnattrSetflags(&attr, gomadPosixSpawnSetExec|gomadPosixSpawnDisableASLR) != 0 {
