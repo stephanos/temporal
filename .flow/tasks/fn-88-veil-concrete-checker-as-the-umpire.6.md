@@ -41,9 +41,44 @@ Add `Umpire.Search.Selection`, the one function that chooses `veil` or `referenc
 - [ ] Defer mode: closed as not applicable citing the R1 receipt identity, nothing added
 
 ## Done summary
-TBD
+`Umpire.Search.Selection` now chooses `veil` or `reference` for each Query and records the reason. Kernel replay inside `finalizeBackendResult` accepts a backend's witness only when it is a trace the Query's own search could report.
 
+- **Selection:** `select` returns `Choice.veil` with the Query's product, or `Choice.reference` with a reason. It checks, in order, the strategy (`unsupported-strategy:seeded`), the form, and the product build (`unsupported-clause:<kind>`, then `unsupported-scenario:<construct>`).
+  - `AdmittedQuery.search` and `searchWithIntent` both select through it. `searchWithIntent` goes through the new `projectPlanRequest`, which `searchWithPlanRequest` now also uses.
+  - `AdmittedQuery.searchWith (backend)` and `Selection.searchWith` run a named backend. On an ineligible Query, `.veil` falls back to `reference` and records the reason.
+  - `unsupported-form` has no Query that reaches it: `Query.Form` has exactly the four supported forms. `formReason` is an exhaustive match, so adding a form forces a decision.
+- **Cutover hold:** `Selection.cutover := false`. While it is false, a Query `select` sends to `veil` runs on `reference` with reason `default`, so the goldens stay byte-identical. Only the receipt's `backendReason` changes, and only for ineligible Queries; receipts are not goldens. `SwitchCompiledArtifact.json` would flip under `veil` (its `explored` counts). **Task .10 must flip `cutover` to `true` in the same commit as the R18 re-pin. `Umpire/Search/Selection.lean` is not in .10's Touches, so plan-sync should add it.** The .7 rollback drill reduces the file to always choosing `reference`.
+- **Kernel replay (R10):** replay checks that:
+  - the setup is one of the search's candidate setups;
+  - the initial state and every step are search-view members (∃ index below the limit);
+  - the trace is within `maximumDepth`;
+  - the shared endpoint decision holds.
+
+  `isAdmittedEndpoint` (used by `traverseLoop`) and `endpointDecision`/`EndpointDecision` (whose evaluation half `observeCandidate` uses) are the one decision that the reference and replay share. A failing witness, whether the stopping trace or a `verify` counterexample, yields `invalid` with `QueryErrorKind.unreplayableWitness`, and `offendingValue` is `<diagnostic>: <rendered trace>`. The rejection wins over `finalizePlanning`'s unsatisfiable-Scenario priority; that was the review's finding, fixed in df1a7c927f. `finalizePlanning`'s completeness and admitted-endpoint gates are unchanged (R16).
+- **Tests:** `Umpire/Search/Tests/Replay.lean`, registered in `Tests.lean`, pins:
+  - each selection reason, `searchWith` on both backends, the cutover hold, and admitted selection on the Switch;
+  - seven faulty-backend negative controls (bare root, non-member step result, foreign action, past the depth bound, wrong initial state, wrong setup, the full offending value), plus the find-violation and verify decision failures, a real counterexample that replays, and the unsatisfiable-Scenario case;
+  - the new public surface, and that `replayFailure` stays private;
+  - the R12 line count of `Search.lean`, 1428, read via `IO.FS.lines` beside the test file.
+
+  Mutation checks: disabling replay fails 5 guards, and dropping the rejection override fails the unsatisfiable guard.
+
+Deviations:
+- `model/Umpire/Query/Elab.lean` is outside Touches. It got a one-token edit: `.unreplayableWitness` joins the `.parent` arm of `selectRoleFallback`'s exhaustive match, without which the new constructor does not compile.
+- The R12 `#check` pins for the new names live in `Tests/Replay.lean`, not `VisibilityTests.lean`, which is outside Touches.
+- The `Selection` inductive is named `Choice` (c49af502d5). `Selection.Selection.run` tripped `linter.extra.dupNamespace`.
+
+R20 for .7: `Umpire.Search.Admission` now imports Selection, and so the adapter. Every CI Lean job that builds the model (`umpire-build-model`, `lint-model`, `umpire-check-regression`) now compiles Aesop, Veil and Veil's npm widget from a cold `.lake`. Measure one cold CI run of `.github/workflows/umpire.yml` against its 30- and 40-minute timeouts. Locally, fn-88.5 measured 58 s wall and 911 MB peak RSS for the checker closure (warm Batteries). If CI does not fit, add a `.lake` cache step, and pin Node if the runner's default fails the widget build.
+
+Follow-ups:
+- .10: flip `Selection.cutover` in the re-pin commit (see above).
+- .9: `searchWith .veil` is the differential test's `veil` arm. It falls back to `reference` on ineligible Queries, and `backendReason` shows the fallback.
+- .7 `AUTHORING.md`: a `veil` absence answer rests on the adapter theorems and the differential test, as fn-88.5 recorded. Every `veil` witness now passes replay.
+
+Defer mode: not applicable (R22 adopt).
+
+stage: impl-review - ran [2026-09-27..2026-09-27] (codex fan-out: 3 draws NEEDS_WORK on one shared P2, the unsatisfiable Scenario masking a replay rejection; fixed in df1a7c927f, re-review SHIP; re-review SHIP again after the c49af502d5 lint rename)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9e5dc6c54c9b2be456643277eeb4efe30bc6e38a, df1a7c927f5dd97649a58dc0bcfad0573676ef93, c49af502d507660e4eb67fe49dd1217dcde3485c
+- Tests: baseline: green (fn-88.5's make umpire-check-regression; no model/, Makefile or tools/ change between 231a7ea313 and base 46cb9b1320b1549b02416b53845b70a37cd1cfeb), cd model && lake build Umpire.Search Umpire.Search.Product Umpire.Search.Selection Umpire.Search.Tests Umpire.Search.VisibilityTests (green; --wfail at c49af502d5), make umpire-check-goldens (green at 9e5dc6c54c and c49af502d5; byte-identical), make umpire-check-regression (green at df1a7c927f, receipt .flow/tmp/green-receipts/df1a7c92-regression.json; c49af502d5 is a rename only), LEAN_NUM_THREADS=1 make lint-model: umpire-lint-tests, the three controlled violations and complete-mode umpire-lint passed; the builtin lake lint step INCONCLUSIVE (concurrent sessions' Testpilot/Temporal rebuilds deleted .olean files mid-run); its one real finding (dupNamespace on Selection.Selection.run) fixed in c49af502d5; lake --wfail lint --builtin-only over Umpire.Search, Selection, Admission, Query, Query.Elab, Search.Tests, Tests.Replay: clean, mutation: disabling replay in finalizeBackendResult fails 5 Replay guards; dropping the rejection override fails the unsatisfiable-Scenario guard
 - PRs:
