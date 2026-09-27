@@ -69,4 +69,7 @@ does not return until a `DescribeNamespace` call actually serves it. `Create` ro
 had already created if a later step fails, and the cleanup it returns releases in reverse order,
 reporting every resource it could not remove rather than stopping at the first. A caller whose
 cluster is discarded wholesale sets `RetainNamespace`, because deleting a namespace is a
-server-side workflow that takes tens of seconds and buys nothing there.
+server-side workflow that takes tens of seconds and buys nothing there. That workflow runs on the
+system worker service, so a namespace deletion, such as the one `umpire-run --create` issues on
+exit, finishes only on a cluster that runs it; elsewhere the delete blocks until its teardown
+budget ends and is reported as a leak.
