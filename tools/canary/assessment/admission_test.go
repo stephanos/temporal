@@ -15,7 +15,8 @@ import (
 )
 
 // recorded is a Run of the pinned canary Case against the test cluster, as the lifecycle test
-// records it with UMPIRE_CANARY_RECORD set: a test cluster's Run is the only one ever written.
+// records it with UMPIRE_CANARY_RECORD set (`make umpire-rerecord-pinned-runs` sets it): a test
+// cluster's Run is the only one ever written.
 func recorded(t *testing.T) recordedrun.Decoded {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join("testdata", "nexusCallerCanary-syncCompletion-run.json"))

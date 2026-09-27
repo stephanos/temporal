@@ -95,7 +95,10 @@ func TestPublishWritesEachDecisionWithItsProvenance(t *testing.T) {
 
 			receiptName := evaluation.ReceiptIdentity(first.Receipt) + ".json"
 			provenanceName := assessment.ProvenanceIdentity(first.Provenance) + ProvenanceSuffix
-			require.Equal(t, []string{provenanceName, receiptName}, listed(t, root))
+			// Both names are identities, so their listed order is theirs to decide.
+			want := []string{provenanceName, receiptName}
+			slices.Sort(want)
+			require.Equal(t, want, listed(t, root))
 			written, err := os.ReadFile(filepath.Join(root, receiptName))
 			require.NoError(t, err)
 			require.Equal(t, first.Receipt, written, "the fn-26 receipt is published unchanged")
