@@ -38,13 +38,13 @@ def sameNamedPairs (protocol product : List String) : List (String × String) :=
 /-- The product member a protocol member's key names, through a derived pairing. Written over the
 pairing and the two key functions rather than over the keys' spelling rules, so the term the
 refinement is decided over does nothing but compare keys. -/
-def namedMember [BEq α] (pairs : List (String × String)) (members : List α) (keyFor : α → String)
+def namedMember (pairs : List (String × String)) (members : List α) (keyFor : α → String)
     (key : String) : Option α :=
   (pairs.lookup key).bind fun target => members.find? fun member => keyFor member == target
 
 /-- The morphism a refining machine reads through: the product's one setup, the authored state map,
 and each outcome and fact by name. -/
-def refinementMorphism [BEq Outcome'] [BEq Fact']
+def refinementMorphism
     (destinationSetup : Setup')
     (abstract : State → State')
     (sourceOutcomeKey : Outcome → String)
