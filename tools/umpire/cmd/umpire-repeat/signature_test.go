@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 func mustHash(t *testing.T, signature Signature) string {
@@ -64,6 +66,38 @@ func TestSignatureOfFallsBackFromAMalformedSignatureLine(t *testing.T) {
 	require.Equal(t, Signature{
 		Test: "TestTestpilotNexusPairCase", Assertion: "verdict Inconclusive", Location: "pair_test.go:88",
 		Detail: `TESTPILOT-SIGNATURE {"test":`,
+	}, signature)
+}
+
+// The line a live test logs is read back field for field: the live tests' encoder and this parser
+// are the two ends of one contract, so each is pinned against the other rather than a copy of it.
+func TestSignatureOfReadsTheLineALiveTestLogs(t *testing.T) {
+	verdict := &testpilotspb.Verdict{
+		Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
+		Rules: []*testpilotspb.RuleVerdict{
+			{RuleId: "clause-two", Status: testpilotspb.RULE_VERDICT_STATUS_PENDING},
+			{RuleId: "clause-one", Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED},
+		},
+	}
+	run := &testpilotspb.Run{
+		Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE,
+		Verdict:     verdict,
+		Diagnostics: []*testpilotspb.RunDiagnostic{{Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, Code: "instruction-timeout"}},
+	}
+	line, err := testpilotcore.RunSignature("TestTestpilotNexusPairCase", "verdict status", run, verdict).Line()
+	require.NoError(t, err)
+
+	signature := signatureOf("TestTestpilotNexusPairCase", []outputLine{
+		{text: "    testpilot_signature_test.go:42: " + line + "\n"},
+		{text: "    testpilot_signature_test.go:77: verdict Inconclusive", kind: "error"},
+	})
+
+	require.Equal(t, Signature{
+		Test: "TestTestpilotNexusPairCase", Assertion: "verdict status",
+		RunDisposition: "Incomplete", VerdictStatus: "Inconclusive",
+		UnresolvedRules: []UnresolvedRule{{RuleID: "clause-two", Status: "Pending"}},
+		Diagnostics:     []Diagnostic{{Kind: "Execution", Code: "instruction-timeout"}},
+		Leaks:           []string{},
 	}, signature)
 }
 
