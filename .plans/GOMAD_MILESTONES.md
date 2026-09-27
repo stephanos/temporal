@@ -444,8 +444,15 @@ ordinals 56/119/772 with one alternative more or fewer), and replaying a retaine
 still diverges at the same ordinals. Per-package `inittrace` allocation counts are identical
 between recording and replay, yet the first collection triggers one span earlier under replay,
 so the remaining channel is in how the two runs' allocations fall on span boundaries rather
-than in what they allocate; the runner-side model responses (order of concurrent transport
-reads, or their timing relative to the quiescence protocol) are the open suspect. The manifest
+than in what they allocate. One such channel was the generated wire digest, which copied its
+whole input into a fresh buffer: a replay hashes the recorded I/O transcript where a recording
+hashes an empty one, so the two heaps differed by the transcript's size before user code ran.
+The generated codecs now hash in place (`sum256` streams 64-byte blocks and pads in a fixed
+buffer), which moved the replay's first divergence from ordinals 56/772 to a select in
+`goro.(*AdaptivePool).Do` at ordinal 117 whose case readiness differs, so the replay's
+program state still departs from the recording's before that point; the runner-side model
+responses (their order across the two transport readers, or their simulation time relative to
+the quiescence protocol) are the open suspect. The manifest
 therefore states `unrepeatable` (a new set expectation accepting `nondeterministic` or
 `replay_divergence`) for linux/amd64 so the corpus report records whichever the run produced,
 `make test-runtime`, `make validate`, and the core set (5/5 qualified, exact replay) pass on the

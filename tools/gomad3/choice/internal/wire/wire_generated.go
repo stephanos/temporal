@@ -27,7 +27,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'½', '@', '\x18', '£', '\x0e', '\x0f', 'æ', 'T', '¿', '\x16', 'g', 'ê', 'R', '\x14', 'Û', 'Á', '©', 'M', '+', 'ª', 'ç', '\t', 'ê', '+', 'È', '{', '\x01', '\x1d', '\u00a0', 'S', 'Q', '>'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'õ', 'î', '\u0095', 'â', '\u0094', '*', 'Ä', 'á', 't', '¥', 'Ê', 's', '¸', '\x00', 'Ð', '\x00', '&', 'À', '?', 'L', '\u0097', 'ç', '-', '\u00ad', 'Ò', 'Ë', '\x1c', '{', '5', '\u0095', 'è', 'Ì'}
 )
 
 type Kind uint8
@@ -340,40 +340,24 @@ func Hash(input []byte) [DigestBytes]byte { return sum256(input) }
 func sum256(input []byte) [DigestBytes]byte {
 	state := [8]uint32{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19}
 	length := uint64(len(input)) * 8
-	paddedLength := (len(input) + 9 + 63) &^ 63
-	padded := make([]byte, paddedLength)
-	copy(padded, input)
-	padded[len(input)] = 0x80
+	for len(input) >= 64 {
+		sha256Block(&state, input[:64])
+		input = input[64:]
+	}
+	// The tail, terminator, zero padding, and bit length fit one or two
+	// blocks in a fixed buffer, so hashing never allocates in proportion to
+	// the input: a replay hashes a recorded payload where a recording hashes
+	// an empty one, and both must leave the heap the same.
+	var tail [128]byte
+	copy(tail[:], input)
+	tail[len(input)] = 0x80
+	padded := tail[:64]
+	if len(input)+9 > 64 {
+		padded = tail[:128]
+	}
 	binary.BigEndian.PutUint64(padded[len(padded)-8:], length)
 	for len(padded) != 0 {
-		var words [64]uint32
-		for index := 0; index < 16; index++ {
-			words[index] = binary.BigEndian.Uint32(padded[index*4 : index*4+4])
-		}
-		for index := 16; index < 64; index++ {
-			s0 := rotateRight(words[index-15], 7) ^ rotateRight(words[index-15], 18) ^ words[index-15]>>3
-			s1 := rotateRight(words[index-2], 17) ^ rotateRight(words[index-2], 19) ^ words[index-2]>>10
-			words[index] = words[index-16] + s0 + words[index-7] + s1
-		}
-		a, b, c, d := state[0], state[1], state[2], state[3]
-		e, f, g, h := state[4], state[5], state[6], state[7]
-		for index := 0; index < 64; index++ {
-			s1 := rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25)
-			choice := e&f ^ (^e)&g
-			temporary1 := h + s1 + choice + sha256Constants[index] + words[index]
-			s0 := rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22)
-			majority := a&b ^ a&c ^ b&c
-			temporary2 := s0 + majority
-			h, g, f, e, d, c, b, a = g, f, e, d+temporary1, c, b, a, temporary1+temporary2
-		}
-		state[0] += a
-		state[1] += b
-		state[2] += c
-		state[3] += d
-		state[4] += e
-		state[5] += f
-		state[6] += g
-		state[7] += h
+		sha256Block(&state, padded[:64])
 		padded = padded[64:]
 	}
 	var result [DigestBytes]byte
@@ -381,6 +365,37 @@ func sum256(input []byte) [DigestBytes]byte {
 		binary.BigEndian.PutUint32(result[index*4:index*4+4], value)
 	}
 	return result
+}
+
+func sha256Block(state *[8]uint32, block []byte) {
+	var words [64]uint32
+	for index := 0; index < 16; index++ {
+		words[index] = binary.BigEndian.Uint32(block[index*4 : index*4+4])
+	}
+	for index := 16; index < 64; index++ {
+		s0 := rotateRight(words[index-15], 7) ^ rotateRight(words[index-15], 18) ^ words[index-15]>>3
+		s1 := rotateRight(words[index-2], 17) ^ rotateRight(words[index-2], 19) ^ words[index-2]>>10
+		words[index] = words[index-16] + s0 + words[index-7] + s1
+	}
+	a, b, c, d := state[0], state[1], state[2], state[3]
+	e, f, g, h := state[4], state[5], state[6], state[7]
+	for index := 0; index < 64; index++ {
+		s1 := rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25)
+		choice := e&f ^ (^e)&g
+		temporary1 := h + s1 + choice + sha256Constants[index] + words[index]
+		s0 := rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22)
+		majority := a&b ^ a&c ^ b&c
+		temporary2 := s0 + majority
+		h, g, f, e, d, c, b, a = g, f, e, d+temporary1, c, b, a, temporary1+temporary2
+	}
+	state[0] += a
+	state[1] += b
+	state[2] += c
+	state[3] += d
+	state[4] += e
+	state[5] += f
+	state[6] += g
+	state[7] += h
 }
 
 func rotateRight(value uint32, bits uint) uint32 { return value>>bits | value<<(32-bits) }
