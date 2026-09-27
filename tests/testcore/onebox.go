@@ -135,7 +135,8 @@ func newTemporal(t *testing.T, params *temporalParams) *temporalImpl {
 		workerConfig:              params.WorkerConfig,
 		replicationStreamRecorder: NewReplicationStreamRecorder(),
 	}
-	testhooks.Set(impl.testHooks, testhooks.RPCFaultGenerator, impl.faultInjector.Generate, testhooks.GlobalScope)
+	impl.grpcFaultGenerator = grpcfaultstest.NewCallbackGenerator(impl.testHooks)
+	impl.httpFaultGenerator = httpfaultstest.NewCallbackGenerator(impl.testHooks)
 
 	// Base options are independent of which services this test cluster starts.
 	// [Start] adds the per-service config and static host map.
@@ -358,8 +359,12 @@ func (c *temporalImpl) GetHistoryTaskRecorder() *HistoryTaskRecorder {
 	return c.historyTaskRecorder
 }
 
-func (c *temporalImpl) GetFaultInjector() *rpcfaultinjection.RPCFaultGenerator {
-	return c.faultInjector
+func (c *temporalImpl) GetGRPCFaultGenerator() *grpcfaults.CallbackGenerator {
+	return c.grpcFaultGenerator
+}
+
+func (c *temporalImpl) GetHTTPFaultGenerator() *httpfaults.CallbackGenerator {
+	return c.httpFaultGenerator
 }
 
 func (c *temporalImpl) TLSConfigProvider() *encryption.FixedTLSConfigProvider {
