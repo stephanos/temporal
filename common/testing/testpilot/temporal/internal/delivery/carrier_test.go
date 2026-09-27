@@ -136,7 +136,7 @@ func TestInvalidDeliveriesRejectBeforeReservationConsumption(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			_, err := f.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: test.header, Namespace: f.binding.Namespace, WorkflowID: f.binding.WorkflowID, WorkflowType: f.binding.WorkflowType, TaskQueue: f.binding.TaskQueue, TemporalRunID: "temporal-run"})
 			require.ErrorIs(t, err, test.err)
-			require.Zero(t, f.workflow.consumeCount.Load())
+			require.Zero(t, f.workflow.Consumes())
 		})
 	}
 
@@ -144,7 +144,7 @@ func TestInvalidDeliveriesRejectBeforeReservationConsumption(t *testing.T) {
 	validPayload.Data[0] = '['
 	_, err := f.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: validHeader, Namespace: f.binding.Namespace, WorkflowID: f.binding.WorkflowID, WorkflowType: f.binding.WorkflowType, TaskQueue: f.binding.TaskQueue, TemporalRunID: "temporal-run"})
 	require.Error(t, err)
-	require.Zero(t, f.workflow.consumeCount.Load())
+	require.Zero(t, f.workflow.Consumes())
 }
 
 func TestStartResponseMustAgreeWithFirstWorkflowDelivery(t *testing.T) {
@@ -157,7 +157,7 @@ func TestStartResponseMustAgreeWithFirstWorkflowDelivery(t *testing.T) {
 	require.NoError(t, other.ledger.PinStartResponse(context.Background(), other.bundle, &workflowservice.StartWorkflowExecutionResponse{RunId: "response-first"}))
 	_, err := other.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: workflowHeader(t, other), Namespace: other.binding.Namespace, WorkflowID: other.binding.WorkflowID, WorkflowType: other.binding.WorkflowType, TaskQueue: other.binding.TaskQueue, TemporalRunID: "crossed"})
 	require.ErrorIs(t, err, ErrRouteConflict)
-	require.Zero(t, other.workflow.consumeCount.Load())
+	require.Zero(t, other.workflow.Consumes())
 }
 
 // A prepared dispatch carries the route alone; the worker merges it into the Case's own header.

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 )
 
 // The expected-handle map built from the admitted plan is what validateHandles checks each handle
@@ -26,19 +27,19 @@ func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
 			return []testpilot.ReservationHandle{handles[0], handles[0]}
 		}, ErrRouteConflict},
 		"crossed origin": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
-			handles[0].(*fakeReservation).identity.Origin.RunID = "other"
+			handles[0].(*testsupport.Reservation).ID.Origin.RunID = "other"
 			return handles
 		}, ErrRouteConflict},
 		"unexpected ordinal": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
-			handles[0].(*fakeReservation).identity.Ordinal = 1
+			handles[0].(*testsupport.Reservation).ID.Ordinal = 1
 			return handles
 		}, ErrRouteConflict},
 		"unexpected entrypoint": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
-			handles[0].(*fakeReservation).identity.EntrypointID = "other"
+			handles[0].(*testsupport.Reservation).ID.EntrypointID = "other"
 			return handles
 		}, ErrRouteConflict},
 		"malformed id": {func(handles []testpilot.ReservationHandle) []testpilot.ReservationHandle {
-			handles[0].(*fakeReservation).identity.ID = ""
+			handles[0].(*testsupport.Reservation).ID.ID = ""
 			return handles
 		}, ErrRouteConflict},
 	} {
@@ -48,8 +49,8 @@ func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
 			require.NoError(t, err)
 			origin := f.origin
 			origin.RunID = "run"
-			workflow := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "workflow"})
-			handler := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: "handler"})
+			workflow := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "workflow"})
+			handler := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: "handler"})
 			raw := tc.mutate([]testpilot.ReservationHandle{workflow, handler})
 			handles := make([]testpilot.ReservationHandle, 0, len(raw))
 			for _, handle := range raw {
@@ -97,7 +98,7 @@ func TestCreateBundleRejectsPlanBeyondMaxRoutes(t *testing.T) {
 			tc.mutate(&plan)
 			handles := make([]testpilot.ReservationHandle, 0, len(tc.handles))
 			for _, key := range tc.handles {
-				raw := newFakeReservation(testpilot.ReservationIdentity{Origin: f.origin, EntrypointID: key.entrypoint, Ordinal: key.ordinal, ID: fmt.Sprintf("%s-%d", key.entrypoint, key.ordinal)})
+				raw := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: f.origin, EntrypointID: key.entrypoint, Ordinal: key.ordinal, ID: fmt.Sprintf("%s-%d", key.entrypoint, key.ordinal)})
 				retained, err := ledger.RetainReservation(context.Background(), raw)
 				require.NoError(t, err)
 				handles = append(handles, retained)
@@ -145,12 +146,12 @@ func TestMatchingReplayReusesAdmissionAndConflictsReject(t *testing.T) {
 	require.False(t, first.Replay())
 	require.True(t, replay.Replay())
 	require.Equal(t, first.Coordinate(), replay.Coordinate())
-	require.Equal(t, int64(1), f.workflow.consumeCount.Load())
+	require.Equal(t, int64(1), f.workflow.Consumes())
 
 	delivery.TemporalRunID = "crossed"
 	_, err = f.ledger.AdmitWorkflow(context.Background(), delivery)
 	require.ErrorIs(t, err, ErrRouteConflict)
-	require.Equal(t, int64(1), f.workflow.consumeCount.Load())
+	require.Equal(t, int64(1), f.workflow.Consumes())
 
 	nexusDispatch, err := f.ledger.PrepareNexus(context.Background(), first, "start-nexus")
 	require.NoError(t, err)
@@ -160,7 +161,7 @@ func TestMatchingReplayReusesAdmissionAndConflictsReject(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, handler.Replay())
 	require.True(t, handlerReplay.Replay())
-	require.Equal(t, int64(1), f.handler.consumeCount.Load())
+	require.Equal(t, int64(1), f.handler.Consumes())
 	_, err = f.ledger.AdmitNexus(context.Background(), NexusDelivery{Header: nexusDispatch.Header(), RequestID: "crossed"})
 	require.ErrorIs(t, err, ErrRouteConflict)
 }
@@ -174,14 +175,14 @@ func TestCancellationBeforeAndDuringAdmissionIsAtomic(t *testing.T) {
 		require.Equal(t, 2, release.Unused())
 		_, err = f.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: header, Namespace: f.binding.Namespace, WorkflowID: f.binding.WorkflowID, WorkflowType: f.binding.WorkflowType, TaskQueue: f.binding.TaskQueue, TemporalRunID: "temporal-run"})
 		require.ErrorIs(t, err, ErrRouteStale)
-		require.Zero(t, f.workflow.consumeCount.Load())
+		require.Zero(t, f.workflow.Consumes())
 	})
 
 	t.Run("during admission", func(t *testing.T) {
 		f := newFixture(t, "run", "session")
 		header := workflowHeader(t, f)
 		entered := make(chan struct{})
-		f.workflow.consume = func(ctx context.Context) (testpilot.Coordinate, error) {
+		f.workflow.OnConsume = func(ctx context.Context) (testpilot.Coordinate, error) {
 			close(entered)
 			<-ctx.Done()
 			return testpilot.Coordinate{}, ctx.Err()
@@ -201,7 +202,7 @@ func TestCancellationBeforeAndDuringAdmissionIsAtomic(t *testing.T) {
 		requireContextError(t, <-admitted)
 		_, err = f.ledger.Stop(context.Background())
 		require.NoError(t, err)
-		require.Equal(t, int64(1), f.workflow.cancelCount.Load())
+		require.Equal(t, int64(1), f.workflow.Cancels())
 	})
 }
 
@@ -214,8 +215,8 @@ func TestTriggerFailuresRetireRoutesAndCancelAdmittedWork(t *testing.T) {
 			release, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, disposition)
 			require.NoError(t, err)
 			require.Equal(t, 1, release.Unused())
-			require.Equal(t, int64(1), f.workflow.cancelCount.Load())
-			require.Equal(t, int64(1), f.handler.cancelCount.Load())
+			require.Equal(t, int64(1), f.workflow.Cancels())
+			require.Equal(t, int64(1), f.handler.Cancels())
 			_, err = f.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: header, Namespace: f.binding.Namespace, WorkflowID: f.binding.WorkflowID, WorkflowType: f.binding.WorkflowType, TaskQueue: f.binding.TaskQueue, TemporalRunID: "temporal-run"})
 			require.ErrorIs(t, err, ErrRouteStale)
 		})
@@ -230,8 +231,8 @@ func TestTriggerFailuresRetireRoutesAndCancelAdmittedWork(t *testing.T) {
 	release, err = f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerSucceeded)
 	require.NoError(t, err)
 	require.Zero(t, release.Unused())
-	require.Zero(t, f.workflow.cancelCount.Load())
-	require.Zero(t, f.handler.cancelCount.Load())
+	require.Zero(t, f.workflow.Cancels())
+	require.Zero(t, f.handler.Cancels())
 	_, err = f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.NoError(t, err)
 }
@@ -239,8 +240,8 @@ func TestTriggerFailuresRetireRoutesAndCancelAdmittedWork(t *testing.T) {
 func TestParentTerminalReleasesUnusedOnce(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	workflow := admitWorkflow(t, f, "temporal-run")
-	f.handler.cancel = func(context.Context) error {
-		if f.handler.cancelCount.Load() == 1 {
+	f.handler.OnCancel = func(context.Context) error {
+		if f.handler.Cancels() == 1 {
 			return errors.New("temporary cancellation failure")
 		}
 		return nil
@@ -251,8 +252,8 @@ func TestParentTerminalReleasesUnusedOnce(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, first.Unused())
 	require.Zero(t, second.Unused())
-	require.Zero(t, f.workflow.cancelCount.Load())
-	require.Equal(t, int64(2), f.handler.cancelCount.Load())
+	require.Zero(t, f.workflow.Cancels())
+	require.Equal(t, int64(2), f.handler.Cancels())
 
 	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.ErrorIs(t, err, ErrRouteStale)
@@ -273,8 +274,8 @@ func TestParentTerminalDoesNotCancelAdmittedHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, first.Unused())
 	require.Zero(t, second.Unused())
-	require.Zero(t, f.workflow.cancelCount.Load())
-	require.Zero(t, f.handler.cancelCount.Load())
+	require.Zero(t, f.workflow.Cancels())
+	require.Zero(t, f.handler.Cancels())
 	replay, err := f.ledger.AdmitNexus(context.Background(), NexusDelivery{Header: dispatch.Header(), RequestID: "request"})
 	require.NoError(t, err)
 	require.True(t, replay.Replay())
@@ -294,8 +295,8 @@ func TestStartResponsePinsAcrossWorkflowTerminalOrdering(t *testing.T) {
 			_, err := f.ledger.ParentTerminal(context.Background(), workflow)
 			require.NoError(t, err)
 			if completeHandles {
-				for _, raw := range []*fakeReservation{f.workflow, f.handler} {
-					raw.finish()
+				for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
+					raw.Complete()
 				}
 				for _, handle := range f.bundle.Handles() {
 					require.NoError(t, handle.Drain(context.Background()))
@@ -316,19 +317,19 @@ func TestCompletedBeforeResponseBundlesRemainBoundedUntilFinalization(t *testing
 	f := newFixture(t, "run", "session")
 	f.ledger.config.Limits.MaxRoutes = 2
 	admitWorkflow(t, f, "temporal-run")
-	for _, raw := range []*fakeReservation{f.workflow, f.handler} {
-		raw.finish()
+	for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
+		raw.Complete()
 	}
 	for _, handle := range f.bundle.Handles() {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
 
-	newHandles := func(instruction string) ([]testpilot.ReservationHandle, []*fakeReservation) {
+	newHandles := func(instruction string) ([]testpilot.ReservationHandle, []*testsupport.Reservation) {
 		origin := f.origin
 		origin.InstructionID = instruction
-		raw := []*fakeReservation{
-			newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: instruction + "-workflow"}),
-			newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: instruction + "-handler"}),
+		raw := []*testsupport.Reservation{
+			testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: instruction + "-workflow"}),
+			testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: instruction + "-handler"}),
 		}
 		handles := make([]testpilot.ReservationHandle, 0, len(raw))
 		for _, reservation := range raw {
@@ -344,7 +345,7 @@ func TestCompletedBeforeResponseBundlesRemainBoundedUntilFinalization(t *testing
 	second, err := f.ledger.CreateBundle(context.Background(), secondOrigin, f.plan, f.binding, secondHandles)
 	require.NoError(t, err)
 	for _, raw := range secondRaw {
-		raw.finish()
+		raw.Complete()
 	}
 	for _, handle := range second.Handles() {
 		require.NoError(t, handle.Drain(context.Background()))
@@ -367,12 +368,12 @@ func TestCapacityReleasesOnlyAfterActualHandleCompletion(t *testing.T) {
 	ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 2, MaxHeaderBytes: 4096, MaxHandles: 2, MaxDiagnostics: 2}})
 	require.NoError(t, err)
 	base := newFixture(t, "base", "base-session")
-	makeBundle := func(instruction string) (Bundle, *fakeReservation, *fakeReservation, error) {
+	makeBundle := func(instruction string) (Bundle, *testsupport.Reservation, *testsupport.Reservation, error) {
 		origin := base.origin
 		origin.RunID = "run"
 		origin.InstructionID = instruction
-		workflow := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: instruction + "-workflow"})
-		handler := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: instruction + "-handler"})
+		workflow := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: instruction + "-workflow"})
+		handler := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: instruction + "-handler"})
 		retainedWorkflow, err := ledger.RetainReservation(context.Background(), workflow)
 		if err != nil {
 			return Bundle{}, workflow, handler, err
@@ -390,11 +391,11 @@ func TestCapacityReleasesOnlyAfterActualHandleCompletion(t *testing.T) {
 	require.NoError(t, err)
 	_, _, _, err = makeBundle("second")
 	require.ErrorIs(t, err, ErrCapacity)
-	require.Equal(t, int64(1), workflow.cancelCount.Load())
-	require.Equal(t, int64(1), handler.cancelCount.Load())
+	require.Equal(t, int64(1), workflow.Cancels())
+	require.Equal(t, int64(1), handler.Cancels())
 
-	workflow.finish()
-	handler.finish()
+	workflow.Complete()
+	handler.Complete()
 	for _, handle := range first.Handles() {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
@@ -408,18 +409,18 @@ func TestSchedulerVisibleReservationProxyOwnsLifecycle(t *testing.T) {
 	require.Len(t, handles, 2)
 	_, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerRejected)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), f.workflow.cancelCount.Load())
-	require.Equal(t, int64(1), f.handler.cancelCount.Load())
+	require.Equal(t, int64(1), f.workflow.Cancels())
+	require.Equal(t, int64(1), f.handler.Cancels())
 
-	f.workflow.finish()
-	f.handler.finish()
+	f.workflow.Complete()
+	f.handler.Complete()
 	_, err = handles[0].Wait(context.Background())
 	require.NoError(t, err)
 	require.NoError(t, handles[1].Drain(context.Background()))
 
 	origin := f.origin
 	origin.InstructionID = "next"
-	next := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "next-workflow"})
+	next := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "next-workflow"})
 	_, err = f.ledger.RetainReservation(context.Background(), next)
 	require.NoError(t, err)
 }
@@ -427,7 +428,7 @@ func TestSchedulerVisibleReservationProxyOwnsLifecycle(t *testing.T) {
 func TestStopCancelsAndReleasesUnboundReservation(t *testing.T) {
 	ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 1, MaxHeaderBytes: 4096, MaxHandles: 1, MaxDiagnostics: 1}})
 	require.NoError(t, err)
-	raw := newFakeReservation(testpilot.ReservationIdentity{
+	raw := testsupport.NewReservation(testpilot.ReservationIdentity{
 		Origin:       testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start", Attempt: 1},
 		EntrypointID: "workflow",
 		ID:           "reservation",
@@ -438,13 +439,13 @@ func TestStopCancelsAndReleasesUnboundReservation(t *testing.T) {
 	release, err := ledger.Stop(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, release.Unused())
-	require.Equal(t, int64(1), raw.cancelCount.Load())
+	require.Equal(t, int64(1), raw.Cancels())
 	release, err = ledger.Stop(context.Background())
 	require.NoError(t, err)
 	require.Zero(t, release.Unused())
-	require.Equal(t, int64(1), raw.cancelCount.Load())
+	require.Equal(t, int64(1), raw.Cancels())
 
-	raw.finish()
+	raw.Complete()
 	require.NoError(t, retained.Drain(context.Background()))
 }
 
@@ -453,10 +454,10 @@ func TestStopAfterAdmissionCancelsOnlyOwnedRoutes(t *testing.T) {
 	header := workflowHeader(t, f)
 	entered := make(chan struct{})
 	finishConsume := make(chan struct{})
-	f.workflow.consume = func(context.Context) (testpilot.Coordinate, error) {
+	f.workflow.OnConsume = func(context.Context) (testpilot.Coordinate, error) {
 		close(entered)
 		<-finishConsume
-		return f.workflow.activation, nil
+		return f.workflow.Activation, nil
 	}
 	admission := make(chan error, 1)
 	go func() {
@@ -478,8 +479,8 @@ func TestStopAfterAdmissionCancelsOnlyOwnedRoutes(t *testing.T) {
 	require.NoError(t, <-admission)
 	require.NoError(t, <-stopErr)
 	require.Equal(t, 1, (<-stopRelease).Unused())
-	require.Equal(t, int64(1), f.workflow.cancelCount.Load())
-	require.Equal(t, int64(1), f.handler.cancelCount.Load())
+	require.Equal(t, int64(1), f.workflow.Cancels())
+	require.Equal(t, int64(1), f.handler.Cancels())
 }
 
 func TestCrossSessionLifecycleCannotCancelForeignHandles(t *testing.T) {
@@ -491,10 +492,10 @@ func TestCrossSessionLifecycleCannotCancelForeignHandles(t *testing.T) {
 	require.ErrorIs(t, err, ErrRouteCrossed)
 	_, err = second.ledger.ParentTerminal(context.Background(), firstWorkflow)
 	require.ErrorIs(t, err, ErrRouteCrossed)
-	require.Zero(t, first.workflow.cancelCount.Load())
-	require.Zero(t, first.handler.cancelCount.Load())
-	require.Zero(t, second.workflow.cancelCount.Load())
-	require.Zero(t, second.handler.cancelCount.Load())
+	require.Zero(t, first.workflow.Cancels())
+	require.Zero(t, first.handler.Cancels())
+	require.Zero(t, second.workflow.Cancels())
+	require.Zero(t, second.handler.Cancels())
 }
 
 func TestReservationProxyLifecycleHonorsLockContextAndCancelState(t *testing.T) {
@@ -502,10 +503,10 @@ func TestReservationProxyLifecycleHonorsLockContextAndCancelState(t *testing.T) 
 	handle := f.bundle.Handles()[0]
 	require.NoError(t, handle.Cancel(context.Background()))
 	require.NoError(t, handle.Cancel(context.Background()))
-	require.Equal(t, int64(1), f.handler.cancelCount.Load()+f.workflow.cancelCount.Load())
+	require.Equal(t, int64(1), f.handler.Cancels()+f.workflow.Cancels())
 
-	for _, raw := range []*fakeReservation{f.workflow, f.handler} {
-		raw.finish()
+	for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
+		raw.Complete()
 	}
 	f.ledger.mu.Lock()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
@@ -549,7 +550,7 @@ func TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle(t *testing.T) 
 
 	finished()
 	finished()
-	next := newFakeReservation(testpilot.ReservationIdentity{Origin: first.handler.identity.Origin, EntrypointID: "handler", ID: "next"})
+	next := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: first.handler.ID.Origin, EntrypointID: "handler", ID: "next"})
 	retained, err := first.ledger.RetainReservation(context.Background(), next)
 	require.ErrorIs(t, err, ErrRouteStale)
 	require.NotNil(t, retained)
@@ -566,19 +567,19 @@ func TestQuarantineRegistrationRetryAndActualFinishReleaseCapacity(t *testing.T)
 			return errors.New("temporary registration failure")
 		}
 		require.Same(t, f.handler, raw)
-		f.handler.finish()
+		f.handler.Complete()
 		finished()
 		return nil
 	}
 	require.ErrorIs(t, f.ledger.Quarantine(context.Background(), handle, registration), ErrLifecycle)
-	blocked := newFakeReservation(testpilot.ReservationIdentity{Origin: f.handler.identity.Origin, EntrypointID: "handler", ID: "blocked"})
+	blocked := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: f.handler.ID.Origin, EntrypointID: "handler", ID: "blocked"})
 	cleanup, err := f.ledger.RetainReservation(context.Background(), blocked)
 	require.ErrorIs(t, err, ErrCapacity)
 	require.NoError(t, cleanup.Cancel(context.Background()))
 	require.NoError(t, f.ledger.Quarantine(context.Background(), handle, registration))
 	require.Equal(t, 2, registerCount)
 
-	next := newFakeReservation(testpilot.ReservationIdentity{Origin: f.handler.identity.Origin, EntrypointID: "handler", ID: "next"})
+	next := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: f.handler.ID.Origin, EntrypointID: "handler", ID: "next"})
 	retained, err := f.ledger.RetainReservation(context.Background(), next)
 	require.NoError(t, err)
 	require.NotNil(t, retained)
@@ -622,7 +623,7 @@ func TestQuarantineCompletionRemainsAuthoritativeAfterRegistrationError(t *testi
 	require.ErrorIs(t, err, ErrLifecycle)
 	require.ErrorIs(t, f.ledger.Quarantine(context.Background(), handle, func(context.Context, testpilot.EffectHandle, CompletionFunc) error { return nil }), ErrRouteStale)
 
-	next := newFakeReservation(testpilot.ReservationIdentity{Origin: f.handler.identity.Origin, EntrypointID: "handler", ID: "next-after-completion"})
+	next := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: f.handler.ID.Origin, EntrypointID: "handler", ID: "next-after-completion"})
 	retained, err := f.ledger.RetainReservation(context.Background(), next)
 	require.NoError(t, err)
 	require.NotNil(t, retained)
@@ -632,13 +633,13 @@ func TestRetainReservationReturnsCleanupProxyOnRejection(t *testing.T) {
 	ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 1, MaxHeaderBytes: 4096, MaxHandles: 1, MaxDiagnostics: 1}})
 	require.NoError(t, err)
 	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start", Attempt: 1}
-	first := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "first"})
+	first := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", ID: "first"})
 	_, err = ledger.RetainReservation(context.Background(), first)
 	require.NoError(t, err)
 
-	for name, handle := range map[string]*fakeReservation{
-		"capacity": newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: "second"}),
-		"identity": newFakeReservation(testpilot.ReservationIdentity{Origin: testpilot.Coordinate{RunID: "other", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start", Attempt: 1}, EntrypointID: "handler", ID: "crossed"}),
+	for name, handle := range map[string]*testsupport.Reservation{
+		"capacity": testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: "second"}),
+		"identity": testsupport.NewReservation(testpilot.ReservationIdentity{Origin: testpilot.Coordinate{RunID: "other", EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start", Attempt: 1}, EntrypointID: "handler", ID: "crossed"}),
 	} {
 		t.Run(name, func(t *testing.T) {
 			retained, err := ledger.RetainReservation(context.Background(), handle)
@@ -646,58 +647,58 @@ func TestRetainReservationReturnsCleanupProxyOnRejection(t *testing.T) {
 			require.NotNil(t, retained)
 			require.NotSame(t, handle, retained)
 			require.NoError(t, retained.Cancel(context.Background()))
-			require.Equal(t, int64(1), handle.cancelCount.Load())
+			require.Equal(t, int64(1), handle.Cancels())
 		})
 	}
 }
 
 func TestTriggerCancellationRetriesFailuresAndAttemptsEveryHandle(t *testing.T) {
 	f := newFixture(t, "run", "session")
-	f.workflow.cancel = func(context.Context) error {
-		if f.workflow.cancelCount.Load() == 1 {
+	f.workflow.OnCancel = func(context.Context) error {
+		if f.workflow.Cancels() == 1 {
 			return errors.New("temporary cancellation failure")
 		}
 		return nil
 	}
 	_, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerRejected)
 	require.ErrorIs(t, err, ErrLifecycle)
-	require.Equal(t, int64(1), f.workflow.cancelCount.Load())
-	require.Equal(t, int64(1), f.handler.cancelCount.Load())
+	require.Equal(t, int64(1), f.workflow.Cancels())
+	require.Equal(t, int64(1), f.handler.Cancels())
 
 	_, err = f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerRejected)
 	require.NoError(t, err)
-	require.Equal(t, int64(2), f.workflow.cancelCount.Load())
-	require.Equal(t, int64(1), f.handler.cancelCount.Load())
+	require.Equal(t, int64(2), f.workflow.Cancels())
+	require.Equal(t, int64(1), f.handler.Cancels())
 }
 
 func TestTriggerTerminalRetriesFailedAdmissionCancellation(t *testing.T) {
 	f := newFixture(t, "run", "session")
-	f.workflow.consume = func(context.Context) (testpilot.Coordinate, error) {
+	f.workflow.OnConsume = func(context.Context) (testpilot.Coordinate, error) {
 		return testpilot.Coordinate{}, errors.New("activation admission failed")
 	}
-	f.workflow.cancel = func(context.Context) error {
-		if f.workflow.cancelCount.Load() == 1 {
+	f.workflow.OnCancel = func(context.Context) error {
+		if f.workflow.Cancels() == 1 {
 			return errors.New("temporary cancellation failure")
 		}
 		return nil
 	}
 	_, err := f.ledger.AdmitWorkflow(context.Background(), WorkflowDelivery{Header: workflowHeader(t, f), Namespace: f.binding.Namespace, WorkflowID: f.binding.WorkflowID, WorkflowType: f.binding.WorkflowType, TaskQueue: f.binding.TaskQueue, TemporalRunID: "temporal-run"})
 	require.ErrorIs(t, err, ErrLifecycle)
-	require.Equal(t, int64(1), f.workflow.cancelCount.Load())
+	require.Equal(t, int64(1), f.workflow.Cancels())
 
 	release, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerRejected)
 	require.NoError(t, err)
 	require.Equal(t, 1, release.Unused())
-	require.Equal(t, int64(2), f.workflow.cancelCount.Load())
-	require.Equal(t, int64(1), f.handler.cancelCount.Load())
+	require.Equal(t, int64(2), f.workflow.Cancels())
+	require.Equal(t, int64(1), f.handler.Cancels())
 }
 
 func TestWaitReturnsIndependentFailureSnapshotAfterStop(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	activation := admitWorkflow(t, f, "temporal-run")
-	f.workflow.result.Outcome.ProtocolCode = "worker_failure"
-	f.workflow.waitErr = errors.New("activation failed")
-	f.workflow.finish()
+	f.workflow.Result.Outcome.ProtocolCode = "worker_failure"
+	f.workflow.WaitErr = errors.New("activation failed")
+	f.workflow.Complete()
 	var handle testpilot.EffectHandle
 	for _, retained := range f.bundle.Handles() {
 		if retained.(testpilot.ReservationHandle).Identity().EntrypointID == "workflow" {
@@ -711,7 +712,7 @@ func TestWaitReturnsIndependentFailureSnapshotAfterStop(t *testing.T) {
 
 	_, err = f.ledger.Stop(context.Background())
 	require.NoError(t, err)
-	f.workflow.result.Outcome.ProtocolCode = "mutated"
+	f.workflow.Result.Outcome.ProtocolCode = "mutated"
 	require.Equal(t, "worker_failure", result.Outcome.ProtocolCode)
 	require.Equal(t, "run", activation.Coordinate().RunID)
 }
@@ -722,8 +723,8 @@ func TestLateTerminalCannotMutateReleasedBundle(t *testing.T) {
 	require.NoError(t, f.ledger.PinStartResponse(context.Background(), f.bundle, &workflowservice.StartWorkflowExecutionResponse{RunId: "temporal-run"}))
 	_, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerSucceeded)
 	require.NoError(t, err)
-	for _, raw := range []*fakeReservation{f.workflow, f.handler} {
-		raw.finish()
+	for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
+		raw.Complete()
 	}
 	for _, handle := range f.bundle.Handles() {
 		require.NoError(t, handle.Drain(context.Background()))

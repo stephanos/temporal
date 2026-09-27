@@ -1,6 +1,7 @@
 package testpilot_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -9,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -102,21 +103,7 @@ func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
 
 func TestPreparationErrorCorrelatedLimits(t *testing.T) {
 	source, profile := proofFixture(t)
-	files := &descriptorpb.FileDescriptorSet{}
-	seen := map[string]bool{}
-	var collect func(protoreflect.FileDescriptor)
-	collect = func(file protoreflect.FileDescriptor) {
-		if seen[file.Path()] {
-			return
-		}
-		seen[file.Path()] = true
-		for i := 0; i < file.Imports().Len(); i++ {
-			collect(file.Imports().Get(i).FileDescriptor)
-		}
-		files.File = append(files.File, protodesc.ToFileDescriptorProto(file))
-	}
-	collect((&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor().ParentFile())
-	catalog, err := testpilot.NewCatalog(files)
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure((&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor().ParentFile()))
 	require.NoError(t, err)
 	profile.Catalog = catalog
 	source.Program.Observations = []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
@@ -206,7 +193,9 @@ func TestPreparationErrorSuccessAndExclusions(t *testing.T) {
 	require.Error(t, decodeErr)
 	require.NotErrorAs(t, decodeErr, &diagnostic)
 	driverErr := errors.New("driver unavailable")
-	_, _, err = prepared.Run(t.Context(), &proofDriver{identity: prepared.Identity(), openErr: driverErr})
+	_, _, err = prepared.Run(t.Context(), &facadetest.Driver{DriverIdentity: prepared.Identity(), OnOpen: func(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+		return nil, driverErr
+	}})
 	require.ErrorIs(t, err, driverErr)
 	require.NotErrorAs(t, err, &diagnostic)
 }

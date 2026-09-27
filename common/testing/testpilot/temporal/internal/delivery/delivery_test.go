@@ -3,78 +3,18 @@ package delivery
 import (
 	"context"
 	"errors"
-	"sync"
-	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
-
-type fakeReservation struct {
-	identity     testpilot.ReservationIdentity
-	activation   testpilot.Coordinate
-	consume      func(context.Context) (testpilot.Coordinate, error)
-	done         chan struct{}
-	finishOnce   sync.Once
-	result       testpilot.EffectResult
-	waitErr      error
-	cancel       func(context.Context) error
-	consumeCount atomic.Int64
-	cancelCount  atomic.Int64
-}
-
-func newFakeReservation(identity testpilot.ReservationIdentity) *fakeReservation {
-	return &fakeReservation{
-		identity:   identity,
-		activation: testpilot.Coordinate{RunID: identity.Origin.RunID, EntrypointID: identity.EntrypointID, ActivationID: identity.ID},
-		done:       make(chan struct{}),
-		result:     testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}},
-	}
-}
-
-func (h *fakeReservation) Identity() testpilot.ReservationIdentity { return h.identity }
-func (h *fakeReservation) Consume(ctx context.Context) (testpilot.Coordinate, error) {
-	h.consumeCount.Add(1)
-	if h.consume != nil {
-		return h.consume(ctx)
-	}
-	return h.activation, nil
-}
-func (h *fakeReservation) Wait(ctx context.Context) (testpilot.EffectResult, error) {
-	select {
-	case <-ctx.Done():
-		return testpilot.EffectResult{}, ctx.Err()
-	case <-h.done:
-		return primitive.CloneEffectResult(h.result), h.waitErr
-	}
-}
-func (h *fakeReservation) Cancel(ctx context.Context) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	h.cancelCount.Add(1)
-	if h.cancel != nil {
-		return h.cancel(ctx)
-	}
-	return nil
-}
-func (h *fakeReservation) Drain(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-h.done:
-		return nil
-	}
-}
-func (h *fakeReservation) finish() { h.finishOnce.Do(func() { close(h.done) }) }
 
 // binding keeps the codec tests, the route wire golden among them, compiling unedited.
 type binding = WorkflowBinding
@@ -84,8 +24,8 @@ type fixture struct {
 	origin   testpilot.Coordinate
 	plan     testpilot.ReservationCarrierPlan
 	binding  WorkflowBinding
-	workflow *fakeReservation
-	handler  *fakeReservation
+	workflow *testsupport.Reservation
+	handler  *testsupport.Reservation
 	bundle   Bundle
 }
 
@@ -107,8 +47,8 @@ func newFixture(t *testing.T, runID, sessionID string) *fixture {
 		},
 		Routes: []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start-nexus", HandlerEntrypointID: "handler", HandlerOrdinal: 0}},
 	}
-	workflow := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", Ordinal: 0, ID: sessionID + "-workflow"})
-	handler := newFakeReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", Ordinal: 0, ID: sessionID + "-handler"})
+	workflow := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "workflow", Ordinal: 0, ID: sessionID + "-workflow"})
+	handler := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", Ordinal: 0, ID: sessionID + "-handler"})
 	retainedHandler, err := ledger.RetainReservation(context.Background(), handler)
 	require.NoError(t, err)
 	retainedWorkflow, err := ledger.RetainReservation(context.Background(), workflow)

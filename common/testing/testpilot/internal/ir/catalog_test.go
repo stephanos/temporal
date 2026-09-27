@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -43,14 +43,12 @@ func catalogFixture() *descriptorpb.FileDescriptorSet {
 	msg.Field[9].OneofIndex = proto.Int32(1)
 	msg.Field[9].Proto3Optional = proto.Bool(true)
 	msg.NestedType = []*descriptorpb.DescriptorProto{{Name: proto.String("LabelsEntry"), Options: &descriptorpb.MessageOptions{MapEntry: proto.Bool(true)}, Field: []*descriptorpb.FieldDescriptorProto{field("key", 1, descriptorpb.FieldDescriptorProto_TYPE_STRING, ""), field("value", 2, descriptorpb.FieldDescriptorProto_TYPE_INT64, "")}}}
-	return &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{
-		protodesc.ToFileDescriptorProto(anypb.File_google_protobuf_any_proto),
-		protodesc.ToFileDescriptorProto(timestamppb.File_google_protobuf_timestamp_proto),
-		{Name: proto.String("fixture.proto"), Package: proto.String("fixture"), Syntax: proto.String("proto3"), Dependency: []string{"google/protobuf/any.proto", "google/protobuf/timestamp.proto"}, MessageType: []*descriptorpb.DescriptorProto{msg}, EnumType: []*descriptorpb.EnumDescriptorProto{{Name: proto.String("State"), Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("UNKNOWN"), Number: proto.Int32(0)}, {Name: proto.String("READY"), Number: proto.Int32(1)}}}}, Service: []*descriptorpb.ServiceDescriptorProto{
-			{Name: proto.String("Records"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Read"), InputType: proto.String(".fixture.Payload"), OutputType: proto.String(".fixture.Payload")}}},
-			{Name: proto.String("Clock"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Now"), InputType: proto.String(".google.protobuf.Any"), OutputType: proto.String(".google.protobuf.Timestamp")}, {Name: proto.String("Watch"), InputType: proto.String(".fixture.Payload"), OutputType: proto.String(".fixture.Payload"), ServerStreaming: proto.Bool(true)}}},
-		}},
-	}}
+	set := testsupport.DescriptorClosure(anypb.File_google_protobuf_any_proto, timestamppb.File_google_protobuf_timestamp_proto)
+	set.File = append(set.File, &descriptorpb.FileDescriptorProto{Name: proto.String("fixture.proto"), Package: proto.String("fixture"), Syntax: proto.String("proto3"), Dependency: []string{"google/protobuf/any.proto", "google/protobuf/timestamp.proto"}, MessageType: []*descriptorpb.DescriptorProto{msg}, EnumType: []*descriptorpb.EnumDescriptorProto{{Name: proto.String("State"), Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("UNKNOWN"), Number: proto.Int32(0)}, {Name: proto.String("READY"), Number: proto.Int32(1)}}}}, Service: []*descriptorpb.ServiceDescriptorProto{
+		{Name: proto.String("Records"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Read"), InputType: proto.String(".fixture.Payload"), OutputType: proto.String(".fixture.Payload")}}},
+		{Name: proto.String("Clock"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Now"), InputType: proto.String(".google.protobuf.Any"), OutputType: proto.String(".google.protobuf.Timestamp")}, {Name: proto.String("Watch"), InputType: proto.String(".fixture.Payload"), OutputType: proto.String(".fixture.Payload"), ServerStreaming: proto.Bool(true)}}},
+	}})
+	return set
 }
 
 func TestCatalogBindsUnaryMethodsAndSnapshotsDescriptors(t *testing.T) {

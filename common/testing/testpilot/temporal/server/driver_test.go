@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -12,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -32,11 +33,10 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	t.Helper()
 	file, err := protodesc.NewFile(&descriptorpb.FileDescriptorProto{Name: proto.String("echo.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), Dependency: []string{"google/protobuf/wrappers.proto"}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Echo"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Length"), InputType: proto.String(".google.protobuf.StringValue"), OutputType: proto.String(".google.protobuf.Int64Value")}}}}}, protoregistry.GlobalFiles)
 	require.NoError(t, err)
-	catalog, err := testpilot.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{protodesc.ToFileDescriptorProto(file), protodesc.ToFileDescriptorProto(wrapperspb.File_google_protobuf_wrappers_proto), protodesc.ToFileDescriptorProto(healthpb.File_grpc_health_v1_health_proto)}})
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(file, healthpb.File_grpc_health_v1_health_proto))
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 4, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}}}
+	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: testsupport.ProgramLimits(), ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}}}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
@@ -52,26 +52,7 @@ func prepared(t *testing.T, h *Driver, source *testpilotspb.Case) testpilot.Prep
 	t.Helper()
 	preparedCase, err := testpilot.Prepare(source, h)
 	require.NoError(t, err)
-	capture := &programCapture{host: h}
-	_, _, err = preparedCase.Run(t.Context(), capture)
-	require.ErrorIs(t, err, errProgramCaptured)
-	return capture.program
-}
-
-var errProgramCaptured = errors.New("prepared Program captured")
-
-type programCapture struct {
-	host    *Driver
-	program testpilot.PreparedProgram
-}
-
-func (d *programCapture) Identity(ctx context.Context) (testpilot.DriverIdentity, error) {
-	return d.host.Identity(ctx)
-}
-func (*programCapture) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
-func (d *programCapture) Open(_ context.Context, _ string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	d.program = program
-	return nil, errProgramCaptured
+	return facadetest.Capture(t, preparedCase)
 }
 
 func rpcNode(id, method string) *testpilotspb.InstructionNode {

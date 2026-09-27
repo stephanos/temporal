@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -19,10 +18,10 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -108,12 +107,15 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 			expected := loadFacadeExpected(t, name)
 			require.Equal(t, expected.Class, class)
 			profile := facadeProfile(t)
-			driver := &facadeDriver{failCleanup: class == "cleanup-failure-after-proved-violation"}
+			failCleanup := class == "cleanup-failure-after-proved-violation"
+			driver := &facadetest.Driver{OnOpen: func(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+				return conformanceSession(failCleanup), nil
+			}}
 			prepared, err := testpilot.Prepare(source, profile)
 			if expected.Preparation == "rejected" {
 				require.Error(t, err)
 				require.Nil(t, prepared)
-				require.Empty(t, driver.openedRunIDs())
+				require.Empty(t, driver.RunIDs())
 				if expected.PreparationError != nil {
 					var diagnostic *testpilot.PreparationError
 					require.ErrorAs(t, err, &diagnostic)
@@ -123,7 +125,7 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 			}
 			require.Equal(t, "accepted", expected.Preparation)
 			require.NoError(t, err)
-			driver.identity = prepared.Identity()
+			driver.DriverIdentity = prepared.Identity()
 			results := runFacadeCase(t, prepared, driver, expected.RunCount)
 			runIDs := make(map[string]struct{}, len(results))
 			for _, result := range results {
@@ -151,8 +153,8 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 				require.NotContains(t, runIDs, result.run.GetRunId())
 				runIDs[result.run.GetRunId()] = struct{}{}
 			}
-			require.ElementsMatch(t, driver.openedRunIDs(), mapKeys(runIDs))
-			require.Equal(t, expected.RunCount, driver.closedSessions())
+			require.ElementsMatch(t, driver.RunIDs(), mapKeys(runIDs))
+			require.Equal(t, expected.RunCount, driver.Closed())
 		})
 	}
 }
@@ -210,7 +212,7 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
 	// The evidence variants declare a CorrelatedEvidence Observation, so the catalog carries the
 	// Testpilot protocol beside the service the Cases invoke.
-	catalog, err := testpilot.NewCatalog(facadeDescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
 	require.NoError(t, err)
 	programLimits := &testpilotspb.ProgramLimits{
 		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
@@ -258,155 +260,53 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	}
 }
 
-func facadeDescriptorClosure(roots ...protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
-	seen := make(map[string]struct{})
-	result := &descriptorpb.FileDescriptorSet{}
-	var add func(protoreflect.FileDescriptor)
-	add = func(file protoreflect.FileDescriptor) {
-		if _, exists := seen[file.Path()]; exists {
-			return
-		}
-		seen[file.Path()] = struct{}{}
-		imports := file.Imports()
-		for index := 0; index < imports.Len(); index++ {
-			add(imports.Get(index))
-		}
-		result.File = append(result.File, protodesc.ToFileDescriptorProto(file))
+// conformanceSession answers every RPC the conformance Cases make, failing the cleanup RPCs when
+// failCleanup is set.
+func conformanceSession(failCleanup bool) *testsupport.Session {
+	return &testsupport.Session{
+		OnInvokeRPC: func(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
+			if failCleanup && coordinate.EntrypointID == "cleanup" {
+				return nil, errors.New("fixture cleanup failure")
+			}
+			response := dynamicpb.NewMessage(method.Output())
+			if field := response.Descriptor().Fields().ByName("server_version"); field != nil {
+				response.Set(field, protoreflect.ValueOfString("facade-conformance"))
+			}
+			// The evidence variants read one started Nexus operation back: as the history event that
+			// records it and as the pending operation on its second attempt, both keyed by the
+			// scheduled event id.
+			var recorded proto.Message
+			switch method.Output().FullName() {
+			case "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse":
+				recorded = &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
+					EventId: 6, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED,
+					Attributes: &historypb.HistoryEvent_NexusOperationStartedEventAttributes{NexusOperationStartedEventAttributes: &historypb.NexusOperationStartedEventAttributes{ScheduledEventId: 5}},
+				}}}}
+			case "temporal.api.workflowservice.v1.DescribeWorkflowExecutionResponse":
+				recorded = &workflowservice.DescribeWorkflowExecutionResponse{PendingNexusOperations: []*workflowpb.PendingNexusOperationInfo{{ScheduledEventId: 5, Attempt: 2}}}
+			default:
+			}
+			if recorded != nil {
+				encoded, err := proto.Marshal(recorded)
+				if err != nil {
+					return nil, err
+				}
+				if err := proto.Unmarshal(encoded, response); err != nil {
+					return nil, err
+				}
+			}
+			return testsupport.Completed(testpilot.EffectResult{
+				Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+				Response: response,
+			}), nil
+		},
+		// InjectFault realizes every fault at once: the facade owns no worker, so the outage is
+		// recorded and nothing stops, which is what the Run Event evidence variant reads.
+		OnInjectFault: func(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+			return testsupport.Completed(testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}), nil
+		},
 	}
-	for _, root := range roots {
-		add(root)
-	}
-	return result
 }
-
-type facadeDriver struct {
-	identity    testpilot.DriverIdentity
-	failCleanup bool
-	mu          sync.Mutex
-	runIDs      []string
-	sessions    []*facadeSession
-}
-
-func (h *facadeDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
-	return h.identity, nil
-}
-func (h *facadeDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
-func (h *facadeDriver) Open(_ context.Context, runID string, _ testpilot.PreparedProgram) (testpilot.Session, error) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	session := &facadeSession{driver: h}
-	h.runIDs = append(h.runIDs, runID)
-	h.sessions = append(h.sessions, session)
-	return session, nil
-}
-func (h *facadeDriver) openedRunIDs() []string {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	return append([]string(nil), h.runIDs...)
-}
-func (h *facadeDriver) closedSessions() int {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	closed := 0
-	for _, session := range h.sessions {
-		if session.closed {
-			closed++
-		}
-	}
-	return closed
-}
-
-type facadeSession struct {
-	driver *facadeDriver
-	closed bool
-}
-
-func (*facadeSession) Reserve(context.Context, testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
-	return nil, errors.New("facade conformance Cases do not reserve activations")
-}
-func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
-	if s.driver.failCleanup && coordinate.EntrypointID == "cleanup" {
-		return nil, errors.New("fixture cleanup failure")
-	}
-	response := dynamicpb.NewMessage(method.Output())
-	if field := response.Descriptor().Fields().ByName("server_version"); field != nil {
-		response.Set(field, protoreflect.ValueOfString("facade-conformance"))
-	}
-	// The evidence variants read one started Nexus operation back: as the history event that
-	// records it and as the pending operation on its second attempt, both keyed by the scheduled
-	// event id.
-	var recorded proto.Message
-	switch method.Output().FullName() {
-	case "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse":
-		recorded = &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
-			EventId: 6, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED,
-			Attributes: &historypb.HistoryEvent_NexusOperationStartedEventAttributes{NexusOperationStartedEventAttributes: &historypb.NexusOperationStartedEventAttributes{ScheduledEventId: 5}},
-		}}}}
-	case "temporal.api.workflowservice.v1.DescribeWorkflowExecutionResponse":
-		recorded = &workflowservice.DescribeWorkflowExecutionResponse{PendingNexusOperations: []*workflowpb.PendingNexusOperationInfo{{ScheduledEventId: 5, Attempt: 2}}}
-	default:
-	}
-	if recorded != nil {
-		encoded, err := proto.Marshal(recorded)
-		if err != nil {
-			return nil, err
-		}
-		if err := proto.Unmarshal(encoded, response); err != nil {
-			return nil, err
-		}
-	}
-	return facadeEffect{result: testpilot.EffectResult{
-		Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
-		Response: response,
-	}}, nil
-}
-func (s *facadeSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if interval <= 0 || satisfied == nil {
-		return nil, errors.New("facade conformance polls require an interval and a predicate")
-	}
-	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)
-	if err != nil {
-		return nil, err
-	}
-	result, err := handle.Wait(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := satisfied(ctx, result.Response); err != nil {
-		return nil, err
-	}
-	return handle, nil
-}
-func (*facadeSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
-	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
-}
-
-// InjectFault realizes every fault at once: the facade owns no worker, so the outage is recorded
-// and nothing stops, which is what the Run Event evidence variant reads.
-func (*facadeSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	return facadeEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
-}
-func (*facadeSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
-	return nil, errors.New("facade conformance Cases do not use handle bridges")
-}
-func (*facadeSession) Quarantine(context.Context, testpilot.EffectHandle) error {
-	return errors.New("facade conformance effects complete synchronously")
-}
-func (s *facadeSession) Close(context.Context) error {
-	s.driver.mu.Lock()
-	defer s.driver.mu.Unlock()
-	s.closed = true
-	return nil
-}
-func (*facadeSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
-	return nil
-}
-
-type facadeEffect struct{ result testpilot.EffectResult }
-
-func (e facadeEffect) Wait(context.Context) (testpilot.EffectResult, error) { return e.result, nil }
-func (facadeEffect) Cancel(context.Context) error                           { return nil }
-func (facadeEffect) Drain(context.Context) error                            { return nil }
 
 func projectFacadeRun(run *testpilotspb.Run) facadeStableRunProjection {
 	events := make([]facadeStableEventProjection, 0, len(run.GetEvents()))

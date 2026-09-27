@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -12,10 +11,12 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// runtimeDriver stays local because execution opens a *PreparedProgram, not the facade's Program.
 type runtimeDriver struct {
 	identity contract.DriverIdentity
 	session  *runtimeSession
@@ -29,10 +30,12 @@ func (d *runtimeDriver) Open(context.Context, string, *PreparedProgram) (contrac
 	return d.session, nil
 }
 
+// runtimeSession stays local: it serves each instruction its own effect and completes a quarantine
+// only when that effect completes, which a scripted Session would rebuild per test.
 type runtimeSession struct {
 	contract.Session
 	mu            sync.Mutex
-	effects       map[string]*runtimeEffect
+	effects       map[string]*testsupport.Effect
 	invokeErr     map[string]error
 	invocations   []string
 	quarantined   []contract.EffectHandle
@@ -59,9 +62,9 @@ func (s *runtimeSession) Quarantine(_ context.Context, handle contract.EffectHan
 	s.quarantined = append(s.quarantined, handle)
 	s.quarantine++
 	s.mu.Unlock()
-	effect := handle.(*runtimeEffect)
+	effect := handle.(*testsupport.Effect)
 	go func() {
-		<-effect.done
+		<-effect.Done()
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.quarantine--
@@ -86,61 +89,12 @@ func (s *runtimeSession) Diagnose(_ context.Context, _ string, diagnostic *testp
 	return nil
 }
 
-type runtimeEffect struct {
-	done            chan struct{}
-	result          contract.EffectResult
-	completeOnce    sync.Once
-	cancelCompletes bool
-	canceled        atomic.Bool
-	waitErr         error
-	drainErr        error
-	cancelFn        func(context.Context) error
-}
-
-func newRuntimeEffect(result contract.EffectResult, complete bool) *runtimeEffect {
-	effect := &runtimeEffect{done: make(chan struct{}), result: result, cancelCompletes: true}
+func newRuntimeEffect(result contract.EffectResult, complete bool) *testsupport.Effect {
+	effect := &testsupport.Effect{Result: result, CancelCompletes: true}
 	if complete {
-		effect.complete()
+		effect.Complete()
 	}
 	return effect
-}
-func (e *runtimeEffect) Wait(ctx context.Context) (contract.EffectResult, error) {
-	select {
-	case <-e.done:
-		return e.result, e.waitErr
-	case <-ctx.Done():
-		select {
-		case <-e.done:
-			return e.result, e.waitErr
-		default:
-			return contract.EffectResult{}, ctx.Err()
-		}
-	}
-}
-func (e *runtimeEffect) Cancel(ctx context.Context) error {
-	e.canceled.Store(true)
-	if e.cancelFn != nil {
-		return e.cancelFn(ctx)
-	}
-	if e.cancelCompletes {
-		e.complete()
-	}
-	return nil
-}
-func (e *runtimeEffect) Drain(ctx context.Context) error {
-	if e.drainErr != nil {
-		return e.drainErr
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-e.done:
-		return nil
-	}
-}
-
-func (e *runtimeEffect) complete() {
-	e.completeOnce.Do(func() { close(e.done) })
 }
 
 type runtimeMonitor struct {
@@ -189,10 +143,10 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	complete := newRuntimeEffect(effectResponse(prepared, "complete"), true)
 	lateEffect := newRuntimeEffect(effectResponse(prepared, "late"), false)
 	quarantined := newRuntimeEffect(effectResponse(prepared, "quarantined"), false)
-	quarantined.cancelCompletes = false
-	quarantined.drainErr = context.DeadlineExceeded
+	quarantined.CancelCompletes = false
+	quarantined.DrainErr = context.DeadlineExceeded
 	cleanup := newRuntimeEffect(effectResponse(prepared, "cleanup"), true)
-	session := &runtimeSession{effects: map[string]*runtimeEffect{
+	session := &runtimeSession{effects: map[string]*testsupport.Effect{
 		"call": complete, "late": lateEffect, "quarantine": quarantined, "cleanup": cleanup,
 	}}
 	driver := &runtimeDriver{identity: contract.DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity}, session: session}
@@ -206,15 +160,15 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	require.NotContains(t, session.invocations, "after")
 	require.Contains(t, session.invocations, "cleanup")
 	require.Contains(t, eventSources(run), "scheduler.g0.n1.a1.completed")
-	require.True(t, lateEffect.canceled.Load())
-	require.True(t, quarantined.canceled.Load())
+	require.Positive(t, lateEffect.Cancels())
+	require.Positive(t, quarantined.Cancels())
 	require.Contains(t, session.quarantined, quarantined)
 	require.Equal(t, 1, session.closed)
 	serialized, err := proto.Marshal(run)
 	require.NoError(t, err)
 	serializedVerdict, err := proto.Marshal(verdict)
 	require.NoError(t, err)
-	quarantined.complete()
+	quarantined.Complete()
 	await.RequireTrue(t, func() bool {
 		session.mu.Lock()
 		defer session.mu.Unlock()
@@ -342,10 +296,10 @@ func TestRunTerminalPrecedence(t *testing.T) {
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ordinary := newRuntimeEffect(effectResponse(prepared, "ordinary"), true)
-			ordinary.waitErr = test.ordinaryErr
+			ordinary.WaitErr = test.ordinaryErr
 			cleanup := newRuntimeEffect(effectResponse(prepared, "cleanup"), true)
-			cleanup.waitErr = test.cleanupErr
-			session := &runtimeSession{effects: map[string]*runtimeEffect{"call": ordinary, "cleanup": cleanup}, closeErr: test.hostCloseErr, closeTimeout: test.hostCloseTimeout}
+			cleanup.WaitErr = test.cleanupErr
+			session := &runtimeSession{effects: map[string]*testsupport.Effect{"call": ordinary, "cleanup": cleanup}, closeErr: test.hostCloseErr, closeTimeout: test.hostCloseTimeout}
 			monitor := &runtimeMonitor{closeKind: test.closeKind}
 			if test.stop {
 				monitor.stopSource = "scheduler.g0.n0.a1.completed"
@@ -380,7 +334,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
-	session := &runtimeSession{effects: map[string]*runtimeEffect{
+	session := &runtimeSession{effects: map[string]*testsupport.Effect{
 		"call":    newRuntimeEffect(effectResponse(prepared, "ordinary"), true),
 		"cleanup": newRuntimeEffect(effectResponse(prepared, "cleanup"), false),
 	}}
@@ -400,13 +354,13 @@ func TestRunBoundsHostContextViolationAndQuarantineCapacityFailure(t *testing.T)
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	effect := newRuntimeEffect(effectResponse(prepared, "complete"), true)
-	effect.cancelFn = func(ctx context.Context) error {
+	effect.OnCancel = func(ctx context.Context) error {
 		<-ctx.Done()
 		return nil
 	}
-	effect.drainErr = context.DeadlineExceeded
+	effect.DrainErr = context.DeadlineExceeded
 	session := &runtimeSession{
-		effects:       map[string]*runtimeEffect{"call": effect},
+		effects:       map[string]*testsupport.Effect{"call": effect},
 		quarantineErr: errors.New("quarantine capacity exhausted"),
 	}
 	monitor := &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}

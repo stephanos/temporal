@@ -9,6 +9,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -124,9 +125,9 @@ func TestSchedulerRecordsOneFaultEventPerInstruction(t *testing.T) {
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			var dispatched []string
-			host := &schedulerHost{fault: func(_ context.Context, _ contract.Coordinate, roleID string, kind testpilotspb.FaultKind) (contract.EffectHandle, error) {
+			host := &testsupport.Session{OnInjectFault: func(_ context.Context, _ contract.Coordinate, roleID string, kind testpilotspb.FaultKind) (contract.EffectHandle, error) {
 				dispatched = append(dispatched, roleID+"/"+kind.String())
-				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+				return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
 					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: tc.status}}, nil
 				}}, nil
 			}}

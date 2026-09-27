@@ -9,6 +9,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -61,21 +62,15 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	contract := &testpilotspb.Contract{ContractId: artifact.GetContract().GetContractId(), Rules: artifact.GetContract().GetRules()}
 	require.Len(t, contract.GetRules(), 1)
 
-	catalog, err := ir.NewCatalog(nexusDescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
+	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32,
-		MaxRunEvents: 512, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096,
-		MaxResponseBytes: 8192, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000,
-		MaxInstructionEmittedEvents: 64, MaxInstructionResponseBytes: 8192,
-	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
-	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
+	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
 	require.NoError(t, err)
 	ceiling := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	prepared, err := Prepare(contract, catalog, program.View(), ceiling, nil)

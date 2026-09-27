@@ -13,7 +13,9 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func TestPrivateCoreImportBoundary(t *testing.T) {
@@ -91,11 +93,11 @@ func TestTheDefaultGuardSkipsAfterAFailedDependency(t *testing.T) {
 	require.NoError(t, err)
 	var mu sync.Mutex
 	var calls []string
-	host := &schedulerHost{invoke: func(_ context.Context, c contract.Coordinate, _ proto.Message) (contract.EffectHandle, error) {
+	host := &testsupport.Session{OnInvokeRPC: func(_ context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, _ proto.Message) (contract.EffectHandle, error) {
 		mu.Lock()
 		calls = append(calls, c.InstructionID)
 		mu.Unlock()
-		return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+		return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
 			if c.InstructionID == "call" {
 				return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "unavailable"}}, nil
 			}

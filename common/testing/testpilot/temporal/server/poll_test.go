@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -48,24 +49,11 @@ func pendingFile(t *testing.T) protoreflect.FileDescriptor {
 func pollFixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, protoreflect.MethodDescriptor) {
 	t.Helper()
 	file := pendingFile(t)
-	descriptors := &descriptorpb.FileDescriptorSet{}
-	seen := map[string]bool{}
-	var add func(protoreflect.FileDescriptor)
-	add = func(file protoreflect.FileDescriptor) {
-		if seen[file.Path()] {
-			return
-		}
-		seen[file.Path()] = true
-		for index := 0; index < file.Imports().Len(); index++ {
-			add(file.Imports().Get(index))
-		}
-		descriptors.File = append(descriptors.File, protodesc.ToFileDescriptorProto(file))
-	}
-	add(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
-	add(file)
-	catalog, err := testpilot.NewCatalog(descriptors)
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto, file))
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 4, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 8, MaxRequestBytes: 4096, MaxResponseBytes: 8192, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 8192}
+	// A read emits up to the path fanout, which must fit the instruction's emitted-event bound.
+	limits := testsupport.ProgramLimits()
+	limits.MaxPathFanout = limits.MaxInstructionEmittedEvents
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	profile := testpilot.ProfileSpec{Identity: "poll-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.ReadEvidence}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{describeMethod}}}}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
