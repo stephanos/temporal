@@ -1534,6 +1534,21 @@
       "specDependencies": []
     },
     {
+      "id": "fn-89-one-contract-rule-per-entity",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-85-model-side-effects-as-typed-actions-and",
+        "fn-86-retire-hand-written-models-one",
+        "fn-87-tighten-the-testpilot-protocol-glossary",
+        "fn-90-resolve-the-intermittent-live-testpilot"
+      ]
+    },
+    {
       "id": "fn-9-umpire-reusable-dsl-package-split",
       "scope": "umpire-roadmap",
       "disposition": "completed-prerequisite",
@@ -1542,6 +1557,28 @@
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
+    },
+    {
+      "id": "fn-90-resolve-the-intermittent-live-testpilot",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-91-say-opaque-handle-in-the-driver-contract",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-87-tighten-the-testpilot-protocol-glossary"
+      ]
     }
   ]
 }

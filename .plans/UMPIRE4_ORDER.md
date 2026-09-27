@@ -6,10 +6,9 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-fn-88 is the only queued spec. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
+fn-88 to fn-91 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
 fn-29 are delivered, each with SHIP implementation and completion reviews; their task receipts in
-`.flow/` and the git history carry the details. fn-29's `spec close` is still to be run in a clone
-whose runtime task state reads every task done.
+`.flow/` and the git history carry the details.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -28,26 +27,33 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    engine and differential oracle. The reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path, and it neither
    runs fn-23's sandboxed gate nor resumes fn-24 or fn-25.
+2. **fn-90 — Resolve the intermittent live Testpilot failures**
+   ([spec](../.flow/specs/fn-90-resolve-the-intermittent-live-testpilot.md)). Re-measures the
+   umpire-run namespace-delete timeout, the Nexus evidence-ordering mismatch and the async-Nexus
+   INCONCLUSIVE Run on today's test identities with a repetition harness, then fixes each at its
+   cause; a retry is a signature-exact, issue-linked last resort inside the live test and never
+   applies to a VIOLATED Run. Done is zero failures over the per-test loops and five consecutive
+   green `make umpire-check-live-tests` runs.
+3. **fn-89 — One Contract Rule per entity**
+   ([spec](../.flow/specs/fn-89-one-contract-rule-per-entity.md)), after fn-90, since both touch the
+   Nexus pair Case. A Rule over N instances crosses the wire once with its per-instance values
+   instead of N lowered copies; Verdicts stay identical, pinned by a differential test, and only the
+   multi-instance pair fixture changes.
+4. **fn-91 — Say opaque handle in the Driver contract**
+   ([spec](../.flow/specs/fn-91-say-opaque-handle-in-the-driver-contract.md)). A mechanical,
+   behavior-preserving rename of the Driver seam's hand-written Go from capability to the opaque
+   handle family, with the retired-vocabulary gate holding the old names. Independent of the others;
+   land it before fn-79 resumes on the same seam.
 
-### Carried forward, not yet specs
+### Carried forward, not specs
 
-- **One Contract monitor per entity** (after fn-86): declared per entity and instantiated per
-  instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case carries
-  its operation rules twice). It changes how the runtime evaluates rules, so it gets its own spec.
 - **A field path through a repeated field** (deferred from fn-86 R2): selecting the element the
   observation correlates to the row's entity instance. `Temporal.Case.FieldPath` rejects every
   repeated-field path today.
-- **The Driver contract still says capability in the effect-handle sense** (left open by fn-87):
-  `CapabilityEffect`, `CapabilityBridge` and the server Session's slots and claims. Renaming touches
-  the server, worker and composite Sessions, every test Session, the conformance corpus and Umpire's
-  lowering, so it wants its own change.
 - **The canary CI job's cold Lean build** (from fn-29): the `canary` job in
   `.github/workflows/umpire.yml` is the first to build Lean targets (`canary-check-case`,
   `umpire-check-evaluation-profiles`) with `cache: false` inside a 30-minute timeout; confirm the
   first CI run fits.
-- **Intermittent live failures:** three tests also fail at base commits in about one or two runs in
-  ten: the umpire-run namespace-delete timeout, the typed Nexus evidence-ordering mismatch, and an
-  async-Nexus Run ending INCONCLUSIVE.
 
 ## Gate baselines
 
