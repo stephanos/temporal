@@ -37,9 +37,20 @@ every run pays the stuck delete today, whatever fn-90.3 measured.
 - [ ] 50 process-mode iterations of `^TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint$` pass with zero failures; the receipt gives before/after rate and run time.
 - [ ] `go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotUmpireRun'` passes; `make lint-code-fast` is clean.
 ## Done summary
-TBD
+The umpire-run live test now runs on a cluster with the system worker service and 1 s transfer and visibility ack intervals. It asserts that the Nexus endpoint is gone and that the namespace's original name answers not-found within a bounded `await.Requiref`, and any `delete namespace` or `delete Nexus endpoint` leak line fails it. Each failure message names the resource. The provisioning README now says a `--create` namespace deletion finishes only on a cluster that runs the system worker.
 
+Probing the worker service found a separate defect, fixed at its source in its own commit (08de7fb687, `tests/testcore/onebox.go`). The onebox gave frontend and history an `otellog.Logger` but not the worker, so every `WithWorkerService` cluster failed fx construction with "missing type: log.Logger". `TestNamespaceSuite` failed the same way. This file is outside the task's declared Touches, but the task asked for the probe's failure to be solved at its source.
+
+Run time: before the fix (ed55fb0646) the test took about 36 s per iteration, 0/5 failed. After the fix it took about 6 s per iteration (5.9 s over 50 at 301e23526e, 6.7 s over 50 at bdf949c1e2), with 0/50 failures in both loops. The 30 s teardown wait is gone.
+
+Forced leaks (local, reverted):
+- A no-op namespace release fails with "the namespace umpire-run-nexus-caller umpire-run created was not deleted on exit".
+- A namespace release that returns an error fails on the stderr leak line.
+
+`TestTestpilotUmpireRunRejectsAnUnreachableEndpoint` is unchanged. The range from the base commit also contains fn-90.6 commits by another worker; they are not this task's.
+
+stage: impl-review - ran [2026-09-27T05:05Z..2026-09-27T05:14Z] (claude:opus:high; SHIP with one P3, fixed in bdf949c1e2, re-review SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 08de7fb6870718a90386566380e524a640d3ce3f, 301e23526ed0ffd7b53f32ec6ec5e2bc8edf11a0, bdf949c1e253d5f43699d7af597820d70d875473
+- Tests: baseline: green (go vet -tags 'test_dep integration' ./tests; go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/...), go test -count=1 -tags 'test_dep integration' ./tests -run '^TestNamespaceSuite$/Test_NamespaceDelete_Empty$' (red before the onebox fix: fx missing otellog.Logger; green after), go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotUmpireRun' (both pass at bdf949c1e2), forced leaks, local and reverted: namespace release no-op fails naming umpire-run-nexus-caller; namespace release error fails on the 'delete namespace' stderr leak line, make umpire-repeat-run SELECT='^TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint$' COUNT=5 MODE=process: before (ed55fb0646) 0/5 at ~36 s/iteration; after (301e23526e) 0/5 at ~6 s/iteration, make umpire-repeat-run SELECT='^TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint$' COUNT=50 MODE=process: 0/50 at 301e23526e (5.9 s/iteration) and 0/50 at bdf949c1e2 (6.7 s/iteration), make lint-code-fast (0 issues); golangci-lint --build-tags test_dep,integration --new-from-rev=base ./tests/ (0 issues), go vet -tags 'test_dep integration' ./tests; go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/..., make umpire-check-live-tests: green, 45 passing identities, empty failure set (first attempt INCONCLUSIVE: link failed with no space left on device)
 - PRs:
