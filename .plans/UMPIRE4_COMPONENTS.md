@@ -103,7 +103,7 @@ implementation was found.
 | C9 SDK participant | Partial | The System-owned caller-closure participant and exact duplicate-delivery variant bind the same Go SDK adapter; the latter records one real callback plus one labeled test-owned synthetic contribution. Additional programs and SDKs remain downstream. |
 | C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
 | C11 formal checks | Partial + separate | Current Lean provides proofs, finite completeness, bounded verification, and model counterexample search. Umpire3 has mature receipts and optional family-scoped Veil support; the current model has neither an explicit first-order checker view nor a Veil binding. |
-| C11 formal checks (fn-88) | Planned under fn-88 | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Model counterexample search moves onto Veil's concrete checker as the default `Umpire.Search` backend, over a product of the checked table, Scenario progress, and Property monitors, with the current traversal frozen as the `reference` fallback and differential oracle. The model's toolchain moved to Lean 4.32.0, Veil's declared toolchain (fn-88.12). Every `veil` witness is kernel-replayed; a `veil` absence answer is trusted from the pinned checker, with the differential test as oracle and 64-bit state-hash deduplication as the stated trust assumption. The symbolic checker view and Veil binding remain fn-23 to fn-25's. |
+| C11 formal checks (fn-88) | Planned under fn-88 | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Model counterexample search moves onto Veil's concrete checker as the default `Umpire.Search` backend, over a product of the checked table, Scenario progress, and Property monitors, with the current traversal frozen as the `reference` fallback and differential oracle. The model's toolchain moved to Lean 4.32.0, Veil's declared toolchain (fn-88.12). Every `veil` witness is kernel-replayed; a `veil` absence answer is trusted from the pinned checker, with the differential test on the checked-in models as oracle and 64-bit state-hash deduplication as the stated trust assumption. The symbolic checker view and Veil binding remain fn-23 to fn-25's. |
 | C12 Claim Assessment | Local slice implemented | `umpire-assess run` assesses one recorded Run of one canonical Case offline under a Lean-declared Evaluation Profile (`local-ephemeral`) and publishes one canonical, exclusive Evaluation Receipt; it creates and replays no Run. The production canary (`tools/canary`, fn-29) consumes the same admission, assessment, rendering and publisher unchanged under its own `production-canary` Evaluation Profile, beside a canary provenance that is never release evidence. Remote, CI and release claims remain deferred. |
 
 | Milestone | Status | Summary |
@@ -636,13 +636,14 @@ are accepted.
 *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The toolchain gate is passed for Veil's
 concrete checker, and this paragraph now governs only the symbolic binding. fn-88's second probe
 adopted the checker at `verse-lab/veil@517f2ba`, and the model moved from Lean 4.33.1 to 4.32.0,
-Veil's declared toolchain. The checker is a required Lake dependency, not an optional import: it
-enters the default build and `make umpire-check-regression`, which pins its commit, and Node and npm
-become model build prerequisites because Lake builds Veil's widget bundle. The toolchain and the
-Veil commit move together. It stays out of `Plan`, runtime execution, and production binaries. Its
+Veil's declared toolchain. Planned under fn-88 and not yet landed: when fn-88's `require` lands,
+the checker becomes a required Lake dependency, not an optional import; it then enters the default
+build and `make umpire-check-regression`, which pins its commit, and Node and npm become model build
+prerequisites because Lake builds Veil's widget bundle. From then on the toolchain and the Veil
+commit move together. It stays out of `Plan`, runtime execution, and production binaries. Its
 entry is `IO`, run during command elaboration. Each witness passes kernel replay; an absence answer
 is trusted from the checker, with fn-88's differential test against the frozen `reference` backend
-as oracle and Veil's 64-bit state-hash deduplication as the stated trust assumption.
+on the checked-in models as oracle and Veil's 64-bit state-hash deduplication as the stated trust assumption.
 
 ### C12. Deployment portability and Claim Assessment
 

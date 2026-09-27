@@ -70,10 +70,10 @@ model/
 │
 ├── Umpire/
 │   ├── Model, Property, Scenario, Query, Search, ...
-│   ├── Search/                   # drafted by fn-88; awaiting GOV-02 approval
-│   │   ├── Product.lean          # model state x Scenario progress x Property monitors
-│   │   ├── Backend/Veil.lean     # the only importer of Veil.*
-│   │   └── Selection.lean        # picks veil or reference; sole importer of Backend.Veil
+│   ├── Search/                   # existing; fn-88 draft entries below, awaiting GOV-02 approval
+│   │   ├── Product.lean          # planned (fn-88): model state x Scenario progress x monitors
+│   │   ├── Backend/Veil.lean     # planned (fn-88): the only importer of Veil.*
+│   │   └── Selection.lean        # planned (fn-88): picks veil or reference; sole importer of Backend.Veil
 │   ├── Evidence, Case and Implementation Link
 │   └── Verify/                   # planned
 │       └── Veil/                 # planned: generic optional Veil machinery
@@ -101,8 +101,10 @@ their single enforcement mechanism: it checks transitive reachability over the c
 module inventory rather than scanning import text.
 
 *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The list also carries MOD-16 and MOD-17.
-The `Umpire/Search/` entries in the tree above are planned by fn-88: `Umpire.Search.Product`,
-`Umpire.Search.Backend.Veil`, and `Umpire.Search.Selection`. MOD-17 is a direct-import rule, not a
+The `Umpire/Search/` entries in the tree above marked planned (fn-88) do not exist yet either; they
+are the shape the Veil search backend takes when fn-88 delivers it: `Umpire.Search.Product`,
+`Umpire.Search.Backend.Veil`, and `Umpire.Search.Selection`. The tree lists only these new modules
+under `Search/`, not the existing ones. MOD-17 is a direct-import rule, not a
 reachability rule, because every module above the selection reaches Veil transitively; `make
 lint-model` enforces it as `search-backend-isolation` beside MOD-16's `authoring-path-isolation`.
 Its complete-mode walk also reads the metadata of the Veil modules the adapter imports.

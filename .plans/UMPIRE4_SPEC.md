@@ -791,7 +791,8 @@ it.
   finalization inside `Umpire.Search` replays it step by step against the checked table from a
   proven initial state and re-makes the admission, ending, endpoint, and coverage decision the
   reference traversal makes; a witness that fails is `invalid`, never `found`. Promotion's replay
-  stays fn-24's.
+  stays fn-24's. Unlike the rest of this section, this part of VER-05 binds a non-optional path:
+  the `veil` backend is the default search backend, not an opt-in checker (MOD-05).
 - **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, search within
   Limits, Runs, and concrete replay MUST be recorded as distinct bases for a claim; they are not
   interchangeable. *(planned: fn-24-lean-native-verification-receipts-and)*
@@ -802,7 +803,8 @@ it.
   `unsatisfiable`) is trusted from the pinned Veil checker. Its oracle is the differential test
   against `reference` on the checked-in models, and its stated trust assumption is Veil's 64-bit
   state-hash deduplication. The planning receipt records which basis applies through its backend and
-  Veil-commit fields, and neither basis is reported as a kernel proof.
+  Veil-commit fields, and neither basis is reported as a kernel proof. This part of VER-06 binds
+  the default search backend, not only opt-in checkers.
 
 ### CLI, environment, and claim rules
 
