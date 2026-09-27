@@ -928,6 +928,33 @@ func gomadBlockingWrite(fd uintptr, source unsafe.Pointer, bytes int32) int32 {
 	return count
 }
 
+// gomadSyscallWrite carries the writes syscall.Write still allows under Gomad
+// (stdout, stderr, and the trace transport) to the kernel without passing
+// through syscall.Syscall: on Linux that trampoline has a Go body and is a
+// guarded capability entry point, so guarded targets would trip the guard on
+// their own output.
+//
+//go:linkname gomadSyscallWrite
+func gomadSyscallWrite(fd int, source []byte) (int, uintptr, bool) {
+	if !gomadEnabled {
+		return 0, 0, false
+	}
+	if len(source) == 0 {
+		return 0, 0, true
+	}
+	count := int32(1 << 30)
+	if len(source) < int(count) {
+		count = int32(len(source))
+	}
+	entersyscall()
+	written := write1(uintptr(fd), unsafe.Pointer(&source[0]), count)
+	exitsyscall()
+	if written < 0 {
+		return 0, uintptr(-written), true
+	}
+	return int(written), 0, true
+}
+
 //go:linkname gomadTraceExit
 func gomadTraceExit(code int32) {
 	exit(code)

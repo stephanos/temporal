@@ -5,7 +5,12 @@ Module `gomad3.test` holds the black-box programs the conformance driver in
 driver's `runtime_*.go` files are the specification: each fixture's arguments,
 environment, expected output, exit status, and timing come from there, and the
 compiler fixtures under `intercept` and `interceptfail` come from
-`deterministicio/boundary/compiler-tests.json`.
+`deterministicio/boundary/compiler-tests.json`. The `io_*` fixtures are specified by the
+runner's `runner/internal/execution/io_*_toolchain_test.go` and
+`runner/replay_io_integration_test.go` instead: `io_filesystem` and `io_net` must reach every
+modeled and every refused `os` and `net` entry in the boundary manifest, since
+`TestBoundaryManifestSemanticCanaries` requires a positive probe for each one, and `io_signal`
+and `io_user` build in guarded capability mode because their packages are forbidden imports.
 
 The fixtures only use the standard library. Programs that print scheduling or
 map-iteration order must not print addresses, because the driver compares their
