@@ -159,7 +159,9 @@ reviewer: gpt-5.6-sol at high
 
 <!-- Pinned rather than left unset: the worker implements in-session on Claude
      Code, and these are patched-runtime and determinism tasks that degrade badly
-     on a cheaper tier, so the pin holds even if the session model is switched down. -->
+     on a cheaper tier, so the pin holds even if the session model is switched down.
+     Escalate gnarly determinism-divergence tasks (tracing same-seed divergence to
+     a runtime channel) to fable-5.1 at high. -->
 
 implementer: opus at high
 
@@ -171,7 +173,9 @@ fast scout: haiku
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
 
-thinking scout: opus at high
+<!-- Spec writing, planning, and design decisions. -->
+
+thinking scout: fable-5.1 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
