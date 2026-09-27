@@ -121,8 +121,18 @@ func projectSeedReport(report qualification.QualificationReport, classification 
 		Seed: record.Uint64String(seed), Classification: classification, EvidenceSHA256: report.EvidenceDigest,
 		ReplayMatch: true, ChoiceReplayExact: true, Choice: emptyChoiceCoverage(),
 	}
+	// Successful-replay evidence is what makes a seed qualified. A seed the
+	// runner classified otherwise (nondeterministic, target failure) keeps that
+	// classification and its retained evidence instead of collapsing into a
+	// runner failure, so a manifest can state such a boundary and CI can hold
+	// it there.
+	qualified := classification == "qualified"
+	evidence := workload
+	if !qualified {
+		evidence.ReplaySuccesses = false
+	}
 	for index, run := range report.Executions {
-		if err := mergeQualificationRun(&result, run, index, seed, workload, analysis); err != nil {
+		if err := mergeQualificationRun(&result, run, index, seed, evidence, analysis); err != nil {
 			return SeedReport{}, err
 		}
 	}
@@ -130,13 +140,13 @@ func projectSeedReport(report qualification.QualificationReport, classification 
 		result.ReplayMatch = false
 		result.ChoiceReplayExact = false
 	}
-	if workload.ReplaySuccesses && (!result.Replayed || !result.ReplayMatch) {
+	if qualified && workload.ReplaySuccesses && (!result.Replayed || !result.ReplayMatch) {
 		return SeedReport{}, errors.New("qualification did not complete exact successful replay")
 	}
-	if workload.ChoiceBytes != 0 && !result.Choice.Available {
+	if qualified && workload.ChoiceBytes != 0 && !result.Choice.Available {
 		return SeedReport{}, errors.New("qualification did not retain required choice coverage")
 	}
-	if workload.ChoiceBytes != 0 && workload.ReplaySuccesses && (!result.ChoiceReplayExact || !result.Choice.ExactReplayAvailable) {
+	if qualified && workload.ChoiceBytes != 0 && workload.ReplaySuccesses && (!result.ChoiceReplayExact || !result.Choice.ExactReplayAvailable) {
 		return SeedReport{}, errors.New("qualification did not prove exact choice replay")
 	}
 	return result, nil

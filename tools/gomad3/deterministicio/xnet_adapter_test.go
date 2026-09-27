@@ -45,7 +45,7 @@ func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
 	if !strings.Contains(string(rewrittenSys), "return 0, unix.ENOTSUP") || !strings.Contains(string(rewrittenSys), "return unix.ENOTSUP") {
 		t.Fatalf("rewritten sys_unix.go does not deny raw socket options: %s", rewrittenSys)
 	}
-	if !strings.Contains(string(rewrittenEmpty), "//go:build !darwin") || !strings.Contains(string(rewrittenEmpty), "This exists solely so we can linkname in symbols from syscall.") {
+	if !strings.Contains(string(rewrittenEmpty), "//go:build ignore") || strings.Contains(string(rewrittenEmpty), "//go:build darwin") || !strings.Contains(string(rewrittenEmpty), "This exists solely so we can linkname in symbols from syscall.") {
 		t.Fatalf("rewritten empty.s = %s", rewrittenEmpty)
 	}
 	if got := digestBytes(rewrittenSys); got != xnetSocketReplacementSHA256 {

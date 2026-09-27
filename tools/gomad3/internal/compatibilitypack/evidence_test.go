@@ -8,7 +8,7 @@ import (
 func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
 	packages := generatedExactPackages(validated.pack)
-	selection, err := Select(packages)
+	selection, err := selectGeneratedPacksForTest(t, validated, packages)
 	requireTestNoError(t, err)
 
 	evidence := selection.Evidence()

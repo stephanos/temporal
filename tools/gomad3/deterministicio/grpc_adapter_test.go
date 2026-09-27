@@ -61,6 +61,38 @@ func TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl(t *testing.T) {
 	}
 }
 
+func TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations(t *testing.T) {
+	moduleRoot := filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.83.2")
+	for _, rewrite := range grpcLinuxRewrites {
+		linuxSource, err := readGRPCAdapterSource(moduleRoot, rewrite.linuxPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		nonLinuxSource, err := readGRPCAdapterSource(moduleRoot, rewrite.nonLinuxPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rewritten, err := rewriteGRPCLinuxSource(rewrite, linuxSource, nonLinuxSource)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.HasPrefix(string(rewritten), "//go:build linux\n") || strings.Contains(string(rewritten), "!linux") {
+			t.Fatalf("%s replacement constraint = %q", rewrite.linuxPath, strings.SplitN(string(rewritten), "\n", 2)[0])
+		}
+		for _, removed := range []string{"\"golang.org/x/sys/unix\"", "SyscallConn", "rawConn.Control", "Getsockopt(int(fd)", "SetsockoptInt"} {
+			if strings.Contains(string(rewritten), removed) {
+				t.Fatalf("%s replacement retained %q", rewrite.linuxPath, removed)
+			}
+		}
+		if _, err := rewriteGRPCLinuxSource(rewrite, append(linuxSource, '\n'), nonLinuxSource); err == nil {
+			t.Fatalf("rewriteGRPCLinuxSource() accepted a changed %s", rewrite.linuxPath)
+		}
+		if _, err := rewriteGRPCLinuxSource(rewrite, linuxSource, append(nonLinuxSource, '\n')); err == nil {
+			t.Fatalf("rewriteGRPCLinuxSource() accepted a changed %s", rewrite.nonLinuxPath)
+		}
+	}
+}
+
 func TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift(t *testing.T) {
 	source := append(readPinnedGRPCKeepalive(t), '\n')
 	if _, err := rewriteGRPCKeepalive(source); err == nil {

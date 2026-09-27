@@ -351,6 +351,63 @@ work: the simulated-target choice-trace tests in `runner/internal/execution` rep
 trace unterminated" on Linux with the go1.26.4 toolchain too, while the real-target choice
 paths (runtime tier, core qualification) replay exactly.
 
+Continued on 2026-09-27 on linux/amd64, still on `gomad-linux`. Guarded mode is the mode that
+reaches the probe: closure mode keeps `os/exec`, `os/signal`, and `os/user` as
+`remain_unsupported` through the cloud credential chains, fx, and the SDK, and linked mode
+adds nine denied boundaries. `temporal-functional-compute-linux-amd64` (request, review, and
+generated pack under `internal/compatibilitypack`) admits exactly the 25 guarded-mode blockers:
+the amd64 assembly of edwards25519, cespare/xxhash, go-farm, snappy, klauspost huff0/cpuinfo/zstd
+and its xxhash, reflect2, murmur3, chacha20poly1305, poly1305, and x/sys/cpu, plus the reflect2
+and x/sys/cpu linknames; it is the Linux amendment of the darwin pack, whose four entries are the
+arm64 subset. Its Makefile qualification passes and `compatibility-pack check` is current. Making
+the probe run exposed four defects, all fixed here: the x/net adapter flipped `empty.s` to
+`//go:build !darwin`, which compiled that assembly on Linux and made every Linux closure that
+imports x/net sockets unsupported (now `//go:build ignore`); gRPC's Linux-only channelz socket
+introspection, TCP user-timeout and CPU-time helpers, and non-blocking ready reader call
+`(*TCPConn).SyscallConn` and `x/sys/unix`, so a guarded target died with
+`GOMAD_CAPABILITY_DENIED` in `grpc.Server.Serve` (the gRPC adapter now compiles gRPC's own
+non-Linux implementations of those three files under a Linux constraint, exactly the path
+darwin takes); the capability review rejected any closure that compiled some packages of an
+adapter's module but not the adapter's prepared package ("adapter prepared package is absent"),
+which is every Temporal package that reaches x/net/http2 through gRPC without tchannel's
+`x/net/ipv4`, so ten of the sixteen representative suites could not even be analyzed on Linux
+(an adapter copy is byte-identical outside its prepared package, so that case is an inert
+adapter and is now accepted and still recorded); the qualification-set schema refused tier 3;
+and the set collapsed every non-qualified seed of a replaying workload into `runner_failure`
+because it demanded successful-replay evidence before looking at the classification, so a
+manifest could not state the `nondeterministic` expectation its own schema defines (successful
+replay and exact choice replay are now what `qualified` requires, and other seeds keep their
+classification and retained evidence). The `target` and `compatibilitypack` unit tests that
+assumed a darwin/arm64 host now select for each pack's governed platform and derive their
+adapter digests, so both packages pass on Linux.
+With those in place `make gomad3-qualification` on Linux analyzes all 17 suites, qualifies the
+five package suites with exact replay, reports the eleven expected `unsupported_target` results
+(`temporal-cache-concurrent` carries a linux/amd64 expectation naming `xxhash_amd64.s`), and
+the probe itself boots the one-box cluster, serves `GetSystemInfo`, and exits 0 under guarded
+mode with a 183 MB retained success artifact (the suite's `success_bytes_limit` is 256 MiB).
+
+What does not hold yet is the acceptance's repeatability: two same-seed repetitions of the probe
+diverge in the choice trace, and replaying a recorded success diverges too, so the set reports
+the probe `nondeterministic` and the manifest states that as its linux/amd64 expectation until
+it is fixed. Evidence so far, all on seed 11: the first divergent decision is a run-queue pick
+between ordinal 4 and ordinal 121 depending on the pair, always with the same alternative set
+but a different physical order or a different selected rank, and in one pair a different
+alternative count at ordinal 12; the failing repetition then blocks with no timer nearer than
+the test's 90 s deadline and fails on `context deadline exceeded` while the other serves the
+RPC. `GOGC=off` does not change it, so it is not the GC dimension; `setarch -R` does not change
+it, and the heap-derived membership address is identical across runs, so it is not address
+layout; the kernel honors Go's arena hints here. Re-seeding the runtime's per-M `rand` and
+`cheaprand` streams did not remove it either, but that change stays because it closes a real
+hand-off race: every M started from the same seeded position and advanced independently, so
+which M held the P decided map hash seeds, timer tie-breaks (`t.rand`), and semaphore tickets;
+the M holding the P now draws from process-wide seeded states (`runtime.gomadRuntimeRand`,
+`gomadRuntimeCheapRand`) and Ms without a P keep their own streams for lock backoff. The
+divergence at ordinal 4, during runtime initialization with three runnable goroutines in a
+different run-queue order, points at the remaining suspect: the locked main goroutine's
+`stoplockedm`/`startlockedm` hand-offs and the global run queue, whose order the choice trace
+does not govern. That is the next thing to instrument; until it is closed, F3's acceptance is
+not met on Linux and darwin/arm64 has not been run.
+
 **Constraints.**
 
 - No new pack unless the analyzer names a blocker not already in

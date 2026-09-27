@@ -45,6 +45,24 @@
       "expectation": {"classification": "qualified"}
     },
     {
+      "id": "frontend-system-info",
+      "name": "Frontend system info probe",
+      "tier": 3,
+      "capability_mode": "guarded",
+      "invariant": "the one-box cluster boots, serves GetSystemInfo, and shuts down repeatably under virtual time",
+      "package": "./tests/gomadfunctional",
+      "test": "TestFrontendSystemInfo",
+      "build_tags": ["disable_grpc_modules", "test_dep"],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 268435456,
+      "expectation": {"classification": "qualified"},
+      "platform_expectations": {
+        "linux/amd64": {"classification": "nondeterministic"}
+      }
+    },
+    {
       "id": "future-suite",
       "name": "Future suite",
       "tier": 2,
@@ -110,6 +128,13 @@
         "classification": "unsupported_target",
         "import_path": "github.com/cespare/xxhash/v2",
         "capability": "foreign:assembly:xxhash_arm64.s"
+      },
+      "platform_expectations": {
+        "linux/amd64": {
+          "classification": "unsupported_target",
+          "import_path": "github.com/cespare/xxhash/v2",
+          "capability": "foreign:assembly:xxhash_amd64.s"
+        }
       }
     },
     {

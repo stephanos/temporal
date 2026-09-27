@@ -299,6 +299,39 @@ func gomadChoiceSeedRandom() {
 	gomadChoiceRunqRandom.Init64([4]uint64{gomadSeed})
 	gomadChoiceSchedulerRandom.Init64([4]uint64{gomadSeed, 0x676f6d6164736368})
 	gomadChoiceSelectRandom = gomadSeed
+	gomadRuntimeRandom.Init64([4]uint64{gomadSeed, 0x676f6d616472616e})
+	gomadRuntimeCheapRandom = uint32(gomadSeed)
+}
+
+// The runtime's rand and cheaprand streams are per M, and every M starts from
+// the same seeded position. Which M holds the P after a hand-off is a
+// host-timing race, so two same-seed runs that hand the P between Ms at
+// different points read different map hash seeds, timer tie-breaks, and
+// semaphore tickets from otherwise identical streams. The M holding the P
+// therefore draws from these process-wide states instead; Ms without a P
+// (lock backoff on idle threads) keep their own streams, which decide nothing
+// the program observes.
+var gomadRuntimeRandom chacha8rand.State
+var gomadRuntimeCheapRandom uint32
+
+//go:nosplit
+func gomadRuntimeRand(mp *m) uint64 {
+	for {
+		x, ok := gomadRuntimeRandom.Next()
+		if ok {
+			return x
+		}
+		mp.locks++ // hold m even though Refill may do stack split checks
+		gomadRuntimeRandom.Refill()
+		mp.locks--
+	}
+}
+
+//go:nosplit
+func gomadRuntimeCheapRand() uint32 {
+	gomadRuntimeCheapRandom += 0x53c5ca59
+	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
+	return hi ^ lo
 }
 
 func gomadChoiceRunqSeeded(n uint32) uint32 {

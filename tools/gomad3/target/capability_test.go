@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -171,6 +172,7 @@ func TestValidateCapabilityClosureRejectsIncompletePinnedAdapterEvidence(t *test
 }
 
 func TestProjectCapabilityClosureRecordsSelectedCompatibilityPack(t *testing.T) {
+	packID := pinnedReflect2PackID(t)
 	closure, err := projectCapabilityClosure([]listedPackage{
 		{ImportPath: "example.com/main", Name: "main", Standard: true},
 		pinnedReflect2ListedPackage(t),
@@ -178,13 +180,41 @@ func TestProjectCapabilityClosureRecordsSelectedCompatibilityPack(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(closure.Compatibility) != 1 || closure.Compatibility[0].ID != "reflect2-go126" || closure.Compatibility[0].SHA256 == "" {
+	if len(closure.Compatibility) != 1 || closure.Compatibility[0].ID != packID || closure.Compatibility[0].SHA256 == "" {
 		t.Fatalf("compatibility = %#v", closure.Compatibility)
 	}
 }
 
+// pinnedReflect2Host names the assembly files the host's build of reflect2
+// compiles and the compatibility pack, if any, whose activation is reflect2
+// alone on that host. Packs are platform-scoped, and on linux/amd64 reflect2 is
+// admitted only inside the functional-compute pack, whose activation needs the
+// whole workload closure, so no pack selects for a reflect2-only closure there.
+func pinnedReflect2Host(t *testing.T) (packID string, sFiles []string) {
+	t.Helper()
+	switch runtime.GOOS + "/" + runtime.GOARCH {
+	case "darwin/arm64":
+		return "reflect2-go126", []string{"relfect2_arm64.s", "relfect2_mips64x.s", "relfect2_mipsx.s", "relfect2_ppc64x.s"}
+	case "linux/amd64":
+		return "", []string{"reflect2_amd64.s", "relfect2_mips64x.s", "relfect2_mipsx.s", "relfect2_ppc64x.s"}
+	default:
+		t.Skipf("reflect2 assembly inventory is not pinned for %s/%s", runtime.GOOS, runtime.GOARCH)
+		return "", nil
+	}
+}
+
+func pinnedReflect2PackID(t *testing.T) string {
+	t.Helper()
+	packID, _ := pinnedReflect2Host(t)
+	if packID == "" {
+		t.Skipf("no compatibility pack activates on reflect2 alone for %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
+	return packID
+}
+
 func pinnedReflect2ListedPackage(t *testing.T) listedPackage {
 	t.Helper()
+	_, sFiles := pinnedReflect2Host(t)
 	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
 	if err != nil {
 		t.Fatal(err)
@@ -196,7 +226,7 @@ func pinnedReflect2ListedPackage(t *testing.T) listedPackage {
 			"go_above_118.go", "go_above_19.go", "reflect2.go", "reflect2_kind.go", "safe_field.go", "safe_map.go", "safe_slice.go", "safe_struct.go", "safe_type.go", "type_map.go",
 			"unsafe_array.go", "unsafe_eface.go", "unsafe_field.go", "unsafe_iface.go", "unsafe_link.go", "unsafe_map.go", "unsafe_ptr.go", "unsafe_slice.go", "unsafe_struct.go", "unsafe_type.go",
 		},
-		SFiles: []string{"relfect2_arm64.s", "relfect2_mips64x.s", "relfect2_mipsx.s", "relfect2_ppc64x.s"},
+		SFiles: sFiles,
 		Module: &listedModule{
 			Path: "github.com/modern-go/reflect2", Version: "v1.0.3-0.20250322232337-35a7c28c31ee", Sum: "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
 		},
