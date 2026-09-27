@@ -75,6 +75,11 @@ var gomadSimulationTimeResponse [gomadSimulationTimeResponseBytes]byte
 func gomadInit() {
 	var seed uint64
 	choiceConfigured := gomadChoiceConfigured()
+	if _, profile := gomadEnv("GOMAD3_IO_PROFILE="); profile || choiceConfigured {
+		gomadDisableASLR()
+	} else if _, present := gomadSeedEnv(); present {
+		gomadDisableASLR()
+	}
 	if choiceConfigured {
 		gomadChoiceInit()
 	}

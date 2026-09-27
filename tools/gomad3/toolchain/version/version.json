@@ -123,6 +123,9 @@
     "src/os/signal/gomad.go",
     "src/os/user/gomad.go",
     "src/runtime/gomad.go",
+    "src/runtime/gomad_aslr_darwin.go",
+    "src/runtime/gomad_aslr_darwin_arm64.s",
+    "src/runtime/gomad_aslr_other.go",
     "src/runtime/gomad_choicewire_generated.go"
   ]
 }
