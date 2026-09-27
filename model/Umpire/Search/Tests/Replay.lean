@@ -171,6 +171,13 @@ counterexample replays and becomes the selected trace. -/
     "unreplayable-witness the verify Query finds no violation on it",
     "found"]
 
+/-! A rejected witness stays `invalid` even where finalization would otherwise conclude from the
+Query alone, as it does for a Scenario known unsatisfiable. -/
+#guard (finalizeBackendResult
+    (query (.find property) (selectedBehavior := { behavior with spaceStatus := .unsatisfiable }))
+    view (.violationFound (witness [step]) {})).toOption.map (·.result.outcome.name) ==
+  some "invalid"
+
 /-! A rejected `verify` counterexample is dropped, so it can never become the selected trace. -/
 #guard (finalized (.verify property)
     (.complete { nonempty := true, counterexample := some (witness [step]) })).map
@@ -200,7 +207,7 @@ error: Unknown identifier `Umpire.replayFailure`
 #check Umpire.replayFailure
 
 /-! `Search.lean` is frozen: its line count is pinned, so any growth is a visible diff. -/
-/-- info: 1426 -/
+/-- info: 1428 -/
 #guard_msgs in
 #eval show Lean.Elab.Command.CommandElabM Unit from do
   let file : System.FilePath := ← Lean.getFileName

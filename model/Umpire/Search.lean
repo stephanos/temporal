@@ -1319,12 +1319,12 @@ private def replayFailure
             if decision.stops then none else some ("the " ++ form.name ++ " Query does not stop at it")
 
 /-- Kernel replay: every witness a backend reports, the stopping trace and a `verify`
-counterexample, must replay (`replayFailure`). A result whose witness does not is `invalid` with
-`unreplayableWitness`, carrying the diagnostic and the trace, and keeps no counterexample. -/
-private def BackendResult.replayed
+counterexample, must replay (`replayFailure`). The first that does not is an `unreplayableWitness`
+error carrying the diagnostic and the trace. -/
+private def BackendResult.replayRejection
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
-    (backendResult : BackendResult) : BackendResult :=
+    (backendResult : BackendResult) : Option QueryError :=
   let observations := backendResult.observations
   let stopped := match backendResult with
     | .violationFound trace _ => [trace]
@@ -1334,28 +1334,29 @@ private def BackendResult.replayed
     | _ => []
   let failure := (stopped ++ counterexample).findSome? fun trace =>
     (replayFailure query kernel trace).map (·, trace)
-  match failure with
-  | none => backendResult
-  | some (diagnostic, trace) =>
-      .invalid {
-        kind := .unreplayableWitness
-        definitionId := query.id
-        sourcePath := query.source.path
-        offendingValue := diagnostic ++ ": " ++ renderWitness trace
-        relatedDefinitionIds := []
-      } { observations with counterexample := none }
+  failure.map fun (diagnostic, trace) => {
+    kind := .unreplayableWitness
+    definitionId := query.id
+    sourcePath := query.source.path
+    offendingValue := diagnostic ++ ": " ++ renderWitness trace
+    relatedDefinitionIds := []
+  }
 
 /-- Turn one backend result into the Query's `PlanResult`: compose the Known Gaps, apply the
 planner's claim-strength finalization, turn a `verify` counterexample into the selected trace,
 refine a complete verdict into `still-pending` or `never-triggered` from the observations, and
 record the validity dimensions. Every backend's result goes through this one finalization, and
-every witness through kernel replay first. -/
+every witness through kernel replay first: a rejected witness makes the result `invalid`, whatever
+else finalization would conclude, and is never selected. -/
 def finalizeBackendResult
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
     (backendResult : BackendResult) : Except KnownGapError PlanResult := do
   let knownGaps ← composeSearchKnownGaps query
-  let backendResult := backendResult.replayed query kernel
+  let rejection := backendResult.replayRejection query kernel
+  let backendResult := match rejection with
+    | some error => BackendResult.invalid error { backendResult.observations with counterexample := none }
+    | none => backendResult
   let state := backendResult.observations
   let traversed := backendResult.termination query
   let metadata := traversalMetadata query state.explored traversed
@@ -1367,11 +1368,12 @@ def finalizeBackendResult
     | some trace, .verify _ => .stopped trace .violatingCounterexample
     | _, _ => traversed
   let run := finish query state.explored state.instrumentation termination knownGaps
-  let outcome := match run.result.outcome with
-    | .verified | .noneFound =>
+  let outcome := match rejection, run.result.outcome with
+    | some error, _ => .invalid error
+    | none, .verified | none, .noneFound =>
         if state.unresolved then .stillPending
         else if !covered then .neverTriggered else run.result.outcome
-    | other => other
+    | none, other => other
   let answer := match outcome with
     | .found _ .violatingCounterexample => PlanningAnswer.counterexample
     | .found _ .satisfyingWitness => .witness
