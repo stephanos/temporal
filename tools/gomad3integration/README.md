@@ -26,10 +26,9 @@ matching.
 The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
 exit under guarded mode, but its same-seed evidence does not yet reproduce in
 every run, and the report records `nondeterministic` or `replay_divergence`
-as observed. Its darwin/arm64 expectation is `intermittent`: on 2026-09-27 seed
-17 qualified with exact choice replay in one run and both seeds were
-`nondeterministic` in another, so the report keeps whichever of `qualified`,
-`nondeterministic`, or `replay_divergence` the run produced.
+as observed. Its darwin/arm64 expectation is `qualified`: since darwin targets
+re-execute with ASLR disabled, both seeds reproduce their evidence across
+repetitions and replay with exact choice replay.
 The user-timers suite's expectation is `intermittent`: it runs the one-box
 cluster to a successful exit with exact I/O evidence, and its same-seed choice
 evidence reproduces on some seeds and repetitions but not all (seed 11 eight of

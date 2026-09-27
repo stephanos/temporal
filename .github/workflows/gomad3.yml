@@ -236,10 +236,11 @@ jobs:
 
       # The tier 3 classifications are asserted through the manifest's
       # expectations, so this job goes red the moment a real darwin result
-      # disagrees with what temporal.json states. On darwin both tier 3
-      # workloads are `intermittent`: each runs to success and its same-seed
-      # evidence reproduces on some seeds and repetitions but not all, so the
-      # supported/failed split varies between 5/2 and 7/0.
+      # disagrees with what temporal.json states. On darwin the tier 3 frontend
+      # probe is `qualified` with exact replay, and the tier 3 user-timers suite
+      # is `intermittent`: it runs to success and its same-seed evidence
+      # reproduces on some seeds and repetitions but not all, so the
+      # supported/failed split is 6/1 or 7/0.
       - name: Verify portable Temporal qualification evidence
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: >-
@@ -248,8 +249,10 @@ jobs:
           .platform == {"goos": "darwin", "goarch": "arm64"} and
           .seeds == ["11", "17"] and .expectations_met and
           .selected == 18 and .completed == 18 and .unsupported == 11 and
-          .supported + .failed == 7 and .infrastructure_errors == 0 and
+          ((.supported == 7 and .failed == 0) or (.supported == 6 and .failed == 1)) and
+          .infrastructure_errors == 0 and
           ([.workloads[] | select(.tier == 2 and .classification == "qualified")] | length) == 5 and
+          ([.workloads[] | select(.id == "frontend-system-info") | .classification == "qualified"] | all) and
           ([.workloads[] | select(.tier == 2 and .classification == "unsupported_target")] | length) == 11 and
           ([.workloads[] | select(.classification == "qualified") |
           (.seeds | length) == 2 and .choice.available and
