@@ -20,6 +20,20 @@ namespace Umpire.PlanningVisibilityTests
 #check composeSearchKnownGaps
 #check artifactOfSelection
 #check search
+#check BackendResult
+#check BackendResult.observations
+#check Backend
+#check Backend.reference
+#check PlanningObservations
+#check finalizeBackendResult
+#check SearchBackend
+#check BackendReason
+#check SearchUnit
+
+/-! `search` is the shared finalization applied to the reference backend. -/
+example (query : CheckedQuery LawStatement) (kernel : SearchView query.target) :
+    search query kernel = finalizeBackendResult query kernel (Backend.reference query kernel) :=
+  rfl
 #check SearchView.retarget
 #check Search.admit
 #check Query.Shape
@@ -52,6 +66,13 @@ error: Unknown identifier `Umpire.finalizePlanning`
 -/
 #guard_msgs (error, substring := true) in
 #check Umpire.finalizePlanning
+
+/-! The reference traversal stays private behind `Backend.reference`. -/
+/--
+error: Unknown identifier `Umpire.observeCandidate`
+-/
+#guard_msgs (error, substring := true) in
+#check Umpire.observeCandidate
 
 /-! Importing Search does not expose the private PlanningResult constructor. -/
 /--
