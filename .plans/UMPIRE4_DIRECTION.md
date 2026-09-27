@@ -11,8 +11,10 @@ check.
 
 ## Answers in one place
 
-1. **Veil as a symbolic core: no.** The models are finite tables where SMT buys nothing. Take
-   Veil's concrete BFS checker and simulator, and keep SMT as an opt-in for parametric invariants.
+1. **Veil as a symbolic core for the current finite-table path: no.** Umpire materializes the
+   transition table before Search, so adding SMT after that point avoids no enumeration. Take Veil's
+   concrete BFS checker and simulator, and keep SMT as an opt-in for parametric invariants or for a
+   future model representation that does not require complete materialization.
 2. **What Veil can replace:** the checker core, about 8 to 10k of Umpire's 56k Lean lines. None of
    the Case, Evidence, Testpilot, or Go runtime half. The larger saving is work not yet built.
 3. **Specula** runs the opposite direction on both axes. It derives the spec from the code and
@@ -51,14 +53,25 @@ The largest model is the Nexus caller protocol machine
 | Exploration coverage targets | 889 |
 | Search caps | 512, 4096, 32768 candidates |
 
-### Why symbolic evaluation does not pay here
+### Why symbolic checking is not the default here
 
-Symbolic checking pays off on unbounded sorts and quantified state, which is Veil's home fragment
-(EPR with uninterpreted sorts, Raft with N servers). Umpire's models are finite by design, because
-Behavior Fingerprints, byte-identical Cases, and exhaustive claims all need the materialized table.
-Target admission requires complete finite materialization
-([VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#the-exact-umpire-seam)), so a symbolic planner
-cannot replace it.
+There are three different mechanisms in play. Umpire's current Search enumerates concrete paths.
+Veil's concrete checker enumerates concrete states with breadth-first search and a visited set.
+Veil's symbolic path instead represents states and transitions as formulas: bounded model checking
+asks an SMT solver for a satisfying trace of a fixed depth, while inductive verification asks it to
+discharge initiation and preservation obligations for an invariant. The latter two are the
+"symbolic" mechanisms discussed in this section; Veil's concrete checker is still a model checker,
+not a Run against Temporal.
+
+The reason symbolic checking does not pay on Umpire's current path is architectural, not merely that
+the models are finite. Finite systems can be large enough for symbolic encodings to help. Umpire,
+however, admits a Model by enumerating its complete state and action domains and materializing the
+transition rows used by Behavior Fingerprints, Cases, coverage targets, and exhaustive claims.
+Target admission therefore incurs the enumeration before Search chooses a backend
+([VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#the-exact-umpire-seam)). An SMT backend attached
+after admission would encode a graph the pipeline has already built; it would not avoid building
+that graph. Avoiding materialization would require changing the admission and fingerprinting
+contract, not replacing only the planner.
 
 The checker's actual weakness is path enumeration without state dedup. Multi-instance models
 ([fn-85](../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md) plans a five-operation
@@ -72,17 +85,17 @@ VER-02 and VER-06, for claims the finite table cannot make, such as "for any num
 
 ### Benefit by benefit
 
-Symbolic checking earns its cost by avoiding enumeration. The `machine` command enumerates the full
-table at elaboration, because fingerprints, Cases, coverage targets, and exhaustive claims all read
-the rows, so the saving is gone before checking starts. Each benefit a solver offers collapses for
-the same reason.
+Symbolic checking earns most when it avoids explicit enumeration or proves a claim for a family of
+systems at once. The `machine` command currently enumerates the full table at elaboration, so the
+first saving is gone before checking starts. The second remains valuable for opted-in parametric
+claims that the finite table does not express.
 
 | Benefit of SMT-based checking | Umpire's situation |
 | --- | --- |
-| Reason about unbounded sorts and counters for all sizes at once | State is a structure of enums and saturating `Fin` counters. There is no unbounded sort to abstract over. |
-| Avoid materializing a state space too large to enumerate | The table already exists as data. The solver would encode a graph the pipeline has built. |
-| Bounded model checking finds shallow bugs by unrolling k steps | Explicit reachability over 158 states covers every depth, so depth-k checking is strictly weaker. |
-| Inductive invariants give unbounded-depth guarantees | Meaningful only for parametric claims, and the inductive invariant is written by hand. That is the bottleneck in Ivy and Veil, which is why Veil's own Raft port is model-checked with 3 servers rather than proved. |
+| Reason about unbounded sorts and counters for all sizes at once | Current state is a structure of enums and saturating `Fin` counters. A claim over an arbitrary number of entities needs a separate parametric representation and proof. |
+| Avoid materializing a state space too large to enumerate | Current admission has already materialized the table. Obtaining this benefit requires a different admission and fingerprinting path that keeps the relation symbolic. |
+| Bounded model checking finds shallow bugs by unrolling k steps | On the current 158-reachable-state model, explicit reachability covers every depth and gives a stronger completeness result. Bounded checking can still be a useful bug finder for a much larger model that is not first expanded into a table. |
+| Inductive invariants give unbounded-depth guarantees | This is useful for parametric claims, but the author must supply or discover a sufficiently strong invariant. That is the bottleneck in Ivy and Veil, which is why Veil's own Raft port is model-checked with 3 servers rather than proved. |
 
 Three further mismatches:
 
@@ -92,22 +105,31 @@ Three further mismatches:
   relationally and keeping them inside EPR, the expert skill AUT-01 says an ordinary engineer should
   not need.
 - **Property class.** `ordered`, `eventuallyWithin`, and correlated per-operation obligations are
-  history-sensitive. Veil's symbolic path supports state invariants and fixed bounded trace patterns,
-  so a symbolic backend would check a subset of the language and the trace oracle would remain.
+  history-sensitive. This is not a fundamental limit of symbolic checking: monitor state can make
+  the relevant history part of the checked state. It is a mismatch with Veil's current symbolic
+  surface, which supports state invariants and fixed bounded trace patterns but not Umpire's full
+  Property language. A Veil symbolic backend would therefore check a subset of the language unless
+  Umpire first lowered those Properties to monitors.
 - **Determinism and trust.** PLN-02 requires identical inputs to yield identical plans and checksums.
-  Solver results vary with solver version, seeds, and machine-dependent timeouts, a SAT model can
-  differ between runs, and unsat is a trusted-solver claim unless reconstruction runs at three to
-  five times the cost. VER-06 already forces this into its own trust class.
+  Solver versions, seeds, and machine-dependent timeouts can change which SAT witness is returned or
+  whether a bounded run finishes. Pinning the toolchain, canonicalizing witness selection, and
+  replaying SAT counterexamples can control that engineering problem. An unsat result is the harder
+  assurance boundary: it remains a trusted-solver claim unless proof reconstruction runs at three
+  to five times the cost. VER-06 correctly records those outcomes in distinct trust classes.
 
 The one real explosion is multi-instance models. Five operations over the 192-state protocol
 machine is about 2.6 times ten to the eleventh raw states, and symmetry over five interchangeable
-instances divides by only 120. Neither explicit search nor bounded model checking is comfortable
-there, and a solver does not rescue it. Pairwise races need two instances, which the Pair model
-covers, and per-operation properties are correlated by key, so one or two instances plus symmetry
-answers the finite question. A claim about any number of operations is a parametric proof per
-property and belongs in the opt-in slot. This answer changes if the models acquire real data,
-payload identifiers compared for equality, integer timestamps, unbounded queues, or an arbitrary
-number of workers. Then the finite table stops existing and symbolic methods become necessary.
+instances divides by only 120. Neither an explicit product table nor bounded model checking applied
+after that table is materialized is comfortable there. A symbolic encoding that avoids constructing
+the product table could help, but that is the architectural change the current admission path does
+not permit; a solver also does not by itself supply the needed symmetry argument or inductive
+invariant. Pairwise races need two instances, which the Pair model covers, and per-operation
+properties are correlated by key, so one or two instances plus symmetry answers the present finite
+question. A claim about any number of operations is a parametric proof per property and belongs in
+the opt-in slot. If models acquire real data, payload identifiers compared for equality, integer
+timestamps, unbounded queues, or an arbitrary number of workers, the complete finite table may stop
+being viable. Umpire would then need a symbolic representation before admission rather than merely
+an SMT backend after it.
 
 ### Adoption caveats
 

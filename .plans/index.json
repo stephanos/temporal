@@ -691,7 +691,8 @@
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-43-deepen-ordinary-property-behavior-and",
         "fn-47-generate-umpire-semantic-outcome-and",
-        "fn-82-unify-the-umpire-and-testpilot"
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-88-veil-concrete-checker-as-the-umpire"
       ]
     },
     {
@@ -707,7 +708,8 @@
         "fn-24-lean-native-verification-receipts-and",
         "fn-34-enforce-lean-model-boundaries-with",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
-        "fn-82-unify-the-umpire-and-testpilot"
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-88-veil-concrete-checker-as-the-umpire"
       ]
     },
     {
@@ -1411,7 +1413,8 @@
       "completionReview": "unknown",
       "specDependencies": [
         "fn-82-unify-the-umpire-and-testpilot",
-        "fn-85-model-side-effects-as-typed-actions-and"
+        "fn-85-model-side-effects-as-typed-actions-and",
+        "fn-92-compose-entity-machines-into-one-system"
       ]
     },
     {
@@ -1531,7 +1534,16 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": []
+      "specDependencies": [
+        "fn-34-enforce-lean-model-boundaries-with",
+        "fn-46-export-lean-model-module-impact-index",
+        "fn-78-typed-temporal-authoring-and-checked",
+        "fn-80-close-the-model-to-case-seam-and-harden",
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-84-deepen-five-shallow-module-clusters-in",
+        "fn-85-model-side-effects-as-typed-actions-and",
+        "fn-86-retire-hand-written-models-one"
+      ]
     },
     {
       "id": "fn-89-one-contract-rule-per-entity",
@@ -1578,6 +1590,22 @@
       "completionReview": "unknown",
       "specDependencies": [
         "fn-87-tighten-the-testpilot-protocol-glossary"
+      ]
+    },
+    {
+      "id": "fn-92-compose-entity-machines-into-one-system",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-85-model-side-effects-as-typed-actions-and",
+        "fn-86-retire-hand-written-models-one",
+        "fn-88-veil-concrete-checker-as-the-umpire",
+        "fn-89-one-contract-rule-per-entity",
+        "fn-90-resolve-the-intermittent-live-testpilot"
       ]
     }
   ]
