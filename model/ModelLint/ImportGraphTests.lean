@@ -656,6 +656,48 @@ private def testAuthoringPathIsolation : IO Unit := do
       "[model-import-graph/authoring-path-isolation] forbidden direct import: \
         Temporal.Feature.Nexus.Planted -> Umpire.Query"]
 
+/-- Only `Umpire.Search.Backend.Veil` imports `Veil.*`, and only `Umpire.Search.Selection` and
+tests import the adapter: a `Veil.*` import anywhere else, a test's included, and a production
+import of the adapter are reported with the import named. `Umpire.Search` imports neither, so its
+semantic-root rule is unaffected, and Veil's own modules are external metadata the rule never
+reads. -/
+private def testSearchBackendIsolation : IO Unit := do
+  let veil := moduleRecord `Veil.Core.Tools.ModelChecker.Concrete.Checker #[`Lean]
+  let adapter := moduleRecord `Umpire.Search.Backend.Veil
+    #[`Umpire.Search.Product, `Veil.Core.Tools.ModelChecker.Concrete.Checker]
+  let clean := #[veil, adapter,
+    moduleRecord `Umpire.Search #[`Lean.Data.Json],
+    moduleRecord `Umpire.Search.Product #[`Umpire.Search],
+    moduleRecord `Umpire.Search.Selection #[`Umpire.Search.Backend.Veil],
+    moduleRecord `Umpire.Search.Tests.BackendVeil #[`Umpire.Search.Backend.Veil]]
+  requireEqual "the adapter, the selection and a test are inside the boundary"
+    (check defaultPolicy clean) #[]
+  requireEqual "Veil is external metadata, not an unclassified module"
+    (reconcile defaultPolicy #[sourceRecord `Umpire.Search.Backend.Veil]
+      #[veil, { adapter with imports := #[`Veil.Core.Tools.ModelChecker.Concrete.Checker] }]) #[]
+  requireViolation "a Veil import outside the adapter"
+    (clean.push (moduleRecord `Umpire.Search.Admission
+      #[`Veil.Core.Tools.ModelChecker.TransitionSystem]))
+    .searchBackendIsolation #[`Umpire.Search.Admission, `Veil.Core.Tools.ModelChecker.TransitionSystem]
+  requireViolation "a test importing Veil directly"
+    (clean.push (moduleRecord `Umpire.Search.Tests.Planted #[`Veil.Core.Tools.ModelChecker.Trace]))
+    .searchBackendIsolation #[`Umpire.Search.Tests.Planted, `Veil.Core.Tools.ModelChecker.Trace]
+  requireViolation "the adapter imported outside the selection"
+    (clean.push (moduleRecord `Umpire.Search.Admission #[`Umpire.Search.Backend.Veil]))
+    .searchBackendIsolation #[`Umpire.Search.Admission, `Umpire.Search.Backend.Veil]
+  requireEqual "the diagnostic names the module and the import"
+    ((check defaultPolicy (clean.push (moduleRecord `Umpire.Search
+      #[`Veil.Core.Tools.ModelChecker.Trace]))).map Violation.render)
+    #["[model-import-graph/search-backend-isolation] forbidden direct import: \
+        Umpire.Search -> Veil.Core.Tools.ModelChecker.Trace"]
+
+/-- The planted search-backend violation the Makefile asserts byte for byte. -/
+private def controlledSearchBackendViolations : Array Violation :=
+  check defaultPolicy #[
+    moduleRecord `Umpire.Search #[`Veil.Core.Tools.ModelChecker.Concrete.Checker],
+    moduleRecord `Veil.Core.Tools.ModelChecker.Concrete.Checker
+  ]
+
 /-- The planted authoring-path violation the Makefile asserts byte for byte. -/
 private def controlledAuthoringViolations : Array Violation :=
   check defaultPolicy #[
@@ -685,6 +727,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testModelInventoryPolicy
   testHandwrittenInventory
   testAuthoringPathIsolation
+  testSearchBackendIsolation
   testExternalLeaves
   testStableShortestPath
   testMultipleFindings
@@ -702,7 +745,9 @@ unsafe def main (args : List String) : IO UInt32 :=
   | [] => runSyntheticSuite
   | ["--controlled-violation"] => runControlledViolation controlledViolations
   | ["--controlled-authoring-violation"] => runControlledViolation controlledAuthoringViolations
+  | ["--controlled-search-backend-violation"] =>
+      runControlledViolation controlledSearchBackendViolations
   | _ => do
       IO.eprintln "usage: umpire-lint-tests [--controlled-violation | \
-        --controlled-authoring-violation]"
+        --controlled-authoring-violation | --controlled-search-backend-violation]"
       pure 2

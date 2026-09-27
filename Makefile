@@ -911,7 +911,34 @@ umpire-rerecord-pinned-runs:
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
 			./tools/umpire/replay ./tools/umpire/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
 
-umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
+UMPIRE_VEIL_MANIFEST ?= model/lake-manifest.json
+
+# The Veil commit `model/lakefile.lean` requires, the revision the manifest resolves and the commit
+# the `veil` search backend reports (`Umpire.Search.Backend.Veil.commit`) must be one commit.
+umpire-check-veil-manifest:
+	@set -eu; \
+		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
+		resolved=$$(awk '/"rev":/ {rev=$$2} /"name": "veil"/ {gsub(/[",]/, "", rev); print rev}' "$(UMPIRE_VEIL_MANIFEST)"); \
+		reported=$$(sed -n 's/^def commit : String := "\([0-9a-f]\{40\}\)"$$/\1/p' model/Umpire/Search/Backend/Veil.lean); \
+		test -n "$$required" || { echo "model/lakefile.lean requires no pinned Veil commit" >&2; exit 1; }; \
+		test "$$resolved" = "$$required" || { echo "$(UMPIRE_VEIL_MANIFEST) resolves Veil '$$resolved', model/lakefile.lean requires $$required" >&2; exit 1; }; \
+		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lakefile.lean requires $$required" >&2; exit 1; }
+
+# Check the Veil pin, then plant a manifest that resolves another revision and require the check to
+# reject it with its diagnostic.
+umpire-check-veil-pin:
+	@printf $(COLOR) "Check the pinned Veil commit..."
+	@$(MAKE) --no-print-directory umpire-check-veil-manifest
+	@planted=$$(mktemp); diagnostics=$$(mktemp); \
+		trap 'rm -f "$$planted" "$$diagnostics"' EXIT; \
+		sed 's/"rev": "517f2badbf9a7ba2b18a72242351ff20943cbdd7"/"rev": "0000000000000000000000000000000000000000"/' model/lake-manifest.json >"$$planted"; \
+		status=0; \
+		$(MAKE) --no-print-directory umpire-check-veil-manifest UMPIRE_VEIL_MANIFEST="$$planted" 2>"$$diagnostics" >/dev/null || status=$$?; \
+		test "$$status" -ne 0; \
+		expected="$$planted resolves Veil '0000000000000000000000000000000000000000', model/lakefile.lean requires 517f2badbf9a7ba2b18a72242351ff20943cbdd7"; \
+		grep -qxF "$$expected" "$$diagnostics"
+
+umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/canary/...
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
@@ -1031,7 +1058,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-manifest umpire-check-veil-pin umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
@@ -1098,6 +1125,13 @@ lint-model: umpire-check-inventory
 		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-authoring-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/authoring-path-isolation] forbidden direct import: Temporal.Feature.Planted -> Umpire.Model'; \
+		test "$$(cat "$$diagnostics")" = "$$expected"
+	@diagnostics=$$(mktemp); \
+		trap 'rm -f "$$diagnostics"' EXIT; \
+		status=0; \
+		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-search-backend-violation 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -eq 1; \
+		expected='[model-import-graph/search-backend-isolation] forbidden direct import: Umpire.Search -> Veil.Core.Tools.ModelChecker.Concrete.Checker'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@cd model && $(LEAN_LAKE) exe umpire-lint
 	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs

@@ -11,6 +11,13 @@ require "leanprover-community" / batteries @ git "v4.32.0"
 require protobuf from git
   "https://github.com/Lean-zh/protobuf.git"@"406da521c0ebb47207be28e3d9ef738de95a4dd3"
 
+/-- Veil's concrete model checker, the `veil` search backend. Only `Umpire.Search.Backend.Veil`
+imports it (`search-backend-isolation`), and `make umpire-check-veil-pin` fails when the manifest
+resolves another revision. Building it runs `npm` for Veil's widget, so Node and npm are build
+prerequisites of the model. -/
+require veil from git
+  "https://github.com/verse-lab/veil.git"@"517f2badbf9a7ba2b18a72242351ff20943cbdd7"
+
 input_file testpilotCaseProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/case.proto"
 
