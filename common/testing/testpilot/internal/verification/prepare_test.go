@@ -2,6 +2,7 @@ package verification
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -536,47 +537,9 @@ func expand(source *testpilotspb.Contract) *testpilotspb.Contract {
 			expanded.Rules = append(expanded.Rules, proto.CloneOf(rule))
 			continue
 		}
-		for _, instance := range rule.Instances {
-			copied := proto.CloneOf(rule)
-			copied.RuleId, copied.InstanceValues, copied.Instances = instance.RuleId, nil, nil
-			values := map[string]*testpilotspb.Value{}
-			for _, a := range instance.Assignments {
-				values[a.InstanceValueId] = a.Value
-			}
-			for _, tr := range copied.Transitions {
-				inline(tr.Predicate, values)
-			}
-			expanded.Rules = append(expanded.Rules, copied)
-		}
+		expanded.Rules = slices.AppendSeq(expanded.Rules, ir.ExpandRule(rule))
 	}
 	return expanded
-}
-func inline(e *testpilotspb.Expression, values map[string]*testpilotspb.Value) {
-	switch v := e.GetExpression().(type) {
-	case *testpilotspb.Expression_Reference:
-		if read, ok := v.Reference.GetReference().(*testpilotspb.Reference_InstanceValueId); ok {
-			e.Expression = &testpilotspb.Expression_Literal{Literal: proto.CloneOf(values[read.InstanceValueId])}
-		}
-	case *testpilotspb.Expression_Path:
-		inline(v.Path.GetOperand(), values)
-	case *testpilotspb.Expression_Present:
-		inline(v.Present.GetOperand(), values)
-	case *testpilotspb.Expression_Not:
-		inline(v.Not.GetOperand(), values)
-	case *testpilotspb.Expression_Compare:
-		inline(v.Compare.GetLeft(), values)
-		inline(v.Compare.GetRight(), values)
-	case *testpilotspb.Expression_All:
-		for _, operand := range v.All.GetOperands() {
-			inline(operand, values)
-		}
-	case *testpilotspb.Expression_Any:
-		for _, operand := range v.Any.GetOperands() {
-			inline(operand, values)
-		}
-	default:
-		// A literal holds no instance value.
-	}
 }
 
 // A Rule with instances binds once and keeps its instances in declaration order with their values;

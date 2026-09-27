@@ -611,6 +611,7 @@ func productionManifest() []manifestEntry {
 		acceptedEntry("cross-run-isolation", "temporal.case.conformance.cross-run-isolation", "SATISFIED", "SATISFIED", "COMPLETED", "SUCCEEDED", 2),
 		typedRejectionEntry("undeclared-evidence", "unknown", "program.entrypoints[controller].instructions[history].instruction.invoke_rpc.response_reads[0].targets[0].correlated_evidence.rules[0].evidence_id"),
 		typedRejectionEntry("duplicate-evidence", "malformed", "program.evidence[1]"),
+		typedRejectionEntry("instance-value", "type_mismatch", "contract.rules[result].instances[result-2].assignments[instruction]"),
 		evidenceEntry("history-evidence", "history", "INSTRUCTION_COMPLETED"),
 		evidenceEntry("run-event-evidence", "fault", "FAULT_INJECTED"),
 		evidenceEntry("read-evidence", "pending-attempts", "INSTRUCTION_COMPLETED"),

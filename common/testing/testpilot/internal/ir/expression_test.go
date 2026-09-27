@@ -367,7 +367,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"instance_value_id":      {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "v"}},
 	}
 	require.Len(t, references, (&testpilotspb.Reference{}).ProtoReflect().Descriptor().Fields().Len(), "every Reference arm is probed")
-	for _, context := range []struct {
+	for _, tc := range []struct {
 		site     Site
 		admitted []protoreflect.Name
 	}{
@@ -377,20 +377,20 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		{Site{Context: EvidenceLiftContext, Path: "lift"}, []protoreflect.Name{"projected_value"}},
 	} {
 		for name, value := range references {
-			t.Run(context.site.Path+"/"+string(name), func(t *testing.T) {
+			t.Run(tc.site.Path+"/"+string(name), func(t *testing.T) {
 				expression := all(literal(boolean(true)), present(reference(value)))
-				_, err := c.BindExpression(context.site, expression, nil, nil, DefaultLimits())
+				_, err := c.BindExpression(tc.site, expression, nil, nil, DefaultLimits())
 				var diagnostic *Error
 				require.ErrorAs(t, err, &diagnostic)
-				admitted := AdmitReferences(context.site, expression)
-				if slices.Contains(context.admitted, name) {
+				admitted := AdmitReferences(tc.site, expression)
+				if slices.Contains(tc.admitted, name) {
 					require.Equal(t, "expression", diagnostic.Path)
 					require.NoError(t, admitted)
 					return
 				}
 				want := &Error{
 					Category: Unknown,
-					Path:     context.site.Path + ".all[1].present.reference." + string(name),
+					Path:     tc.site.Path + ".all[1].present.reference." + string(name),
 					Detail:   "reference is not admitted in this expression context",
 				}
 				require.Equal(t, want, diagnostic)

@@ -205,13 +205,19 @@ func openness(run *testpilotspb.Run) string {
 	}
 }
 
-// ruleSetCrossed names why the Verdict's rules are not exactly the Contract's rules, its plain rules
-// and its correlated rules together, each once, or returns "". A Run carries no Contract ID, so
+// ruleSetCrossed names why the Verdict's rules are not exactly the Contract's rules, its plain rules,
+// its Rule instances and its correlated rules together, each once, or returns "". A Rule with
+// instances concludes under each instance's rule ID, never its own. A Run carries no Contract ID, so
 // this is how a Run of another Contract shows.
 func ruleSetCrossed(contract *testpilotspb.Contract, verdict *testpilotspb.Verdict) string {
 	var expected []string
 	for _, rule := range contract.GetRules() {
-		expected = append(expected, rule.GetRuleId())
+		if len(rule.GetInstances()) == 0 {
+			expected = append(expected, rule.GetRuleId())
+		}
+		for _, instance := range rule.GetInstances() {
+			expected = append(expected, instance.GetRuleId())
+		}
 	}
 	for _, rule := range contract.GetCorrelated().GetRules() {
 		expected = append(expected, rule.GetRuleId())

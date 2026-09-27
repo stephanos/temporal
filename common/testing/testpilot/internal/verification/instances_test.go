@@ -215,6 +215,7 @@ func firstDifferingRule(t *testing.T, want, got []byte) string {
 }
 
 func nexusWorld(t *testing.T) instanceWorld {
+	t.Helper()
 	prepared, view := nexusCorrelationFixture(t)
 	return instanceWorld{catalog: prepared.catalog, view: view, limits: &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 64, MaxTransitions: 64, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 16, MaxCaptureBytes: 65536}}
 }
@@ -250,6 +251,7 @@ func pairRule(id string, operation *testpilotspb.Expression) *testpilotspb.Contr
 }
 
 func nexusRun(t *testing.T, disposition testpilotspb.RunDisposition, events ...*historypb.HistoryEvent) *testpilotspb.Run {
+	t.Helper()
 	run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: disposition, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
 	for _, history := range events {
 		run.Events = append(run.Events, nexusHistoryRunEvent(t, int64(len(run.Events)+1), history))

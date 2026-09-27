@@ -74,6 +74,8 @@ def main (arguments : List String) : IO Unit :=
       renderTestpilot Temporal.Testpilot.conformanceStaticRejectionCase
   | ["conformance-static-preparation-rejection-expression-context"] =>
       renderTestpilot Temporal.Testpilot.conformanceExpressionContextRejectionCase
+  | ["conformance-static-preparation-rejection-instance-value"] =>
+      renderTestpilot Temporal.Testpilot.conformanceInstanceValueRejectionCase
   | ["conformance-static-preparation-rejection-command-type"] =>
       renderTestpilot Temporal.Testpilot.conformanceCommandTypeRejectionCase
   | ["conformance-static-preparation-rejection-invalid-duration"] =>

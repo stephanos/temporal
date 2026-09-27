@@ -4,7 +4,6 @@ package verification
 import (
 	"errors"
 	"fmt"
-	"iter"
 	"maps"
 	"slices"
 
@@ -206,7 +205,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if slices.ContainsFunc(source.Rules, func(rule *testpilotspb.ContractRule) bool { return len(rule.Instances) > 0 }) {
 		// The expansion's surface is charged too, so an instanced Contract is not admitted where its
 		// expansion is rejected on surface size.
-		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), expandRuleInstances); err != nil {
+		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), ir.ExpandRuleInstances); err != nil {
 			return nil, err
 		}
 	}
@@ -409,66 +408,6 @@ func checkInstanceValueReads(rule *testpilotspb.ContractRule, declared map[strin
 		}
 	}
 	return nil
-}
-
-var contractRules = (&testpilotspb.Contract{}).ProtoReflect().Descriptor().Fields().ByName("rules")
-
-// expandRuleInstances writes a Rule with instances out as its expansion's plain Rules: one per
-// instance, under the instance's rule ID, with each instance value the instance assigns inlined as a
-// literal.
-func expandRuleInstances(field protoreflect.FieldDescriptor, element protoreflect.Message) (int, iter.Seq[proto.Message], bool) {
-	rule, ok := element.Interface().(*testpilotspb.ContractRule)
-	if field != contractRules || !ok || len(rule.Instances) == 0 {
-		return 0, nil, false
-	}
-	return len(rule.Instances), func(yield func(proto.Message) bool) {
-		template := proto.CloneOf(rule)
-		template.InstanceValues, template.Instances = nil, nil
-		for _, instance := range rule.Instances {
-			copied := proto.CloneOf(template)
-			copied.RuleId = instance.RuleId
-			values := make(map[string]*testpilotspb.Value, len(instance.Assignments))
-			for _, assignment := range instance.Assignments {
-				values[assignment.InstanceValueId] = assignment.Value
-			}
-			for _, tr := range copied.Transitions {
-				inlineInstanceValues(tr.GetPredicate(), values)
-			}
-			if !yield(copied) {
-				return
-			}
-		}
-	}, true
-}
-
-// inlineInstanceValues replaces each instance value reference in e with the literal values assigns
-// it. A reference values assigns nothing is left for preparation to reject at its location.
-func inlineInstanceValues(e *testpilotspb.Expression, values map[string]*testpilotspb.Value) {
-	switch v := e.GetExpression().(type) {
-	case *testpilotspb.Expression_Reference:
-		if read, ok := v.Reference.GetReference().(*testpilotspb.Reference_InstanceValueId); ok && values[read.InstanceValueId] != nil {
-			e.Expression = &testpilotspb.Expression_Literal{Literal: values[read.InstanceValueId]}
-		}
-	case *testpilotspb.Expression_Path:
-		inlineInstanceValues(v.Path.GetOperand(), values)
-	case *testpilotspb.Expression_Present:
-		inlineInstanceValues(v.Present.GetOperand(), values)
-	case *testpilotspb.Expression_Not:
-		inlineInstanceValues(v.Not.GetOperand(), values)
-	case *testpilotspb.Expression_Compare:
-		inlineInstanceValues(v.Compare.GetLeft(), values)
-		inlineInstanceValues(v.Compare.GetRight(), values)
-	case *testpilotspb.Expression_All:
-		for _, operand := range v.All.GetOperands() {
-			inlineInstanceValues(operand, values)
-		}
-	case *testpilotspb.Expression_Any:
-		for _, operand := range v.Any.GetOperands() {
-			inlineInstanceValues(operand, values)
-		}
-	default:
-		// A literal holds no instance value.
-	}
 }
 
 // relocate places an unlocated ir diagnostic at path.
