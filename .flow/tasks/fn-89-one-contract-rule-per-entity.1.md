@@ -46,7 +46,7 @@ Add the spec's API Contracts to the wire and to Lean Authoring (R1): `ContractRu
 ## Done summary
 Added the R1 protocol surface: `ContractRule.instance_values = 8` / `instances = 9`, the `ContractInstanceValue`, `ContractRuleInstance` and `ContractInstanceAssignment` messages, and `Reference.instance_value_id = 13`, all with leading comments in the spec's vocabulary; the rule-local wording now reads "local to one Rule instance". Lean Authoring gains `Expr.instanceValue`, `Contract.instanceValue`, `Contract.instanceAssignment` and `Contract.ruleInstance`, and `Contract.rule` takes `instanceValues`/`instances` that default to empty, with guards in `Tests/Authoring.lean`. The Go `ir` admission is an allow-list, so the new arm is rejected everywhere until fn-89.2 (probed in `ir/expression_test.go`), and `protocol_test.go` pins the arm list. The pinned Runs and receipts were re-recorded via `make umpire-rerecord-pinned-runs`: only the catalog and run identities changed, and the conformance fixtures are byte-identical.
 
-Follow-up: re-recorded Runs carry the local worker hostname (`...@Stephans-MacBook-Air-2.local@`, previously `...@vm@`). This comes from the fn-89.7 target, not this task. `lint-model` was inconclusive in the shared tree (see evidence).
+Follow-up: re-recorded Runs carry the local worker hostname (`...@<local-hostname>@`, previously `...@vm@`). This comes from the fn-89.7 target, not this task. `lint-model` was inconclusive in the shared tree (see evidence).
 
 stage: impl-review - ran (claude:opus:high, first-pass SHIP)
 ## Evidence
