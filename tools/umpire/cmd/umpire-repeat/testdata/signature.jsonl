@@ -1,0 +1,14 @@
+{"Time":"2026-09-26T18:37:53.192019-07:00","Action":"start","Package":"go.temporal.io/server/tests"}
+{"Time":"2026-09-26T18:37:53.192428-07:00","Action":"run","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample"}
+{"Time":"2026-09-26T18:37:53.192437-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Output":"=== RUN   TestTestpilotSample\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:53.192459-07:00","Action":"run","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm"}
+{"Time":"2026-09-26T18:37:53.192464-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"=== RUN   TestTestpilotSample/hsm\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:53.192469-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"TESTPILOT-SIGNATURE {\"test\":\"TestTestpilotSample/hsm\",\"assertion\":\"live_test.go:88: run disposition Incomplete, want Completed\",\"run_disposition\":\"Incomplete\",\"verdict_status\":\"Inconclusive\",\"unresolved_rules\":[{\"rule_id\":\"clause-two\",\"status\":\"Pending\",\"terminal_state_id\":\"\"},{\"rule_id\":\"clause-one\",\"status\":\"Pending\",\"terminal_state_id\":\"\"}],\"diagnostics\":[{\"kind\":\"instruction-timeout\",\"code\":\"finish-workflow\"}],\"leaks\":[]}\n"}
+{"Time":"2026-09-26T18:37:53.192469-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"TESTPILOT-SIGNATURE {\"test\":\"TestTestpilotSample/hsm\",\"assertion\":\"a later assertion\"}\n"}
+{"Time":"2026-09-26T18:37:53.192473-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"    x_test.go:4: run INCOMPLETE\n","OutputType":"error"}
+{"Time":"2026-09-26T18:37:53.192478-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"--- FAIL: TestTestpilotSample/hsm (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:53.192482-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Elapsed":0}
+{"Time":"2026-09-26T18:37:53.192498-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Output":"--- FAIL: TestTestpilotSample (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:53.192502-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Elapsed":0}
+{"Time":"2026-09-26T18:37:53.192505-07:00","Action":"output","Package":"go.temporal.io/server/tests","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:53.19251-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Elapsed":0}
