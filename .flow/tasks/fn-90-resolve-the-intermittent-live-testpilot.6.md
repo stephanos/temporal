@@ -69,7 +69,7 @@ Path (3b), Run COMPLETED with an unresolved rule on the completion-before-start 
 - The race exists. The handler publishes the completion authority before it returns the async start response (typed.go:118-123, publish at interpreter.go:299), so the controller can complete the operation before the server records the start.
 - Both switch values record the same history shape. CHASM applies the started transition first when started is still possible (chasm/lib/nexusoperation/operation.go:279-287). It writes NEXUS_OPERATION_STARTED with scheduled_event_id, operation_token and request_id, and dates it with the callback's start time (chasm/lib/workflow/nexus_methods.go:60-72). hsm calls fabricateStartedEventIfMissing before the completion (service/history/hsm/nexusoperations/completion.go:210-213). That function writes the same attributes, plus the deprecated operation_id, with the same event time (completion.go:126-164). In both, the started event takes the next event id, ahead of the completion event.
 - The Case cannot tell the synthesized event from a normal one. Its evidence reads only the attribute field and scheduled_event_id (fixture 596-628). Testpilot never reads EventTime (`grep -rn "EventTime\|event_time" common/testing/testpilot`, non-generated sources: no match). So the backdated start time cannot reorder evidence.
-- The correlated monitor answers INCONCLUSIVE only on a pending obligation or on accepted evidence it has not processed (common/testing/testpilot/internal/verification/correlated.go:644-666). Neither follows from the synthesized started event.
+- The correlated monitor answers INCONCLUSIVE only when the Run is incomplete (path 3a), the evidence stream is empty, accepted evidence is unprocessed, or an obligation is pending (common/testing/testpilot/internal/verification/correlated.go:644-666). None of these follows from the synthesized started event.
 - The Model already admits this server behaviour. `protocolCompleteStep` prefixes nexusOperationStarted when the operation has not started (model/Temporal/Feature/Nexus/Caller/Model.lean:347-361). The Model option in the Approach is therefore already in place, and neither the Model nor the Program (`await-completion-authority` at Nexus.lean:442) needs a change. There is no fix, so the Decision Context needs no entry.
 
 No Model, Producer, realization or fixture changed. The fn-88 coordination clause therefore does not apply, and the worker-outage, forged-completion and switch-agreement controls are unaffected. No quarantine needed (R7): nothing points to an external cause.
@@ -81,7 +81,7 @@ Baseline: green, with CC=/usr/bin/clang. `go test -tags test_dep ./tools/umpire/
 GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt
 GATE_SKIPPED:live:not-applicable - no source change; the 5x confirmation run is recorded above
 
-stage: impl-review - ran [claude]
+stage: impl-review - ran [claude: SHIP first pass, P3 monitor-condition wording fixed after]
 
 ## Evidence
 - Commits:
