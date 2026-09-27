@@ -38,9 +38,12 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+The worker Driver's construction-time ceiling check now calls `ir.CheckCeilings`. `validateSymbolicRoles` keeps only the worker-role check and `profileRoleHasMethods`. Delivery's `validateTopology`/`validateRoutes` plan-shape re-checks, the ledger's `EndpointRoleID` check, and the worker carrier's count and duplicate checks are gone. The commit message names the admission counterpart of each removed check, and `temporal/README.md` now describes what the Carrier still checks.
 
+The expected-handle map, `validateHandles`, the runtime `MaxRoutes` limit and the workflow-entrypoint lookup remain. `TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles` (now asserting specific errors) and the new `TestCreateBundleRejectsPlanBeyondMaxRoutes` pin them; each `MaxRoutes` case was mutation-checked. The new `TestWorkerProfileRejectsLimitsOutsideTheCeiling` pins the shared ceiling check. The single-workflow guarantee's counterpart is the worker Driver's `reservedWorkflowQueueRole` at Validate/Open rather than execution admission. Baseline: green (race tests). No goldens moved.
+
+stage: impl-review - ran [fanout rid 37962e326fb6449cbfb4c7a0e375f3ce, 3 draws SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 32991e77376031a9333f737d291141f6dbf13f80
+- Tests: go test -race -tags test_dep ./common/testing/testpilot/temporal/... (run with -overlay pinning concurrent fn-94.10 server edits to HEAD), make umpire-check-case-runtime-conformance, make lint-code-fast, go test -tags test_dep ./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$|Golden'
 - PRs:
