@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.373611Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.15"
+  ],
+  "id": "fn-93-simplify-the-lean-model.16",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.16.md",
+  "status": "todo",
+  "title": "Remove the test-only term elaborators and macros (B4, decision D4)",
+  "updated_at": "2026-09-27T15:37:05.373611Z"
+}

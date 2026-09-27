@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.375146Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.37",
+    "fn-93-simplify-the-lean-model.26"
+  ],
+  "id": "fn-93-simplify-the-lean-model.38",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.38.md",
+  "status": "todo",
+  "title": "Authoring shorthand for evidence lines and limits (F1, F2)",
+  "updated_at": "2026-09-27T15:37:05.375146Z"
+}

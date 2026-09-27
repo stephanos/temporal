@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.375479Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.42"
+  ],
+  "id": "fn-93-simplify-the-lean-model.43",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.43.md",
+  "status": "todo",
+  "title": "Final measurement, full gate run and fn-60 supersession",
+  "updated_at": "2026-09-27T15:37:05.375479Z"
+}
