@@ -4,6 +4,8 @@ import Umpire.Search.Tests.Fixtures
 import Umpire.Search.Tests.Monitor
 import Umpire.Examples.Switch
 import Umpire.Replay.Tests
+import Umpire.Variations.Compiler
+import Umpire.Variations.Tests.Fixtures
 
 /-!
 # The two backends against each other
@@ -14,18 +16,20 @@ terminates, the outcomes, the witness `Scenario.Trace`, the Plan artifact bytes 
 and the planning receipt JSON except the exempt fields must be equal. The exempt receipt fields are
 the four backend fields (`searchBackend`, `backendReason`, `searchUnit`, `veilCommit`), the
 `SearchStats` counter the receipt carries (`enumeratorPulls`), the `triggers` evidence, the
-`explored` counts (the same `ExploredCounts` the Plan's exempt `explored` holds), and, for a
-`verify` that found a counterexample, `searchComplete`, `searchTermination` and `coverage`. Where
+`explored` counts, and, for a `verify` that found a counterexample, `searchComplete`,
+`searchTermination` and `coverage`. The receipt's `explored` is the same `ExploredCounts` as the
+Plan's exempt `explored`, counting product states under `veil` by design; the spec's API Contracts
+were amended to say so, and each run's Plan `explored` must still equal its receipt's. Where
 the reference reports `limit-reached`, `veil` must not be `invalid` (its witness passed the kernel
 replay gate), and what it reports must not contradict what the reference examined: an admitted
 trace, an exercised coverage requirement, a fired clause.
 
 `sweep` runs the comparison over every `query` declaration the environment records, together with
-the Scenario automaton check (`Product.productAgrees`) and the Property monitor checks
-(`Monitor.monitorsAgree`, `Monitor.productAgrees`) on that Query within its Limits, and reports one
-line per Query; the Temporal feature Models, which these tests cannot import, run it from
-`TemporalModelTests.SearchDifferential`. Here it covers the Umpire Models, and the Switch's three
-hand-admitted Queries are compared as well.
+the Scenario automaton and Property monitor checks of `agreement`, and reports one line per Query;
+the Temporal feature Models, which these tests cannot import, run it from
+`TemporalModelTests.SearchDifferential`. Here it covers the Umpire Models; the Switch's three
+hand-admitted Queries, every point of its checked variation space, and the unsatisfiable-Scenario
+Query Promotion's tests derive from it are compared as well.
 
 The module also holds the R15 witness-order fixture, where two paths reach one product state at
 the same depth, and the R9 three-instance fixture, whose paths outgrow the reference's search bound
@@ -109,6 +113,10 @@ private def terminatedDifference (form : Query.Form) (reference veil : PlanResul
             some ("Plan bytes differ outside explored: " ++ both)
           else none
       | _, _ => some ("one backend selected a Plan and the other did not: " ++ both)
+    let ownExplored := [reference, veil].all fun run =>
+      run.artifact.all (·.plan.explored == run.result.metadata.explored)
+    let plans := if ownExplored then plans else
+      some ("a run's Plan explored counts are not its receipt's: " ++ both)
     plans.orElse fun _ =>
       let exempt := isVerifyCounterexample form reference.result.outcome
       match comparableReceipt reference exempt, comparableReceipt veil exempt with
@@ -229,12 +237,35 @@ def scenarioTraces {LawStatement : Law → Prop} {target : QueryModel LawStateme
       | some initialState =>
           from' depth { setup, trace := { initialState, steps := [] } } initialState
 
-/-- The Scenario automaton and the Property monitors against their oracles on one Query within its
-Limits, over `scenarioTraces`: the automaton agrees with `admits` on each and the product's
-accepted paths decode to exactly the admitted ones (`Product.agrees`, `Product.pathsFrom`); the
-monitors agree with the evaluator on each under both endings (`Monitor.monitorsAgree`), and on
-every path of the Query's own product (`Monitor.productAgrees`). `ok`, or which check failed; a
-Query whose product version one cannot build has its automaton checked alone. -/
+/-- Every Model trace a monitor check reads within `depth`, from the Query's own setups. -/
+private def modelTraces {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
+    (view : SearchView query.target) (depth : Nat) :
+    List (ModelTrace ModelValue ModelValue ModelValue ModelValue) :=
+  let setups := match query.completeness with
+    | some evidence => evidence.roleAssignments
+    | none => query.target.resolvedSetups
+  (Product.allTraces view setups depth).map (·.trace)
+
+/-- The deepest depth up to `depth` whose cost, growing with the depth, stays within `budget`, and
+at least zero. It stops at the first depth over budget: a deeper one costs more to measure. -/
+private def deepestWithin (depth budget : Nat) (cost : Nat → Nat) : Nat :=
+  let rec go : Nat → Nat → Nat
+    | 0, reached => reached
+    | remaining + 1, reached =>
+        if cost (reached + 1) ≤ budget then go remaining (reached + 1) else reached
+  go depth 0
+
+/-- The Scenario automaton and the Property monitors against their oracles on one Query.
+
+The automaton agrees with `admits` on every trace of `scenarioTraces` within the Limits, and the
+product's accepted paths decode to exactly the admitted ones (`Product.agrees`,
+`Product.pathsFrom`). The monitors agree with the evaluator under both endings
+(`Monitor.monitorsAgree`) on every Model trace, admitted or not: for the Query's own Properties to
+the deepest depth within the Limits with at most 5000 traces, and for the clause table
+`Monitor.generatedProperties` builds from those traces -- every supported kind, both units -- to the
+deepest depth where traces times clauses stay within 100000; and on every path of the Query's own
+product within the Limits (`Monitor.productAgrees`). Several interleaved instances outgrow any
+exhaustive bound, which is why the depths are chosen by cost and printed. -/
 def agreement {LawStatement : Law → Prop} (query : CheckedQuery LawStatement) : String :=
   match SearchView.ofCheckedQuery query.target.id query with
   | .error _ => "no search view"
@@ -252,17 +283,30 @@ def agreement {LawStatement : Law → Prop} (query : CheckedQuery LawStatement) 
               accepted == traces.filter query.behavior.admits)
       let monitored := match Search.Product.MonitoredProduct.build query view with
         | .error _ => none
-        | .ok monitored =>
-            let traces := (scenarioTraces view query.behavior monitored.product.setups depth).map
-              (·.trace)
-            some (Monitor.monitorsAgree query.form.properties query.target.stateFields traces &&
-              Monitor.productAgrees query view depth)
-      match automaton, monitored with
-      | some false, _ => "automaton DISAGREES"
-      | _, some false => "monitors DISAGREE"
-      | none, _ => "no automaton"
-      | some true, none => "automaton ok"
-      | some true, some true => "automaton ok, monitors ok"
+        | .ok _ =>
+            let fields := query.target.stateFields
+            let ownDepth := deepestWithin depth 5000 fun candidate =>
+              (modelTraces query view candidate).length
+            let clauseDepth := deepestWithin ownDepth 100000 fun candidate =>
+              let traces := modelTraces query view candidate
+              traces.length * (Monitor.generatedProperties fields traces).length
+            let clauseTraces := modelTraces query view clauseDepth
+            let agrees :=
+              Monitor.monitorsAgree query.form.properties fields
+                  (modelTraces query view ownDepth) &&
+                (Monitor.generatedProperties fields clauseTraces).all (fun property =>
+                  Monitor.monitorsAgree [property] fields clauseTraces) &&
+                Monitor.productAgrees query view depth
+            some (agrees, ownDepth, clauseDepth)
+      let monitors := match monitored with
+        | none => ""
+        | some (true, ownDepth, clauseDepth) =>
+            s!", monitors ok (Query depth {ownDepth}, clause table depth {clauseDepth})"
+        | some (false, _, _) => ", monitors DISAGREE"
+      match automaton with
+      | some false => "automaton DISAGREES" ++ monitors
+      | none => "no automaton" ++ monitors
+      | some true => "automaton ok" ++ monitors
 
 /-! ### Every declared Query -/
 
@@ -325,28 +369,39 @@ def sourceLine (declared : Except AdmissionError (Umpire.Command.CheckedModel mo
       if !rerun then "DIFFERS the re-admission does not search to the declared run"
       else admittedLine admitted ++ "; " ++ agreement admitted.query
 
-/-- A `query` block over several instances has no one-instance source; its checked Query and the
-view `Search.admit` builds from it are compared, as `AdmittedQuery.searchWith` compares them. -/
-def checkedLine (declared : Except AdmissionError (Umpire.Command.CheckedModel model)) : String :=
-  match declared with
-  | .error error => "not admitted: " ++ admissionFailure error
-  | .ok checked =>
-      match SearchView.ofCheckedQuery checked.query.target.id checked.query with
-      | .error _ => "no search view"
-      | .ok view =>
-          let reference := Search.Selection.searchWith .reference checked.query view
-          if (reference.toOption.map (·.result)) != some checked.run.result then
-            "DIFFERS the reference search is not the declared run"
-          else
-            line checked.query.form reference
-                (Search.Selection.searchWith .veil checked.query view) ++ "; " ++
-              agreement checked.query
+/-- A `query` block over several instances, from the arguments its declaration applies
+`checkInstances` to. Its search ran on the product's admission, which `checkInstances` does not
+keep; that admission is made again here, so a Query whose search selected nothing is compared too.
+A Query `checkInstances` rejects before searching is listed with the reason. -/
+def instancesLine (model : DeclaredModel Setup State Action Outcome Fact) (count : Nat)
+    (queryKey : String) (limits : Limits) (propertyNames : PropertyNames)
+    (scenarioNames : ScenarioNames) (knownGaps : List KnownGap := [])
+    (form : QueryFormKind := .selectWitness) : String :=
+  let declared := checkInstances model count queryKey limits propertyNames scenarioNames knownGaps
+    form
+  let searched := match declared with
+    | .ok _ | .error (.notSelected _ _ _) => true
+    | .error _ => false
+  match declared, searched with
+  | .error error, false => "not admitted: " ++ admissionFailure error
+  | _, _ =>
+      match admitQuery (model.instances count) queryKey
+          (liftedProperty model count · propertyNames)
+          (some (liftedScenario model count · scenarioNames)) form limits knownGaps with
+      | .error error => "not admitted: " ++ admissionFailure error
+      | .ok ⟨_, admitted⟩ =>
+          let rerun := match declared with
+            | .ok checked => admitted.search.toOption == some checked.run
+            | .error _ => true
+          if !rerun then "DIFFERS the re-admission does not search to the declared run"
+          else admittedLine admitted ++ "; " ++ agreement admitted.query
 
 end Declared
 
 open Lean Elab Command in
-/-- Every `query` declaration the environment records, by name: one info line each, from
-`sourceLine` for a one-instance Query and `checkedLine` for one over several instances. -/
+/-- Every `query` declaration the environment records under `namespaces`, by name: one info line
+each, from `sourceLine` for a one-instance Query and `instancesLine` for one over several
+instances, which is applied to the very arguments the declaration applies `checkInstances` to. -/
 def sweep (namespaces : List Name) : CommandElabM Unit := do
   let environment ← getEnv
   let declared := (Registry.queries environment).toList.map (·.declName) |>.filter fun name =>
@@ -354,11 +409,25 @@ def sweep (namespaces : List Name) : CommandElabM Unit := do
   for name in declared.mergeSort (fun left right => left.toString ≤ right.toString) do
     let label := Lean.quote (name.toString ++ ": ")
     let sourceName := name ++ `source
-    let text ← if environment.contains sourceName then
-        `(Umpire.SearchTests.Differential.sourceLine $(mkIdent name) $(mkIdent sourceName))
-      else
-        `(Umpire.SearchTests.Differential.checkedLine $(mkIdent name))
-    elabCommand (← `(#eval IO.println ($label ++ $text)))
+    if environment.contains sourceName then
+      elabCommand (← `(#eval IO.println ($label ++
+        Umpire.SearchTests.Differential.sourceLine $(mkIdent name) $(mkIdent sourceName))))
+    else
+      let some value := (environment.find? name).bind (·.value?)
+        | throwError "{name} has no value"
+      let value := value.consumeMData
+      unless value.getAppFn.isConstOf ``Umpire.Command.checkInstances do
+        throwError "{name} is neither a one-instance Query nor an application of checkInstances"
+      let lineName := (← getCurrNamespace) ++ `differential ++ name
+      liftCoreM <| addAndCompile <| .defnDecl {
+        name := lineName
+        levelParams := []
+        type := mkConst ``String
+        value := mkAppN (mkConst ``Umpire.SearchTests.Differential.instancesLine
+          value.getAppFn.constLevels!) value.getAppArgs
+        hints := .opaque
+        safety := .safe }
+      elabCommand (← `(#eval IO.println ($label ++ $(mkIdent lineName))))
 
 /-! ### The Switch
 
@@ -367,9 +436,9 @@ Every `query` block of the Umpire Models this module imports -- the Switch's and
 Query is on `veil`. -/
 
 /--
-info: Umpire.Examples.Switch.exactAction: veil default, found 2 paths, found 2 states; automaton ok, monitors ok
+info: Umpire.Examples.Switch.exactAction: veil default, found 2 paths, found 2 states; automaton ok, monitors ok (Query depth 1, clause table depth 1)
 ---
-info: Umpire.ReplayTests.softAfterHard: veil default, found 3 paths, found 3 states; automaton ok, monitors ok
+info: Umpire.ReplayTests.softAfterHard: veil default, found 3 paths, found 3 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
 -/
 #guard_msgs in
 run_cmd sweep [`Umpire]
@@ -383,6 +452,42 @@ info: ["veil default, found 2 paths, found 2 states", "veil default, found 2 pat
 #eval [admittedLine exactActionAdmitted,
   admittedLine (exactActionAdmitted.withQuery exploratoryQuery exploratoryQuery_target),
   admittedLine (exactActionAdmitted.withQuery exactTraceQuery exactTraceQuery_target)]
+
+/-! The Queries the Switch's other search callers derive from it: every point of the checked
+variation space the Variations compiler plans (`searchWithIntent` over `withQuery`), and the
+unsatisfiable-Scenario Query Promotion's tests search through `withQuery`. A derived Query shares
+the Switch's search view, so each runs through `Search.Selection.searchWith` over the view
+`Search.admit` builds, which is what `AdmittedQuery.searchWith` runs. -/
+
+/-- Both backends on a checked Query through the view `Search.admit` would build for it. -/
+def queryLine {LawStatement : Law → Prop} (query : CheckedQuery LawStatement) : String :=
+  match SearchView.ofCheckedQuery query.target.id query with
+  | .error _ => "no search view"
+  | .ok view =>
+      line query.form (Search.Selection.searchWith .reference query view)
+        (Search.Selection.searchWith .veil query view)
+
+private def spaceAssignments : List CheckedVariationAxis → List (List ModelValue)
+  | [] => [[]]
+  | axis :: rest => axis.choices.flatMap fun choice =>
+      (spaceAssignments rest).map ({ definitionId := axis.id, value := choice.id.value } :: ·)
+
+/--
+info: ["veil default, found 2 paths, found 2 states", "veil default, found 2 paths, found 2 states",
+  "veil default, found 2 paths, found 2 states", "veil default, found 2 paths, found 2 states"]
+-/
+#guard_msgs in
+#eval (spaceAssignments VariationsTests.checked.axes).map fun assignment =>
+  match lowerSpacePoint VariationsTests.checked assignment with
+  | .ok point => queryLine point.query
+  | .error error => "not lowered: " ++ error.kind.name
+
+open Umpire.Examples.Switch in
+/-- info: "veil default, unsatisfiable 0 paths, unsatisfiable 0 states" -/
+#guard_msgs in
+#eval admittedLine (exactActionAdmitted.withQuery
+  { exactActionQuery with behavior := { exactActionBehavior with spaceStatus := .unsatisfiable } }
+  exactActionQuery_target)
 
 /-! The comparison is not vacuous: a result set against another Query's differs in its outcome, a
 Plan with other `explored` counts differs from the same Plan in nothing else, and a receipt differs
