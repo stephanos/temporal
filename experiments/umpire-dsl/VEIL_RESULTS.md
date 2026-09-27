@@ -126,3 +126,64 @@ unsolicited completion from `started`. Adding the model branch alone therefore
 **does not implement the whole pipeline**. No scoped temporal compiler change,
 production property migration, full Veil checker query, or runtime correspondence
 is claimed by this edit exercise.
+
+## fn-88 R1 probe: concrete checker inside the model's dependency graph
+
+Date: 2026-09-26 (local; the Lake log's commit timestamps are UTC 2026-09-27). Task
+`fn-88-veil-concrete-checker-as-the-umpire.1`. **Decision: `defer-incompatible`.** The checker
+closure does not compile under `model/lean-toolchain` (Lean 4.33.1). The first error is:
+
+```text
+error: Veil/Util/TreeSetMisc.lean:71:30: Tactic `clear` failed: target depends on 'l'
+```
+
+The decisive condition is the first `adopt` condition, "the checker closure builds unchanged under
+`model/lean-toolchain`". The failure is a compiler error, not a network or disk error, so it is a
+decision under R1 and not a retry. The other `adopt` conditions were checked from source and are
+recorded below. The checker entry would also have failed the purity condition, so a toolchain
+fix alone would move the decision to `defer-closure`, not to `adopt`.
+
+### Setup
+
+- The copy was taken with `git archive HEAD model` plus the nine testpilot `.proto` inputs and
+  `proto/api.binpb`, which the copy's `lakefile.lean` reads through `../proto`. It lived in a
+  session scratch directory outside the repository and was built cold, without the checkout's
+  `.lake`. It was deleted after the run.
+- The only edit was one `require` in the copy's `lakefile.lean`, placed after `protobuf`:
+  `require veil from git "https://github.com/verse-lab/veil.git"@"517f2badbf9a7ba2b18a72242351ff20943cbdd7"`.
+- Build command: `lake build Veil.Core.Tools.ModelChecker.Concrete.Checker`, run with the
+  Makefile's macOS `SDKROOT`/`CC` environment under `mise exec`.
+
+### Receipt
+
+| Field | Value |
+| --- | --- |
+| Commit | `verse-lab/veil@517f2badbf9a7ba2b18a72242351ff20943cbdd7` (`main` HEAD on the probe date, 2026-09-23 "chore: remove `Veil.Core` (#72)"). `main` was used because it keeps every checker module under `Veil/Core/Tools/ModelChecker/Concrete/`; #72 removed the separate `Veil.Core` Lake library, not the module paths. The `be6a1ce` fallback was not needed. |
+| Veil's declared toolchain | `leanprover/lean4:v4.32.0`. The model builds with `v4.33.1`. |
+| Batteries resolved | `4488d40d070b9700d4d5a6aa342f0d40c31b2a2d` (`v4.33.0`). The root requirement shadows Veil's `v4.32.0` pin (`023ce7d6…`). All 192 Batteries modules in the closure built, so the 2026-09-06 failure at `Batteries/Tactic/Alias.lean:176` does not recur. |
+| Packages `lake update` added | Veil's packages at its manifest revisions: proofwidgets `6e311e2a`, aesop `a7dbf0c6` (`v4.32.0`), Loom `27c03ba8`, smt `922af463` (`v4.32.0-veil-no-mathlib`), Qq `38d591e7`, cvc5 `a3ffc29a`, auto `1175ff6b`. Mathlib is gone from Veil's graph since #69. protobuf and batteries keep the model's revisions. |
+| Imported closure | 355 non-core modules: 31 Veil, 192 Batteries, 132 Aesop (Aesop through `Veil.Util.Equiv`), plus `Init`, `Lean`, and `Std`. The 31 Veil modules are the 14 `Veil.Core.Tools.ModelChecker.{Concrete.*, ExecutionOutcome, Interface, Trace, TransitionSystem}` modules, `Veil.Frontend.DSL.Module.Names`, `Veil.Frontend.DSL.State.Types`, and 15 `Veil.Util.*` modules. The closure was read from source import headers and matches the build, which scheduled only Batteries, Aesop, and Veil modules. |
+| Loom, lean-smt, mathlib, widget modules in the closure | None as Lean imports. Two caveats. `lake update` still clones Loom, smt, cvc5, auto, Qq, and proofwidgets. The `Veil` library declares `needs := #[widgetJsAll]`, so building any Veil module runs `npm clean-install` and a rollup build of `widget/` first (`veil/widgetJsAll`, 7.5 s, 88 MB of `node_modules`). Node and npm become build prerequisites of the model. |
+| `lake update` | 120.99 s wall, cold. This includes a first-time elan download of the 4.33.1 toolchain into `~/.elan`, which the timing cannot separate. `.lake/packages` was 80,288 KiB (78 MiB) after the update and 476 MiB after the build, mostly Batteries and Aesop build output plus the widget's `node_modules`. |
+| Cold build of the checker closure | Failed after 117.92 s wall (319.80 s user). It built 344 of 366 jobs: all Batteries and Aesop modules and 19 Veil modules. Two modules failed: `Veil.Util.TreeSetMisc` (the first error above) and `Veil.Frontend.DSL.State.Types` (`:127:74` `apply` failed to unify `ih`, `:213:72` `rfl` failed, `:229:8` unsolved goals, `:233:4` `simp` made no progress). The failing proofs are over core `Std.TreeSet`/`DTreeMap.Internal` and `IteratedProd` lemmas, so the cause is 4.32 to 4.33 core drift. `Veil.Core.Tools.ModelChecker.Concrete.Checker` itself was never reached. |
+| Warm build | 16.16 s wall. It rebuilt nothing that had succeeded, retried the two failing modules, and failed with the same errors. |
+| Peak RSS | 922,058,752 bytes (cold) and 869,449,728 bytes (warm): `maximum resident set size` from `/usr/bin/time -l`, which is the largest single process in the tree. |
+| Complete-mode `lint-model` in the copy | Not measured, for two reasons. (1) The build failed, so no model module can import Veil. The lint's metadata walk (`Tools/LeanImportGraph/Metadata.lean`) reads `.olean` data only for modules reachable from the model's roots, so a copy with only the `require` would measure today's lint and nothing of Veil. (2) The volume had 1.5 to 2.4 GiB free during the run, and a cold model build takes about 2.7 GiB of `.lake`. Other agents' builds were using the same disk, and filling it would have broken them. |
+| Checker entry purity | Monadic `IO`. The entry `Veil.ModelChecker.Concrete.findReachable` runs in `m` with `[MonadLiftT IO m]` and takes an `IO.CancelToken`. Its sequential driver `breadthFirstSearchSequential` is an unfueled `while` loop in the same monad that also publishes progress. Trace recovery (`recoverTrace`) is monadic and throws through `IO.ofExcept`, and its helper `retraceSteps` is `partial`. The one-step function `SequentialSearchContext.bfsStep` is pure and total, and invariant-preservation theorems cover it. An adapter could drive it with fuel only by owning the loop and the trace recovery. |
+| Frontier order and threading | Deterministic and single-threaded when `parallelCfg = none`. The frontier is `fQueue`, a FIFO over two lists. Successors are processed with `List.foldl` in `sys.tr` order. The parent log is a `Std.HashMap` used only for lookup and first-insert (`log.insert` runs only when the fingerprint is absent), so parents are first-discovery parents and hash-map iteration never orders the search. With `parallelCfg = some _` the search uses `breadthFirstSearchParallel`, which spawns `IO.asTask` shards (MapReduce). One fact for R15 and R10: `findReachable` fixes the fingerprint type to `UInt64`, with default view `hash`, so two distinct states with equal 64-bit hashes are merged. That is hash compaction, not a visited set of exact states. The lower-level functions are generic in the fingerprint type. |
+| `@[expose]` facts | `TransitionSystem.lean` (`EnumerableTransitionSystem`, `next`, `toRelational`, `reachable`, `reachable_equiv_relational`), `ExecutionOutcome.lean`, `Trace.lean`, `Interface.lean` (`ModelCheckingResult`, `TerminationReason`, `SearchParameters`), `Concrete/Core.lean`, `Concrete/Containers.lean`, and `Concrete/Subtypes.lean` are `@[expose] public section`. The definitions R7 unfolds are therefore exposed. `Concrete/Checker.lean`, `Sequential.lean`, `SearchContext.lean`, `MapReduce.lean`, and `Progress.lean` are plain `public section`, so the bodies of `findReachable`, `breadthFirstSearchSequential`, `bfsStep`, and `recoverTrace` are not exposed to importers. |
+| Bounds the checker supports | A depth bound (`EarlyTerminationCondition.reachedDepthBound`), stop-at-first-violation, deadlock, and assertion stops. It has no visited-state-count bound, so `Limits.search` counted in states would need adapter-side enforcement. |
+
+Concurrent load: the host is a macOS arm64 machine with 8 cores and 16 GiB of RAM. Another
+agent's `lake build` and a separate clone's `make umpire-build-model` ran throughout. Load
+averages were 79 to 83 (1 min) during `lake update` and 19 to 30 during the builds. All wall
+times are contended single runs, not baselines. No threshold decision depends on them: the
+decision rests on a deterministic compiler error.
+
+### Consequence
+
+Under the spec's precedence, `defer-incompatible` closes every later fn-88 task as not
+applicable, and each cites this receipt (R13). The real `model/lakefile.lean` and
+`lake-manifest.json` were not touched. The next attempt needs either a Veil revision that declares
+a Lean toolchain at or above the model's, or a model toolchain that Veil supports. Such an attempt
+should re-check the purity condition too, because the entry is `IO` whatever the toolchain.
