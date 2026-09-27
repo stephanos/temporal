@@ -31,6 +31,9 @@ Add the pinned `require` to `model/lakefile.lean`, write `Umpire.Search.Backend.
 - `Umpire.Search.Selection` does not exist until task .6; until then the adapter is reachable only from its own tests, which the lint rule must allow as test modules.
 - Veil-only tests live in their own module so the rollback drill (task .7) can delete them as a unit.
 
+### Carried from fn-88.2 review (2026-09-27)
+- Put `veilCommit` on the `veil` backend value rather than on the shared result/receipt shape, so a `reference` run cannot carry a Veil commit (illegal state unrepresentable). Adjust the receipt v2 field .2 introduced accordingly and pin both backends' receipts.
+
 ## Acceptance
 - [ ] `model/lakefile.lean` requires Veil at the R1 commit; clean `make umpire-build-model` passes; manifest pin check present and tested to fail on a mismatch
 - [ ] `Umpire.Search.Backend.Veil` returns each `BackendResult` variant on fixture products in `Tests/BackendVeil.lean`, with `complete` produced when the depth bound is exhausted
