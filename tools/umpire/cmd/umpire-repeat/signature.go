@@ -66,7 +66,7 @@ type canonicalSignature struct {
 
 // Hash is the signature's identity: every iteration-specific value normalized out, lists sorted,
 // and the assertion's source location dropped, so repeated occurrences of one cause hash equal.
-func (s Signature) Hash() string {
+func (s Signature) Hash() (string, error) {
 	assertion, _ := stripLocations(s.Assertion)
 	canonical := canonicalSignature{
 		Test:            s.Test,
@@ -96,11 +96,12 @@ func (s Signature) Hash() string {
 		canonical.Leaks = append(canonical.Leaks, normalize(leak))
 	}
 	slices.Sort(canonical.Leaks)
-	// The Go-syntax form of a struct of strings is deterministic and quotes every value; writing to
-	// a hash never fails.
-	digest := sha256.New()
-	_, _ = fmt.Fprintf(digest, "%#v", canonical)
-	return hex.EncodeToString(digest.Sum(nil))[:12]
+	encoded, err := json.Marshal(canonical)
+	if err != nil {
+		return "", fmt.Errorf("encode signature of %s: %w", s.Test, err)
+	}
+	sum := sha256.Sum256(encoded)
+	return hex.EncodeToString(sum[:])[:12], nil
 }
 
 // The order matters: a timestamp holds what would otherwise read as ports and durations, and a UUID
@@ -128,7 +129,10 @@ func normalize(text string) string {
 	return text
 }
 
-var locationPattern = regexp.MustCompile(`(?:[\w.@+-]*/)*[\w.@+-]+\.go:\d+(?::\d+)?:?`)
+var (
+	locationPattern        = regexp.MustCompile(`(?:[\w.@+-]*/)*[\w.@+-]+\.go:\d+(?::\d+)?:?`)
+	leadingLocationPattern = regexp.MustCompile(`^(?:[\w.@+-]*/)*[\w.@+-]+\.go:\d+(?::\d+)?:\s*`)
+)
 
 // stripLocations removes every `file.go:line` from text and returns the first one it removed.
 func stripLocations(text string) (stripped, location string) {
@@ -148,7 +152,9 @@ type outputLine struct {
 // with every other field empty; with neither, the failure is unparsed.
 func signatureOf(test string, lines []outputLine) Signature {
 	for _, line := range lines {
-		payload, ok := strings.CutPrefix(strings.TrimSpace(line.text), signatureLinePrefix)
+		// A line printed with t.Log arrives decorated with the `file.go:line: ` it was logged from.
+		text := leadingLocationPattern.ReplaceAllString(strings.TrimSpace(line.text), "")
+		payload, ok := strings.CutPrefix(text, signatureLinePrefix)
 		if !ok {
 			continue
 		}

@@ -362,14 +362,20 @@ func (l *loop) process(ctx context.Context, binary, runDir string, perProcess in
 		cli.WriteLine(l.stdout, "input changed: %s; stopping after %d iterations", l.baseline.changed(now), len(l.finished))
 		return l.exitCode(true), true
 	}
-	runs, err := capturedRuns(runDir, iterations)
+	// Runs are assigned over every iteration the process started, so a Run the interrupted
+	// iteration wrote stays with it and is dropped with it.
+	runs, err := capturedRuns(runDir, collected.iterations)
 	if err != nil {
 		cli.WriteLine(l.stderr, "run capture: %s", err)
 		return exitToolingError, true
 	}
 	base := len(l.finished)
 	for index, it := range iterations {
-		if err := l.finish(base+index+1, it, signatures[index], runs[index]); err != nil {
+		var captured []string
+		if index < len(runs) {
+			captured = runs[index]
+		}
+		if err := l.finish(base+index+1, it, signatures[index], captured); err != nil {
 			cli.WriteLine(l.stderr, "%s", err)
 			return exitToolingError, true
 		}
@@ -498,7 +504,10 @@ func (l *loop) finish(number int, it *iteration, signatures []Signature, runs []
 	}
 	hashes := make([]string, 0, len(signatures))
 	for _, signature := range signatures {
-		hash := signature.Hash()
+		hash, err := signature.Hash()
+		if err != nil {
+			return err
+		}
 		rec.Failures = append(rec.Failures, failure{Test: signature.Test, SignatureHash: hash, Signature: signature})
 		hashes = append(hashes, hash)
 	}

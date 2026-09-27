@@ -6,13 +6,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func mustHash(t *testing.T, signature Signature) string {
+	t.Helper()
+	hash, err := signature.Hash()
+	require.NoError(t, err)
+	return hash
+}
+
 func TestSignatureHashIgnoresWhereTheAssertionFired(t *testing.T) {
 	before := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:88: verdict Inconclusive, want Satisfied"}
 	moved := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:120: verdict Inconclusive, want Satisfied"}
 	other := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:88: verdict Violated, want Satisfied"}
 
-	require.Equal(t, before.Hash(), moved.Hash())
-	require.NotEqual(t, before.Hash(), other.Hash())
+	require.Equal(t, mustHash(t, before), mustHash(t, moved))
+	require.NotEqual(t, mustHash(t, before), mustHash(t, other))
 }
 
 func TestSignatureHashNormalizesIterationSpecificValues(t *testing.T) {
@@ -29,11 +36,11 @@ func TestSignatureHashNormalizesIterationSpecificValues(t *testing.T) {
 	reordered := []UnresolvedRule{{RuleID: "b", Status: "Pending"}, {RuleID: "a", Status: "Pending"}}
 
 	require.Equal(t,
-		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one).Hash(),
-		signature("testpilot-run-a0b1c2d3-e4f5-4a6b-8c7d-9e0f1a2b3c4d", "61874", "q9w8e", reordered).Hash())
+		mustHash(t, signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one)),
+		mustHash(t, signature("testpilot-run-a0b1c2d3-e4f5-4a6b-8c7d-9e0f1a2b3c4d", "61874", "q9w8e", reordered)))
 	require.NotEqual(t,
-		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one).Hash(),
-		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one[:1]).Hash())
+		mustHash(t, signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one)),
+		mustHash(t, signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one[:1])))
 }
 
 // A reserved signature never merges into a parsed one with the same test and assertion.
@@ -42,8 +49,8 @@ func TestReservedSignaturesHashApart(t *testing.T) {
 	unparsed := Signature{Test: "TestTestpilotNexusPairCase", Reserved: reservedUnparsed}
 	process := Signature{Test: "TestTestpilotNexusPairCase", Reserved: reservedProcess}
 
-	require.NotEqual(t, parsed.Hash(), unparsed.Hash())
-	require.NotEqual(t, unparsed.Hash(), process.Hash())
+	require.NotEqual(t, mustHash(t, parsed), mustHash(t, unparsed))
+	require.NotEqual(t, mustHash(t, unparsed), mustHash(t, process))
 }
 
 // A signature line that does not decode is no signature: the assertion is read the fallback way and
