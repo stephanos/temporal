@@ -88,7 +88,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-76-make-lean-semantic-inventory-consume.md",
-  "status": "open",
+  "status": "done",
   "title": "Make Lean semantic inventory consume semantic contracts",
   "tracker": {
     "baseHashFlow": null,
@@ -101,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T13:37:08.846479Z"
+  "updated_at": "2026-09-27T00:36:40.170683Z"
 }

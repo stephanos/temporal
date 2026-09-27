@@ -6,7 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-The delivery queue is empty. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
+fn-88 is the only queued spec. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
 fn-29 are delivered, each with SHIP implementation and completion reviews; their task receipts in
 `.flow/` and the git history carry the details. fn-29's `spec close` is still to be run in a clone
 whose runtime task state reads every task done.
@@ -14,6 +14,20 @@ whose runtime task state reads every task done.
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
 leases, recovery, and publication stay outside Testpilot and Umpire.
+
+### Delivery queue
+
+1. **fn-88 — Veil concrete checker as the Umpire search engine**
+   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)). Makes Veil's concrete
+   model-checker library the engine behind `Umpire.Search`, consuming the `FiniteTable` the
+   `machine` command already enumerates, with Properties and Scenarios lowered to monitor automata
+   through the lowering the Case Producer uses. Its first task is a developer-machine compatibility
+   probe of the checker library under the repository toolchain; `adopt` continues, and
+   `defer-incompatible` closes the rest as not applicable and hands the engine question to a
+   separate `FiniteTable` to TLA+ exporter spec. Today's `Search.lean` stays as the frozen reference
+   engine and differential oracle. The reasoning is sections 1 and 6 of
+   [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path, and it neither
+   runs fn-23's sandboxed gate nor resumes fn-24 or fn-25.
 
 ### Carried forward, not yet specs
 
@@ -42,18 +56,17 @@ Re-measured 2026-09-20 on a four-core, 16 GB cloud session at the fn-86 closeout
 | Gate | This session |
 | ---- | ------------ |
 | `make umpire-check-regression` | exit 0 after `go clean -cache` -- 590 Lean jobs, the offline checks, **29 passing live identities** |
-| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report the two generated `Temporal/API/Proto.lean` findings and 40 warnings, none new |
+| `make lint-model` | the `.1` baseline: the import graph passes with the authoring-path rule and both controlled violations asserted; the declaration linters report 163 findings, all in generated code (two unused-argument errors in `Temporal/API/Proto.lean` and 161 `simpNF` findings in `Temporal.API.Types`), and 40 warnings, none new; the target exits 2 on those |
 | `make lint-code` | 0 issues over the changed packages (`GOLANGCI_LINT_BASE_REV=9484405 make lint-code-fast`); the full `make lint-code` is not measurable in a shallow clone with no `main` merge base |
 
 Measured 2026-09-26 on a macOS host at the fn-29 closeout, not a re-measured baseline:
 `make umpire-check-regression` exit 0 with **45 passing live identities** (13 of them
 `TestTestpilotCanary*`); `make lint-code-fast` red on findings outside the canary (the typecheck
 error of a deliberately broken `tools/umpire` testdata fixture and staticcheck findings in untouched
-`tests/*.go`); `LEAN_NUM_THREADS=1 make lint-model` reports a diagnostic in
-`Umpire/Command/Refinement.lean` beside the two `Proto.lean` errors, outside the baseline above and
-not from fn-29 (that file last changed 2026-09-19); `make umpire-check-plan-index` fails on
-pre-existing drift in `.plans/index.json` (62 findings: unregistered specs and documents, and
-entries whose status, completion review or dependencies lag Flow).
+`tests/*.go`); `LEAN_NUM_THREADS=1 make lint-model` also reported an unused `[BEq α]` in
+`Umpire/Command/Refinement.lean` (present since 2026-09-19 and missed by the baseline above), since
+removed, so it reports only the 163 generated findings; `make umpire-check-plan-index` passes
+after `.plans/index.json` was resynced with Flow the same day.
 
 **`make lint-code` under-reports when the disk is low.** golangci-lint aborts with
 `no space left on device (typecheck)` and still exits with a count — `Issues before processing:
@@ -63,8 +76,10 @@ entries whose status, completion review or dependencies lag Flow).
 **`make umpire-check-retired-vocabulary` is the slowest offline gate** by an order of magnitude
 (about twenty minutes in a cloud session).
 
-**Environment notes.** Live tests and every cgo or `-race` build need `CC=/usr/bin/clang` (mise's
-lean4 clang shadows the toolchain and fails with `stddef.h not found`) and a physical `TMPDIR`
+**Environment notes.** On macOS, mise's lean4 `clang` shadows the system one and fails cgo builds
+with `stddef.h not found`; `mise.toml` sources `develop/mise-env.sh`, which sets `CC=/usr/bin/clang`
+unless `CC` is already set, and the Makefile exports the xcrun clang, so no manual `CC` is needed.
+Live tests still need a physical `TMPDIR`
 (`TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P)`; the default macOS path traverses the `/var` symlink).
 `go vet -tags test_dep` is not the gate: the live suite builds with `-tags 'test_dep integration'`,
 which compiles strictly more files. In a cloud session, `mise` is a passthrough shim, so
@@ -124,6 +139,9 @@ These entries are outside the delivery queue and are not prerequisites for it.
 | [fn-24](../.flow/specs/fn-24-lean-native-verification-receipts-and.md)    | A verification receipt/profile platform is justified.                                                          |
 | [fn-25](../.flow/specs/fn-25-optional-callerclosure-veil-binding-and.md)  | A second verification backend is justified; caller closure remains historical.                                 |
 | [fn-30](../.flow/specs/fn-30-release-evidence-graph-and-manual.md)        | Real Claim Assessment evidence supports release governance.                                                    |
+
+fn-88 consumes Veil's concrete checker as a Search engine and leaves the symbolic verification
+path, fn-23, fn-24 and fn-25, deferred as above.
 
 [fn-14](../.flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md) is historical;
 [fn-61](../.flow/specs/fn-61-simplify-the-umpire-go-execution-surface.md) and

@@ -625,7 +625,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-78-typed-temporal-authoring-and-checked.md",
-  "status": "open",
+  "status": "done",
   "title": "Typed temporal authoring and checked scoped monitoring",
   "tracker": {
     "baseHashFlow": null,
@@ -638,5 +638,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:40.630055Z"
+  "updated_at": "2026-09-27T00:36:40.644640Z"
 }

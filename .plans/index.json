@@ -10,6 +10,59 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/FEATURE_AUTHORING_ASSESSMENT.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Feature/Nexus/Lifecycle/Semantics.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus/Lifecycle/Target.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus/Operations/Cancellation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Evaluation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Query/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/FEATURE_AUTHORING_RESEARCH.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/lakefile.toml",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
       "path": ".plans/LEAN_GUIDELINES.md",
       "lifecycle": "active",
       "authority": "scoped-contract",
@@ -18,30 +71,10 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/PLAN_ARCHITECTURE.md",
-      "lifecycle": "historical",
-      "authority": "historical",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/PLAN_NEXT.md",
-      "lifecycle": "historical",
-      "authority": "historical",
-      "authorityParents": [
-        ".plans/PLAN_ARCHITECTURE.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
       "path": ".plans/PLAN_UPDATE_PROPS.md",
       "lifecycle": "historical",
       "authority": "historical",
-      "authorityParents": [
-        ".plans/PLAN_ARCHITECTURE.md"
-      ],
+      "authorityParents": [],
       "supersededBy": null,
       "allowedMissingLinks": []
     },
@@ -150,6 +183,14 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
       "path": ".plans/UMPIRE4_SPEC.md",
       "lifecycle": "active",
       "authority": "normative-rules",
@@ -200,6 +241,50 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/UMPIRE_ARCHITECTURE_REVIEW.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Testpilot/TestpilotProtoJSON.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Case/ProtoJSON.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Observation/Evaluation/Types.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Planning/Engine.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Target/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "tests/testcore/testpilot/worker/carrier.go",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "tests/testcore/testpilot/worker/interpreter.go",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
       "path": ".plans/UMPIRE_CASE_RUNTIME_DESIGN.md",
       "lifecycle": "active",
       "authority": "architecture",
@@ -218,7 +303,118 @@
         ".plans/UMPIRE4_SPEC.md"
       ],
       "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Feature/Nexus/Experimental/AutoClose.lean",
+          "reason": "Experimental Nexus model deleted by fn-86; the comparison cites it as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/UMPIRE_DSL_DESIGN_OPTIONS.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Umpire/Behavior/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Planning/Engine.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Evaluation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Target/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/UMPIRE_DSL_EXPERIMENT.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Feature/Nexus3/Authoring.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus3/Nexus.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus3/Nexus.md",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus3/Syntax.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Behavior/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Evaluation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/UMPIRE_DSL_OPPORTUNITIES.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
       "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_DSL_RESEARCH.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Temporal/Feature/Nexus3/Nexus.md",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
     },
     {
       "path": ".plans/UMPIRE_TYPED_ACTIONS_SPEC.md",
@@ -229,6 +425,32 @@
       ],
       "supersededBy": null,
       "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/VEIL_BACKEND_RESEARCH.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Property/Evaluation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/Umpire/Target/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
     }
   ],
   "flowSpecs": [
@@ -429,22 +651,19 @@
     {
       "id": "fn-22-deterministic-replay-semantic",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p3",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
-        "fn-16-authored-variation-spaces-and",
-        "fn-18-versioned-umpire-artifact-boundary",
-        "fn-19-bounded-local-temporal-execution-and",
-        "fn-20-local-execution-semantic-conformance",
-        "fn-21-nexus-duplicate-observation-control",
-        "fn-32-add-umpire-refinement-and-the-first",
-        "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-5-umpire-discovery-promotion-and-artifact",
-        "fn-61-simplify-the-umpire-go-execution-surface",
-        "fn-64-umpire-case-runtime"
+        "fn-64-umpire-case-runtime",
+        "fn-69-extract-testpilot-from-umpire",
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-84-deepen-five-shallow-module-clusters-in",
+        "fn-85-model-side-effects-as-typed-actions-and",
+        "fn-87-tighten-the-testpilot-protocol-glossary"
       ]
     },
     {
@@ -471,7 +690,8 @@
         "fn-34-enforce-lean-model-boundaries-with",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-43-deepen-ordinary-property-behavior-and",
-        "fn-47-generate-umpire-semantic-outcome-and"
+        "fn-47-generate-umpire-semantic-outcome-and",
+        "fn-82-unify-the-umpire-and-testpilot"
       ]
     },
     {
@@ -486,25 +706,24 @@
         "fn-23-veil-toolchain-compatibility-and",
         "fn-24-lean-native-verification-receipts-and",
         "fn-34-enforce-lean-model-boundaries-with",
-        "fn-37-hard-cut-umpire-vocabulary-and-current"
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-82-unify-the-umpire-and-testpilot"
       ]
     },
     {
       "id": "fn-26-local-qualification-receipts-and-staged",
       "scope": "umpire-roadmap",
-      "disposition": "deferred",
+      "disposition": "completed-prerequisite",
       "phase": "verification",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
-        "fn-18-versioned-umpire-artifact-boundary",
-        "fn-19-bounded-local-temporal-execution-and",
-        "fn-20-local-execution-semantic-conformance",
-        "fn-37-hard-cut-umpire-vocabulary-and-current",
-        "fn-47-generate-umpire-semantic-outcome-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set",
-        "fn-64-umpire-case-runtime"
+        "fn-64-umpire-case-runtime",
+        "fn-69-extract-testpilot-from-umpire",
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-87-tighten-the-testpilot-protocol-glossary"
       ]
     },
     {
@@ -539,21 +758,18 @@
     {
       "id": "fn-29-bounded-production-canary-execution-and",
       "scope": "umpire-roadmap",
-      "disposition": "deferred",
+      "disposition": "completed-prerequisite",
       "phase": "verification",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
-        "fn-18-versioned-umpire-artifact-boundary",
-        "fn-19-bounded-local-temporal-execution-and",
-        "fn-20-local-execution-semantic-conformance",
         "fn-26-local-qualification-receipts-and-staged",
-        "fn-28-portable-evaluation-contract-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set",
-        "fn-52-caller-neutral-grpc-portable-test-plans",
-        "fn-61-simplify-the-umpire-go-execution-surface",
-        "fn-64-umpire-case-runtime"
+        "fn-64-umpire-case-runtime",
+        "fn-69-extract-testpilot-from-umpire",
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-85-model-side-effects-as-typed-actions-and"
       ]
     },
     {
@@ -580,7 +796,8 @@
         "fn-27-hermetic-ci-execution-and-qualification",
         "fn-28-portable-evaluation-contract-and",
         "fn-29-bounded-production-canary-execution-and",
-        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+        "fn-48-canonicalize-known-gaps-as-a-checked-set",
+        "fn-82-unify-the-umpire-and-testpilot"
       ]
     },
     {
@@ -613,21 +830,17 @@
     {
       "id": "fn-33-run-serial-bounded-semantic-exploration",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p3",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
-        "fn-17-bounded-semantic-exploration-and",
-        "fn-18-versioned-umpire-artifact-boundary",
-        "fn-19-bounded-local-temporal-execution-and",
-        "fn-20-local-execution-semantic-conformance",
-        "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-40-centralize-plannerpolicy-constructors",
-        "fn-47-generate-umpire-semantic-outcome-and",
-        "fn-61-simplify-the-umpire-go-execution-surface",
-        "fn-64-umpire-case-runtime"
+        "fn-64-umpire-case-runtime",
+        "fn-69-extract-testpilot-from-umpire",
+        "fn-84-deepen-five-shallow-module-clusters-in",
+        "fn-85-model-side-effects-as-typed-actions-and"
       ]
     },
     {
@@ -778,13 +991,14 @@
     {
       "id": "fn-46-export-lean-model-module-impact-index",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
-        "fn-45-index-and-reconcile-umpire-plan"
+        "fn-45-index-and-reconcile-umpire-plan",
+        "fn-82-unify-the-umpire-and-testpilot"
       ]
     },
     {
@@ -962,7 +1176,9 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": []
+      "specDependencies": [
+        "fn-71-standalone-lean-testpilot-protocol"
+      ]
     },
     {
       "id": "fn-61-simplify-the-umpire-go-execution-surface",
@@ -972,24 +1188,19 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-52-caller-neutral-grpc-portable-test-plans",
-        "fn-59-centralize-umpire-artifact-copies",
-        "fn-60-deepen-authored-lean-canonical-json",
-        "fn-62-make-ordinary-temporal-model-authoring"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-62-make-ordinary-temporal-model-authoring",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-58-partition-the-property-language",
-        "fn-60-deepen-authored-lean-canonical-json"
+        "fn-65-design-and-prototype-approachable"
       ]
     },
     {
@@ -1000,19 +1211,76 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-61-simplify-the-umpire-go-execution-surface"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-64-umpire-case-runtime",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p2",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
+    },
+    {
+      "id": "fn-65-design-and-prototype-approachable",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-66-remove-unused-umpire-tooling-after",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-62-make-ordinary-temporal-model-authoring"
+      ]
+    },
+    {
+      "id": "fn-67-refine-simple-nexus3-authoring-draft",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-68-minimal-nexus3-success-demonstration",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-62-make-ordinary-temporal-model-authoring",
+        "fn-64-umpire-case-runtime",
+        "fn-69-extract-testpilot-from-umpire"
+      ]
+    },
+    {
+      "id": "fn-69-extract-testpilot-from-umpire",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-64-umpire-case-runtime",
+        "fn-66-remove-unused-umpire-tooling-after"
+      ]
     },
     {
       "id": "fn-7-migrate-lean-model-descriptor-generator",
@@ -1025,14 +1293,126 @@
       "specDependencies": []
     },
     {
-      "id": "fn-77-typed-operations-parameterized-actions",
+      "id": "fn-70-scheduled-canary-proof-of-concept-as-a",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "deferred",
       "phase": "support",
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
+      "specDependencies": [
+        "fn-68-minimal-nexus3-success-demonstration",
+        "fn-72-extract-the-reusable-temporal-testpilot",
+        "fn-73-explicit-environment-binding-for",
+        "fn-78-typed-temporal-authoring-and-checked",
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-85-model-side-effects-as-typed-actions-and"
+      ]
+    },
+    {
+      "id": "fn-71-standalone-lean-testpilot-protocol",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-69-extract-testpilot-from-umpire"
+      ]
+    },
+    {
+      "id": "fn-72-extract-the-reusable-temporal-testpilot",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
       "specDependencies": []
+    },
+    {
+      "id": "fn-73-explicit-environment-binding-for",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-68-minimal-nexus3-success-demonstration",
+        "fn-71-standalone-lean-testpilot-protocol",
+        "fn-72-extract-the-reusable-temporal-testpilot"
+      ]
+    },
+    {
+      "id": "fn-74-deepen-testpilot-worker-activation",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-72-extract-the-reusable-temporal-testpilot",
+        "fn-82-unify-the-umpire-and-testpilot"
+      ]
+    },
+    {
+      "id": "fn-75-separate-lean-target-semantics-from",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-76-make-lean-semantic-inventory-consume",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-77-typed-operations-parameterized-actions",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-78-typed-temporal-authoring-and-checked",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-73-explicit-environment-binding-for",
+        "fn-82-unify-the-umpire-and-testpilot"
+      ]
+    },
+    {
+      "id": "fn-79-deferred-nexus-operation-cancellation",
+      "scope": "umpire-support",
+      "disposition": "deferred",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-85-model-side-effects-as-typed-actions-and"
+      ]
     },
     {
       "id": "fn-8-umpire-temporal-dynamic-config",
@@ -1045,6 +1425,113 @@
       "specDependencies": [
         "fn-3-umpire-semantic-authoring-and-planning"
       ]
+    },
+    {
+      "id": "fn-80-close-the-model-to-case-seam-and-harden",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-81-delete-the-pre-testpilot-go-generations",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-82-unify-the-umpire-and-testpilot",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-67-refine-simple-nexus3-authoring-draft",
+        "fn-77-typed-operations-parameterized-actions",
+        "fn-80-close-the-model-to-case-seam-and-harden",
+        "fn-81-delete-the-pre-testpilot-go-generations"
+      ]
+    },
+    {
+      "id": "fn-83-author-a-live-case-from-a-model-file",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "needs_work",
+      "specDependencies": [
+        "fn-82-unify-the-umpire-and-testpilot",
+        "fn-85-model-side-effects-as-typed-actions-and"
+      ]
+    },
+    {
+      "id": "fn-84-deepen-five-shallow-module-clusters-in",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-82-unify-the-umpire-and-testpilot"
+      ]
+    },
+    {
+      "id": "fn-85-model-side-effects-as-typed-actions-and",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-84-deepen-five-shallow-module-clusters-in",
+        "fn-87-tighten-the-testpilot-protocol-glossary"
+      ]
+    },
+    {
+      "id": "fn-86-retire-hand-written-models-one",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-85-model-side-effects-as-typed-actions-and"
+      ]
+    },
+    {
+      "id": "fn-87-tighten-the-testpilot-protocol-glossary",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-84-deepen-five-shallow-module-clusters-in"
+      ]
+    },
+    {
+      "id": "fn-88-veil-concrete-checker-as-the-umpire",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
     },
     {
       "id": "fn-9-umpire-reusable-dsl-package-split",
