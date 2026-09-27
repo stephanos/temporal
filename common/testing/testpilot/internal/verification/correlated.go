@@ -33,8 +33,20 @@ type retainedCapture struct {
 	ordinal int64
 	value   *testpilotspb.Value
 }
+
+// correlatedState is one operation's machine state as Lean's StateValue carries it: the atom and
+// the fields it holds, both read when matching a transition's prior state.
+type correlatedState struct {
+	atom   *testpilotspb.ModelValue
+	fields []*testpilotspb.ModelValue
+}
+
+func (s correlatedState) isPriorOf(tr *testpilotspb.CorrelatedTransition) bool {
+	return proto.Equal(tr.PriorState, s.atom) && sameModelValues(tr.PriorFields, s.fields)
+}
+
 type correlatedOperation struct {
-	state       *testpilotspb.ModelValue
+	state       correlatedState
 	last        *testpilotspb.CorrelatedIdentity
 	obligations [][]correlatedObligation
 	captures    []retainedCapture
@@ -436,7 +448,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 	operationCount := int64(len(r.operations))
 	op := r.operations[e.Operation]
 	if op == nil {
-		op = &correlatedOperation{state: s.InitialState, obligations: make([][]correlatedObligation, len(s.Rules))}
+		op = &correlatedOperation{state: correlatedState{atom: s.InitialState, fields: s.InitialStateFields}, obligations: make([][]correlatedObligation, len(s.Rules))}
 		r.operations[e.Operation] = op
 	}
 	if op.last != nil && !r.reaches(op.last, e.Identity) {
@@ -452,7 +464,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		direct := appendIdentity(slices.Clone(e.Parents), e.Identity)
 		r.retainedStepSupport += int64(len(direct) + len(support) + len(r.sequences(direct)) + len(r.sequences(support)))
 		if !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool {
-			return proto.Equal(tr.PriorState, op.state) && sameResult(tr, out)
+			return op.state.isPriorOf(tr) && sameResult(tr, out)
 		}) {
 			return invalid(ir.Malformed, "unauthorized operation transition")
 		}
@@ -477,7 +489,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		maximumFacts, candidates := int64(0), int64(0)
 		for _, row := range s.Transitions {
 			maximumFacts = max(maximumFacts, int64(len(row.Facts)))
-			if proto.Equal(row.PriorState, op.state) && proto.Equal(row.Action, out.Action) {
+			if op.state.isPriorOf(row) && proto.Equal(row.Action, out.Action) {
 				candidates++
 			}
 		}
@@ -525,7 +537,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		if err := r.retain(s, e, op); err != nil {
 			return err
 		}
-		op.state = out.State
+		op.state = correlatedState{atom: out.State, fields: out.StateFields}
 		operationCount = int64(len(r.operations))
 		r.transitions++
 	}
