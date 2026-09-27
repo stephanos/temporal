@@ -32,7 +32,12 @@ type capturedValue struct {
 	value    *testpilotspb.Value
 	sequence int64
 }
+
+// ruleState is one Rule instance's Run-local state; a plain Rule is its own single instance.
 type ruleState struct {
+	machine  *machine
+	ruleID   string
+	values   map[string]*testpilotspb.Value
 	state    int
 	events   int64
 	captures map[string]capturedValue
@@ -83,10 +88,18 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{correlated: newCorrelated(p.source.Correlated, p.correlatedLimits), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
-	for i, m := range p.rules {
-		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
-		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
+	e := &Evaluator{correlated: newCorrelated(p.source.Correlated, p.correlatedLimits), prepared: p, result: &testpilotspb.Verdict{}}
+	// Rule instances are evaluated in Rule declaration order, then instance declaration order, which
+	// is the order the Contract's expansion declares its rules in.
+	for _, m := range p.rules {
+		instances := m.instances
+		if len(instances) == 0 {
+			instances = []ruleInstance{{ruleID: m.source.RuleId}}
+		}
+		for _, instance := range instances {
+			e.rules = append(e.rules, ruleState{machine: m, ruleID: instance.ruleID, values: instance.values, state: m.initial, captures: map[string]capturedValue{}})
+			e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: instance.ruleID, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE})
+		}
 	}
 
 	if p.source.Correlated != nil {
@@ -249,7 +262,7 @@ type eventEvaluation struct{ count, bytes, work int64 }
 func (e *Evaluator) changes(ctx context.Context, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, incomplete bool) (staged []ruleChange, captureCount int64, captureBytes int64, resultErr error) {
 	var changes []ruleChange
 	cost := &eventEvaluation{}
-	for i := range e.prepared.rules {
+	for i := range e.rules {
 		change, err := e.nextChange(ctx, i, event, observations, incomplete, cost)
 		if err != nil {
 			return nil, 0, 0, err
@@ -264,7 +277,8 @@ func (e *Evaluator) changes(ctx context.Context, event *testpilotspb.RunEvent, o
 	return changes, cost.count, cost.bytes, nil
 }
 func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, incomplete bool, cost *eventEvaluation) (*ruleChange, error) {
-	m, state := e.prepared.rules[i], e.rules[i]
+	state := e.rules[i]
+	m := state.machine
 	if m.source.States[state.state].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 		return nil, nil
 	}
@@ -276,7 +290,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		if incomplete {
 			return nil, nil
 		}
-		return &ruleChange{rule: i, state: m.states[m.source.Deadline.ViolationStateId], support: true, trace: transitionTrace{event.Sequence, m.source.RuleId, "", m.source.States[state.state].StateId, m.source.Deadline.ViolationStateId}}, nil
+		return &ruleChange{rule: i, state: m.states[m.source.Deadline.ViolationStateId], support: true, trace: transitionTrace{event.Sequence, state.ruleID, "", m.source.States[state.state].StateId, m.source.Deadline.ViolationStateId}}, nil
 	}
 	resolve := func(ref ir.Reference) *testpilotspb.Value {
 		switch ref.Kind {
@@ -288,6 +302,8 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 			return eventValue(event, testpilotspb.RunEventField(ref.Field))
 		case ir.EventPayloadReference:
 			return ir.RunEventPayloadValue(event, protoreflect.Name(ref.ID))
+		case ir.InstanceValueReference:
+			return state.values[ref.ID]
 		default:
 			return nil
 		}
@@ -306,7 +322,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		if err != nil {
 			return nil, err
 		}
-		return &ruleChange{rule: i, state: m.states[tr.TargetStateId], captures: captures, support: tr.SupportKind == testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT, trace: transitionTrace{event.Sequence, m.source.RuleId, tr.TransitionId, tr.SourceStateId, tr.TargetStateId}}, nil
+		return &ruleChange{rule: i, state: m.states[tr.TargetStateId], captures: captures, support: tr.SupportKind == testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT, trace: transitionTrace{event.Sequence, state.ruleID, tr.TransitionId, tr.SourceStateId, tr.TargetStateId}}, nil
 	}
 	return nil, nil
 }
@@ -444,7 +460,7 @@ func (e *Evaluator) checkDisposition(run *testpilotspb.Run) error {
 	return nil
 }
 func (e *Evaluator) recordTerminal(change ruleChange, event *testpilotspb.RunEvent) {
-	terminal := e.prepared.rules[change.rule].source.States[change.state]
+	terminal := e.rules[change.rule].machine.source.States[change.state]
 	result := e.result.Rules[change.rule]
 	switch terminal.Status {
 	case testpilotspb.CONTRACT_STATE_STATUS_VIOLATED:
@@ -473,7 +489,7 @@ func (e *Evaluator) verdict(disposition testpilotspb.RunDisposition) *testpilots
 	if e.correlated != nil {
 		correlatedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_DISPOSITION_COMPLETED)
 	}
-	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && e.satisfied == len(e.prepared.rules) {
+	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && e.satisfied == len(e.rules) {
 		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
 	if e.violated {
@@ -546,7 +562,7 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 	s := e.prepared.source.Correlated
 	all := true
 	for i := range s.Rules {
-		result := e.result.Rules[len(e.prepared.rules)+i]
+		result := e.result.Rules[len(e.rules)+i]
 		if result.Status != testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
 			result.Status = e.correlated.answer(s, i, closed, incomplete)
 		}

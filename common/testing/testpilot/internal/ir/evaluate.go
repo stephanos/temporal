@@ -72,7 +72,15 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 		}
 		return e.literal, nil
 	case ReferenceValue:
-		return r.resolve(e.reference), nil
+		v := r.resolve(e.reference)
+		// An instance value stands for the literal its Rule instance inlines, so it costs what that
+		// literal costs and a Rule instance's remaining work matches its expansion's.
+		if e.reference.Kind == InstanceValueReference && v != nil {
+			if err := r.charge(int64(proto.Size(v))); err != nil {
+				return nil, err
+			}
+		}
+		return v, nil
 	case ReadPath:
 		v, err := r.eval(e.children[0])
 		if err != nil {

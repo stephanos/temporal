@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"slices"
@@ -407,7 +408,7 @@ func instanceValue(id string) *testpilotspb.Expression {
 
 // An instance value stands for the literal each Rule instance inlines: it binds where its declared
 // type is the type the literal would take there (its context's, or text without one), costs what
-// that literal costs over its reference, and is reported once per read.
+// that literal costs over its reference, in binding and at runtime, and is reported once per read.
 func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 	c := fixtureCatalog(t)
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
@@ -468,6 +469,13 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 			work, err := c.InstanceValueWork(tc.id, tc.value, tc.typ)
 			require.NoError(t, err)
 			require.Equal(t, inlined.BindingWork(), referenced.BindingWork()+work)
+			resolve := func(Reference) *testpilotspb.Value { return tc.value }
+			matched, referencedWork, err := referenced.Evaluate(context.Background(), resolve, 10000)
+			require.NoError(t, err)
+			require.True(t, matched.GetBoolValue())
+			_, inlinedWork, err := inlined.Evaluate(context.Background(), resolve, 10000)
+			require.NoError(t, err)
+			require.Equal(t, inlinedWork, referencedWork)
 		})
 	}
 }

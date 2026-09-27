@@ -4,6 +4,7 @@ package verification
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"maps"
 	"slices"
 
@@ -64,6 +65,26 @@ type ledgerEntry struct {
 	reads          map[string]int64
 }
 
+// ledger records the admission charges a Rule's binding makes, in order.
+type ledger []ledgerEntry
+
+// record appends a charge. Consecutive charges to one counter merge: every value is nonnegative, so
+// their sum exceeds the ceiling exactly when one of them would, with the same error.
+func (l *ledger) record(total *int64, value, ceiling int64, reads map[string]int64) {
+	if last := len(*l) - 1; last >= 0 && (*l)[last].total == total {
+		entry := &(*l)[last]
+		entry.value += value
+		for id, n := range reads {
+			if entry.reads == nil {
+				entry.reads = map[string]int64{}
+			}
+			entry.reads[id] += n
+		}
+		return
+	}
+	*l = append(*l, ledgerEntry{total: total, value: value, ceiling: ceiling, reads: maps.Clone(reads)})
+}
+
 type admission struct {
 	prepared                                    *PreparedContract
 	catalog                                     *ir.Catalog
@@ -74,11 +95,11 @@ type admission struct {
 	states, transitions, captures, captureBytes int64
 	// ruleCount counts Rule instances, a plain Rule as one, as the Contract's expansion counts rules.
 	ruleCount int64
-	// instance prices instance value reads while its Rule binds. While recording, each charge also
-	// enters ledger, so every further instance is charged exactly as its expanded copy would be.
-	instance  *ruleInstance
-	recording bool
-	ledger    []ledgerEntry
+	// instance prices instance value reads while its Rule binds. While a Rule with instances binds,
+	// recorded holds each charge, so every further instance is charged exactly as its expanded copy
+	// would be.
+	instance *ruleInstance
+	recorded *ledger
 }
 
 func (p *PreparedContract) Snapshot() *testpilotspb.Contract   { return proto.CloneOf(p.source) }
@@ -151,21 +172,9 @@ func (a *admission) charge(value int64) error {
 
 // count adds value to total under ceiling, with each instance value read priced at the current
 // Rule instance's inlined literal, and records the charge while a Rule with instances binds.
-// Consecutive charges to one counter merge: every value is nonnegative, so their sum exceeds the
-// ceiling exactly when one of them would, with the same error.
 func (a *admission) count(total *int64, value, ceiling int64, reads map[string]int64) error {
-	if a.recording {
-		if last := len(a.ledger) - 1; last >= 0 && a.ledger[last].total == total {
-			a.ledger[last].value += value
-			for id, n := range reads {
-				if a.ledger[last].reads == nil {
-					a.ledger[last].reads = map[string]int64{}
-				}
-				a.ledger[last].reads[id] += n
-			}
-		} else {
-			a.ledger = append(a.ledger, ledgerEntry{total: total, value: value, ceiling: ceiling, reads: maps.Clone(reads)})
-		}
+	if a.recorded != nil {
+		a.recorded.record(total, value, ceiling, reads)
 	}
 	if a.instance != nil {
 		value += a.instance.readWork(reads)
@@ -193,6 +202,13 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	}
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
+	}
+	if slices.ContainsFunc(source.Rules, func(rule *testpilotspb.ContractRule) bool { return len(rule.Instances) > 0 }) {
+		// The expansion's surface is charged too, so an instanced Contract is not admitted where its
+		// expansion is rejected on surface size.
+		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), expandRuleInstances); err != nil {
+			return nil, err
+		}
 	}
 	if !validID(source.ContractId) || len(source.Rules) == 0 && source.Correlated == nil {
 		return nil, invalid(ir.Malformed, "Contract identity and rules are required")
@@ -258,12 +274,12 @@ func (a *admission) bindRule(rule *testpilotspb.ContractRule, seen map[string]bo
 	if err := checkInstanceValueReads(rule, values); err != nil {
 		return nil, err
 	}
+	recorded := &ledger{}
 	if len(instances) > 0 {
-		a.instance, a.recording, a.ledger = &instances[0], true, nil
+		a.instance, a.recorded = &instances[0], recorded
 	}
 	m, err := a.bindMachine(rule, values)
-	ledger := a.ledger
-	a.recording, a.ledger = false, nil
+	a.recorded = nil
 	defer func() { a.instance = nil }()
 	if err != nil {
 		return nil, err
@@ -271,7 +287,7 @@ func (a *admission) bindRule(rule *testpilotspb.ContractRule, seen map[string]bo
 	m.instances = instances
 	for i := 1; i < len(instances); i++ {
 		a.instance = &instances[i]
-		for _, entry := range ledger {
+		for _, entry := range *recorded {
 			if err := a.count(entry.total, entry.value, entry.ceiling, entry.reads); err != nil {
 				return nil, fmt.Errorf("instance %s: %w", instances[i].ruleID, err)
 			}
@@ -393,6 +409,66 @@ func checkInstanceValueReads(rule *testpilotspb.ContractRule, declared map[strin
 		}
 	}
 	return nil
+}
+
+var contractRules = (&testpilotspb.Contract{}).ProtoReflect().Descriptor().Fields().ByName("rules")
+
+// expandRuleInstances writes a Rule with instances out as its expansion's plain Rules: one per
+// instance, under the instance's rule ID, with each instance value the instance assigns inlined as a
+// literal.
+func expandRuleInstances(field protoreflect.FieldDescriptor, element protoreflect.Message) (int, iter.Seq[proto.Message], bool) {
+	rule, ok := element.Interface().(*testpilotspb.ContractRule)
+	if field != contractRules || !ok || len(rule.Instances) == 0 {
+		return 0, nil, false
+	}
+	return len(rule.Instances), func(yield func(proto.Message) bool) {
+		template := proto.CloneOf(rule)
+		template.InstanceValues, template.Instances = nil, nil
+		for _, instance := range rule.Instances {
+			copied := proto.CloneOf(template)
+			copied.RuleId = instance.RuleId
+			values := make(map[string]*testpilotspb.Value, len(instance.Assignments))
+			for _, assignment := range instance.Assignments {
+				values[assignment.InstanceValueId] = assignment.Value
+			}
+			for _, tr := range copied.Transitions {
+				inlineInstanceValues(tr.GetPredicate(), values)
+			}
+			if !yield(copied) {
+				return
+			}
+		}
+	}, true
+}
+
+// inlineInstanceValues replaces each instance value reference in e with the literal values assigns
+// it. A reference values assigns nothing is left for preparation to reject at its location.
+func inlineInstanceValues(e *testpilotspb.Expression, values map[string]*testpilotspb.Value) {
+	switch v := e.GetExpression().(type) {
+	case *testpilotspb.Expression_Reference:
+		if read, ok := v.Reference.GetReference().(*testpilotspb.Reference_InstanceValueId); ok && values[read.InstanceValueId] != nil {
+			e.Expression = &testpilotspb.Expression_Literal{Literal: values[read.InstanceValueId]}
+		}
+	case *testpilotspb.Expression_Path:
+		inlineInstanceValues(v.Path.GetOperand(), values)
+	case *testpilotspb.Expression_Present:
+		inlineInstanceValues(v.Present.GetOperand(), values)
+	case *testpilotspb.Expression_Not:
+		inlineInstanceValues(v.Not.GetOperand(), values)
+	case *testpilotspb.Expression_Compare:
+		inlineInstanceValues(v.Compare.GetLeft(), values)
+		inlineInstanceValues(v.Compare.GetRight(), values)
+	case *testpilotspb.Expression_All:
+		for _, operand := range v.All.GetOperands() {
+			inlineInstanceValues(operand, values)
+		}
+	case *testpilotspb.Expression_Any:
+		for _, operand := range v.Any.GetOperands() {
+			inlineInstanceValues(operand, values)
+		}
+	default:
+		// A literal holds no instance value.
+	}
 }
 
 // relocate places an unlocated ir diagnostic at path.
