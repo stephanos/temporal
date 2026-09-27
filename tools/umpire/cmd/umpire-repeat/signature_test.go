@@ -1,0 +1,76 @@
+package main
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestSignatureHashIgnoresWhereTheAssertionFired(t *testing.T) {
+	before := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:88: verdict Inconclusive, want Satisfied"}
+	moved := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:120: verdict Inconclusive, want Satisfied"}
+	other := Signature{Test: "TestTestpilotNexusPairCase", Assertion: "pair_test.go:88: verdict Violated, want Satisfied"}
+
+	require.Equal(t, before.Hash(), moved.Hash())
+	require.NotEqual(t, before.Hash(), other.Hash())
+}
+
+func TestSignatureHashNormalizesIterationSpecificValues(t *testing.T) {
+	signature := func(runID, port, suffix string, rules []UnresolvedRule) Signature {
+		return Signature{
+			Test:            "TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint",
+			Assertion:       "run " + runID + " against 127.0.0.1:" + port + " left namespace umpire-run-ns-deleted-" + suffix,
+			RunDisposition:  "Incomplete",
+			UnresolvedRules: rules,
+			Leaks:           []string{"namespace umpire-run-ns: context deadline exceeded after 30.002s"},
+		}
+	}
+	one := []UnresolvedRule{{RuleID: "a", Status: "Pending"}, {RuleID: "b", Status: "Pending"}}
+	reordered := []UnresolvedRule{{RuleID: "b", Status: "Pending"}, {RuleID: "a", Status: "Pending"}}
+
+	require.Equal(t,
+		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one).Hash(),
+		signature("testpilot-run-a0b1c2d3-e4f5-4a6b-8c7d-9e0f1a2b3c4d", "61874", "q9w8e", reordered).Hash())
+	require.NotEqual(t,
+		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one).Hash(),
+		signature("testpilot-run-3f1c2a9e-7b4d-4e8a-9c1f-0a2b3c4d5e6f", "53211", "x7k2p", one[:1]).Hash())
+}
+
+// A reserved signature never merges into a parsed one with the same test and assertion.
+func TestReservedSignaturesHashApart(t *testing.T) {
+	parsed := Signature{Test: "TestTestpilotNexusPairCase"}
+	unparsed := Signature{Test: "TestTestpilotNexusPairCase", Reserved: reservedUnparsed}
+	process := Signature{Test: "TestTestpilotNexusPairCase", Reserved: reservedProcess}
+
+	require.NotEqual(t, parsed.Hash(), unparsed.Hash())
+	require.NotEqual(t, unparsed.Hash(), process.Hash())
+}
+
+// A signature line that does not decode is no signature: the assertion is read the fallback way and
+// the raw line is kept.
+func TestSignatureOfFallsBackFromAMalformedSignatureLine(t *testing.T) {
+	signature := signatureOf("TestTestpilotNexusPairCase", []outputLine{
+		{text: `TESTPILOT-SIGNATURE {"test":`},
+		{text: "    pair_test.go:88: verdict Inconclusive", kind: "error"},
+	})
+
+	require.Equal(t, Signature{
+		Test: "TestTestpilotNexusPairCase", Assertion: "verdict Inconclusive", Location: "pair_test.go:88",
+		Detail: `TESTPILOT-SIGNATURE {"test":`,
+	}, signature)
+}
+
+func TestClopperPearsonMatchesTheExactInterval(t *testing.T) {
+	for _, tc := range []struct {
+		failures, trials int
+		lower, upper     float64
+	}{
+		{failures: 0, trials: 200, lower: 0, upper: 0.018275},
+		{failures: 5, trials: 10, lower: 0.187086, upper: 0.812914},
+		{failures: 10, trials: 10, lower: 0.691503, upper: 1},
+	} {
+		lower, upper := clopperPearson(tc.failures, tc.trials)
+		require.InDelta(t, tc.lower, lower, 1e-5)
+		require.InDelta(t, tc.upper, upper, 1e-5)
+	}
+}

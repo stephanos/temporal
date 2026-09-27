@@ -721,6 +721,30 @@ umpire-fuzz-run:
 		$${UMPIRE_FUZZ_CREATE:+--create} \
 		$(UMPIRE_FUZZ_FLAGS)
 
+umpire-repeat:
+	@printf $(COLOR) "Build the Umpire repeat harness..."
+	@mise exec -- go build -o ./.build/umpire-repeat ./tools/umpire/cmd/umpire-repeat
+	@printf 'Built ./.build/umpire-repeat\n'
+
+# One reproduction loop over the live Testpilot tests: SELECT names the -test.run selection, COUNT
+# the iterations, MODE process (one process each) or in-process (one process with -test.count),
+# RECORD the record file (a new one under ./.build/umpire-repeat when empty), UMPIRE_REPEAT_FLAGS
+# any further flags such as --timeout. It builds the Lean helpers the gate builds and runs under the
+# physical temporary directory the gate uses; it is not part of umpire-check-regression. SELECT is
+# read unexpanded, so a trailing `$` anchor survives.
+umpire-repeat-run:
+	@test -n '$(value SELECT)' || { printf 'SELECT=<test regex> is required\n'; exit 3; }
+	@test -n "$(COUNT)" || { printf 'COUNT=<iterations> is required\n'; exit 3; }
+	@test -n "$(MODE)" || { printf 'MODE=process|in-process is required\n'; exit 3; }
+	@$(MAKE) --no-print-directory umpire-repeat
+	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
+	@set -eu; \
+		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		record='$(RECORD)'; \
+		if [ -z "$$record" ]; then mkdir -p ./.build/umpire-repeat; record=./.build/umpire-repeat/record-$$(date +%Y%m%dT%H%M%S).jsonl; fi; \
+		TMPDIR="$$physical_tmpdir" mise exec -- ./.build/umpire-repeat run --select '$(value SELECT)' \
+			--count "$(COUNT)" --mode "$(MODE)" --record "$$record" $(UMPIRE_REPEAT_FLAGS)
+
 umpire-replay:
 	@printf $(COLOR) "Build the Umpire replay runner..."
 	@mise exec -- go build -o ./.build/umpire-replay ./tools/umpire/cmd/umpire-replay
@@ -946,7 +970,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
