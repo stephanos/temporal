@@ -18,7 +18,7 @@ import (
 )
 
 func TestRunGenerationPublishesEveryCaseOfTheSixClasses(t *testing.T) {
-	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}
+	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)}
 	entries := productionManifest()
 	rendered := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
@@ -103,7 +103,7 @@ func fakeRegistry() registeredCases {
 // The generator asks the renderer what Cases exist. A Case added to a Model file therefore reaches
 // the fixture set without any edit here, and none is dropped for being absent from a table.
 func TestRunFunctionalGenerationPublishesEveryRegisteredCaseWithoutATable(t *testing.T) {
-	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}
+	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)}
 	registry := fakeRegistry()
 	registry["temporal.case.newly-authored"] = "newly-authored"
 	stale := filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalFixtureRoot), "stale.json")
@@ -187,7 +187,7 @@ func TestParseGenerationConfigSelectsExplicitFunctionalMode(t *testing.T) {
 }
 
 func TestRunFunctionalGenerationPreservesPublishedSetWhenPublicationFails(t *testing.T) {
-	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}
+	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)}
 	registry := fakeRegistry()
 	fixtures := append(registry.fixtureNames(), syntheticEntry().Filename)
 	for _, fixture := range fixtures {
@@ -259,7 +259,7 @@ func TestRunFunctionalGenerationRejectsRendererFailureOrNondeterminismBeforePubl
 			published := false
 
 			err := runFunctionalGeneration(
-				generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()},
+				generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)},
 				generationDependencies{
 					Render: probe.render,
 					Publish: func(artifactio.Set, string, map[string][]byte, func(string) error) error {
@@ -330,7 +330,7 @@ func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublicati
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			published := false
-			err := runGeneration(generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}, test.entries, generationDependencies{
+			err := runGeneration(generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)}, test.entries, generationDependencies{
 				Render: test.render,
 				Publish: func(artifactio.Set, string, map[string][]byte, func(string) error) error {
 					published = true
@@ -354,7 +354,7 @@ func TestRunGenerationRejectsNondeterministicRenderingBeforePublication(t *testi
 	calls := make(map[string]int)
 	published := false
 	err := runGeneration(
-		generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()},
+		generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: resolvedTemp(t)},
 		entries,
 		generationDependencies{
 			Render: func(_ string, arguments ...string) (rendererOutput, error) {
@@ -479,6 +479,16 @@ func TestValidateFunctionalArtifactsRejectsCompactStagedFixture(t *testing.T) {
 
 // fakeFunctionalEntries is what functionalEntries would return for the fake registry, without
 // running a renderer.
+// resolvedTemp is a temporary directory with its symlinks resolved, as artifact publication rejects
+// an output root reached through a symlink: on some systems the temporary root itself is reached
+// through one.
+func resolvedTemp(t *testing.T) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	return resolved
+}
+
 func fakeFunctionalEntries() []functionalEntry {
 	registry := fakeRegistry()
 	ids := make([]string, 0, len(registry))

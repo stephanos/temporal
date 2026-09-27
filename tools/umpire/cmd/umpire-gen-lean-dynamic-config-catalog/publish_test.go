@@ -11,7 +11,7 @@ import (
 
 func TestPublishCatalogRejectsInvalidCandidateBeforeMutation(t *testing.T) {
 	t.Parallel()
-	outputRoot := t.TempDir()
+	outputRoot := resolvedTemp(t)
 	writePublishedCatalog(t, outputRoot, "old")
 	artifacts, err := renderCatalog(renderFixtureCatalog())
 	require.NoError(t, err)
@@ -28,7 +28,7 @@ func TestPublishCatalogRejectsInvalidCandidateBeforeMutation(t *testing.T) {
 
 func TestPublishCatalogOwnsOnlyTheFacadeAndChildDirectory(t *testing.T) {
 	t.Parallel()
-	outputRoot := t.TempDir()
+	outputRoot := resolvedTemp(t)
 	writePublishedCatalog(t, outputRoot, "old")
 	authored := filepath.Join(outputRoot, "Temporal", "Authored.lean")
 	require.NoError(t, os.WriteFile(authored, []byte("authored"), 0o600))
@@ -43,7 +43,7 @@ func TestPublishCatalogOwnsOnlyTheFacadeAndChildDirectory(t *testing.T) {
 
 func TestPublishCatalogRejectsUnexpectedArtifactSet(t *testing.T) {
 	t.Parallel()
-	outputRoot := t.TempDir()
+	outputRoot := resolvedTemp(t)
 	writePublishedCatalog(t, outputRoot, "old")
 	artifacts := generatedFixtureArtifacts("new")
 	artifacts["Temporal/DynamicConfig/Unexpected.lean"] = []byte("unexpected")
@@ -70,6 +70,16 @@ func writePublishedCatalog(t *testing.T, outputRoot string, value string) {
 	}
 	stale := filepath.Join(outputRoot, "Temporal", "DynamicConfig", "Stale.lean")
 	require.NoError(t, os.WriteFile(stale, []byte("stale"), 0o600))
+}
+
+// resolvedTemp is a temporary directory with its symlinks resolved, as artifact publication rejects
+// an output root reached through a symlink: on some systems the temporary root itself is reached
+// through one.
+func resolvedTemp(t *testing.T) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	return resolved
 }
 
 func requirePublishedCatalog(t *testing.T, outputRoot string, value string) {

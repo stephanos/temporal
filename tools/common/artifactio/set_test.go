@@ -12,7 +12,7 @@ import (
 
 func TestSetPublishValidatesBeforeReplacingManagedRoots(t *testing.T) {
 	t.Parallel()
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	set := fixtureSet()
 	writeFixtureTree(t, root, "old")
 	authored := filepath.Join(root, "Temporal", "Authored.lean")
@@ -54,7 +54,7 @@ func TestSetPublishValidatesBeforeReplacingManagedRoots(t *testing.T) {
 
 func TestSetPublishRejectsIncompleteAndUnsafeSets(t *testing.T) {
 	t.Parallel()
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	tests := []struct {
 		name      string
 		set       Set
@@ -101,7 +101,7 @@ func TestSetPublishRejectsIncompleteAndUnsafeSets(t *testing.T) {
 
 func TestSetPublishRejectsSymlinkedManagedPaths(t *testing.T) {
 	t.Run("managed parent", func(t *testing.T) {
-		root := t.TempDir()
+		root := resolvedTemp(t)
 		external := t.TempDir()
 		if err := os.Symlink(external, filepath.Join(root, "Temporal")); err != nil {
 			t.Skipf("symlinks unavailable: %v", err)
@@ -114,7 +114,7 @@ func TestSetPublishRejectsSymlinkedManagedPaths(t *testing.T) {
 		require.Empty(t, entries)
 	})
 	t.Run("managed artifact leaf", func(t *testing.T) {
-		root := t.TempDir()
+		root := resolvedTemp(t)
 		external := filepath.Join(t.TempDir(), "outside.lean")
 		require.NoError(t, os.WriteFile(external, []byte("outside"), 0o600))
 		leaf := filepath.Join(root, "Temporal", "DynamicConfig", "Types.lean")
@@ -130,7 +130,7 @@ func TestSetPublishRejectsSymlinkedManagedPaths(t *testing.T) {
 		require.Equal(t, []byte("outside"), externalBytes)
 	})
 	t.Run("output root parent", func(t *testing.T) {
-		directory := t.TempDir()
+		directory := resolvedTemp(t)
 		physicalParent := filepath.Join(directory, "physical")
 		physicalRoot := filepath.Join(physicalParent, "output")
 		require.NoError(t, os.MkdirAll(physicalRoot, 0o700))
@@ -148,7 +148,7 @@ func TestSetPublishRejectsSymlinkedManagedPaths(t *testing.T) {
 }
 
 func TestSetPublishRejectsConcurrentWriter(t *testing.T) {
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	set := fixtureSet()
 	entered := make(chan struct{})
 	release := make(chan struct{})
@@ -160,7 +160,11 @@ func TestSetPublishRejectsConcurrentWriter(t *testing.T) {
 			return nil
 		})
 	}()
-	<-entered
+	select {
+	case <-entered:
+	case err := <-finished:
+		require.FailNow(t, "first publication finished before holding the set lock", "error: %v", err)
+	}
 
 	err := set.Publish(root, fixtureSetArtifacts("second"), nil)
 	require.ErrorContains(t, err, "concurrent writer")
@@ -169,9 +173,18 @@ func TestSetPublishRejectsConcurrentWriter(t *testing.T) {
 	requireFixtureTree(t, root, "first")
 }
 
+// resolvedTemp is a temporary directory with its symlinks resolved, as publication rejects a set
+// root reached through a symlink: on some systems the temporary root itself is reached through one.
+func resolvedTemp(t *testing.T) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	return resolved
+}
+
 func TestSetPublishRollsBackHandledInstallationFailure(t *testing.T) {
 	t.Parallel()
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	set := fixtureSet()
 	writeFixtureTree(t, root, "old")
 
@@ -189,7 +202,7 @@ func TestSetPublishRollsBackHandledInstallationFailure(t *testing.T) {
 
 func TestSetPublishRecoversInterruptedInstallation(t *testing.T) {
 	t.Parallel()
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	set := fixtureSet()
 	writeFixtureTree(t, root, "old")
 
@@ -223,7 +236,7 @@ func TestSetPublishRecoversInterruptedCleanup(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			root := t.TempDir()
+			root := resolvedTemp(t)
 			set := fixtureSet()
 			writeFixtureTree(t, root, "old")
 

@@ -13,7 +13,7 @@ import (
 )
 
 func TestImmutableDirectoryRejectsManifestABADuringRead(t *testing.T) {
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	directory, filesA, digestA := immutableDirectoryFixture()
 	destination, err := directory.Publish(root, digestA, filesA)
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestImmutableDirectoryRejectsManifestABADuringRead(t *testing.T) {
 }
 
 func TestImmutableDirectoryInterruptionExposesNoDigestDirectory(t *testing.T) {
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	directory, files, digest := immutableDirectoryFixture()
 
 	destination, err := publishImmutableDirectoryWithHooks(directory, root, digest, files, immutablePublishHooks{
@@ -107,7 +107,7 @@ func TestImmutableDirectoryInterruptionExposesNoDigestDirectory(t *testing.T) {
 }
 
 func TestImmutableDirectoryRecoversUnreachableStaging(t *testing.T) {
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	directory, files, digest := immutableDirectoryFixture()
 	setsRoot := filepath.Join(root, "sets")
 	require.NoError(t, os.Mkdir(setsRoot, 0o700))
@@ -122,7 +122,7 @@ func TestImmutableDirectoryRecoversUnreachableStaging(t *testing.T) {
 }
 
 func TestImmutableDirectoryRejectsConcurrentWriter(t *testing.T) {
-	root := t.TempDir()
+	root := resolvedTemp(t)
 	directory, files, digest := immutableDirectoryFixture()
 	entered := make(chan struct{})
 	release := make(chan struct{})
@@ -140,7 +140,11 @@ func TestImmutableDirectoryRejectsConcurrentWriter(t *testing.T) {
 		_, err := directory.Publish(root, digest, files)
 		finished <- err
 	}()
-	<-entered
+	select {
+	case <-entered:
+	case err := <-finished:
+		require.FailNow(t, "first publication finished before holding the set lock", "error: %v", err)
+	}
 
 	_, err := directory.Publish(root, digest, files)
 	require.ErrorContains(t, err, "concurrent writer")

@@ -416,7 +416,11 @@ func TestRunGenerationRejectsConcurrentPublisher(t *testing.T) {
 	go func() {
 		firstResult <- runGeneration(configuration, []manifestEntry{entry}, firstDependencies)
 	}()
-	<-entered
+	select {
+	case <-entered:
+	case err := <-firstResult:
+		require.FailNow(t, "first publication finished before holding the publication lock", "error: %v", err)
+	}
 
 	secondErr := runGeneration(configuration, []manifestEntry{entry}, dependencies)
 	require.ErrorContains(t, secondErr, "concurrent writer")
@@ -449,8 +453,8 @@ func newGenerationFixture(
 	t *testing.T,
 ) (generationConfig, manifestEntry, []byte, generationDependencies) {
 	t.Helper()
-	repositoryRoot := t.TempDir()
-	outputRoot := t.TempDir()
+	repositoryRoot := resolvedTemp(t)
+	outputRoot := resolvedTemp(t)
 	modelRoot := filepath.Join(repositoryRoot, "model")
 	writeLeanSource(t, modelRoot, "One.lean")
 	entry := syntheticEntry(syntheticIdentity)
@@ -461,6 +465,16 @@ func newGenerationFixture(
 		RepositoryRoot: repositoryRoot,
 		OutputRoot:     outputRoot,
 	}, entry, encoded, defaultGenerationDependencies()
+}
+
+// resolvedTemp is a temporary directory with its symlinks resolved, as the generator resolves the
+// repository root and artifact publication rejects a symlinked output root: on some systems the
+// temporary root itself is reached through a symlink.
+func resolvedTemp(t *testing.T) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	return resolved
 }
 
 func staticInspector(encoded []byte) func(string, string) (inspectorOutput, error) {
