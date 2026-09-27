@@ -51,6 +51,10 @@ func TestRunUpstreamExecutesTypedGatesInOrder(t *testing.T) {
 	if slices.ContainsFunc(requests[1].Env, func(value string) bool { return strings.HasPrefix(value, "GOMADSEED=") }) {
 		t.Fatal("upstream gate inherited GOMADSEED")
 	}
+	wantGoRoot := "GOROOT=" + filepath.Dir(requests[1].Dir)
+	if !slices.Contains(requests[1].Env, wantGoRoot) || !slices.Contains(requests[2].Env, wantGoRoot) {
+		t.Fatalf("upstream gate GOROOT = %q, want %q", requests[1].Env, wantGoRoot)
+	}
 }
 
 func TestRunBuilderExecutesTypedPackageGate(t *testing.T) {
