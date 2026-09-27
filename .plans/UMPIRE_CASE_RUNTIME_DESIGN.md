@@ -289,8 +289,9 @@ always available, and a transition predicate reads the evaluated instance's valu
 Deadlines and kinds are the Rule's. Each Rule instance concludes in its own `RuleVerdict`, in Rule
 declaration then instance declaration order, and every Contract ceiling is charged per instance as
 the expansion (one plain Rule per instance, each value inlined as a literal) would be charged, so
-the instanced Contract is admitted exactly when its expansion is and yields its Verdict byte for
-byte. The Lean Producer folds a relation's per-placement Rules into one Rule with instances when a
+the instanced Contract is admitted exactly when its expansion is (save that the authored Contract is
+also bounded on its own surface as written, which counts instance values no predicate reads) and
+yields its Verdict byte for byte. The Lean Producer folds a relation's per-placement Rules into one Rule with instances when a
 Scenario runs over more than one instance.
 
 Captures are single-assignment and local to one Rule instance and Run. They copy declared scalar Observations

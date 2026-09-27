@@ -60,7 +60,9 @@ these ceilings is the prepared Profile's snapshot. A Rule with instances is char
 (rules, states, transitions, captures, binding, per-event and total work) per Rule instance, with
 each instance value reference charged what its inlined literal costs, so a Contract with instances
 is admitted exactly when its expansion (one plain Rule per instance, values inlined as literals) is,
-and rejects on the same ceiling. The rule-count ceiling is checked against the total instance count
+and rejects on the same ceiling. The one exception is the authored Contract's own surface, bounded
+as written before it is walked: instance values no predicate reads count toward it, though the
+expansion drops them. The rule-count ceiling is checked against the total instance count
 before any per-instance state is allocated. The work is done once; only the accounting multiplies. Run input validation has separate bounded IR
 surface/type/fanout checks under the Profile's Program response ceiling.
 The shared `internal/ir` interpreter only resolves values from its supplied typed environment;

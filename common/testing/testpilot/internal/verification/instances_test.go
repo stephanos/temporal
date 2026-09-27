@@ -114,6 +114,26 @@ func TestRuleInstancesRejectOnTheExpansionsCeiling(t *testing.T) {
 	}
 }
 
+// The authored Contract is bounded as written before it is walked, so values its predicates never
+// read still count toward its surface size: the one direction in which an instanced Contract is
+// rejected though its expansion, which drops them, is admitted.
+func TestRuleInstancesBoundTheAuthoredSurface(t *testing.T) {
+	c, catalog, view, limits := fixture(t)
+	instanced(c.Rules[0], "a", "b", "c")
+	c.Rules[0].Transitions[0].Predicate = readsInstanceValue()
+	c.Rules[0].InstanceValues = append(c.Rules[0].InstanceValues, &testpilotspb.ContractInstanceValue{InstanceValueId: "unread", Type: singular(scalar(testpilotspb.SCALAR_KIND_TEXT))})
+	for _, instance := range c.Rules[0].Instances {
+		instance.Assignments = append(instance.Assignments, assignment("unread", text(strings.Repeat("x", 6<<20))))
+	}
+	_, err := Prepare(expand(c), catalog, view, limits, nil)
+	require.NoError(t, err, "the expansion drops the unread values")
+	_, err = Prepare(c, catalog, view, limits, nil)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+	require.True(t, strings.HasPrefix(diagnostic.Path, "$.rules."), diagnostic.Path)
+}
+
 // prepareBoth prepares an instanced Contract and its expansion and requires the same admission: both
 // prepared, or both rejected with the same diagnostic, which it returns.
 func prepareBoth(t *testing.T, world instanceWorld, source, expanded *testpilotspb.Contract) (instancedContract, expandedContract *PreparedContract, err error) {
