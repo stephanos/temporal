@@ -1,9 +1,9 @@
 # Umpire 4 direction: Veil, Specula, tracing, and FizzBee
 
-Assessment note, 2026-09-26. It answers five questions about the `umpire4` prototype under `model/`
+Assessment note, 2026-09-26. It answers six questions about the `umpire4` prototype under `model/`
 and the surrounding Go runtime: whether Veil should be its symbolic core, how much of it Veil can
-replace, how it relates to Specula, whether the tracing meets the vision, and whether it beats
-FizzBee on value and usability. It is descriptive and proposes an order of work; it
+replace, how it relates to Specula, whether the tracing meets the vision, whether it beats
+FizzBee on value and usability, and whether it is reimplementing a model checker. It is descriptive and proposes an order of work; it
 changes no rule and approves no design. Repository facts come from reading the tree on the date
 above. External facts come from the public Veil, Specula, and FizzBee repositories and papers on
 the same date and are cited inline. Nothing was installed, built, or run except the plan-index
@@ -22,6 +22,9 @@ check.
    fault, and exploration goals** in [UMPIRE4_VISION](UMPIRE4_VISION.md).
 5. **FizzBee wins on usability today.** Umpire's value proposition is a regression and canary gate
    against a real Temporal with auditable claims, which FizzBee is not. Five fixes below.
+6. **Umpire is partly reimplementing a model checker**, and the roadmap adds the rest of one.
+   Freeze the search, lower Properties to monitors, and hand the product to an existing engine.
+
 ## 1. Veil under the hood
 
 ### What the checker does today
@@ -66,6 +69,45 @@ and Veil now compiles model checks and random `#simulate` walks through emitted 
 are the pieces to take under the hood. SMT bounded model checking and inductive-invariant proof
 belong in the opt-in `Umpire.Verify.Veil` slot that [UMPIRE4_SPEC](UMPIRE4_SPEC.md) reserves under
 VER-02 and VER-06, for claims the finite table cannot make, such as "for any number of operations".
+
+### Benefit by benefit
+
+Symbolic checking earns its cost by avoiding enumeration. The `machine` command enumerates the full
+table at elaboration, because fingerprints, Cases, coverage targets, and exhaustive claims all read
+the rows, so the saving is gone before checking starts. Each benefit a solver offers collapses for
+the same reason.
+
+| Benefit of SMT-based checking | Umpire's situation |
+| --- | --- |
+| Reason about unbounded sorts and counters for all sizes at once | State is a structure of enums and saturating `Fin` counters. There is no unbounded sort to abstract over. |
+| Avoid materializing a state space too large to enumerate | The table already exists as data. The solver would encode a graph the pipeline has built. |
+| Bounded model checking finds shallow bugs by unrolling k steps | Explicit reachability over 158 states covers every depth, so depth-k checking is strictly weaker. |
+| Inductive invariants give unbounded-depth guarantees | Meaningful only for parametric claims, and the inductive invariant is written by hand. That is the bottleneck in Ivy and Veil, which is why Veil's own Raft port is model-checked with 3 servers rather than proved. |
+
+Three further mismatches:
+
+- **Model shape.** Symbolic methods shine on relational models with quantifiers inside the EPR
+  fragment, the Ivy style. Umpire's steps are executable functions over records that return
+  successor lists, a TLC-shaped model. Letting a solver do useful work means rewriting the models
+  relationally and keeping them inside EPR, the expert skill AUT-01 says an ordinary engineer should
+  not need.
+- **Property class.** `ordered`, `eventuallyWithin`, and correlated per-operation obligations are
+  history-sensitive. Veil's symbolic path supports state invariants and fixed bounded trace patterns,
+  so a symbolic backend would check a subset of the language and the trace oracle would remain.
+- **Determinism and trust.** PLN-02 requires identical inputs to yield identical plans and checksums.
+  Solver results vary with solver version, seeds, and machine-dependent timeouts, a SAT model can
+  differ between runs, and unsat is a trusted-solver claim unless reconstruction runs at three to
+  five times the cost. VER-06 already forces this into its own trust class.
+
+The one real explosion is multi-instance models. Five operations over the 192-state protocol
+machine is about 2.6 times ten to the eleventh raw states, and symmetry over five interchangeable
+instances divides by only 120. Neither explicit search nor bounded model checking is comfortable
+there, and a solver does not rescue it. Pairwise races need two instances, which the Pair model
+covers, and per-operation properties are correlated by key, so one or two instances plus symmetry
+answers the finite question. A claim about any number of operations is a parametric proof per
+property and belongs in the opt-in slot. This answer changes if the models acquire real data,
+payload identifiers compared for equality, integer timestamps, unbounded queues, or an arbitrary
+number of workers. Then the finite table stops existing and symbolic methods become necessary.
 
 ### Adoption caveats
 
@@ -215,12 +257,67 @@ Fixes, in value order:
    [fn-14](../.flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md) was superseded and never
    replaced.
 
+## 6. Are we reimplementing a model checker
+
+Partly, and the current roadmap adds the rest of one.
+
+**What exists.** [`Umpire/Search.lean`](../model/Umpire/Search.lean) is a 1.2k-line hand-rolled
+checker: iterative-deepening depth-first search over traces, candidate caps, deterministic ordering,
+and a seeded rotation. [`Scenario/Check.lean`](../model/Umpire/Scenario/Check.lean) is an 800-line
+admitted-prefix automaton and [`Exploration.lean`](../model/Umpire/Exploration.lean) with its
+directory is a 1.6k-line coverage walker. Together they are the `Checker` of
+[Stateright](https://github.com/stateright/stateright) written in Lean, minus the parts Stateright
+gets right: no visited set, no symmetry reduction, no breadth-first search, no explorer. The
+property side is different in kind. [`Property/Evaluate.lean`](../model/Umpire/Property/Evaluate.lean)
+is a trace oracle with a proven agreement to its denotation, and that oracle stays whichever engine
+runs the search.
+
+**Why it grew.** Properties are evaluated over whole traces, so the search enumerates paths rather
+than states. That single choice forces a bespoke checker. TLC, Ivy's checker, Stateright, and Veil's
+concrete checker all check a state predicate over a product of model state and monitor state.
+[VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#the-exact-umpire-seam) names the fix: the checked
+state must be the product of model state, Scenario progress, and Property-monitor state. The monitor
+form already exists. A Contract Rule is a finite state machine with satisfied and violated terminals,
+and [`Case/Compiler.lean`](../model/Umpire/Case/Compiler.lean) assembles Properties into it for the
+Go runtime. Lowering the same way for search turns the problem into safety reachability on a finite
+labeled graph.
+
+**Where the roadmap heads.** fn-85's multi-instance interleaving and recommendations 4.4 through
+4.6 of [UMPIRE_CMP_FIZZBEE](UMPIRE_CMP_FIZZBEE.md#4-what-to-take-from-fizzbee), implicit fault
+placement, symmetry canonicalization of entity instances, and seeded random walks, are Stateright's
+feature list item by item. Building them into `Search.lean` is the reimplementation to avoid.
+
+**The rule that causes it.** [UMPIRE4_SPEC_MODEL_ARCH](UMPIRE4_SPEC_MODEL_ARCH.md#9-optional-formal-verification-flow)
+says Umpire does not generate checker source or introduce a checker-neutral semantic IR. But
+`FiniteTable` already is that IR, canonical, serializable, and fingerprinted. Keeping the rule means
+the only checker that can consume it is one written in this repository.
+
+**Recommendation.**
+
+1. Freeze `Search.lean` as the reference checker used in tests. Add no symmetry, instances, or fault
+   placement to it.
+2. Lower Property and Scenario to monitor automata once, shared with the Contract lowering, and
+   define the check as reachability over the product.
+3. Feed the product to one existing engine. Veil's concrete checker has the least friction: same
+   language, no serialization, counterexamples arrive as Lean values, and `#simulate` covers seeded
+   walks. Stateright needs Rust and JSON glue but is mature and has the explorer. TLC needs Java and
+   TLA+ generation, and its strengths are wasted on an explicit table. Any of the three beats a
+   fourth checker in Lean.
+4. Amend section 9 of the model architecture to allow generating checker input from `FiniteTable`.
+   VER-05 already requires every counterexample to replay through the Lean kernel, which is the
+   safeguard that makes an external engine safe to trust.
+
+The checker is not where most of the 56k lines went. Search, Scenario checking, and Exploration
+total about 3.6k. The sprawl is in artifacts, provenance, evidence, and Case plumbing, which no model
+checker provides. The reimplementation risk is about the next 10k lines.
+
 ## Recommended order
 
 1. Step functions as Lean code in the `machine` command; Mermaid rendering; an authoring skill.
    No new dependency.
-2. Spike the Veil concrete-checker adapter on the Nexus caller model with the four outputs the Veil
-   research note requires. Simplify fn-23 to a developer-machine probe first.
+2. Freeze `Search.lean`; lower Property and Scenario to monitor automata shared with the Contract
+   lowering; spike the Veil concrete-checker adapter on the Nexus caller model with the four
+   outputs the Veil research note requires. Simplify fn-23 to a developer-machine probe first.
 3. Human authoring pilot, five to eight engineers, time to a live Verdict.
 4. Consume the existing span events as Observations, and revisit exploration guidance
    with the semantic-coverage experiment
