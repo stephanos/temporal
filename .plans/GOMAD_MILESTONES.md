@@ -29,7 +29,7 @@ milestone's status here.
 | F0 | none | done |
 | F1 | `fn-95-gomad-f1-restore-the-checkout-on` | done |
 | F2 | `fn-96-gomad-f2-close-the-go127-port-on` | done (the DTrace clock audit needs a root run) |
-| F3 | `fn-97-gomad-f3-qualify-the-frontend` | open |
+| F3 | `fn-97-gomad-f3-qualify-the-frontend` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | open on darwin/arm64 |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
@@ -574,6 +574,33 @@ therefore states `unrepeatable` (a new set expectation accepting `nondeterminist
 `replay_divergence`) for linux/amd64 so the corpus report records whichever the run produced,
 `make test-runtime`, `make validate`, and the core set (5/5 qualified, exact replay) pass on the
 new toolchain, and F3's acceptance remains open on Linux; darwin/arm64 has not been run.
+
+Qualified on 2026-09-27 on darwin/arm64. The probe first diverged there at choice ordinal 4,
+and the channel was darwin PIE ASLR rather than an output path: the darwin/arm64 linker
+produces only position-independent executables and the kernel slides every image, so type
+descriptors, globals, and functions had different addresses in every process. reflect2's type
+cache and reflect's `sync.Map` lookup caches hash those addresses and allocated a different
+number of hash-trie nodes during package initialization, so the heap layout, the first
+collection, and the run-queue order followed the slide; the divergences first observed there
+at ordinals 1778 and 2247 were downstream of it. The fix (cf1bc982c2, with the environment
+sizing fix in 85c71462b8) re-executes an activated darwin target once through `posix_spawn`
+with `POSIX_SPAWN_SETEXEC` and the ASLR-disabling attribute before runtime initialization
+continues, keeping the pid, descriptors, and process group; a kernel that ignores the attribute
+fails the target closed, and linux/amd64 targets are untouched. The `static_addresses` fixture
+in the runtime repeatability tier fails on a sliding image. With it the probe qualifies in
+guarded mode (tags `disable_grpc_modules,test_dep`) on seeds 11 and 17: both repetitions of
+each seed produce identical evidence, and every retained success replays with `replay_match`
+and `choice_replay_exact`. Seed 11 used 249 transcript records (31872 bytes) and recorded 3350
+choice decisions in 4627 records (444192 tape bytes of the 8 MiB tape); seed 17 used 253
+records (32384 bytes) and recorded 3301 decisions in 4572 records (438912 tape bytes).
+`temporal.json` now expects the probe `qualified` on darwin/arm64 with capability mode
+`guarded`, and `make gomad3-qualification` on darwin reports 6 supported, 11 unsupported, 1
+failed (`user-timers-workflow`, still `intermittent` on darwin), and 0 infrastructure errors;
+the darwin CI assertion accepts 7/0 or 6/1 supported/failed and requires the probe `qualified`
+(403b1d36ec). Linux was not re-measured on this host. The ASLR channel is darwin-specific:
+the README states that linux/amd64 targets are not position independent, and `setarch -R`
+already left the Linux divergence unchanged, so the linux/amd64 expectation stays
+`unrepeatable` until the probe is measured there.
 
 **Constraints.**
 
