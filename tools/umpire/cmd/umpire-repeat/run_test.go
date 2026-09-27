@@ -21,7 +21,7 @@ import (
 type fakeProcess struct {
 	stream string
 	failed bool
-	during func(run invocation)
+	during func(run invocation) error
 }
 
 type fakeWorld struct {
@@ -39,15 +39,23 @@ func newFakeWorld(t *testing.T, processes ...fakeProcess) *fakeWorld {
 		root:  t.TempDir(),
 		build: func(context.Context, string) error { return nil },
 		execute: func(_ context.Context, run invocation, events io.Writer) (bool, error) {
+			// This runs on the loop's goroutine, not the test's, so it reports through its error: a
+			// require here would stop the goroutine without closing the stream.
 			index := len(world.invocations)
 			world.invocations = append(world.invocations, run)
-			require.Less(t, index, len(processes), "more processes than the test canned")
+			if index >= len(processes) {
+				return false, fmt.Errorf("process %d was not canned", index+1)
+			}
 			process := processes[index]
 			if process.during != nil {
-				process.during(run)
+				if err := process.during(run); err != nil {
+					return false, err
+				}
 			}
 			stream, err := os.ReadFile(filepath.Join("testdata", process.stream+".jsonl"))
-			require.NoError(t, err)
+			if err != nil {
+				return false, err
+			}
 			_, err = events.Write(stream)
 			return process.failed, err
 		},
@@ -144,7 +152,7 @@ func TestRunRecordsOneSignaturePerFailingLeafTest(t *testing.T) {
 			var hashes []string
 			for _, f := range records[0].Failures {
 				require.Equal(t, f.Signature.Test, f.Test)
-				require.Equal(t, f.Signature.Hash(), f.SignatureHash)
+				require.Equal(t, mustHash(t, f.Signature), f.SignatureHash)
 				signatures = append(signatures, f.Signature)
 				hashes = append(hashes, f.SignatureHash)
 			}
@@ -219,7 +227,7 @@ func TestRunSplitsAnInProcessCountIntoIterations(t *testing.T) {
 	require.Equal(t, 3, world.invocations[0].Count)
 	records := readRecordFile(t, path)
 	require.Len(t, records, 3)
-	hash := Signature{Test: "TestTestpilotSample/hsm", Assertion: "verdict Inconclusive, want Satisfied"}.Hash()
+	hash := mustHash(t, Signature{Test: "TestTestpilotSample/hsm", Assertion: "verdict Inconclusive, want Satisfied"})
 	require.Equal(t, []string{"1 PASS", "2 FAIL " + hash, "3 PASS"}, iterationLines(stdout.String()))
 	require.Equal(t, []Signature{{
 		Test: "TestTestpilotSample/hsm", Assertion: "verdict Inconclusive, want Satisfied", Location: "live_test.go:42",
@@ -250,7 +258,7 @@ func TestRunRecordsOnlyCompletedIterationsWhenInterrupted(t *testing.T) {
 	defer cancel()
 	world := newFakeWorld(t,
 		fakeProcess{stream: "pass"},
-		fakeProcess{stream: "crash", failed: true, during: func(invocation) { cancel() }})
+		fakeProcess{stream: "crash", failed: true, during: func(invocation) error { cancel(); return nil }})
 	path := filepath.Join(t.TempDir(), "record.jsonl")
 	var stdout, stderr bytes.Buffer
 
@@ -267,9 +275,9 @@ func TestRunRecordsOnlyCompletedIterationsWhenInterrupted(t *testing.T) {
 }
 
 func TestRunListsTheRunsEachIterationCaptured(t *testing.T) {
-	capture := func(name string) func(invocation) {
-		return func(run invocation) {
-			require.NoError(t, os.WriteFile(filepath.Join(run.RunDir, name), []byte("{}"), 0o644))
+	capture := func(name string) func(invocation) error {
+		return func(run invocation) error {
+			return os.WriteFile(filepath.Join(run.RunDir, name), []byte("{}"), 0o644)
 		}
 	}
 	world := newFakeWorld(t,
@@ -313,7 +321,7 @@ func sampleRecord(iteration int, fingerprint string, failures ...failure) record
 
 func TestSummarizeAddsRecordFiles(t *testing.T) {
 	signature := Signature{Test: "TestTestpilotSample/hsm", Assertion: "verdict Inconclusive"}
-	failed := failure{Test: signature.Test, SignatureHash: signature.Hash(), Signature: signature}
+	failed := failure{Test: signature.Test, SignatureHash: mustHash(t, signature), Signature: signature}
 	directory := t.TempDir()
 	first, second := filepath.Join(directory, "first.jsonl"), filepath.Join(directory, "second.jsonl")
 	writeRecords(t, first, sampleRecord(1, "f", failed), sampleRecord(2, "f"))
@@ -324,7 +332,7 @@ func TestSummarizeAddsRecordFiles(t *testing.T) {
 
 	require.Contains(t, stdout.String(), "summary 4 iterations")
 	require.Contains(t, stdout.String(), "TestTestpilotSample 2/4 rate 50.00% (95% CI 6.76%-93.24%)")
-	require.Contains(t, stdout.String(), signature.Hash()+" 2/4 rate 50.00% (95% CI 6.76%-93.24%) TestTestpilotSample/hsm: verdict Inconclusive")
+	require.Contains(t, stdout.String(), mustHash(t, signature)+" 2/4 rate 50.00% (95% CI 6.76%-93.24%) TestTestpilotSample/hsm: verdict Inconclusive")
 }
 
 func TestSummarizeRefusesWhatCannotBeSummed(t *testing.T) {
@@ -354,4 +362,40 @@ func TestSummarizeRefusesWhatCannotBeSummed(t *testing.T) {
 			require.Empty(t, stdout.String())
 		})
 	}
+}
+
+// In one process, a Run belongs to the iteration running when it was written, and one written by
+// the iteration an interrupt cut short is dropped with it.
+func TestRunAssignsInProcessRunsByWhenTheyWereWritten(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// The start times of the second and third repeats in testdata/in-process-3.jsonl.
+	second := time.Date(2026, 9, 26, 18, 37, 55, 431026000, time.FixedZone("", -7*3600))
+	third := time.Date(2026, 9, 26, 18, 37, 55, 431053000, time.FixedZone("", -7*3600))
+	written := func(run invocation, name string, at time.Time) error {
+		path := filepath.Join(run.RunDir, name)
+		if err := os.WriteFile(path, []byte("{}"), 0o644); err != nil {
+			return err
+		}
+		return os.Chtimes(path, at, at)
+	}
+	world := newFakeWorld(t, fakeProcess{stream: "in-process-3", failed: true, during: func(run invocation) error {
+		// The loop is interrupted while the third repeat runs.
+		cancel()
+		return errors.Join(
+			written(run, "first.json", second.Add(-time.Microsecond)),
+			written(run, "second.json", second),
+			written(run, "third.json", third))
+	}})
+	path := filepath.Join(t.TempDir(), "record.jsonl")
+	var stdout, stderr bytes.Buffer
+
+	code := Run(ctx, runArguments(path, 3, modeInProcess), &stdout, &stderr, world.env)
+
+	require.Equal(t, exitFailed, code, stderr.String())
+	records := readRecordFile(t, path)
+	require.Len(t, records, 2)
+	require.Equal(t, []string{filepath.Join(world.invocations[0].RunDir, "first.json")}, records[0].Runs)
+	require.Equal(t, []string{filepath.Join(world.invocations[0].RunDir, "second.json")}, records[1].Runs)
+	require.Contains(t, stdout.String(), "interrupted after 2 iterations")
 }

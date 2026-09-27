@@ -162,16 +162,6 @@ func (it *iteration) topLevelTests() []string {
 	return tests
 }
 
-// complete reports whether every test that started in this iteration reached a pass or fail event.
-func (it *iteration) complete() bool {
-	for _, state := range it.tests {
-		if state.started && !state.finished {
-			return false
-		}
-	}
-	return true
-}
-
 // failures are the iteration's signatures: one per failing leaf test, and one per started leaf
 // test that never finished.
 func (it *iteration) failures() []Signature {
