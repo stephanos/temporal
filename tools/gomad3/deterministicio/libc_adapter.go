@@ -21,14 +21,20 @@ const (
 	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
 	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
 	gomadLibcAdapterSHA256 = "sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd"
+	// The linux/amd64 build is a musl translation that reaches the kernel only
+	// through the trampolines in syscall_musl.go, so the Linux model hooks the
+	// syscall number there instead of individual libc functions.
+	libcSyscallMuslSHA256       = "sha256:16a646a7d874493b0145fb13a45458c5b59eb9a131b975c93392a3f44b605578"
+	libcMuslSHA256              = "sha256:2ae49f1d62addfa66305cd75b1ed67cee20cd0adb7bbff52ddf166b2e0e82d92"
+	libcMuslLinuxAmd64SHA256    = "sha256:97cd9c7f1c6f1063e29685cf115c8f3f0530b3b9ce992935035dd52800fca8b1"
+	gomadLibcLinuxAdapterSHA256 = "sha256:dc8e6f1bf6311e909d079a303857a5001a2d983afa34ea2465715e159b5c824f"
 )
 
-// The adapter rewrites the darwin sources only, so on Linux the prepared
-// package compiles modernc's own Linux files and the closure analysis reports
-// their host facts.
+// Both platforms' sources are rewritten in every copy; the prepared source set
+// differs because each platform compiles its own file set.
 var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
 	"darwin/arm64": "sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833",
-	"linux/amd64":  "sha256:7ac6fbc639477df64ab004f12014596fda4d7bab42379d9144d5d53b147f2151",
+	"linux/amd64":  "sha256:7dc5085b840868004fdccdf1526242f3da62cae0df0f06a0c772432e487ba403",
 })
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
@@ -68,13 +74,16 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 }
 
 func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
-	if digestBytes([]byte(gomadLibcAdapterSource)) != gomadLibcAdapterSHA256 {
+	if digestBytes([]byte(gomadLibcAdapterSource)) != gomadLibcAdapterSHA256 || digestBytes([]byte(gomadLibcLinuxAdapterSource)) != gomadLibcLinuxAdapterSHA256 {
 		return nil, "", errors.New("modernc libc adapter template identity mismatch")
 	}
 	identities := map[string]string{
-		"libc_darwin.go":       libcDarwinSHA256,
-		"libc_darwin_arm64.go": libcDarwinArm64SHA256,
-		"libc_unix.go":         libcUnixSHA256,
+		"libc_darwin.go":           libcDarwinSHA256,
+		"libc_darwin_arm64.go":     libcDarwinArm64SHA256,
+		"libc_unix.go":             libcUnixSHA256,
+		"syscall_musl.go":          libcSyscallMuslSHA256,
+		"libc_musl.go":             libcMuslSHA256,
+		"libc_musl_linux_amd64.go": libcMuslLinuxAmd64SHA256,
 	}
 	rewrites := make(map[string][]byte, len(identities)+1)
 	for relative, identity := range identities {
@@ -105,7 +114,18 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	rewrites["syscall_musl.go"], err = rewriteLibcSyscallMusl(rewrites["syscall_musl.go"])
+	if err != nil {
+		return nil, "", err
+	}
+	for _, relative := range []string{"libc_musl.go", "libc_musl_linux_amd64.go"} {
+		rewrites[relative], err = denyHostCapabilityCalls(rewrites[relative])
+		if err != nil {
+			return nil, "", err
+		}
+	}
 	rewrites["gomad_darwin.go"] = []byte(gomadLibcAdapterSource)
+	rewrites["gomad_linux.go"] = []byte(gomadLibcLinuxAdapterSource)
 	return rewrites, filepath.Join(moduleSource, "libc_darwin.go"), nil
 }
 
@@ -168,6 +188,19 @@ func rewriteLibcUnix(contents []byte) ([]byte, error) {
 	}
 	return rewriteFunctions(result, []functionRewrite{
 		{header: "func Xpread(t *TLS, fd int32, buf uintptr, count types.Size_t, offset types.Off_t) types.Ssize_t {", body: "\tif result, handled := gomadRead(t, fd, buf, uint64(count), int64(offset), true); handled { return types.Ssize_t(result) }\n"},
+	})
+}
+
+func rewriteLibcSyscallMusl(contents []byte) ([]byte, error) {
+	return rewriteFunctions(contents, []functionRewrite{
+		{header: "func ___syscall_cp(tls *TLS, n, a, b, c, d, e, f long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a, b, c, d, e, f); handled { return result }\n"},
+		{header: "func X__syscall0(tls *TLS, n long) long {", body: "\tif result, handled := gomadSyscall(tls, n, 0, 0, 0, 0, 0, 0); handled { return result }\n"},
+		{header: "func X__syscall1(tls *TLS, n, a1 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, 0, 0, 0, 0, 0); handled { return result }\n"},
+		{header: "func X__syscall2(tls *TLS, n, a1, a2 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, a2, 0, 0, 0, 0); handled { return result }\n"},
+		{header: "func X__syscall3(tls *TLS, n, a1, a2, a3 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, a2, a3, 0, 0, 0); handled { return result }\n"},
+		{header: "func X__syscall4(tls *TLS, n, a1, a2, a3, a4 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, a2, a3, a4, 0, 0); handled { return result }\n"},
+		{header: "func X__syscall5(tls *TLS, n, a1, a2, a3, a4, a5 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, a2, a3, a4, a5, 0); handled { return result }\n"},
+		{header: "func X__syscall6(tls *TLS, n, a1, a2, a3, a4, a5, a6 long) long {", body: "\tif result, handled := gomadSyscall(tls, n, a1, a2, a3, a4, a5, a6); handled { return result }\n"},
 	})
 }
 
@@ -256,3 +289,6 @@ func copyLibcModule(source, destination string, replacements map[string][]byte) 
 
 //go:embed adapterdata/modernc_libc_darwin.go.tmpl
 var gomadLibcAdapterSource string
+
+//go:embed adapterdata/modernc_libc_linux.go.tmpl
+var gomadLibcLinuxAdapterSource string
