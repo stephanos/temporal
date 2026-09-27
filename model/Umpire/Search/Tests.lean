@@ -7,3 +7,4 @@ import Umpire.Search.Tests.Endpoints
 import Umpire.Search.SemanticsImportTests
 import Umpire.Search.Tests.Parameterized
 import Umpire.Search.Tests.Admission
+import Umpire.Search.Tests.Product
