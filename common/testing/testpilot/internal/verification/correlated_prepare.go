@@ -14,8 +14,14 @@ import (
 func validModelValue(v *testpilotspb.ModelValue) bool {
 	return v != nil && validID(v.DefinitionId)
 }
+func validModelValues(vs []*testpilotspb.ModelValue) bool {
+	return !slices.ContainsFunc(vs, func(v *testpilotspb.ModelValue) bool { return !validModelValue(v) })
+}
+func sameModelValues(a, b []*testpilotspb.ModelValue) bool {
+	return slices.EqualFunc(a, b, func(x, y *testpilotspb.ModelValue) bool { return proto.Equal(x, y) })
+}
 func sameResult(a, b *testpilotspb.CorrelatedTransition) bool {
-	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.ModelValue) bool { return proto.Equal(x, y) })
+	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && sameModelValues(a.StateFields, b.StateFields) && proto.Equal(a.Outcome, b.Outcome) && sameModelValues(a.Facts, b.Facts)
 }
 func uniqueIDs(ids []string) bool {
 	seen := map[string]bool{}
@@ -89,7 +95,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if s == nil {
 		return nil
 	}
-	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) {
+	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) || !validModelValues(s.InitialStateFields) {
 		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
@@ -167,6 +173,9 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			if !validModelValue(fact) {
 				return invalid(ir.Malformed, "invalid correlated fact")
 			}
+		}
+		if !validModelValues(tr.PriorFields) || !validModelValues(tr.StateFields) {
+			return invalid(ir.Malformed, "invalid correlated transition value")
 		}
 	}
 	if err := add(&a.states, int64(len(states)), limits.MaxStates); err != nil {
