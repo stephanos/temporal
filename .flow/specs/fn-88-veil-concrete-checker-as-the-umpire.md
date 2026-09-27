@@ -107,7 +107,11 @@ Components:
   (`sequences`) progress indices, the exact-trace index for `traceExactly` and `actionsExactly`,
   and the fixed setup. `ordering` constraints, whose slot assignment depends on the set of
   remaining occurrences, and `adjacencies`, whose substring containment needs active partial
-  matches, are `Unsupported` in version one. `admits` and `admitsPrefix` stay as the oracle.
+  matches, are `Unsupported` over a free schedule in version one; when `traceExactly` or
+  `actionsExactly` fixes the schedule, each is decided once when the automaton is built (amended
+  2026-09-27 by fn-88.3: every `scenario`-command Scenario carries an `ordering` through
+  `Scenario.exactly`, so rejecting them would keep every feature Model off the new search).
+  `admits` and `admitsPrefix` stay as the oracle.
 - **Property monitor lowering** (new, R5). A function from `CheckedPropertyClause` to a bounded
   monitor that answers `PropertyEndpointAnswer` (`satisfied`, `violated`, `unresolved`) for closed
   endings (`final` or `terminal`) and for `partial`, or a typed `Unsupported` naming the clause kind. The
@@ -332,8 +336,10 @@ make umpire-check-regression   # final gate
   tree, and a test proves those surfaces absent. Errors: any of them present fails the test.
 - **R14:** The Scenario progress automaton accepts exactly the traces `CheckedScenario.admits`
   accepts for the version-one constructs, by theorem or by an exhaustive differential test over
-  every checked-in Scenario within its Limits; `ordering` and `adjacencies` return a typed
-  `Unsupported` naming the construct. Errors: `Unsupported` is the whole error surface.
+  every checked-in Scenario within its Limits; over a free schedule `ordering` and `adjacencies`
+  return a typed `Unsupported` naming the construct, and under a schedule `traceExactly` or
+  `actionsExactly` fixes they are decided at construction. Errors: `Unsupported` is the whole
+  error surface.
 - **R15:** For every Query where both backends report `found`, the witness is the lexicographically
   least shortest trace in the `pullCandidate` key order, and a fixture product in which two paths
   reach one product state at the same depth proves dedup keeps the lexicographically smaller one.
@@ -378,7 +384,7 @@ make umpire-check-regression   # final gate
 - No `#simulate`, seeded exploration, or change to the Exploration walker.
 - No symmetry reduction or instance canonicalization.
 - No monitors for `branches`, guarded clauses, correlated clauses, or logical-time Limits; no
-  Scenario automaton for `ordering` or `adjacencies`.
+  Scenario automaton for `ordering` or `adjacencies` over a free schedule.
 - No change to the Case Producer's lowering, Case production, Testpilot, Contracts, Run evaluation,
   the Plan artifact format, or Go code.
 - No `FiniteTable` to TLA+ exporter. If R1 defers, that exporter is the next spec.
