@@ -1,0 +1,26 @@
+{
+  "branch_name": "stephanos/gomad",
+  "created_at": "2026-09-27T15:27:42.928223Z",
+  "depends_on_epics": [
+    "fn-98-gomad-f4-close-the-tests-capability"
+  ],
+  "id": "fn-99-gomad-f5-one-workflow-executing",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-99-gomad-f5-one-workflow-executing.md",
+  "status": "open",
+  "title": "Gomad F5: one workflow-executing functional test, deterministic",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T15:28:22.753370Z"
+}

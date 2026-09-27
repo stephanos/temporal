@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:24.337746Z",
+  "depends_on": [],
+  "id": "fn-97-gomad-f3-qualify-the-frontend.1",
+  "priority": null,
+  "spec": "fn-97-gomad-f3-qualify-the-frontend",
+  "spec_path": ".flow/tasks/fn-97-gomad-f3-qualify-the-frontend.1.md",
+  "status": "todo",
+  "title": "Qualify TestFrontendSystemInfo on darwin/arm64 with seeds 11 and 17",
+  "updated_at": "2026-09-27T15:28:24.337746Z"
+}

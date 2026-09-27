@@ -1,0 +1,26 @@
+{
+  "branch_name": "stephanos/gomad",
+  "created_at": "2026-09-27T15:27:42.298725Z",
+  "depends_on_epics": [
+    "fn-97-gomad-f3-qualify-the-frontend"
+  ],
+  "id": "fn-98-gomad-f4-close-the-tests-capability",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-98-gomad-f4-close-the-tests-capability.md",
+  "status": "open",
+  "title": "Gomad F4: close the ./tests capability closure on darwin/arm64",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T15:28:22.377415Z"
+}

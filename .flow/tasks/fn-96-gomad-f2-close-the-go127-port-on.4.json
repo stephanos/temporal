@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:28:23.932976Z",
+  "depends_on": [
+    "fn-96-gomad-f2-close-the-go127-port-on.2",
+    "fn-96-gomad-f2-close-the-go127-port-on.3"
+  ],
+  "id": "fn-96-gomad-f2-close-the-go127-port-on.4",
+  "priority": null,
+  "spec": "fn-96-gomad-f2-close-the-go127-port-on",
+  "spec_path": ".flow/tasks/fn-96-gomad-f2-close-the-go127-port-on.4.md",
+  "status": "todo",
+  "title": "Record the F2 darwin result in the milestone status",
+  "updated_at": "2026-09-27T15:28:23.932976Z"
+}

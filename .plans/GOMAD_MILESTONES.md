@@ -15,6 +15,28 @@ criterion for each step that a reviewer can check with a command.
 The ladder is strictly ordered. Each milestone assumes the previous one's acceptance criteria
 hold. A milestone whose criteria fail blocks the next one; it never gets narrowed to pass.
 
+## Work tracking
+
+The remaining work of every open milestone is tracked as a flow-next spec under `.flow/specs/`,
+one spec per milestone, each depending on the previous one so the ladder order is enforced by
+`flowctl ready`. The specs, their tasks, and their acceptance criteria (R-IDs) are the
+authoritative list and order of work; this document keeps the milestone rationale, constraints,
+and status history. When a spec's scope changes, change the spec and summarize the change in the
+milestone's status here.
+
+| Milestone | Spec | State |
+| --- | --- | --- |
+| F0 | none | done |
+| F1 | `fn-95-gomad-f1-restore-the-checkout-on` | open on darwin/arm64 |
+| F2 | `fn-96-gomad-f2-close-the-go127-port-on` | open on darwin/arm64 |
+| F3 | `fn-97-gomad-f3-qualify-the-frontend` | open |
+| F4 | `fn-98-gomad-f4-close-the-tests-capability` | open on darwin/arm64 |
+| F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
+| F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
+| F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
+
+Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
+
 ## Baseline on 2026-09-08
 
 The assessment that produced this document verified the following on the working tree.
@@ -145,6 +167,8 @@ the pack, and delete gomad, gomad1, gomad2, and the parity manifest.
 
 ## F1: restore the checkout
 
+**Spec.** `fn-95-gomad-f1-restore-the-checkout-on`
+
 **Outcome.** A developer on a clean `darwin/arm64` checkout can build the toolchain and run
 every Gomad v3 gate that exists today, and the two integration contract tests pass.
 
@@ -251,6 +275,8 @@ like the x/net one.
 
 ## F2: port the toolchain to go1.27
 
+**Spec.** `fn-96-gomad-f2-close-the-go127-port-on`
+
 **Outcome.** The patched toolchain satisfies the root module's `go 1.27` directive, so Temporal
 packages build under it again.
 
@@ -313,6 +339,8 @@ darwin/arm64 run.
   11 unsupported with the same blocker paths.
 
 ## F3: qualify the existing functional probe
+
+**Spec.** `fn-97-gomad-f3-qualify-the-frontend`
 
 **Outcome.** `TestFrontendSystemInfo` carries a checked determinism claim. This is the first
 functional test in the corpus and the first proof that the one-box cluster boots, serves an RPC,
@@ -476,6 +504,8 @@ new toolchain, and F3's acceptance remains open on Linux; darwin/arm64 has not b
 
 ## F4: close the capability closure for `./tests`
 
+**Spec.** `fn-98-gomad-f4-close-the-tests-capability`
+
 **Outcome.** `gomad analyze --capability-mode=closure go-test ./tests` returns zero
 uncovered findings, so any test in the package can at least be prepared. This is the milestone
 that turns "one probe" into "any test".
@@ -598,6 +628,8 @@ frontend probe under guarded mode still lands inside its `unrepeatable` expectat
 
 ## F5: one workflow-executing functional test, deterministic
 
+**Spec.** `fn-99-gomad-f5-one-workflow-executing`
+
 **Outcome.** A test that starts a workflow, completes a workflow task through the task poller,
 fires at least one timer, and reads history back qualifies with exact replay. This exercises
 frontend, history, matching, SQLite writes, inter-service gRPC, and virtual time together.
@@ -695,6 +727,8 @@ the other through the GC dimension. darwin/arm64 has not been run.
 
 ## F6: a package-level functional slice
 
+**Spec.** `fn-100-gomad-f6-a-package-level-functional`
+
 **Outcome.** A named slice of at least ten `./tests` suites runs through `qualify-set` and every
 suite is either qualified or classified with an exact blocker. This is where "any test"
 becomes measurable instead of anecdotal.
@@ -768,6 +802,8 @@ the slice is in `temporal.json` yet, and the acceptance stands as: outcome and e
 met, evidence divergence still present and under investigation, so the milestone is open.
 
 ## F7: any functional test, and CI
+
+**Spec.** `fn-101-gomad-f7-any-functional-test-and-ci`
 
 **Outcome.** The whole `./tests` package is enumerated in the qualification set, every test has
 a disposition, and the unsupported count is zero on `darwin/arm64`. A Linux bundle lets the
