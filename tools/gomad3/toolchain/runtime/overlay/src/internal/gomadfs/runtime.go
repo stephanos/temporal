@@ -27,7 +27,7 @@ var unavailableFilesystem = &FS{unavailable: syscall.ESTALE}
 //go:linkname runtimeSimulationDomain runtime.gomadSimulationDomain
 func runtimeSimulationDomain() uint64
 
-//go:linkname runtimeWallNanotime runtime.nanotime1
+//go:linkname runtimeWallNanotime runtime.gomadWallNanotime
 func runtimeWallNanotime() int64
 
 func Current() *FS {

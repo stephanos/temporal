@@ -180,7 +180,7 @@ func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *
 func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	root := t.TempDir()
 	for _, relative := range []string{
-		"toolchain/runtime/go1.26.4.patch",
+		"toolchain/runtime/go1.27.1.patch",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",

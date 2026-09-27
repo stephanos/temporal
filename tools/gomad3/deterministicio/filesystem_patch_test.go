@@ -8,7 +8,7 @@ import (
 )
 
 func TestFilesystemManifestInterceptsProfileOperationsBeforeHostDispatch(t *testing.T) {
-	manifestContents, err := os.ReadFile(filepath.Join("..", "toolchain", "runtime", "overlay", "src", "cmd", "compile", "internal", "gomadintercept", "spec_go126.go"))
+	manifestContents, err := os.ReadFile(filepath.Join("..", "toolchain", "runtime", "overlay", "src", "cmd", "compile", "internal", "gomadintercept", "spec_go127.go"))
 	if err != nil {
 		t.Fatal(err)
 	}

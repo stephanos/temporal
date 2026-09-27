@@ -9,8 +9,8 @@ type AdapterIdentity struct {
 }
 
 const (
-	GoVersion               = "go1.26.4"
-	BoundaryManifestVersion = "go1.26.4-v2"
+	GoVersion               = "go1.27.1"
+	BoundaryManifestVersion = "go1.27.1-v1"
 )
 
 var SupportedPlatforms = [...]string{"darwin/arm64", "linux/amd64"}

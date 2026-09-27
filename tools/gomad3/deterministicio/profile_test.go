@@ -23,18 +23,18 @@ var profileGoldens = map[string]struct {
 	frameHex             string
 }{
 	"darwin/arm64": {
-		inventorySHA256:      "sha256:24480d40a155c964077091ec61072bfe44de9e81ff90e96dace3f0028f4cb760",
-		implementationSHA256: "sha256:5ed129247abd3dbd5642c9032459ba345b0219e5eec76584f7bdf96aefb57dd3",
-		frameHex:             "474f4d4144494f010001000124480d40a155c964077091ec61072bfe44de9e81ff90e96dace3f0028f4cb7605ed129247abd3dbd5642c9032459ba345b0219e5eec76584f7bdf96aefb57dd3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002ad6007993b14c9696cedc9fd67d55d2e0884584cde9bcd2577d640b043b69079e",
+		inventorySHA256:      "sha256:2c3f516454d7406db935aca88fe6bbb07daf645d2fc6ed209bceef8ecee693e1",
+		implementationSHA256: "sha256:c9df745297a622b37b58b863aecf09a548654f8838a8608b452fa05c45121e56",
+		frameHex:             "474f4d4144494f01000100012c3f516454d7406db935aca88fe6bbb07daf645d2fc6ed209bceef8ecee693e1c9df745297a622b37b58b863aecf09a548654f8838a8608b452fa05c45121e56aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002a79da8f96f46fdeeadcb093466dbe08341debd4222b364e9699d041b8e60f42ba",
 	},
 	"linux/amd64": {
-		inventorySHA256:      "sha256:0afd74c06a071fa88be9faea49578499594176642d3dc1d681b1ddc7fdfd3f0a",
-		implementationSHA256: "sha256:06e5a1af8f0c9d5a9bff60e0c2ead6a31c0e4fd387171c3ca15851e96dfbd1a0",
-		frameHex:             "474f4d4144494f01000100010afd74c06a071fa88be9faea49578499594176642d3dc1d681b1ddc7fdfd3f0a06e5a1af8f0c9d5a9bff60e0c2ead6a31c0e4fd387171c3ca15851e96dfbd1a0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002a483347307bfc6ba4d9cb12228a25ff1ba81d2cefdd0d9a8949e4358e5b7aa079",
+		inventorySHA256:      "sha256:f3bc9c4a30ca841aca67198840b4b7096a4c4347dbf28bc3cc9860e1b666b01a",
+		implementationSHA256: "sha256:629bee048a3d4885dfb308ac513bc56483aa25b20643369349e7d0e30783cfe1",
+		frameHex:             "474f4d4144494f0100010001f3bc9c4a30ca841aca67198840b4b7096a4c4347dbf28bc3cc9860e1b666b01a629bee048a3d4885dfb308ac513bc56483aa25b20643369349e7d0e30783cfe1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002aa2e8892ef994e03e2d5b2735e0a8e5e0565c24caad9d6a92e04037b04ee8a7bd",
 	},
 }
 
-const wantInventoryTemplate = `{"boundary_manifest_sha256":"sha256:0049add4aa6594fd7ea540bf943a67e3a0875563c3dbc8fb4400ba9c1f4b3c63","boundary_manifest_version":"go1.26.4-v2","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"%s","profile":"gomad3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomad3.io-inventory/v1"}`
+const wantInventoryTemplate = `{"boundary_manifest_sha256":"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0","boundary_manifest_version":"go1.27.1-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"%s","profile":"gomad3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomad3.io-inventory/v1"}`
 
 func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	for _, platform := range slices.Sorted(maps.Keys(profileGoldens)) {
@@ -97,7 +97,7 @@ func TestDefaultReturnsAnImmutableProfileSpecification(t *testing.T) {
 	if string(second.Inventory()) == string(inventory) {
 		t.Fatal("resolved profile inventory was mutable")
 	}
-	if got, want := first.TargetContract(), (TargetContract{GoVersion: "go1.26.4", GOOS: runtime.GOOS, GOARCH: runtime.GOARCH}); got != want {
+	if got, want := first.TargetContract(), (TargetContract{GoVersion: "go1.27.1", GOOS: runtime.GOOS, GOARCH: runtime.GOARCH}); got != want {
 		t.Fatalf("target contract = %#v, want %#v", got, want)
 	}
 }
@@ -142,7 +142,7 @@ func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
 	argument := "-test.run=^TestUnrelatedSuite$"
 	err := profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./pkg", Args: []string{argument}}, target.Prepared{
 		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomad3-target", argument}, BuildTags: []string{"gomad_fixture"},
-		Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.26.4", TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
+		Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.27.1", TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
 	}, nil)
 	if err != nil {
 		t.Fatal(err)

@@ -214,36 +214,36 @@ flow; the two rewritten x/net files are byte-identical between the versions).
 - The core qualification set reports `selected == 5`, `supported == 5`, `unsupported == 0`, and
   every workload `choice_replay_exact`.
 
-## F2: port the toolchain to go1.27.0
+## F2: port the toolchain to go1.27
 
-**Outcome.** The patched toolchain matches the root module's `toolchain` directive, so Temporal
+**Outcome.** The patched toolchain satisfies the root module's `go 1.27` directive, so Temporal
 packages build under it again.
 
 **Details.**
 
-- Run the upgrade flow in `tools/gomad3/upgrade`: `patch-materialize` the go1.26.4 patch onto
-  the go1.27.0 source archive, resolve rejects by hand across the 16 patched files, then
-  `patch-regenerate`, `make generate`, and `make -C tools/gomad3 upgrade-dossier`.
+- Pin the newest go1.27 patch release whose official source checksum can be verified from
+  several independent package sources (go1.27.1 on 2026-09-27). Materialize the previous patch
+  onto the new source, resolve rejects by hand across the 16 patched files, then
+  `patch-regenerate`, `make generate` (twice), and `make -C tools/gomad3 upgrade-dossier`.
 - The compiler fingerprint check fails the build for any intercepted `os` or `net` function
   whose body changed upstream with a stable signature. Each such function needs a re-reviewed
-  entry in `deterministicio/boundary/manifest.json`. Expect the count of intercepts to move
-  from 131.
+  entry in `deterministicio/boundary/manifest.json`.
 - Update `version.json` (archive URL, SHA-256, patch and overlay allowlists), regenerate
-  `version_generated.mk`, `expected-intercepts-go1.27.0.txt`, and the boundary report and
-  upgrade guide for `go1.27.0-darwin-arm64`.
+  `version_generated.mk`, the expected-intercepts file, and the boundary report and upgrade
+  guide for the new version.
 - The DTrace clock audit needs root. Record whether it ran; a dossier without it stays
   `qualified=false` and that is the honest state, not a failure of this milestone.
 
 **Constraints.**
 
 - The patch applies with zero fuzz. A hunk that needs fuzz is rewritten.
-- The boundary diff between go1.26.4 and go1.27.0 is approved by digest through
+- The boundary diff between go1.26.4 and go1.27.1 is approved by digest through
   `GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256`, never waved through.
 - Keep the go1.26.4 descriptor in git history only. Two live pins double every later milestone.
 
 **Acceptance.**
 
-- `tools/gomad3/.toolchain/bin/go version` reports `go1.27.0`.
+- `tools/gomad3/.toolchain/bin/go version` reports `go1.27.1`.
 - `make -C tools/gomad3 validate-toolchain` passes.
 - The upgrade dossier reports every gate passed and the boundary diff approved or empty.
 - Milestone F1's acceptance criteria still hold on the new toolchain.
