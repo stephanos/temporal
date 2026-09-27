@@ -10,7 +10,6 @@ import (
 	historypb "go.temporal.io/api/history/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
-	"google.golang.org/protobuf/proto"
 )
 
 // TestTestpilotWorkflowStartCase drives the workflow-start Model's Case on the shared Driver. The
@@ -19,7 +18,6 @@ import (
 // declared Observation rather than restated by the test.
 func TestTestpilotWorkflowStartCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	caseSnapshot := proto.CloneOf(loadTestpilotCase(t, testpilotfixture.WorkflowStartFixture))
 
 	binding := CaseBinding{
 		Identity: "workflow-start-profile", Namespace: "umpire-workflow-start", TaskQueue: "umpire-workflow-start-queue",
@@ -36,26 +34,11 @@ func TestTestpilotWorkflowStartCase(t *testing.T) {
 		Identity: "workflow-start-profile", Namespace: "umpire-workflow-start-repeat", TaskQueue: "umpire-workflow-start-queue-repeat",
 	}
 	live := bindCase(t, env, caseSource, repeat)
-
-	runIDs := make(map[string]struct{}, 2)
-	for range 2 {
-		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
-		require.NoError(t, err)
-		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
-		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
-		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-		require.True(t, proto.Equal(verdict, run.GetVerdict()))
-		requireSubmittedWorkflowTypeEvidence(t, run, verdict, repeat.TaskQueue)
-
-		require.NotContains(t, runIDs, run.GetRunId())
-		runIDs[run.GetRunId()] = struct{}{}
-		_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
-		require.NoError(t, err)
-	}
-
-	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
-	require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
+	requireRepeatedRuns(t, env, testpilotfixture.WorkflowStartFixture, caseSource, []testpilotLiveCase{live}, 2, false,
+		func(_ int, run *testpilotpb.Run, verdict *testpilotpb.Verdict) {
+			requireRunSatisfied(t, "", run, verdict)
+			requireSubmittedWorkflowTypeEvidence(t, run, verdict, repeat.TaskQueue)
+		})
 }
 
 // requireSubmittedWorkflowTypeEvidence reads the relation's supporting Observation back out of the

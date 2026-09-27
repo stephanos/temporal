@@ -113,14 +113,15 @@ func capturePath(t testing.TB, dir string) string {
 	return filepath.Join(dir, name+"-"+strconv.FormatInt(time.Now().UnixNano(), 10)+"-"+strconv.FormatInt(capturedRunCount.Add(1), 10)+".json")
 }
 
-// runCapturedCase is runCase with the closed Run captured.
+// runCapturedCase runs fixture's Case once under the binding its own bytes derive and captures the
+// closed Run.
 func runCapturedCase(t *testing.T, env *testcore.TestEnv, fixture string) (*testpilotpb.Run, *testpilotpb.Verdict) {
 	t.Helper()
 	source := loadTestpilotCase(t, fixture)
 	return runCapturedBoundCase(t, env, fixture, source, defaultBinding(fixture, source))
 }
 
-// runCapturedCaseWithBinding is runCaseWithBinding with the closed Run captured.
+// runCapturedCaseWithBinding runs fixture's Case once under binding and captures the closed Run.
 func runCapturedCaseWithBinding(t *testing.T, env *testcore.TestEnv, fixture string, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
 	t.Helper()
 	return runCapturedBoundCase(t, env, fixture, loadTestpilotCase(t, fixture), binding)

@@ -7,12 +7,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -221,6 +223,73 @@ func scrubAny(packed *anypb.Any, replace func(string) string) (bool, error) {
 	return true, nil
 }
 
+// requireRepeatedRuns runs every bound Case runsPerCase times, concurrently when concurrent is set,
+// and hands each closed Run to check with the index of the Case it ran under. Every closed Run is
+// captured before any is asserted on, so a failing one leaves the others' timing behind as well.
+// It then asserts what every repeated-run live test shows: the Run IDs are distinct, each Run's
+// workflow exists in its own namespace and in no other bound one, and the Case bytes, the prepared
+// snapshots and the frozen bindings are unchanged.
+func requireRepeatedRuns(
+	t *testing.T,
+	env *testcore.TestEnv,
+	fixture string,
+	caseSource *testpilotpb.Case,
+	lives []testpilotLiveCase,
+	runsPerCase int,
+	concurrent bool,
+	check func(index int, run *testpilotpb.Run, verdict *testpilotpb.Verdict),
+) {
+	t.Helper()
+	results := make(chan testpilotLiveRunResult, len(lives)*runsPerCase)
+	var pending sync.WaitGroup
+	for index, live := range lives {
+		for range runsPerCase {
+			execute := func() {
+				run, verdict, err := live.prepared.Run(env.Context(), live.driver)
+				results <- testpilotLiveRunResult{environment: index, run: run, verdict: verdict, err: err}
+			}
+			if concurrent {
+				pending.Go(execute)
+			} else {
+				execute()
+			}
+		}
+	}
+	pending.Wait()
+	close(results)
+
+	collected := make([]testpilotLiveRunResult, 0, len(lives)*runsPerCase)
+	for result := range results {
+		captureRun(t, fixture, lives[result.environment], result.run)
+		collected = append(collected, result)
+	}
+	runIDs := make(map[string]struct{}, len(collected))
+	for _, result := range collected {
+		require.NoError(t, result.err)
+		check(result.environment, result.run, result.verdict)
+		require.NotContains(t, runIDs, result.run.GetRunId())
+		runIDs[result.run.GetRunId()] = struct{}{}
+
+		for index, live := range lives {
+			_, err := live.client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
+			if index == result.environment {
+				require.NoError(t, err)
+				continue
+			}
+			var notFound *serviceerror.NotFound
+			require.ErrorAs(t, err, &notFound)
+		}
+	}
+	require.Len(t, runIDs, len(lives)*runsPerCase)
+
+	caseSnapshot := loadTestpilotCase(t, fixture)
+	require.True(t, proto.Equal(caseSnapshot, caseSource))
+	for _, live := range lives {
+		require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
+		require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
+	}
+}
+
 // runEventAt resolves one recorded Run Event by its one-based sequence, which is the only place
 // that assumption lives.
 func runEventAt(t testing.TB, run *testpilotpb.Run, sequence int64) *testpilotpb.RunEvent {
@@ -253,7 +322,7 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 		require.Equal(t, supporting[index], historyEvent.GetEventType())
 		// The lift names each evidence kind by the Case-local name the Case's provenance maps to
 		// its Definition ID, which is the event kind's own last segment.
-		require.Equal(t, nexusEvidenceKind(historyEvent.GetEventType()), evidence.GetKind())
+		require.Equal(t, nexusEvidenceKinds[historyEvent.GetEventType()], evidence.GetKind())
 		key, request := nexusOperationCoordinates(t, &historyEvent)
 		require.Positive(t, key)
 		if index == 0 {
@@ -268,43 +337,38 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 	return scheduledID
 }
 
-// nexusEvidenceKind is the Case-local name of the evidence kind one history event kind lifts into.
-func nexusEvidenceKind(eventType enumspb.EventType) string {
-	switch eventType {
-	case enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED:
-		return "scheduled"
-	case enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED:
-		return "started"
-	case enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED:
-		return "completed"
-	case enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED:
-		return "failed"
-	case enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT:
-		return "timedOut"
-	default:
-		return ""
-	}
+// nexusEvidenceKinds is the Case-local name of the evidence kind each Nexus operation history event
+// kind lifts into.
+var nexusEvidenceKinds = map[enumspb.EventType]string{
+	enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED: "scheduled",
+	enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED:   "started",
+	enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED: "completed",
+	enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED:    "failed",
+	enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT: "timedOut",
+}
+
+// nexusOperationReference is how every Nexus operation event after the scheduled one names its
+// operation.
+type nexusOperationReference interface {
+	GetScheduledEventId() int64
+	GetRequestId() string
 }
 
 // nexusOperationCoordinates reads the scheduled event id and the request id one Nexus history event
 // carries for its operation; the scheduled event names itself.
 func nexusOperationCoordinates(t testing.TB, event *historypb.HistoryEvent) (int64, string) {
 	t.Helper()
-	switch attributes := event.GetAttributes().(type) {
-	case *historypb.HistoryEvent_NexusOperationScheduledEventAttributes:
-		return event.GetEventId(), attributes.NexusOperationScheduledEventAttributes.GetRequestId()
-	case *historypb.HistoryEvent_NexusOperationStartedEventAttributes:
-		return attributes.NexusOperationStartedEventAttributes.GetScheduledEventId(), attributes.NexusOperationStartedEventAttributes.GetRequestId()
-	case *historypb.HistoryEvent_NexusOperationCompletedEventAttributes:
-		return attributes.NexusOperationCompletedEventAttributes.GetScheduledEventId(), attributes.NexusOperationCompletedEventAttributes.GetRequestId()
-	case *historypb.HistoryEvent_NexusOperationFailedEventAttributes:
-		return attributes.NexusOperationFailedEventAttributes.GetScheduledEventId(), attributes.NexusOperationFailedEventAttributes.GetRequestId()
-	case *historypb.HistoryEvent_NexusOperationTimedOutEventAttributes:
-		return attributes.NexusOperationTimedOutEventAttributes.GetScheduledEventId(), attributes.NexusOperationTimedOutEventAttributes.GetRequestId()
-	default:
-		require.FailNow(t, "history event is not a Nexus operation event", "%s", event.GetEventType())
-		return 0, ""
+	_, isNexus := nexusEvidenceKinds[event.GetEventType()]
+	require.True(t, isNexus, "history event is not a Nexus operation event: %s", event.GetEventType())
+	if scheduled := event.GetNexusOperationScheduledEventAttributes(); scheduled != nil {
+		return event.GetEventId(), scheduled.GetRequestId()
 	}
+	message := event.ProtoReflect()
+	field := message.WhichOneof(message.Descriptor().Oneofs().ByName("attributes"))
+	require.NotNil(t, field, "Nexus operation event without attributes: %s", event.GetEventType())
+	reference, ok := message.Get(field).Message().Interface().(nexusOperationReference)
+	require.True(t, ok, "Nexus operation event attributes name no operation: %s", event.GetEventType())
+	return reference.GetScheduledEventId(), reference.GetRequestId()
 }
 
 // requireNexusHistoryEvent finds one recorded history event of the type among the Run's history

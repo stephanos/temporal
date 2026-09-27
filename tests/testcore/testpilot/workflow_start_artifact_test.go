@@ -8,7 +8,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
@@ -20,7 +19,6 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // localNameDefinition returns the Definition ID the Case's provenance maps a Case-local name to; a
@@ -45,11 +43,9 @@ func workflowStartArtifactPrepared(t testing.TB) (*testpilot.PreparedCase, *test
 	require.Equal(t, WorkflowStartRuleDefinitionID, localNameDefinition(t, source, WorkflowStartRuleID))
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	prepared, err := testpilot.Prepare(source, WorkflowStartProfile(catalog, WorkflowStartEnvironment{
+	return prepareUnchanged(t, source, WorkflowStartProfile(catalog, WorkflowStartEnvironment{
 		Namespace: workflowStartArtifactNamespace, TaskQueue: workflowStartArtifactTaskQueue,
-	}))
-	require.NoError(t, err)
-	return prepared, source
+	})), source
 }
 
 // monitorRule is the one monitor rule of a Verdict: the relation's, beside the correlated
@@ -358,92 +354,23 @@ func (d *workflowStartDriver) Open(_ context.Context, runID string, program test
 	}
 	d.opens.Add(1)
 	d.runID = runID
-	return &workflowStartSession{runID: runID, driver: d}, nil
-}
-
-type workflowStartSession struct {
-	runID  string
-	driver *workflowStartDriver
-}
-
-func (s *workflowStartSession) Reserve(_ context.Context, request testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
-	result := make([]testpilot.ReservationHandle, request.Count)
-	for ordinal := range request.Count {
-		result[ordinal] = &artifactReservation{
-			identity: testpilot.ReservationIdentity{
-				Origin: request.Origin, EntrypointID: request.EntrypointID, Ordinal: ordinal,
-				ID: request.EntrypointID + ".reservation." + strconv.FormatInt(ordinal, 10),
-			},
-			artifactEffect: artifactEffect{result: succeededResult(nil)},
-		}
-	}
-	return result, nil
-}
-
-func (s *workflowStartSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	if method == nil {
-		return nil, temporal.ErrInvalid
-	}
-	switch coordinate.InstructionID {
-	case "start-workflow":
-		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution" {
-			return nil, temporal.ErrInvalid
-		}
-		var typed workflowservice.StartWorkflowExecutionRequest
-		if err := decodeArtifactRequest(request, &typed); err != nil {
-			return nil, fmt.Errorf("decode start request: %w", err)
-		}
-		if typed.GetNamespace() != workflowStartArtifactNamespace ||
-			typed.GetTaskQueue().GetName() != workflowStartArtifactTaskQueue ||
-			typed.GetWorkflowType().GetName() != WorkflowStartWorkflowType ||
-			typed.GetWorkflowId() != s.runID || typed.GetRequestId() != s.runID {
-			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, temporal.ErrInvalid)
-		}
-		return &artifactEffect{result: succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})}, nil
-	case "await-close", "history":
-		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
-			return nil, temporal.ErrInvalid
-		}
-		var typed workflowservice.GetWorkflowExecutionHistoryRequest
-		if err := decodeArtifactRequest(request, &typed); err != nil {
-			return nil, fmt.Errorf("decode history request: %w", err)
-		}
-		if typed.GetNamespace() != workflowStartArtifactNamespace || typed.GetExecution().GetWorkflowId() != s.runID {
-			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporal.ErrInvalid)
-		}
+	return &scriptedSession{
+		runID: runID, namespace: workflowStartArtifactNamespace, taskQueue: workflowStartArtifactTaskQueue,
+		start: func(request *workflowservice.StartWorkflowExecutionRequest) (*testpilotspb.InstructionOutcome, error) {
+			if request.GetWorkflowType().GetName() != WorkflowStartWorkflowType {
+				return nil, fmt.Errorf("invalid workflow type for run %q: %w", runID, temporal.ErrInvalid)
+			}
+			return nil, nil
+		},
 		// The close-event read is answered with the close event alone; the full read with the
 		// scripted history the tests vary.
-		if coordinate.InstructionID == "await-close" {
-			if typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
-				return nil, fmt.Errorf("close read without the close-event filter for run %q: %w", s.runID, temporal.ErrInvalid)
+		history: func(instructionID string) []*historypb.HistoryEvent {
+			if instructionID == "await-close" {
+				return []*historypb.HistoryEvent{closedEvent(2)}
 			}
-			return &artifactEffect{result: succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
-				EventId: 2, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
-				Attributes: &historypb.HistoryEvent_WorkflowExecutionCompletedEventAttributes{WorkflowExecutionCompletedEventAttributes: &historypb.WorkflowExecutionCompletedEventAttributes{}},
-			}}}})}, nil
-		}
-		return &artifactEffect{result: succeededResult(s.driver.historyResponse())}, nil
-	default:
-		return nil, temporal.ErrInvalid
-	}
-}
-
-func (*workflowStartSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
-	return &artifactEffect{result: succeededResult(nil)}, nil
-}
-func (*workflowStartSession) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	return nil, temporal.ErrInvalid
-}
-func (*workflowStartSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	return nil, temporal.ErrInvalid
-}
-func (*workflowStartSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
-	return nil, temporal.ErrInvalid
-}
-func (*workflowStartSession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }
-func (*workflowStartSession) Close(context.Context) error                              { return nil }
-func (*workflowStartSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
-	return nil
+			return d.historyResponse().GetHistory().GetEvents()
+		},
+	}, nil
 }
 
 // historyResponse builds the scripted history: the started event the clause reads, preceded by the

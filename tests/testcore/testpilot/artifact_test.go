@@ -48,9 +48,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 		ContractLimits:      syntheticContractCeilings(),
 		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 1000, MaxAttempts: 1},
 	}
-	prepared, err := testpilot.Prepare(source, profile)
-	require.NoError(t, err)
-	require.True(t, proto.Equal(source, prepared.Snapshot()))
+	prepareUnchanged(t, source, profile)
 	for _, role := range profile.Roles {
 		require.Empty(t, role.Methods)
 		require.Empty(t, role.ReservationCarriers)
@@ -185,10 +183,8 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, []testpilot.Opcode{testpilot.InvokeRPC}, derived.Opcodes)
 	profile := &countingProfile{spec: derived}
-	prepared, err := testpilot.Prepare(systemInfo, profile)
-	require.NoError(t, err)
+	prepareUnchanged(t, systemInfo, profile)
 	require.Equal(t, 1, profile.snapshots)
-	require.True(t, proto.Equal(systemInfo, prepared.Snapshot()))
 
 	for _, mutate := range []func(*testpilotspb.Case){
 		func(candidate *testpilotspb.Case) {
@@ -274,12 +270,9 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	secondProfile := NexusCallerProfile(catalog, NexusCallerEnvironment{
 		Namespace: "namespace-b", TaskQueue: "task-queue-b", HandlerTaskQueue: "task-queue-b-handler", NexusEndpoint: "nexus-endpoint-b",
 	})
-	first, err := testpilot.Prepare(source, firstProfile)
-	require.NoError(t, err)
-	second, err := testpilot.Prepare(source, secondProfile)
-	require.NoError(t, err)
+	first := prepareUnchanged(t, source, firstProfile)
+	second := prepareUnchanged(t, source, secondProfile)
 	require.NotEqual(t, first.Identity().Bindings, second.Identity().Bindings)
-	require.True(t, proto.Equal(first.Snapshot(), second.Snapshot()))
 
 	missing := firstProfile.Snapshot()
 	missing.EnvironmentBindings = missing.EnvironmentBindings[:2]
@@ -319,8 +312,7 @@ func TestLeanNexusCallerCasePreparesWithCheckedProvenance(t *testing.T) {
 	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog))
-	require.NoError(t, err)
+	prepareUnchanged(t, source, asyncNexusProfile(catalog))
 	require.Equal(t, "temporal.nexus.caller.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
@@ -349,9 +341,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	profile := asyncNexusProfile(catalog)
-	prepared, err := testpilot.Prepare(source, profile)
-	require.NoError(t, err)
+	prepared := prepareUnchanged(t, source, asyncNexusProfile(catalog))
 
 	successDriver := &artifactDriver{identity: prepared.Identity(), mode: artifactSuccess}
 	results := make(chan artifactRunResult, 6)
@@ -514,17 +504,46 @@ func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot
 	ordinal := h.opens.Add(1)
 	bridge := &artifactBridge{ready: make(chan struct{}), handle: &struct{}{}}
 	close(bridge.ready)
-	return &artifactSession{runID: runID, ordinal: ordinal, mode: h.mode, bridge: bridge}, nil
+	return &scriptedSession{
+		runID: runID, namespace: asyncNexusArtifactNamespace, taskQueue: asyncNexusArtifactTaskQueue, bridge: bridge,
+		start: func(*workflowservice.StartWorkflowExecutionRequest) (*testpilotspb.InstructionOutcome, error) {
+			switch h.mode {
+			case artifactNonSuccess:
+				return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE}, nil
+			case artifactTimeout:
+				return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}, nil
+			default:
+				return nil, nil
+			}
+		},
+		// The close-event read resolves once the workflow closed; the double answers it with the
+		// close event alone, and the scheduled poll and the full read with the operation's events.
+		history: func(instructionID string) []*historypb.HistoryEvent {
+			if instructionID == "await-close" {
+				return []*historypb.HistoryEvent{closedEvent(ordinal + 3)}
+			}
+			return artifactHistory(runID, ordinal, h.mode)
+		},
+	}, nil
 }
 
-type artifactSession struct {
-	runID   string
-	ordinal int64
-	mode    artifactMode
-	bridge  *artifactBridge
+// scriptedSession answers a typed Program's workflow-service RPCs for one Run from hooks. Every
+// request must name the namespace, and a start request the task queue, the test's Profile binds,
+// and the Run's own workflow and request IDs; start decides the start's outcome, and history
+// answers every history read by instruction.
+type scriptedSession struct {
+	runID     string
+	namespace string
+	taskQueue string
+	// start checks a start request beyond its bindings and returns the outcome it fails with; nil,
+	// or a nil outcome, starts the workflow.
+	start   func(*workflowservice.StartWorkflowExecutionRequest) (*testpilotspb.InstructionOutcome, error)
+	history func(instructionID string) []*historypb.HistoryEvent
+	// bridge is the handle bridge a Nexus Case publishes through; a Case without one leaves it nil.
+	bridge testpilot.HandleBridge
 }
 
-func (s *artifactSession) Reserve(_ context.Context, request testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
+func (s *scriptedSession) Reserve(_ context.Context, request testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
 	result := make([]testpilot.ReservationHandle, request.Count)
 	for ordinal := range request.Count {
 		identity := testpilot.ReservationIdentity{
@@ -536,11 +555,10 @@ func (s *artifactSession) Reserve(_ context.Context, request testpilot.Reservati
 	return result, nil
 }
 
-func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
+func (s *scriptedSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
 	if method == nil {
 		return nil, temporal.ErrInvalid
 	}
-	var result testpilot.EffectResult
 	switch coordinate.InstructionID {
 	case "start-workflow":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution" {
@@ -550,19 +568,21 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		if err := decodeArtifactRequest(request, &typed); err != nil {
 			return nil, fmt.Errorf("decode start request: %w", err)
 		}
-		if typed.GetNamespace() != asyncNexusArtifactNamespace ||
-			typed.GetTaskQueue().GetName() != asyncNexusArtifactTaskQueue ||
+		if typed.GetNamespace() != s.namespace || typed.GetTaskQueue().GetName() != s.taskQueue ||
 			typed.GetWorkflowId() != s.runID || typed.GetRequestId() != s.runID {
 			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
-		switch s.mode {
-		case artifactNonSuccess:
-			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE}
-		case artifactTimeout:
-			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}
-		default:
-			result = succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})
+		var outcome *testpilotspb.InstructionOutcome
+		if s.start != nil {
+			var err error
+			if outcome, err = s.start(&typed); err != nil {
+				return nil, err
+			}
 		}
+		if outcome != nil {
+			return &artifactEffect{result: testpilot.EffectResult{Outcome: outcome}}, nil
+		}
+		return &artifactEffect{result: succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})}, nil
 	case "await-scheduled", "await-close", "history":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
 			return nil, temporal.ErrInvalid
@@ -571,27 +591,18 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		if err := decodeArtifactRequest(request, &typed); err != nil {
 			return nil, fmt.Errorf("decode history request: %w", err)
 		}
-		if typed.GetNamespace() != asyncNexusArtifactNamespace || typed.GetExecution().GetWorkflowId() != s.runID {
+		if typed.GetNamespace() != s.namespace || typed.GetExecution().GetWorkflowId() != s.runID {
 			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
-		// The close-event read resolves once the workflow closed; the double answers it with
-		// the close event alone, and the scheduled poll and the full read with the operation's
-		// events.
-		if coordinate.InstructionID == "await-close" {
-			if typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
-				return nil, fmt.Errorf("close read without the close-event filter for run %q: %w", s.runID, temporal.ErrInvalid)
-			}
-			result = succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{{
-				EventId: s.ordinal + 3, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
-				Attributes: &historypb.HistoryEvent_WorkflowExecutionCompletedEventAttributes{WorkflowExecutionCompletedEventAttributes: &historypb.WorkflowExecutionCompletedEventAttributes{}},
-			}}}})
-			break
+		if coordinate.InstructionID == "await-close" && typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
+			return nil, fmt.Errorf("close read without the close-event filter for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
-		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal, s.mode))
+		return &artifactEffect{result: succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{
+			History: &historypb.History{Events: s.history(coordinate.InstructionID)},
+		})}, nil
 	default:
 		return nil, temporal.ErrInvalid
 	}
-	return &artifactEffect{result: result}, nil
 }
 
 func decodeArtifactRequest(source, target proto.Message) error {
@@ -602,10 +613,9 @@ func decodeArtifactRequest(source, target proto.Message) error {
 	return proto.Unmarshal(wire, target)
 }
 
-// PollRPC answers the scheduled-event poll from the same history the full read returns: the
-// operation is already scheduled by the time the double is asked, so one round satisfies the
-// predicate or the poll is rejected.
-func (s *artifactSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
+// PollRPC answers the scheduled-event poll once, from the history as it stands when the poll is
+// issued: one round satisfies the predicate or the poll is rejected.
+func (s *scriptedSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
 	if coordinate.InstructionID != "await-scheduled" || interval <= 0 || satisfied == nil {
 		return nil, temporal.ErrInvalid
 	}
@@ -626,21 +636,24 @@ func (s *artifactSession) PollRPC(ctx context.Context, coordinate testpilot.Coor
 	}
 	return handle, nil
 }
-func (s *artifactSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
+func (s *scriptedSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 
-func (s *artifactSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+func (s *scriptedSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	return nil, temporal.ErrInvalid
 }
 
-func (s *artifactSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
+func (s *scriptedSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
+	if s.bridge == nil {
+		return nil, temporal.ErrInvalid
+	}
 	return s.bridge, nil
 }
 
-func (*artifactSession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }
-func (*artifactSession) Close(context.Context) error                              { return nil }
-func (*artifactSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
+func (*scriptedSession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }
+func (*scriptedSession) Close(context.Context) error                              { return nil }
+func (*scriptedSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
 	return nil
 }
 
@@ -701,7 +714,7 @@ func succeededResult(response proto.Message) testpilot.EffectResult {
 	}
 }
 
-func artifactHistoryResponse(requestID string, scheduledID int64, mode artifactMode) *workflowservice.GetWorkflowExecutionHistoryResponse {
+func artifactHistory(requestID string, scheduledID int64, mode artifactMode) []*historypb.HistoryEvent {
 	events := []*historypb.HistoryEvent{
 		{
 			EventId: scheduledID, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED,
@@ -731,7 +744,15 @@ func artifactHistoryResponse(requestID string, scheduledID int64, mode artifactM
 		events = []*historypb.HistoryEvent{events[0], events[1], duplicateStarted, events[2]}
 	default:
 	}
-	return &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: events}}
+	return events
+}
+
+// closedEvent is the workflow's close event, the one event a close-event read answers with.
+func closedEvent(id int64) *historypb.HistoryEvent {
+	return &historypb.HistoryEvent{
+		EventId: id, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
+		Attributes: &historypb.HistoryEvent_WorkflowExecutionCompletedEventAttributes{WorkflowExecutionCompletedEventAttributes: &historypb.WorkflowExecutionCompletedEventAttributes{}},
+	}
 }
 
 func loadLeanCase(t testing.TB, name string) *testpilotspb.Case {
@@ -741,6 +762,16 @@ func loadLeanCase(t testing.TB, name string) *testpilotspb.Case {
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	return decoded
+}
+
+// prepareUnchanged prepares source under profile and checks that preparation carried the Case bytes
+// unchanged.
+func prepareUnchanged(t testing.TB, source *testpilotspb.Case, profile testpilot.Profile) *testpilot.PreparedCase {
+	t.Helper()
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(source, prepared.Snapshot()), "preparation carries the Case bytes unchanged")
+	return prepared
 }
 
 func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
