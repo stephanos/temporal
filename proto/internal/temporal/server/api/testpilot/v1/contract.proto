@@ -19,11 +19,39 @@ message ContractRule {
   ContractRuleKind kind = 2;
   string initial_state_id = 3;
   repeated ContractState states = 4;
-  // Rule-local values its transitions assign.
+  // Values local to one Rule instance that its transitions assign.
   repeated ContractCapture captures = 5;
   repeated ContractTransition transitions = 6;
   // A bounded-liveness rule has one deadline; a safety rule has none.
   Deadline deadline = 7;
+  // Values each Rule instance assigns; a predicate reads one through Reference.instance_value_id.
+  repeated ContractInstanceValue instance_values = 8;
+  // Empty: the Rule is evaluated once under rule_id. Otherwise once per instance, never under rule_id.
+  repeated ContractRuleInstance instances = 9;
+}
+
+// ContractInstanceValue declares one value every Rule instance of its Rule assigns.
+message ContractInstanceValue {
+  // Unique within its Rule; Reference.instance_value_id names it.
+  string instance_value_id = 1;
+  // A scalar or enum type.
+  SingularType type = 2;
+}
+
+// ContractRuleInstance is one evaluation of its Rule, concluding under its own rule ID.
+message ContractRuleInstance {
+  // Unique among every rule ID the Contract's Verdict can name.
+  string rule_id = 1;
+  // Exactly one assignment per declared instance value, in declaration order.
+  repeated ContractInstanceAssignment assignments = 2;
+}
+
+// ContractInstanceAssignment gives one instance value its value for one Rule instance.
+message ContractInstanceAssignment {
+  // The declared instance value this assignment gives a value.
+  string instance_value_id = 1;
+  // A value of the instance value's declared type.
+  Value value = 2;
 }
 
 // ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
@@ -49,7 +77,8 @@ enum ContractStateStatus {
   CONTRACT_STATE_STATUS_VIOLATED = 3;
 }
 
-// ContractCapture declares a rule-local value, assigned at most once from an Observation.
+// ContractCapture declares a value local to one Rule instance, assigned at most once from an
+// Observation.
 message ContractCapture {
   string capture_id = 1;
   // A scalar, enum or message type equal to the type of the Observation it captures.

@@ -77,7 +77,8 @@ private def contractExpressions : Array Expression :=
     Expr.negate literal,
     Expr.all #[observation, capture],
     Expr.any #[runEvent, literal],
-    Expr.path Expr.runEventPayload (Path.make #[Path.field "fault_injected", Path.field "kind"])]
+    Expr.path Expr.runEventPayload (Path.make #[Path.field "fault_injected", Path.field "kind"]),
+    Expr.equal (Expr.observation "observed") (Expr.instanceValue "operation")]
 
 private def instructionLimits := Program.instructionLimits (some 1000) (some 2)
 private def assignment := Program.requestAssignment requestPath (Expr.literal (Value.text "x"))
@@ -263,6 +264,38 @@ private def contract : Contract := Contract.contract "contract" #[
     #[] (deadline := some (Contract.deadline (.elapsed_milliseconds 1000) "late"))
 ]
 
+-- One Rule declared once and evaluated per Rule instance, each assigning its own instance values.
+private def instancedRule : ContractRule :=
+  Contract.rule "relation" .CONTRACT_RULE_KIND_SAFETY "start"
+    #[Contract.state "start" .CONTRACT_STATE_STATUS_PENDING,
+      Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition "take" "start" "done" #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+      contractExpressions[12]!]
+    (instanceValues := #[Contract.instanceValue "operation" (Types.scalar .SCALAR_KIND_TEXT),
+      Contract.instanceValue "kind" (Types.enumeration "example.Enum")])
+    (instances := #[
+      Contract.ruleInstance "relation-1" #[Contract.instanceAssignment "operation" (Value.text "complete-1"),
+        Contract.instanceAssignment "kind" (Value.enumeration "EXAMPLE_VALUE")],
+      Contract.ruleInstance "relation-2" #[Contract.instanceAssignment "operation" (Value.text "complete-2"),
+        Contract.instanceAssignment "kind" (Value.enumeration "EXAMPLE_VALUE")]])
+
+private def instanceValueReadsItsDeclaration : Bool :=
+  match contractExpressions[12]!.expression with
+  | some (.compare comparison) =>
+    match comparison.right.bind (·.expression) with
+    | some (.reference reference) =>
+      match reference.reference with
+      | some (.instance_value_id instanceValueId) => instanceValueId == "operation"
+      | _ => false
+    | _ => false
+  | _ => false
+
+private def instancesAssignDeclaredValuesInOrder : Bool :=
+  instancedRule.instances.all fun ruleInstance =>
+    ruleInstance.assignments.map (·.instance_value_id) ==
+      instancedRule.instance_values.map (·.instance_value_id) &&
+    ruleInstance.assignments.all (·.value.isSome)
+
 private def eventsDeadline : Deadline := Contract.deadline (.rule_events 3) "late"
 
 private def stepEquals (field : CorrelatedStepField) (definitionId value : String) : Expression :=
@@ -305,7 +338,17 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard types.size == 6
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
-#guard contractExpressions.size == 12
+#guard contractExpressions.size == 13
+#guard instanceValueReadsItsDeclaration
+#guard instancedRule.instances.map (·.rule_id) == #["relation-1", "relation-2"]
+#guard instancedRule.instance_values.map (·.instance_value_id) == #["operation", "kind"]
+#guard instancedRule.instance_values.all (·.type.isSome)
+#guard instancesAssignDeclaredValuesInOrder
+#guard match instancedRule.instances[1]!.assignments[0]!.value.bind (·.value) with
+  | some (.text_value text) => text == "complete-2"
+  | _ => false
+-- A rule built without instances keeps both instance fields empty, so it renders as before.
+#guard contract.rules.all (fun rule => rule.instance_values.isEmpty && rule.instances.isEmpty)
 #guard instructions.size == 9
 #guard evidence.size == 3
 #guard evidenceDeclarationsCarryTheirSources

@@ -363,6 +363,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "d", Value: "v"}}},
 		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "d"}}},
 		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
+		"instance_value_id":      {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "v"}},
 	}
 	require.Len(t, references, (&testpilotspb.Reference{}).ProtoReflect().Descriptor().Fields().Len(), "every Reference arm is probed")
 	for _, context := range []struct {

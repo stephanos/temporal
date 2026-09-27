@@ -743,8 +743,9 @@ func (x *AnyExpression) GetOperands() []*Expression {
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
 // Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
-// Observations, Run Event fields and captures; correlated rule conditions admit evidence fields,
-// correlated captures and correlated steps; evidence-lift guards admit the projected value.
+// Observations, Run Event fields, captures and instance values; correlated rule conditions admit
+// evidence fields, correlated captures and correlated steps; evidence-lift guards admit the projected
+// value.
 type Reference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Reference:
@@ -761,6 +762,7 @@ type Reference struct {
 	//	*Reference_ModelValue
 	//	*Reference_CorrelatedStep
 	//	*Reference_ProjectedValue
+	//	*Reference_InstanceValueId
 	Reference     isReference_Reference `protobuf_oneof:"reference"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -911,6 +913,15 @@ func (x *Reference) GetProjectedValue() *ProjectedValueReference {
 	return nil
 }
 
+func (x *Reference) GetInstanceValueId() string {
+	if x != nil {
+		if x, ok := x.Reference.(*Reference_InstanceValueId); ok {
+			return x.InstanceValueId
+		}
+	}
+	return ""
+}
+
 type isReference_Reference interface {
 	isReference_Reference()
 }
@@ -944,7 +955,7 @@ type Reference_RunEvent struct {
 }
 
 type Reference_CaptureId struct {
-	// A value the rule captured earlier, absent until it is assigned.
+	// A value the evaluated Rule instance captured earlier, absent until it is assigned.
 	CaptureId string `protobuf:"bytes,7,opt,name=capture_id,json=captureId,proto3,oneof"`
 }
 
@@ -972,6 +983,11 @@ type Reference_ProjectedValue struct {
 	ProjectedValue *ProjectedValueReference `protobuf:"bytes,12,opt,name=projected_value,json=projectedValue,proto3,oneof"`
 }
 
+type Reference_InstanceValueId struct {
+	// A value the evaluated Rule instance assigns; admitted only in a Contract transition predicate.
+	InstanceValueId string `protobuf:"bytes,13,opt,name=instance_value_id,json=instanceValueId,proto3,oneof"`
+}
+
 func (*Reference_SlotId) isReference_Reference() {}
 
 func (*Reference_Outcome) isReference_Reference() {}
@@ -995,6 +1011,8 @@ func (*Reference_ModelValue) isReference_Reference() {}
 func (*Reference_CorrelatedStep) isReference_Reference() {}
 
 func (*Reference_ProjectedValue) isReference_Reference() {}
+
+func (*Reference_InstanceValueId) isReference_Reference() {}
 
 // InstructionReference names one instruction by its entrypoint and instruction ids.
 type InstructionReference struct {
@@ -1440,7 +1458,7 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\rAllExpression\x12H\n" +
 	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"Y\n" +
 	"\rAnyExpression\x12H\n" +
-	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\xe2\x06\n" +
+	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\x90\a\n" +
 	"\tReference\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12Y\n" +
 	"\aoutcome\x18\x02 \x01(\v2=.temporal.server.api.testpilot.v1.InstructionOutcomeReferenceH\x00R\aoutcome\x12B\n" +
@@ -1456,7 +1474,8 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	" \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueH\x00R\n" +
 	"modelValue\x12d\n" +
 	"\x0fcorrelated_step\x18\v \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12d\n" +
-	"\x0fprojected_value\x18\f \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValueB\v\n" +
+	"\x0fprojected_value\x18\f \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValue\x12,\n" +
+	"\x11instance_value_id\x18\r \x01(\tH\x00R\x0finstanceValueIdB\v\n" +
 	"\treference\"b\n" +
 	"\x14InstructionReference\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
@@ -1604,6 +1623,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*Reference_ModelValue)(nil),
 		(*Reference_CorrelatedStep)(nil),
 		(*Reference_ProjectedValue)(nil),
+		(*Reference_InstanceValueId)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11].OneofWrappers = []any{
 		(*RunEventReference_Field)(nil),

@@ -81,6 +81,117 @@ func (this *ContractRule) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ContractInstanceValue to the protobuf v3 wire format
+func (val *ContractInstanceValue) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractInstanceValue from the protobuf v3 wire format
+func (val *ContractInstanceValue) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractInstanceValue) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractInstanceValue values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractInstanceValue) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractInstanceValue
+	switch t := that.(type) {
+	case *ContractInstanceValue:
+		that1 = t
+	case ContractInstanceValue:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractRuleInstance to the protobuf v3 wire format
+func (val *ContractRuleInstance) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractRuleInstance from the protobuf v3 wire format
+func (val *ContractRuleInstance) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractRuleInstance) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractRuleInstance values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractRuleInstance) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractRuleInstance
+	switch t := that.(type) {
+	case *ContractRuleInstance:
+		that1 = t
+	case ContractRuleInstance:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractInstanceAssignment to the protobuf v3 wire format
+func (val *ContractInstanceAssignment) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractInstanceAssignment from the protobuf v3 wire format
+func (val *ContractInstanceAssignment) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractInstanceAssignment) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractInstanceAssignment values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractInstanceAssignment) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractInstanceAssignment
+	switch t := that.(type) {
+	case *ContractInstanceAssignment:
+		that1 = t
+	case ContractInstanceAssignment:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ContractState to the protobuf v3 wire format
 func (val *ContractState) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

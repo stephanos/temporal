@@ -71,8 +71,9 @@ enum ComparisonOperator {
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
 // Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
-// Observations, Run Event fields and captures; correlated rule conditions admit evidence fields,
-// correlated captures and correlated steps; evidence-lift guards admit the projected value.
+// Observations, Run Event fields, captures and instance values; correlated rule conditions admit
+// evidence fields, correlated captures and correlated steps; evidence-lift guards admit the projected
+// value.
 message Reference {
   oneof reference {
     // The value assigned to a Slot, absent until the Slot is written.
@@ -85,7 +86,7 @@ message Reference {
     // An Observation of the evaluated Run Event, absent when the event does not carry it.
     string observation_id = 5;
     RunEventReference run_event = 6;
-    // A value the rule captured earlier, absent until it is assigned.
+    // A value the evaluated Rule instance captured earlier, absent until it is assigned.
     string capture_id = 7;
     // One declared evidence field of the correlated step being admitted.
     string evidence_field_id = 8;
@@ -96,6 +97,8 @@ message Reference {
     CorrelatedStepReference correlated_step = 11;
     // The value an evidence lift is projecting.
     ProjectedValueReference projected_value = 12;
+    // A value the evaluated Rule instance assigns; admitted only in a Contract transition predicate.
+    string instance_value_id = 13;
   }
 }
 
