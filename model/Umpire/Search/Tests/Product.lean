@@ -11,7 +11,9 @@ The R14 evidence for `Umpire.Search.Product.Scenario`: `ScenarioAutomaton.admits
 length at most four, from three setups, for a table of Scenarios that exercises every version-one
 construct; then over every trace of the checked-in Switch Scenarios and the Search fixture's, and of
 the parameterized Model, within their Limits and a little past them. `admitsPrefix` stays the
-pruning oracle: every prefix it rejects, the automaton drops.
+pruning oracle: every prefix it rejects, the automaton drops. `agrees`, `allTraces` and
+`productAgrees` are public so the Temporal feature test modules can run the same comparison over
+their own Scenarios.
 
 The product checks: its accepted paths, decoded, are exactly the admitted traces of the Model in
 the reference key order; `ordering` and `adjacencies` over a free schedule are `Unsupported`; states
@@ -113,12 +115,12 @@ private def scenarios : List CheckedScenario := [
   { base with setup := [.roleEquals (id "product.setup.first") role firstBinding.value] }
 ]
 
-private def actionsOf (trace : Scenario.Trace) : List DefinitionId :=
+def actionsOf (trace : Scenario.Trace) : List DefinitionId :=
   trace.trace.steps.map (·.selectedAction.definitionId)
 
 /-- The automaton agrees with `admits` on every trace, and drops every prefix `admitsPrefix`
 rejects. -/
-private def agrees (behavior : CheckedScenario) (traces : List Scenario.Trace) : Bool :=
+def agrees (behavior : CheckedScenario) (traces : List Scenario.Trace) : Bool :=
   match ScenarioAutomaton.lower behavior with
   | .error _ => false
   | .ok automaton =>
@@ -160,13 +162,13 @@ private def freeOrdering : CheckedScenario := {
 
 /-! ### Every trace of a Model, against the product's accepted paths -/
 
-private def appendStep (trace : Scenario.Trace) (action : ModelValue)
+def appendStep (trace : Scenario.Trace) (action : ModelValue)
     (result : Step ModelValue ModelValue ModelValue) : Scenario.Trace :=
   { trace with trace := { trace.trace with
     steps := trace.trace.steps ++ [ModelTraceStep.result action result] } }
 
 /-- Every trace of the view from `trace` within `depth` more steps, in the reference key order. -/
-private def tracesFrom {target : QueryModel LawStatement} (view : SearchView target) :
+def tracesFrom {target : QueryModel LawStatement} (view : SearchView target) :
     Nat → Scenario.Trace → ModelValue → List Scenario.Trace
   | 0, trace, _ => [trace]
   | depth + 1, trace, state =>
@@ -179,7 +181,7 @@ private def tracesFrom {target : QueryModel LawStatement} (view : SearchView tar
               | none => []
               | some result => tracesFrom view depth (appendStep trace action result) result.state
 
-private def allTraces {target : QueryModel LawStatement} (view : SearchView target)
+def allTraces {target : QueryModel LawStatement} (view : SearchView target)
     (setups : List (List RoleBinding)) (depth : Nat) : List Scenario.Trace :=
   setups.flatMap fun setup =>
     (List.range (view.initialLimit setup)).flatMap fun index =>
@@ -189,7 +191,7 @@ private def allTraces {target : QueryModel LawStatement} (view : SearchView targ
           tracesFrom view depth { setup, trace := { initialState, steps := [] } } initialState
 
 /-- Every product path from `state` within `depth` more steps, reversed, in successor order. -/
-private def pathsFrom {target : QueryModel LawStatement}
+def pathsFrom {target : QueryModel LawStatement}
     (product : Search.Product.Product target Unit) :
     Nat → Search.Product.State Unit → List Search.Product.Transition →
       List (Search.Product.State Unit × List Search.Product.Transition)
@@ -200,9 +202,9 @@ private def pathsFrom {target : QueryModel LawStatement}
 
 /-- The product's accepted paths decode to exactly the Model's admitted traces, in order, and the
 automaton agrees with `admits` on every trace, admitted or not. -/
-private def productAgrees (query : CheckedQuery LawStatement) (view : SearchView query.target)
+def productAgrees (query : CheckedQuery LawStatement) (view : SearchView query.target)
     (depth : Nat) : Bool :=
-  match Search.Product.Product.build query view .none with
+  match Search.Product.Product.build query view .empty with
   | .error _ => false
   | .ok product =>
       let traces := allTraces view product.setups depth

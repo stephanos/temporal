@@ -20,6 +20,11 @@ paths that reach equal states therefore have the same admitted extensions with t
 which is what makes deduplicating a visited set sound. `State` is `BEq` and `Hashable` for that
 visited set.
 
+The state does not record its depth. Under a depth bound (`maximumDepth`), two equal states reached
+at different depths have the same extensions but different remaining budgets, so dedup keeps every
+admitted trace within the bound only when a state is first reached at its minimal depth, which a
+breadth-first frontier guarantees.
+
 ## Order
 
 `Product.initialStates` lists roots by sorted setup and then initial index, and
@@ -43,7 +48,7 @@ structure MonitorFamily (Monitors : Type) where
   advance : Monitors → ModelValue → Transition → Monitors × Nat
 
 /-- The family with no monitors, for a product that tracks the Scenario alone. -/
-def MonitorFamily.none : MonitorFamily Unit where
+def MonitorFamily.empty : MonitorFamily Unit where
   start _ _ := ((), 0)
   advance _ _ _ := ((), 0)
 
