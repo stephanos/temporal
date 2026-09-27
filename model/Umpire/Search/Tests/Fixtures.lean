@@ -313,7 +313,7 @@ def incrementalKernel? (width : Nat) : Option (SearchView (target width)) :=
       simp [orderedQuery, fixtureQuery, policy, ModelCompleteness.ofTarget, target,
         CheckedModel.withEquivalentMachine, baseTarget, model, targetAuthoring,
         DraftModel.make, modelSpec, finitePlanning] at evidenceEq
-      cases Option.some.inj evidenceEq
+      subst evidenceEq
       simp)
     (by
       intro _ _ candidate
