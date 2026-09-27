@@ -46,7 +46,12 @@ func TestLiveReplayBridgeAdmitsTheControlByItsBytes(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = bridge.Close() })
 	admitted, err := bridge.Admit(t.Context(), "nexusCallerControl", "live-replay", Named{Query: "forgedCompletion"}, identity)
-	require.NoError(t, err, "stderr: %s", stderr.String())
+	if err != nil {
+		// The buffer is the child's stderr, written by exec's copying goroutine until Wait joins it;
+		// Close waits, so the diagnostics are read only once nothing writes them.
+		_ = bridge.Close()
+		require.NoError(t, err, "stderr: %s", stderr.String())
+	}
 	require.Equal(t, source.GetCaseId(), admitted.CaseID)
 	require.Len(t, admitted.Edits, 1)
 	require.Equal(t, []Edit{{Edit: "dropPrefixStep 0", Index: 0, Action: admitted.Edits[0].Action}}, admitted.Edits)
@@ -67,7 +72,8 @@ func TestLiveReplayBridgeAdmitsTheControlByItsBytes(t *testing.T) {
 	require.Equal(t, ProposalWritten, written.Status, written.Error)
 	require.Equal(t, filepath.Join(root, "nexusCallerControl-"+admitted.Subject+".lean"), written.Written)
 
-	crossed, err := StartBridge(t.Context(), campaign.Options{Executable: executable, Dir: modelRoot, Stderr: &stderr})
+	var crossedStderr bytes.Buffer
+	crossed, err := StartBridge(t.Context(), campaign.Options{Executable: executable, Dir: modelRoot, Stderr: &crossedStderr})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = crossed.Close() })
 	other := sha256.Sum256([]byte("another Case"))
