@@ -7,8 +7,9 @@ this document records delivery order. Architecture and terminology live in the
 ## Current work
 
 Status as of 2026-09-27. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90 and fn-89. Their task
-receipts in `.flow/` and the git history carry the details. Delivered on 2026-09-27:
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94. Their
+task receipts in `.flow/` and the git history carry the details. Delivered on 2026-09-27 and
+2026-09-28:
 
 - **fn-90** re-measured the three intermittent live Testpilot failures with the
   `make umpire-repeat-run` harness; none reproduced on today's identities. It fixed two causes:
@@ -22,6 +23,13 @@ receipts in `.flow/` and the git history carry the details. Delivered on 2026-09
   copies; Verdicts and admission equal the expansion (except that the authored surface is bounded
   as written), pinned by a differential test. `make umpire-rerecord-pinned-runs` refreshes every
   catalog-pinned recorded Run after a protocol change, machine-free.
+- **fn-94** simplified the handwritten Testpilot Go runtime with no Run, Verdict or identity-byte
+  change. Go's correlated monitor now reads `initial_state_fields` and `prior_fields` as Lean's
+  does. Dead and test-only code is gone, admitted data is validated once, one opcode table drives
+  instruction binding, copied primitives and test fakes are shared, and `Reference.model_value` is
+  removed from the wire. `evidence_field_id` and `correlated_capture` stay, because Lean's
+  correlated Producer emits both. The live identity count stayed at 45. The line-count floors were
+  missed; the fn-94.17 receipt reports the measurement and the reasons.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -61,16 +69,6 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    against Lean 4.32.0), and cut `model/` Markdown to one README and one ARCHITECTURE. Every
    golden, Case fixture, Definition ID and Behavior Fingerprint stays byte-identical. It absorbs
    fn-60's re-scoped aim.
-4. **fn-94 — Simplify the Testpilot Go runtime**
-   ([spec](../.flow/specs/fn-94-simplify-the-testpilot-go-runtime.md)); planned, 17 tasks
-   (Codex plan review SHIP), ready now that fn-89 is delivered. The Go counterpart of fn-93 over the 42,067 handwritten
-   lines of `common/testing/testpilot`, `tests/testcore/testpilot`, the live tests and the
-   hand-written `.proto`; independent of fn-93. It makes Go read `initial_state_fields` and
-   `prior_fields` as Lean's correlated monitor does, removes dead and test-only code, validates admitted data once (SEM-16), shares
-   copied primitives, and removes protocol arms no producer emits behind per-arm decisions. The
-   corpus, Driver identity bytes, route wire bytes and the live identity count stay as they are;
-   a protocol change re-records pinned Runs with `make umpire-rerecord-pinned-runs`.
-
 ### Carried forward, not specs
 
 - **A field path through a repeated field** (deferred from fn-86 R2): selecting the element the
@@ -153,8 +151,9 @@ depends on it. A local/development prototype of a second model consumer under `t
 (manual check selection, a scheduled Workflow each minute, Activity-owned Testpilot execution,
 bounded results); it does not depend on fn-26 or fn-29 and authorizes no production deployment.
 On resume it re-plans on fn-85's canary set, inherits fn-80's `temporal.DeriveProfile`, consumes
-fn-83's `provision` package and `umpire-run`, and reuses the test-local `bindCase`/`runCase` in
-`tests/testpilot_run_case_test.go`. Its nine tasks had a SHIP plan review before those changes.
+fn-83's `provision` package and `umpire-run`, and reuses the test-local `bindCase` in
+`tests/testpilot_run_case_test.go` with `runCapturedCase` in `tests/testpilot_signature_test.go`
+(fn-94 removed the uncalled `runCase`). Its nine tasks had a SHIP plan review before those changes.
 
 These entries are outside the delivery queue and are not prerequisites for it.
 
