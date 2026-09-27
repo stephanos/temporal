@@ -361,7 +361,6 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"capture_id":             {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "c"}},
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "f"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "c"}}},
-		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "d", Value: "v"}}},
 		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "d"}}},
 		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
 		"instance_value_id":      {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "v"}},

@@ -743,6 +743,12 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Invoke" + "Capability",
 		"Capability" + "Slot",
 		"Capability" + "Claim",
+		// fn-94 removes the model-value expression reference, which no context admitted. `ModelValue`
+		// is not held: the message stays for the correlated plan's states, actions and outcomes, and
+		// `model_value_fingerprints` keeps its provenance rows.
+		"model" + "_value",
+		"Reference_" + "ModelValue",
+		"Get" + "ModelValue",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

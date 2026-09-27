@@ -231,7 +231,6 @@ func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 		"environment_binding_id": {Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "namespace"}},
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},
-		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "definition", Value: "value"}}},
 		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "definition"}}},
 		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
 	} {

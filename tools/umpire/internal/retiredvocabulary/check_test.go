@@ -121,6 +121,11 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		{line: `{"natural` + `Value": "1"}`, want: []string{"Natural" + "Value"}},
 		{line: "{ value := some (.natural" + "_value text) }", want: []string{"natural" + "_value"}},
 		{line: "pb.SCALAR_KIND_" + "NATURAL", want: []string{"SCALAR_KIND_" + "NATURAL"}},
+		{line: "| some (.model" + "_value value) =>", want: []string{"model" + "_value"}},
+		{line: "&pb.Reference_" + "ModelValue{}", want: []string{"Reference_" + "ModelValue"}},
+		{line: "reference.Get" + "ModelValue()", want: []string{"Get" + "ModelValue"}},
+		// The message and the provenance rows that share the arm's spelling stay.
+		{line: "*pb.ModelValue, provenance.model_value_fingerprints, pb.ModelValueFingerprint{}, Case.modelValue"},
 		{line: "testpilotspb.ENTRYPOINT_" + "KIND_WORKFLOW", want: []string{"ENTRYPOINT_" + "KIND_*"}},
 		// The unsigned integer arm and kind, the Go entrypoint classification and the model's natural
 		// evidence scalar stay.

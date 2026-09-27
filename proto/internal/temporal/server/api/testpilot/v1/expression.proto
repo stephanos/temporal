@@ -91,14 +91,11 @@ message Reference {
     // One declared evidence field of the correlated step being admitted.
     string evidence_field_id = 8;
     CorrelatedCaptureReference correlated_capture = 9;
-    // A literal model value. No context admits it yet: a correlated step reference and a text
-    // literal carry the model values correlated conditions test.
-    ModelValue model_value = 10;
-    CorrelatedStepReference correlated_step = 11;
+    CorrelatedStepReference correlated_step = 10;
     // The value an evidence lift is projecting.
-    ProjectedValueReference projected_value = 12;
+    ProjectedValueReference projected_value = 11;
     // A value the evaluated Rule instance assigns; admitted only in a Contract transition predicate.
-    string instance_value_id = 13;
+    string instance_value_id = 12;
   }
 }
 

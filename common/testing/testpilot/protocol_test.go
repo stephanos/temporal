@@ -43,7 +43,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.NotNil(t, reference.Oneofs().ByName("reference"))
 	require.Equal(t, []protoreflect.Name{
 		"slot_id", "outcome", "run", "environment_binding_id", "observation_id", "run_event", "capture_id",
-		"evidence_field_id", "correlated_capture", "model_value", "correlated_step", "projected_value",
+		"evidence_field_id", "correlated_capture", "correlated_step", "projected_value",
 		"instance_value_id",
 	}, fieldNames(reference))
 	rule := messageDescriptor(t, "CorrelatedRule")
@@ -135,6 +135,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Scoped" + "Predicate", "Scoped" + "PredicateField", "Scoped" + "ProjectionRule", "Scoped" + "Transition",
 		"Scoped" + "Value",
 		"StartNexus" + "Operation", "CompleteNexus" + "Operation", "Respond" + "Nexus", "NexusResponse" + "Kind",
+		"Reference.model" + "_value",
 	} {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)
