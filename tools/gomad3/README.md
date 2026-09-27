@@ -250,7 +250,11 @@ retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
 `gomad3.qualification-set-report/v1`. Unsupported analysis is completed
-evidence and is never executed. Status 0 means all expectations
+evidence and is never executed. An expectation names one classification;
+`unrepeatable` accepts either `nondeterministic` or `replay_divergence` for a
+workload whose same-seed evidence is still being made to reproduce, so the
+report records whichever the run produced without counting it as a surprise.
+Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
 
