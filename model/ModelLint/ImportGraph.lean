@@ -39,6 +39,14 @@ structure Classifier where
   exact : Bool := false
   deriving Repr, BEq
 
+/-- An external checker library a search backend wraps: only `adapter` may import a module under
+`externalRoot`, and only `selector` may import `adapter` outside tests. -/
+structure SearchBackendBoundary where
+  externalRoot : Lean.Name
+  adapter : Lean.Name
+  selector : Lean.Name
+  deriving Repr, BEq
+
 /-- Explicit module classes and exact reviewed import exceptions. -/
 structure Policy where
   firstPartyRoots : Array Lean.Name
@@ -62,6 +70,9 @@ structure Policy where
   Properties. Neither is under a root today; they are named so that moving one under a root does
   not silently put it inside the rule. -/
   authoringPathExceptions : Array Lean.Name := #[]
+  /-- The external checker libraries behind search backends. A library is not first-party: its
+  modules are external metadata, not classified, and reach the policy only through this rule. -/
+  searchBackends : Array SearchBackendBoundary := #[]
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -82,6 +93,11 @@ inductive Rule where
   than reaching it through `Umpire.Command`. A direct-import rule: every command-authored module
   reaches the owners transitively. -/
   | authoringPathIsolation
+  /-- A first-party module imports a search backend's external library other than through its
+  adapter, or imports the adapter other than from the backend selection or a test. A direct-import
+  rule: `Umpire.Search` reaches neither, and the selection reaches the library only through the
+  adapter. -/
+  | searchBackendIsolation
   deriving Repr, BEq
 
 /-- One forbidden reachability result and its selected shortest qualified path. -/
@@ -147,6 +163,11 @@ def defaultPolicy : Policy := {
   ],
   authoringPathRoots := #[`Temporal.Feature, `Umpire.Examples],
   authoringPathExceptions := #[`Temporal.Case, `Temporal.System.Nexus.ImplementationLink],
+  searchBackends := #[{
+    externalRoot := `Veil
+    adapter := `Umpire.Search.Backend.Veil
+    selector := `Umpire.Search.Selection
+  }],
   testSupportNamespaces := #[
     `Shared.Test,
     `Temporal.Shared.Test,
@@ -193,6 +214,7 @@ private def Rule.label : Rule → String
   | .systemIsolation => "system-isolation"
   | .testSupportIsolation => "test-support-isolation"
   | .authoringPathIsolation => "authoring-path-isolation"
+  | .searchBackendIsolation => "search-backend-isolation"
 
 private def pathText (path : Array Lean.Name) : String :=
   " -> ".intercalate <| path.toList.map (·.toString)
@@ -201,7 +223,7 @@ private def pathText (path : Array Lean.Name) : String :=
 reachability rule names the selected shortest path. -/
 def Violation.render (violation : Violation) : String :=
   match violation.rule with
-  | .authoringPathIsolation =>
+  | .authoringPathIsolation | .searchBackendIsolation =>
       s!"[model-import-graph/{violation.rule.label}] forbidden direct import: \
         {violation.source} -> {violation.destination}"
   | _ =>
@@ -337,9 +359,38 @@ def checkAuthoringPath (policy : Policy) (modules : Array ModuleRecord) : Array 
     left.source.toString < right.source.toString ||
       (left.source == right.source && left.destination.toString < right.destination.toString)
 
+private def Policy.isTestModule (policy : Policy) (name : Lean.Name) : Bool :=
+  match policy.classify? name with
+  | some moduleClass => !policy.isProductionModule name moduleClass
+  | none => false
+
+/-- Every direct import that crosses a search backend's boundary, in deterministic order: a
+first-party module other than the adapter importing the external library, or a production module
+other than the selection importing the adapter. Tests may import the adapter, not the library. -/
+def checkSearchBackends (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
+  let violations := modules.flatMap fun record =>
+    if policy.isFirstParty record.name then
+      record.imports.filterMap fun imported =>
+        let crosses := policy.searchBackends.any fun boundary =>
+          (matchesPrefix boundary.externalRoot imported && record.name != boundary.adapter) ||
+            (imported == boundary.adapter && record.name != boundary.selector &&
+              !policy.isTestModule record.name)
+        if crosses then
+          some ({
+            rule := .searchBackendIsolation
+            source := record.name
+            destination := imported
+            path := #[record.name, imported]
+          } : Violation)
+        else none
+    else #[]
+  violations.qsort fun left right =>
+    left.source.toString < right.source.toString ||
+      (left.source == right.source && left.destination.toString < right.destination.toString)
+
 /--
-Return every forbidden import in deterministic order: the authoring-path rule's direct imports
-first, then every forbidden transitive reachability result.
+Return every forbidden import in deterministic order: the direct-import rules first (authoring
+path, then search backends), then every forbidden transitive reachability result.
 
 For the owned-only inventory projection:
 The caller must first reconcile inventory and metadata. Imports outside the first-party policy are
@@ -349,7 +400,7 @@ Complete checking supplies reachable external metadata as well, so external wrap
 in the same traversal. Missing records still expose their endpoint to the policy.
 -/
 def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
-  checkAuthoringPath policy modules ++
+  checkAuthoringPath policy modules ++ checkSearchBackends policy modules ++
   Tools.LeanImportGraph.check (fun source destination =>
     if source == `Umpire.OutcomeClassification && !matchesPrefix `Init destination then
       some .outcomeClassificationIsolation

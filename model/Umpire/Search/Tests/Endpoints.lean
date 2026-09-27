@@ -81,7 +81,7 @@ private def endpointRun
     (canonicalPlanningReceiptJson run).contains "checked-finite-enumeration/v1") == some true
 
 /-! Receipt v2 names the backend that answered, why, the unit its search bound counts, and the
-enumerator pull count; the Veil commit appears only when a run carries one. -/
+enumerator pull count; the Veil commit appears only under `veil`, the one backend that carries it. -/
 private def receiptHas (run : PlanResult) (fragments : List String) : Bool :=
   fragments.all fun fragment => (canonicalPlanningReceiptJson run).contains fragment
 
@@ -94,7 +94,7 @@ private def receiptHas (run : PlanResult) (fragments : List String) : Bool :=
 
 #guard (endpointRun .final true (.verify (temporalProperty true true))).map (fun run =>
     receiptHas { run with instrumentation := { run.instrumentation with
-        searchBackend := .veil, searchUnit := .states, veilCommit := some "0123abc" } }
+        searchBackend := .veil "0123abc", searchUnit := .states } }
       ["\"searchBackend\":\"veil\"", "\"searchUnit\":\"states\"",
         "\"veilCommit\":\"0123abc\""]) == some true
 

@@ -491,15 +491,16 @@ private structure PurePlannerState where
   deriving BEq, DecidableEq, Repr
 
 /-- The search backend that answered a Query: the frozen path-enumerating `reference`, or `veil`,
-Veil's concrete breadth-first checker over the product state space. -/
+Veil's concrete breadth-first checker over the product state space, at the pinned Veil `commit`.
+Only a `veil` run carries a commit. -/
 inductive SearchBackend where
   | reference
-  | veil
+  | veil (commit : String)
   deriving BEq, DecidableEq, Repr
 
 def SearchBackend.name : SearchBackend → String
   | .reference => "reference"
-  | .veil => "veil"
+  | .veil _ => "veil"
 
 /-- Why a Query ran on its backend. `default` is the ordinary selection; every other reason names
 the clause kind, Scenario construct, strategy, or Query form that routed the Query to
@@ -531,8 +532,8 @@ def SearchUnit.name : SearchUnit → String
   | .states => "states"
 
 /-- Search accounting and backend identity. The counters are backend-specific work measures; the
-last four fields say which backend ran, why, what its search bound counts, and, under `veil`,
-the pinned Veil commit. -/
+last three fields say which backend ran (under `veil`, with the pinned Veil commit), why, and what
+its search bound counts. -/
 structure SearchStats where
   enumeratorPulls : Nat := 0
   generatedCandidates : Nat := 0
@@ -544,7 +545,6 @@ structure SearchStats where
   searchBackend : SearchBackend := .reference
   backendReason : BackendReason := .default
   searchUnit : SearchUnit := .paths
-  veilCommit : Option String := none
   deriving BEq, DecidableEq, Repr
 
 inductive PlanningOutcome where
@@ -692,9 +692,9 @@ def canonicalPlanningReceiptJson (run : PlanResult) : String :=
     | .unknown => "unknown" | .witness => "witness" | .verified => "verified"
     | .counterexample => "counterexample" | .stillPending => "still-pending"
   let limits := result.metadata.completeness.limits
-  let veilCommit := match stats.veilCommit with
-    | some commit => [("veilCommit", Lean.Json.str commit)]
-    | none => []
+  let veilCommit := match stats.searchBackend with
+    | .veil commit => [("veilCommit", Lean.Json.str commit)]
+    | .reference => []
   Lean.Json.compress <| .mkObj <| veilCommit ++ [
     ("formatVersion", .str "umpire-planning-receipt/v2"),
     ("query", .str validity.queryMetadata),
