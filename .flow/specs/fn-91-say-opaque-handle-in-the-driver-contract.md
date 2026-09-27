@@ -1,5 +1,7 @@
 # fn-91-say-opaque-handle-in-the-driver-contract Say opaque handle in the Driver contract
 
+> HTML render lens (local): open `.flow/artifacts/fn-91-say-opaque-handle-in-the-driver-contract/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -43,10 +45,19 @@ handle".
 | server `Session.capabilities`; the `capability` fields of the slot and claim | `handles`; `handle` | server Driver |
 | locals, parameters and fake-bridge fields named `capability` that hold an opaque handle | `handle` | Executor scheduler, worker interpreter, composite Session, test fakes |
 | server test helpers (`capabilitySession`, `capabilityEffectFunc`, `successfulCapabilityEffect`, `blockingCapabilityEffect`, `capabilityValue`) and the five `Test*Capability*` functions | the same names with `Handle` | server Driver tests |
-| test Slot ID literal `"capability"` and scheduler test mode `"nil-capability"` | `"handle"`, `"nil-handle"` | Go-built test Programs only |
+| test Slot ID literals `"capability"` and `"private-capability"`, scheduler test mode `"nil-capability"` | `"handle"`, `"private-handle"`, `"nil-handle"` | Go-built test Programs only |
+| server source and test files `capability.go`, `capability_test.go` | `handle.go`, `handle_test.go` | server Driver (`ownership_test.go` keeps its name) |
 
-The server Driver's handle-ownership source and test files take the new noun. `Bridge`, `Publish`,
-`Await` and `Consume` keep their names.
+`Bridge`, `Publish`, `Await` and `Consume` keep their names.
+
+**Local-name collisions.** A renamed local or parameter never takes a name another binding in the
+same scope (parameters included) already has, and no name is reused for a different handle kind.
+Some scopes already bind `handle` to a started `EffectHandle` or `handles` to `ReservationHandle`s;
+those keep their names, and the opaque-handle binding there becomes `opaque`. The server's
+`InvokeHandle` holds three kinds at once: its parameter (the consumed claim) becomes `claimed`, the
+claim's minted handle local becomes `opaque`, and the started `EffectHandle` stays `handle`. A
+scope with no competing binding uses `handle`, including the composite Session's `InvokeHandle`
+parameter.
 
 ### Measured surface (2026-09-26)
 
@@ -59,8 +70,8 @@ The server Driver's handle-ownership source and test files take the new noun. `B
 | Lean (`model/`), conformance corpus JSON, proto, Umpire lowering | 0 | 0 |
 
 Lean and the conformance corpus need no edits: fn-87 already renamed the wire, Authoring
-(`handleSlot`, `Types.opaqueHandle`) and the fixtures. The ORDER note mentions "Umpire's lowering",
-but that is stale: the only Umpire hit is the scripted replay test Session.
+(`handleSlot`, `Types.opaqueHandle`) and the fixtures. The only Umpire hit is the scripted replay
+test Session.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -114,22 +125,32 @@ fixture or `expected.json` contains any of these strings.
   `TestWorkerProfileAdmitsTheFaultCapability`, "unsupported instruction context or Driver
   capability", "controller capability required", "the capabilities its opcodes require").
 - **Gate self-collisions.** A retired `OpaqueCapability` also matches the split spelling
-  `"OpaqueCapability" + "Type"` in the protocol test's retired-descriptor list, so that split moves
-  to a boundary the rule does not match. The gate scans `.plans/UMPIRE4_*.md`, so the ORDER note's
-  carried-forward bullet goes when the work lands. It also scans task records whose committed status
-  is not `done`, and `fn-78 .1`'s Done summary names `InvokeCapability` and `CapabilityEffect`:
-  fn-78 is closed, so it leaves the downstream list rather than having its history rewritten.
+  `"OpaqueCapability" + "Type"` in the protocol test's retired-descriptor list and in the gate's own
+  test (the gate skips only its rule file, not its test), so both splits move to a boundary the rule
+  does not match, and every new positive pin is itself written split. The gate scans task records
+  whose committed status is not `done`; every fn-78 task record is committed as `todo` and
+  `fn-78 .1`'s Done summary names `InvokeCapability` and `CapabilityEffect`. fn-78 is closed, so it
+  leaves the downstream list rather than having its history rewritten; the gate stops scanning those
+  ten records for every retired token, which is accepted for a closed spec.
+- **What the gate cannot see.** The gate holds compound identifiers only. The unexported test
+  helpers, the `capabilities` field and `capability` locals are not gate tokens, so R1's "none
+  remains" is checked by a case-sensitive search of the touched Go trees whose every remaining hit is
+  one of the senses listed under **Other senses stay**.
 - **Concurrent work.** fn-79 (deferred) plans cancellation "through task 1's generic server seam"
-  in prose. It is not edited, and its re-plan reads the new names.
+  in prose. It is not edited, and its re-plan reads the new names. fn-90's live loops run on the
+  same packages; the rename commit rebases over whatever fn-90 has landed and does not sweep in
+  another session's uncommitted `.plans` or `.flow` edits.
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
 - **R1:** The contract leaf, the facade aliases, every `Session` implementation, the worker factory
   and options, and the server Driver expose exactly the API Contracts shapes; no exported or
-  unexported Go identifier in the Renames table's "Today" column remains. Errors: an implementation
-  left on the old method name fails to compile as a `Session`, which is the check; an alias kept
-  under an old name fails R3.
+  unexported Go identifier in the Renames table's "Today" column remains, and no scope binds two
+  different handle kinds to one local name (Local-name collisions). Errors: an implementation left
+  on the old method name fails to compile as a `Session`, which is the check; an alias kept under an
+  old name fails R3; an unexported helper, field or local the gate cannot see is caught by the
+  case-sensitive search in Edge Cases, whose remaining hits must all be other-sense uses.
 - **R2:** Behavior is unchanged. `make umpire-check-case-runtime-conformance`,
   `make umpire-check-testpilot-protocol` and `make umpire-check-testpilot-authoring` pass with no
   fixture, `expected.json` or generated file changed, and every Driver ownership, closure,
@@ -143,13 +164,17 @@ fixture or `expected.json` contains any of these strings.
   reintroduced old name in any scanned tree fails `make umpire-check-retired-vocabulary` with its
   path and line; a token rejected as a bare word is not added.
 - **R4:** Doc comments and READMEs in the handle sense say opaque handle, handle effect, handle
-  bridge or handle factory, including "generic capability factory" in the Temporal Driver README.
-  Errors: none beyond R3; prose in the other senses listed in Edge Cases is left as is.
+  bridge or handle factory, including "generic capability factory" in the Temporal Driver README
+  and "the capability bridge" in `UMPIRE4_COMPONENTS.md`'s Driver-vocabulary sentence. Diagnostic
+  text follows API Contracts. Errors: none beyond R3; prose in the other senses listed in Edge Cases
+  is left as is.
 - **R5:** `UMPIRE4_ORDER.md` carries no "Driver contract still says capability" bullet (removed
-  when fn-91 was queued), and fn-78
-  leaves the gate's downstream list. Errors: no other `.plans` document or spec record is edited.
-- **R6:** `make umpire-check-regression` exits 0 with the current count of passing live identities,
-  and `make lint-code-fast` reports no new issues. Errors: a live identity that also fails at the
+  when fn-91 was queued, so this holds before the work starts), and fn-78 leaves the gate's
+  downstream list. Errors: no `.plans` document other than R4's `UMPIRE4_COMPONENTS.md` phrase, and
+  no spec or task record, is edited.
+- **R6:** `make umpire-check-regression` exits 0 with the passing live-identity count it reports at
+  the base commit (recorded in the evidence before the change), and `make lint-code-fast` reports
+  no new issues. Errors: a live identity that also fails at the
   base commit (the intermittent failures fn-90 tracks) is re-run, not waived.
 
 ## Boundaries
@@ -172,3 +197,35 @@ names on one seam for things with different lifecycles. `OpaqueHandle` matches t
 `DeferredEffect` (a new word, which SEM-19 forbids adding), keeping deprecated aliases (every
 importer is in this module and the gate would have to allow them), and folding the Opcode-sense
 leftovers in (a different concept, and the request limits scope to the effect-handle sense).
+
+
+Ordering against fn-79 is carried by `UMPIRE4_ORDER.md` rather than a spec edge: fn-79 is deferred
+and its re-plan reads whatever names are live. `.plans/index.json` is not edited for it here.
+
+## Quick commands
+
+```bash
+go vet -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/replay/... ./tools/canary/...
+go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/replay/... ./tools/umpire/internal/retiredvocabulary/...
+make umpire-check-retired-vocabulary
+```
+
+## Early proof point
+
+Task fn-91-say-opaque-handle-in-the-driver-contract.1 proves the rename is mechanical: every
+`Session` implementation compiles on `InvokeHandle`, the Driver ownership tests pass under their new
+names, and no fixture or generated file moves. If it forces a behavior or fixture change, stop and
+re-check the Renames table against the seam before .2 adds gate tokens.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | API Contracts shapes; no Today identifier remains; no local-name collision | fn-91-say-opaque-handle-in-the-driver-contract.1 | — |
+| R2 | Behavior unchanged; conformance, protocol and authoring checks with no fixture diff | fn-91-say-opaque-handle-in-the-driver-contract.1, fn-91-say-opaque-handle-in-the-driver-contract.2 | — |
+| R3 | Gate holds the eight tokens with pins and live negatives; live-seam comment replaced | fn-91-say-opaque-handle-in-the-driver-contract.2 | — |
+| R4 | Doc comments, READMEs and the COMPONENTS phrase say handle | fn-91-say-opaque-handle-in-the-driver-contract.1, fn-91-say-opaque-handle-in-the-driver-contract.2 | — |
+| R5 | No ORDER bullet; fn-78 leaves the downstream list; no other planning edits | fn-91-say-opaque-handle-in-the-driver-contract.2 | ORDER half already holds |
+| R6 | Regression exit 0; lint-code-fast no new issues | fn-91-say-opaque-handle-in-the-driver-contract.2 | — |
+
+
