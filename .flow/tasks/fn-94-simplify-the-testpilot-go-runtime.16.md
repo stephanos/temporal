@@ -48,9 +48,18 @@ go test -race -tags test_dep ./common/testing/testpilot/... ./tools/umpire/... .
 
 
 ## Done summary
-TBD
+D1 (owner defaults, adjusted by R9): remove `Reference.model_value`; keep `Reference.evidence_field_id` and `Reference.correlated_capture` (R9: the Lean Producer `model/Umpire/Case/Correlated.lean:175,181` emits both through `Expr.correlatedCapture` and `Expr.evidenceField` for correlation field comparisons and captures, and Go's correlated handlers evaluate them); keep `supporting_event_sequence`, `SingularType.enumeration`, `ValueType.repeated`/`map`, `SingularType.any`, `Expression.any`, `Deadline.elapsed_milliseconds`, `InstructionLimits.max_attempts` and `Entrypoint.activity` as the defaults say.
 
+Evidence for `model_value`: no Lean producer (only the `Umpire.Case.LocalNames` renamer case named it), no fixture, no Go handler, and no context in `ir.admittedReferences` admits it. Outside `.proto` and generated code, only the context probe test tables and `protocol_test.go` named it. The only spec that names it is fn-87, which is closed and anticipated its removal. The `.proto` drops the arm, and `correlated_step`, `projected_value` and `instance_value_id` move up to 10, 11 and 12 under the dense-numbering rule, so the hand-written `.proto` is 3 lines shorter. Go was regenerated with `make lint-protos protoc proto-codegen`, and the Lean protocol was re-elaborated and checked by `make umpire-check-testpilot-protocol`.
+
+The retired-vocabulary gate now holds `model_value`, `Reference_ModelValue` and `GetModelValue`, with test lines. `ModelValue` is not gated because the message stays; `model_value_fingerprints` is a live name the boundary rule already leaves alone. `protocol_test.go` retires the field full name `Reference.model_value`. The README extension checklist gains a "Removing an element" subsection, and steps 3-4 of "A new expression reference" now say that a new reference needs a Producer, a `LocalNames` renamer case, and at least one context that admits it.
+
+The catalog identity golden moved from 95533e4d to 1f757edd. `make umpire-rerecord-pinned-runs` re-recorded both pinned Runs live and re-rendered the three receipt goldens under `tools/umpire/evaluation/testdata/receipts`, which sit outside the declared Touches but are part of the re-record (R11). The conformance fixtures did not change.
+
+Follow-up: `tools/umpire/regression` `TestTestpilotOwnsCaseProtocolAndRuntime` was already red before this task: the Temporal Drivers import `internal/execution` and `internal/ir`. This task did not cause it. The review was scoped to `--base 6df703a26b`, because fn-88.9's commit `6df703a26b` landed between the base and this task's commit.
+
+stage: impl-review - ran [fan-out codex x3, SHIP, round 1]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2839a4ed2e63ae9b590a76fa5531d82483df6a92
+- Tests: make lint-protos protoc proto-codegen, go test -race -tags test_dep ./common/testing/testpilot/... ./tools/umpire/... ./tools/canary/... (all ok except tools/umpire/regression TestTestpilotOwnsCaseProtocolAndRuntime, red identically at baseline), make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, lake build Umpire.Case.LocalNamesTests, make umpire-check-case-runtime-conformance (no fixture diff), make umpire-check-retired-vocabulary, make umpire-rerecord-pinned-runs (both pinned Runs re-recorded live; receipts re-rendered), make lint-code-fast, baseline: red (go test ./tools/umpire/regression TestTestpilotOwnsCaseProtocolAndRuntime failed pre-edit: temporal/{server,worker}/driver.go import internal/execution and internal/ir)
 - PRs:
