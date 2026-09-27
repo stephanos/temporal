@@ -1584,11 +1584,11 @@
     {
       "id": "fn-91-say-opaque-handle-in-the-driver-contract",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-87-tighten-the-testpilot-protocol-glossary"
       ]
@@ -1607,6 +1607,36 @@
         "fn-88-veil-concrete-checker-as-the-umpire",
         "fn-89-one-contract-rule-per-entity",
         "fn-90-resolve-the-intermittent-live-testpilot"
+      ]
+    },
+    {
+      "id": "fn-93-simplify-the-lean-model",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-88-veil-concrete-checker-as-the-umpire",
+        "fn-89-one-contract-rule-per-entity",
+        "fn-90-resolve-the-intermittent-live-testpilot",
+        "fn-91-say-opaque-handle-in-the-driver-contract",
+        "fn-92-compose-entity-machines-into-one-system"
+      ]
+    },
+    {
+      "id": "fn-94-simplify-the-testpilot-go-runtime",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-89-one-contract-rule-per-entity",
+        "fn-90-resolve-the-intermittent-live-testpilot",
+        "fn-91-say-opaque-handle-in-the-driver-contract"
       ]
     }
   ]
