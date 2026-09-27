@@ -5,6 +5,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,6 +15,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/operatorservice/v1"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/dynamicconfig"
+	"go.temporal.io/server/tests/testcore"
 	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
@@ -24,7 +29,12 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	// Build before the cluster starts: the environment bounds the test's own deadline, and a cold
 	// build of the CLI is not what that budget is for.
 	binary := buildUmpireRun(t)
-	env := newTestpilotTestEnvironment(t)
+	env := newTestpilotTestEnvironment(t,
+		testcore.WithWorkerService("umpire-run --create deletes its namespace through the system delete-namespace workflow"),
+		testcore.WithDynamicConfig(dynamicconfig.TransferProcessorUpdateAckInterval, 1*time.Second),
+		testcore.WithDynamicConfig(dynamicconfig.VisibilityProcessorUpdateAckInterval, 1*time.Second),
+	)
+	namespaceName := "umpire-run-nexus-caller"
 	endpointName := "umpire-run-nexus-caller-endpoint"
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
@@ -33,7 +43,7 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
-		"--namespace", "umpire-run-nexus-caller",
+		"--namespace", namespaceName,
 		"--task-queue", "umpire-run-nexus-caller-queue",
 		"--nexus-endpoint", endpointName,
 		"--create",
@@ -68,7 +78,8 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 		require.Contains(t, output, "verdict Satisfied", process)
 	})
 
-	// `--create` owns what it created, so the Nexus endpoint is gone once the process exits.
+	// `--create` owns what it created, so the Nexus endpoint and the namespace are gone once the
+	// process exits.
 	signed("endpoint deleted", func() {
 		require.NotContains(t, output, "delete Nexus endpoint", process)
 		describeCtx, cancelDescribe := context.WithTimeout(context.Background(), 30*time.Second)
@@ -77,12 +88,23 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 			&operatorservice.ListNexusEndpointsRequest{Name: endpointName})
 		require.NoError(t, err)
 		require.Empty(t, endpoints.GetEndpoints(),
-			"the Nexus endpoint umpire-run created was not deleted on exit")
+			"the Nexus endpoint %s umpire-run created was not deleted on exit", endpointName)
 	})
 
-	// The namespace deletion the CLI also issues is a system worker workflow, and this functional
-	// cluster does not run that service, so its completion is not asserted here. The cleanup
-	// ordering and the deletion call itself are pinned by the provisioning package's unit tests.
+	// The delete renames the namespace to `<name>-deleted-<id>` and reclaims it asynchronously, so its
+	// original name answers not-found only eventually.
+	signed("namespace deleted", func() {
+		require.NotContains(t, output, "delete namespace", process)
+		require.Eventually(t, func() bool {
+			describeCtx, cancelDescribe := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancelDescribe()
+			_, err := env.FrontendClient().DescribeNamespace(describeCtx,
+				&workflowservice.DescribeNamespaceRequest{Namespace: namespaceName})
+			_, notFound := errors.AsType[*serviceerror.NamespaceNotFound](err)
+			return notFound
+		}, 30*time.Second, 100*time.Millisecond,
+			"the namespace %s umpire-run created was not deleted on exit", namespaceName)
+	})
 }
 
 // TestTestpilotUmpireRunRejectsAnUnreachableEndpoint pins the exit code that separates
