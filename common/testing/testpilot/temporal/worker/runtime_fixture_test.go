@@ -95,7 +95,7 @@ func preparedRuntimeCase(t *testing.T, responseKind replyKind, modifyProfile fun
 		Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: runtimePayload("accepted")}},
 	}}}
 	if responseKind == replyAsynchronous {
-		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "capability", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "handle", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
 			Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}},
 		}}}
 	}
@@ -119,7 +119,7 @@ func preparedRuntimeCase(t *testing.T, responseKind replyKind, modifyProfile fun
 		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}
 	if responseKind == replyAsynchronous {
-		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
+		program.Slots = []*testpilotspb.Slot{{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
 	}
 	for _, apply := range modify {
 		apply(program)

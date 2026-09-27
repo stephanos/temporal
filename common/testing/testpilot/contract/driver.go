@@ -34,8 +34,8 @@ type ReservationRequest struct {
 	Count        int64
 }
 
-// OpaqueCapability values are Driver-owned and never passed to expression or response read code.
-type OpaqueCapability interface{}
+// OpaqueHandle values are Driver-owned and never passed to expression or response read code.
+type OpaqueHandle interface{}
 
 // PollPredicate decides whether a polled response ends the poll.
 type PollPredicate func(context.Context, proto.Message) (bool, error)
@@ -45,9 +45,9 @@ type EffectResult struct {
 	Response proto.Message
 }
 
-// CapabilityEffect is Driver-owned behavior carried by an opaque capability. Accepts validates
+// HandleEffect is Driver-owned behavior carried by an opaque handle. Accepts validates
 // immutable prepared input without target I/O and honors its context.
-type CapabilityEffect interface {
+type HandleEffect interface {
 	Accepts(context.Context, *testpilotspb.Instruction, proto.Message) bool
 	Invoke(context.Context, proto.Message, int64) EffectResult
 }
@@ -68,14 +68,14 @@ type ReservationHandle interface {
 	Consume(context.Context) (Coordinate, error)
 }
 
-// CapabilityBridge exposes readiness and single consumption, never capability payloads to the IR.
+// HandleBridge exposes readiness and single consumption, never handle payloads to the IR.
 // Implementations check Run/activation ownership and immutable publication, reject conflicting
-// publication, foreign ownership and closed-session access, and destroy capabilities at session
+// publication, foreign ownership and closed-session access, and destroy handles at session
 // closure. Payload inspection remains inside the Driver adapter.
-type CapabilityBridge interface {
-	Publish(context.Context, Coordinate, string, OpaqueCapability) error
+type HandleBridge interface {
+	Publish(context.Context, Coordinate, string, OpaqueHandle) error
 	Await(context.Context, string) error
-	Consume(context.Context, string) (OpaqueCapability, error)
+	Consume(context.Context, string) (OpaqueHandle, error)
 }
 
 // Session is one Run's Driver seam. The Session that issued an effect or reservation handle decides
@@ -88,10 +88,10 @@ type Session interface {
 	// accepted response, the first failed poll's outcome, or the timeout. The predicate is bounded
 	// and performs no I/O; a Driver evaluates it on each response it receives.
 	PollRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, PollPredicate) (EffectHandle, error)
-	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
+	InvokeHandle(context.Context, Coordinate, OpaqueHandle, proto.Message) (EffectHandle, error)
 	// InjectFault realizes one deliberate outage on the named ROLE_KIND_TASK_QUEUE role.
 	InjectFault(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
-	Bridge(context.Context) (CapabilityBridge, error)
+	Bridge(context.Context) (HandleBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
 	// Diagnose remains usable after Close, is bounded by Driver policy, and cannot mutate returned data.

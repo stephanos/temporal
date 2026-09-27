@@ -428,7 +428,7 @@ func (s *workflowStartSession) InvokeRPC(_ context.Context, coordinate testpilot
 	}
 }
 
-func (*workflowStartSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
+func (*workflowStartSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 func (*workflowStartSession) PollRPC(context.Context, testpilot.Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, testpilot.PollPredicate) (testpilot.EffectHandle, error) {
@@ -437,7 +437,7 @@ func (*workflowStartSession) PollRPC(context.Context, testpilot.Coordinate, stri
 func (*workflowStartSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	return nil, temporal.ErrInvalid
 }
-func (*workflowStartSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
+func (*workflowStartSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
 	return nil, temporal.ErrInvalid
 }
 func (*workflowStartSession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }

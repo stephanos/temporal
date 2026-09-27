@@ -99,7 +99,7 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 		return nil, errors.Join(err, controller.Close(context.Background()))
 	}
 	worker, err := h.worker.OpenSession(ctx, runID, program, workerhost.SessionOptions{
-		Bridge: bridge, NewCapability: controller.NewCapability,
+		Bridge: bridge, NewHandle: controller.NewHandle,
 		Diagnose:   controller.Diagnose,
 		Quarantine: quarantineWorkerHandle,
 	})
@@ -243,8 +243,8 @@ func workflowBinding(request proto.Message) (workerhost.WorkflowBinding, error) 
 	}, nil
 }
 
-func (s *compositeSession) InvokeCapability(ctx context.Context, coordinate testpilot.Coordinate, capability testpilot.OpaqueCapability, value proto.Message) (testpilot.EffectHandle, error) {
-	return s.controller.InvokeCapability(ctx, coordinate, capability, value)
+func (s *compositeSession) InvokeHandle(ctx context.Context, coordinate testpilot.Coordinate, handle testpilot.OpaqueHandle, value proto.Message) (testpilot.EffectHandle, error) {
+	return s.controller.InvokeHandle(ctx, coordinate, handle, value)
 }
 
 // A fault is a worker-lifecycle outage, so it is the worker Session's to realize; a Program with
@@ -255,7 +255,7 @@ func (s *compositeSession) InjectFault(ctx context.Context, coordinate testpilot
 	}
 	return s.worker.InjectFault(ctx, coordinate, roleID, kind)
 }
-func (s *compositeSession) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
+func (s *compositeSession) Bridge(ctx context.Context) (testpilot.HandleBridge, error) {
 	return s.controller.Bridge(ctx)
 }
 func (s *compositeSession) Quarantine(ctx context.Context, handle testpilot.EffectHandle) error {

@@ -90,7 +90,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind nexusReplyKind
 		Variant: &nexuspb.StartOperationResponse_SyncSuccess{SyncSuccess: &nexuspb.StartOperationResponse_Sync{Payload: runtimePayload("accepted")}},
 	}}}
 	if responseKind == asynchronousReply {
-		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "capability", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
+		reply = &testpilotspb.NexusHandlerReply{HandleSlotId: "handle", Reply: &testpilotspb.NexusHandlerReply_Response{Response: &nexuspb.StartOperationResponse{
 			Variant: &nexuspb.StartOperationResponse_AsyncSuccess{AsyncSuccess: &nexuspb.StartOperationResponse_Async{}},
 		}}}
 	}
@@ -114,7 +114,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind nexusReplyKind
 		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}
 	if responseKind == asynchronousReply {
-		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
+		program.Slots = []*testpilotspb.Slot{{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
 	}
 	for _, apply := range modify {
 		apply(program)
@@ -304,7 +304,7 @@ func TestGuardAndOwnership(t *testing.T) {
 				outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE}
 			}
 			require.NoError(t, state.Admit(t.Context(), 1, outcome))
-			require.Nil(t, state.lookup(testpilot.ValueReference{Kind: testpilot.SlotReference, ID: "private-capability"}))
+			require.Nil(t, state.lookup(testpilot.ValueReference{Kind: testpilot.SlotReference, ID: "private-handle"}))
 			outcome.Value = success("mutated").Value
 			input, enabled, err := state.Evaluate(t.Context(), 2)
 			require.NoError(t, err)

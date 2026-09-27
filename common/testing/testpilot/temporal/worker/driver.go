@@ -196,7 +196,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	if err != nil {
 		return nil, err
 	}
-	if definition.hasAsync && options.NewCapability == nil {
+	if definition.hasAsync && options.NewHandle == nil {
 		return nil, ErrInvalid
 	}
 	if err := h.mu.lock(ctx); err != nil {

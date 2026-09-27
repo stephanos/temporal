@@ -75,13 +75,13 @@ func (scriptedSession) InvokeRPC(_ context.Context, _ testpilot.Coordinate, _ st
 func (s scriptedSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, _ time.Duration, _ testpilot.PollPredicate) (testpilot.EffectHandle, error) {
 	return s.InvokeRPC(ctx, coordinate, role, method, request)
 }
-func (scriptedSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
-	return nil, errors.New("scripted sessions invoke no capability")
+func (scriptedSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
+	return nil, errors.New("scripted sessions invoke no opaque handle")
 }
 func (scriptedSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	return scriptedEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
 }
-func (scriptedSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
+func (scriptedSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
 	return nil, errors.New("scripted sessions bridge nothing")
 }
 func (scriptedSession) Quarantine(context.Context, testpilot.EffectHandle) error {

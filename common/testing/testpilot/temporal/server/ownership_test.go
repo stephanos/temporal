@@ -28,11 +28,11 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 	for _, operation := range []string{"open", "mint", "bridge", "publish", "consume", "quarantine", "close-session", "close-host", "diagnose"} {
 		t.Run(operation, func(t *testing.T) {
 			h, source, _ := fixture(t, "127.0.0.1:1")
-			s, origin := capabilitySession(t, h, source, "run")
-			capability, err := s.NewCapability(t.Context(), origin, successfulCapabilityEffect())
+			s, origin := handleSession(t, h, source, "run")
+			opaque, err := s.NewHandle(t.Context(), origin, successfulHandleEffect())
 			require.NoError(t, err)
 			if operation == "consume" {
-				require.NoError(t, s.Publish(t.Context(), origin, "capability", capability))
+				require.NoError(t, s.Publish(t.Context(), origin, "handle", opaque))
 			}
 			handle := &effect{session: s}
 			call := func(ctx context.Context) error {
@@ -41,15 +41,15 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 					_, err := h.open(ctx, "new", source.Program, h.profile.ProgramLimits)
 					return err
 				case "mint":
-					_, err := s.NewCapability(ctx, origin, successfulCapabilityEffect())
+					_, err := s.NewHandle(ctx, origin, successfulHandleEffect())
 					return err
 				case "bridge":
 					_, err := s.Bridge(ctx)
 					return err
 				case "publish":
-					return s.Publish(ctx, origin, "capability", capability)
+					return s.Publish(ctx, origin, "handle", opaque)
 				case "consume":
-					_, err := s.Consume(ctx, "capability")
+					_, err := s.Consume(ctx, "handle")
 					return err
 				case "quarantine":
 					return s.Quarantine(ctx, handle)
@@ -93,17 +93,17 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 		})
 	}
 }
-func TestRejectedCapabilityInvocationRestoresClaimForCleanup(t *testing.T) {
+func TestRejectedHandleInvocationRestoresClaimForCleanup(t *testing.T) {
 	for _, failure := range []string{"canceled", "capacity"} {
 		t.Run(failure, func(t *testing.T) {
 			h, source, _ := fixture(t, "127.0.0.1:1")
-			s, origin := capabilitySession(t, h, source, "run")
-			capability, err := s.NewCapability(t.Context(), origin, successfulCapabilityEffect())
+			s, origin := handleSession(t, h, source, "run")
+			handle, err := s.NewHandle(t.Context(), origin, successfulHandleEffect())
 			require.NoError(t, err)
-			require.NoError(t, s.Publish(t.Context(), origin, "capability", capability))
+			require.NoError(t, s.Publish(t.Context(), origin, "handle", handle))
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
-			original, err := s.Consume(ctx, "capability")
+			original, err := s.Consume(ctx, "handle")
 			require.NoError(t, err)
 			release := make(chan struct{})
 			var blocker *effect
@@ -116,27 +116,27 @@ func TestRejectedCapabilityInvocationRestoresClaimForCleanup(t *testing.T) {
 				blocker, err = other.start(t.Context(), coordinate("other", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult { <-release; return testpilot.EffectResult{} })
 				require.NoError(t, err)
 			}
-			denied, err := s.InvokeCapability(ctx, coordinate("run", "check"), original, capabilityValue())
+			denied, err := s.InvokeHandle(ctx, coordinate("run", "check"), original, handleValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 			cleanupCtx, cleanupCancel := context.WithCancel(t.Context())
 			defer cleanupCancel()
-			replacement, err := s.Consume(cleanupCtx, "capability")
+			replacement, err := s.Consume(cleanupCtx, "handle")
 			require.NoError(t, err)
-			denied, err = s.InvokeCapability(t.Context(), coordinate("run", "check"), original, capabilityValue())
+			denied, err = s.InvokeHandle(t.Context(), coordinate("run", "check"), original, handleValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 			if blocker != nil {
 				close(release)
 				require.NoError(t, blocker.Drain(t.Context()))
 			}
-			accepted, err := s.InvokeCapability(cleanupCtx, coordinate("run", "check"), replacement, capabilityValue())
+			accepted, err := s.InvokeHandle(cleanupCtx, coordinate("run", "check"), replacement, handleValue())
 			require.NoError(t, err)
 			require.NoError(t, accepted.Drain(t.Context()))
 			cleanupCancel()
-			_, err = s.Consume(t.Context(), "capability")
+			_, err = s.Consume(t.Context(), "handle")
 			require.Error(t, err)
-			denied, err = s.InvokeCapability(t.Context(), coordinate("run", "check"), replacement, capabilityValue())
+			denied, err = s.InvokeHandle(t.Context(), coordinate("run", "check"), replacement, handleValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 		})

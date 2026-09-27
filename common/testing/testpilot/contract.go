@@ -12,13 +12,13 @@ type (
 	Coordinate               = contract.Coordinate
 	ReservationIdentity      = contract.ReservationIdentity
 	ReservationRequest       = contract.ReservationRequest
-	OpaqueCapability         = contract.OpaqueCapability
+	OpaqueHandle             = contract.OpaqueHandle
 	PollPredicate            = contract.PollPredicate
 	EffectResult             = contract.EffectResult
-	CapabilityEffect         = contract.CapabilityEffect
+	HandleEffect             = contract.HandleEffect
 	EffectHandle             = contract.EffectHandle
 	ReservationHandle        = contract.ReservationHandle
-	CapabilityBridge         = contract.CapabilityBridge
+	HandleBridge             = contract.HandleBridge
 	Session                  = contract.Session
 	PreparedRole             = contract.PreparedRole
 	ReferenceKind            = contract.ReferenceKind

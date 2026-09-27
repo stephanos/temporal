@@ -275,28 +275,28 @@ func (s *Session) nexusActivationOutcome(delivered delivery.Activation, startErr
 }
 
 // publishCompletionAuthority builds the completion effect for the operation the activation answers
-// asynchronously, publishes it as the opaque capability of the named handle Slot, and returns the
+// asynchronously, publishes it as the opaque handle of the named handle Slot, and returns the
 // operation token the reply carries: the delivery's own request id.
 func (s *Session) publishCompletionAuthority(ctx context.Context, delivered delivery.Activation, handleSlotID string, options nexus.StartOperationOptions) (string, error) {
-	if s.options.NewCapability == nil || nilValue(s.options.Bridge) {
+	if s.options.NewHandle == nil || nilValue(s.options.Bridge) {
 		return "", ErrInvalid
 	}
 	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: delivered.RequestID(), StartTime: s.host.options.now()})
 	if err != nil {
 		return "", err
 	}
-	capability, err := s.options.NewCapability(ctx, delivered.Coordinate(), invoke)
+	handle, err := s.options.NewHandle(ctx, delivered.Coordinate(), invoke)
 	if err != nil {
 		return "", err
 	}
-	if nilValue(capability) {
+	if nilValue(handle) {
 		return "", ErrInvalid
 	}
 	if err := s.publicationAllowed(ctx); err != nil {
 		s.lateDiagnostic(ctx, "completion_publication_late")
 		return "", err
 	}
-	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), handleSlotID, capability); err != nil {
+	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), handleSlotID, handle); err != nil {
 		if errors.Is(s.publicationAllowed(ctx), ErrClosed) {
 			s.lateDiagnostic(ctx, "completion_publication_late")
 		}

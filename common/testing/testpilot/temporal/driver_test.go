@@ -54,7 +54,7 @@ func TestCompositeSessionRoutesFaultsToTheWorker(t *testing.T) {
 }
 
 type recordingControllerSession struct {
-	bridge      testpilot.CapabilityBridge
+	bridge      testpilot.HandleBridge
 	invocations int
 	quarantines int
 	closes      []string
@@ -71,13 +71,13 @@ func (s *recordingControllerSession) PollRPC(context.Context, testpilot.Coordina
 	s.invocations++
 	return recordingEffect{}, nil
 }
-func (*recordingControllerSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
+func (*recordingControllerSession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return recordingEffect{}, nil
 }
 func (*recordingControllerSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	return nil, errors.New("controller Sessions do not realize faults")
 }
-func (s *recordingControllerSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
+func (s *recordingControllerSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
 	return s.bridge, nil
 }
 func (s *recordingControllerSession) Quarantine(context.Context, testpilot.EffectHandle) error {
@@ -266,10 +266,10 @@ func (recordingReservation) Consume(context.Context) (testpilot.Coordinate, erro
 
 type recordingBridge struct{}
 
-func (*recordingBridge) Publish(context.Context, testpilot.Coordinate, string, testpilot.OpaqueCapability) error {
+func (*recordingBridge) Publish(context.Context, testpilot.Coordinate, string, testpilot.OpaqueHandle) error {
 	return nil
 }
 func (*recordingBridge) Await(context.Context, string) error { return nil }
-func (*recordingBridge) Consume(context.Context, string) (testpilot.OpaqueCapability, error) {
+func (*recordingBridge) Consume(context.Context, string) (testpilot.OpaqueHandle, error) {
 	return struct{}{}, nil
 }

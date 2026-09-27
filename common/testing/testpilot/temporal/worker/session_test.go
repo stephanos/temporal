@@ -125,10 +125,10 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	host, definition := runtimeTestDriver(t, prepared)
 	bridge := newTestBridge()
 	factoryCalls := 0
-	var captured testpilot.CapabilityEffect
+	var captured testpilot.HandleEffect
 	options := SessionOptions{
 		Bridge: bridge,
-		NewCapability: func(_ context.Context, _ testpilot.Coordinate, effect testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+		NewHandle: func(_ context.Context, _ testpilot.Coordinate, effect testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 			factoryCalls++
 			captured = effect
 			return &struct{ run string }{run: "run"}, nil
@@ -148,7 +148,7 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	require.Equal(t, 1, factoryCalls)
 	require.NotNil(t, captured)
 	require.True(t, bridge.published)
-	require.Equal(t, "capability", bridge.slot)
+	require.Equal(t, "handle", bridge.slot)
 
 	replay, err := session.ledger.AdmitNexus(t.Context(), delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"})
 	require.NoError(t, err)
@@ -175,7 +175,7 @@ func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
 	factoryProceed := make(chan struct{})
 	options := SessionOptions{
 		Bridge: bridge,
-		NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+		NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 			close(factoryStarted)
 			<-factoryProceed
 			return &struct{}{}, nil
@@ -209,7 +209,7 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 	host, definition := runtimeTestDriver(t, prepared)
 	options := SessionOptions{
 		Bridge: newTestBridge(),
-		NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
+		NewHandle: func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error) {
 			panic("fault")
 		},
 	}
@@ -360,18 +360,18 @@ type testBridge struct {
 	published  bool
 	coordinate testpilot.Coordinate
 	slot       string
-	capability testpilot.OpaqueCapability
+	handle     testpilot.OpaqueHandle
 }
 
 func newTestBridge() *testBridge { return &testBridge{} }
 
-func (b *testBridge) Publish(_ context.Context, coordinate testpilot.Coordinate, slot string, capability testpilot.OpaqueCapability) error {
+func (b *testBridge) Publish(_ context.Context, coordinate testpilot.Coordinate, slot string, handle testpilot.OpaqueHandle) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.published {
 		return errors.New("conflicting publication")
 	}
-	b.published, b.coordinate, b.slot, b.capability = true, coordinate, slot, capability
+	b.published, b.coordinate, b.slot, b.handle = true, coordinate, slot, handle
 	return nil
 }
 
@@ -384,7 +384,7 @@ func (b *testBridge) Await(ctx context.Context, slot string) error {
 	return ctx.Err()
 }
 
-func (b *testBridge) Consume(ctx context.Context, slot string) (testpilot.OpaqueCapability, error) {
+func (b *testBridge) Consume(ctx context.Context, slot string) (testpilot.OpaqueHandle, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if err := ctx.Err(); err != nil {
@@ -393,9 +393,9 @@ func (b *testBridge) Consume(ctx context.Context, slot string) (testpilot.Opaque
 	if !b.published || b.slot != slot {
 		return nil, errors.New("not ready")
 	}
-	capability := b.capability
-	b.capability = nil
-	return capability, nil
+	handle := b.handle
+	b.handle = nil
+	return handle, nil
 }
 
 type workflowCancellation struct {

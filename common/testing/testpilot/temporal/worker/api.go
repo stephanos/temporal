@@ -33,16 +33,16 @@ type Options struct {
 	SessionOptions func(context.Context, string) (SessionOptions, error)
 }
 
-type CapabilityFactory func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error)
+type HandleFactory func(context.Context, testpilot.Coordinate, testpilot.HandleEffect) (testpilot.OpaqueHandle, error)
 
 type DiagnosticSink func(context.Context, string, *testpilotspb.RunDiagnostic) error
 type QuarantineFunc func(context.Context, testpilot.EffectHandle, func()) error
 
 type SessionOptions struct {
-	Bridge        testpilot.CapabilityBridge
-	NewCapability CapabilityFactory
-	Diagnose      DiagnosticSink
-	Quarantine    QuarantineFunc
+	Bridge     testpilot.HandleBridge
+	NewHandle  HandleFactory
+	Diagnose   DiagnosticSink
+	Quarantine QuarantineFunc
 }
 
 type WorkflowBinding struct {

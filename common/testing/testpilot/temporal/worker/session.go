@@ -128,7 +128,7 @@ func (*Session) PollRPC(context.Context, testpilot.Coordinate, string, protorefl
 	return nil, ErrUnsupportedOperation
 }
 
-func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
+func (*Session) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, ErrUnsupportedOperation
 }
 
@@ -260,7 +260,7 @@ func (s *Session) diagnoseFault(ctx context.Context, kind testpilotspb.FaultKind
 	})
 }
 
-func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
+func (s *Session) Bridge(ctx context.Context) (testpilot.HandleBridge, error) {
 	if s == nil || ctx == nil {
 		return nil, ErrInvalid
 	}
