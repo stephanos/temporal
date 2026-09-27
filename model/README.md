@@ -36,7 +36,7 @@ runtime never reads.
 
 `Temporal.Feature.Nexus.Caller` authors the Nexus caller-side operation, and its functional set
 produces the seven caller Cases through `Temporal.Case.Realization.asyncNexus`: each Contract carries
-no monitor Rule, only the Correlated capability the checked Property lowered into.
+no plain Contract Rule, only the Correlated capability the checked Property lowered into.
 [AUTHORING.md](AUTHORING.md) walks that Model file from an empty file to a green live test, one
 command at a time; its canary set is admitted through the same block and its exploratory set's
 coverage targets are pinned by a golden. The system-info and
@@ -142,7 +142,7 @@ context tracking [...]` resolves references and reports admission failures at th
 `spec.check context` provides the ordinary `Except` path for parameterized inputs. Authors choose
 the trigger, response, scope, operation key, natural bound, and endpoint. The checked projection and
 `Umpire.Case.Correlated.lower` derive executable Contract data and correspondence evidence without a
-separately authored monitor. A response at the trigger or inclusive deadline satisfies that obligation;
+separately authored Rule. A response at the trigger or inclusive deadline satisfies that obligation;
 only admitted transitions of the same operation advance its clock. Incomplete execution never invents
 a deadline, and an already proved violation survives cleanup failure.
 
@@ -190,7 +190,7 @@ satisfies a comparison — it is rejected or left unresolved.
 Lowering is checked in both directions before any Driver I/O. `Umpire.Case.Coverage` binds each
 modeled input field to the exact request assignment that constructs it, so a Program that stopped
 constructing a covered field rejects the whole Case; `Umpire.Case.Projection.lower` derives the
-monitor rule from the checked Property -- the read path of each observed operand from the declared
+Rule from the checked Property -- the read path of each observed operand from the declared
 Observation's own message, the comparison and the literal the Program assigns
 -- so moving a coordinate in the Property moves the runtime read with it.
 
@@ -208,9 +208,11 @@ Two authored examples carry this end to end:
   Nexus example, re-authored with the commands by fn-86 .3) runs two instances of the caller
   Model's operation in one workflow, `instances: 2` on its Scenario, and writes
   `relates: nexusOperationCompleted.scheduled_event_id = nexusOperationScheduled.event_id`: the
-  scheduled event is an earlier step's, so each instance's rule captures its own -- selected by
-  the operation name its schedule command assigned -- and matches the completion's reference
-  against the retained event's id.
+  scheduled event is an earlier step's, so the relation lowers to one Rule, `relation`, with two
+  Rule instances, `relation-1` and `relation-2`. Each Rule instance captures its own scheduled event
+  -- selected by its `operation` instance value, the operation name its schedule command assigned --
+  and matches the completion's reference against the retained event's id, concluding in its own
+  rule verdict.
 - [`Temporal/Feature/Nexus/Control/Model.lean`](Temporal/Feature/Nexus/Control/Model.lean) (the
   negative control, fn-22 .3) keeps the caller Model's real reply rows and adds one row the
   platform never takes, a non-retryable handler error completing the operation as succeeded; its

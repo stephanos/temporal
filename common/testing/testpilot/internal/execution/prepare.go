@@ -76,7 +76,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 	}
 	// The Case is charged as its Contract's Rule instances expand, as the Contract is, so an instanced
 	// Case is not admitted where its expansion is rejected on surface size.
-	if slices.ContainsFunc(source.GetContract().GetRules(), func(rule *testpilotspb.ContractRule) bool { return len(rule.Instances) > 0 }) {
+	if ir.HasRuleInstances(source.GetContract().GetRules()) {
 		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), ir.ExpandRuleInstances); err != nil {
 			return nil, err
 		}

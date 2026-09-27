@@ -5,12 +5,23 @@ Contract and correlated ceilings; a Contract declares none of its own. The prepa
 Contract implements the internal execution MonitorFactory; `New` creates a fresh `Evaluator`
 for every Run. The public Case facade binds that factory and does not accept replacement monitors.
 
+A Rule may declare typed instance values and a list of Rule instances, each naming its own rule ID
+and assigning every instance value once, in declaration order. `Prepare` binds such a Rule once:
+its states, captures, transitions and predicates bind with every instance value typed by its
+declaration and always available, like the literal each instance inlines, and capture analysis runs
+once. It then checks each instance's assignments. An instance value is text, integer or enum typed;
+a boolean is rejected, since capture analysis prunes on boolean literals and a Rule analyzed once
+cannot prune per instance. A Rule with no instances is its own single instance, evaluated under its
+own rule ID; a Rule with instances is never evaluated under its own ID, which stays reserved.
+
 `Observe` processes an appended event synchronously. It stages rule transitions, typed captures,
 and supporting sequence references, checks cancellation, then commits the entire event atomically.
 Predicates see pre-transition captures. Event-kind indexes preserve declaration order and only the
 first matching transition runs. The first committed violation returns `Stop`; later drain/cleanup
 events cannot extend or erase the proved bad prefix. Captures retain independent values and their
-producing event sequences. Rules and Runs never share mutable state.
+producing event sequences. Each Rule instance owns its Run-local state (state, captures, Deadline
+counter and support) and reads its own instance values; Rule instances and Runs never share
+mutable state.
 
 Message captures retain one whole declared Observation when later predicates must correlate
 multiple fields from the same event. Separate scalar captures cannot preserve that pairing. The
@@ -22,11 +33,12 @@ A bounded-liveness rule's `Deadline` sets one positive bound in its `bound` oneo
 a deadline with no bound or a non-positive one at the rule's deadline. `elapsed_milliseconds` expires before
 transitions at the first recorded elapsed coordinate greater than or equal to its Run-relative
 deadline; it depends on the clock of the host that produced the Run. `rule_events` expires after
-exactly that many Run Events the rule evaluated since its last transition, which is a count of what
+exactly that many Run Events the Rule instance evaluated since its last transition, which is a count of what
 the Run recorded and nothing else. One helper owns the counter, and the online `Evaluator.Observe`
 path and the offline `PreparedContract.Evaluate` path both reach it through that helper, so neither
-can tick on its own terms. The counter resets on each transition into a new state, stops once the
-rule reaches a terminal state, and freezes with every other rule effect once execution becomes
+can tick on its own terms. Each Rule instance has its own counter, and one instance's transition
+does not reset another's. The counter resets on each transition into a new state, stops once the
+Rule instance reaches a terminal state, and freezes with every other rule effect once execution becomes
 incomplete, so no expiry is ever concluded from a truncated Run. A witness must be
 strictly earlier than expiry. Early completed closure is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
 for later events, even when they omit the flag. Pending rules then stay inconclusive past their
@@ -44,7 +56,12 @@ No final disposition is retroactively applied to earlier events.
 Contract work counts indexed rule visits, expression operations/value bytes, path traversal,
 and capture copies/references. Static preparation bounds that work per event and for the admitted
 Run event ceiling; runtime checks both ceilings and capture count/bytes before commit. Every one of
-these ceilings is the prepared Profile's snapshot. Run input validation has separate bounded IR
+these ceilings is the prepared Profile's snapshot. A Rule with instances is charged every ceiling
+(rules, states, transitions, captures, binding, per-event and total work) per Rule instance, with
+each instance value reference charged what its inlined literal costs, so a Contract with instances
+is admitted exactly when its expansion (one plain Rule per instance, values inlined as literals) is,
+and rejects on the same ceiling. The rule-count ceiling is checked against the total instance count
+before any per-instance state is allocated. The work is done once; only the accounting multiplies. Run input validation has separate bounded IR
 surface/type/fanout checks under the Profile's Program response ceiling.
 The shared `internal/ir` interpreter only resolves values from its supplied typed environment;
 verification supplies declared Observations, captures, and the closed Run metadata fields.
@@ -71,7 +88,10 @@ Run and checks it once more at its successful-return boundary. It transfers the 
 once, including on error; further Observe/Close callbacks are rejected. Cancellation cannot
 require an uncancelable rebuild or erase a committed proof.
 
-`Evaluate` and live `Close` produce independent protobuf Verdicts. The internal ordered transition
+`Evaluate` and live `Close` produce independent protobuf Verdicts, with one `RuleVerdict` per Rule
+instance in Rule declaration order, then instance declaration order, followed by the correlated
+rules. Transition traces, the Executor-stop violation and the all-satisfied count name and count
+Rule instances. The internal ordered transition
 trace and support sequences are deterministic and tested alongside deterministic Verdict bytes
 for completed, stopped, and incomplete Runs. Callbacks on one Evaluator must be serialized;
 a PreparedContract supports concurrent independent Runs.

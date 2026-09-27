@@ -38,7 +38,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Compiler` | Generated Case assembly and source-bound producer diagnostics. |
 | `Umpire.Case.Coverage` | The whole-Case field and Rule coverage a Case requests. |
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
-| `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the monitor rule derived from a checked field Property. |
+| `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the Rule derived from a checked field Property. |
 | `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
 | `Umpire.Command` | The Model command surface: `entity`, `enum`, `action`, `observation`, `machine`, `property`, `scenario`, `limits`, `query`, `set`, and `register_switch` for a realization's switches. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
@@ -193,7 +193,7 @@ namespace. The focused `Umpire.PromotionTests` build protects that boundary.
 The checked-in `.proto` closure rooted at
 `proto/internal/temporal/server/api/testpilot/v1/case.proto` owns the closed wire vocabulary.
 `Testpilot.Protocol` exposes its generated Lean declarations, including Case, Program, Contract,
-Run, values, paths, expressions, instructions, monitors, and Verdict data. Producers construct
+Run, values, paths, expressions, instructions, Contract rules, and Verdict data. Producers construct
 those generated values through the context-safe `Testpilot.Authoring` facade.
 
 `Umpire.Provenance` owns only Umpire-specific definition bindings, Behavior Fingerprints, sources,
@@ -253,7 +253,7 @@ block hands it each checked Query of a set (`Umpire.Command.produceCase`) and a 
 assembles the Case's Program from the Query's witness and lowers its checked semantics into generated
 protocol values through `Testpilot.Authoring`. The Contract rules come from the checked Properties
 rather than from the Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
-`Umpire.Case.Projection.lower` derives the monitor rule of a field Property, and each returns its
+`Umpire.Case.Projection.lower` derives the Rule of a field Property, and each returns its
 correspondence certificate beside the lowering, and the Producer derives the outage-order rule
 from the faults a Program injects. It passes those values to
 `Umpire.Case.Compiler`, which admits both lowerings side by side and
@@ -281,7 +281,7 @@ covered by declared Observations and never by a request assignment.
 `Umpire.Case.Projection.lower` owns the evidence side. It takes the checked field Property, the
 declared Observation, and a realization carrying only what the Property does not state: the request
 literals the Program assigns, the rule's identity suffix, and a capture policy. From the Property's
-closed predicate vocabulary it derives the whole monitor rule: the read path of every observed
+closed predicate vocabulary it derives the whole Rule: the read path of every observed
 operand, rooted at the declared Observation's own message; the comparison operator; the literal a
 request operand is realized as; and whether a prior-state operand is captured from an earlier event.
 The Property's presence atoms are consumed rather than compared, and the rule guards each derived
@@ -294,6 +294,21 @@ naming stops being read. A Property with no field comparison lowers to no rule; 
 does not realize, a literal the realization does not assign, and a read it cannot derive (a wrong
 oneof group, an unselected member, a presence read, a repeated element, a keyed map lookup, a
 cardinality) reject by name rather than resolving to an approximate rule.
+
+A Scenario over more than one instance lowers a field Property once per `Placement`, each under
+that placement's realization and with its own `DerivedRule`. `Projection.InstancedRule.fold` then
+folds the placements' derivations into one Rule with Rule instances. The placements must agree once
+their compared literal is erased (same shape kind, negation, reads, capture state names and literal
+type), else the Case rejects as `relation.instance-shape`. The one literal the shape compares
+against becomes the Rule's single instance value, named by the last segment of that literal's
+field path and typed by the field's schema type, and each placement contributes one Rule instance
+whose rule ID is the Rule's ID plus `Placement.suffix` and whose value is that placement's literal.
+The Rule renders once under the unsuffixed rule suffix, so its capture and transition IDs carry no
+instance suffix. The folded Rule's certificate is the list of per-placement `DerivedRule`s plus the
+shape agreement, so every value an instance assigns is one its placement's realization assigns.
+Over one instance, or when the compared literal's type has no instance value type (a boolean among
+them, since capture analysis prunes on boolean literals), the Producer emits plain per-placement
+Rules. Request coverage stays one mapping per placement.
 
 Both sides, and the rebuild of covered evidence in `Projection.Coverage`, walk modeled coordinates
 through one private walker in `Umpire.Case.Projection.Coordinates`. Its one step-kind table carries

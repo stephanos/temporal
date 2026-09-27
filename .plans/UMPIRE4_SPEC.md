@@ -77,6 +77,12 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   declared Observations.
 - **Rule.** One state machine inside a Contract, with an initial state, finite transitions, terminal
   satisfied or violated states, and, when it is a bounded-liveness Rule, one Deadline.
+  *Amendment (drafted by fn-89; awaiting GOV-02 approval.)* A Rule MAY declare typed instance
+  values and a list of Rule instances, each assigning every instance value and naming its own rule
+  ID; each Rule instance is evaluated as its own state machine and concludes in its own
+  `RuleVerdict`. Where a rule text says "rule" of a conclusion, a Deadline counter or support
+  (EVD-12, EVD-13, EVD-21, Verdict), it means one Rule instance, and a Rule with no instances is its
+  own single instance.
 - **Profile.** An immutable authorization and environment snapshot containing a descriptor Catalog,
   symbolic role policy, physical environment bindings, Opcodes, and independent Program and
   Contract ceilings. A binding authorizes no Opcode by itself.
@@ -167,6 +173,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   execution and MUST use the same transition semantics for offline evaluation. Expiry is evaluated
   before transitions at every event, bounded captures are rule-local and Run-local, and a proven
   violation MUST remain authoritative despite later cleanup or operational failure.
+  *Restatement (drafted by fn-89; awaiting GOV-02 approval.)* The prepared Contract MUST supply the
+  Monitor used during execution and MUST use the same transition semantics for offline evaluation.
+  Expiry is evaluated before transitions at every event, bounded captures are local to one Rule
+  instance and Run-local, and a proven violation MUST remain authoritative despite later cleanup or
+  operational failure.
 - **SEM-18 — Producer neutrality.** Lean MUST produce deterministic Cases for model-owned behavior,
   but any conforming client MAY author a Case. A non-Lean Case is not thereby a Behavior Model
   declaration or a claim about any other Case.

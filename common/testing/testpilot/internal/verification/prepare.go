@@ -202,7 +202,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	if slices.ContainsFunc(source.Rules, func(rule *testpilotspb.ContractRule) bool { return len(rule.Instances) > 0 }) {
+	if ir.HasRuleInstances(source.Rules) {
 		// The expansion's surface is charged too, so an instanced Contract is not admitted where its
 		// expansion is rejected on surface size.
 		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), ir.ExpandRuleInstances); err != nil {
