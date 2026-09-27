@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"slices"
@@ -9,49 +10,115 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+// opcodeRow is everything the runtime knows about one Opcode: the Instruction oneof arm that
+// declares it, the entrypoint kind it runs in, whether its outcome carries a protocol code, how
+// admission binds the instruction and its dataflow, and how the scheduler accepts its effect. A
+// nil dataflow binds no Program expression; a nil accept is an instruction no controller runs.
+type opcodeRow struct {
+	arm          protoreflect.Name
+	context      contract.EntrypointKind
+	protocolCode bool
+	bind         func(a *admission, g *graph, i int, n *node) error
+	dataflow     func(a *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error
+	accept       func(s *scheduler, ctx context.Context, task scheduledNode, c contract.Coordinate, n *node, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error)
+}
+
+// scopedBind binds one Program expression of a node under its guard, in the given scope.
+type scopedBind func(scope map[ir.Reference]ir.Binding, value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error)
+
+// opcodes is indexed by Opcode; the zero Opcode's row is empty.
+var opcodes [contract.MaxOpcode + 1]opcodeRow
+
+// The table is assigned here rather than in its declaration because its rows reach
+// InstructionOpcode, which reads it, and Go rejects that as an initialization cycle.
+func init() {
+	opcodes = [...]opcodeRow{
+		contract.InvokeRPC: {
+			arm: "invoke_rpc", context: contract.ControllerEntrypoint, protocolCode: true,
+			bind: (*admission).bindRPC,
+			dataflow: func(a *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error {
+				return a.bindRequestDataflow(g, n, n.source.Instruction.GetInvokeRpc().GetRequestAssignments(), scope, bind)
+			},
+			accept: (*scheduler).acceptRPC,
+		},
+		contract.AwaitSlot: {
+			arm: "await_slot", context: contract.ControllerEntrypoint,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindAwaitSlot(g, n) },
+			dataflow: func(a *admission, g *graph, n *node, _ map[ir.Reference]ir.Binding, _ scopedBind) error {
+				return a.bindAwaitSlotDataflow(g, n)
+			},
+			accept: (*scheduler).acceptAwaitSlot,
+		},
+		contract.Await: {
+			arm: "await_instruction", context: contract.WorkflowEntrypoint,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindAwait(g, n) },
+		},
+		contract.Finish: {
+			arm: "finish", context: contract.WorkflowEntrypoint,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindFinish(g, n) },
+			dataflow: func(_ *admission, _ *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error {
+				var err error
+				n.input, err = bind(scope, n.source.Instruction.GetFinish().Result, "instruction.finish.result", nil)
+				return err
+			},
+		},
+		contract.InjectFault: {
+			arm: "inject_fault", context: contract.ControllerEntrypoint,
+			bind:   func(a *admission, g *graph, _ int, n *node) error { return a.bindFault(g, n) },
+			accept: (*scheduler).acceptFault,
+		},
+		contract.WorkflowCommand: {
+			arm: "workflow_command", context: contract.WorkflowEntrypoint,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindWorkflowCommand(g, n) },
+		},
+		contract.NexusHandlerReply: {
+			arm: "nexus_handler_reply", context: contract.NexusHandlerEntrypoint,
+			bind: (*admission).bindNexusHandlerReply,
+		},
+		contract.NexusOperationCompletion: {
+			arm: "nexus_operation_completion", context: contract.ControllerEntrypoint, protocolCode: true,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindNexusOperationCompletion(g, n) },
+			dataflow: func(_ *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, _ scopedBind) error {
+				if !scope[ir.Reference{Kind: ir.SlotReference, ID: n.source.Instruction.GetNexusOperationCompletion().GetHandleSlotId()}].Available {
+					return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
+				}
+				return nil
+			},
+			accept: (*scheduler).acceptOperationCompletion,
+		},
+		contract.ReadEvidence: {
+			arm: "read_evidence", context: contract.ControllerEntrypoint, protocolCode: true,
+			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindReadEvidence(g, n) },
+			dataflow: func(a *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error {
+				return a.bindRequestDataflow(g, n, n.source.Instruction.GetReadEvidence().GetRequestAssignments(), scope, bind)
+			},
+			accept: (*scheduler).acceptReadEvidence,
+		},
+	}
+}
+
+var instructionArms = (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 
 // InstructionOpcode is the single mapping from a declared instruction to the Opcode a Profile must
 // authorize. Profile derivation reads it through the facade so a Case's instructions and the
 // Opcodes that authorize them cannot drift apart.
 func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
-	if instruction == nil || isNil(instruction.Instruction) {
+	if instruction == nil {
 		return 0
 	}
-	switch instruction.Instruction.(type) {
-	case *testpilotspb.Instruction_InvokeRpc:
-		return contract.InvokeRPC
-	case *testpilotspb.Instruction_AwaitSlot:
-		return contract.AwaitSlot
-	case *testpilotspb.Instruction_AwaitInstruction:
-		return contract.Await
-	case *testpilotspb.Instruction_Finish:
-		return contract.Finish
-	case *testpilotspb.Instruction_InjectFault:
-		return contract.InjectFault
-	case *testpilotspb.Instruction_WorkflowCommand:
-		return contract.WorkflowCommand
-	case *testpilotspb.Instruction_NexusHandlerReply:
-		return contract.NexusHandlerReply
-	case *testpilotspb.Instruction_NexusOperationCompletion:
-		return contract.NexusOperationCompletion
-	case *testpilotspb.Instruction_ReadEvidence:
-		return contract.ReadEvidence
-	default:
+	arm := instruction.ProtoReflect().WhichOneof(instructionArms)
+	if arm == nil {
 		return 0
 	}
-}
-func opcodeContext(opcode contract.Opcode) contract.EntrypointKind {
-	switch opcode {
-	case contract.InvokeRPC, contract.AwaitSlot, contract.InjectFault, contract.NexusOperationCompletion, contract.ReadEvidence:
-		return contract.ControllerEntrypoint
-	case contract.Await, contract.Finish, contract.WorkflowCommand:
-		return contract.WorkflowEntrypoint
-	case contract.NexusHandlerReply:
-		return contract.NexusHandlerEntrypoint
-	default:
-		return 0
+	for opcode, row := range opcodes {
+		if opcode != 0 && row.arm == arm.Name() {
+			return contract.Opcode(opcode)
+		}
 	}
+	return 0
 }
 func scalarSchema(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
@@ -78,40 +145,34 @@ func (a *admission) bindInstructions() error {
 }
 func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	n.opcode = InstructionOpcode(n.source.Instruction)
-	if n.opcode == 0 || opcodeContext(n.opcode) != g.context || !a.opcodes[n.opcode] {
+	row := opcodes[n.opcode]
+	if n.opcode == 0 || row.context != g.context || !a.opcodes[n.opcode] {
 		return invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
 	}
 	if err := a.bindNodeBounds(g, n); err != nil {
 		return err
 	}
-	if err := a.bindOutcomes(g, n); err != nil {
-		return err
+	a.bindOutcomes(g, n)
+	return row.bind(a, g, i, n)
+}
+
+func (a *admission) bindAwaitSlot(g *graph, n *node) error {
+	if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
+		return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 	}
-	switch n.opcode {
-	case contract.InvokeRPC:
-		return a.bindRPC(g, i, n)
-	case contract.AwaitSlot:
-		if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
-			return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
-		}
-	case contract.Await:
-		return a.bindAwait(g, n)
-	case contract.Finish:
-		if n.source.Instruction.GetFinish() == nil {
-			return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
-		}
-	case contract.InjectFault:
-		return a.bindFault(g, n)
-	case contract.WorkflowCommand:
-		return a.bindWorkflowCommand(g, n)
-	case contract.NexusHandlerReply:
-		return a.bindNexusHandlerReply(g, i, n)
-	case contract.NexusOperationCompletion:
-		return a.bindNexusOperationCompletion(g, n)
-	case contract.ReadEvidence:
-		return a.bindReadEvidence(g, n)
-	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
+	return nil
+}
+
+func (a *admission) bindAwaitSlotDataflow(g *graph, n *node) error {
+	if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
+		return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
+	}
+	return nil
+}
+
+func (a *admission) bindFinish(g *graph, n *node) error {
+	if n.source.Instruction.GetFinish() == nil {
+		return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 	}
 	return nil
 }
@@ -189,19 +250,16 @@ func (a *admission) bindFault(g *graph, n *node) error {
 // SDK failure code; and an awaited Nexus operation its result as the value. A Case declares none of
 // them. An RPC response is read only through response reads, and a Finish result or a
 // NexusHandlerReply ends its activation, so neither is an outcome value.
-func (a *admission) bindOutcomes(g *graph, n *node) error {
+func (a *admission) bindOutcomes(g *graph, n *node) {
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS] = a.outcomeTypes.status
-	switch {
-	case n.opcode == contract.InvokeRPC || n.opcode == contract.NexusOperationCompletion || n.opcode == contract.ReadEvidence:
+	if opcodes[n.opcode].protocolCode {
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
-	case g.context != contract.ControllerEntrypoint:
+	} else if g.context != contract.ControllerEntrypoint {
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
-	default:
-		// Other controller instructions (AwaitSlot, InjectFault) have neither code.
 	}
+	// Other controller instructions (AwaitSlot, InjectFault) have neither code.
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL] = a.outcomeTypes.text
 	// An Await's VALUE is typed by the start it awaits, in bindAwait.
-	return nil
 }
 func (a *admission) addWriter(id string, writer slotWriter) error {
 	if _, exists := a.writers[id]; exists {
@@ -568,48 +626,30 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return err
 	}
 	a.successScope(g, n, n.guard, scope)
-	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+	row := opcodes[n.opcode]
+	if row.dataflow == nil {
+		// A fault names its target role statically and a typed instruction carries its message
+		// whole; neither binds a Program expression.
+		return nil
+	}
+	return row.dataflow(a, g, n, scope, func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
 		if err := a.charge(int64(proto.Size(n.guardSource)) + int64(proto.Size(value)) + 1); err != nil {
 			return nil, err
 		}
 		site := ir.Site{Context: ir.ProgramContext, Path: expressionPath(g, n, field)}
 		_, expression, err := a.prepared.catalog.BindGuardedExpression(guard, site, value, expected, expressionScope, a.expressionLimits())
 		return expression, err
-	}
-	bind := func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
-		return bindIn(scope, value, field, expected)
-	}
-	switch n.opcode {
-	case contract.InvokeRPC, contract.ReadEvidence:
-		inputScope := maps.Clone(scope)
-		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
-		sources, field := n.source.Instruction.GetInvokeRpc().GetRequestAssignments(), "instruction.invoke_rpc"
-		if n.opcode == contract.ReadEvidence {
-			sources, field = n.source.Instruction.GetReadEvidence().GetRequestAssignments(), "instruction.read_evidence"
-		}
-		err = a.bindAssignments(g, n, sources, field, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
-			return bindIn(inputScope, value, field, expected)
-		})
-	case contract.AwaitSlot:
-		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
-			return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
-		}
-	case contract.NexusOperationCompletion:
-		if !scope[ir.Reference{Kind: ir.SlotReference, ID: n.source.Instruction.GetNexusOperationCompletion().GetHandleSlotId()}].Available {
-			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
-		}
-	case contract.Finish:
-		n.input, err = bind(n.source.Instruction.GetFinish().Result, "instruction.finish.result", nil)
-	case contract.Await, contract.InjectFault, contract.WorkflowCommand, contract.NexusHandlerReply:
-		// A fault names its target role statically and a typed instruction carries its message
-		// whole; neither binds a Program expression.
-	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
-	}
-	if err != nil {
-		return err
-	}
-	return nil
+	})
+}
+
+// bindRequestDataflow binds the request assignments of an instruction that builds a request, in the
+// node's scope plus the Run ID intrinsic that only a Program input may read.
+func (a *admission) bindRequestDataflow(g *graph, n *node, sources []*testpilotspb.RequestAssignment, scope map[ir.Reference]ir.Binding, bind scopedBind) error {
+	inputScope := maps.Clone(scope)
+	inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
+	return a.bindAssignments(g, n, sources, "instruction."+string(opcodes[n.opcode].arm), func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+		return bind(inputScope, value, field, expected)
+	})
 }
 
 // expressionPath locates one expression field of an instruction node. Entrypoints and instructions are

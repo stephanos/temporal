@@ -34,11 +34,10 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	return c, catalog, policy
 }
 
-// The Opcode list, the instruction-to-Opcode switch and the Instruction oneof are three
-// hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
-// in only one of them; the facade re-exports the contract leaf's Opcode by alias, so it adds no
-// fourth list to pin. A removed arm's successors move up, so an arm's Opcode is its field number
-// and the numbers stay dense from 1.
+// The Opcode list, the opcodes table and the Instruction oneof are three hand-maintained lists.
+// Pinning them to each other is what stops a new instruction from landing in only one of them; the
+// facade re-exports the contract leaf's Opcode by alias, so it adds no fourth list to pin. A removed
+// arm's successors move up, so an arm's Opcode is its field number and the numbers stay dense from 1.
 func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 	oneof := (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 	require.NotNil(t, oneof)
@@ -59,7 +58,9 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 			previous = field.Number()
 			require.False(t, seen[opcode])
 			seen[opcode] = true
-			require.NotZero(t, opcodeContext(opcode))
+			require.Equal(t, field.Name(), opcodes[opcode].arm)
+			require.NotZero(t, opcodes[opcode].context)
+			require.NotNil(t, opcodes[opcode].bind)
 		})
 	}
 }
