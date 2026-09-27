@@ -6,7 +6,7 @@ package «temporal-model» where
   lintDriver := "umpire-lint"
   builtinLint? := true
 
-require "leanprover-community" / batteries @ git "v4.33.0"
+require "leanprover-community" / batteries @ git "v4.32.0"
 
 require protobuf from git
   "https://github.com/Lean-zh/protobuf.git"@"406da521c0ebb47207be28e3d9ef738de95a4dd3"
