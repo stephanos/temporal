@@ -167,8 +167,15 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 			pending.Wait()
 			close(results)
 
-			runIDs := make(map[string]struct{}, len(lives)*2)
+			// Every closed Run is captured before any is asserted on, so a failing one leaves the
+			// others' timing behind as well.
+			collected := make([]testpilotLiveRunResult, 0, len(lives)*2)
 			for result := range results {
+				captureRun(t, query.fixture(), lives[result.environment], result.run)
+				collected = append(collected, result)
+			}
+			runIDs := make(map[string]struct{}, len(lives)*2)
+			for _, result := range collected {
 				require.NoError(t, result.err)
 				requireNexusCallerVerdict(t, query, result.run, result.verdict, bindings[result.environment].NexusEndpoint)
 				require.NotContains(t, runIDs, result.run.GetRunId())
@@ -212,37 +219,41 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 // history event the Query's claim names, lifted under the operation's scheduled event.
 func requireNexusCallerVerdict(t testing.TB, query nexusCallerQuery, run *testpilotpb.Run, verdict *testpilotpb.Verdict, endpoint string) {
 	t.Helper()
-	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition(), "diagnostics: %v", run.GetDiagnostics())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus(), "diagnostics: %v", run.GetDiagnostics())
-	require.True(t, proto.Equal(verdict, run.GetVerdict()))
+	check := requireRunSatisfied(t, "", run, verdict)
 	// One rule verdict per scoped clause the checked Property lowered into, each satisfied and
 	// each supported by evidence the Verdict as a whole lists.
-	require.NotEmpty(t, verdict.GetRules())
-	for _, rule := range verdict.GetRules() {
-		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-		require.Subset(t, verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
-	}
+	check.require("rule support", func() {
+		require.NotEmpty(t, verdict.GetRules())
+		for _, rule := range verdict.GetRules() {
+			require.Subset(t, verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
+		}
+	})
 	// The scheduled read opens the operation's evidence on every path; the attempt-count read,
 	// when the path has one, follows it; the history read's events close it.
-	scheduled, reads, history := partitionNexusCallerSupport(t, run, verdict.GetSupportingEventSequences())
-	scheduledID := requireCorrelatedNexusHistoryEvidence(t, run, history, endpoint, query.supporting)
-	requireReadEvidence(t, run, scheduled, "await-scheduled", "evidence.scheduled", scheduledID)
-	if query.readsAttempts {
-		require.Len(t, reads, 1)
-		requireReadEvidence(t, run, reads[0], "pending-attempts", "evidence.pendingAttempts", scheduledID)
-	} else {
-		require.Empty(t, reads)
-	}
-	requireNexusHistoryEvent(t, run, query.terminal)
-	if query.timeoutType != enumspb.TIMEOUT_TYPE_UNSPECIFIED {
-		requireNexusTimedOutType(t, run, query.timeoutType)
-	}
-	if query.stopsWorker {
-		require.NotEmpty(t, faultEvents(run), "the handler's worker was never stopped")
-	} else {
-		require.Empty(t, faultEvents(run))
-	}
+	check.require("supporting evidence", func() {
+		scheduled, reads, history := partitionNexusCallerSupport(t, run, verdict.GetSupportingEventSequences())
+		scheduledID := requireCorrelatedNexusHistoryEvidence(t, run, history, endpoint, query.supporting)
+		requireReadEvidence(t, run, scheduled, "await-scheduled", "evidence.scheduled", scheduledID)
+		if query.readsAttempts {
+			require.Len(t, reads, 1)
+			requireReadEvidence(t, run, reads[0], "pending-attempts", "evidence.pendingAttempts", scheduledID)
+		} else {
+			require.Empty(t, reads)
+		}
+	})
+	check.require("terminal event", func() {
+		requireNexusHistoryEvent(t, run, query.terminal)
+		if query.timeoutType != enumspb.TIMEOUT_TYPE_UNSPECIFIED {
+			requireNexusTimedOutType(t, run, query.timeoutType)
+		}
+	})
+	check.require("fault events", func() {
+		if query.stopsWorker {
+			require.NotEmpty(t, faultEvents(run), "the handler's worker was never stopped")
+		} else {
+			require.Empty(t, faultEvents(run))
+		}
+	})
 }
 
 // partitionNexusCallerSupport splits a Verdict's supporting sequences by the controller instruction
@@ -327,7 +338,7 @@ func TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	query := nexusCallerQueries[1]
 
-	run, verdict := runCase(t, env, query.fixture())
+	run, verdict := runCapturedCase(t, env, query.fixture())
 
 	requireNexusCallerVerdict(t, query, run, verdict, "umpire-"+query.fixture()+"-endpoint")
 }

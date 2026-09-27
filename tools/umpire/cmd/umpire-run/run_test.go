@@ -178,6 +178,44 @@ func TestRunSeparatesViolatedInconclusiveAndFailedExitCodes(t *testing.T) {
 	}
 }
 
+// Each Run diagnostic is one line after the rule lines, by its kind and code alone, so a caller in
+// another process can tell why a Run was inconclusive without the Run itself.
+func TestRunReportsEveryRunDiagnosticAfterTheRules(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	open := func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		return &session{
+			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+				verdict := &testpilotspb.Verdict{
+					Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
+					Rules:  []*testpilotspb.RuleVerdict{{RuleId: "clause-one", Status: testpilotspb.RULE_VERDICT_STATUS_PENDING, TerminalStateId: "awaiting"}},
+				}
+				return &testpilotspb.Run{
+					Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE,
+					Cleanup:     &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED},
+					Verdict:     verdict,
+					Diagnostics: []*testpilotspb.RunDiagnostic{
+						{DiagnosticId: "d-1", Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, Code: "instruction-timeout", Detail: "finish-workflow in run-1"},
+						{DiagnosticId: "d-2", Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_MONITOR, Code: "pending", Detail: "clause-one in run-1"},
+					},
+				}, verdict, nil
+			},
+		}, nil
+	}
+
+	code := Run(requiredFlags(t, "nexusCallerTests-asyncCompletion-case.json"), &stdout, &stderr, open)
+
+	require.Equal(t, exitInconclusive, code)
+	require.Empty(t, stderr.String())
+	require.Equal(t, []string{
+		"run Incomplete",
+		"cleanup Succeeded",
+		"verdict Inconclusive",
+		"rule clause-one Pending awaiting",
+		"diagnostic Execution instruction-timeout",
+		"diagnostic Monitor pending",
+	}, strings.Split(strings.TrimSpace(stdout.String()), "\n"))
+}
+
 // A Run that could not execute is exit 3, not the inconclusive Verdict it never reached. That
 // separation is what lets CI tell an unreachable server from a real inconclusive answer.
 func TestRunExitsThreeWithOneStderrLineWhenTheRunFails(t *testing.T) {

@@ -3,7 +3,9 @@
 package tests
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/operatorservice/v1"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 // TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint is the vision's black-box mode on real
@@ -26,7 +29,7 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	command := exec.CommandContext(ctx, binary,
+	arguments := []string{
 		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
@@ -35,23 +38,47 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 		"--nexus-endpoint", endpointName,
 		"--create",
 		"--timeout", "2m",
-	)
-	output, err := command.CombinedOutput()
+	}
+	if dir := os.Getenv(umpireRepeatRunDirVariable); dir != "" {
+		arguments = append(arguments, "--record", capturePath(t, dir))
+	}
+	command := exec.CommandContext(ctx, binary, arguments...)
+	var stdout, stderr bytes.Buffer
+	command.Stdout, command.Stderr = &stdout, &stderr
+	started := time.Now()
+	err := command.Run()
+	// The process's fate is said beside every failure, never in the signature: it is what tells a
+	// teardown kill from an output mismatch, and its elapsed time differs on every run.
+	process := fmt.Sprintf("exit status %d, killed by the context %t, elapsed %s",
+		command.ProcessState.ExitCode(), ctx.Err() != nil, time.Since(started))
+	output := stdout.String() + stderr.String()
+	signed := func(assertion string, check func()) {
+		t.Helper()
+		requireSigned(t, assertion, func(assertion string) testpilotcore.Signature {
+			return testpilotcore.ReportSignature(t.Name(), assertion, stdout.String(), stderr.String())
+		}, check)
+	}
 
-	require.NoError(t, err, "umpire-run exited non-zero: %s", output)
-	require.Equal(t, 0, command.ProcessState.ExitCode(), "%s", output)
-	require.Contains(t, string(output), "run Completed")
-	require.Contains(t, string(output), "verdict Satisfied")
+	signed("exit status", func() {
+		require.NoError(t, err, "umpire-run exited non-zero (%s): %s", process, output)
+		require.Equal(t, 0, command.ProcessState.ExitCode(), "%s: %s", process, output)
+	})
+	signed("run report", func() {
+		require.Contains(t, output, "run Completed", process)
+		require.Contains(t, output, "verdict Satisfied", process)
+	})
 
 	// `--create` owns what it created, so the Nexus endpoint is gone once the process exits.
-	require.NotContains(t, string(output), "delete Nexus endpoint")
-	describeCtx, cancelDescribe := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancelDescribe()
-	endpoints, err := env.OperatorClient().ListNexusEndpoints(describeCtx,
-		&operatorservice.ListNexusEndpointsRequest{Name: endpointName})
-	require.NoError(t, err)
-	require.Empty(t, endpoints.GetEndpoints(),
-		"the Nexus endpoint umpire-run created was not deleted on exit")
+	signed("endpoint deleted", func() {
+		require.NotContains(t, output, "delete Nexus endpoint", process)
+		describeCtx, cancelDescribe := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancelDescribe()
+		endpoints, err := env.OperatorClient().ListNexusEndpoints(describeCtx,
+			&operatorservice.ListNexusEndpointsRequest{Name: endpointName})
+		require.NoError(t, err)
+		require.Empty(t, endpoints.GetEndpoints(),
+			"the Nexus endpoint umpire-run created was not deleted on exit")
+	})
 
 	// The namespace deletion the CLI also issues is a system worker workflow, and this functional
 	// cluster does not run that service, so its completion is not asserted here. The cleanup
