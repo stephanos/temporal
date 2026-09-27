@@ -167,7 +167,9 @@ func projectSeedReport(report qualification.QualificationReport, classification 
 		result.ReplayMatch = false
 		result.ChoiceReplayExact = false
 	}
-	if !result.ReplayMatch {
+	// Repetitions that recorded different tapes leave the seed without one
+	// exact-replay identity, even when each replayed its own tape exactly.
+	if !result.ReplayMatch || !result.Choice.ExactReplayAvailable || result.Choice.TapeSHA256 == "" {
 		result.ChoiceReplayExact = false
 	}
 	if qualified && workload.ReplaySuccesses && (!result.Replayed || !result.ReplayMatch) {
