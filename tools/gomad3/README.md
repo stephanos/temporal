@@ -447,7 +447,7 @@ POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
 adapters, and the Darwin-only DTrace audit. `make validate` rejects an
 unowned script or new Bash/Perl policy. Linux CI builds the toolchain, runs the
 harness, toolchain, interception, overlay, world, builder, live-capability, and
-upstream tiers as gates, reports the runtime and host tiers without gating, and
+upstream, and runtime tiers as gates, reports the host tier without gating, and
 qualifies the core corpus with `core-qualification-set`. The macOS sandbox test
 and the DTrace audit stay darwin-only, and the modernc libc adapter and its
 compatibility packs still admit only `darwin/arm64` facts, so the libc and SQLite
