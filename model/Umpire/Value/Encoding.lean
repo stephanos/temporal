@@ -63,7 +63,8 @@ theorem decodeNat_encodeNat (n : Nat) (rest : List UInt8) :
   | ind n ih =>
     by_cases zero : n = 0
     · subst n
-      simp [encodeNat, decodeNat]
+      rw [encodeNat]
+      simp [decodeNat]
     · have smaller : n / 2 < n := by omega
       have prior :=  ih (n / 2) smaller
       by_cases even : n % 2 = 0
