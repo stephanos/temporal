@@ -18,7 +18,7 @@
     "fn-94-simplify-the-testpilot-go-runtime.3": 0,
     "fn-94-simplify-the-testpilot-go-runtime.4": 0,
     "fn-94-simplify-the-testpilot-go-runtime.5": 0,
-    "fn-94-simplify-the-testpilot-go-runtime.6": 1
+    "fn-94-simplify-the-testpilot-go-runtime.6": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -360,6 +360,68 @@
       "task": "fn-94-simplify-the-testpilot-go-runtime.5",
       "timestamp": "2026-09-27T18:34:07.865590Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "12e5ff0b07d3f3f288a297eb6f1eff67ed0ae4055122cd7833562b071fb0636b",
+      "backend": "codex",
+      "base_sha": "5bc236723d3a27a7c8e456ad758b964f54618dfd",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d996b7dc53ad9d18b84a28e0b2e468c836134624",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "0fc082e737d0591725dcd70e7e632af6785ff421b6ba085d43d80ad57098b07d",
+      "reservation_id": "3c1d3c2e149441c2bcdfe33db88dc05a",
+      "round_consumed": false,
+      "scope": "impl:fn-94-simplify-the-testpilot-go-runtime.6",
+      "superseded_by": null,
+      "task": "fn-94-simplify-the-testpilot-go-runtime.6",
+      "timestamp": "2026-09-27T18:45:10.450040Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "d35ee1ddf50d4bcf593d43e9542ef5bd69610d8a815d8fb8737efed080b9ac52",
+      "backend": "codex",
+      "base_sha": "5bc236723d3a27a7c8e456ad758b964f54618dfd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cb4b3a34d458d77c0d3547917291f7dd21121df1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 768,
+      "output_sha256": "a823dd3dbee7748f987035918b40cb172344cb71181f226e33e9a163d400ebce",
+      "reservation_id": "c3ce74f9731e4a158e978475fc28cb26",
+      "round_consumed": true,
+      "scope": "impl:fn-94-simplify-the-testpilot-go-runtime.6",
+      "superseded_by": null,
+      "task": "fn-94-simplify-the-testpilot-go-runtime.6",
+      "timestamp": "2026-09-27T18:50:07.327161Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -368,28 +430,19 @@
     "impl:fn-94-simplify-the-testpilot-go-runtime.3": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.4": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.5": 1,
+    "impl:fn-94-simplify-the-testpilot-go-runtime.6": 1,
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {
-    "impl:fn-94-simplify-the-testpilot-go-runtime.6": 1
-  },
-  "review_reservations": {
-    "3c1d3c2e149441c2bcdfe33db88dc05a": {
-      "artifact_sha256": "12e5ff0b07d3f3f288a297eb6f1eff67ed0ae4055122cd7833562b071fb0636b",
-      "counter_scope": "impl:fn-94-simplify-the-testpilot-go-runtime.6",
-      "epoch": 0,
-      "exclusive": true,
-      "forced": false,
-      "review_type": "impl"
-    }
-  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-94-simplify-the-testpilot-go-runtime.1": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.2": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.3": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.4": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.5": 0,
+    "impl:fn-94-simplify-the-testpilot-go-runtime.6": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-94-simplify-the-testpilot-go-runtime.md",
@@ -406,5 +459,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T18:42:13.060794Z"
+  "updated_at": "2026-09-27T18:50:07.330545Z"
 }
