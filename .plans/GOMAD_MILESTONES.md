@@ -688,7 +688,13 @@ four steps, each measured with the same command:
   host, because discovery reviews the host platform; on 2026-09-27 F1's darwin run regenerated
   the libc packs and F2's refreshed the compute pack. The darwin prepared source-set pins of
   the three new adapters were computed with `GOOS=darwin GOARCH=arm64 go list` over the
-  rewritten modules; F2's darwin run analyzed the closure with them unchanged.
+  rewritten modules; F2's darwin run analyzed the closure with them unchanged. On 2026-09-27
+  F4's darwin/arm64 run observed them: `TestRewrittenModulePreparedPackageSourceSetIdentity`
+  reviews each prepared package through the server module graph, and with each darwin pin
+  zeroed in turn the review reported `d8b65806…` (fx), `45cd8411…` (SDK `internal`), and
+  `796855ab…` (otel `resource`), equal to the committed pins, so none changed. On the same
+  host `compatibility-pack check` reports every pack current and
+  `compatibility-pack-qualification` qualifies all six darwin requests.
 
 The remaining acceptance items, measured on linux/amd64:
 
