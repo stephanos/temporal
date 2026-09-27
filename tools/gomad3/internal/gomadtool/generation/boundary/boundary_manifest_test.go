@@ -398,7 +398,7 @@ const validEntry = `{
   "signature": "func(name string, flag int, perm FileMode) (*File, error)",
   "source": "os/file.go",
   "declaration_sha256": "sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522",
-  "package_sha256": "sha256:f3919bd2e90d342f0528ec9032dacf27cd1d6cba49b25c6bf7bf9b6dff7c7a5d",
+  "package_sha256": "sha256:20a142391a5a81f96c684abc65bb9aa94ee390f41f75d8845a3085165e9fdc44",
   "operation": "filesystem.open",
   "probe": "stdlib.os.open-file",
   "disposition": "model",

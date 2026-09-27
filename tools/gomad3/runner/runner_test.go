@@ -81,7 +81,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 		t.Fatalf("target environments = %v", got)
 	} else {
 		for _, environment := range got {
-			if len(environment) != 4 || environment[1] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || environment[2] != "MODE=test" || environment[3] != "TZ=UTC" || !strings.HasPrefix(environment[0], "GOMADSEED=") {
+			if len(environment) != 4 || environment[0] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || environment[2] != "MODE=test" || environment[3] != "TZ=UTC" || !strings.HasPrefix(environment[1], "GOMADSEED=") {
 				t.Fatalf("target environment = %v", environment)
 			}
 		}
@@ -1958,11 +1958,12 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 		t.Fatal(err)
 	}
 	digest := sha256.Sum256(data)
+	contract := deterministicio.Default().TargetContract()
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
-		Argv: []string{"gomad3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
-		GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
-		TargetGOOS: "darwin", TargetGOARCH: "arm64",
+		Argv: []string{"gomad3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: contract.GoVersion, Path: "example.com/target"},
+		GoVersion: contract.GoVersion, BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
+		TargetGOOS: contract.GOOS, TargetGOARCH: contract.GOARCH,
 	}}
 }
 

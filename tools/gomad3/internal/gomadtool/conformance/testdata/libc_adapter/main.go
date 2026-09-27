@@ -38,9 +38,8 @@ func main() {
 	if count := libc.Xread(tls, descriptor, uintptr(unsafe.Pointer(&read[0])), libc.Tsize_t(len(read))); int64(count) != int64(len(read)) || string(read) != string(contents) {
 		fail("read = %d, %q", count, read)
 	}
-	var status libc.Tstat
-	if result := libc.Xfstat64(tls, descriptor, uintptr(unsafe.Pointer(&status))); result != 0 || int64(status.Fst_size) != int64(len(contents)) {
-		fail("fstat = %d size=%d", result, status.Fst_size)
+	if result, size := fstatSize(tls, descriptor); result != 0 || size != int64(len(contents)) {
+		fail("fstat = %d size=%d", result, size)
 	}
 	if result := libc.Xclose(tls, descriptor); result != 0 {
 		fail("close = %d", result)
