@@ -22,7 +22,7 @@ func BuildRequest(ctx context.Context, descriptor protoreflect.MessageDescriptor
 		return nil, 0, err
 	}
 	if descriptor == nil {
-		return nil, 0, invalid(Malformed, "request", "request descriptor required")
+		return nil, 0, Invalid(Malformed, "request", "request descriptor required")
 	}
 	message := dynamicpb.NewMessage(descriptor)
 	for i, write := range writes {
@@ -40,7 +40,7 @@ func BuildRequest(ctx context.Context, descriptor protoreflect.MessageDescriptor
 		err = inspect(message.ProtoReflect(), 1, b, "request")
 	}
 	if err == nil && int64(proto.Size(message)) > limits.Bytes {
-		err = invalid(LimitExceeded, "request", "encoded request exceeds byte ceiling")
+		err = Invalid(LimitExceeded, "request", "encoded request exceeds byte ceiling")
 	}
 	if err != nil {
 		return nil, b.work, err
@@ -62,7 +62,7 @@ func writePath(message *dynamicpb.Message, path *Path, value *testpilotspb.Value
 			return err
 		}
 		if step.Selector == Presence || step.Selector == Wildcard {
-			return invalid(Unsupported, "request.path", "assignment selector is not writable")
+			return Invalid(Unsupported, "request.path", "assignment selector is not writable")
 		}
 		if i == len(path.steps)-1 {
 			return writeField(current, step, value)
@@ -172,7 +172,7 @@ func writeScalar(value *testpilotspb.Value, field protoreflect.FieldDescriptor) 
 		}
 		return protoreflect.ValueOfMessage(m), nil
 	default:
-		return protoreflect.Value{}, invalid(Unsupported, "request", "unsupported protobuf field")
+		return protoreflect.Value{}, Invalid(Unsupported, "request", "unsupported protobuf field")
 	}
 }
 
@@ -189,14 +189,14 @@ func conflictWork(left, right *Path) int64 {
 func validateWrite(write Write, previousWrites []Write, descriptor protoreflect.MessageDescriptor, b *budget) error {
 	path := write.Path
 	if path == nil || path.source.message != descriptor || path.fanout {
-		return invalid(TypeMismatch, "request", "assignment path has wrong source or fanout")
+		return Invalid(TypeMismatch, "request", "assignment path has wrong source or fanout")
 	}
 	for _, previous := range previousWrites {
 		if err := b.charge(1, conflictWork(previous.Path, path), 0, "request"); err != nil {
 			return err
 		}
 		if previous.Path.Conflicts(path) {
-			return invalid(Malformed, "request", "overlapping assignments")
+			return Invalid(Malformed, "request", "overlapping assignments")
 		}
 	}
 	if err := validateValue(write.Value, path.typ, b); err != nil {

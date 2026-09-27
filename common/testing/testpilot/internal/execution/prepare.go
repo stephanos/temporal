@@ -38,14 +38,9 @@ type admission struct {
 	work            int64
 }
 
-var (
-	invalid = ir.Invalid
-	validID = ir.ValidID
-)
-
 func (a *admission) charge(count int64) error {
 	if count < 0 || count > ir.DefaultLimits().Work-a.work {
-		return invalid(ir.LimitExceeded, "program", "admission work ceiling exceeded")
+		return ir.Invalid(ir.LimitExceeded, "program", "admission work ceiling exceeded")
 	}
 	a.work += count
 	return nil
@@ -54,7 +49,7 @@ func (a *admission) charge(count int64) error {
 // Prepare performs static admission only; Contract semantics are admitted by verification.
 func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*PreparedProgram, error) {
 	if catalog == nil {
-		return nil, invalid(ir.Malformed, "catalog", "catalog is required")
+		return nil, ir.Invalid(ir.Malformed, "catalog", "catalog is required")
 	}
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
@@ -67,18 +62,18 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 		}
 	}
 	if source.Version == nil || source.Version.Major != 1 || source.Version.Minor != 0 {
-		return nil, invalid(ir.Unsupported, "version", "unsupported Case version")
+		return nil, ir.Invalid(ir.Unsupported, "version", "unsupported Case version")
 	}
-	if !validID(source.CaseId) || source.Program == nil || source.Contract == nil || !validID(source.Contract.ContractId) {
-		return nil, invalid(ir.Malformed, "case", "Case identity, Program and Contract are required")
+	if !ir.ValidID(source.CaseId) || source.Program == nil || source.Contract == nil || !ir.ValidID(source.Contract.ContractId) {
+		return nil, ir.Invalid(ir.Malformed, "case", "Case identity, Program and Contract are required")
 	}
 	if int64(proto.Size(source)) > ir.DefaultLimits().Bytes {
-		return nil, invalid(ir.LimitExceeded, "case", "Case byte ceiling exceeded")
+		return nil, ir.Invalid(ir.LimitExceeded, "case", "Case byte ceiling exceeded")
 	}
 	if err := validateProvenance(source.Provenance); err != nil {
 		return nil, err
 	}
-	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
+	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]contract.PreparedRole{}}
 	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, commandTypes: map[enumspb.CommandType]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
@@ -91,37 +86,37 @@ func validateProvenance(provenance *testpilotspb.CaseProvenance) error {
 	if provenance == nil {
 		return nil
 	}
-	if !validID(provenance.ProducerId) {
-		return invalid(ir.Malformed, "provenance", "invalid Producer identity")
+	if !ir.ValidID(provenance.ProducerId) {
+		return ir.Invalid(ir.Malformed, "provenance", "invalid Producer identity")
 	}
 	return nil
 }
 func checkLimits(limits, ceiling *testpilotspb.ProgramLimits) error {
 	if limits == nil || ceiling == nil {
-		return invalid(ir.Malformed, "limits", "limits are required")
+		return ir.Invalid(ir.Malformed, "limits", "limits are required")
 	}
 	return ir.CheckCeilings(limits, ceiling, func(field string) error {
-		return invalid(ir.LimitExceeded, field, "limit is outside the positive Driver ceiling")
+		return ir.Invalid(ir.LimitExceeded, field, "limit is outside the positive Driver ceiling")
 	})
 }
 func (a *admission) bindPolicy(policy Profile) error {
-	if !validID(policy.Identity) || policy.CatalogIdentity != a.prepared.catalog.Identity() {
-		return invalid(ir.Malformed, "policy", "Driver or catalog identity mismatch")
+	if !ir.ValidID(policy.Identity) || policy.CatalogIdentity != a.prepared.catalog.Identity() {
+		return ir.Invalid(ir.Malformed, "policy", "Driver or catalog identity mismatch")
 	}
-	if err := checkLimits(policy.Limits, hardLimits()); err != nil {
+	if err := checkLimits(policy.Limits, ProgramCeiling()); err != nil {
 		return err
 	}
 	if policy.Limits.MaxInstructionEmittedEvents > policy.Limits.MaxRunEvents {
-		return invalid(ir.LimitExceeded, "max_instruction_emitted_events", "instruction ceiling exceeds the Program ceiling")
+		return ir.Invalid(ir.LimitExceeded, "max_instruction_emitted_events", "instruction ceiling exceeds the Program ceiling")
 	}
 	if policy.Limits.MaxInstructionResponseBytes > policy.Limits.MaxResponseBytes {
-		return invalid(ir.LimitExceeded, "max_instruction_response_bytes", "instruction ceiling exceeds the Program ceiling")
+		return ir.Invalid(ir.LimitExceeded, "max_instruction_response_bytes", "instruction ceiling exceeds the Program ceiling")
 	}
 	if err := checkInstructionDefaults(policy.InstructionDefaults, policy.Limits); err != nil {
 		return err
 	}
 	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.CommandTypes) > len(enumspb.CommandType_name) {
-		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
+		return ir.Invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
 	for _, binding := range policy.EnvironmentBindings {
 		if err := a.charge(1); err != nil {
@@ -136,13 +131,13 @@ func (a *admission) bindPolicy(policy Profile) error {
 	}
 	for _, opcode := range policy.Opcodes {
 		if opcode < contract.InvokeRPC || opcode > contract.MaxOpcode || a.opcodes[opcode] {
-			return invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")
+			return ir.Invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")
 		}
 		a.opcodes[opcode] = true
 	}
 	for _, commandType := range policy.CommandTypes {
 		if _, declared := enumspb.CommandType_name[int32(commandType)]; !declared || commandType == enumspb.COMMAND_TYPE_UNSPECIFIED || a.commandTypes[commandType] {
-			return invalid(ir.Malformed, "policy.command_types", "invalid or duplicate command type")
+			return ir.Invalid(ir.Malformed, "policy.command_types", "invalid or duplicate command type")
 		}
 		a.commandTypes[commandType] = true
 	}
@@ -155,33 +150,33 @@ func (a *admission) bindPolicy(policy Profile) error {
 // positive value within the ceiling an instruction's own limit must fit.
 func checkInstructionDefaults(defaults contract.InstructionDefaults, limits *testpilotspb.ProgramLimits) error {
 	if defaults.TimeoutMilliseconds < 0 || defaults.MaxAttempts < 0 {
-		return invalid(ir.Malformed, "policy.instruction_defaults", "negative instruction default")
+		return ir.Invalid(ir.Malformed, "policy.instruction_defaults", "negative instruction default")
 	}
 	if defaults.TimeoutMilliseconds > max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds) || defaults.MaxAttempts > limits.MaxAttempts {
-		return invalid(ir.LimitExceeded, "policy.instruction_defaults", "instruction default exceeds the Profile ceiling")
+		return ir.Invalid(ir.LimitExceeded, "policy.instruction_defaults", "instruction default exceeds the Profile ceiling")
 	}
 	return nil
 }
 func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotspb.ProgramLimits) error {
-	if !validID(role.ID) || role.Kind < testpilotspb.ROLE_KIND_ENDPOINT || role.Kind > testpilotspb.ROLE_KIND_PARTICIPANT {
-		return invalid(ir.Malformed, "policy.roles", "invalid role")
+	if !ir.ValidID(role.ID) || role.Kind < testpilotspb.ROLE_KIND_ENDPOINT || role.Kind > testpilotspb.ROLE_KIND_PARTICIPANT {
+		return ir.Invalid(ir.Malformed, "policy.roles", "invalid role")
 	}
 	if _, exists := a.allowed[role.ID]; exists {
-		return invalid(ir.Malformed, "policy.roles", "duplicate role")
+		return ir.Invalid(ir.Malformed, "policy.roles", "duplicate role")
 	}
 	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
-		return invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
+		return ir.Invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
 	methods := make(map[string]bool, len(role.Methods))
 	for _, method := range role.Methods {
 		if len(method) > 256 {
-			return invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
+			return ir.Invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
 		}
 		if err := a.charge(1); err != nil {
 			return err
 		}
 		if methods[method] {
-			return invalid(ir.Malformed, "policy.methods", "duplicate method")
+			return ir.Invalid(ir.Malformed, "policy.methods", "duplicate method")
 		}
 		methods[method] = true
 		if _, err := a.prepared.catalog.Method(method); err != nil {
@@ -202,33 +197,33 @@ func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotsp
 
 func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy, methods map[string]bool, limits *testpilotspb.ProgramLimits, carriers map[string]contract.ReservationCarrierPolicy) error {
 	if !methods[carrier.Method] {
-		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method requires ordinary authorization on the same endpoint")
+		return ir.Invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method requires ordinary authorization on the same endpoint")
 	}
 	if _, exists := carriers[carrier.Method]; exists {
-		return invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier method")
+		return ir.Invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier method")
 	}
 	method, err := a.prepared.catalog.Method(carrier.Method)
 	if err != nil {
 		return err
 	}
 	if method.IsStreamingClient() || method.IsStreamingServer() {
-		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method must be unary")
+		return ir.Invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method must be unary")
 	}
 	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 2 {
-		return invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
+		return ir.Invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
 	}
 	seen := map[contract.EntrypointKind]bool{}
 	var total int64
 	for _, shape := range carrier.Shapes {
 		if shape.Kind != contract.WorkflowEntrypoint && shape.Kind != contract.NexusHandlerEntrypoint {
-			return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
+			return ir.Invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
 		}
 		if seen[shape.Kind] {
-			return invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier activation context")
+			return ir.Invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier activation context")
 		}
 		seen[shape.Kind] = true
 		if shape.MaximumCount <= 0 || shape.MaximumCount > limits.MaxActivations-total {
-			return invalid(ir.LimitExceeded, "policy.reservation_carriers", "carrier cardinality exceeds the activation ceiling")
+			return ir.Invalid(ir.LimitExceeded, "policy.reservation_carriers", "carrier cardinality exceeds the activation ceiling")
 		}
 		total += shape.MaximumCount
 		if err := a.charge(1); err != nil {
@@ -243,15 +238,15 @@ func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy,
 }
 func (a *admission) bindSchemas() error {
 	p := a.prepared.source
-	if !validID(p.ProgramId) {
-		return invalid(ir.Malformed, "program", "invalid Program identity")
+	if !ir.ValidID(p.ProgramId) {
+		return ir.Invalid(ir.Malformed, "program", "invalid Program identity")
 	}
 	if err := a.bindEnvironment(p); err != nil {
 		return err
 	}
 	for _, role := range p.Roles {
-		if !validID(role.GetRoleId()) || a.roles[role.GetRoleId()] != 0 || role.GetKind() == 0 || a.allowed[role.GetRoleId()].Kind != role.GetKind() {
-			return invalid(ir.Malformed, "roles", "invalid, duplicate or unauthorized role")
+		if !ir.ValidID(role.GetRoleId()) || a.roles[role.GetRoleId()] != 0 || role.GetKind() == 0 || a.allowed[role.GetRoleId()].Kind != role.GetKind() {
+			return ir.Invalid(ir.Malformed, "roles", "invalid, duplicate or unauthorized role")
 		}
 		a.roles[role.RoleId] = role.Kind
 		resolved, err := a.bindRole(role)
@@ -261,11 +256,11 @@ func (a *admission) bindSchemas() error {
 		a.prepared.roles[role.RoleId] = resolved
 	}
 	for _, slot := range p.Slots {
-		if !validID(slot.GetSlotId()) {
-			return invalid(ir.Malformed, "slots", "invalid Slot identity")
+		if !ir.ValidID(slot.GetSlotId()) {
+			return ir.Invalid(ir.Malformed, "slots", "invalid Slot identity")
 		}
 		if _, exists := a.prepared.slots[slot.SlotId]; exists {
-			return invalid(ir.Malformed, "slots", "duplicate Slot")
+			return ir.Invalid(ir.Malformed, "slots", "duplicate Slot")
 		}
 		var typ ir.Type
 		switch slot.Content.(type) {
@@ -278,17 +273,17 @@ func (a *admission) bindSchemas() error {
 		case *testpilotspb.Slot_OpaqueHandle:
 			typ = a.prepared.catalog.OpaqueHandleType()
 		default:
-			return invalid(ir.Malformed, "slots", "Slot content is required")
+			return ir.Invalid(ir.Malformed, "slots", "Slot content is required")
 		}
 		a.prepared.slots[slot.SlotId] = typ
 	}
 	a.prepared.view = ProgramView{programID: p.ProgramId, catalogIdentity: a.prepared.catalog.Identity(), limits: a.prepared.limits}
 	for _, observation := range p.Observations {
-		if !validID(observation.GetObservationId()) {
-			return invalid(ir.Malformed, "observations", "invalid Observation identity")
+		if !ir.ValidID(observation.GetObservationId()) {
+			return ir.Invalid(ir.Malformed, "observations", "invalid Observation identity")
 		}
 		if _, exists := a.observations[observation.ObservationId]; exists {
-			return invalid(ir.Malformed, "observations", "duplicate Observation")
+			return ir.Invalid(ir.Malformed, "observations", "duplicate Observation")
 		}
 		typ, err := a.prepared.catalog.BindType(observation.Type)
 		if err != nil {
@@ -309,16 +304,16 @@ func (a *admission) bindEnvironment(p *testpilotspb.Program) error {
 		if err := a.charge(1); err != nil {
 			return err
 		}
-		if !validID(id) {
-			return invalid(ir.Malformed, "environment", "invalid environment reference")
+		if !ir.ValidID(id) {
+			return ir.Invalid(ir.Malformed, "environment", "invalid environment reference")
 		}
 		value, ok := a.environment[id]
 		if !ok {
-			return invalid(ir.Unknown, "environment", fmt.Sprintf("environment binding %q is not supplied by the Profile", id))
+			return ir.Invalid(ir.Unknown, "environment", fmt.Sprintf("environment binding %q is not supplied by the Profile", id))
 		}
 		bytes := int64(len(id) + len(value))
 		if bytes > a.prepared.limits.MaxRequestBytes-environmentBytes {
-			return invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
+			return ir.Invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
 		}
 		environmentBytes += bytes
 		a.bindings[id] = value
@@ -326,42 +321,42 @@ func (a *admission) bindEnvironment(p *testpilotspb.Program) error {
 	return nil
 }
 
-func (a *admission) bindRole(role *testpilotspb.Role) (resolvedRole, error) {
-	result := resolvedRole{ID: role.RoleId, Kind: role.Kind, NamespaceBindingID: role.NamespaceBindingId, ResourceBindingID: role.ResourceBindingId}
+func (a *admission) bindRole(role *testpilotspb.Role) (contract.PreparedRole, error) {
+	result := contract.PreparedRole{ID: role.RoleId, Kind: role.Kind, NamespaceBindingID: role.NamespaceBindingId, ResourceBindingID: role.ResourceBindingId}
 	switch role.Kind {
 	case testpilotspb.ROLE_KIND_ENDPOINT:
 		if role.NamespaceBindingId != "" {
-			return resolvedRole{}, invalid(ir.Unsupported, "roles", "endpoint role cannot bind a namespace")
+			return contract.PreparedRole{}, ir.Invalid(ir.Unsupported, "roles", "endpoint role cannot bind a namespace")
 		}
 	case testpilotspb.ROLE_KIND_WORKER:
 		if role.ResourceBindingId != "" {
-			return resolvedRole{}, invalid(ir.Unsupported, "roles", "worker role cannot bind a resource")
+			return contract.PreparedRole{}, ir.Invalid(ir.Unsupported, "roles", "worker role cannot bind a resource")
 		}
 		if a.bindingsRequired && role.NamespaceBindingId == "" {
-			return resolvedRole{}, invalid(ir.Unsupported, "roles", "worker role requires a namespace binding")
+			return contract.PreparedRole{}, ir.Invalid(ir.Unsupported, "roles", "worker role requires a namespace binding")
 		}
 	case testpilotspb.ROLE_KIND_TASK_QUEUE:
 		if a.bindingsRequired && (role.NamespaceBindingId == "" || role.ResourceBindingId == "") {
-			return resolvedRole{}, invalid(ir.Unsupported, "roles", "task-queue role requires namespace and resource bindings")
+			return contract.PreparedRole{}, ir.Invalid(ir.Unsupported, "roles", "task-queue role requires namespace and resource bindings")
 		}
 	case testpilotspb.ROLE_KIND_PARTICIPANT:
 		if role.NamespaceBindingId != "" || role.ResourceBindingId != "" {
-			return resolvedRole{}, invalid(ir.Unsupported, "roles", "participant role cannot bind resources")
+			return contract.PreparedRole{}, ir.Invalid(ir.Unsupported, "roles", "participant role cannot bind resources")
 		}
 	default:
-		return resolvedRole{}, invalid(ir.Malformed, "roles", "unknown role kind")
+		return contract.PreparedRole{}, ir.Invalid(ir.Malformed, "roles", "unknown role kind")
 	}
 	var err error
 	if role.NamespaceBindingId != "" {
 		result.Namespace, err = a.resolveEnvironment(role.NamespaceBindingId)
 		if err != nil {
-			return resolvedRole{}, err
+			return contract.PreparedRole{}, err
 		}
 	}
 	if role.ResourceBindingId != "" {
 		result.Resource, err = a.resolveEnvironment(role.ResourceBindingId)
 		if err != nil {
-			return resolvedRole{}, err
+			return contract.PreparedRole{}, err
 		}
 	}
 	return result, nil
@@ -427,27 +422,27 @@ func EnvironmentBindingIDs(program *testpilotspb.Program) []string {
 func (a *admission) resolveEnvironment(id string) (string, error) {
 	value, ok := a.bindings[id]
 	if !ok {
-		return "", invalid(ir.Unknown, "environment", "environment reference is outside the derived binding graph")
+		return "", ir.Invalid(ir.Unknown, "environment", "environment reference is outside the derived binding graph")
 	}
 	return value, nil
 }
 func (a *admission) role(id string, kind testpilotspb.RoleKind) error {
 	if a.roles[id] != kind {
-		return invalid(ir.Unknown, "role", "role is missing or has the wrong kind")
+		return ir.Invalid(ir.Unknown, "role", "role is missing or has the wrong kind")
 	}
 	return nil
 }
 func (a *admission) bindActivation(g *graph) error {
 	b := g.activation
-	if b == nil || isNil(b.Activation) {
-		return invalid(ir.Malformed, g.id, "activation binding is required")
+	if b == nil || ir.IsNil(b.Activation) {
+		return ir.Invalid(ir.Malformed, g.id, "activation binding is required")
 	}
 	var worker, queue, name, operation string
 	expected := contract.EntrypointKindOf(b)
 	switch binding := b.Activation.(type) {
 	case *testpilotspb.Entrypoint_Controller:
 		if binding.Controller == nil {
-			return invalid(ir.Malformed, g.id, "nil activation")
+			return ir.Invalid(ir.Malformed, g.id, "nil activation")
 		}
 	case *testpilotspb.Entrypoint_Workflow:
 		worker = binding.Workflow.GetWorkerRoleId()
@@ -462,16 +457,16 @@ func (a *admission) bindActivation(g *graph) error {
 		queue = binding.NexusHandler.GetTaskQueueRoleId()
 		name = binding.NexusHandler.GetService()
 		operation = binding.NexusHandler.GetOperation()
-		if !validID(operation) {
-			return invalid(ir.Malformed, g.id, "invalid Nexus operation")
+		if !ir.ValidID(operation) {
+			return ir.Invalid(ir.Malformed, g.id, "invalid Nexus operation")
 		}
 	default:
-		return invalid(ir.Unsupported, g.id, "unknown activation")
+		return ir.Invalid(ir.Unsupported, g.id, "unknown activation")
 	}
 	g.context = expected
 	if expected != contract.ControllerEntrypoint {
-		if !validID(name) {
-			return invalid(ir.Malformed, g.id, "invalid activation name")
+		if !ir.ValidID(name) {
+			return ir.Invalid(ir.Malformed, g.id, "invalid activation name")
 		}
 		if err := a.role(worker, testpilotspb.ROLE_KIND_WORKER); err != nil {
 			return err
@@ -483,11 +478,11 @@ func (a *admission) bindActivation(g *graph) error {
 func (a *admission) bindGraphs() error {
 	p := a.prepared.source
 	if len(p.Entrypoints) == 0 || int64(len(p.Entrypoints)) > a.prepared.limits.MaxEntrypoints || p.Cleanup == nil {
-		return invalid(ir.LimitExceeded, "entrypoints", "entrypoints and cleanup must fit the declared bound")
+		return ir.Invalid(ir.LimitExceeded, "entrypoints", "entrypoints and cleanup must fit the declared bound")
 	}
 	for _, entry := range p.Entrypoints {
 		if entry == nil {
-			return invalid(ir.Malformed, "entrypoints", "nil entrypoint")
+			return ir.Invalid(ir.Malformed, "entrypoints", "nil entrypoint")
 		}
 		g := &graph{id: entry.EntrypointId, activation: entry}
 		if err := a.bindActivation(g); err != nil {
@@ -509,23 +504,23 @@ func (a *admission) bindGraphs() error {
 		}
 	}
 	if nodes > a.prepared.limits.MaxNodes || edges > a.prepared.limits.MaxEdges {
-		return invalid(ir.LimitExceeded, "program", "node or edge ceiling exceeded")
+		return ir.Invalid(ir.LimitExceeded, "program", "node or edge ceiling exceeded")
 	}
 	return nil
 }
 func (a *admission) addGraph(g *graph, sources []*testpilotspb.InstructionNode) error {
-	if !validID(g.id) || a.graphIndex[g.id] != nil {
-		return invalid(ir.Malformed, "entrypoints", "invalid or duplicate entrypoint identity")
+	if !ir.ValidID(g.id) || a.graphIndex[g.id] != nil {
+		return ir.Invalid(ir.Malformed, "entrypoints", "invalid or duplicate entrypoint identity")
 	}
 	a.graphIndex[g.id] = g
 	g.index = map[string]int{}
 	a.prepared.graphs = append(a.prepared.graphs, g)
 	for i, source := range sources {
-		if !validID(source.GetInstructionId()) {
-			return invalid(ir.Malformed, g.id, "invalid instruction identity")
+		if !ir.ValidID(source.GetInstructionId()) {
+			return ir.Invalid(ir.Malformed, g.id, "invalid instruction identity")
 		}
 		if _, exists := g.index[source.InstructionId]; exists {
-			return invalid(ir.Malformed, g.id, "duplicate instruction identity")
+			return ir.Invalid(ir.Malformed, g.id, "duplicate instruction identity")
 		}
 		g.index[source.InstructionId] = i
 		g.nodes = append(g.nodes, &node{source: source, outcomes: map[testpilotspb.InstructionOutcomeField]ir.Type{}, ancestors: map[int]bool{}})
@@ -575,7 +570,7 @@ func (a *admission) orderGraph(g *graph) error {
 	// defaulted node waits only on its predecessor, which would be unordered and earlier.
 	for i, degree := range indegree {
 		if degree > 0 {
-			return invalid(ir.Malformed, expressionPath(g, g.nodes[i], "after"), "dependency cycle")
+			return ir.Invalid(ir.Malformed, expressionPath(g, g.nodes[i], "after"), "dependency cycle")
 		}
 	}
 	return nil
@@ -597,20 +592,20 @@ func resolveAfter(g *graph, i int) ([]int, error) {
 	dependencies := make([]int, 0, len(after.GetInstructions()))
 	for k, reference := range after.GetInstructions() {
 		path := expressionPath(g, n, fmt.Sprintf("after.instructions[%d]", k))
-		if !validID(reference.GetEntrypointId()) || !validID(reference.GetInstructionId()) {
-			return nil, invalid(ir.Malformed, path, "invalid instruction reference")
+		if !ir.ValidID(reference.GetEntrypointId()) || !ir.ValidID(reference.GetInstructionId()) {
+			return nil, ir.Invalid(ir.Malformed, path, "invalid instruction reference")
 		}
 		if reference.GetEntrypointId() != g.id {
-			return nil, invalid(ir.Unsupported, path, "after names an instruction of another entrypoint")
+			return nil, ir.Invalid(ir.Unsupported, path, "after names an instruction of another entrypoint")
 		}
 		j, exists := g.index[reference.GetInstructionId()]
 		switch {
 		case !exists:
-			return nil, invalid(ir.Unknown, path, "after names an unknown instruction")
+			return nil, ir.Invalid(ir.Unknown, path, "after names an unknown instruction")
 		case j == i:
-			return nil, invalid(ir.Malformed, path, "after names the instruction itself")
+			return nil, ir.Invalid(ir.Malformed, path, "after names the instruction itself")
 		case seen[j]:
-			return nil, invalid(ir.Malformed, path, "after names an instruction twice")
+			return nil, ir.Invalid(ir.Malformed, path, "after names an instruction twice")
 		}
 		seen[j] = true
 		dependencies = append(dependencies, j)
@@ -684,7 +679,7 @@ func (a *admission) bindReservations() error {
 		}
 	}
 	if controllers > limit {
-		return invalid(ir.LimitExceeded, "activations", "controller activations exceed ceiling")
+		return ir.Invalid(ir.LimitExceeded, "activations", "controller activations exceed ceiling")
 	}
 	// Taking the largest reservation weight first maximizes the sum under both attempt caps.
 	slices.SortFunc(weights, func(a, b weighted) int { return cmp.Compare(b.count, a.count) })
@@ -693,7 +688,7 @@ func (a *admission) bindReservations() error {
 	for _, weight := range weights {
 		attempts := min(remaining, weight.attempts)
 		if attempts > 0 && weight.count > (limit-total)/attempts {
-			return invalid(ir.LimitExceeded, "activations", "attempt-scaled reservations exceed ceiling")
+			return ir.Invalid(ir.LimitExceeded, "activations", "attempt-scaled reservations exceed ceiling")
 		}
 		total += weight.count * attempts
 		remaining -= attempts
@@ -705,7 +700,7 @@ func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 	var count int64
 	for _, reservation := range n.reservations {
 		if reservation.Count > limit-count {
-			return 0, invalid(ir.LimitExceeded, g.id, "reservation sum exceeds activation ceiling")
+			return 0, ir.Invalid(ir.LimitExceeded, g.id, "reservation sum exceeds activation ceiling")
 		}
 		count += reservation.Count
 	}

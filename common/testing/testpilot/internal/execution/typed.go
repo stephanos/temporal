@@ -73,14 +73,14 @@ func checkReach(message proto.Message, path string) error {
 	reflection := message.ProtoReflect()
 	row, known := driverReach[reflection.Descriptor().FullName()]
 	if !known {
-		return invalid(ir.Unsupported, path, "message the Driver cannot carry")
+		return ir.Invalid(ir.Unsupported, path, "message the Driver cannot carry")
 	}
 	var err error
 	reflection.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
 		fieldPath := path + "." + string(field.Name())
 		for _, name := range row.unrealized {
 			if field.Name() == name {
-				err = invalid(ir.Unsupported, fieldPath, "field the Driver cannot set through the SDK")
+				err = ir.Invalid(ir.Unsupported, fieldPath, "field the Driver cannot set through the SDK")
 				return false
 			}
 		}
@@ -114,29 +114,29 @@ func (a *admission) bindWorkflowCommand(g *graph, n *node) error {
 	command := n.source.Instruction.GetWorkflowCommand().GetCommand()
 	path := expressionPath(g, n, "instruction.workflow_command.command")
 	if command == nil {
-		return invalid(ir.Malformed, path, "nil workflow command")
+		return ir.Invalid(ir.Malformed, path, "nil workflow command")
 	}
 	denoted := commandTypeOf(command)
 	if denoted == enumspb.COMMAND_TYPE_UNSPECIFIED || command.GetCommandType() != denoted {
-		return invalid(ir.Malformed, path+".command_type", "command type does not name the attributes the command carries")
+		return ir.Invalid(ir.Malformed, path+".command_type", "command type does not name the attributes the command carries")
 	}
 	if !a.commandTypes[denoted] {
-		return invalid(ir.Unsupported, path+".command_type", "command type the Profile does not admit")
+		return ir.Invalid(ir.Unsupported, path+".command_type", "command type the Profile does not admit")
 	}
 	if err := checkReach(command, path); err != nil {
 		return err
 	}
 	attributes := command.GetScheduleNexusOperationCommandAttributes()
 	attributesPath := path + ".schedule_nexus_operation_command_attributes"
-	if !validID(attributes.GetService()) || !validID(attributes.GetOperation()) {
-		return invalid(ir.Malformed, attributesPath, "invalid Nexus service or operation")
+	if !ir.ValidID(attributes.GetService()) || !ir.ValidID(attributes.GetOperation()) {
+		return ir.Invalid(ir.Malformed, attributesPath, "invalid Nexus service or operation")
 	}
 	if err := a.role(attributes.GetEndpoint(), testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
 	for key := range attributes.GetNexusHeader() {
 		if key == "" {
-			return invalid(ir.Malformed, attributesPath+".nexus_header", "empty Nexus header key")
+			return ir.Invalid(ir.Malformed, attributesPath+".nexus_header", "empty Nexus header key")
 		}
 	}
 	reflection := attributes.ProtoReflect()
@@ -158,10 +158,10 @@ func (a *admission) bindWorkflowCommand(g *graph, n *node) error {
 func (a *admission) checkDuration(message proto.Message, path string) error {
 	duration, ok := message.(*durationpb.Duration)
 	if !ok || duration.CheckValid() != nil || duration.AsDuration() <= 0 {
-		return invalid(ir.Malformed, path, "invalid duration")
+		return ir.Invalid(ir.Malformed, path, "invalid duration")
 	}
 	if duration.AsDuration().Milliseconds() > a.prepared.limits.MaxTotalDurationMilliseconds {
-		return invalid(ir.LimitExceeded, path, "duration exceeds the Profile's total duration ceiling")
+		return ir.Invalid(ir.LimitExceeded, path, "duration exceeds the Profile's total duration ceiling")
 	}
 	return nil
 }
@@ -178,19 +178,19 @@ func (a *admission) bindNexusHandlerReply(g *graph, i int, n *node) error {
 	case *testpilotspb.NexusHandlerReply_Response:
 		carried, arm = typed.Response, "response"
 		if typed.Response.GetVariant() == nil {
-			return invalid(ir.Malformed, path+".response", "start response carries no variant")
+			return ir.Invalid(ir.Malformed, path+".response", "start response carries no variant")
 		}
 		async = typed.Response.GetAsyncSuccess() != nil
 	case *testpilotspb.NexusHandlerReply_Error:
 		carried, arm = typed.Error, "error"
 		if typed.Error.GetErrorType() == "" {
-			return invalid(ir.Malformed, path+".error.error_type", "handler error names no type")
+			return ir.Invalid(ir.Malformed, path+".error.error_type", "handler error names no type")
 		}
 		if _, declared := enumspb.NexusHandlerErrorRetryBehavior_name[int32(typed.Error.GetRetryBehavior())]; !declared {
-			return invalid(ir.Malformed, path+".error.retry_behavior", "undeclared retry behavior")
+			return ir.Invalid(ir.Malformed, path+".error.retry_behavior", "undeclared retry behavior")
 		}
 	default:
-		return invalid(ir.Malformed, path, "nil Nexus handler reply")
+		return ir.Invalid(ir.Malformed, path, "nil Nexus handler reply")
 	}
 	if err := checkReach(carried, path+"."+arm); err != nil {
 		return err
@@ -198,12 +198,12 @@ func (a *admission) bindNexusHandlerReply(g *graph, i int, n *node) error {
 	if async {
 		typ, exists := a.prepared.slots[reply.GetHandleSlotId()]
 		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a handle Slot")
+			return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a handle Slot")
 		}
 		return a.addWriter(reply.GetHandleSlotId(), slotWriter{graph: g, node: i})
 	}
 	if reply.GetHandleSlotId() != "" {
-		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish handles")
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "only async responses publish handles")
 	}
 	return nil
 }
@@ -215,7 +215,7 @@ func (a *admission) bindNexusOperationCompletion(g *graph, n *node) error {
 	path := expressionPath(g, n, "instruction.nexus_operation_completion")
 	typ, exists := a.prepared.slots[completion.GetHandleSlotId()]
 	if !exists || !typ.Opaque() {
-		return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a handle Slot")
+		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a handle Slot")
 	}
 	switch typed := completion.GetResult().(type) {
 	case *testpilotspb.NexusOperationCompletion_Payload:
@@ -223,7 +223,7 @@ func (a *admission) bindNexusOperationCompletion(g *graph, n *node) error {
 	case *testpilotspb.NexusOperationCompletion_Failure:
 		return checkReach(typed.Failure, path+".failure")
 	default:
-		return invalid(ir.Malformed, path, "completion carries no result")
+		return ir.Invalid(ir.Malformed, path, "completion carries no result")
 	}
 }
 

@@ -49,8 +49,8 @@ type readFact struct {
 }
 
 func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) {
-	if program == nil || !validID(runID) {
-		return nil, invalid(ir.Malformed, "values", "prepared Program and Run identity required")
+	if program == nil || !ir.ValidID(runID) {
+		return nil, ir.Invalid(ir.Malformed, "values", "prepared Program and Run identity required")
 	}
 	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotspb.Value{}}, nil
 }
@@ -74,14 +74,14 @@ func (s *valueStore) chainEvidence(evidence *testpilotspb.CorrelatedEvidence) {
 func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.sealed || !validID(id) {
-		return nil, invalid(ir.Unavailable, "values", "closed store or invalid activation")
+	if s.sealed || !ir.ValidID(id) {
+		return nil, ir.Invalid(ir.Unavailable, "values", "closed store or invalid activation")
 	}
 	if _, exists := s.activations[id]; exists {
-		return nil, invalid(ir.Malformed, "values", "duplicate activation identity")
+		return nil, ir.Invalid(ir.Malformed, "values", "duplicate activation identity")
 	}
 	if int64(len(s.activations)) >= s.program.limits.MaxActivations {
-		return nil, invalid(ir.LimitExceeded, "values", "activation ceiling exceeded")
+		return nil, ir.Invalid(ir.LimitExceeded, "values", "activation ceiling exceeded")
 	}
 	var selected *graph
 	for _, g := range s.program.graphs {
@@ -91,10 +91,10 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 		}
 	}
 	if selected == nil {
-		return nil, invalid(ir.Unknown, "values", "unknown entrypoint")
+		return nil, ir.Invalid(ir.Unknown, "values", "unknown entrypoint")
 	}
 	if selected.context == contract.ControllerEntrypoint && s.controllers[entrypoint] {
-		return nil, invalid(ir.Malformed, "values", "controller already activated")
+		return nil, ir.Invalid(ir.Malformed, "values", "controller already activated")
 	}
 	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[contract.Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
 	if selected.context == contract.ControllerEntrypoint {
@@ -117,18 +117,18 @@ func (a *activationValues) instruction(c contract.Coordinate) (*node, error) {
 	sealed := a.store.sealed
 	a.store.mu.Unlock()
 	if sealed {
-		return nil, invalid(ir.Unavailable, "values", "store sealed")
+		return nil, ir.Invalid(ir.Unavailable, "values", "store sealed")
 	}
 	if c.RunID != a.store.runID || c.EntrypointID != a.graph.id || c.ActivationID != a.id {
-		return nil, invalid(ir.TypeMismatch, "values", "crossed Run or activation owner")
+		return nil, ir.Invalid(ir.TypeMismatch, "values", "crossed Run or activation owner")
 	}
 	index, exists := a.graph.index[c.InstructionID]
 	if !exists {
-		return nil, invalid(ir.Unknown, "values", "unknown instruction")
+		return nil, ir.Invalid(ir.Unknown, "values", "unknown instruction")
 	}
 	n := a.graph.nodes[index]
 	if c.Attempt <= 0 || c.Attempt > n.maxAttempts {
-		return nil, invalid(ir.LimitExceeded, "values", "invalid attempt")
+		return nil, ir.Invalid(ir.LimitExceeded, "values", "invalid attempt")
 	}
 	return n, nil
 }
@@ -137,29 +137,29 @@ func (a *activationValues) commit(ctx context.Context, batch *valueBatch) error 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if ctx == nil {
-		return invalid(ir.Malformed, "values", "context required")
+		return ir.Invalid(ir.Malformed, "values", "context required")
 	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 	if s.sealed {
-		return invalid(ir.Unavailable, "values", "store sealed")
+		return ir.Invalid(ir.Unavailable, "values", "store sealed")
 	}
 	if batch == nil || batch.owner != a {
-		return invalid(ir.TypeMismatch, "values", "crossed staged batch owner")
+		return ir.Invalid(ir.TypeMismatch, "values", "crossed staged batch owner")
 	}
 	if _, exists := a.outcomes[batch.coordinate]; exists {
-		return invalid(ir.Malformed, "values", "attempt already assigned")
+		return ir.Invalid(ir.Malformed, "values", "attempt already assigned")
 	}
 	if previous := a.latest[batch.coordinate.InstructionID]; previous != nil && previous.coordinate.Attempt >= batch.coordinate.Attempt {
-		return invalid(ir.Malformed, "values", "out-of-order attempt")
+		return ir.Invalid(ir.Malformed, "values", "out-of-order attempt")
 	}
 	if s.attempts >= s.program.limits.MaxAttempts {
-		return invalid(ir.LimitExceeded, "values", "attempt ceiling exceeded")
+		return ir.Invalid(ir.LimitExceeded, "values", "attempt ceiling exceeded")
 	}
 	for id := range batch.writes {
 		if _, exists := a.slots[id]; exists {
-			return invalid(ir.Malformed, "values", "Slot already assigned")
+			return ir.Invalid(ir.Malformed, "values", "Slot already assigned")
 		}
 	}
 	for id, value := range batch.writes {
@@ -223,7 +223,7 @@ func (a *activationValues) newWork(ctx context.Context, limit int64) (*valueWork
 }
 func newValueWork(ctx context.Context, p *testpilotspb.ProgramLimits, ceiling, limit int64) (*valueWork, error) {
 	if ctx == nil || limit <= 0 || limit > ceiling {
-		return nil, invalid(ir.LimitExceeded, "values", "invalid runtime work ceiling")
+		return nil, ir.Invalid(ir.LimitExceeded, "values", "invalid runtime work ceiling")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func (w *valueWork) charge(count int64) error {
 		return err
 	}
 	if count < 0 || count > w.limits.Work-w.work {
-		return invalid(ir.LimitExceeded, "values", "runtime work ceiling exceeded")
+		return ir.Invalid(ir.LimitExceeded, "values", "runtime work ceiling exceeded")
 	}
 	w.work += count
 	return nil
@@ -256,7 +256,7 @@ func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilots
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.sealed {
-		return nil, invalid(ir.Unavailable, "values", "store sealed")
+		return nil, ir.Invalid(ir.Unavailable, "values", "store sealed")
 	}
 	value, work, err := e.EvaluateExecution(w.ctx, func(ref ir.Reference) *testpilotspb.Value {
 		switch ref.Kind {
@@ -285,7 +285,7 @@ func (a *activationValues) awaitSlot(ctx context.Context, id string) error {
 		a.store.mu.Lock()
 		if a.store.sealed {
 			a.store.mu.Unlock()
-			return invalid(ir.Unavailable, "values", "store sealed")
+			return ir.Invalid(ir.Unavailable, "values", "store sealed")
 		}
 		if a.slots[id] != nil {
 			a.store.mu.Unlock()

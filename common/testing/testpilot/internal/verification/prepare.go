@@ -108,12 +108,6 @@ func invalid(category ir.ErrorCategory, detail string) error {
 	return ir.Invalid(category, "contract", detail)
 }
 
-var (
-	// invalidAt is invalid located at path, truncated to the bound every located path keeps.
-	invalidAt = ir.Invalid
-	validID   = ir.ValidID
-)
-
 // hardLimits is the Driver ceiling every Profile's Contract ceiling must fit under. MaxWorkPerEvent
 // is sized for a correlated capability rather than for expression evaluation alone: an evidence event
 // charges the correlated stage's conservative reservation into the same per-event bucket, and that
@@ -188,7 +182,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 			return nil, err
 		}
 	}
-	if !validID(source.ContractId) || len(source.Rules) == 0 && source.Correlated == nil {
+	if !ir.ValidID(source.ContractId) || len(source.Rules) == 0 && source.Correlated == nil {
 		return nil, invalid(ir.Malformed, "Contract identity and rules are required")
 	}
 	if err := checkLimits(ceiling, hardLimits()); err != nil {
@@ -226,7 +220,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	}
 	seen := map[string]bool{}
 	for _, rule := range p.source.Rules {
-		if !validID(rule.RuleId) || seen[rule.RuleId] {
+		if !ir.ValidID(rule.RuleId) || seen[rule.RuleId] {
 			return nil, invalid(ir.Malformed, "invalid or duplicate rule identity")
 		}
 		seen[rule.RuleId] = true
@@ -287,16 +281,16 @@ func (a *admission) bindRule(rule *testpilotspb.ContractRule, seen map[string]bo
 func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[string]bool) (map[string]ir.Type, []ruleInstance, error) {
 	path := fmt.Sprintf("contract.rules[%s]", rule.RuleId)
 	if len(rule.InstanceValues) > 0 && len(rule.Instances) == 0 {
-		return nil, nil, invalidAt(ir.Malformed, path+".instances", "declared instance values require Rule instances")
+		return nil, nil, ir.Invalid(ir.Malformed, path+".instances", "declared instance values require Rule instances")
 	}
 	if len(rule.Instances) > 0 && len(rule.InstanceValues) == 0 {
-		return nil, nil, invalidAt(ir.Malformed, path+".instance_values", "Rule instances require declared instance values")
+		return nil, nil, ir.Invalid(ir.Malformed, path+".instance_values", "Rule instances require declared instance values")
 	}
 	types := make(map[string]ir.Type, len(rule.InstanceValues))
 	for _, declared := range rule.InstanceValues {
 		located := fmt.Sprintf("%s.instance_values[%s]", path, declared.InstanceValueId)
-		if _, duplicate := types[declared.InstanceValueId]; duplicate || !validID(declared.InstanceValueId) {
-			return nil, nil, invalidAt(ir.Malformed, located, "invalid or duplicate instance value identity")
+		if _, duplicate := types[declared.InstanceValueId]; duplicate || !ir.ValidID(declared.InstanceValueId) {
+			return nil, nil, ir.Invalid(ir.Malformed, located, "invalid or duplicate instance value identity")
 		}
 		typ, err := a.instanceValueType(declared.Type, located+".type")
 		if err != nil {
@@ -307,8 +301,8 @@ func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[stri
 	instances := make([]ruleInstance, 0, len(rule.Instances))
 	for _, instance := range rule.Instances {
 		located := fmt.Sprintf("%s.instances[%s]", path, instance.RuleId)
-		if !validID(instance.RuleId) || seen[instance.RuleId] || a.declaredRuleIDs[instance.RuleId] {
-			return nil, nil, invalidAt(ir.Malformed, located, "invalid or duplicate rule identity")
+		if !ir.ValidID(instance.RuleId) || seen[instance.RuleId] || a.declaredRuleIDs[instance.RuleId] {
+			return nil, nil, ir.Invalid(ir.Malformed, located, "invalid or duplicate rule identity")
 		}
 		seen[instance.RuleId] = true
 		bound := ruleInstance{ruleID: instance.RuleId, values: map[string]*testpilotspb.Value{}, work: map[string]int64{}}
@@ -317,17 +311,17 @@ func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[stri
 			at := fmt.Sprintf("%s.assignments[%s]", located, id)
 			typ, declared := types[id]
 			if !declared {
-				return nil, nil, invalidAt(ir.Unknown, at, "assignment names an undeclared instance value")
+				return nil, nil, ir.Invalid(ir.Unknown, at, "assignment names an undeclared instance value")
 			}
 			if _, repeated := bound.values[id]; repeated {
-				return nil, nil, invalidAt(ir.Malformed, at, "instance value is assigned more than once")
+				return nil, nil, ir.Invalid(ir.Malformed, at, "instance value is assigned more than once")
 			}
 			// Every earlier assignment named a distinct declared value, so position indexes a declaration.
 			if rule.InstanceValues[position].InstanceValueId != id {
-				return nil, nil, invalidAt(ir.Malformed, at, "assignments follow the instance values' declaration order")
+				return nil, nil, ir.Invalid(ir.Malformed, at, "assignments follow the instance values' declaration order")
 			}
 			if assignment.Value == nil {
-				return nil, nil, invalidAt(ir.Malformed, at, "assignment value is required")
+				return nil, nil, ir.Invalid(ir.Malformed, at, "assignment value is required")
 			}
 			if err := a.catalog.CheckLiteral(assignment.Value, typ, a.limits); err != nil {
 				return nil, nil, relocate(err, at)
@@ -340,7 +334,7 @@ func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[stri
 		}
 		if len(bound.values) < len(rule.InstanceValues) {
 			missing := rule.InstanceValues[len(bound.values)].InstanceValueId
-			return nil, nil, invalidAt(ir.Malformed, fmt.Sprintf("%s.assignments[%s]", located, missing), "instance omits a declared instance value")
+			return nil, nil, ir.Invalid(ir.Malformed, fmt.Sprintf("%s.assignments[%s]", located, missing), "instance omits a declared instance value")
 		}
 		instances = append(instances, bound)
 	}
@@ -355,14 +349,14 @@ func (a *admission) instanceValueType(declared *testpilotspb.SingularType, path 
 	case *testpilotspb.SingularType_Scalar:
 		kind := typ.Scalar.GetKind()
 		if kind == testpilotspb.SCALAR_KIND_BOOLEAN {
-			return ir.Type{}, invalidAt(ir.Malformed, path, "an instance value cannot be boolean")
+			return ir.Type{}, ir.Invalid(ir.Malformed, path, "an instance value cannot be boolean")
 		}
 		if kind != testpilotspb.SCALAR_KIND_TEXT && (kind < testpilotspb.SCALAR_KIND_INT32 || kind > testpilotspb.SCALAR_KIND_SFIXED64) {
-			return ir.Type{}, invalidAt(ir.Malformed, path, "instance value requires a text, integer or enum type")
+			return ir.Type{}, ir.Invalid(ir.Malformed, path, "instance value requires a text, integer or enum type")
 		}
 	case *testpilotspb.SingularType_Enumeration:
 	default:
-		return ir.Type{}, invalidAt(ir.Malformed, path, "instance value requires a text, integer or enum type")
+		return ir.Type{}, ir.Invalid(ir.Malformed, path, "instance value requires a text, integer or enum type")
 	}
 	bound, err := a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: proto.CloneOf(declared)}})
 	if err != nil {
@@ -382,10 +376,10 @@ func checkInstanceValueReads(rule *testpilotspb.ContractRule, declared map[strin
 			}
 			located := path + ".reference.instance_value_id"
 			if read.InstanceValueId == "" {
-				return invalidAt(ir.Malformed, located, "instance value reference names no instance value")
+				return ir.Invalid(ir.Malformed, located, "instance value reference names no instance value")
 			}
 			if _, exists := declared[read.InstanceValueId]; !exists {
-				return invalidAt(ir.Unknown, located, "instance value is not declared by the rule")
+				return ir.Invalid(ir.Unknown, located, "instance value is not declared by the rule")
 			}
 			return nil
 		})
@@ -402,7 +396,7 @@ func relocate(err error, path string) error {
 	if !errors.As(err, &diagnostic) {
 		return err
 	}
-	return invalidAt(diagnostic.Category, path, diagnostic.Detail)
+	return ir.Invalid(diagnostic.Category, path, diagnostic.Detail)
 }
 
 func (a *admission) bindMachine(rule *testpilotspb.ContractRule, instanceValues map[string]ir.Type) (*machine, error) {
@@ -539,7 +533,7 @@ func (a *admission) declarePayload(scope map[ir.Reference]ir.Binding, arm protor
 func (a *admission) bindStates(m *machine) error {
 	rule := m.source
 	for i, state := range rule.States {
-		if !validID(state.StateId) {
+		if !ir.ValidID(state.StateId) {
 			return invalid(ir.Malformed, "invalid state identity")
 		}
 		if _, exists := m.states[state.StateId]; exists {
@@ -566,14 +560,14 @@ func (a *admission) bindStates(m *machine) error {
 		switch bound := rule.Deadline.GetBound().(type) {
 		case *testpilotspb.Deadline_RuleEvents:
 			if bound.RuleEvents <= 0 {
-				return invalidAt(ir.Malformed, path+".rule_events", "liveness deadline bound must be positive")
+				return ir.Invalid(ir.Malformed, path+".rule_events", "liveness deadline bound must be positive")
 			}
 		case *testpilotspb.Deadline_ElapsedMilliseconds:
 			if bound.ElapsedMilliseconds <= 0 {
-				return invalidAt(ir.Malformed, path+".elapsed_milliseconds", "liveness deadline bound must be positive")
+				return ir.Invalid(ir.Malformed, path+".elapsed_milliseconds", "liveness deadline bound must be positive")
 			}
 		default:
-			return invalidAt(ir.Malformed, path, "liveness deadline requires a bound")
+			return ir.Invalid(ir.Malformed, path, "liveness deadline requires a bound")
 		}
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires a violated deadline target")
@@ -593,7 +587,7 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 		}
 		from, fromOK := m.states[tr.SourceStateId]
 		_, toOK := m.states[tr.TargetStateId]
-		if !validID(tr.TransitionId) || seen[tr.TransitionId] || !fromOK || !toOK {
+		if !ir.ValidID(tr.TransitionId) || seen[tr.TransitionId] || !fromOK || !toOK {
 			return invalid(ir.Malformed, "invalid, duplicate, or undeclared transition identity/state")
 		}
 		seen[tr.TransitionId] = true

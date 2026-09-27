@@ -21,9 +21,10 @@ Opaque handles belong to the Driver bridge and never enter this store.
 
 The Driver-facing vocabulary this package schedules against (`Session`, effect and reservation
 handles, `Coordinate`, the handle bridge, Profile role policy and `Opcode`) is declared in the
-`common/testing/testpilot/contract` leaf and used here directly. This package keeps `Driver`,
-`Profile` and the prepared plans, whose methods expose IR, and the public facade re-exports the leaf
-by alias, so the handles a Session returns reach execution and come back to it unwrapped.
+`common/testing/testpilot/contract` leaf and used here directly. This package keeps `Driver` (only
+the `Open` that `Run` calls), `Profile` and the prepared plans, whose methods expose IR, and the
+public facade re-exports the leaf by alias, so the handles a Session returns reach execution and
+come back to it unwrapped.
 
 A `valueStore` owns one Run. Controller activations share its ordinary Slots; worker activations
 have separate Slots and outcome references. Activation IDs are unique across the store and each
@@ -210,7 +211,8 @@ declaration's method with the request the assignments build until `readSatisfied
 of the declared path satisfying `until`, and the instruction's one synthesized response read then
 lifts every element the condition selects, `until` doubling as the lift's guard.
 
-`EvaluateInput` evaluates the compiled guard first and skips the input on false. Its callback must
+`EvaluateInput` evaluates the compiled guard first and skips the input on false, through the same
+`node.evaluateGuarded` that `activationValues.request` and the scheduler use. Its callback must
 read only that activation's previously validated, immutable field/Slot snapshots, returning nil for
 absence. The adapter must not change those values during evaluation, return unvalidated target
 payloads, perform SDK/I/O calls or consult mutable Driver/controller state from the lookup. The returned

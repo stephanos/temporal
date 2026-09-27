@@ -3,7 +3,6 @@ package ir
 import (
 	"fmt"
 	"maps"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -69,7 +68,7 @@ var admittedReferences = map[Context]map[protoreflect.Name]bool{
 // the Reference within the Case.
 func admitReference(context Context, path string, arm protoreflect.Name) error {
 	if !admittedReferences[context][arm] {
-		return invalid(Unknown, path+"."+string(arm), "reference is not admitted in this expression context")
+		return Invalid(Unknown, path+"."+string(arm), "reference is not admitted in this expression context")
 	}
 	return nil
 }
@@ -182,26 +181,15 @@ type compiler struct {
 }
 
 func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
-	if err := c.checkBinding(site, source, expected, limits); err != nil {
-		return nil, err
-	}
-	binder := compiler{catalog: c, context: site.Context, scope: scope, budget: budget{limits: limits}}
-	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
-		return nil, err
-	}
-	result, err := binder.bind(source, site.Path, expected, nil, false, 1)
-	if err == nil {
-		result.bindingWork = binder.budget.work
-		result.instanceValueReads = binder.instanceValueReads
-	}
-	return result, err
+	_, bound, err := c.bindConditionedExpression(nil, site, source, expected, scope, limits)
+	return bound, err
 }
 
 // BindGuardedExpression compiles an instruction input under the facts implied by its guard.
 // Both expressions share the same budget; the guard must be valid before its facts are used.
 func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
 	var conditions []Condition
-	if !isNilMessage(guard.Expression) {
+	if !IsNil(guard.Expression) {
 		conditions = []Condition{{Expression: guard.Expression, Path: guard.Path, Matches: true}}
 	}
 	return c.bindConditionedExpression(conditions, site, source, expected, scope, limits)
@@ -226,13 +214,13 @@ func (c *Catalog) checkBinding(site Site, source *testpilotspb.Expression, expec
 		return err
 	}
 	if admittedReferences[site.Context] == nil {
-		return invalid(Malformed, "expression", "expression context is required")
+		return Invalid(Malformed, "expression", "expression context is required")
 	}
 	if !hasExpression(source) {
-		return invalid(Malformed, "expression", "expression is required")
+		return Invalid(Malformed, "expression", "expression is required")
 	}
 	if expected != nil && !c.owns(*expected) {
-		return invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
+		return Invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
 	}
 	return nil
 }
@@ -280,16 +268,12 @@ func referenceKey(reference Reference) string {
 }
 
 func hasExpression(source proto.Message) bool {
-	if isNilMessage(source) {
+	if IsNil(source) {
 		return false
 	}
 	message := source.ProtoReflect()
 	oneof := message.Descriptor().Oneofs().ByName("expression")
 	return oneof != nil && message.WhichOneof(oneof) != nil
-}
-
-func isNilMessage(source proto.Message) bool {
-	return source == nil || reflect.ValueOf(source).Kind() == reflect.Pointer && reflect.ValueOf(source).IsNil()
 }
 
 func expressionVariant(source proto.Message) (protoreflect.Name, protoreflect.Value) {
@@ -307,7 +291,7 @@ func messageField(message protoreflect.Message, name protoreflect.Name) protoref
 
 func (b *compiler) bind(source proto.Message, path string, expected *Type, facts map[string]bool, allowAbsent bool, depth int64) (*Expression, error) {
 	if !hasExpression(source) {
-		return nil, invalid(Malformed, "expression", "missing expression node")
+		return nil, Invalid(Malformed, "expression", "missing expression node")
 	}
 	if err := b.budget.charge(depth, 1, 0, "expression"); err != nil {
 		return nil, err
@@ -320,14 +304,14 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 	if result.reference.Kind != 0 {
 		reference := result.reference
 		if reference.Kind != EventReference && reference.Kind != ProjectedValueReference && reference.ID == "" {
-			return nil, invalid(Malformed, "expression", "reference identity is required")
+			return nil, Invalid(Malformed, "expression", "reference identity is required")
 		}
 		binding, ok := b.scope[reference]
 		if !ok {
-			return nil, invalid(Unknown, "expression", "reference is not declared in this environment")
+			return nil, Invalid(Unknown, "expression", "reference is not declared in this environment")
 		}
 		if !c.owns(binding.Type) {
-			return nil, invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
+			return nil, Invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
 		}
 		result.operator = ReferenceValue
 		result.typ = binding.Type
@@ -342,13 +326,13 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 		result.absent = !binding.Available && !facts[result.key]
 	}
 	if result.typ.opaque {
-		return nil, invalid(Unsupported, "expression", "opaque handles cannot be inspected")
+		return nil, Invalid(Unsupported, "expression", "opaque handles cannot be inspected")
 	}
 	if expected != nil && !result.typ.Equal(*expected) {
-		return nil, invalid(TypeMismatch, "expression", "expression type does not match expected type")
+		return nil, Invalid(TypeMismatch, "expression", "expression type does not match expected type")
 	}
 	if result.absent && !allowAbsent {
-		return nil, invalid(Unavailable, "expression", "reference or path read requires an explicit presence guard")
+		return nil, Invalid(Unavailable, "expression", "reference or path read requires an explicit presence guard")
 	}
 	return result, nil
 }
@@ -362,7 +346,7 @@ func (b *compiler) instanceValue(declared Type, expected *Type, path string) err
 		want = *expected
 	}
 	if !declared.Equal(want) {
-		return invalid(TypeMismatch, path+".reference.instance_value_id", "instance value is used where its declared type is not the expected type")
+		return Invalid(TypeMismatch, path+".reference.instance_value_id", "instance value is used where its declared type is not the expected type")
 	}
 	return nil
 }
@@ -407,7 +391,7 @@ func (b *compiler) node(source proto.Message, path string, expected *Type, facts
 	case "compare":
 		comparison := testpilotspb.ComparisonOperator(value.Message().Get(value.Message().Descriptor().Fields().ByName("operator")).Enum())
 		if comparison < testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison > testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL {
-			return nil, invalid(Unknown, "expression", "unknown comparison operator")
+			return nil, Invalid(Unknown, "expression", "unknown comparison operator")
 		}
 		return b.binary(messageField(value.Message(), "left").Interface(), messageField(value.Message(), "right").Interface(), comparison, path+".compare", facts, depth)
 	case "all":
@@ -415,7 +399,7 @@ func (b *compiler) node(source proto.Message, path string, expected *Type, facts
 	case "any":
 		return b.logicalNode(Any, expressionOperands(value.Message()), path+".any", facts, depth)
 	default:
-		return nil, invalid(Unsupported, "expression", "unknown expression variant")
+		return nil, Invalid(Unsupported, "expression", "unknown expression variant")
 	}
 }
 
@@ -425,7 +409,7 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 	var result Reference
 	selected := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
 	if selected == nil {
-		return Reference{}, invalid(Malformed, "expression", "reference is required")
+		return Reference{}, Invalid(Malformed, "expression", "reference is required")
 	}
 	if err := admitReference(b.context, path, selected.Name()); err != nil {
 		return Reference{}, err
@@ -445,16 +429,16 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 		instruction := messageField(message, "instruction")
 		result = Reference{Kind: OutcomeReference, Entrypoint: instruction.Get(instruction.Descriptor().Fields().ByName("entrypoint_id")).String(), ID: instruction.Get(instruction.Descriptor().Fields().ByName("instruction_id")).String(), Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
 		if result.Entrypoint == "" || result.Field <= 0 || result.Field > int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE) {
-			return Reference{}, invalid(Malformed, "expression", "invalid outcome reference")
+			return Reference{}, Invalid(Malformed, "expression", "invalid outcome reference")
 		}
 	case "run_event":
 		event := value.Message().Interface().(*testpilotspb.RunEventReference)
 		if event.GetPayload() != nil {
-			return Reference{}, invalid(Malformed, path+".run_event.payload", "a Run Event payload is read only through a path that names its arm")
+			return Reference{}, Invalid(Malformed, path+".run_event.payload", "a Run Event payload is read only through a path that names its arm")
 		}
 		result = Reference{Kind: EventReference, Field: int32(event.GetField())}
 		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
-			return Reference{}, invalid(Malformed, "expression", "invalid Run Event reference")
+			return Reference{}, Invalid(Malformed, "expression", "invalid Run Event reference")
 		}
 	case "run":
 		result = Reference{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}
@@ -463,7 +447,7 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 	default:
 		// An environment binding is admitted only as a whole request assignment value, which
 		// Program admission resolves to a literal before binding.
-		return Reference{}, invalid(Unsupported, "expression", "unknown expression variant")
+		return Reference{}, Invalid(Unsupported, "expression", "unknown expression variant")
 	}
 	return result, nil
 }
@@ -534,7 +518,7 @@ func (b *compiler) readPayloadPath(value protoreflect.Message, location string, 
 		return nil, pathError(Unknown, pathLocation, text, "no Run Event kind this expression evaluates can carry the payload arm "+arm)
 	}
 	if !b.catalog.owns(binding.Type) {
-		return nil, invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
+		return nil, Invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
 	}
 	operand := &Expression{operator: ReferenceValue, reference: reference, typ: binding.Type, key: referenceKey(reference)}
 	operand.absent = !binding.Available && !facts[operand.key]
@@ -585,7 +569,7 @@ func (b *compiler) binary(left, right proto.Message, comparison testpilotspb.Com
 	}
 	equality := comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL
 	if !equality && !ordered(operands[0].typ) {
-		return nil, invalid(TypeMismatch, path, "comparison requires ordered numeric scalars")
+		return nil, Invalid(TypeMismatch, path, "comparison requires ordered numeric scalars")
 	}
 	return &Expression{operator: Compare, children: operands, comparison: comparison, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
 }
@@ -715,8 +699,8 @@ func intersectFacts(result, facts map[string]bool) {
 }
 
 func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
-	if value == nil || missing(value.Value) {
-		return Type{}, invalid(Malformed, "literal", "missing literal")
+	if value == nil || IsNil(value.Value) {
+		return Type{}, Invalid(Malformed, "literal", "missing literal")
 	}
 	switch literal := value.Value.(type) {
 	case *testpilotspb.Value_TextValue:
@@ -730,9 +714,9 @@ func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
 		name := url[strings.LastIndexByte(url, '/')+1:]
 		return c.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}})
 	case *testpilotspb.Value_EnumValue:
-		return Type{}, invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q requires a contextual source type", literal.EnumValue.GetName()))
+		return Type{}, Invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q requires a contextual source type", literal.EnumValue.GetName()))
 	default:
-		return Type{}, invalid(TypeMismatch, "literal", "numeric, enum, and collection literals require a contextual source type")
+		return Type{}, Invalid(TypeMismatch, "literal", "numeric, enum, and collection literals require a contextual source type")
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -17,8 +18,8 @@ func Run(
 	runID string,
 	caseID string,
 ) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
-	if isNil(ctx) || program == nil || isNil(driver) || isNil(monitor) || !validID(runID) || !validID(caseID) {
-		return nil, nil, invalid(ir.Malformed, "execution", "context, prepared Program, Driver, Monitor and Run identity required")
+	if ir.IsNil(ctx) || program == nil || ir.IsNil(driver) || ir.IsNil(monitor) || !ir.ValidID(runID) || !ir.ValidID(caseID) {
+		return nil, nil, ir.Invalid(ir.Malformed, "execution", "context, prepared Program, Driver, Monitor and Run identity required")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
@@ -30,24 +31,16 @@ func Run(
 		cancelRun()
 		return nil, nil, err
 	}
-	if isNil(session) {
+	if ir.IsNil(session) {
 		cancelRun()
-		return nil, nil, invalid(ir.Malformed, "execution", "Driver returned no Session")
+		return nil, nil, ir.Invalid(ir.Malformed, "execution", "Driver returned no Session")
 	}
 	if err := runCtx.Err(); err != nil {
-		cancelRun()
-		closeCtx, cancelClose := freshContext(limits.GetMaxCleanupDurationMilliseconds())
-		closeErr := session.Close(closeCtx)
-		cancelClose()
-		return nil, nil, errors.Join(err, closeErr)
+		return nil, nil, abandon(err, cancelRun, session, limits)
 	}
 	scheduler, err := newScheduler(program, runID, caseID, session, monitor, time.Now)
 	if err != nil {
-		cancelRun()
-		closeCtx, cancelClose := freshContext(limits.GetMaxCleanupDurationMilliseconds())
-		closeErr := session.Close(closeCtx)
-		cancelClose()
-		return nil, nil, errors.Join(err, closeErr)
+		return nil, nil, abandon(err, cancelRun, session, limits)
 	}
 	ordinaryErr := scheduler.execute(runCtx)
 	abort := ordinaryErr != nil || scheduler.recorder.shouldAbort()
@@ -93,6 +86,15 @@ func Run(
 	// The recorder's own close failure is the caller's to see: the Run and Verdict it produced are
 	// still the authoritative record, so they are returned beside the error rather than dropped.
 	return run, verdict, recorderErr
+}
+
+// abandon ends a Run that failed before its schedule started: it cancels the Run and closes the
+// Session under a fresh cleanup bound, joining the close error to err.
+func abandon(err error, cancelRun context.CancelFunc, session contract.Session, limits *testpilotspb.ProgramLimits) error {
+	cancelRun()
+	closeCtx, cancelClose := freshContext(limits.GetMaxCleanupDurationMilliseconds())
+	defer cancelClose()
+	return errors.Join(err, session.Close(closeCtx))
 }
 
 func freshContext(milliseconds int64) (context.Context, context.CancelFunc) {

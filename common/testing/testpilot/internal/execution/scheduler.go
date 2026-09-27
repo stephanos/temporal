@@ -62,8 +62,8 @@ type schedulerCompletion struct {
 }
 
 func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Session, monitor Monitor, now func() time.Time) (*scheduler, error) {
-	if isNil(session) {
-		return nil, invalid(ir.Malformed, "scheduler", "Session required")
+	if ir.IsNil(session) {
+		return nil, ir.Invalid(ir.Malformed, "scheduler", "Session required")
 	}
 	values, err := newValueStore(p, runID)
 	if err != nil {
@@ -96,7 +96,7 @@ func (s *scheduler) retain(handles []contract.EffectHandle) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, h := range handles {
-		if !isNil(h) {
+		if !ir.IsNil(h) {
 			s.owned = append(s.owned, h)
 		}
 	}
@@ -110,7 +110,7 @@ func (s *scheduler) execute(ctx context.Context) error {
 	s.mu.Lock()
 	if s.started {
 		s.mu.Unlock()
-		return invalid(ir.Unavailable, "scheduler", "controller schedule already started")
+		return ir.Invalid(ir.Unavailable, "scheduler", "controller schedule already started")
 	}
 	s.started = true
 	s.mu.Unlock()
@@ -133,19 +133,21 @@ func (s *scheduler) execute(ctx context.Context) error {
 		if active == 0 {
 			break
 		}
-		select {
-		case <-s.recorder.halted:
-			return s.recorder.schedulingFailure()
-		case <-ctx.Done():
-			return s.fail("schedule_cancelled", ctx.Err())
-		case completion := <-s.completions:
-			if !completion.cleanup {
-				active--
+		completion, ok := s.takeCompletion(ctx, s.recorder.halted)
+		if !ok {
+			select {
+			case <-s.recorder.halted:
+				return s.recorder.schedulingFailure()
+			default:
+				return s.fail("schedule_cancelled", ctx.Err())
 			}
-			ready, decision, err = s.acceptCompletion(ctx, completion, false)
-			if err != nil || decision == Stop {
-				return err
-			}
+		}
+		if !completion.cleanup {
+			active--
+		}
+		ready, decision, err = s.acceptCompletion(ctx, completion, false)
+		if err != nil || decision == Stop {
+			return err
 		}
 	}
 	return nil
@@ -191,22 +193,18 @@ func (s *scheduler) executeCleanup(ctx context.Context) (result error) {
 		if active == 0 {
 			break
 		}
-		select {
-		case <-ctx.Done():
+		completion, ok := s.takeCompletion(ctx, nil)
+		if !ok {
 			return ctx.Err()
-		case completion := <-s.completions:
-			if !completion.cleanup {
-				s.mu.Lock()
-				s.pending--
-				s.mu.Unlock()
-				_ = s.publishSettledCompletion(ctx, completion)
-				continue
-			}
-			active--
-			ready, _, err = s.acceptCompletion(ctx, completion, true)
-			if err != nil {
-				return err
-			}
+		}
+		if !completion.cleanup {
+			_ = s.publishSettledCompletion(ctx, completion)
+			continue
+		}
+		active--
+		ready, _, err = s.acceptCompletion(ctx, completion, true)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -316,20 +314,55 @@ func (s *scheduler) settleCompletions(ctx context.Context, cleanup bool) error {
 		if pending == 0 {
 			break
 		}
+		completion, ok := s.takeCompletion(ctx, nil)
+		if !ok {
+			return errors.Join(result, s.drainCompletions(cleanup))
+		}
+		result = errors.Join(result, s.settleCompletion(ctx, completion, cleanup))
+	}
+	return result
+}
+
+// takeCompletion waits for the next completion and retires it from pending. It reports false when
+// ctx ends or halted closes first; a nil halted never closes.
+func (s *scheduler) takeCompletion(ctx context.Context, halted <-chan struct{}) (schedulerCompletion, bool) {
+	select {
+	case <-halted:
+		return schedulerCompletion{}, false
+	case <-ctx.Done():
+		return schedulerCompletion{}, false
+	case completion := <-s.completions:
+		s.mu.Lock()
+		s.pending--
+		s.mu.Unlock()
+		return completion, true
+	}
+}
+
+// drainCompletions settles every completion already buffered, without waiting for more.
+func (s *scheduler) drainCompletions(cleanup bool) error {
+	var result error
+	for {
 		select {
 		case completion := <-s.completions:
 			s.mu.Lock()
 			s.pending--
 			s.mu.Unlock()
-			err := s.publishSettledCompletion(ctx, completion)
-			if completion.cleanup == cleanup {
-				result = errors.Join(result, err)
-			}
-		case <-ctx.Done():
-			return errors.Join(result, s.settleBufferedCompletions(cleanup))
+			result = errors.Join(result, s.settleCompletion(context.Background(), completion, cleanup))
+		default:
+			return result
 		}
 	}
-	return result
+}
+
+// settleCompletion publishes a completion the schedule no longer waits for; its failure counts only
+// toward the phase that dispatched it.
+func (s *scheduler) settleCompletion(ctx context.Context, completion schedulerCompletion, cleanup bool) error {
+	err := s.publishSettledCompletion(ctx, completion)
+	if completion.cleanup != cleanup {
+		return nil
+	}
+	return err
 }
 
 func (s *scheduler) publishSettledCompletion(ctx context.Context, completion schedulerCompletion) error {
@@ -337,7 +370,7 @@ func (s *scheduler) publishSettledCompletion(ctx context.Context, completion sch
 		return nil
 	}
 	parent := ctx
-	if isNil(parent) || parent.Err() != nil {
+	if ir.IsNil(parent) || parent.Err() != nil {
 		parent = context.Background()
 	}
 	publishCtx, cancel := context.WithTimeout(parent, s.lateTimeout)
@@ -358,39 +391,11 @@ func (s *scheduler) expectedCancellation(completion schedulerCompletion) bool {
 	return s.ordinaryCanceled
 }
 
-func (s *scheduler) settleBufferedCompletions(cleanup bool) error {
-	var result error
-	for {
-		select {
-		case completion := <-s.completions:
-			s.mu.Lock()
-			s.pending--
-			s.mu.Unlock()
-			err := s.publishSettledCompletion(context.Background(), completion)
-			if completion.cleanup == cleanup {
-				result = errors.Join(result, err)
-			}
-		default:
-			return result
-		}
-	}
-}
-
 func (s *scheduler) beginClose() {
 	s.mu.Lock()
 	s.closing = true
 	s.mu.Unlock()
-	for {
-		select {
-		case completion := <-s.completions:
-			s.mu.Lock()
-			s.pending--
-			s.mu.Unlock()
-			_ = s.publishSettledCompletion(context.Background(), completion)
-		default:
-			return
-		}
-	}
+	_ = s.drainCompletions(false)
 }
 
 func (s *scheduler) finishClose() {
@@ -450,9 +455,6 @@ func (s *scheduler) dispatchReady(ctx context.Context, ready []scheduledNode, cl
 	return active, Continue, nil
 }
 func (s *scheduler) acceptCompletion(ctx context.Context, completion schedulerCompletion, cleanup bool) ([]scheduledNode, Decision, error) {
-	s.mu.Lock()
-	s.pending--
-	s.mu.Unlock()
 	decision, err := s.publishCompletion(ctx, completion)
 	if err != nil || decision == Stop && !cleanup || completion.node == nil {
 		return nil, decision, err
@@ -511,7 +513,7 @@ func (s *scheduler) dispatch(ctx context.Context, task scheduledNode, cleanup bo
 	a := task.activation.values
 	n := a.graph.nodes[task.index]
 	c := s.coordinate(task)
-	request, input, enabled, err := s.prepareInput(ctx, task)
+	request, enabled, err := s.prepareInput(ctx, task)
 	if err != nil {
 		return 0, false, Stop, s.dispatchFailure(cleanup, "input_failed", err)
 	}
@@ -523,7 +525,7 @@ func (s *scheduler) dispatch(ctx context.Context, task scheduledNode, cleanup bo
 		return 0, false, decision, err
 	}
 	operationCtx, cancel := context.WithTimeout(ctx, time.Duration(n.timeoutMilliseconds)*time.Millisecond)
-	effect, reservations, bridge, err := s.admitDispatch(operationCtx, task, request, input, cleanup)
+	effect, reservations, bridge, err := s.admitDispatch(operationCtx, task, request, cleanup)
 	if err != nil {
 		cancel()
 		return 0, false, Stop, err
@@ -561,7 +563,7 @@ func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledN
 	return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED, SourceId: s.nodeSource(task) + ".started", Coordinates: eventCoordinates(coordinate), CausalSourceIds: causes}}, nil)
 }
 
-func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (contract.EffectHandle, []scheduledReservation, contract.HandleBridge, error) {
+func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, cleanup bool) (contract.EffectHandle, []scheduledReservation, contract.HandleBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	var effect contract.EffectHandle
 	var reservations []scheduledReservation
@@ -572,7 +574,7 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 	}
 	err := admit(ctx, func(ctx context.Context) ([]contract.EffectHandle, error) {
 		if s.attempts >= s.values.program.limits.MaxAttempts {
-			return nil, invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
+			return nil, ir.Invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
 		}
 		s.attempts++
 		accepted, reserved, err := s.reserve(ctx, task)
@@ -583,11 +585,11 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 		if err := ctx.Err(); err != nil {
 			return accepted, err
 		}
-		effect, bridge, err = s.acceptEffect(ctx, task, request, input)
-		if !isNil(effect) {
+		effect, bridge, err = s.acceptEffect(ctx, task, request)
+		if !ir.IsNil(effect) {
 			accepted = append(accepted, effect)
 		} else if err == nil && n.opcode != contract.AwaitSlot {
-			err = invalid(ir.Malformed, "effect", "nil effect handle")
+			err = ir.Invalid(ir.Malformed, "effect", "nil effect handle")
 		}
 		return accepted, err
 	}, s.retain)
@@ -615,45 +617,22 @@ func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context
 		s.deliverCompletion(schedulerCompletion{node: &task, result: result, err: err, cleanup: cleanup})
 	}()
 }
-func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto.Message, *testpilotspb.Value, bool, error) {
+
+// prepareInput builds an RPC node's request, or evaluates any other node's guard: only a worker's
+// Finish carries an input, and no controller runs one.
+func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto.Message, bool, error) {
 	a := task.activation.values
 	n := a.graph.nodes[task.index]
-	c := s.coordinate(task)
-	var request proto.Message
-	var input *testpilotspb.Value
 	if n.opcode == contract.InvokeRPC || n.opcode == contract.ReadEvidence {
-		var enabled bool
-		var err error
-		request, enabled, _, err = a.request(ctx, c, a.workLimit())
-		if err != nil {
-			return nil, nil, false, err
-		}
-		if !enabled {
-			return nil, nil, false, nil
-		}
-	} else {
-		work, err := a.newWork(ctx, a.workLimit())
-		if err != nil {
-			return nil, nil, false, err
-		}
-		if n.guard != nil {
-			guard, err := a.evaluate(work, n.guard)
-			if err != nil {
-				return nil, nil, false, err
-			}
-			if !guard.GetBoolValue() {
-				return nil, nil, false, nil
-			}
-		}
-		if n.input != nil {
-			input, err = a.evaluate(work, n.input)
-			if err != nil {
-				return nil, nil, false, err
-			}
-		}
+		request, enabled, _, err := a.request(ctx, s.coordinate(task), a.workLimit())
+		return request, enabled, err
 	}
-
-	return request, input, true, nil
+	work, err := a.newWork(ctx, a.workLimit())
+	if err != nil {
+		return nil, false, err
+	}
+	_, enabled, err := n.evaluateGuarded(func(e *ir.Expression) (*testpilotspb.Value, error) { return a.evaluate(work, e) })
+	return nil, enabled, err
 }
 func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract.EffectHandle, []scheduledReservation, error) {
 	var accepted []contract.EffectHandle
@@ -664,7 +643,7 @@ func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract
 		request := contract.ReservationRequest{Origin: c, EntrypointID: declaration.EntrypointID, Count: declaration.Count}
 		acquired, err := s.session.Reserve(ctx, request)
 		for _, h := range acquired {
-			if !isNil(h) {
+			if !ir.IsNil(h) {
 				accepted = append(accepted, h)
 			}
 		}
@@ -683,16 +662,16 @@ func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract
 func (s *scheduler) validateReservations(task scheduledNode, declarationIndex int, request contract.ReservationRequest, acquired []contract.ReservationHandle) ([]scheduledReservation, error) {
 	var reservations []scheduledReservation
 	if int64(len(acquired)) != request.Count {
-		return nil, invalid(ir.Malformed, "reservation", "wrong reservation count")
+		return nil, ir.Invalid(ir.Malformed, "reservation", "wrong reservation count")
 	}
 	ordinals := map[int64]bool{}
 	for _, h := range acquired {
-		if isNil(h) {
-			return nil, invalid(ir.Malformed, "reservation", "nil reservation")
+		if ir.IsNil(h) {
+			return nil, ir.Invalid(ir.Malformed, "reservation", "nil reservation")
 		}
 		id := h.Identity()
-		if !validID(id.ID) || id.Origin != request.Origin || id.EntrypointID != request.EntrypointID || id.Ordinal < 0 || id.Ordinal >= request.Count || ordinals[id.Ordinal] || s.reservations[id.ID] {
-			return nil, invalid(ir.Malformed, "reservation", "crossed or duplicate reservation identity")
+		if !ir.ValidID(id.ID) || id.Origin != request.Origin || id.EntrypointID != request.EntrypointID || id.Ordinal < 0 || id.Ordinal >= request.Count || ordinals[id.Ordinal] || s.reservations[id.ID] {
+			return nil, ir.Invalid(ir.Malformed, "reservation", "crossed or duplicate reservation identity")
 		}
 		ordinals[id.Ordinal] = true
 		s.reservations[id.ID] = true
@@ -700,11 +679,11 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 	}
 	return reservations, nil
 }
-func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, _ *testpilotspb.Value) (contract.EffectHandle, contract.HandleBridge, error) {
+func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	accept := opcodes[n.opcode].accept
 	if accept == nil {
-		return nil, nil, invalid(ir.Unsupported, "scheduler", "controller capability required")
+		return nil, nil, ir.Invalid(ir.Unsupported, "scheduler", "controller capability required")
 	}
 	return accept(s, ctx, task, s.coordinate(task), n, request)
 }
@@ -728,20 +707,20 @@ func (s *scheduler) acceptFault(ctx context.Context, _ scheduledNode, c contract
 
 // An AwaitSlot consumes nothing: it only takes the bridge an opaque Slot is awaited through.
 func (s *scheduler) acceptAwaitSlot(ctx context.Context, _ scheduledNode, _ contract.Coordinate, n *node, _ proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
-	bridge, err := s.slotBridge(ctx, n.source.Instruction.GetAwaitSlot().GetSlotId())
+	bridge, err := s.handleBridge(ctx, n.source.Instruction.GetAwaitSlot().GetSlotId())
 	return nil, bridge, err
 }
 
 // A typed completion consumes its handle Slot and delivers the payload or failure it carries.
 func (s *scheduler) acceptOperationCompletion(ctx context.Context, _ scheduledNode, c contract.Coordinate, n *node, _ proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
 	completion := n.source.Instruction.GetNexusOperationCompletion()
-	bridge, err := s.slotBridge(ctx, completion.GetHandleSlotId())
+	bridge, err := s.handleBridge(ctx, completion.GetHandleSlotId())
 	if err != nil {
 		return nil, bridge, err
 	}
 	handle, err := bridge.Consume(ctx, completion.GetHandleSlotId())
-	if err == nil && isNil(handle) {
-		err = invalid(ir.Malformed, "bridge", "nil opaque handle")
+	if err == nil && ir.IsNil(handle) {
+		err = ir.Invalid(ir.Malformed, "bridge", "nil opaque handle")
 	}
 	if err != nil {
 		return nil, bridge, err
@@ -750,14 +729,14 @@ func (s *scheduler) acceptOperationCompletion(ctx context.Context, _ scheduledNo
 	return effect, bridge, err
 }
 
-// slotBridge is the Session's bridge for an opaque Slot; a value Slot needs none.
-func (s *scheduler) slotBridge(ctx context.Context, slot string) (contract.HandleBridge, error) {
+// handleBridge is the Session's bridge for an opaque Slot; a value Slot needs none.
+func (s *scheduler) handleBridge(ctx context.Context, slot string) (contract.HandleBridge, error) {
 	if !s.values.program.slots[slot].Opaque() {
 		return nil, nil
 	}
 	bridge, err := s.session.Bridge(ctx)
-	if err == nil && isNil(bridge) {
-		err = invalid(ir.Malformed, "bridge", "nil bridge")
+	if err == nil && ir.IsNil(bridge) {
+		err = ir.Invalid(ir.Malformed, "bridge", "nil bridge")
 	}
 	return bridge, err
 }
@@ -798,8 +777,8 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		// to run, so the reservation released unconsumed when its parent finished is recorded as
 		// canceled rather than failing the Run.
 		unused := status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED && s.performsNothing(id.EntrypointID)
-		if completion.result.Outcome == nil || status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && !unused || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
-			return Stop, s.recorder.completionFailure(ctx, "activation_failed", invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
+		if completion.result.Outcome == nil || status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && !unused || !ir.IsNil(completion.result.Response) || completion.result.Outcome.Value != nil {
+			return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}
 		publish := s.recorder.publish
 		if completion.cleanup {

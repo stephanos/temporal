@@ -38,12 +38,12 @@ type recordedSource struct {
 }
 
 func newRecorder(view ProgramView, runID, caseID string, monitor Monitor, now func() time.Time, seal func(), diagnose func(context.Context, string, *testpilotspb.RunDiagnostic) error) (*recorder, error) {
-	if !validID(runID) || !validID(caseID) || !validID(view.programID) || isNil(monitor) || now == nil || view.limits == nil {
-		return nil, invalid(ir.Malformed, "recorder", "Run identity, prepared view, Monitor and clock required")
+	if !ir.ValidID(runID) || !ir.ValidID(caseID) || !ir.ValidID(view.programID) || ir.IsNil(monitor) || now == nil || view.limits == nil {
+		return nil, ir.Invalid(ir.Malformed, "recorder", "Run identity, prepared view, Monitor and clock required")
 	}
 	limits := view.limits
-	if limits.MaxRunEvents <= 0 || limits.MaxRunEvents > hardLimits().MaxRunEvents || limits.MaxResponseBytes <= 0 || limits.MaxResponseBytes > hardLimits().MaxResponseBytes || limits.MaxPathFanout <= 0 || limits.MaxPathFanout > hardLimits().MaxPathFanout {
-		return nil, invalid(ir.LimitExceeded, "recorder", "invalid prepared recording ceilings")
+	if limits.MaxRunEvents <= 0 || limits.MaxRunEvents > ProgramCeiling().MaxRunEvents || limits.MaxResponseBytes <= 0 || limits.MaxResponseBytes > ProgramCeiling().MaxResponseBytes || limits.MaxPathFanout <= 0 || limits.MaxPathFanout > ProgramCeiling().MaxPathFanout {
+		return nil, ir.Invalid(ir.LimitExceeded, "recorder", "invalid prepared recording ceilings")
 	}
 	// Metadata and declared Observation copies are bounded independently of raw response size.
 	bytes := (limits.MaxResponseBytes + 4096) * int64(len(view.observations)+1)
@@ -67,7 +67,7 @@ func (r *recorder) publishWithMonitorPolicy(ctx context.Context, facts []*testpi
 	if r.closed {
 		return Stop, r.postClose(ctx)
 	}
-	if isNil(ctx) {
+	if ir.IsNil(ctx) {
 		return Stop, r.publicationFailure(monitorFailureFatal, testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT, "context_required", errors.New("context required"))
 	}
 	if err := ctx.Err(); err != nil {
@@ -124,16 +124,16 @@ func checkPayloads(facts []*testpilotspb.RunEvent) error {
 }
 func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEvent, error) {
 	if int64(len(facts)) > r.maxEvents {
-		return nil, invalid(ir.LimitExceeded, "recorder", "batch event ceiling exceeded")
+		return nil, ir.Invalid(ir.LimitExceeded, "recorder", "batch event ceiling exceeded")
 	}
 	staged := make([]*testpilotspb.RunEvent, 0, len(facts))
 	batch := make(map[string]*testpilotspb.RunEvent, len(facts))
 	for _, fact := range facts {
-		if fact == nil || !validID(fact.SourceId) || fact.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || fact.Kind > ir.MaxRunEventKind || fact.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
-			return nil, invalid(ir.Malformed, "recorder", "invalid producer event identity or kind")
+		if fact == nil || !ir.ValidID(fact.SourceId) || fact.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || fact.Kind > ir.MaxRunEventKind || fact.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
+			return nil, ir.Invalid(ir.Malformed, "recorder", "invalid producer event identity or kind")
 		}
 		if r.remainingWork < r.surface.Work {
-			return nil, invalid(ir.LimitExceeded, "recorder", "recording work ceiling exceeded")
+			return nil, ir.Invalid(ir.LimitExceeded, "recorder", "recording work ceiling exceeded")
 		}
 		r.remainingWork -= r.surface.Work
 		if err := ir.CheckSurface(fact, r.surface); err != nil {
@@ -141,7 +141,7 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 		}
 		copyWork := (int64(proto.Size(fact)) + 32) * 8
 		if copyWork > r.remainingWork {
-			return nil, invalid(ir.LimitExceeded, "recorder", "recording copy ceiling exceeded")
+			return nil, ir.Invalid(ir.LimitExceeded, "recorder", "recording copy ceiling exceeded")
 		}
 		r.remainingWork -= copyWork
 		snapshot := proto.CloneOf(fact)
@@ -150,24 +150,24 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 		if previous, exists := r.sources[snapshot.SourceId]; exists {
 			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete, Payload: previous.event.Payload}
 			if !proto.Equal(&semantic, snapshot) {
-				return nil, invalid(ir.Malformed, "recorder", "conflicting source identity")
+				return nil, ir.Invalid(ir.Malformed, "recorder", "conflicting source identity")
 			}
 			continue
 		}
 		if previous, exists := batch[snapshot.SourceId]; exists {
 			if !proto.Equal(previous, snapshot) {
-				return nil, invalid(ir.Malformed, "recorder", "conflicting batch source identity")
+				return nil, ir.Invalid(ir.Malformed, "recorder", "conflicting batch source identity")
 			}
 			continue
 		}
 		if (len(r.run.Events)+len(staged) == 0) != (snapshot.Kind == testpilotspb.RUN_EVENT_KIND_RUN_OPENED) {
-			return nil, invalid(ir.Malformed, "recorder", "Run must open exactly once")
+			return nil, ir.Invalid(ir.Malformed, "recorder", "Run must open exactly once")
 		}
 		batch[snapshot.SourceId] = snapshot
 		staged = append(staged, snapshot)
 	}
 	if int64(len(staged)) > r.maxEvents-int64(len(r.run.Events)) {
-		return nil, invalid(ir.LimitExceeded, "recorder", "Run event ceiling exceeded")
+		return nil, ir.Invalid(ir.LimitExceeded, "recorder", "Run event ceiling exceeded")
 	}
 	return staged, nil
 }
@@ -195,7 +195,7 @@ func (r *recorder) append(ctx context.Context, event *testpilotspb.RunEvent, mon
 		err = ctx.Err()
 	}
 	if err == nil && decision != Continue && decision != Stop {
-		err = invalid(ir.Malformed, "recorder", "invalid Monitor decision")
+		err = ir.Invalid(ir.Malformed, "recorder", "invalid Monitor decision")
 	}
 	if err != nil {
 		r.run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: event.Sequence}
@@ -219,12 +219,12 @@ func (r *recorder) admit(ctx context.Context, operation func(context.Context) ([
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
-		return invalid(ir.Unavailable, "recorder", "Run closed")
+		return ir.Invalid(ir.Unavailable, "recorder", "Run closed")
 	}
 	if r.stopped || r.incomplete {
-		return invalid(ir.Unavailable, "recorder", "ordinary admission stopped")
+		return ir.Invalid(ir.Unavailable, "recorder", "ordinary admission stopped")
 	}
-	if isNil(ctx) || operation == nil || retain == nil {
+	if ir.IsNil(ctx) || operation == nil || retain == nil {
 		return r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT, "admission_invalid", errors.New("bounded operation and ownership registration required"))
 	}
 	if err := ctx.Err(); err != nil {
@@ -245,10 +245,10 @@ func (r *recorder) admitCleanup(ctx context.Context, operation func(context.Cont
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
-		return invalid(ir.Unavailable, "recorder", "Run closed")
+		return ir.Invalid(ir.Unavailable, "recorder", "Run closed")
 	}
-	if isNil(ctx) || operation == nil || retain == nil {
-		return invalid(ir.Malformed, "cleanup", "bounded operation and ownership registration required")
+	if ir.IsNil(ctx) || operation == nil || retain == nil {
+		return ir.Invalid(ir.Malformed, "cleanup", "bounded operation and ownership registration required")
 	}
 	if err := ctx.Err(); err != nil {
 		return err
@@ -264,7 +264,7 @@ func (r *recorder) fail(kind testpilotspb.RunDiagnosticKind, code string, err er
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
-		return invalid(ir.Unavailable, "recorder", "Run closed")
+		return ir.Invalid(ir.Unavailable, "recorder", "Run closed")
 	}
 	return r.failLocked(kind, code, err)
 }
@@ -332,7 +332,7 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
-		return nil, nil, invalid(ir.Unavailable, "recorder", "Run already closed")
+		return nil, nil, ir.Invalid(ir.Unavailable, "recorder", "Run already closed")
 	}
 	r.closed = true
 	r.signalStop()
@@ -340,16 +340,16 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 		r.seal()
 	}
 	var closeErr error
-	if isNil(ctx) {
+	if ir.IsNil(ctx) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(context.Background())
 		cancel()
-		closeErr = invalid(ir.Malformed, "recorder", "context required")
+		closeErr = ir.Invalid(ir.Malformed, "recorder", "context required")
 	} else {
 		closeErr = ctx.Err()
 	}
 	if disposition < testpilotspb.RUN_DISPOSITION_COMPLETED || disposition > testpilotspb.RUN_DISPOSITION_INCOMPLETE {
-		closeErr = invalid(ir.Malformed, "recorder", "terminal disposition required")
+		closeErr = ir.Invalid(ir.Malformed, "recorder", "terminal disposition required")
 	}
 	if closeErr != nil {
 		closeErr = errors.Join(closeErr, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, "closure_failed", closeErr))
@@ -371,7 +371,7 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 			closeErr = errors.Join(closeErr, err)
 		}
 	} else {
-		err := invalid(ir.LimitExceeded, "recorder", "no capacity for closure event")
+		err := ir.Invalid(ir.LimitExceeded, "recorder", "no capacity for closure event")
 		closeErr = errors.Join(closeErr, err, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_LIMIT, "closure_capacity", err))
 	}
 	r.run.Disposition = disposition
@@ -390,7 +390,7 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 	}
 	if verdict == nil {
 		verdict = &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}
-		err = invalid(ir.Malformed, "recorder", "Monitor returned no Verdict")
+		err = ir.Invalid(ir.Malformed, "recorder", "Monitor returned no Verdict")
 		closeErr = errors.Join(closeErr, err, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_MONITOR, "verdict_missing", err))
 	}
 	r.run.Verdict = proto.CloneOf(verdict)
@@ -404,13 +404,13 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 	return proto.CloneOf(r.run), proto.CloneOf(r.run.Verdict), closeErr
 }
 func (r *recorder) postClose(ctx context.Context) error {
-	if r.diagnose != nil && r.postCloseCount < r.diagnosticLimit && !isNil(ctx) {
+	if r.diagnose != nil && r.postCloseCount < r.diagnosticLimit && !ir.IsNil(ctx) {
 		r.postCloseCount++
 		if err := r.diagnose(ctx, r.run.RunId, &testpilotspb.RunDiagnostic{DiagnosticId: "post-close." + strconv.Itoa(r.postCloseCount), Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT, Code: "publication_closed", Detail: "publication rejected after Run closure"}); err != nil {
 			r.diagnose = nil
 		}
 	}
-	return invalid(ir.Unavailable, "recorder", "Run closed")
+	return ir.Invalid(ir.Unavailable, "recorder", "Run closed")
 }
 
 func (r *recorder) signalStop() {

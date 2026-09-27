@@ -15,7 +15,9 @@ import (
 	"go.temporal.io/sdk/worker"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
 
@@ -27,7 +29,7 @@ type Driver struct {
 	mu                primitive.Mutex
 	sessions          map[string]*Session
 	tombstones        []*Session
-	workflowRoutes    map[workflowRouteIndex][]*Session
+	workflowRoutes    map[delivery.WorkflowBinding][]*Session
 	nexusRoutes       map[nexusRouteIndex][]*Session
 	routeAssociations int
 	nextSession       atomic.Uint64
@@ -62,7 +64,7 @@ func New(options Options) (*Driver, error) {
 		mu:             primitive.NewMutex(),
 		sessions:       make(map[string]*Session),
 		tombstones:     make([]*Session, 0, diagnostics),
-		workflowRoutes: make(map[workflowRouteIndex][]*Session),
+		workflowRoutes: make(map[delivery.WorkflowBinding][]*Session),
 		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
 		options: hostOptions{
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
@@ -77,17 +79,10 @@ func New(options Options) (*Driver, error) {
 
 func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 	limits := profile.ProgramLimits
-	ceiling := &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000,
-		MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000,
-		MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
-		MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
-		MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20,
-	}
 	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
 	}
-	if ir.CheckCeilings(limits, ceiling, func(string) error { return ErrInvalid }) != nil {
+	if ir.CheckCeilings(limits, execution.ProgramCeiling(), func(string) error { return ErrInvalid }) != nil {
 		return false
 	}
 	methods, carriers, shapes := 0, 0, 0

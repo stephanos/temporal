@@ -64,8 +64,8 @@ type ruleChange struct {
 type Violation struct {
 	RuleID         string
 	Sequence       int64
-	Kind           string
 	ObservationIDs []string
+	CorrelatedKind string
 }
 
 // New implements the private execution factory contract over the exact admitted Program view.
@@ -573,7 +573,7 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 			if !slices.ContainsFunc(e.violations, func(v Violation) bool { return v.RuleID == result.RuleId }) {
 				violation := Violation{RuleID: result.RuleId}
 				if evidence := e.correlated.violation(i); evidence != nil {
-					violation.Kind = evidence.GetKind()
+					violation.CorrelatedKind = evidence.GetKind()
 					if len(evidence.supportingEventSequences) > 0 {
 						violation.Sequence = evidence.supportingEventSequences[0]
 					}

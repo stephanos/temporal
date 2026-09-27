@@ -18,7 +18,7 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 		return nil, 0, err
 	}
 	if p == nil || p.source.message == nil {
-		return nil, 0, invalid(TypeMismatch, "path", "message source required")
+		return nil, 0, Invalid(TypeMismatch, "path", "message source required")
 	}
 	snapshot, err := snapshotMessage(source, p.source.message, limits.Bytes, b)
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 			values = []*testpilotspb.Value{nil}
 		}
 		if int64(len(values)) > remaining {
-			return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
+			return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 		}
 		counts[index] += int64(len(values))
 		return values, err
@@ -83,7 +83,7 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 		return nil, err
 	}
 	if int64(len(children)) > fanout-counts[index] {
-		return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
+		return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 	}
 	counts[index] += int64(len(children))
 	var result []*testpilotspb.Value
@@ -107,7 +107,7 @@ func (r *runtimeExpression) messageChildren(message protoreflect.Message, step P
 		case Wildcard:
 			list := value.List()
 			if int64(list.Len()) > remaining {
-				return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
+				return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 			}
 			if err := r.charge(int64(list.Len())); err != nil {
 				return nil, err
@@ -128,9 +128,9 @@ func (r *runtimeExpression) messageChildren(message protoreflect.Message, step P
 		case Field, Oneof:
 			children = []protoreflect.Message{value.Message()}
 		case Presence:
-			return nil, invalid(Unsupported, "path", "nonterminal presence")
+			return nil, Invalid(Unsupported, "path", "nonterminal presence")
 		default:
-			return nil, invalid(Unsupported, "path", "unknown selector")
+			return nil, Invalid(Unsupported, "path", "unknown selector")
 		}
 	}
 	return children, nil
@@ -145,7 +145,7 @@ func ReadValue(ctx context.Context, value *testpilotspb.Value, typ Type, path *P
 		return nil, 0, err
 	}
 	if ctx == nil || value == nil || path == nil || typ.Message() == nil || limits.Work <= 0 {
-		return nil, 0, invalid(Malformed, "path", "context, message value, path and positive work required")
+		return nil, 0, Invalid(Malformed, "path", "context, message value, path and positive work required")
 	}
 	r := runtimeExpression{ctx: ctx, limit: limits.Work, copyWork: true}
 	result, err := r.readPath(path, value, typ)

@@ -84,22 +84,13 @@ type PreparedProgram struct {
 	graphs              []*graph
 	slots               map[string]ir.Type
 	carriers            map[carrierCoordinate]contract.ReservationCarrierPlan
-	roles               map[string]resolvedRole
+	roles               map[string]contract.PreparedRole
 	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
 	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
 	// those lifts, and a read's, emit into.
 	evidence                map[string]*evidenceDeclaration
 	runEventLifts           []*evidenceDeclaration
 	correlatedObservationID string
-}
-
-type resolvedRole struct {
-	ID                 string
-	Kind               testpilotspb.RoleKind
-	NamespaceBindingID string
-	Namespace          string
-	ResourceBindingID  string
-	Resource           string
 }
 
 func (p *PreparedProgram) Snapshot() *testpilotspb.Program { return proto.CloneOf(p.source) }
@@ -111,7 +102,7 @@ func (p *PreparedProgram) View() ProgramView { return p.view }
 func (p *PreparedProgram) Roles() []contract.PreparedRole {
 	result := make([]contract.PreparedRole, 0, len(p.roles))
 	for _, role := range p.roles {
-		result = append(result, contract.PreparedRole(role))
+		result = append(result, role)
 	}
 	slices.SortFunc(result, func(a, b contract.PreparedRole) int { return cmp.Compare(a.ID, b.ID) })
 	return result
@@ -234,7 +225,9 @@ type slotWriter struct {
 	optional bool
 }
 
-func hardLimits() *testpilotspb.ProgramLimits {
+// ProgramCeiling is the Program ceiling every Profile's limits must fit under: Prepare admits a
+// Profile only within it, and each Driver checks its Profile against it at construction.
+func ProgramCeiling() *testpilotspb.ProgramLimits {
 	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000, MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20}
 }
 
@@ -312,31 +305,15 @@ func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Refer
 		return nil, false, 0, err
 	}
 	if lookup == nil {
-		return nil, false, 0, invalid(ir.Malformed, "values", "activation lookup required")
+		return nil, false, 0, ir.Invalid(ir.Malformed, "values", "activation lookup required")
 	}
 	if p.node.opcode == contract.InvokeRPC {
-		return nil, false, 0, invalid(ir.TypeMismatch, "values", "RPC requires request construction")
+		return nil, false, 0, ir.Invalid(ir.TypeMismatch, "values", "RPC requires request construction")
 	}
-	evaluate := func(e *ir.Expression) (*testpilotspb.Value, error) {
+	value, enabled, err := p.node.evaluateGuarded(func(e *ir.Expression) (*testpilotspb.Value, error) {
 		value, work, err := e.EvaluateExecution(ctx, lookup, w.limits.Work-w.work)
 		w.work += work
 		return value, err
-	}
-	if p.node.guard != nil {
-		guard, err := evaluate(p.node.guard)
-		if err != nil {
-			return nil, false, w.work, err
-		}
-		if !guard.GetBoolValue() {
-			return nil, false, w.work, nil
-		}
-	}
-	var value *testpilotspb.Value
-	if p.node.input != nil {
-		value, err = evaluate(p.node.input)
-		if err != nil {
-			return nil, false, w.work, err
-		}
-	}
-	return value, true, w.work, nil
+	})
+	return value, enabled, w.work, err
 }

@@ -16,7 +16,7 @@ func (a *admission) bindCaptures(m *machine) error {
 		return err
 	}
 	for i, capture := range m.source.Captures {
-		if !validID(capture.CaptureId) {
+		if !ir.ValidID(capture.CaptureId) {
 			return invalid(ir.Malformed, "invalid capture identity")
 		}
 		if _, ok := m.captures[capture.CaptureId]; ok {
@@ -25,7 +25,7 @@ func (a *admission) bindCaptures(m *machine) error {
 		switch capture.GetType().GetType().(type) {
 		case *testpilotspb.SingularType_Scalar, *testpilotspb.SingularType_Enumeration, *testpilotspb.SingularType_Message:
 		default:
-			return invalidAt(ir.Malformed, fmt.Sprintf("contract.rules[%s].captures[%s].type", m.source.RuleId, capture.CaptureId), "capture requires a scalar, enum or message type")
+			return ir.Invalid(ir.Malformed, fmt.Sprintf("contract.rules[%s].captures[%s].type", m.source.RuleId, capture.CaptureId), "capture requires a scalar, enum or message type")
 		}
 		typ := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: proto.CloneOf(capture.Type)}}
 		bound, err := a.catalog.BindType(typ)

@@ -24,11 +24,11 @@ func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Referen
 func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64, copies bool) (*testpilotspb.Value, int64, error) {
 	r := runtimeExpression{ctx: ctx, resolve: resolve, limit: limit, copyWork: copies}
 	if ctx == nil || resolve == nil || e == nil || limit <= 0 {
-		return nil, 0, invalid(Malformed, "expression", "context, expression, resolver and positive work required")
+		return nil, 0, Invalid(Malformed, "expression", "context, expression, resolver and positive work required")
 	}
 	v, err := r.eval(e)
 	if err == nil && v == nil {
-		err = invalid(Unavailable, "expression", "unguarded absent value")
+		err = Invalid(Unavailable, "expression", "unguarded absent value")
 	}
 	if err == nil {
 		if _, scalar := v.GetValue().(*testpilotspb.Value_BoolValue); !scalar || copies {
@@ -53,7 +53,7 @@ func (r *runtimeExpression) charge(n int64) error {
 		return err
 	}
 	if n < 0 || n > r.limit-r.work {
-		return invalid(LimitExceeded, "expression", "runtime work ceiling exceeded")
+		return Invalid(LimitExceeded, "expression", "runtime work ceiling exceeded")
 	}
 	r.work += n
 	return nil
@@ -96,7 +96,7 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 			return nil, err
 		}
 		if v == nil {
-			return nil, invalid(Unavailable, "expression", "absent boolean")
+			return nil, Invalid(Unavailable, "expression", "absent boolean")
 		}
 		return boolValue(!v.GetBoolValue()), nil
 	case All, Any:
@@ -107,7 +107,7 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 				return nil, err
 			}
 			if v == nil {
-				return nil, invalid(Unavailable, "expression", "absent boolean")
+				return nil, Invalid(Unavailable, "expression", "absent boolean")
 			}
 			if v.GetBoolValue() != continuing {
 				return boolValue(!continuing), nil
@@ -117,7 +117,7 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 	case Compare:
 		return r.binary(e)
 	default:
-		return nil, invalid(Unsupported, "expression", "unknown prepared operator")
+		return nil, Invalid(Unsupported, "expression", "unknown prepared operator")
 	}
 }
 func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
@@ -159,7 +159,7 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
 		return boolValue(ordering >= 0), nil
 	default:
-		return nil, invalid(Unsupported, "expression", "unknown comparison")
+		return nil, Invalid(Unsupported, "expression", "unknown comparison")
 	}
 }
 func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
@@ -185,7 +185,7 @@ func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
 		}
 		return cmp.Compare(x, y), math.IsNaN(x) || math.IsNaN(y), nil
 	default:
-		return 0, false, invalid(TypeMismatch, "expression", "ordered scalar required")
+		return 0, false, Invalid(TypeMismatch, "expression", "ordered scalar required")
 	}
 }
 func (r *runtimeExpression) equal(a, b *testpilotspb.Value, typ Type) (bool, error) {

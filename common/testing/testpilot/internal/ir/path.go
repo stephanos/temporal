@@ -55,10 +55,10 @@ func (c *Catalog) BindPath(source Type, location, text string, limits Limits) (*
 		return nil, err
 	}
 	if !c.owns(source) {
-		return nil, invalid(TypeMismatch, location, "source type does not belong to this catalog")
+		return nil, Invalid(TypeMismatch, location, "source type does not belong to this catalog")
 	}
 	if source.opaque {
-		return nil, invalid(Unsupported, location, "opaque handles cannot be inspected")
+		return nil, Invalid(Unsupported, location, "opaque handles cannot be inspected")
 	}
 	b := budget{limits: limits}
 	if err := b.charge(1, 1, int64(len(text)), location); err != nil {
@@ -113,28 +113,28 @@ func (c *Catalog) bindSegments(source Type, location, text string, segments []pa
 }
 
 func pathError(category ErrorCategory, location, text, detail string) error {
-	return invalid(category, location, fmt.Sprintf("path %q: %s", text, detail))
+	return Invalid(category, location, fmt.Sprintf("path %q: %s", text, detail))
 }
 
 func (c *Catalog) bindStep(current Type, segment pathSegment, final bool, b *budget) (PathStep, Type, error) {
 	if current.cardinality != Singular || current.message == nil || current.any {
-		return PathStep{}, Type{}, invalid(TypeMismatch, "path", "traversal of "+segment.field+" requires a singular unpacked message")
+		return PathStep{}, Type{}, Invalid(TypeMismatch, "path", "traversal of "+segment.field+" requires a singular unpacked message")
 	}
 	var field protoreflect.FieldDescriptor
 	step := PathStep{}
 	if segment.selector == Oneof {
 		group := current.message.Oneofs().ByName(protoreflect.Name(segment.field))
 		if group == nil {
-			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown oneof group "+segment.field)
+			return PathStep{}, Type{}, Invalid(Unknown, "path", "unknown oneof group "+segment.field)
 		}
 		field = group.Fields().ByName(protoreflect.Name(segment.member))
 		if field == nil {
-			return PathStep{}, Type{}, invalid(Unknown, "path", "oneof "+segment.field+" has no member "+segment.member)
+			return PathStep{}, Type{}, Invalid(Unknown, "path", "oneof "+segment.field+" has no member "+segment.member)
 		}
 	} else {
 		field = current.message.Fields().ByName(protoreflect.Name(segment.field))
 		if field == nil {
-			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown field "+segment.field)
+			return PathStep{}, Type{}, Invalid(Unknown, "path", "unknown field "+segment.field)
 		}
 	}
 	step.Field = field
@@ -144,12 +144,12 @@ func (c *Catalog) bindStep(current Type, segment pathSegment, final bool, b *bud
 	case Field, Oneof:
 	case Wildcard:
 		if !field.IsList() {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "wildcard requires a repeated field, not "+segment.field)
+			return PathStep{}, Type{}, Invalid(TypeMismatch, "path", "wildcard requires a repeated field, not "+segment.field)
 		}
 		next = next.Element()
 	case MapKey:
 		if !field.IsMap() {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map key selector requires a map, not "+segment.field)
+			return PathStep{}, Type{}, Invalid(TypeMismatch, "path", "map key selector requires a map, not "+segment.field)
 		}
 		key, err := segment.key.value(next.key)
 		if err != nil {
@@ -160,17 +160,17 @@ func (c *Catalog) bindStep(current Type, segment pathSegment, final bool, b *bud
 			if errors.As(err, &literal) && literal.Category == LimitExceeded {
 				return PathStep{}, Type{}, err
 			}
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map key "+segment.key.String()+" is not a canonical "+EnumName(next.key)+" key")
+			return PathStep{}, Type{}, Invalid(TypeMismatch, "path", "map key "+segment.key.String()+" is not a canonical "+EnumName(next.key)+" key")
 		}
 		step.Key = key
 		next = next.Element()
 	case Presence:
 		if !field.HasPresence() || !final {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "presence requires a final presence-bearing field, not "+segment.field)
+			return PathStep{}, Type{}, Invalid(TypeMismatch, "path", "presence requires a final presence-bearing field, not "+segment.field)
 		}
 		next = c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 	default:
-		return PathStep{}, Type{}, invalid(Unsupported, "path", "unknown selector")
+		return PathStep{}, Type{}, Invalid(Unsupported, "path", "unknown selector")
 	}
 	return step, next, nil
 }

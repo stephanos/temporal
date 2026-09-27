@@ -29,8 +29,8 @@ type MonitorFactory interface {
 }
 
 func NewMonitor(ctx context.Context, factory MonitorFactory, view ProgramView) (Monitor, error) {
-	if isNil(ctx) || isNil(factory) || view.programID == "" {
-		return nil, invalid(ir.Malformed, "monitor", "context, factory and prepared Program view are required")
+	if ir.IsNil(ctx) || ir.IsNil(factory) || view.programID == "" {
+		return nil, ir.Invalid(ir.Malformed, "monitor", "context, factory and prepared Program view are required")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -42,18 +42,14 @@ func NewMonitor(ctx context.Context, factory MonitorFactory, view ProgramView) (
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if isNil(monitor) {
-		return nil, invalid(ir.Malformed, "monitor", "factory returned no Monitor")
+	if ir.IsNil(monitor) {
+		return nil, ir.Invalid(ir.Malformed, "monitor", "factory returned no Monitor")
 	}
 	return monitor, nil
 }
 
-// Driver identity is a non-secret snapshot and may be read without target I/O. Open and all
-// Session methods must honor caller bounds; the Executor never wraps them in goroutines.
+// Driver is the one Driver call Run makes. Open and all Session methods must honor caller bounds;
+// the Executor never wraps them in goroutines.
 type Driver interface {
-	Identity(context.Context) (contract.DriverIdentity, error)
-	Validate(context.Context, *PreparedProgram) error
 	Open(context.Context, string, *PreparedProgram) (contract.Session, error)
 }
-
-var isNil = ir.IsNil

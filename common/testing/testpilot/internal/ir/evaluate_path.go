@@ -38,7 +38,7 @@ func (r *runtimeExpression) readPath(path *Path, source *testpilotspb.Value, typ
 			}
 
 			if int64(len(values)) > path.limit-int64(len(next)) {
-				return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
+				return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 			}
 			next = append(next, values...)
 		}
@@ -112,7 +112,7 @@ func (r *runtimeExpression) selectField(message protoreflect.Message, step PathS
 	if step.Selector == Wildcard {
 		list := value.List()
 		if int64(list.Len()) > remaining {
-			return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
+			return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 		}
 		if err := r.charge(int64(list.Len())); err != nil {
 			return nil, err
@@ -215,7 +215,7 @@ func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect
 		}
 		return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(field.Message().FullName()), Value: bytes}}}, nil
 	default:
-		return nil, invalid(Unsupported, "path", "unsupported field kind")
+		return nil, Invalid(Unsupported, "path", "unsupported field kind")
 	}
 }
 

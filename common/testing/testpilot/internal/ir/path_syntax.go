@@ -223,7 +223,7 @@ func (k pathKey) String() string {
 
 // value types the key by the map's key kind.
 func (k pathKey) value(kind testpilotspb.ScalarKind) (*testpilotspb.Value, error) {
-	mismatch := invalid(TypeMismatch, "path", "map key "+k.String()+" does not match the map's "+EnumName(kind)+" keys")
+	mismatch := Invalid(TypeMismatch, "path", "map key "+k.String()+" does not match the map's "+EnumName(kind)+" keys")
 	switch kind {
 	case testpilotspb.SCALAR_KIND_TEXT:
 		if k.kind == textKey {

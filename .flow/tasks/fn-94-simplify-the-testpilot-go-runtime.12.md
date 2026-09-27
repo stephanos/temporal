@@ -35,6 +35,16 @@ make umpire-check-retired-vocabulary
 make lint-code-fast
 ```
 
+### Carried from fn-94.7 (2026-09-27)
+- Each of `execution`, `verification` and the facade still holds one-line `var` aliases (`invalid`, `validID`, `isNil`, `missing`, `invalidAt`) to the new `ir` exports; rename the call sites to the `ir` names and delete the aliases (extend Touches to those files as needed). `ir/expression.go`'s `isNilMessage` can fold into `ir.IsNil` if it is the same check.
+
+### Carried from fn-94.10 (2026-09-27)
+- The Program ceiling literal appears three times (server Driver, worker Driver, `execution.hardLimits`); export one shared ceiling (from `ir` or `execution`, wherever both Drivers may import) and use it in all three.
+- fn-94.10's review receipt prose is fn-94.11's merged review (a shared scratch file was overwritten); its SHIP verdict came from its own draws. No action beyond noting it.
+
+### Carried from fn-94.11 (2026-09-27)
+- `scheduler.acceptEffect`'s `input` parameter is never read (renamed `_`); remove it and adjust `admitDispatch` and its callers.
+
 ## Acceptance
 - [ ] Each D1 consolidation leaves one definition; `execute`/`executeCleanup` stay apart.
 - [ ] `RuleViolation` is an alias of `verification.Violation`; the gate passes.
