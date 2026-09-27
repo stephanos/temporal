@@ -37,9 +37,16 @@ Admit Rule instances in Go preparation (R2) and make admission equal to the expa
 - [ ] `go test -count=1 -tags test_dep ./common/testing/testpilot/internal/...` passes; `make lint-code-fast` clean on changed packages
 
 ## Done summary
-TBD
+Go preparation now admits Rule instances (R2) with admission equal to the expansion's (R3, admission half). `ir` admits `Reference.instance_value_id` only in Contract predicates. It binds like the literal each instance inlines: its declared type must be the context's expected type, or text when there is no context, and `pair` reverses around it as it does around a literal. Each binding reports its instance-value reads, and `Catalog.InstanceValueWork` gives the inlined literal's extra binding cost. `AdmitReferences` now sits on a new `WalkReferences`.
 
+In `verification`, `bindInstances` checks every R2 case before binding, at the by-ID locations (`contract.rules[r].instance_values[v]`, `...instances[i].assignments[v]`, the predicate path for empty or undeclared reads). Rule, instance and correlated IDs share the one `seen` set, and the correlated combined-count check now uses the expanded rule count. Each Rule binds once as its first instance while its ceiling charges are recorded in a ledger. The ledger is then replayed for each further instance, with reads priced at that instance's literal. `MaxRules` counts instances before any allocation, and `boundWork` charges each instance's per-event bound with inlined literal sizes. Contract binding is now bounded by the hard work ceiling and charged against what remains. For plain Contracts this means a binding-work overrun is reported at `contract` instead of partway through an expression, so an instanced Contract and its expansion reject with the same diagnostic.
+
+Tests: `TestInstanceValuesBindAsTheLiteralEachInstanceInlines` (ir) checks the type rules and that `InstanceValueWork` equals the binding-work difference. `TestPrepareLocatesInstanceErrors` has one case per R2 error. `TestPrepareAdmitsRuleInstances` covers one instance and an unread value. `TestPrepareRejectsARuleInstanceNamedLikeACorrelatedRule` covers the correlated collision. `TestPrepareChargesCeilingsPerRuleInstance` finds the expansion's threshold for every `ContractLimits` field by bisection and runs an instance-count sweep across the binding-work ceiling. Both require the same admission and diagnostic, and fail under mutations that drop the replay, the read pricing or the inline sizes. The out-of-context reference lists in execution and correlated tests include the new arm. No protocol or Driver catalog change, so no pinned Runs were re-recorded.
+
+Follow-ups: (1) the whole-Contract `ir.CheckSurface` bound is not multiplied per instance. It is not among the spec's enumerated ceilings, but an expansion with MB-scale values read many times could exceed it. (2) Review P3s: the recording state in `admission` could be a small owned recorder, and `literalLike` should check `ok` before using `expression`.
+
+stage: impl-review - ran (claude:opus:high, first-pass SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3035f7586952a7cef14fddd4b02454f18bbb216b
+- Tests: baseline: green (go test -count=1 -tags test_dep ./common/testing/testpilot/internal/...), go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., make umpire-check-case-runtime-conformance, make lint-code-fast, not run: make proto / umpire-check-testpilot-protocol / umpire-check-testpilot-authoring / canary-check-case / lint-model / umpire-check-regression (no proto, Lean or fixture change in this task)
 - PRs:
