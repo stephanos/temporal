@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078290Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.10",
+    "fn-94-simplify-the-testpilot-go-runtime.12",
+    "fn-94-simplify-the-testpilot-go-runtime.13",
+    "fn-94-simplify-the-testpilot-go-runtime.3"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.14",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.14.md",
+  "status": "todo",
+  "title": "Shared test support in common/testing/testpilot: closures, limits, runtime fixture, fakes",
+  "updated_at": "2026-09-27T15:37:27.190755Z"
+}

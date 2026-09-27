@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078100Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.6"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.7",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.7.md",
+  "status": "todo",
+  "title": "Shared admission primitives exported from ir",
+  "updated_at": "2026-09-27T15:29:30.078100Z"
+}
