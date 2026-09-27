@@ -43,9 +43,12 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+E1 decision: read (recommended default; no owner override). Lean decodes prior_state+prior_fields, state+state_fields and initial_state+initial_state_fields as StateValue (model/Testpilot/Correlated.lean checkedState at 103-106, result at 108-112, transitions at 284, initial at 374; model/Shared/SemanticData.lean StateValue at 19) and its monitor matches transitions on that value, so Go reads the fields; removal would need a Lean StateValue redesign and its decode agreement proof.
 
+Correlated admission now validates every initial_state_fields, prior_fields and state_fields entry as a model value (initial fields under "invalid correlated projection binding", transition fields after the fact check under "invalid correlated transition value", so no existing rejection moves), and sameResult compares StateFields in order as Lean's Result does. Tests: TestCorrelatedPrepareRejectsInvalidStateFields (one case per list, category and path pinned) and TestCorrelatedPrepareComparesOutputStateFields (absent, reordered and different output fields rejected; equal admitted) in correlated_prepare_test.go. Corpus unchanged. Note: sameResult is also the runtime monitor's output-row match (correlated.go:455), which now compares fields too, consistent with Lean; the rest of the monitor half stays with fn-94.3. Commit range ea93a2bc8b..HEAD also contains fn-94.2's concurrent commits; only 0da39564cc is this task's.
+
+stage: impl-review - ran codex fan-out (3 draws SHIP, rid eaed2fd0b9e54645a38f5f2837123577)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0da39564cc3a679732402643e152fa6ecaf8ac2f
+- Tests: go test -race -tags test_dep ./common/testing/testpilot/... (rc=0, 11 packages ok), make umpire-check-case-runtime-conformance (rc=0, no fixture or expected.json diff), make lint-code-fast (rc=0, 0 issues), baseline: green (go test -race -tags test_dep ./common/testing/testpilot/internal/verification/... and make umpire-check-case-runtime-conformance pre-edit)
 - PRs:

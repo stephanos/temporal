@@ -13,6 +13,7 @@
   ],
   "id": "fn-94-simplify-the-testpilot-go-runtime",
   "impl_review_rounds": {
+    "fn-94-simplify-the-testpilot-go-runtime.1": 0,
     "fn-94-simplify-the-testpilot-go-runtime.2": 0
   },
   "next_task": 1,
@@ -215,9 +216,45 @@
       "task": "fn-94-simplify-the-testpilot-go-runtime.2",
       "timestamp": "2026-09-27T17:58:29.990420Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ebfd760d186580074248df9dab5c01bd45e525a6a6ba18cb4c601d5ecee3b697",
+      "backend": "codex",
+      "base_sha": "ea93a2bc8bc936b44b6654f1960492a8943a0683",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0da39564cc3a679732402643e152fa6ecaf8ac2f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1104,
+      "output_sha256": "6e9859d3fab45ac7b5542fa206eb14f44457da87e3a91e932fcf47134b93fd30",
+      "reservation_id": "eaed2fd0b9e54645a38f5f2837123577",
+      "round_consumed": true,
+      "scope": "impl:fn-94-simplify-the-testpilot-go-runtime.1",
+      "superseded_by": null,
+      "task": "fn-94-simplify-the-testpilot-go-runtime.1",
+      "timestamp": "2026-09-27T18:11:03.818003Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-94-simplify-the-testpilot-go-runtime.1": 1,
     "impl:fn-94-simplify-the-testpilot-go-runtime.2": 1,
     "plan": 1,
     "plan#completion": 0
@@ -225,6 +262,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-94-simplify-the-testpilot-go-runtime.1": 0,
     "impl:fn-94-simplify-the-testpilot-go-runtime.2": 0,
     "plan": 0
   },
@@ -242,5 +280,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T17:58:29.993570Z"
+  "updated_at": "2026-09-27T18:11:03.820262Z"
 }
