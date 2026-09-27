@@ -618,6 +618,7 @@ func (c *temporalImpl) startWorker() {
 			fx.Provide(func() config.DCRedirectionPolicy { return config.DCRedirectionPolicy{} }),
 			fx.Provide(func() log.Logger { return logger }),
 			fx.Provide(func() log.ThrottledLogger { return logger }),
+			fx.Provide(func() otellog.Logger { return wideevents.NoopLogger() }),
 			fx.Provide(c.newRPCFactory),
 			static.MembershipModule(c.makeHostMap(serviceName, host)),
 			fx.Provide(func() *cluster.Config { return &clusterConfigCopy }),
