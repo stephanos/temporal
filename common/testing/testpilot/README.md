@@ -111,8 +111,8 @@ not declare is spelled in decimal, which no literal names.
 
 The protocol has no compatibility promise, so an extension changes it in place. The same places change
 in the same order for every kind of extension; the lists below say what each place needs for a new
-instruction, fault kind, Run Event payload and expression reference, and the worker-stop fault kind
-is traced through all of them as the worked example. fn-85 R10's typed worker instructions are the
+instruction, fault kind, Run Event payload and expression reference and for a removal, and the
+worker-stop fault kind is traced through all of them as the worked example. fn-85 R10's typed worker instructions are the
 first planned use.
 
 ### Every extension
@@ -238,12 +238,13 @@ Verdict and admission.
 1. An arm appended to `Reference.reference` in `expression.proto`, with its message when the reference
    is structured.
 2. `make proto`.
-3. An `Expr` constructor beside `Expr.capture` and `Expr.runEventPayload`. A correlated reference is
-   also admitted by `Testpilot.Correlated.decode`.
-4. `ir.ReferenceKind` and `compiler.reference` in `internal/ir/expression.go`, and the resolver of the
-   context that admits it: execution for the Program context, verification for the Contract context,
-   and `verification/correlated_prepare.go` and `correlated.go` for the correlated context, which admits
-   and evaluates its own conditions.
+3. An `Expr` constructor beside `Expr.capture` and `Expr.runEventPayload`, and the Producer that
+   writes it. A correlated reference is also admitted by `Testpilot.Correlated.decode`, and a
+   reference that carries a Case-local name is renamed by `Umpire.Case.LocalNames`.
+4. `ir.ReferenceKind` and `compiler.reference` in `internal/ir/expression.go`, and the resolver of at
+   least one context that admits it: execution for the Program context, verification for the Contract
+   context, and `verification/correlated_prepare.go` and `correlated.go` for the correlated context,
+   which admits and evaluates its own conditions. A reference no context admits is not added.
 5. `ir.admittedReferences`, the context table. A reference outside its contexts rejects `unknown` at its
    path.
 6. No Opcode or Driver change.
@@ -262,6 +263,36 @@ conformance variant pins one rejection a non-Lean Producer sees. The corpus does
 expanded Case-size charge: tripping the 16 MiB Case-size limit (`ir.DefaultLimits`) takes a Case of
 several MiB, too large to commit as a fixture, so `TestPrepareBoundsTheCaseSurfaceAsExpanded` in
 `internal/execution` covers it instead.
+
+### Removing an element
+
+A removal walks the same places in the same order, deleting instead of adding. It removes a Program
+or Contract capability, so it needs no migration only because the protocol has no compatibility
+promise.
+
+1. **Decision.** Keep the element if a Lean Producer emits it (search `model/` for its snake_case and
+   lowerCamel spellings), a fixture uses it, hand-written Go reads it outside its own handler, or an
+   open spec or a governed requirement names it. Record the decision and its evidence in the
+   removing task.
+2. **Protocol.** Delete the arm or value; its successors move up, so the numbers stay dense from 1. A
+   message it alone used goes with it.
+3. **Generated code.** `make proto`; `make umpire-check-testpilot-protocol` for the Lean protocol.
+4. **Lean.** The `Testpilot.Authoring` constructor and its guard, the `Testpilot.Correlated` decode
+   case and the `Umpire.Case.LocalNames` renamer case.
+5. **Go.** The handler cases and table rows, and the arm's row in each test that probes every arm
+   (`TestExpressionContextsRejectReferencesOutsideThem`, the preparation tests that locate a
+   reference outside its context, `TestProtocolEncodesExpressionAndStateScopes`).
+6. **Retired-vocabulary gate.** Step 8 above, for each spelling SEM-20 and the gate's grammar allow:
+   compound identifiers, the generated oneof type and accessor, and the snake_case field name. A
+   spelling a live name shares, such as a message the removed arm carried, is not held. The removed
+   field's full name goes in `TestProtocolUsesCohesivePublicVocabulary`.
+7. **Fixtures.** Regenerate; a fixture that changes used the element, which step 1 should have kept.
+8. **Pinned Runs.** Any `.proto` edit moves the Driver catalog identity: update
+   `TestWorkflowServiceCatalogIdentityGolden` and run `make umpire-rerecord-pinned-runs` against a
+   live cluster in the same commit.
+
+The model-value expression reference followed this list: no Producer wrote it, no context admitted
+it, and only the renamer and the context probe tables named it.
 
 ### Worked example: `FAULT_KIND_WORKER_STOP`
 

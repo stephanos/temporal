@@ -759,7 +759,6 @@ type Reference struct {
 	//	*Reference_CaptureId
 	//	*Reference_EvidenceFieldId
 	//	*Reference_CorrelatedCapture
-	//	*Reference_ModelValue
 	//	*Reference_CorrelatedStep
 	//	*Reference_ProjectedValue
 	//	*Reference_InstanceValueId
@@ -886,15 +885,6 @@ func (x *Reference) GetCorrelatedCapture() *CorrelatedCaptureReference {
 	return nil
 }
 
-func (x *Reference) GetModelValue() *ModelValue {
-	if x != nil {
-		if x, ok := x.Reference.(*Reference_ModelValue); ok {
-			return x.ModelValue
-		}
-	}
-	return nil
-}
-
 func (x *Reference) GetCorrelatedStep() *CorrelatedStepReference {
 	if x != nil {
 		if x, ok := x.Reference.(*Reference_CorrelatedStep); ok {
@@ -968,24 +958,18 @@ type Reference_CorrelatedCapture struct {
 	CorrelatedCapture *CorrelatedCaptureReference `protobuf:"bytes,9,opt,name=correlated_capture,json=correlatedCapture,proto3,oneof"`
 }
 
-type Reference_ModelValue struct {
-	// A literal model value. No context admits it yet: a correlated step reference and a text
-	// literal carry the model values correlated conditions test.
-	ModelValue *ModelValue `protobuf:"bytes,10,opt,name=model_value,json=modelValue,proto3,oneof"`
-}
-
 type Reference_CorrelatedStep struct {
-	CorrelatedStep *CorrelatedStepReference `protobuf:"bytes,11,opt,name=correlated_step,json=correlatedStep,proto3,oneof"`
+	CorrelatedStep *CorrelatedStepReference `protobuf:"bytes,10,opt,name=correlated_step,json=correlatedStep,proto3,oneof"`
 }
 
 type Reference_ProjectedValue struct {
 	// The value an evidence lift is projecting.
-	ProjectedValue *ProjectedValueReference `protobuf:"bytes,12,opt,name=projected_value,json=projectedValue,proto3,oneof"`
+	ProjectedValue *ProjectedValueReference `protobuf:"bytes,11,opt,name=projected_value,json=projectedValue,proto3,oneof"`
 }
 
 type Reference_InstanceValueId struct {
 	// A value the evaluated Rule instance assigns; admitted only in a Contract transition predicate.
-	InstanceValueId string `protobuf:"bytes,13,opt,name=instance_value_id,json=instanceValueId,proto3,oneof"`
+	InstanceValueId string `protobuf:"bytes,12,opt,name=instance_value_id,json=instanceValueId,proto3,oneof"`
 }
 
 func (*Reference_SlotId) isReference_Reference() {}
@@ -1005,8 +989,6 @@ func (*Reference_CaptureId) isReference_Reference() {}
 func (*Reference_EvidenceFieldId) isReference_Reference() {}
 
 func (*Reference_CorrelatedCapture) isReference_Reference() {}
-
-func (*Reference_ModelValue) isReference_Reference() {}
 
 func (*Reference_CorrelatedStep) isReference_Reference() {}
 
@@ -1458,7 +1440,7 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\rAllExpression\x12H\n" +
 	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"Y\n" +
 	"\rAnyExpression\x12H\n" +
-	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\x90\a\n" +
+	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\xbf\x06\n" +
 	"\tReference\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12Y\n" +
 	"\aoutcome\x18\x02 \x01(\v2=.temporal.server.api.testpilot.v1.InstructionOutcomeReferenceH\x00R\aoutcome\x12B\n" +
@@ -1469,13 +1451,11 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\n" +
 	"capture_id\x18\a \x01(\tH\x00R\tcaptureId\x12,\n" +
 	"\x11evidence_field_id\x18\b \x01(\tH\x00R\x0fevidenceFieldId\x12m\n" +
-	"\x12correlated_capture\x18\t \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCaptureReferenceH\x00R\x11correlatedCapture\x12O\n" +
-	"\vmodel_value\x18\n" +
-	" \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueH\x00R\n" +
-	"modelValue\x12d\n" +
-	"\x0fcorrelated_step\x18\v \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12d\n" +
-	"\x0fprojected_value\x18\f \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValue\x12,\n" +
-	"\x11instance_value_id\x18\r \x01(\tH\x00R\x0finstanceValueIdB\v\n" +
+	"\x12correlated_capture\x18\t \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCaptureReferenceH\x00R\x11correlatedCapture\x12d\n" +
+	"\x0fcorrelated_step\x18\n" +
+	" \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12d\n" +
+	"\x0fprojected_value\x18\v \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValue\x12,\n" +
+	"\x11instance_value_id\x18\f \x01(\tH\x00R\x0finstanceValueIdB\v\n" +
 	"\treference\"b\n" +
 	"\x14InstructionReference\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
@@ -1554,8 +1534,7 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(*CorrelatedStepReference)(nil),     // 17: temporal.server.api.testpilot.v1.CorrelatedStepReference
 	(*ProjectedValueReference)(nil),     // 18: temporal.server.api.testpilot.v1.ProjectedValueReference
 	(*Value)(nil),                       // 19: temporal.server.api.testpilot.v1.Value
-	(*ModelValue)(nil),                  // 20: temporal.server.api.testpilot.v1.ModelValue
-	(RunEventField)(0),                  // 21: temporal.server.api.testpilot.v1.RunEventField
+	(RunEventField)(0),                  // 20: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	19, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
@@ -1578,19 +1557,18 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	13, // 17: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
 	14, // 18: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
 	16, // 19: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	20, // 20: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 21: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
-	18, // 22: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
-	11, // 23: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	1,  // 24: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	21, // 25: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	15, // 26: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
-	2,  // 27: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	17, // 20: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
+	18, // 21: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
+	11, // 22: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	1,  // 23: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
+	20, // 24: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	15, // 25: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
+	2,  // 26: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -1620,7 +1598,6 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*Reference_CaptureId)(nil),
 		(*Reference_EvidenceFieldId)(nil),
 		(*Reference_CorrelatedCapture)(nil),
-		(*Reference_ModelValue)(nil),
 		(*Reference_CorrelatedStep)(nil),
 		(*Reference_ProjectedValue)(nil),
 		(*Reference_InstanceValueId)(nil),

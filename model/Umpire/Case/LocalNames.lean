@@ -198,7 +198,6 @@ private def expressionArm : Expression.expression_Type → m Expression.expressi
         | some (.evidence_field_id id) => pure (some (.evidence_field_id (← visitor.name id)))
         | some (.correlated_capture capture) =>
             pure (some (.correlated_capture { capture with capture_id := ← visitor.name capture.capture_id }))
-        | some (.model_value value) => pure (some (.model_value (← modelValue visitor value)))
         | other => pure other
       pure (.reference { reference with reference := arm })
   | .path ⟨operand, path, unknown⟩ => do pure (.path ⟨← operand? operand, path, unknown⟩)
