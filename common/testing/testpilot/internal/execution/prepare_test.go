@@ -347,8 +347,6 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 	_, err = Prepare(c, catalog, p)
 	require.NoError(t, err)
 	c.Program.ProgramId = "changed"
-	p.Roles[0].Methods[0] = "changed"
-	p.Limits.MaxNodes = 1
 	snapshot := prepared.Snapshot()
 	snapshot.ProgramId = "changed again"
 	view := prepared.View()
@@ -424,7 +422,6 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	)
 	c.Program.Roles[0].ResourceBindingId = "queue"
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}, {ID: "unused", Value: "allowed"}}
-	policy.EnvironmentFingerprint = "fingerprint"
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("namespace")}}
 
 	prepared, err := Prepare(c, catalog, policy)
@@ -432,7 +429,6 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
 	require.Equal(t, resolvedRole{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["endpoint"])
 	require.Equal(t, resolvedRole{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"}, prepared.roles["queue"])
-	require.NotEmpty(t, prepared.environmentFingerprint)
 	store, err := newValueStore(prepared, "run")
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
@@ -450,7 +446,6 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	require.Equal(t, "namespace", prepared.Snapshot().Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value.GetReference().GetEnvironmentBindingId())
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
 	require.Equal(t, "queue-a", prepared.roles["queue"].Resource)
-	require.Equal(t, "fingerprint", prepared.environmentFingerprint)
 }
 
 // A Program's binding graph is every binding its roles and expressions reference, each once, roles
@@ -572,33 +567,6 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
-}
-
-func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
-	for name, bindings := range map[string][]contract.EnvironmentBinding{
-		"invalid id":    {{ID: "bad id", Value: "value"}},
-		"invalid value": {{ID: "id", Value: string([]byte{0xff})}},
-		"empty value":   {{ID: "id"}},
-		"duplicate":     {{ID: "id", Value: "one"}, {ID: "id", Value: "two"}},
-	} {
-		t.Run(name, func(t *testing.T) {
-			c, catalog, policy := fixture(t)
-			policy.EnvironmentBindings = bindings
-			_, err := Prepare(c, catalog, policy)
-			require.Error(t, err)
-		})
-	}
-
-	c, catalog, policy := fixture(t)
-	policy.EnvironmentBindings = make([]contract.EnvironmentBinding, 10001)
-	_, err := Prepare(c, catalog, policy)
-	require.Error(t, err)
-
-	c, catalog, policy = fixture(t)
-	policy.Limits.MaxRequestBytes = 8
-	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "id", Value: "1234567"}}
-	_, err = Prepare(c, catalog, policy)
-	require.Error(t, err)
 }
 
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {

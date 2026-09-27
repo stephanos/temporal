@@ -101,6 +101,33 @@ func TestPrepareOwnsMutableInputs(t *testing.T) {
 	require.Equal(t, DriverIdentity{Profile: "proof", Catalog: profile.Catalog.Identity()}, prepared.Identity())
 }
 
+// Admission holds the one Profile clone Prepare takes, so mutating the caller's ProfileSpec in place
+// afterwards changes nothing prepared, the binding fingerprint included.
+func TestPrepareHoldsItsOwnProfileClone(t *testing.T) {
+	source, profile := facadeFixture(t)
+	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}}
+	profile.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}
+	profile.EnvironmentBindings = []EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}}
+	profile.Configuration = []ConfigurationValue{{Key: "history.enablechasm", Value: "true"}}
+	for _, caller := range []Profile{profile, &profile} {
+		prepared, err := Prepare(source, caller)
+		require.NoError(t, err)
+		program := PreparedProgram{program: prepared.program}
+		identity, roles, limits := prepared.Identity(), program.Roles(), program.Limits()
+
+		mutated := profile.Snapshot()
+		profile.Roles[0].Kind = testpilotspb.ROLE_KIND_TASK_QUEUE
+		profile.EnvironmentBindings[0].Value = "namespace-b"
+		profile.Configuration[0].Value = "false"
+		profile.ProgramLimits.MaxNodes = 1
+		profile.ProgramLimits.MaxRequestBytes = 1
+		require.Equal(t, identity, prepared.Identity())
+		require.Equal(t, roles, program.Roles())
+		require.True(t, proto.Equal(limits, program.Limits()))
+		profile = mutated
+	}
+}
+
 // The configuration a Profile records is part of its binding fingerprint: the same bindings under
 // two configurations are two identities, the configuration's order does not matter, an invalid
 // configuration is a preparation error, and a Profile with no configuration fingerprints as it did
