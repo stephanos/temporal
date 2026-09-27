@@ -146,7 +146,20 @@ structure Method (Request Response : Type) where
   clientStreaming : Bool
   serverStreaming : Bool
   deprecated : Bool
-  deriving DecidableEq, Repr
+
+-- Written out because deriving would require instances of the phantom payload types.
+instance : DecidableEq (Method Request Response)
+  | ⟨fullName, clientStreaming, serverStreaming, deprecated⟩,
+    ⟨fullName', clientStreaming', serverStreaming', deprecated'⟩ =>
+    decidable_of_iff (fullName = fullName' ∧ clientStreaming = clientStreaming' ∧
+      serverStreaming = serverStreaming' ∧ deprecated = deprecated') (by simp)
+
+instance : Repr (Method Request Response) where
+  reprPrec method _ := Std.Format.bracket "{ "
+    (f!"fullName := {repr method.fullName}," ++ Std.Format.line ++
+      f!"clientStreaming := {method.clientStreaming}," ++ Std.Format.line ++
+      f!"serverStreaming := {method.serverStreaming}," ++ Std.Format.line ++
+      f!"deprecated := {method.deprecated}") " }"
 
 end Fixture.API.Proto
 `),
@@ -167,6 +180,33 @@ set_option maxRecDepth 100000
 set_option linter.extra.dupNamespace false
 `),
 	}, renderArtifacts(plan))
+}
+
+func TestRenderTypesGivesFieldlessMessagesNoInjectivityLemmas(t *testing.T) {
+	t.Parallel()
+	document, err := buildProjection(basicDescriptorSet(t))
+	require.NoError(t, err)
+	plan, err := buildLeanPlan(document, fixtureTestConfiguration)
+	require.NoError(t, err)
+	fieldless := &plan.Namespaces[0].Messages[0]
+	fieldless.StructureFields = nil
+	var oneof *leanOneofPlan
+	for namespaceIndex := range plan.Namespaces {
+		for messageIndex := range plan.Namespaces[namespaceIndex].Messages {
+			if oneofs := plan.Namespaces[namespaceIndex].Messages[messageIndex].Oneofs; len(oneofs) > 0 {
+				oneof = &oneofs[0]
+			}
+		}
+	}
+	require.NotNil(t, oneof)
+	oneof.Constructors[0].Field.Projection.TypeName = fieldless.Projection.FullName
+
+	// A placeholder field or a payload of a fieldless message would each give Lean an `injEq`
+	// lemma that simp proves by structure eta, which simpNF rejects.
+	types := string(renderTypes(plan))
+	require.Contains(t, types, "structure "+fieldless.RelativeName+" where\n  deriving Repr\n")
+	require.Contains(t, types, "  | notSet\n  | "+oneof.Constructors[0].Field.Name+"\n")
+	require.Contains(t, types, "  | "+oneof.Constructors[1].Field.Name+" (value : ")
 }
 
 func TestPublishArtifactsResetsOwnedOutputsAndPreservesSiblings(t *testing.T) {

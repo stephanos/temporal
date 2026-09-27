@@ -75,6 +75,19 @@ private def forgedUnary : Fixture.API.Proto.Method Message Reply :=
 #guard_msgs (error, substring := true) in
 #check Fixture.API.bindUnary forgedUnary
 
+-- `Message` and `Reply` have no `DecidableEq`: method equality needs no payload instances.
+#guard unary == unary
+#guard unary != forged
+
+/--
+info: { fullName := "fixture.messaging.internal.v1.MessagingService.Unary",
+  clientStreaming := false,
+  serverStreaming := false,
+  deprecated := false }
+-/
+#guard_msgs in
+#eval unary
+
 example : unaryReference.schema.fullName =
     "fixture.messaging.internal.v1.MessagingService.Unary" := rfl
 

@@ -1837,11 +1837,9 @@ structure Duration where
   deriving Repr
 
 structure Empty where
-  unit : Unit := ()
   deriving Repr
 
 structure FeatureSet.VisibilityFeature where
-  unit : Unit := ()
   deriving Repr
 
 structure FeatureSetDefaults.FeatureSetEditionDefault where
@@ -2324,12 +2322,11 @@ structure ActivityOptions where
   deriving Repr
 
 structure CallbackInfo.ActivityClosed where
-  unit : Unit := ()
   deriving Repr
 
 inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | activityClosed (value : CallbackInfo.ActivityClosed)
+  | activityClosed
   deriving Repr
 
 structure CallbackInfo.Trigger where
@@ -2398,7 +2395,6 @@ structure BatchOperationCancellation where
   deriving Repr
 
 structure BatchOperationDeleteActivities where
-  unit : Unit := ()
   deriving Repr
 
 structure BatchOperationDeletion where
@@ -2419,8 +2415,8 @@ namespace Temporal.Api.Common.V1
 
 inductive ResetOptions.Target where
   | notSet
-  | firstWorkflowTask (value : Google.Protobuf.Empty)
-  | lastWorkflowTask (value : Google.Protobuf.Empty)
+  | firstWorkflowTask
+  | lastWorkflowTask
   | workflowTaskId (value : Int)
   | buildId (value : String)
   deriving Repr
@@ -2566,12 +2562,11 @@ end Temporal.Api.Batch.V1
 namespace Temporal.Api.Rules.V1
 
 structure WorkflowRuleAction.ActionActivityPause where
-  unit : Unit := ()
   deriving Repr
 
 inductive WorkflowRuleAction.Variant where
   | notSet
-  | activityPause (value : WorkflowRuleAction.ActionActivityPause)
+  | activityPause
   deriving Repr
 
 structure WorkflowRuleAction where
@@ -3098,7 +3093,6 @@ structure ActivityExecutionAlreadyStartedFailure where
   deriving Repr
 
 structure CancellationAlreadyRequestedFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure ClientVersionNotSupportedFailure where
@@ -3118,7 +3112,6 @@ structure MultiOperationExecutionFailure where
   deriving Repr
 
 structure NamespaceAlreadyExistsFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure NamespaceInvalidStateFailure where
@@ -3185,11 +3178,9 @@ structure WorkflowExecutionAlreadyStartedFailure where
   deriving Repr
 
 structure WorkflowNotReadyFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure WorkflowTaskCompletionBufferLostFailure where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Api.Errordetails.V1
@@ -3934,7 +3925,6 @@ end Temporal.Api.Export.V1
 namespace Temporal.Api.Failure.V1
 
 structure MultiOperationExecutionAborted where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Api.Failure.V1
@@ -4044,7 +4034,6 @@ structure CancelOperationRequest where
   deriving Repr
 
 structure CancelOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure EndpointTarget.External where
@@ -4217,7 +4206,7 @@ structure StartOperationResponse where
 inductive Response.Variant where
   | notSet
   | startOperation (value : StartOperationResponse)
-  | cancelOperation (value : CancelOperationResponse)
+  | cancelOperation
   deriving Repr
 
 structure Response where
@@ -4254,12 +4243,11 @@ end Temporal.Api.Nexusservices.Workerservice.V1
 namespace Temporal.Api.Worker.V1
 
 structure CancelActivityResult where
-  unit : Unit := ()
   deriving Repr
 
 inductive WorkerCommandResult.Type where
   | notSet
-  | cancelActivity (value : CancelActivityResult)
+  | cancelActivity
   deriving Repr
 
 structure WorkerCommandResult where
@@ -4286,7 +4274,6 @@ structure AddOrUpdateRemoteClusterRequest where
   deriving Repr
 
 structure AddOrUpdateRemoteClusterResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure AddSearchAttributesRequest where
@@ -4295,7 +4282,6 @@ structure AddSearchAttributesRequest where
   deriving Repr
 
 structure AddSearchAttributesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ClusterMetadata where
@@ -4333,7 +4319,6 @@ structure DeleteNexusEndpointRequest where
   deriving Repr
 
 structure DeleteNexusEndpointResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure GetNexusEndpointRequest where
@@ -4380,7 +4365,6 @@ structure RemoveRemoteClusterRequest where
   deriving Repr
 
 structure RemoveRemoteClusterResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveSearchAttributesRequest where
@@ -4389,7 +4373,6 @@ structure RemoveSearchAttributesRequest where
   deriving Repr
 
 structure RemoveSearchAttributesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateNexusEndpointRequest where
@@ -5061,12 +5044,11 @@ structure CallbackInfo.UpdateWorkflowExecutionCompleted where
   deriving Repr
 
 structure CallbackInfo.WorkflowClosed where
-  unit : Unit := ()
   deriving Repr
 
 inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | workflowClosed (value : CallbackInfo.WorkflowClosed)
+  | workflowClosed
   | updateWorkflowExecutionCompleted (value : CallbackInfo.UpdateWorkflowExecutionCompleted)
   deriving Repr
 
@@ -5135,7 +5117,7 @@ structure PendingActivityInfo.PauseInfo where
 
 inductive PendingActivityInfo.AssignedBuildId where
   | notSet
-  | useWorkflowBuildId (value : Google.Protobuf.Empty)
+  | useWorkflowBuildId
   | lastIndependentlyAssignedBuildId (value : String)
   deriving Repr
 
@@ -5384,7 +5366,6 @@ structure CreateWorkerDeploymentVersionRequest where
   deriving Repr
 
 structure CreateWorkerDeploymentVersionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CreateWorkflowRuleRequest where
@@ -5408,7 +5389,6 @@ structure DeleteActivityExecutionRequest where
   deriving Repr
 
 structure DeleteActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteNexusOperationExecutionRequest where
@@ -5418,7 +5398,6 @@ structure DeleteNexusOperationExecutionRequest where
   deriving Repr
 
 structure DeleteNexusOperationExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteScheduleRequest where
@@ -5428,7 +5407,6 @@ structure DeleteScheduleRequest where
   deriving Repr
 
 structure DeleteScheduleResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkerDeploymentRequest where
@@ -5438,7 +5416,6 @@ structure DeleteWorkerDeploymentRequest where
   deriving Repr
 
 structure DeleteWorkerDeploymentResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkerDeploymentVersionRequest where
@@ -5450,7 +5427,6 @@ structure DeleteWorkerDeploymentVersionRequest where
   deriving Repr
 
 structure DeleteWorkerDeploymentVersionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkflowExecutionRequest where
@@ -5459,7 +5435,6 @@ structure DeleteWorkflowExecutionRequest where
   deriving Repr
 
 structure DeleteWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkflowRuleRequest where
@@ -5468,7 +5443,6 @@ structure DeleteWorkflowRuleRequest where
   deriving Repr
 
 structure DeleteWorkflowRuleResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeprecateNamespaceRequest where
@@ -5477,7 +5451,6 @@ structure DeprecateNamespaceRequest where
   deriving Repr
 
 structure DeprecateNamespaceResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DescribeActivityExecutionRequest where
@@ -5796,7 +5769,6 @@ structure FetchWorkerConfigResponse where
   deriving Repr
 
 structure GetClusterInfoRequest where
-  unit : Unit := ()
   deriving Repr
 
 structure GetClusterInfoResponse where
@@ -5833,7 +5805,6 @@ structure GetDeploymentReachabilityResponse where
   deriving Repr
 
 structure GetSearchAttributesRequest where
-  unit : Unit := ()
   deriving Repr
 
 structure GetSearchAttributesResponse where
@@ -5841,7 +5812,6 @@ structure GetSearchAttributesResponse where
   deriving Repr
 
 structure GetSystemInfoRequest where
-  unit : Unit := ()
   deriving Repr
 
 structure GetSystemInfoResponse.Capabilities where
@@ -6133,7 +6103,6 @@ structure PatchScheduleRequest where
   deriving Repr
 
 structure PatchScheduleResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PauseActivityExecutionRequest where
@@ -6148,7 +6117,6 @@ structure PauseActivityExecutionRequest where
   deriving Repr
 
 structure PauseActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive PauseActivityRequest.Activity where
@@ -6167,7 +6135,6 @@ structure PauseActivityRequest where
   deriving Repr
 
 structure PauseActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PauseWorkflowExecutionRequest where
@@ -6180,7 +6147,6 @@ structure PauseWorkflowExecutionRequest where
   deriving Repr
 
 structure PauseWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PollActivityExecutionRequest where
@@ -6359,7 +6325,6 @@ structure RecordWorkerHeartbeatRequest where
   deriving Repr
 
 structure RecordWorkerHeartbeatResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RegisterNamespaceRequest where
@@ -6379,7 +6344,6 @@ structure RegisterNamespaceRequest where
   deriving Repr
 
 structure RegisterNamespaceResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RequestCancelActivityExecutionRequest where
@@ -6392,7 +6356,6 @@ structure RequestCancelActivityExecutionRequest where
   deriving Repr
 
 structure RequestCancelActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RequestCancelNexusOperationExecutionRequest where
@@ -6405,7 +6368,6 @@ structure RequestCancelNexusOperationExecutionRequest where
   deriving Repr
 
 structure RequestCancelNexusOperationExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RequestCancelWorkflowExecutionRequest where
@@ -6419,7 +6381,6 @@ structure RequestCancelWorkflowExecutionRequest where
   deriving Repr
 
 structure RequestCancelWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetActivityExecutionRequest where
@@ -6437,7 +6398,6 @@ structure ResetActivityExecutionRequest where
   deriving Repr
 
 structure ResetActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive ResetActivityRequest.Activity where
@@ -6459,7 +6419,6 @@ structure ResetActivityRequest where
   deriving Repr
 
 structure ResetActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetStickyTaskQueueRequest where
@@ -6468,7 +6427,6 @@ structure ResetStickyTaskQueueRequest where
   deriving Repr
 
 structure ResetStickyTaskQueueResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetWorkflowExecutionRequest where
@@ -6499,7 +6457,6 @@ structure RespondActivityTaskCanceledByIdRequest where
   deriving Repr
 
 structure RespondActivityTaskCanceledByIdResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskCanceledRequest where
@@ -6514,7 +6471,6 @@ structure RespondActivityTaskCanceledRequest where
   deriving Repr
 
 structure RespondActivityTaskCanceledResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskCompletedByIdRequest where
@@ -6528,7 +6484,6 @@ structure RespondActivityTaskCompletedByIdRequest where
   deriving Repr
 
 structure RespondActivityTaskCompletedByIdResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskCompletedRequest where
@@ -6543,7 +6498,6 @@ structure RespondActivityTaskCompletedRequest where
   deriving Repr
 
 structure RespondActivityTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskFailedByIdRequest where
@@ -6586,7 +6540,6 @@ structure RespondNexusTaskCompletedRequest where
   deriving Repr
 
 structure RespondNexusTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondNexusTaskFailedRequest where
@@ -6599,7 +6552,6 @@ structure RespondNexusTaskFailedRequest where
   deriving Repr
 
 structure RespondNexusTaskFailedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondQueryTaskCompletedRequest where
@@ -6614,7 +6566,6 @@ structure RespondQueryTaskCompletedRequest where
   deriving Repr
 
 structure RespondQueryTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondWorkflowTaskCompletedRequest.Capabilities where
@@ -6667,7 +6618,6 @@ structure RespondWorkflowTaskFailedRequest where
   deriving Repr
 
 structure RespondWorkflowTaskFailedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ScanWorkflowExecutionsRequest where
@@ -6761,7 +6711,6 @@ structure ShutdownWorkerRequest where
   deriving Repr
 
 structure ShutdownWorkerResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure SignalWithStartWorkflowExecutionRequest where
@@ -6860,7 +6809,7 @@ inductive StartBatchOperationRequest.Operation where
   | updateActivityOptionsOperation (value : Temporal.Api.Batch.V1.BatchOperationUpdateActivityOptions)
   | cancelActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationCancelActivities)
   | terminateActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationTerminateActivities)
-  | deleteActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationDeleteActivities)
+  | deleteActivitiesOperation
   deriving Repr
 
 structure StartBatchOperationRequest where
@@ -6875,7 +6824,6 @@ structure StartBatchOperationRequest where
   deriving Repr
 
 structure StartBatchOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure StartNexusOperationExecutionRequest where
@@ -6910,7 +6858,6 @@ structure StopBatchOperationRequest where
   deriving Repr
 
 structure StopBatchOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure TerminateActivityExecutionRequest where
@@ -6923,7 +6870,6 @@ structure TerminateActivityExecutionRequest where
   deriving Repr
 
 structure TerminateActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure TerminateNexusOperationExecutionRequest where
@@ -6936,7 +6882,6 @@ structure TerminateNexusOperationExecutionRequest where
   deriving Repr
 
 structure TerminateNexusOperationExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure TerminateWorkflowExecutionRequest where
@@ -6950,7 +6895,6 @@ structure TerminateWorkflowExecutionRequest where
   deriving Repr
 
 structure TerminateWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive TriggerWorkflowRuleRequest.Rule where
@@ -6983,7 +6927,6 @@ structure UnpauseActivityExecutionRequest where
   deriving Repr
 
 structure UnpauseActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive UnpauseActivityRequest.Activity where
@@ -7004,7 +6947,6 @@ structure UnpauseActivityRequest where
   deriving Repr
 
 structure UnpauseActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UnpauseWorkflowExecutionRequest where
@@ -7017,7 +6959,6 @@ structure UnpauseWorkflowExecutionRequest where
   deriving Repr
 
 structure UnpauseWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateActivityExecutionOptionsRequest where
@@ -7088,7 +7029,6 @@ structure UpdateScheduleRequest where
   deriving Repr
 
 structure UpdateScheduleResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateTaskQueueConfigRequest.RateLimitUpdate where
@@ -7138,7 +7078,6 @@ structure UpdateWorkerBuildIdCompatibilityRequest where
   deriving Repr
 
 structure UpdateWorkerBuildIdCompatibilityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateWorkerConfigRequest where
@@ -7170,7 +7109,6 @@ structure UpdateWorkerDeploymentVersionComputeConfigRequest where
   deriving Repr
 
 structure UpdateWorkerDeploymentVersionComputeConfigResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateWorkerDeploymentVersionMetadataRequest where
@@ -7265,7 +7203,6 @@ structure ValidateWorkerDeploymentVersionComputeConfigRequest where
   deriving Repr
 
 structure ValidateWorkerDeploymentVersionComputeConfigResponse where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Api.Workflowservice.V1
@@ -7280,7 +7217,6 @@ structure AddOrUpdateRemoteClusterRequest where
   deriving Repr
 
 structure AddOrUpdateRemoteClusterResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure AddSearchAttributesRequest where
@@ -7291,7 +7227,6 @@ structure AddSearchAttributesRequest where
   deriving Repr
 
 structure AddSearchAttributesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure AddTasksRequest.Task where
@@ -7305,11 +7240,9 @@ structure AddTasksRequest where
   deriving Repr
 
 structure AddTasksResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure BatchOperationRefreshTasks where
-  unit : Unit := ()
   deriving Repr
 
 structure CancelDLQJobRequest where
@@ -7326,7 +7259,6 @@ structure CloseShardRequest where
   deriving Repr
 
 structure CloseShardResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DLQJobToken where
@@ -7335,7 +7267,6 @@ structure DLQJobToken where
   deriving Repr
 
 structure DeepHealthCheckRequest where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Api.Adminservice.V1
@@ -7591,7 +7522,6 @@ structure ActivityInfo where
   deriving Repr
 
 structure ChasmCollectionAttributes where
-  unit : Unit := ()
   deriving Repr
 
 structure ChasmComponentAttributes.RequestMetadata where
@@ -7618,7 +7548,6 @@ structure ChasmComponentAttributes where
   deriving Repr
 
 structure ChasmDataAttributes where
-  unit : Unit := ()
   deriving Repr
 
 structure ChasmPointerAttributes where
@@ -7628,8 +7557,8 @@ structure ChasmPointerAttributes where
 inductive ChasmNodeMetadata.Attributes where
   | notSet
   | componentAttributes (value : ChasmComponentAttributes)
-  | dataAttributes (value : ChasmDataAttributes)
-  | collectionAttributes (value : ChasmCollectionAttributes)
+  | dataAttributes
+  | collectionAttributes
   | pointerAttributes (value : ChasmPointerAttributes)
   deriving Repr
 
@@ -8021,14 +7950,13 @@ end Temporal.Server.Api.Adminservice.V1
 namespace Temporal.Server.Api.Taskqueue.V1
 
 structure WorkerCommandsPartitionId where
-  unit : Unit := ()
   deriving Repr
 
 inductive TaskQueuePartition.PartitionId where
   | notSet
   | normalPartitionId (value : Int)
   | stickyName (value : String)
-  | workerCommands (value : WorkerCommandsPartitionId)
+  | workerCommands
   deriving Repr
 
 structure TaskQueuePartition where
@@ -8610,7 +8538,6 @@ structure DestinationPredicateAttributes where
   deriving Repr
 
 structure EmptyPredicateAttributes where
-  unit : Unit := ()
   deriving Repr
 
 structure NamespaceIdPredicateAttributes where
@@ -8636,7 +8563,6 @@ structure TaskTypePredicateAttributes where
   deriving Repr
 
 structure UniversalPredicateAttributes where
-  unit : Unit := ()
   deriving Repr
 
 structure AndPredicateAttributes where
@@ -8653,8 +8579,8 @@ structure OrPredicateAttributes where
 
 inductive Predicate.Attributes where
   | notSet
-  | universalPredicateAttributes (value : UniversalPredicateAttributes)
-  | emptyPredicateAttributes (value : EmptyPredicateAttributes)
+  | universalPredicateAttributes
+  | emptyPredicateAttributes
   | andPredicateAttributes (value : Temporal.API.Proto.MessageRef)
   | orPredicateAttributes (value : Temporal.API.Proto.MessageRef)
   | notPredicateAttributes (value : Temporal.API.Proto.MessageRef)
@@ -8730,7 +8656,7 @@ namespace Temporal.Server.Api.Taskqueue.V1
 
 inductive TaskVersionDirective.BuildId where
   | notSet
-  | useAssignmentRules (value : Google.Protobuf.Empty)
+  | useAssignmentRules
   | assignedBuildId (value : String)
   deriving Repr
 
@@ -8998,7 +8924,6 @@ structure MigrateScheduleRequest where
   deriving Repr
 
 structure MigrateScheduleResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PurgeDLQMessagesRequest where
@@ -9009,7 +8934,6 @@ structure PurgeDLQMessagesRequest where
   deriving Repr
 
 structure PurgeDLQMessagesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PurgeDLQTasksRequest where
@@ -9028,7 +8952,6 @@ structure ReapplyEventsRequest where
   deriving Repr
 
 structure ReapplyEventsResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RebuildMutableStateRequest where
@@ -9037,7 +8960,6 @@ structure RebuildMutableStateRequest where
   deriving Repr
 
 structure RebuildMutableStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RefreshWorkflowTasksRequest where
@@ -9048,7 +8970,6 @@ structure RefreshWorkflowTasksRequest where
   deriving Repr
 
 structure RefreshWorkflowTasksResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveRemoteClusterRequest where
@@ -9056,7 +8977,6 @@ structure RemoveRemoteClusterRequest where
   deriving Repr
 
 structure RemoveRemoteClusterResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveSearchAttributesRequest where
@@ -9066,7 +8986,6 @@ structure RemoveSearchAttributesRequest where
   deriving Repr
 
 structure RemoveSearchAttributesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveTaskRequest where
@@ -9077,7 +8996,6 @@ structure RemoveTaskRequest where
   deriving Repr
 
 structure RemoveTaskResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResendReplicationTasksRequest where
@@ -9092,12 +9010,11 @@ structure ResendReplicationTasksRequest where
   deriving Repr
 
 structure ResendReplicationTasksResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive StartAdminBatchOperationRequest.Operation where
   | notSet
-  | refreshTasksOperation (value : BatchOperationRefreshTasks)
+  | refreshTasksOperation
   deriving Repr
 
 structure StartAdminBatchOperationRequest where
@@ -9111,7 +9028,6 @@ structure StartAdminBatchOperationRequest where
   deriving Repr
 
 structure StartAdminBatchOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Api.Adminservice.V1
@@ -9411,7 +9327,6 @@ structure CreateWorkerDeploymentVersionArgs where
   deriving Repr
 
 structure CreateWorkerDeploymentVersionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteDeploymentArgs where
@@ -9490,7 +9405,6 @@ structure ForceCANDeploymentSignalArgs where
   deriving Repr
 
 structure TaskQueueVersionData where
-  unit : Unit := ()
   deriving Repr
 
 structure VersionLocalState.TaskQueueFamilyData where
@@ -9682,7 +9596,6 @@ structure UpdateComputeConfigArgs where
   deriving Repr
 
 structure UpdateComputeConfigResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateVersionMetadataArgs where
@@ -9742,7 +9655,6 @@ end Temporal.Server.Api.Deployment.V1
 namespace Temporal.Server.Api.Errordetails.V1
 
 structure ActivityStartDuringTransitionFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure CurrentBranchChangedFailure where
@@ -9753,11 +9665,9 @@ structure CurrentBranchChangedFailure where
   deriving Repr
 
 structure ObsoleteDispatchBuildIdFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure ObsoleteMatchingTaskFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure RetryReplicationFailure where
@@ -9776,11 +9686,9 @@ structure ShardOwnershipLostFailure where
   deriving Repr
 
 structure StalePartitionCountsFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure StickyWorkerUnavailableFailure where
-  unit : Unit := ()
   deriving Repr
 
 structure SyncStateFailure where
@@ -9793,7 +9701,6 @@ structure SyncStateFailure where
   deriving Repr
 
 structure TaskAlreadyStartedFailure where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Api.Errordetails.V1
@@ -9853,7 +9760,6 @@ structure AddTasksRequest where
   deriving Repr
 
 structure AddTasksResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CancelNexusOperationRequest where
@@ -9871,7 +9777,6 @@ structure CloseShardRequest where
   deriving Repr
 
 structure CloseShardResponse where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Api.Historyservice.V1
@@ -9907,7 +9812,6 @@ structure CompleteNexusOperationChasmRequest where
   deriving Repr
 
 structure CompleteNexusOperationChasmResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive CompleteNexusOperationRequest.Outcome where
@@ -9926,7 +9830,6 @@ structure CompleteNexusOperationRequest where
   deriving Repr
 
 structure CompleteNexusOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeepHealthCheckRequest where
@@ -9956,7 +9859,6 @@ structure DeleteExecutionRequest where
   deriving Repr
 
 structure DeleteExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkflowExecutionRequest where
@@ -9966,7 +9868,6 @@ structure DeleteWorkflowExecutionRequest where
   deriving Repr
 
 structure DeleteWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteWorkflowVisibilityRecordRequest where
@@ -9977,7 +9878,6 @@ structure DeleteWorkflowVisibilityRecordRequest where
   deriving Repr
 
 structure DeleteWorkflowVisibilityRecordResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DescribeHistoryHostRequest where
@@ -10383,7 +10283,6 @@ structure PauseActivityRequest where
   deriving Repr
 
 structure PauseActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PauseWorkflowExecutionRequest where
@@ -10392,7 +10291,6 @@ structure PauseWorkflowExecutionRequest where
   deriving Repr
 
 structure PauseWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PollMutableStateRequest where
@@ -10446,7 +10344,6 @@ structure PurgeDLQMessagesRequest where
   deriving Repr
 
 structure PurgeDLQMessagesResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure QueryWorkflowRequest where
@@ -10464,7 +10361,6 @@ structure ReapplyEventsRequest where
   deriving Repr
 
 structure ReapplyEventsResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RebuildMutableStateRequest where
@@ -10473,7 +10369,6 @@ structure RebuildMutableStateRequest where
   deriving Repr
 
 structure RebuildMutableStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RecordActivityTaskHeartbeatRequest where
@@ -10542,7 +10437,6 @@ structure RecordChildExecutionCompletedRequest where
   deriving Repr
 
 structure RecordChildExecutionCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RecordWorkflowTaskStartedRequest where
@@ -10613,7 +10507,6 @@ structure RefreshWorkflowTasksRequest where
   deriving Repr
 
 structure RefreshWorkflowTasksResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveSignalMutableStateRequest where
@@ -10623,7 +10516,6 @@ structure RemoveSignalMutableStateRequest where
   deriving Repr
 
 structure RemoveSignalMutableStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RemoveTaskRequest where
@@ -10634,7 +10526,6 @@ structure RemoveTaskRequest where
   deriving Repr
 
 structure RemoveTaskResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ReplicateEventsV2Request where
@@ -10648,7 +10539,6 @@ structure ReplicateEventsV2Request where
   deriving Repr
 
 structure ReplicateEventsV2Response where
-  unit : Unit := ()
   deriving Repr
 
 structure ReplicateWorkflowStateRequest where
@@ -10660,7 +10550,6 @@ structure ReplicateWorkflowStateRequest where
   deriving Repr
 
 structure ReplicateWorkflowStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RequestCancelWorkflowExecutionRequest where
@@ -10672,7 +10561,6 @@ structure RequestCancelWorkflowExecutionRequest where
   deriving Repr
 
 structure RequestCancelWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetActivityRequest where
@@ -10681,7 +10569,6 @@ structure ResetActivityRequest where
   deriving Repr
 
 structure ResetActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetStickyTaskQueueRequest where
@@ -10690,7 +10577,6 @@ structure ResetStickyTaskQueueRequest where
   deriving Repr
 
 structure ResetStickyTaskQueueResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetWorkflowExecutionRequest where
@@ -10708,7 +10594,6 @@ structure RespondActivityTaskCanceledRequest where
   deriving Repr
 
 structure RespondActivityTaskCanceledResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskCompletedRequest where
@@ -10717,7 +10602,6 @@ structure RespondActivityTaskCompletedRequest where
   deriving Repr
 
 structure RespondActivityTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondActivityTaskFailedRequest where
@@ -10726,7 +10610,6 @@ structure RespondActivityTaskFailedRequest where
   deriving Repr
 
 structure RespondActivityTaskFailedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondWorkflowTaskCompletedRequest where
@@ -10747,7 +10630,6 @@ structure RespondWorkflowTaskFailedRequest where
   deriving Repr
 
 structure RespondWorkflowTaskFailedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RoutingOptions where
@@ -10770,7 +10652,6 @@ structure ScheduleWorkflowTaskRequest where
   deriving Repr
 
 structure ScheduleWorkflowTaskResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure SignalWithStartWorkflowExecutionRequest where
@@ -10861,7 +10742,6 @@ structure SyncActivityRequest where
   deriving Repr
 
 structure SyncActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure SyncShardStatusRequest where
@@ -10871,7 +10751,6 @@ structure SyncShardStatusRequest where
   deriving Repr
 
 structure SyncShardStatusResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure SyncWorkflowStateRequest where
@@ -10895,7 +10774,6 @@ structure TerminateWorkflowExecutionRequest where
   deriving Repr
 
 structure TerminateWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UnpauseActivityRequest where
@@ -10904,7 +10782,6 @@ structure UnpauseActivityRequest where
   deriving Repr
 
 structure UnpauseActivityResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UnpauseWorkflowExecutionRequest where
@@ -10913,7 +10790,6 @@ structure UnpauseWorkflowExecutionRequest where
   deriving Repr
 
 structure UnpauseWorkflowExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateActivityOptionsRequest where
@@ -10946,7 +10822,6 @@ structure VerifyChildExecutionCompletionRecordedRequest where
   deriving Repr
 
 structure VerifyChildExecutionCompletionRecordedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure VerifyFirstWorkflowTaskScheduledRequest where
@@ -10956,7 +10831,6 @@ structure VerifyFirstWorkflowTaskScheduledRequest where
   deriving Repr
 
 structure VerifyFirstWorkflowTaskScheduledResponse where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Api.Historyservice.V1
@@ -11019,7 +10893,6 @@ structure ApplyTaskQueueUserDataReplicationEventRequest where
   deriving Repr
 
 structure ApplyTaskQueueUserDataReplicationEventResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CancelOutstandingPollRequest where
@@ -11030,7 +10903,6 @@ structure CancelOutstandingPollRequest where
   deriving Repr
 
 structure CancelOutstandingPollResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CancelOutstandingWorkerPollsPartitionRequest.WorkerEntry where
@@ -11068,7 +10940,6 @@ structure CheckTaskQueueUserDataPropagationRequest where
   deriving Repr
 
 structure CheckTaskQueueUserDataPropagationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CheckTaskQueueVersionMembershipRequest where
@@ -11159,7 +11030,6 @@ structure DeleteNexusEndpointRequest where
   deriving Repr
 
 structure DeleteNexusEndpointResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DescribeTaskQueuePartitionRequest where
@@ -11228,14 +11098,13 @@ structure DispatchNexusTaskRequest where
   deriving Repr
 
 structure DispatchNexusTaskResponse.Timeout where
-  unit : Unit := ()
   deriving Repr
 
 inductive DispatchNexusTaskResponse.Outcome where
   | notSet
   | handlerError (value : Temporal.Api.Nexus.V1.HandlerError)
   | response (value : Temporal.Api.Nexus.V1.Response)
-  | requestTimeout (value : DispatchNexusTaskResponse.Timeout)
+  | requestTimeout
   | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
@@ -11515,7 +11384,6 @@ structure RecordWorkerHeartbeatRequest where
   deriving Repr
 
 structure RecordWorkerHeartbeatResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ReplicateTaskQueueUserDataRequest where
@@ -11525,7 +11393,6 @@ structure ReplicateTaskQueueUserDataRequest where
   deriving Repr
 
 structure ReplicateTaskQueueUserDataResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondNexusTaskCompletedRequest where
@@ -11536,7 +11403,6 @@ structure RespondNexusTaskCompletedRequest where
   deriving Repr
 
 structure RespondNexusTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondNexusTaskFailedRequest where
@@ -11547,7 +11413,6 @@ structure RespondNexusTaskFailedRequest where
   deriving Repr
 
 structure RespondNexusTaskFailedResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure RespondQueryTaskCompletedRequest where
@@ -11558,7 +11423,6 @@ structure RespondQueryTaskCompletedRequest where
   deriving Repr
 
 structure RespondQueryTaskCompletedResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive SyncDeploymentUserDataRequest.Operation where
@@ -11591,7 +11455,6 @@ structure UpdateFairnessStateRequest where
   deriving Repr
 
 structure UpdateFairnessStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateNexusEndpointRequest where
@@ -11622,7 +11485,6 @@ structure UpdateTaskQueueUserDataRequest where
   deriving Repr
 
 structure UpdateTaskQueueUserDataResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateWorkerBuildIdCompatibilityRequest.ApplyPublicRequest where
@@ -11648,7 +11510,6 @@ structure UpdateWorkerBuildIdCompatibilityRequest where
   deriving Repr
 
 structure UpdateWorkerBuildIdCompatibilityResponse where
-  unit : Unit := ()
   deriving Repr
 
 inductive UpdateWorkerVersioningRulesRequest.Command where
@@ -11713,12 +11574,11 @@ structure Callback where
   deriving Repr
 
 structure CallbackInfo.WorkflowClosed where
-  unit : Unit := ()
   deriving Repr
 
 inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | workflowClosed (value : CallbackInfo.WorkflowClosed)
+  | workflowClosed
   deriving Repr
 
 structure CallbackInfo.Trigger where
@@ -12428,7 +12288,6 @@ structure DeleteActivityExecutionRequest where
   deriving Repr
 
 structure DeleteActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DescribeActivityExecutionRequest where
@@ -12450,7 +12309,6 @@ structure PauseActivityExecutionRequest where
   deriving Repr
 
 structure PauseActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PollActivityExecutionRequest where
@@ -12468,7 +12326,6 @@ structure RequestCancelActivityExecutionRequest where
   deriving Repr
 
 structure RequestCancelActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ResetActivityExecutionRequest where
@@ -12477,7 +12334,6 @@ structure ResetActivityExecutionRequest where
   deriving Repr
 
 structure ResetActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ScheduleToCloseTimeoutTask where
@@ -12507,7 +12363,6 @@ structure TerminateActivityExecutionRequest where
   deriving Repr
 
 structure TerminateActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UnpauseActivityExecutionRequest where
@@ -12516,7 +12371,6 @@ structure UnpauseActivityExecutionRequest where
   deriving Repr
 
 structure UnpauseActivityExecutionResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateActivityExecutionOptionsRequest where
@@ -12563,7 +12417,6 @@ structure CallbackState where
   deriving Repr
 
 structure CallbackState.WorkflowClosed where
-  unit : Unit := ()
   deriving Repr
 
 structure InvocationTask where
@@ -12601,7 +12454,6 @@ structure DeleteNexusOperationRequest where
   deriving Repr
 
 structure DeleteNexusOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DescribeNexusOperationRequest where
@@ -12688,15 +12540,12 @@ structure RequestCancelNexusOperationRequest where
   deriving Repr
 
 structure RequestCancelNexusOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure ScheduleToCloseTimeoutTask where
-  unit : Unit := ()
   deriving Repr
 
 structure ScheduleToStartTimeoutTask where
-  unit : Unit := ()
   deriving Repr
 
 structure StartNexusOperationRequest where
@@ -12710,7 +12559,6 @@ structure StartNexusOperationResponse where
   deriving Repr
 
 structure StartToCloseTimeoutTask where
-  unit : Unit := ()
   deriving Repr
 
 structure TerminateNexusOperationRequest where
@@ -12719,7 +12567,6 @@ structure TerminateNexusOperationRequest where
   deriving Repr
 
 structure TerminateNexusOperationResponse where
-  unit : Unit := ()
   deriving Repr
 
 end Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1
@@ -12795,7 +12642,6 @@ structure CreateFromMigrationStateRequest where
   deriving Repr
 
 structure CreateFromMigrationStateResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure CreateScheduleRequest where
@@ -12814,7 +12660,6 @@ structure CreateSentinelRequest where
   deriving Repr
 
 structure CreateSentinelResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure DeleteScheduleRequest where
@@ -12845,15 +12690,12 @@ structure EventLog where
   deriving Repr
 
 structure GeneratorTask where
-  unit : Unit := ()
   deriving Repr
 
 structure InvokerExecuteTask where
-  unit : Unit := ()
   deriving Repr
 
 structure InvokerProcessBufferTask where
-  unit : Unit := ()
   deriving Repr
 
 structure ListScheduleMatchingTimesRequest where
@@ -12873,7 +12715,6 @@ structure MigrateToWorkflowRequest where
   deriving Repr
 
 structure MigrateToWorkflowResponse where
-  unit : Unit := ()
   deriving Repr
 
 structure PatchScheduleRequest where
@@ -12886,7 +12727,6 @@ structure PatchScheduleResponse where
   deriving Repr
 
 structure SchedulerCallbacksTask where
-  unit : Unit := ()
   deriving Repr
 
 structure SchedulerIdleTask where
@@ -12894,7 +12734,6 @@ structure SchedulerIdleTask where
   deriving Repr
 
 structure SchedulerMigrateToWorkflowTask where
-  unit : Unit := ()
   deriving Repr
 
 structure UpdateScheduleRequest where

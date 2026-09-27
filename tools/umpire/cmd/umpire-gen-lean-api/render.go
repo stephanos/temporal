@@ -52,7 +52,20 @@ structure Method (Request Response : Type) where
   clientStreaming : Bool
   serverStreaming : Bool
   deprecated : Bool
-  deriving DecidableEq, Repr
+
+-- Written out because deriving would require instances of the phantom payload types.
+instance : DecidableEq (Method Request Response)
+  | ⟨fullName, clientStreaming, serverStreaming, deprecated⟩,
+    ⟨fullName', clientStreaming', serverStreaming', deprecated'⟩ =>
+    decidable_of_iff (fullName = fullName' ∧ clientStreaming = clientStreaming' ∧
+      serverStreaming = serverStreaming' ∧ deprecated = deprecated') (by simp)
+
+instance : Repr (Method Request Response) where
+  reprPrec method _ := Std.Format.bracket "{ "
+    (f!"fullName := {repr method.fullName}," ++ Std.Format.line ++
+      f!"clientStreaming := {method.clientStreaming}," ++ Std.Format.line ++
+      f!"serverStreaming := {method.serverStreaming}," ++ Std.Format.line ++
+      f!"deprecated := {method.deprecated}") " }"
 
 `)
 	fmt.Fprintf(&generated, "end %s\n", plan.supportNamespace)
@@ -63,6 +76,7 @@ func renderTypes(plan leanPlan) []byte {
 	var generated strings.Builder
 	writeModuleHeader(&generated, plan.TypesModule, apiTypesModuleDoc)
 	generated.WriteString("set_option linter.extra.dupNamespace false\n\n")
+	fieldless := fieldlessMessages(plan)
 	for _, namespace := range plan.Namespaces {
 		fmt.Fprintf(&generated, "namespace %s\n\n", namespace.Name.String())
 		for _, enum := range namespace.Enums {
@@ -78,6 +92,12 @@ func renderTypes(plan leanPlan) []byte {
 			for _, oneof := range message.Oneofs {
 				fmt.Fprintf(&generated, "inductive %s where\n  | notSet\n", oneof.RelativeName)
 				for _, constructor := range oneof.Constructors {
+					// A fieldless payload carries no data, and its constructor injectivity lemma is
+					// one simp already proves by structure eta, which simpNF rejects as redundant.
+					if !constructor.Field.Recursive && fieldless[constructor.Field.Projection.TypeName] {
+						fmt.Fprintf(&generated, "  | %s\n", constructor.Field.Name)
+						continue
+					}
 					fmt.Fprintf(&generated, "  | %s (value : %s)\n",
 						constructor.Field.Name, renderLeanType(constructor.Field.BaseType))
 				}
@@ -87,14 +107,23 @@ func renderTypes(plan leanPlan) []byte {
 			for _, field := range message.StructureFields {
 				fmt.Fprintf(&generated, "  %s : %s\n", field.Name, renderLeanType(field.Type))
 			}
-			if len(message.StructureFields) == 0 {
-				generated.WriteString("  unit : Unit := ()\n")
-			}
 			generated.WriteString("  deriving Repr\n\n")
 		}
 		fmt.Fprintf(&generated, "end %s\n\n", namespace.Name.String())
 	}
 	return []byte(strings.TrimRight(generated.String(), "\n") + "\n")
+}
+
+func fieldlessMessages(plan leanPlan) map[string]bool {
+	result := make(map[string]bool)
+	for _, namespace := range plan.Namespaces {
+		for _, message := range namespace.Messages {
+			if len(message.StructureFields) == 0 {
+				result[message.Projection.FullName] = true
+			}
+		}
+	}
+	return result
 }
 
 func renderAPI(plan leanPlan) []byte {

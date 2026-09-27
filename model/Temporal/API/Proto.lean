@@ -27,6 +27,19 @@ structure Method (Request Response : Type) where
   clientStreaming : Bool
   serverStreaming : Bool
   deprecated : Bool
-  deriving DecidableEq, Repr
+
+-- Written out because deriving would require instances of the phantom payload types.
+instance : DecidableEq (Method Request Response)
+  | ⟨fullName, clientStreaming, serverStreaming, deprecated⟩,
+    ⟨fullName', clientStreaming', serverStreaming', deprecated'⟩ =>
+    decidable_of_iff (fullName = fullName' ∧ clientStreaming = clientStreaming' ∧
+      serverStreaming = serverStreaming' ∧ deprecated = deprecated') (by simp)
+
+instance : Repr (Method Request Response) where
+  reprPrec method _ := Std.Format.bracket "{ "
+    (f!"fullName := {repr method.fullName}," ++ Std.Format.line ++
+      f!"clientStreaming := {method.clientStreaming}," ++ Std.Format.line ++
+      f!"serverStreaming := {method.serverStreaming}," ++ Std.Format.line ++
+      f!"deprecated := {method.deprecated}") " }"
 
 end Temporal.API.Proto
