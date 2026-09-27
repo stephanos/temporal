@@ -1,5 +1,6 @@
 import Umpire.Search
 import Umpire.Search.Branches
+import Umpire.Search.Selection
 
 /-!
 # Admitting a Query against one checked Model
@@ -10,8 +11,9 @@ owns that chain. It returns either the first stage that rejected, as one `Admiss
 carrying that stage's own typed error unchanged, or an `AdmittedQuery`.
 
 An `AdmittedQuery` is indexed by the checked Model, like the search view it holds. The view is
-private: `AdmittedQuery.search`, `searchWithIntent` and `analyzeBranches` are the only ways to use
-it, so no caller rebuilds or transports a view by hand.
+private: `AdmittedQuery.search`, `searchWithIntent`, `searchWith` and `analyzeBranches` are the only
+ways to use it, so no caller rebuilds or transports a view by hand. The searches run on the backend
+`Umpire.Search.Selection` chooses; `searchWith` runs a named one, for tests.
 
 Two transports exist, and both live in this package. `SearchView.retarget` moves a view across a
 proved Model equality. `AdmittedQuery.withQuery` re-pairs an admitted view with another checked
@@ -133,16 +135,21 @@ variable {LawStatement : Law → Prop} {target : QueryModel LawStatement}
 def scenario (admitted : AdmittedQuery target) : CheckedScenario :=
   admitted.query.behavior
 
-/-- Search the admitted Query through its own view on the reference backend. -/
+/-- Search the admitted Query through its own view on the backend Selection chooses. -/
 def search (admitted : AdmittedQuery target) : Except KnownGapError PlanResult :=
-  let view := admitted.view.retarget admitted.targetEq.symm
-  finalizeBackendResult admitted.query view (Backend.reference admitted.query view)
+  Search.Selection.search admitted.query (admitted.view.retarget admitted.targetEq.symm)
+
+/-- Search the admitted Query through its own view on a named backend. -/
+def searchWith
+    (admitted : AdmittedQuery target)
+    (backend : Search.Selection.BackendName) : Except KnownGapError PlanResult :=
+  Search.Selection.searchWith backend admitted.query (admitted.view.retarget admitted.targetEq.symm)
 
 /-- Search the admitted Query and project the checked Artifact intent onto a selected Plan. -/
 def searchWithIntent
     (admitted : AdmittedQuery target)
     (intent : PlanRequest) : Except PlanningRequestError PlanResult :=
-  searchWithPlanRequest admitted.query (admitted.view.retarget admitted.targetEq.symm) intent
+  projectPlanRequest admitted.query intent admitted.search
 
 /-- Analyze the admitted Query's guarded cases over its bounded candidate stream. -/
 def analyzeBranches (admitted : AdmittedQuery target) : BranchAnalysisResult :=

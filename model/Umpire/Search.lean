@@ -875,6 +875,12 @@ private def currentState (candidate : Scenario.Trace) : ModelValue :=
   | some step => step.state
   | none => candidate.trace.initialState
 
+/-- Whether the Query reads a candidate trace at all: its Scenario admits it and, under a `terminal`
+ending, it ends in a terminal Model state. -/
+def isAdmittedEndpoint (query : CheckedQuery LawStatement) (candidate : Scenario.Trace) : Bool :=
+  query.behavior.admits candidate &&
+    (query.ending != .terminal || query.target.isTerminal (currentState candidate))
+
 private partial def nextRoot?
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
@@ -1017,10 +1023,25 @@ private def stopReason : Query.Form → SelectionReason
   | .find _ => .satisfyingWitness
   | .pick _ => .behaviorSelection
 
-private def observeCandidate
+/-- What the Query reads off one admitted endpoint: each Property's answer, in Property ID order,
+the triggers its clauses request and realize there, and whether the Query form stops its search
+there. -/
+structure EndpointDecision where
+  answers : List PropertyEndpointAnswer
+  required : List (DefinitionId × DefinitionId)
+  triggers : List PlanningTriggerEvidence
+  stops : Bool
+  deriving BEq, DecidableEq, Repr
+
+def EndpointDecision.violated (decision : EndpointDecision) : Bool :=
+  decision.answers.contains .violated
+
+def EndpointDecision.unresolved (decision : EndpointDecision) : Bool :=
+  decision.answers.contains .unresolved
+
+private def evaluateEndpoint
     (query : CheckedQuery LawStatement)
-    (state : PlanningObservations)
-    (candidate : Scenario.Trace) : Except QueryError (BoundedTraversalStep PlanningObservations) := do
+    (candidate : Scenario.Trace) : Except QueryError EndpointDecision := do
   let mut answers := []
   let mut current : PlanningObservations := { nonempty := true }
   for property in query.form.properties.mergeSort (fun left right =>
@@ -1041,18 +1062,35 @@ private def observeCandidate
       triggers := current.triggers ++ evaluation.realizedTriggers.map ({ trace := candidate, trigger := · }) }
   let violated := answers.contains .violated
   let unresolved := answers.contains .unresolved
-  let next := { state with
-    nonempty := true
-    unresolved := state.unresolved || unresolved
-    required := (state.required ++ current.required).eraseDups
-    triggers := state.triggers ++ current.triggers
-    counterexample := if violated && state.counterexample.isNone then some candidate else state.counterexample }
   let stops := match query.form with
     | .verify _ => false
     | .findViolation _ => violated
     | .find _ => !violated && !unresolved && coverageMet query current
     | .pick _ => coverageMet query current
-  if stops then pure (.stop next candidate (stopReason query.form)) else pure (.continue next)
+  pure { answers, required := current.required, triggers := current.triggers, stops }
+
+/-- The decision the Query makes at one candidate trace: `none` when it is not an admitted endpoint
+(`isAdmittedEndpoint`), otherwise its `EndpointDecision`. Kernel replay decides through it, and the
+reference search through the same two halves. -/
+def endpointDecision
+    (query : CheckedQuery LawStatement)
+    (candidate : Scenario.Trace) : Except QueryError (Option EndpointDecision) :=
+  if isAdmittedEndpoint query candidate then some <$> evaluateEndpoint query candidate
+  else pure none
+
+private def observeCandidate
+    (query : CheckedQuery LawStatement)
+    (state : PlanningObservations)
+    (candidate : Scenario.Trace) : Except QueryError (BoundedTraversalStep PlanningObservations) := do
+  let decision ← evaluateEndpoint query candidate
+  let next := { state with
+    nonempty := true
+    unresolved := state.unresolved || decision.unresolved
+    required := (state.required ++ decision.required).eraseDups
+    triggers := state.triggers ++ decision.triggers
+    counterexample := if decision.violated && state.counterexample.isNone then some candidate
+      else state.counterexample }
+  if decision.stops then pure (.stop next candidate (stopReason query.form)) else pure (.continue next)
 
 private def noteCandidate
     (candidate : Scenario.Trace)
@@ -1144,8 +1182,7 @@ private def traverseLoop
       | .yield candidate next =>
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
-          if query.behavior.admits candidate &&
-              (query.ending != .terminal || query.target.isTerminal (currentState candidate)) then
+          if isAdmittedEndpoint query candidate then
             let explored := notePropertyEvaluations query explored
             match visit consumerState candidate with
             | .error error =>
@@ -1228,15 +1265,97 @@ private def BackendResult.termination
   | .stateBound _ _ => .limitReached
   | .invalid error _ => .invalid error
 
+private def renderValue (value : ModelValue) : String :=
+  value.definitionId.value ++ "=" ++ value.value
+
+private def renderWitness (trace : Scenario.Trace) : String :=
+  "setup [" ++ ", ".intercalate (trace.setup.map fun binding =>
+      binding.role.value ++ ":" ++ renderValue binding.value) ++
+    "] initial " ++ renderValue trace.trace.initialState ++
+    String.join (trace.trace.steps.map fun step =>
+      " -> " ++ renderValue step.selectedAction ++ " / " ++ renderValue step.outcome ++ " / " ++
+        renderValue step.state ++ " [" ++ ", ".intercalate (step.facts.map renderValue) ++ "]")
+
+/-- Why a witness is not a trace the Query's own search could report, or `none` when it replays:
+its setup is one the search draws roots from, its initial state and every step are search-view
+members, it stays within the depth bound, it is an admitted endpoint, and the Query stops there
+(`verify`: a violation). -/
+private def replayFailure
+    (query : CheckedQuery LawStatement)
+    (kernel : SearchView query.target)
+    (trace : Scenario.Trace) : Option String :=
+  let setup := trace.setup
+  let steps := trace.trace.steps
+  let states := trace.trace.initialState :: steps.map (·.state)
+  let stepFailure := (steps.zip states).zipIdx.findSome? fun ((step, before), index) =>
+    let position := toString (index + 1)
+    if !(List.range kernel.actionLimit).any (kernel.actionAt · == some step.selectedAction) then
+      some ("step " ++ position ++ " selects an action outside the search view")
+    else if !(List.range (kernel.stepLimit before step.selectedAction)).any fun outcome =>
+        kernel.stepAt before step.selectedAction outcome ==
+          some { outcome := step.outcome, state := step.state, facts := step.facts } then
+      some ("step " ++ position ++ " is not a search-view step")
+    else
+      none
+  if !(candidateSetups query).contains setup then
+    some "the setup is not one the search draws roots from"
+  else if !(List.range (kernel.initialLimit setup)).any
+      (kernel.initialAt setup · == some trace.trace.initialState) then
+    some "the initial state is not a search-view initial state"
+  else if steps.length > maximumDepth query then
+    some ("the trace has " ++ toString steps.length ++ " steps, past the depth bound " ++
+      toString (maximumDepth query))
+  else if let some failure := stepFailure then
+    some failure
+  else
+    match endpointDecision query trace with
+    | .error error => some ("property evaluation failed: " ++ error.offendingValue)
+    | .ok none => some "the trace is not an admitted endpoint"
+    | .ok (some decision) =>
+        match query.form with
+        | .verify _ =>
+            if decision.violated then none else some "the verify Query finds no violation on it"
+        | form =>
+            if decision.stops then none else some ("the " ++ form.name ++ " Query does not stop at it")
+
+/-- Kernel replay: every witness a backend reports, the stopping trace and a `verify`
+counterexample, must replay (`replayFailure`). A result whose witness does not is `invalid` with
+`unreplayableWitness`, carrying the diagnostic and the trace, and keeps no counterexample. -/
+private def BackendResult.replayed
+    (query : CheckedQuery LawStatement)
+    (kernel : SearchView query.target)
+    (backendResult : BackendResult) : BackendResult :=
+  let observations := backendResult.observations
+  let stopped := match backendResult with
+    | .violationFound trace _ => [trace]
+    | _ => []
+  let counterexample := match query.form with
+    | .verify _ => observations.counterexample.toList
+    | _ => []
+  let failure := (stopped ++ counterexample).findSome? fun trace =>
+    (replayFailure query kernel trace).map (·, trace)
+  match failure with
+  | none => backendResult
+  | some (diagnostic, trace) =>
+      .invalid {
+        kind := .unreplayableWitness
+        definitionId := query.id
+        sourcePath := query.source.path
+        offendingValue := diagnostic ++ ": " ++ renderWitness trace
+        relatedDefinitionIds := []
+      } { observations with counterexample := none }
+
 /-- Turn one backend result into the Query's `PlanResult`: compose the Known Gaps, apply the
 planner's claim-strength finalization, turn a `verify` counterexample into the selected trace,
 refine a complete verdict into `still-pending` or `never-triggered` from the observations, and
-record the validity dimensions. Every backend's result goes through this one finalization. -/
+record the validity dimensions. Every backend's result goes through this one finalization, and
+every witness through kernel replay first. -/
 def finalizeBackendResult
     (query : CheckedQuery LawStatement)
-    (_kernel : SearchView query.target)
+    (kernel : SearchView query.target)
     (backendResult : BackendResult) : Except KnownGapError PlanResult := do
   let knownGaps ← composeSearchKnownGaps query
+  let backendResult := backendResult.replayed query kernel
   let state := backendResult.observations
   let traversed := backendResult.termination query
   let metadata := traversalMetadata query state.explored traversed
@@ -1282,19 +1401,26 @@ def search
     (kernel : SearchView query.target) : Except KnownGapError PlanResult :=
   finalizeBackendResult query kernel (Backend.reference query kernel)
 
+/-- Project checked Artifact intent onto the Plan a search selected, if it selected one. -/
+def projectPlanRequest
+    (query : CheckedQuery LawStatement)
+    (intent : PlanRequest)
+    (planned : Except KnownGapError PlanResult) : Except PlanningRequestError PlanResult := do
+  intent.validateFor query |>.mapError PlanningRequestError.planRequest
+  let run ← planned |>.mapError PlanningRequestError.knownGap
+  let artifact ← match run.artifact with
+    | none => pure none
+    | some spec => some <$> (spec.withPlanRequest query intent |>.mapError
+        PlanningRequestError.planRequest)
+  pure { run with artifact }
+
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.
 -/
 def searchWithPlanRequest
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
-    (intent : PlanRequest) : Except PlanningRequestError PlanResult := do
-  intent.validateFor query |>.mapError PlanningRequestError.planRequest
-  let run ← search query kernel |>.mapError PlanningRequestError.knownGap
-  let artifact ← match run.artifact with
-    | none => pure none
-    | some spec => some <$> (spec.withPlanRequest query intent |>.mapError
-        PlanningRequestError.planRequest)
-  pure { run with artifact }
+    (intent : PlanRequest) : Except PlanningRequestError PlanResult :=
+  projectPlanRequest query intent (search query kernel)
 
 end Umpire

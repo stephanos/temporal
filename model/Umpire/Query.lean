@@ -257,6 +257,8 @@ inductive QueryErrorKind where
   | targetKernelMismatch
   | duplicateFiniteDomain
   | propertyEvaluationFailure
+  /-- A search backend reported a witness that fails kernel replay. -/
+  | unreplayableWitness
   deriving BEq, DecidableEq, Ord, Repr
 
 def QueryErrorKind.name : QueryErrorKind → String
@@ -273,6 +275,7 @@ def QueryErrorKind.name : QueryErrorKind → String
   | .targetKernelMismatch => "target-kernel-mismatch"
   | .duplicateFiniteDomain => "duplicate-finite-domain"
   | .propertyEvaluationFailure => "property-evaluation-failure"
+  | .unreplayableWitness => "unreplayable-witness"
 
 structure QueryError where
   kind : QueryErrorKind
