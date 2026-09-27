@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	commonpb "go.temporal.io/api/common/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -184,6 +186,32 @@ func TestWorkerQuarantineCompletionFollowsRawHandle(t *testing.T) {
 	cancelCanceled()
 	require.ErrorIs(t, quarantineWorkerHandle(canceled, raw, func() {}), context.Canceled)
 	require.ErrorIs(t, quarantineWorkerHandle(t.Context(), nil, func() {}), ErrInvalid)
+}
+
+// A carried StartWorkflow request names its whole binding; a request that omits a binding field or
+// leaves one empty is the composite Driver's invalid input.
+func TestCarrierBindingRejectsIncompleteStartRequests(t *testing.T) {
+	complete := func() *workflowservice.StartWorkflowExecutionRequest {
+		return &workflowservice.StartWorkflowExecutionRequest{Namespace: "namespace", WorkflowId: "workflow-id", WorkflowType: &commonpb.WorkflowType{Name: "workflow-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "task-queue"}}
+	}
+	binding, err := carrierBinding(complete())
+	require.NoError(t, err)
+	require.Equal(t, delivery.WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, binding)
+
+	for name, mutate := range map[string]func(*workflowservice.StartWorkflowExecutionRequest){
+		"namespace":             func(request *workflowservice.StartWorkflowExecutionRequest) { request.Namespace = "" },
+		"workflow id":           func(request *workflowservice.StartWorkflowExecutionRequest) { request.WorkflowId = "" },
+		"workflow type name":    func(request *workflowservice.StartWorkflowExecutionRequest) { request.WorkflowType.Name = "" },
+		"task queue name":       func(request *workflowservice.StartWorkflowExecutionRequest) { request.TaskQueue.Name = "" },
+		"missing workflow type": func(request *workflowservice.StartWorkflowExecutionRequest) { request.WorkflowType = nil },
+	} {
+		t.Run(name, func(t *testing.T) {
+			request := complete()
+			mutate(request)
+			_, err := carrierBinding(request)
+			require.ErrorIs(t, err, ErrInvalid)
+		})
+	}
 }
 
 func TestCarrierEffectFinalizesWithFreshBoundAndRetries(t *testing.T) {
