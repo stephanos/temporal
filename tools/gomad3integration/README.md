@@ -25,3 +25,22 @@ The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
 exit under guarded mode, but its same-seed evidence does not yet reproduce in
 every run, and the report records `nondeterministic` or `replay_divergence`
 as observed; darwin/arm64 expects `qualified`.
+
+The functional test package itself has a closed capability closure on
+linux/amd64 under the `gomad` build tag:
+
+```sh
+tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json \
+  --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep \
+  go-test ./tests
+```
+
+reports `supported` with zero blockers. The tag drops the server's host-only
+providers (signal handlers, the persistence password command, the cloud
+archivers, AWS request signing, ringpop membership, the auto-scaled-workers
+component, and the MySQL and PostgreSQL drivers) and the fx, Temporal SDK,
+otel/sdk, and gRPC adapters remove the remaining `os/signal`, `os/user`, and
+`syscall` imports; `temporal-functional-tests-linux-amd64` admits the assembly,
+linknames, and procfs reads that stay. The manifest's tier 2 suites keep their
+untagged expectations because their darwin/arm64 counterparts have not been
+observed; GOMAD_MILESTONES.md F4 records the tagged linux results per suite.

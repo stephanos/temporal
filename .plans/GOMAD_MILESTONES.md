@@ -503,6 +503,80 @@ that turns "one probe" into "any test".
   providers excluded by tag to measure how much of the closure is optional. Do not make that
   separation a prerequisite if linked mode already closes the set.
 
+**Status.** Applied on 2026-09-27 on `gomad-linux` for linux/amd64. `gomad analyze
+--capability-mode=closure --format=json --build-tag disable_grpc_modules --build-tag gomad
+--build-tag test_dep go-test ./tests` reports `supported` with zero blockers over 1022 packages,
+selecting `modernc-libc-xsys-v047-linux-amd64` and the new
+`temporal-functional-tests-linux-amd64` pack. The 54 blockers of the untagged closure fell in
+four steps, each measured with the same command:
+
+- **Server seams behind the `gomad` build tag (54 → 18).** `temporal/interrupt.go` (no signal
+  handler), `common/config` (the persistence password command is refused), the SQL errno checks
+  in `sqlplugin`, the Google Cloud and S3 archivers behind `common/archiver/provider`, AWS
+  request signing for Elasticsearch, ringpop membership (`temporal` serves only clusters that
+  supply `StaticServiceHosts`), the auto-scaled-workers component in `service/worker`, and the
+  MySQL and PostgreSQL drivers in `tests/testcore`. SQL plugin names moved to a driver-free home
+  in `sqlplugin` so `visibility` and `persistence-tests` compare names without linking drivers.
+  Three functional tests that import a compute provider or the MySQL driver directly are
+  excluded under the tag; shared worker-deployment helpers moved to an untagged file. The
+  default build is unchanged and `make lint-code-fast` is clean.
+- **Adapters for what a seam cannot reach (18 → 22, then 3).** `os/signal` in fx and the Go
+  SDK and `os/user` in `otel/sdk/resource` are `remain_unsupported`, so no pack may admit them,
+  and they live in third-party modules a build tag cannot touch. The milestone text assumed a
+  server-side fix; it needed three new exact adapters (`go.uber.org/fx@v1.24.0`,
+  `go.temporal.io/sdk@v1.48.0`, `go.opentelemetry.io/otel/sdk@v1.44.0`) and an extension of
+  the gRPC adapter for the three portable files that import `syscall`. Each rewrite is anchored
+  to exact file digests. Removing the MySQL driver also removed `filippo.io/edwards25519` from
+  the closure, which deactivated `temporal-functional-compute-linux-amd64` (its activation
+  requires every listed module) and surfaced the 19 assembly and linkname facts it had been
+  admitting; those and the three `procfs` facts are the `add_exact_pack` residue.
+- **One pack for the `./tests` closure (3 + 19 → 0).** `temporal-functional-tests-linux-amd64`
+  names the `functional-tests` workload, targets `./tests` under the `gomad` tag, and admits
+  the amd64 assembly of xxhash, go-farm, snappy, klauspost/compress, and murmur3, the reflect2
+  assembly and linknames, and `import:syscall` and `import:golang.org/x/sys/unix` in
+  `prometheus/procfs`. Discover, review, generate, check, and qualify all pass;
+  `compatibility-pack-qualification` qualifies all three linux requests.
+- **Profile identity.** New adapters change the deterministic I/O inventory, so the profile
+  implementation digest moved and `modernc-libc-xsys-v047-linux-amd64` was regenerated
+  through the same review flow. The darwin/arm64 packs already pinned an older profile digest
+  (`9002aafa…`, from before the gRPC and x/net adapters) and cannot be regenerated from a
+  linux host, because discovery reviews the host platform; they need one `discover`, `review`,
+  `generate` pass on a darwin machine. The darwin prepared source-set pins of the three new
+  adapters were computed with `GOOS=darwin GOARCH=arm64 go list` over the rewritten modules,
+  not observed by a darwin review, so the first darwin run either confirms them or reports the
+  exact digest to record.
+
+The remaining acceptance items, measured on linux/amd64:
+
+- **Server build and stock suite.** `go build ./...` passes with and without the tag, the unit
+  tests of every touched package pass, `make lint-code-fast` is clean, and
+  `go test -tags test_dep -run '^TestActivityAPIBatchCancelClientTestSuite$' ./tests` passes
+  natively with the seams at their defaults.
+- **The eleven unsupported leaf cases.** With `--build-tag gomad`, none of them carries a
+  forbidden import any more. `./common/persistence/tests`, `./common/cache`,
+  `./common/persistence`, `./common/persistence/sql/sqlplugin/sqlite`, `./service/matching`,
+  `./service/history/workflow`, and `./service/history/workflow/update` report only
+  `add_exact_pack` facts: the amd64 assembly of xxhash (first blocker for all but
+  `persistence/tests`, whose first is `filippo.io/edwards25519/field`), go-farm, snappy,
+  klauspost/compress, murmur3, and `x/sys/unix`, plus the procfs imports. They do not flip to
+  `qualified` because `temporal-functional-tests-linux-amd64` activates only when every module
+  it names is in the closure, and these smaller closures lack reflect2 or procfs; each closure
+  shape needs its own exact pack, which F5 and F6 add for the workloads they qualify. The
+  manifest keeps the eleven untagged so their expectations stay observed on both platforms;
+  tagging them would require darwin/arm64 first-blocker evidence this host cannot produce.
+- **The `./tests` suite under the tag.** `gomad qualify --capability-mode closure` of
+  `TestActivityAPIBatchCancelClientTestSuite` with the tag prepares and runs: the closure is
+  supported, one repetition passes the whole suite in 4.5 s of virtual time (1.5 s wall,
+  87k choice records, 8.4 MiB choice tape), the other times out a test at the 90 s virtual
+  deadline, so the run classifies `nondeterministic`. The suite's `choice_bytes` of 8 MiB
+  overflows (`choice_trace_overflow`); 64 MiB is enough. That is the F5 starting point, and the
+  F3 repeatability gap is the same one. The manifest entry is unchanged for the darwin reason
+  above; the linux CI job asserts the closed closure directly instead.
+
+With the new adapters in place the core set still qualifies 5/5 with expectations met, and the
+frontend probe under guarded mode still lands inside its `unrepeatable` expectation
+(`replay_divergence` on this run).
+
 **Constraints.**
 
 - Closure mode is the support claim. Linked mode is evidence for what to isolate, never the
