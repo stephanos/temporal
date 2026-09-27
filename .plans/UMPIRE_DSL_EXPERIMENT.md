@@ -1,7 +1,7 @@
 # Umpire DSL experiment
 
 Date: 2026-09-06. This is the decision record for isolated executable experiments under
-[`experiments/umpire-dsl/`](../experiments/umpire-dsl/). It does not change the normative Umpire
+[`experiments/umpire-dsl/`](../experiments/umpire-dsl/README.md). It does not change the normative Umpire
 specification or authorize a production migration. No Flow-Next state is used by this work.
 
 ## Intent and baseline

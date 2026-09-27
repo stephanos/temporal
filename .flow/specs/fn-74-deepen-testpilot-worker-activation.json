@@ -91,7 +91,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-74-deepen-testpilot-worker-activation.md",
-  "status": "open",
+  "status": "done",
   "title": "Deepen Testpilot worker activation semantics and preparation diagnostics",
   "tracker": {
     "baseHashFlow": null,
@@ -104,5 +104,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:40.062191Z"
+  "updated_at": "2026-09-27T00:36:39.184573Z"
 }
