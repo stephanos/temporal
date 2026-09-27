@@ -148,19 +148,13 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- Grading dominates over decorrelation inside one family, so this is the
-     strongest tier available rather than a different-but-weaker sibling. It is
-     read by in-host dispatches (quality-auditor, host backend). Note the
-     consequence: with an all-Claude block the `host` review backend is
-     same-family and fails closed by design, so a cross-family impl-review
-     verdict has to come from a CLI bridge. As of 2026-09-09 BOTH bridges are
-     exhausted - codex until Sep 14, copilot at zero monthly credits - so
-     `review.backend` is `claude`, which is same-family and says so in its
-     receipt (`mode: "claude"`). Reviews are pinned to a model OTHER than the
-     implementer's for what decorrelation remains. Restore `codex` (preferred)
-     or `copilot` as soon as either has budget again. -->
+<!-- Reviews are cross-family: Claude implements in-session and Codex reviews
+     through the `codex` review backend (`review.backend` in .flow/config.json),
+     so the verdict is independent of the writer. Restored 2026-09-27 after the
+     Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
+     same-family `claude` backend, whose receipts say `mode: "claude"`. -->
 
-reviewer: opus at high
+reviewer: gpt-5.6-sol at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
