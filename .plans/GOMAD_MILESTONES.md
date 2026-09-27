@@ -728,6 +728,45 @@ becomes measurable instead of anecdotal.
   test bug and fixed upstream.
 - At least eight of the ten suites qualify.
 
+**Status.** Started on 2026-09-27 on linux/amd64 with ten suites: `TestActivityTestSuite`,
+`TestSignalWorkflowTestSuiteChasm`, `TestQueryWorkflowSuite`, `TestWorkflowUpdateSuite`,
+`TestChildWorkflowSuite`, `TestContinueAsNewTestSuite`, `TestCronTestSuite`,
+`TestWorkflowTestSuite`, `TestCancelWorkflowSuite`, and `TestWorkflowTimerTestSuite`, each run
+through `gomad qualify --repeat 2` on seeds 11 and 17 (64 MiB tape, one retained and replayed
+success, closure mode under the `gomad` build tag, schema mounted read-only). Every suite runs
+the cluster to a successful exit within 0.4 s to 3.4 s of wall time, with 15 transcript
+records, no watchdog termination and no `GOMAD_CAPABILITY_DENIED`; decisions range from 8.7k
+(timers) to 134k (updates), peak goroutines from 705 to 4.6k.
+
+The first pass, under the Green Tea collector, reproduced almost nothing: 19 of 20 seed runs
+were `nondeterministic` and `TestWorkflowUpdateSuite` failed outright. Listing every scanned
+object per cycle from a debug toolchain traced the divergence to Green Tea's scan-work
+accounting (span batches credited by `objects * elemsize`, sparsely reached objects by pointer
+extent), which made the pacer's trigger for the next cycle depend on the order the marker
+reached the `m` structs, and that order on which M held the P. Targets now build with
+`GOEXPERIMENT=nogreenteagc`; with the classic collector `TestUserTimersTestSuite` reproduces
+eight of eight on both seeds, and the slice reproduces fresh repetitions and replays in 6 of 20
+seed runs (`qualified`: activity 17, query 17, continue-as-new 11, workflow 11, timer 11) and
+fresh repetitions in 6 more whose retained replay diverged. That replay-only channel was then
+found in the runtime's environment filtering: it copied every environment entry into a Go
+string before dropping the Gomad control variables, whose values differ between a recording and
+its replay (choice mode, tape descriptor and size), so the replay's heap differed from the
+recording's before user code ran. The filter now runs on the C string
+(`gostringnocopy`) and copies only kept entries; the fix is in the overlay and its
+requalification is the next step.
+
+The update suite's failure was a server finding, not a Gomad one: the history update registry
+sorts pending updates by `admittedTime` over a map, and under virtual time two updates admitted
+within one clock tick carry the same time, so `TestUpdatesAreSentToWorkerInOrderOfAdmission`
+saw them reordered. Admissions now carry a process-wide sequence number that breaks the tie
+(`compareAdmission`), with a unit test, and the suite passes under Gomad on both seeds.
+`TestCancelWorkflowSuite` is the one suite whose retained replay reproduces the choice tape
+exactly while its evidence still differs; `gomad replay --observed DIR` now retains the
+replayed streams so that difference can be diffed. Triage for the six seed runs that still
+diverge between fresh repetitions (signal, update, child, cron 17, timer 17) is open; none of
+the slice is in `temporal.json` yet, and the acceptance stands as: outcome and evidence bounds
+met, evidence divergence still present and under investigation, so the milestone is open.
+
 ## F7: any functional test, and CI
 
 **Outcome.** The whole `./tests` package is enumerated in the qualification set, every test has

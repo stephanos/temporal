@@ -792,11 +792,14 @@ func gomadGoenvs() {
 	envs = make([]string, kept)
 	index := 0
 	for i := int32(0); i < n; i++ {
-		value := gostring(argv_index(argv, argc+1+i))
-		if gomadControlVariable(value) {
+		// Filter on the C string before copying it: the control variables
+		// differ between a recording and its replay (choice mode, tape
+		// descriptor and size), and copying them first put a different
+		// number of bytes on the heap before user code ran.
+		if gomadControlVariable(gostringnocopy(argv_index(argv, argc+1+i))) {
 			continue
 		}
-		envs[index] = value
+		envs[index] = gostring(argv_index(argv, argc+1+i))
 		index++
 	}
 }

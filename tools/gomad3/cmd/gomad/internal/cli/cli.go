@@ -37,7 +37,7 @@ const usage = `usage:
   gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
   gomad recover [--json] INTERRUPTED_BATCH
-  gomad replay [--verify-only] ARTIFACT_DIR
+  gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
   gomad minimize [--json] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
   gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
@@ -858,6 +858,7 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 	flags.SetOutput(stderr)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	observedDir := flags.String("observed", "", "directory that receives the replayed target's stdout and stderr")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -871,7 +872,7 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 		return 3
 	}
 	result, err := runner.Replay(context.Background(), runner.ReplaySpec{
-		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"},
+		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: []string{executable, "__supervisor"},
 	})
 	if err != nil {
 		var preflightError *runner.ReplayPreflightError

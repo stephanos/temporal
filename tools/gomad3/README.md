@@ -611,6 +611,14 @@ the collector's view of live memory does not depend on when the host answered;
 simulation transport reads are exempt because they block until the simulation
 advances.
 
+Targets build with `GOEXPERIMENT=nogreenteagc`. The Green Tea collector
+attributes scan work per span batch, so the pacer's view of a cycle followed
+the order in which the marker reached objects, and that order followed which
+M held the P (a host-timing race at every syscall hand-off, visible through
+`p.m`, `g.m`, and the idle M list). The classic collector attributes scan work
+by object layout, which does not depend on traversal order, and with it the
+same-seed evidence of the functional suites reproduces.
+
 The mode is intended only for trusted tests. Deterministic map seeds remove a
 hash-randomization defense and must not be enabled in production. Each process
 uses one P, so run different seeds in separate processes for parallelism. The
