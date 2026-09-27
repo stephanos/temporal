@@ -2,7 +2,6 @@ package testpilot
 
 import (
 	"context"
-	"errors"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
@@ -15,17 +14,6 @@ type PreparedProgram struct{ program *execution.PreparedProgram }
 
 type EntrypointPlan struct{ plan execution.EntrypointPlan }
 type InstructionPlan struct{ plan execution.InstructionPlan }
-
-type Expression struct{ expression *ir.Expression }
-
-func (e *Expression) Evaluate(ctx context.Context, resolve func(ValueReference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
-	if e == nil || e.expression == nil || resolve == nil {
-		return nil, 0, errors.New("context, expression, resolver and positive work required")
-	}
-	return e.expression.Evaluate(ctx, func(reference ir.Reference) *testpilotspb.Value {
-		return resolve(ValueReference{Kind: ReferenceKind(reference.Kind), Entrypoint: reference.Entrypoint, ID: reference.ID, Field: reference.Field})
-	}, limit)
-}
 
 func (p PreparedProgram) Snapshot() *testpilotspb.Program {
 	if p.program == nil {
@@ -91,18 +79,8 @@ func (p InstructionPlan) TimeoutMilliseconds() int64 { return p.plan.TimeoutMill
 func (p InstructionPlan) MaxAttempts() int64         { return p.plan.MaxAttempts() }
 
 // Reservations are the worker activations a reservation carrier reserves, derived at preparation.
-func (p InstructionPlan) Reservations() []ReservationTopology { return p.plan.Reservations() }
-func (p InstructionPlan) Dependencies() []int                 { return p.plan.Dependencies() }
-func (p InstructionPlan) Guard() *Expression {
-	if expression := p.plan.Guard(); expression != nil {
-		return &Expression{expression: expression}
-	}
-	return nil
-}
+func (p InstructionPlan) Reservations() []ReservationTopology   { return p.plan.Reservations() }
 func (p InstructionPlan) Method() protoreflect.MethodDescriptor { return p.plan.Method() }
-func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
-	return p.plan.OutcomeType(field)
-}
 func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ValueReference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
 	if lookup == nil {
 		return p.plan.EvaluateInput(ctx, nil, limit)

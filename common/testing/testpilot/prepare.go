@@ -17,6 +17,8 @@ type PreparedCase struct {
 	source   *testpilotspb.Case
 	program  *execution.PreparedProgram
 	factory  execution.MonitorFactory
+	// contract is factory's own prepared Contract, which Evaluate replays a closed Run through.
+	contract *verification.PreparedContract
 	identity DriverIdentity
 }
 
@@ -43,7 +45,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if err != nil {
 		return nil, preparationError(err, "contract")
 	}
-	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity, Bindings: fingerprint}}, nil
+	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, contract: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity, Bindings: fingerprint}}, nil
 }
 
 func (p *PreparedCase) Snapshot() *testpilotspb.Case { return proto.CloneOf(p.source) }

@@ -59,7 +59,6 @@ type ProgramView struct {
 	observations               []Observation
 	evidence                   []EvidenceDeclaration
 	limits                     *testpilotspb.ProgramLimits
-	maximumActivations         int64
 }
 
 func (v ProgramView) ProgramID() string           { return v.programID }
@@ -73,7 +72,6 @@ func (v ProgramView) Evidence() []EvidenceDeclaration {
 	return result
 }
 func (v ProgramView) Limits() *testpilotspb.ProgramLimits { return proto.CloneOf(v.limits) }
-func (v ProgramView) MaximumActivations() int64           { return v.maximumActivations }
 
 type PreparedProgram struct {
 	source  *testpilotspb.Program
@@ -108,8 +106,7 @@ func (p *PreparedProgram) Snapshot() *testpilotspb.Program { return proto.CloneO
 func (p *PreparedProgram) Limits() *testpilotspb.ProgramLimits {
 	return proto.CloneOf(p.limits)
 }
-func (p *PreparedProgram) View() ProgramView      { return p.view }
-func (p *PreparedProgram) PolicyIdentity() string { return p.policy.Identity }
+func (p *PreparedProgram) View() ProgramView { return p.view }
 
 func (p *PreparedProgram) Roles() []contract.PreparedRole {
 	result := make([]contract.PreparedRole, 0, len(p.roles))
@@ -169,9 +166,8 @@ type node struct {
 	pollIntervalMilliseconds int64
 }
 type assignment struct {
-	target               *ir.Path
-	value                *ir.Expression
-	environmentBindingID string
+	target *ir.Path
+	value  *ir.Expression
 }
 type responseRead struct {
 	path        *ir.Path
@@ -251,15 +247,6 @@ type InstructionPlan struct {
 	node  *node
 	entry EntrypointPlan
 }
-type AssignmentPlan struct {
-	Target *ir.Path
-	Value  *ir.Expression
-}
-type ResponseReadPlan struct {
-	Source      *ir.Path
-	Cardinality testpilotspb.ReadCardinality
-	Targets     []*testpilotspb.ReadTarget
-}
 
 func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
 	result := make([]EntrypointPlan, 0, len(p.graphs))
@@ -299,37 +286,9 @@ func (p InstructionPlan) MaxAttempts() int64         { return p.node.maxAttempts
 func (p InstructionPlan) Reservations() []contract.ReservationTopology {
 	return slices.Clone(p.node.reservations)
 }
-func (p InstructionPlan) Dependencies() []int                   { return slices.Clone(p.node.dependencies) }
-func (p InstructionPlan) Guard() *ir.Expression                 { return p.node.guard }
-func (p InstructionPlan) Input() *ir.Expression                 { return p.node.input }
 func (p InstructionPlan) Method() protoreflect.MethodDescriptor { return p.node.method }
-func (p InstructionPlan) Assignments() []AssignmentPlan {
-	result := make([]AssignmentPlan, len(p.node.assignments))
-	for i, assignment := range p.node.assignments {
-		result[i] = AssignmentPlan{Target: assignment.target, Value: assignment.value}
-	}
-	return result
-}
-func (p InstructionPlan) ResponseReads() []ResponseReadPlan {
-	result := make([]ResponseReadPlan, len(p.node.responseReads))
-	for i, read := range p.node.responseReads {
-		targets := make([]*testpilotspb.ReadTarget, len(read.targets))
-		for j, target := range read.targets {
-			targets[j] = proto.CloneOf(target)
-		}
-		result[i] = ResponseReadPlan{Source: read.path, Cardinality: read.cardinality, Targets: targets}
-	}
-	return result
-}
 
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.graph.runtimeWork }
-func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
-	typ, ok := p.node.outcomes[field]
-	if !ok {
-		return nil, false
-	}
-	return typ.Schema(), true
-}
 func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*contract.OutcomeSnapshot, int64, error) {
 	w, err := newValueWork(ctx, p.entry.program.limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {

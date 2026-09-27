@@ -50,11 +50,6 @@ func TestPathsPreserveTypePresenceAndCardinality(t *testing.T) {
 	steps[0].Key.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
 	require.Equal(t, "labels", string(p.Steps()[0].Field.Name()))
 	require.True(t, proto.Equal(text("key"), p.Steps()[0].Key))
-	total, err := p.CheckFanout(2, 3)
-	require.NoError(t, err)
-	require.EqualValues(t, 6, total)
-	_, err = p.CheckFanout(math.MaxInt64, 2)
-	require.Error(t, err)
 }
 
 func TestPathsRejectInvalidSelectorsAndTraversal(t *testing.T) {

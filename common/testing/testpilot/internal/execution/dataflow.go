@@ -653,14 +653,12 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 			}
 		}
 		typ := target.Type()
-		var environmentBindingID string
 		valueSource := source.Value
 		if reference, ok := source.Value.GetReference().GetReference().(*testpilotspb.Reference_EnvironmentBindingId); ok {
 			if reference == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
 				return invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
 			}
-			environmentBindingID = reference.EnvironmentBindingId
-			resolved, err := a.resolveEnvironment(environmentBindingID)
+			resolved, err := a.resolveEnvironment(reference.EnvironmentBindingId)
 			if err != nil {
 				return err
 			}
@@ -670,7 +668,7 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 		if err != nil {
 			return err
 		}
-		n.assignments = append(n.assignments, assignment{target: target, value: value, environmentBindingID: environmentBindingID})
+		n.assignments = append(n.assignments, assignment{target: target, value: value})
 	}
 
 	return nil

@@ -755,7 +755,6 @@ func (a *admission) bindReservations() error {
 		total += weight.count * attempts
 		remaining -= attempts
 	}
-	a.prepared.view.maximumActivations = total
 	return nil
 }
 func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
