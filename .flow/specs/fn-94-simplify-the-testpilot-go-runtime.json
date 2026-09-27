@@ -1,0 +1,28 @@
+{
+  "branch_name": "fn-94-simplify-the-testpilot-go-runtime",
+  "created_at": "2026-09-27T05:44:32.279601Z",
+  "depends_on_epics": [
+    "fn-89-one-contract-rule-per-entity",
+    "fn-90-resolve-the-intermittent-live-testpilot",
+    "fn-91-say-opaque-handle-in-the-driver-contract"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-94-simplify-the-testpilot-go-runtime.md",
+  "status": "open",
+  "title": "Simplify the Testpilot Go runtime",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T05:44:33.416221Z"
+}
