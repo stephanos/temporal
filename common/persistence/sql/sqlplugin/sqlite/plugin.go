@@ -21,7 +21,7 @@ import (
 
 const (
 	// PluginName is the name of the plugin
-	PluginName = "sqlite"
+	PluginName = sqlplugin.SQLitePluginName
 )
 
 // List of non-pragma parameters
