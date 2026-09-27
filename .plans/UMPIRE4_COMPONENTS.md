@@ -103,6 +103,7 @@ implementation was found.
 | C9 SDK participant | Partial | The System-owned caller-closure participant and exact duplicate-delivery variant bind the same Go SDK adapter; the latter records one real callback plus one labeled test-owned synthetic contribution. Additional programs and SDKs remain downstream. |
 | C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
 | C11 formal checks | Partial + separate | Current Lean provides proofs, finite completeness, bounded verification, and model counterexample search. Umpire3 has mature receipts and optional family-scoped Veil support; the current model has neither an explicit first-order checker view nor a Veil binding. |
+| C11 formal checks (fn-88) | Planned under fn-88 | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Model counterexample search moves onto Veil's concrete checker as the default `Umpire.Search` backend, over a product of the checked table, Scenario progress, and Property monitors, with the current traversal frozen as the `reference` fallback and differential oracle. The model's toolchain moved to Lean 4.32.0, Veil's declared toolchain (fn-88.12). Every `veil` witness is kernel-replayed; a `veil` absence answer is trusted from the pinned checker, with the differential test as oracle and 64-bit state-hash deduplication as the stated trust assumption. The symbolic checker view and Veil binding remain fn-23 to fn-25's. |
 | C12 Claim Assessment | Local slice implemented | `umpire-assess run` assesses one recorded Run of one canonical Case offline under a Lean-declared Evaluation Profile (`local-ephemeral`) and publishes one canonical, exclusive Evaluation Receipt; it creates and replays no Run. The production canary (`tools/canary`, fn-29) consumes the same admission, assessment, rendering and publisher unchanged under its own `production-canary` Evaluation Profile, beside a canary provenance that is never release evidence. Remote, CI and release claims remain deferred. |
 
 | Milestone | Status | Summary |
@@ -134,6 +135,7 @@ for those decisions. A reviewed plan does not make its component built.
 | C11 Veil compatibility and adoption gate | `fn-23-veil-toolchain-compatibility-and` | Reviewed: Ship; six tasks ready | Two exact pinned Veil candidates are evaluated under Lean 4.33.1 only through an opt-in Linux/aarch64 diagnostic with frozen Git/npm/solver/Lean/Zig/Node/runtime closures, no-network execution, honest solver trust, candidate-scoped measurements, and one canonical adopt/defer/inconclusive receipt. No Veil dependency, semantic claim, default build integration, generated source, or production surface is introduced. |
 | C11 Lean-native receipts and canonical replay | `fn-24-lean-native-verification-receipts-and` | Reviewed: Ship; six tasks ready | A reusable Temporal-free formal module runs the exact checked Query/dependent kernel itself, emits honest bounded-search receipts, and admits a violation only after the candidate replays through the canonical kernel, Behavior, and pure Property evaluator. One caller-closure verify receipt and one family-test negative control prove both paths; Veil, Plan, runtime, promotion, and Claim Assessment remain separate. |
 | C11 optional CallerClosure checker binding | `fn-25-optional-callerclosure-veil-binding-and` | Reviewed: Ship; six tasks ready; depends on fn-23 and fn-24 | One completed compatibility receipt freezes an adopt or defer branch. Adoption adds one family-owned finite view with bidirectional correspondence, one exact optional handwritten declaration, a non-breaking external receipt v2, and mandatory canonical replay; defer/inconclusive adds no dependency, source, command, or placeholder claim. The reusable Umpire package remains Temporal/Nexus/checker-name free. |
+| C11 concrete search backend | `fn-88-veil-concrete-checker-as-the-umpire` | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Planned; plan reviewed Ship; the R22 probe adopted the checker and fn-88.12 moved the model to Lean 4.32.0 | Veil's concrete breadth-first checker becomes the default `Umpire.Search` backend over the product of the checked table, the Scenario progress automaton, and the Property monitors, behind a `search-backend-isolation` import rule. The current traversal stays frozen as the `reference` fallback and differential oracle. Every `veil` witness is kernel-replayed; absence answers are trusted from the pinned checker under its 64-bit state-hash assumption. It adds no Veil DSL, SMT path, or symbolic claim, and neither starts nor closes fn-23 to fn-25; fn-24 and fn-25 now depend on it. |
 | C12 local Evaluation Receipt | `fn-26-local-qualification-receipts-and-staged` | Implemented (re-planned on fn-85 and fn-22, 2026-09-23) | The subject is fn-22's canonical Case and recorded Run, which now names the Case it ran; admission is strict and executes nothing. `Umpire.Evaluation` declares Evaluation Profiles and Lean renders them for Go, which assesses, renders one canonical receipt and publishes it by hard link; `umpire-assess run` is the command. The v2 Run Evaluation set it was first planned on is retired. |
 | C12 hermetic CI execution | `fn-27-hermetic-ci-execution-and-qualification` | Implemented and verified | One ordinary generated Go test consumes the byte-identical local v2 `Plan`, reuses the disposable loopback runner and canonical Run Evaluation authority, and proves Artifact Checksum, Behavior Fingerprint, and stable typed semantic parity while allowing fresh transport identities. It adds no CI Evaluation Profile, Evaluation Receipt, provenance schema, new Artifact-set version, or Claim Assessment path. |
 | Portable evaluation contract and disposable-cluster qualification | `fn-28-portable-evaluation-contract-and` | Implemented and verified | Lean ahead-of-time compilation produces closed per-Test protobuf contracts for the normal and duplicate-delivery Tests. Strict structural packing/admission, the fixed Go interpreter, explicit bounded Evidence closure, a single-flight resident executor, bounded HTTP protobuf transport, and one tagged `testcore.NewEnv` proof preserve independent statuses and return local pass/fail/inconclusive without Lean. The proof makes no fleet, production, release, whole-model, or Claim Assessment claim. |
@@ -631,6 +633,17 @@ receipt, and canonical replay. Veil does not enter `Plan`, runtime execution, pr
 binaries, or the default regression gate until its deterministic build and developer-cost budgets
 are accepted.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The toolchain gate is passed for Veil's
+concrete checker, and this paragraph now governs only the symbolic binding. fn-88's second probe
+adopted the checker at `verse-lab/veil@517f2ba`, and the model moved from Lean 4.33.1 to 4.32.0,
+Veil's declared toolchain. The checker is a required Lake dependency, not an optional import: it
+enters the default build and `make umpire-check-regression`, which pins its commit, and Node and npm
+become model build prerequisites because Lake builds Veil's widget bundle. The toolchain and the
+Veil commit move together. It stays out of `Plan`, runtime execution, and production binaries. Its
+entry is `IO`, run during command elaboration. Each witness passes kernel replay; an absence answer
+is trusted from the checker, with fn-88's differential test against the frozen `reference` backend
+as oracle and Veil's 64-bit state-hash deduplication as the stated trust assumption.
+
 ### C12. Deployment portability and Claim Assessment
 
 **Responsibility:** realize the same `Plan` under authorized remote profiles and assemble
@@ -953,6 +966,12 @@ These remain architectural possibilities, not prerequisites for the current-mode
 
 Generated Veil source, a second Lake project, a checker-neutral semantic IR, blanket Veil adoption,
 and Veil in production runtime paths are rejected designs, not deferred work.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Veil's concrete checker as the default
+`Umpire.Search` backend, in the primary Lake project and fed checker input derived from
+`FiniteTable`, is none of these: it generates no Veil source, adds no second Lake project, and
+introduces no IR beside the checked table. Adopting Veil's symbolic path beyond one family binding
+remains rejected as blanket adoption.
 
 The detailed rationale and the other two design conversations are synthesized in
 [UMPIRE_CHATS.md](UMPIRE_CHATS.md).

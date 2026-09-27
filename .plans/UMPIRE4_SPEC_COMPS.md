@@ -85,6 +85,11 @@ Commands are adapters. A command package may contain a deep module, but argument
    canonical products regardless of incidental declaration or map order.
 9. **Optional verification stays optional.** Veil is isolated from ordinary Umpire and Temporal
    imports, runtime paths, and production binaries.
+   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* This principle now covers Veil's
+   symbolic path only. Veil's concrete checker is Search's default backend and a required Lake
+   dependency; ordinary Umpire and Temporal imports reach it transitively, and MOD-17 confines its
+   direct imports to `Umpire.Search.Backend.Veil`. It stays out of runtime paths and production
+   binaries.
 10. **Production canary is standalone.** `tools/canary` consumes stable Umpire interfaces but owns
     production policy and is never imported by Umpire.
 
@@ -257,6 +262,7 @@ property. Implementation Link relates meanings but cannot silently select a prov
 | --- | --- | --- |
 | `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, Limits, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
 | `Umpire.Search` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
+| `Umpire.Search` (fn-88) | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Answer an admitted Query on one of two backends and finalize both the same way: the frozen `reference` traversal, or Veil's concrete checker over the product `Umpire.Search.Product` builds, run through `Umpire.Search.Backend.Veil` and chosen by `Umpire.Search.Selection`. | Planned under fn-88. The reference traversal gains no feature. A `veil` witness is replayed against the checked table before it counts; a `veil` absence answer is search within Limits trusted from the pinned checker, with the differential test against `reference` as its oracle and Veil's 64-bit state-hash deduplication as its stated trust assumption. |
 | `Umpire.Exploration` | Checked finite-universe selection through exhaustive or one uncovered-coordinate policy, pinned precedence, and process-local one-candidate sequencing. | Present for the retained bounded slice. Symmetry, persisted resume, adaptive corpora, and generalized coverage reporting remain deferred. |
 | `Umpire.Artifact` | Construct canonical `Plan.Steps` and `Plan` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
 
@@ -264,6 +270,13 @@ property. Implementation Link relates meanings but cannot silently select a prov
 and metadata structures. Query-specific vocabulary should sit behind Query or Planning. Substantial
 campaign search belongs in Exploration. Retire the standalone facade while implementing those
 owners rather than through an isolated compatibility layer.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The paragraph above is superseded.
+`Umpire.Search` stays a deep module and keeps its facade: it owns the backend seam, kernel replay of
+every witness, and the finalization both backends share, while the checking itself moves to Veil's
+concrete checker. Retiring the facade would scatter that seam across Query and Exploration. Its own
+traversal is frozen as the `reference` backend, the fallback and differential oracle, and new
+checker features such as symmetry or fault placement go to the checker rather than to it.
 
 Planning selects a trace. Artifact compiles the selected trace into portable intent. The retained
 Exploration slice selects a deterministic bounded partition from one complete finite candidate
@@ -279,6 +292,7 @@ even when one public operation composes them.
 | `Umpire.Evaluation` | Generic profile and receipt vocabulary plus bounded claim evaluation over admitted results. | Planned. Temporal owns concrete environment profiles and authority. |
 | `Umpire.Verify.Native` | Lean-native bounded receipts and canonical counterexample replay. | Planned and unconditional. |
 | `Umpire.Verify.Veil` | Planned under fn-25: generic optional Veil invocation, binding support, trust classes, and receipt vocabulary. | Conditional and excluded from `import Umpire`. |
+| `Umpire.Verify.Veil` (fn-88) | *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Veil's symbolic path only. | Still conditional and excluded from `import Umpire`; Veil's concrete checker is not, because Search runs it. |
 
 Catalog and Promotion remain separate: Catalog explains existing checked declarations; Promotion
 proposes a new exact regression from existing checked semantic evidence. Claim Assessment does not
@@ -866,6 +880,9 @@ their direct and transitive reachability constraints over the complete first-par
 - Optional verification remains opt-in, but no such module exists in the tree, so `ModelLint`
   reserves nothing for it and enforces no verification isolation. MOD-05's exact consumer set
   returns with the modules under fn-24 and fn-25.
+- *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Only `Umpire.Search.Backend.Veil`
+  imports `Veil.*`, and only `Umpire.Search.Selection` imports that adapter (MOD-17), enforced as
+  the direct-import rule `search-backend-isolation`.
 - `Temporal.Tool.*` composes modules but owns no semantic authority.
 - Umpire Go packages never import `tools/canary`; Canary may import stable Umpire Go packages.
 - Commands remain thin adapters.
@@ -1013,6 +1030,9 @@ Claim Assessment consumes admitted artifacts and acquires no authority by itself
 
 - Add Lean-native verification receipts and canonical counterexample replay first.
 - Evaluate optional Veil toolchain compatibility independently.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Done for the concrete checker by fn-88's
+  two probes; the model's toolchain now follows the one Veil's pinned commit declares, and the two
+  move together.
 - Add a family-specific Veil binding only when correspondence, trust, cost, and replay requirements
   are met.
 
@@ -1033,6 +1053,9 @@ proof or enter production runtime paths.
 - Wholesale migration of Umpire2 or Umpire3 package trees.
 - Compatibility facades without multiple active consumers.
 - Importing optional Veil machinery into ordinary Umpire, Temporal, tools, or runtime paths.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Veil's concrete checker is not optional
+  machinery: ordinary Umpire and Temporal imports reach it transitively through Search, and only
+  `Umpire.Search.Backend.Veil` imports it directly (MOD-17). Runtime paths stay free of it.
 - Putting production canary policy, credentials, authorization, recovery, or release decisions under
   `tools/umpire`.
 

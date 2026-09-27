@@ -47,6 +47,14 @@ proof plumbing, or Veil.
    Neither declaration order nor implicit type-class selection creates that relationship.
 7. **Optional expert verification.** Veil is isolated behind generic Umpire machinery and
    family-specific adapters under `Temporal.Verify`. Ordinary Temporal imports never expose Veil.
+   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* "Ordinary Temporal imports never expose
+   Veil" is superseded. Veil's symbolic checking stays optional expert verification under
+   `Umpire.Verify.Veil` and `Temporal.Verify`. Veil's concrete checker is a required dependency that
+   `Umpire.Search` runs as its default search backend, so every import of `Umpire` or `Temporal`
+   reaches the checker's modules transitively. What stays isolated is who may name it: only
+   `Umpire.Search.Backend.Veil` imports `Veil.*`, and only `Umpire.Search.Selection` imports that
+   adapter (MOD-17). No authoring surface, Temporal module, or tool uses a Veil declaration, and no
+   author needs to learn Veil.
 8. **Honest outcomes.** Invalid, unsatisfiable, exhausted, divergent, unknown, conflicting,
    unsupported, and violated remain distinct outcomes. None silently becomes success.
 
@@ -62,6 +70,10 @@ model/
 │
 ├── Umpire/
 │   ├── Model, Property, Scenario, Query, Search, ...
+│   ├── Search/                   # drafted by fn-88; awaiting GOV-02 approval
+│   │   ├── Product.lean          # model state x Scenario progress x Property monitors
+│   │   ├── Backend/Veil.lean     # the only importer of Veil.*
+│   │   └── Selection.lean        # picks veil or reference; sole importer of Backend.Veil
 │   ├── Evidence, Case and Implementation Link
 │   └── Verify/                   # planned
 │       └── Veil/                 # planned: generic optional Veil machinery
@@ -87,6 +99,13 @@ The exact internal filenames may evolve. Normative ownership of import boundarie
 MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11. The import-graph phase of `make lint-model` is
 their single enforcement mechanism: it checks transitive reachability over the complete first-party
 module inventory rather than scanning import text.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The list also carries MOD-16 and MOD-17.
+The `Umpire/Search/` entries in the tree above are planned by fn-88: `Umpire.Search.Product`,
+`Umpire.Search.Backend.Veil`, and `Umpire.Search.Selection`. MOD-17 is a direct-import rule, not a
+reachability rule, because every module above the selection reaches Veil transitively; `make
+lint-model` enforces it as `search-backend-isolation` beside MOD-16's `authoring-path-isolation`.
+Its complete-mode walk also reads the metadata of the Veil modules the adapter imports.
 
 The current accepted policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
 `Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
@@ -334,6 +353,38 @@ No stage acquires semantic authority merely because it is downstream.
 This whole section is planned under fn-24 and fn-25. No optional verification module exists in the
 tree, so nothing here is enforced or importable today.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The two sentences above now describe
+Veil's symbolic path only. fn-88 adds a second, non-optional use of Veil that this section does not
+govern: `Umpire.Search` runs Veil's concrete breadth-first checker as its default backend, over
+checker input generated from the checked table.
+
+```text
+checked Query + SearchView (from the machine command's FiniteTable)
+                │
+                ▼
+   Umpire.Search.Product: model state x Scenario progress x Property monitors
+                │
+                ▼
+   Umpire.Search.Selection ── unsupported clause, Scenario, strategy, or form ──▶ reference
+                │
+                ▼
+   Umpire.Search.Backend.Veil: Veil concrete checker, IO, run during command elaboration
+                │
+       witness or absence answer
+                │
+                ▼
+   finalization in Umpire.Search: kernel replay of every witness
+                │
+                ▼
+       PlanResult + planning receipt (backend, reason, unit, Veil commit)
+```
+
+A witness from this path passes the same replay against canonical semantics that the bullets below
+require. An absence answer is search within Limits trusted from the pinned checker: the
+differential test against the frozen `reference` backend is its oracle on the checked-in models,
+and Veil's 64-bit state-hash deduplication, which can merge distinct states, is its stated trust
+assumption. The planning receipt records which basis applies.
+
 Formal verification branches from checked semantics rather than from runtime artifacts:
 
 ```text
@@ -358,6 +409,12 @@ Generic Veil mechanics belong under `Umpire.Verify.Veil`. Temporal-specific chec
 handwritten declarations, field/action mappings, and correspondence proofs belong under
 `Temporal.Verify.<Family>`.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* "Generic Veil mechanics" here means the
+symbolic path. The concrete checker's adapter is `Umpire.Search.Backend.Veil`, a Temporal-free
+search backend, not a verification module, and it defines no view, declaration, or mapping of its
+own: it consumes the `SearchView` and the product that `Umpire.Search.Product` builds from checked
+values, and proves the adapter's transitions and initial states equal the product's.
+
 The verification path MUST satisfy these rules:
 
 - ordinary `Temporal.Feature`, `Temporal.System`, `Temporal.Tool`, and `Temporal.lean` imports do not
@@ -374,6 +431,14 @@ The verification path MUST satisfy these rules:
 - Veil is not part of `Plan`, runtime execution, evidence interpretation, production
   binaries, or the normal Temporal model build; and
 - Umpire does not generate Veil source or introduce a checker-neutral semantic IR.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The last two bullets are superseded for
+the concrete checker. Veil is part of the normal model build: one pinned Lake requirement, built by
+`make umpire-build-model`, `make lint-model`, and `make umpire-check-regression`. Umpire generates
+checker input, never Veil source: the product transition system handed to the checker is derived
+from `FiniteTable` rows through the proof-carrying `SearchView`, and `FiniteTable` is the canonical,
+fingerprinted input it is built from. Veil stays out of `Plan`, runtime execution, evidence
+interpretation, and production binaries.
 
 `TemporalVerify.lean` is the planned opt-in aggregate for these adapters. Once fn-24 delivers it, a
 focused verification command or test target may build it without changing the ordinary Temporal
@@ -396,6 +461,12 @@ Authoring diagnostics include at least:
 - invalid or incomplete Implementation Link;
 - ambiguous, conflicting, or incomplete observation mapping; and
 - use of Verify or Veil from a forbidden import path.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* A forbidden Veil import path is one MOD-17
+names: a `Veil.*` import outside `Umpire.Search.Backend.Veil`, or an import of that adapter outside
+`Umpire.Search.Selection`. The diagnostic is `search-backend-isolation`'s, naming the module and the
+import. A `veil` witness that fails kernel replay is an `invalid` Query result with
+`unreplayableWitness`, never a found trace.
 
 Phase outcomes remain separate:
 
@@ -433,6 +504,15 @@ The normal model build and regression gate MUST validate Umpire and ordinary Tem
 without compiling or running `Temporal.Verify`. A separate focused verification gate owns Veil's
 dependency, toolchain compatibility, execution cost, retained evidence, and trust reporting.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The second sentence is superseded for the
+concrete checker. The normal build and regression gate compile and run it: `model/lakefile.lean`
+requires Veil at one pinned commit, and `make umpire-check-regression` fails when the manifest
+resolves another. The model's Lean toolchain is Veil's declared toolchain (4.32.0 at the pinned
+commit), so the toolchain and the Veil commit move together in one reviewed change. Node and npm are
+prerequisites of the model build, because Lake builds Veil's widget bundle. The cold build must fit
+the `umpire.yml` job timeouts or run behind a `.lake` cache. The focused gate still owns
+`Temporal.Verify` and the symbolic path.
+
 ## 12. Current-state implications
 
 The current model has the intended high-level dependency direction: `Umpire` is independent of
@@ -463,6 +543,11 @@ The target architecture is realized when:
    fixtures.
 5. Ordinary `import Temporal`, its model tests, and its developer tools expose no Veil declarations
    or types.
+   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Superseded: `import Temporal` reaches
+   Veil's concrete checker transitively through `Umpire.Search.Admission`. The criterion becomes: no
+   ordinary Temporal or Umpire module other than `Umpire.Search.Backend.Veil` names a Veil
+   declaration or type, no authoring surface or tool exposes one, and `make lint-model` enforces the
+   import side as `search-backend-isolation` (MOD-17).
 6. `Temporal.Verify` can opt one family into Veil without changing that family's ordinary authoring
    interface or making Veil a second semantic authority.
 7. Every accepted checker counterexample replays through canonical semantics, and every receipt
@@ -487,6 +572,13 @@ The target architecture is realized when:
 - Importing `Temporal.Verify` from the ordinary Temporal facade or normal developer tools.
 - Generating Veil source, shipping Veil in production paths, or treating `Plan` as a
   checker-neutral intermediate representation.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Handing Veil's concrete checker a
+  transition system derived from `FiniteTable` through `SearchView` is not this rejected design: it
+  generates checker input, not Veil source, and `Plan` stays out of it.
 - Accepting a Veil proof or counterexample without a checked binding to canonical semantics.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* For the concrete checker the checked
+  binding is the adapter's equivalence theorems over the product plus kernel replay of every
+  witness. Reporting a `veil` absence answer as a kernel proof, rather than as search trusted from
+  the checker, is the rejected design.
 - Duplicating Temporal semantic authority in Go, Generated Views, runtime adapters, evidence
   mappings, or formal-checker declarations.

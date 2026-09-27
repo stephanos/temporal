@@ -195,6 +195,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   consumers. No such module exists in the tree, so `ModelLint` reserves nothing for them; the
   reservation returns with the modules. The two names are defined under "Verification and claim
   concepts", each with its own owner.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Veil's concrete checker, which Search
+  runs as a backend, is not an optional verification module: it is a required Lake dependency of the
+  model, and every module that imports `Umpire` reaches it transitively. This rule does not cover
+  it, and neither its opt-in consumer set nor its reservation applies to it; MOD-17 bounds which
+  first-party modules may import it directly. The symbolic Veil slot stays optional under this rule.
 - **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT directly or transitively import `Umpire.*`
   or `Temporal.*`.
 - **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT directly or transitively
@@ -203,6 +208,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   MOD-10 across the complete first-party Lean import graph, and MOD-05 once its modules exist.
   *Amendment (drafted by fn-86; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
   MOD-16, as a direct-import rule beside the reachability rules.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
+  MOD-17, as the direct-import rule `search-backend-isolation`, over every direct import a
+  first-party module makes, including imports of `Veil.*` modules.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
@@ -235,6 +243,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   production module. It is a direct-import rule, because every command-authored module reaches the
   owners transitively; `make lint-model` enforces it as `authoring-path-isolation`, whose
   diagnostic names the module and the import.
+- **MOD-17 — Search-backend isolation.** *(drafted by fn-88; awaiting GOV-02 approval.)* Only
+  `Umpire.Search.Backend.Veil` MAY directly import a `Veil.*` module, and only
+  `Umpire.Search.Selection` MAY directly import `Umpire.Search.Backend.Veil`. `Umpire.Search` itself
+  imports neither, so the reference backend and the shared finalization stay free of Veil. It is a
+  direct-import rule, because every module above the selection reaches Veil transitively; `make
+  lint-model` enforces it as `search-backend-isolation`, whose diagnostic names the module and the
+  import. *(planned: fn-88-veil-concrete-checker-as-the-umpire)*
 
 ### Module design
 
@@ -439,12 +454,35 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   question. It proves neither a negative answer nor that the search was exhaustive.
 - **Exhaustive Search.** A search that checks every candidate the exact Scenario and Limits allow.
   If it finds no candidate, it proves absence only within those Limits.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* On the `veil` backend a candidate is a
+  product state, not a path, and "every candidate" means every product state reachable within the
+  depth the Limits allow. Its absence answer holds within those Limits and under the checker's trust
+  assumption: Veil deduplicates states by a 64-bit hash, so two distinct states with equal hashes
+  merge. That answer is trusted from the checker, not replayed by the kernel; VER-06 names it as its
+  own basis.
 - **Query (`Umpire.Query`).** A bounded question about a Model, within explicit Limits. Its
   `Umpire.Query.Form` is `verify`, `find`, `findViolation`, or `pick`; its `Umpire.Query.Ending`
   says which Traces count as complete. `Umpire.CheckedQuery` is an admitted one.
 - **Search (`Umpire.Search`).** Answering a Query. `Umpire.SearchView` is the enumerable view of a
   Model it walks, `Umpire.SearchStats` records the work it spent, and `Umpire.PlanResult` is what it
   returns.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Search answers a Query on one of two
+  backends over the same `Umpire.SearchView` and finalizes both the same way. `reference` is the
+  frozen path-enumerating traversal inside `Umpire.Search`, kept as the fallback and as the
+  differential oracle. `veil` runs Veil's concrete breadth-first checker, through
+  `Umpire.Search.Backend.Veil`, over `Umpire.Search.Product`: the product of the `Umpire.SearchView`
+  state, the Scenario's progress, and the Property monitors. `Umpire.Search.Selection` chooses
+  `veil` when every clause and the Scenario lower, the strategy is not `seeded`, and the Query form
+  is supported, and `reference` otherwise, recording the reason; no CLI flag, Query field, or
+  environment variable chooses it. The checker's entry is `IO` and runs while the command
+  elaborates. A `veil` witness counts only after kernel replay, as a `reference` witness does; a
+  `veil` absence answer is trusted from the checker (Exhaustive Search, VER-06).
+  `Umpire.SearchStats` also records the backend, the reason, whether its unit is paths or states,
+  and, on `veil`, the pinned Veil commit; its `backendPulls` counter is renamed `enumeratorPulls`,
+  and the planning receipt carrying them moves to `umpire-planning-receipt/v2`. `Umpire.PlanResult`
+  and the Plan artifact keep their shape; under `veil`, `explored.traces` counts product states
+  visited, and the `search` Limit bounds product states instead of candidate paths.
+  *(planned: fn-88-veil-concrete-checker-as-the-umpire)*
 - **Plan (`Umpire.Plan`).** The planned model-level test a Search chose: a `Umpire.Plan.Steps`
   sequence retained for scenario-neutral catalog and reviewed-promotion use. It is generated
   instructions, not an authoring language, and Testpilot does not accept it.
@@ -723,6 +761,14 @@ it.
   behavior. *(planned: fn-24-lean-native-verification-receipts-and)*
 - **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes
   do not import it. *(planned: fn-25-optional-callerclosure-veil-binding-and)*
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* This slot is Veil's symbolic path:
+  SMT-backed bounded model checking, inductive invariants, and parametric claims, still owned by
+  fn-23, fn-24, and fn-25. It is no longer the only way Veil enters the model. Veil's concrete
+  checker is a required Lake dependency that Search runs as its default backend (see Search), so
+  every model that imports `Umpire` builds and loads it. "Ordinary models and runtimes do not import
+  it" now holds for this slot only. The model's Lean toolchain follows the one Veil's pinned commit
+  declares, so moving the toolchain or the commit is one reviewed change; and because Lake builds
+  Veil's widget bundle, Node and npm are prerequisites of the model build.
 
 ### Optional verification rules
 
@@ -740,9 +786,23 @@ it.
 - **VER-05 — Replayed counterexamples.** A checker counterexample MUST be re-answered against the
   Behavior Model through `Umpire.Promotion` before it can support a claimed model violation or a
   promotion to a Regression. *(planned: fn-24-lean-native-verification-receipts-and)*
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* fn-88 co-owns this rule for the
+  witnesses Search's `veil` backend returns. Before such a witness can be `found` or a violation,
+  finalization inside `Umpire.Search` replays it step by step against the checked table from a
+  proven initial state and re-makes the admission, ending, endpoint, and coverage decision the
+  reference traversal makes; a witness that fails is `invalid`, never `found`. Promotion's replay
+  stays fn-24's.
 - **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, search within
   Limits, Runs, and concrete replay MUST be recorded as distinct bases for a claim; they are not
   interchangeable. *(planned: fn-24-lean-native-verification-receipts-and)*
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* fn-88 co-owns this rule for Search.
+  Search within Limits now has two bases. On `reference` it is Lean-evaluated search whose witnesses
+  and absence answers come from code in this repository. On `veil` a witness is still
+  kernel-replayed (VER-05), but an absence answer (`verified-within-limits`, `none-found`,
+  `unsatisfiable`) is trusted from the pinned Veil checker. Its oracle is the differential test
+  against `reference` on the checked-in models, and its stated trust assumption is Veil's 64-bit
+  state-hash deduplication. The planning receipt records which basis applies through its backend and
+  Veil-commit fields, and neither basis is reported as a kernel proof.
 
 ### CLI, environment, and claim rules
 
