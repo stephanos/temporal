@@ -15,4 +15,4 @@ const (
 
 var SupportedPlatforms = [...]string{"darwin/arm64", "linux/amd64"}
 
-var Adapters = [...]AdapterIdentity{{Module: "golang.org/x/net", Version: "v0.57.0", Sum: "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="}, {Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, {Module: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}}
+var Adapters = [...]AdapterIdentity{{Module: "golang.org/x/net", Version: "v0.58.0", Sum: "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="}, {Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, {Module: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}}

@@ -12,7 +12,7 @@ import (
 )
 
 func TestPinnedXNetModuleInventory(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.57.0")
+	moduleRoot := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.58.0")
 	got, err := target.DigestAdapterSourceInventory(moduleRoot)
 	if err != nil {
 		t.Fatal(err)
@@ -99,8 +99,8 @@ func TestPrepareXNetRejectsChangedIdentity(t *testing.T) {
 
 func TestXNetPreparedPackageSourceSetIdentity(t *testing.T) {
 	workingDirectory := t.TempDir()
-	moduleFile := "module golang.org/x/net/adaptertest\n\ngo 1.26.4\n\nrequire (\n\tgolang.org/x/net v0.57.0\n\tgolang.org/x/sys v0.47.0 // indirect\n)\n"
-	sumFile := "golang.org/x/net v0.57.0 h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=\ngolang.org/x/net v0.57.0/go.mod h1:KpXc8iv+r3XplLAG/f7Jsf9RPszJzdR0f58q9vGOuEU=\ngolang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=\ngolang.org/x/sys v0.47.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=\n"
+	moduleFile := "module golang.org/x/net/adaptertest\n\ngo 1.26.4\n\nrequire (\n\tgolang.org/x/net v0.58.0\n\tgolang.org/x/sys v0.47.0 // indirect\n)\n"
+	sumFile := "golang.org/x/net v0.58.0 h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=\ngolang.org/x/net v0.58.0/go.mod h1:KpXc8iv+r3XplLAG/f7Jsf9RPszJzdR0f58q9vGOuEU=\ngolang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=\ngolang.org/x/sys v0.47.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=\n"
 	for name, contents := range map[string]string{
 		"go.mod":  moduleFile,
 		"go.sum":  sumFile,
@@ -131,7 +131,7 @@ func TestXNetPreparedPackageSourceSetIdentity(t *testing.T) {
 
 func readPinnedXNetSocketSources(t *testing.T) ([]byte, []byte) {
 	t.Helper()
-	root := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.57.0", "internal", "socket")
+	root := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.58.0", "internal", "socket")
 	sysSource, err := os.ReadFile(filepath.Join(root, "sys_unix.go"))
 	if err != nil {
 		t.Fatal(err)

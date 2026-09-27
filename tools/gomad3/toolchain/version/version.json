@@ -15,13 +15,13 @@
   "adapters": [
     {
       "module": "golang.org/x/net",
-      "version": "v0.57.0",
-      "sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="
+      "version": "v0.58.0",
+      "sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="
     },
     {
       "module": "google.golang.org/grpc",
-      "version": "v1.80.0",
-      "sum": "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="
+      "version": "v1.83.2",
+      "sum": "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
     },
     {
       "module": "modernc.org/libc",
