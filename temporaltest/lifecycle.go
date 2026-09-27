@@ -330,14 +330,14 @@ func (ts *TestServer) ownWorker(taskQueue string, temporalWorker worker.Worker) 
 // cleanup, in deterministic workers-to-clients-to-server order.
 func (ts *TestServer) OwnedResources() []LifecycleResource {
 	resources := make([]LifecycleResource, 0, len(ts.workers)+len(ts.clients)+1)
-	for _, worker := range ts.workers {
-		if !worker.resource.isReleased() {
-			resources = append(resources, worker.resource.resource)
+	for _, owned := range ts.workers {
+		if !owned.resource.isReleased() {
+			resources = append(resources, owned.resource.resource)
 		}
 	}
-	for _, client := range ts.clients {
-		if !client.resource.isReleased() {
-			resources = append(resources, client.resource.resource)
+	for _, owned := range ts.clients {
+		if !owned.resource.isReleased() {
+			resources = append(resources, owned.resource.resource)
 		}
 	}
 	if ts.serverResource != nil && !ts.serverResource.isReleased() {
@@ -400,9 +400,9 @@ func (ts *TestServer) cleanupError(ctx context.Context, releaseErr error) error 
 
 func (ts *TestServer) compactWorkers() {
 	remaining := ts.workers[:0]
-	for _, worker := range ts.workers {
-		if !worker.resource.isReleased() {
-			remaining = append(remaining, worker)
+	for _, owned := range ts.workers {
+		if !owned.resource.isReleased() {
+			remaining = append(remaining, owned)
 		}
 	}
 	ts.workers = remaining
@@ -410,9 +410,9 @@ func (ts *TestServer) compactWorkers() {
 
 func (ts *TestServer) compactClients() {
 	remaining := ts.clients[:0]
-	for _, client := range ts.clients {
-		if !client.resource.isReleased() {
-			remaining = append(remaining, client)
+	for _, owned := range ts.clients {
+		if !owned.resource.isReleased() {
+			remaining = append(remaining, owned)
 		}
 	}
 	ts.clients = remaining

@@ -100,15 +100,15 @@ func GenJust[T any](val T) Gen[T] {
 }
 
 // GenInt creates a generator for integer types within the specified range [min, max].
-func GenInt[T ~int](min, max T) Gen[T] {
-	if min > max {
-		panic(fmt.Sprintf("GenInt: min (%v) cannot be greater than max (%v)", min, max))
+func GenInt[T ~int](minVal, maxVal T) Gen[T] {
+	if minVal > maxVal {
+		panic(fmt.Sprintf("GenInt: min (%v) cannot be greater than max (%v)", minVal, maxVal))
 	}
 	return newGenImpl("Int", func(rng *rand.Rand) T {
-		if min == max {
-			return min
+		if minVal == maxVal {
+			return minVal
 		}
-		return T(rng.Intn(int(max-min+1)) + int(min))
+		return T(rng.Intn(int(maxVal-minVal+1)) + int(minVal))
 	})
 }
 

@@ -144,7 +144,10 @@ func (c *customServerStatsHandler) HandleRPC(ctx context.Context, stat stats.RPC
 		// Create and immediately end a request span to ensure request data is exported
 		// even if the host crashes before the response is sent.
 		span := trace.SpanFromContext(ctx)
-		methodName, _ := ctx.Value(methodNameKey{}).(string)
+		var methodName string
+		if name, ok := ctx.Value(methodNameKey{}).(string); ok {
+			methodName = name
+		}
 		_, reqSpan := c.tracer.Start(ctx, methodName+"/request",
 			trace.WithSpanKind(trace.SpanKindInternal),
 			trace.WithLinks(trace.Link{SpanContext: span.SpanContext()}))
@@ -329,6 +332,7 @@ func (c *customClientStatsHandler) HandleRPC(ctx context.Context, stat stats.RPC
 				span.SetAttributes(attribute.Key("rpc.response.error").String(string(payload)))
 			}
 		}
+	default:
 	}
 
 	c.wrapped.HandleRPC(ctx, stat)

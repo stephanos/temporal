@@ -159,11 +159,11 @@ func projectSources(modelRoot string, sources []experimentSource) ([]sourceView,
 	return result, nil
 }
 
-func resolveModelRoot(modelRoot string) (string, string, error) {
+func resolveModelRoot(modelRoot string) (absoluteRoot string, resolvedRoot string, err error) {
 	if modelRoot == "" {
 		return "", "", errors.New("model root is required")
 	}
-	absoluteRoot, err := filepath.Abs(modelRoot)
+	absoluteRoot, err = filepath.Abs(modelRoot)
 	if err != nil {
 		return "", "", fmt.Errorf("resolve model root %q: %w", modelRoot, err)
 	}
@@ -174,7 +174,7 @@ func resolveModelRoot(modelRoot string) (string, string, error) {
 	if !info.IsDir() {
 		return "", "", fmt.Errorf("model root %q is not a directory", modelRoot)
 	}
-	resolvedRoot, err := filepath.EvalSymlinks(absoluteRoot)
+	resolvedRoot, err = filepath.EvalSymlinks(absoluteRoot)
 	if err != nil {
 		return "", "", fmt.Errorf("resolve model root %q: %w", modelRoot, err)
 	}

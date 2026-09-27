@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
-	goValidator "github.com/go-playground/validator/v10"
+	playgroundvalidator "github.com/go-playground/validator/v10"
 )
 
 var (
@@ -15,7 +15,7 @@ var (
 	redStr           = color.New(color.FgRed).SprintFunc()
 	underlineStr     = color.New(color.Underline).SprintFunc()
 	simpleSpew       = spew.NewDefaultConfig()
-	validator        = goValidator.New()
+	validator        = playgroundvalidator.New()
 	genericTypeRegex = regexp.MustCompile(`^[^[]+\[([^\[\]]+)\]$`)
 )
 
@@ -57,17 +57,16 @@ func copyToValWithType(src reflect.Value, dstType reflect.Type) reflect.Value {
 			continue
 		}
 		srcField := srcElem.Field(i)
-		if srcField.Type() == dstField.Type() {
+		switch {
+		case srcField.Type().AssignableTo(dstField.Type()):
 			dstField.Set(srcField)
-		} else if srcField.Type().AssignableTo(dstField.Type()) {
-			dstField.Set(srcField)
-		} else if srcField.Type().ConvertibleTo(dstField.Type()) {
+		case srcField.Type().ConvertibleTo(dstField.Type()):
 			dstField.Set(srcField.Convert(dstField.Type()))
-		} else if srcField.Kind() == reflect.Interface {
+		case srcField.Kind() == reflect.Interface:
 			if !srcField.IsNil() {
 				dstField.Set(srcField.Elem())
 			}
-		} else {
+		default:
 			panic(fmt.Sprintf("cannot copy field %q from %q to %q",
 				dstElem.Type().Field(i).Name, srcElem.Type(), dstField.Type()))
 		}

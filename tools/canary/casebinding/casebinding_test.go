@@ -186,6 +186,7 @@ func casedMethods(node any) []string {
 		for _, child := range value {
 			methods = append(methods, casedMethods(child)...)
 		}
+	default:
 	}
 	return methods
 }

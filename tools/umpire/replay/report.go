@@ -154,15 +154,7 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 		return report.stopped("stopped during admission", "", nil)
 	}
 	if err != nil {
-		rejection, ok := IsRejection(err)
-		if !ok {
-			report.Failure = err.Error()
-			return report
-		}
-		report.Admission = AdmissionReport{Status: StatusRejected, Reason: rejection.Reason, Detail: rejection.Detail}
-		if rejection.Reason == ReasonReplay {
-			report.SemanticReplay = SemanticReplayReport{Status: StatusRejected, Detail: rejection.Detail}
-		}
+		report.recordAdmissionError(err)
 		return report
 	}
 	report.SemanticReplay.Status = StatusReproduced
@@ -190,17 +182,7 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 		return report.stopped("stopped during the bridge's admission", "", nil)
 	}
 	if err != nil {
-		var crossed *CrossedError
-		if errors.As(err, &crossed) {
-			report.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonCrossed, Detail: crossed.Reason}
-			return report
-		}
-		var rejected *campaign.RejectedError
-		if errors.As(err, &rejected) {
-			report.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonUnrecovered, Detail: rejected.Reason}
-			return report
-		}
-		report.Failure = fmt.Sprintf("admit the subject on the bridge: %s", err)
+		report.recordBridgeAdmissionError(err)
 		return report
 	}
 	report.Admission.Status = StatusAdmitted
@@ -244,6 +226,34 @@ func Execute(ctx context.Context, request Request, environment Environment) (rep
 	}
 	report.Proposal = WriteProposal(environment.PromotionRoot, reduction.Proposal)
 	return report
+}
+
+// recordAdmissionError records why the offline admission refused the subject, or failed.
+func (r *Report) recordAdmissionError(err error) {
+	rejection, ok := IsRejection(err)
+	if !ok {
+		r.Failure = err.Error()
+		return
+	}
+	r.Admission = AdmissionReport{Status: StatusRejected, Reason: rejection.Reason, Detail: rejection.Detail}
+	if rejection.Reason == ReasonReplay {
+		r.SemanticReplay = SemanticReplayReport{Status: StatusRejected, Detail: rejection.Detail}
+	}
+}
+
+// recordBridgeAdmissionError records why the bridge refused the subject, or failed.
+func (r *Report) recordBridgeAdmissionError(err error) {
+	var crossed *CrossedError
+	if errors.As(err, &crossed) {
+		r.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonCrossed, Detail: crossed.Reason}
+		return
+	}
+	var rejected *campaign.RejectedError
+	if errors.As(err, &rejected) {
+		r.Admission = AdmissionReport{Status: StatusRejected, Reason: ReasonUnrecovered, Detail: rejected.Reason}
+		return
+	}
+	r.Failure = fmt.Sprintf("admit the subject on the bridge: %s", err)
 }
 
 // stopped records a stop that fell before the reduction could start: the reduction is reported

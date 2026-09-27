@@ -3,7 +3,7 @@ package stamp
 import (
 	"context"
 	"fmt"
-	reflect "reflect"
+	"reflect"
 	"sync"
 	"time"
 
@@ -142,7 +142,7 @@ func (e *ModelEnv) consume(
 		child = e.modelSet.newModel(e, id, mdlType, parentWrapper)
 		e.Info(fmt.Sprintf("%s created by %s", boldStr(childKey), act),
 			tag.NewStringTag("parent", parent.str()),
-			actionIdTag(act.ID()))
+			actionIDTag(act.ID()))
 		e.modelIdx[child.getKey()] = child
 		e.childrenIdx[parent.getKey()] = append(e.childrenIdx[parent.getKey()], child.getKey())
 	}

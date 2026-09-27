@@ -366,58 +366,67 @@ func validateJSONValue(decoder *json.Decoder, token json.Token) error {
 	}
 	switch delimiter {
 	case '{':
-		seen := make(map[string]string)
-		for decoder.More() {
-			keyToken, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return fmt.Errorf("JSON object key has type %T", keyToken)
-			}
-			folded := strings.ToLower(key)
-			if previous, duplicate := seen[folded]; duplicate {
-				return fmt.Errorf("duplicate or case-colliding JSON object key %q and %q", previous, key)
-			}
-			seen[folded] = key
-			if canonical, known := canonicalKeys[folded]; known && key != canonical {
-				return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
-			}
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim('}') {
-			return fmt.Errorf("unexpected JSON object delimiter %q", closing)
-		}
+		return validateJSONObject(decoder)
 	case '[':
-		for decoder.More() {
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim(']') {
-			return fmt.Errorf("unexpected JSON array delimiter %q", closing)
-		}
+		return validateJSONArray(decoder)
 	default:
 		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
+	}
+}
+
+func validateJSONObject(decoder *json.Decoder) error {
+	seen := make(map[string]string)
+	for decoder.More() {
+		keyToken, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		key, ok := keyToken.(string)
+		if !ok {
+			return fmt.Errorf("JSON object key has type %T", keyToken)
+		}
+		folded := strings.ToLower(key)
+		if previous, duplicate := seen[folded]; duplicate {
+			return fmt.Errorf("duplicate or case-colliding JSON object key %q and %q", previous, key)
+		}
+		seen[folded] = key
+		if canonical, known := canonicalKeys[folded]; known && key != canonical {
+			return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
+		}
+		value, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if err := validateJSONValue(decoder, value); err != nil {
+			return err
+		}
+	}
+	closing, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if closing != json.Delim('}') {
+		return fmt.Errorf("unexpected JSON object delimiter %q", closing)
+	}
+	return nil
+}
+
+func validateJSONArray(decoder *json.Decoder) error {
+	for decoder.More() {
+		value, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if err := validateJSONValue(decoder, value); err != nil {
+			return err
+		}
+	}
+	closing, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if closing != json.Delim(']') {
+		return fmt.Errorf("unexpected JSON array delimiter %q", closing)
 	}
 	return nil
 }
@@ -531,13 +540,17 @@ func validatePlanCollections(document Plan) error {
 	return nil
 }
 
-func validatePlanSteps(plan PlanSteps) error {
-	if plan.Bindings == nil || plan.SymbolicRoles == nil || plan.ModelPreconditions == nil ||
+func planStepsHasNullArray(plan PlanSteps) bool {
+	return plan.Bindings == nil || plan.SymbolicRoles == nil || plan.ModelPreconditions == nil ||
 		plan.RequestedActions == nil || plan.ModelOutcomes == nil || plan.ResultingStates == nil ||
 		plan.LinearExtension == nil || plan.SelectedChoices == nil || plan.SelectedVariants == nil ||
 		plan.RequestedFaults == nil || plan.CapabilityRequirementDefinitionIDs == nil ||
 		plan.Checkpoints == nil || plan.KnownGaps == nil || plan.Provenance.SourceDefinitionIDs == nil ||
-		plan.Provenance.SourceLocations == nil {
+		plan.Provenance.SourceLocations == nil
+}
+
+func validatePlanSteps(plan PlanSteps) error {
+	if planStepsHasNullArray(plan) {
 		return errors.New("PlanSteps arrays must not be null")
 	}
 	if err := validateDefinitionIDSet("capability requirement definition ID", plan.CapabilityRequirementDefinitionIDs); err != nil {

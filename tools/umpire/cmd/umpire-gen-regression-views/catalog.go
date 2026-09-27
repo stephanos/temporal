@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -30,13 +31,13 @@ func productionManifest() []manifestEntry {
 
 func validateManifest(entries []manifestEntry) error {
 	if len(entries) == 0 {
-		return fmt.Errorf("generated view manifest must contain at least one entry")
+		return errors.New("generated view manifest must contain at least one entry")
 	}
 	identities := make(map[string]struct{}, len(entries))
 	ownedPaths := make(map[string]string, len(entries)*2)
 	for _, entry := range entries {
 		if strings.TrimSpace(entry.Identity) == "" {
-			return fmt.Errorf("generated view manifest identity is required")
+			return errors.New("generated view manifest identity is required")
 		}
 		if _, exists := identities[entry.Identity]; exists {
 			return fmt.Errorf("generated view manifest contains duplicate identity %q", entry.Identity)

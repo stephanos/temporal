@@ -999,7 +999,7 @@ func validateLeanType(value leanType) error {
 
 func relativeLeanName(name, namespace leanName) (string, error) {
 	if len(name) <= len(namespace) || !slices.Equal(name[:len(namespace)], namespace) {
-		return "", fmt.Errorf("Lean name %q is outside namespace %q", name.String(), namespace.String())
+		return "", fmt.Errorf("Lean name %q is outside namespace %q", name.String(), namespace.String()) //nolint:staticcheck // ST1005: "Lean" is a proper noun
 	}
 	return leanName(name[len(namespace):]).String(), nil
 }

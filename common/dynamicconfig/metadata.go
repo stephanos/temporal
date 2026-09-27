@@ -1,6 +1,7 @@
 package dynamicconfig
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"slices"
@@ -93,19 +94,19 @@ func RegisteredSettingMetadata() ([]SettingMetadata, error) {
 			return nil, errorsNewMetadata("setting %q is missing metadata", registryKey.String())
 		}
 
-		copy, err := cloneSettingMetadata(*metadata)
+		cloned, err := cloneSettingMetadata(*metadata)
 		if err != nil {
 			return nil, errorsNewMetadata("setting %q: %v", registryKey.String(), err)
 		}
-		copy.Key = MakeKey(copy.Key).String()
-		if err := validateSettingMetadata(registryKey, copy); err != nil {
+		cloned.Key = MakeKey(cloned.Key).String()
+		if err := validateSettingMetadata(registryKey, cloned); err != nil {
 			return nil, err
 		}
-		if _, exists := seen[copy.Key]; exists {
-			return nil, errorsNewMetadata("duplicate normalized key %q", copy.Key)
+		if _, exists := seen[cloned.Key]; exists {
+			return nil, errorsNewMetadata("duplicate normalized key %q", cloned.Key)
 		}
-		seen[copy.Key] = struct{}{}
-		result = append(result, copy)
+		seen[cloned.Key] = struct{}{}
+		result = append(result, cloned)
 	}
 
 	slices.SortFunc(result, func(a, b SettingMetadata) int {
@@ -161,7 +162,7 @@ func newConstrainedSettingMetadata[T any](
 }
 
 func captureSettingDefault(resultType reflect.Type, value any) SettingDefaultMetadata {
-	copy, err := cloneMetadataValue(reflect.ValueOf(value), "")
+	cloned, err := cloneMetadataValue(reflect.ValueOf(value), "")
 	if err != nil {
 		return SettingDefaultMetadata{
 			Kind: SettingDefaultOpaque,
@@ -171,24 +172,24 @@ func captureSettingDefault(resultType reflect.Type, value any) SettingDefaultMet
 			},
 		}
 	}
-	if !copy.IsValid() {
+	if !cloned.IsValid() {
 		return SettingDefaultMetadata{Kind: SettingDefaultConcrete}
 	}
-	return SettingDefaultMetadata{Kind: SettingDefaultConcrete, Value: copy.Interface()}
+	return SettingDefaultMetadata{Kind: SettingDefaultConcrete, Value: cloned.Interface()}
 }
 
 func cloneSettingMetadata(metadata SettingMetadata) (SettingMetadata, error) {
-	copy := metadata
+	cloned := metadata
 	defaultCopy, err := cloneSettingDefaultMetadata(metadata.Default)
 	if err != nil {
 		return SettingMetadata{}, err
 	}
-	copy.Default = defaultCopy
-	return copy, nil
+	cloned.Default = defaultCopy
+	return cloned, nil
 }
 
 func cloneSettingDefaultMetadata(metadata SettingDefaultMetadata) (SettingDefaultMetadata, error) {
-	copy := metadata
+	cloned := metadata
 	switch metadata.Kind {
 	case SettingDefaultConcrete:
 		value, err := cloneMetadataValue(reflect.ValueOf(metadata.Value), "")
@@ -196,16 +197,16 @@ func cloneSettingDefaultMetadata(metadata SettingDefaultMetadata) (SettingDefaul
 			return SettingDefaultMetadata{}, err
 		}
 		if value.IsValid() {
-			copy.Value = value.Interface()
+			cloned.Value = value.Interface()
 		}
 	case SettingDefaultConstrained:
-		copy.Constrained = make([]ConstrainedDefaultMetadata, len(metadata.Constrained))
+		cloned.Constrained = make([]ConstrainedDefaultMetadata, len(metadata.Constrained))
 		for i, constrained := range metadata.Constrained {
 			defaultCopy, err := cloneSettingDefaultMetadata(constrained.Default)
 			if err != nil {
 				return SettingDefaultMetadata{}, err
 			}
-			copy.Constrained[i] = ConstrainedDefaultMetadata{
+			cloned.Constrained[i] = ConstrainedDefaultMetadata{
 				Constraints: constrained.Constraints,
 				Default:     defaultCopy,
 			}
@@ -214,7 +215,7 @@ func cloneSettingDefaultMetadata(metadata SettingDefaultMetadata) (SettingDefaul
 	default:
 		return SettingDefaultMetadata{}, fmt.Errorf("unknown default kind %q", metadata.Kind)
 	}
-	return copy, nil
+	return cloned, nil
 }
 
 func cloneMetadataValue(value reflect.Value, path string) (reflect.Value, error) {
@@ -234,16 +235,11 @@ func cloneMetadataValueAt(
 	if !value.IsValid() {
 		return reflect.Value{}, nil
 	}
-	if value.Kind() == reflect.Map || value.Kind() == reflect.Pointer || value.Kind() == reflect.Slice {
-		if !value.IsNil() {
-			visit := metadataCloneVisit{typeID: value.Type(), pointer: uintptr(value.UnsafePointer())}
-			if _, exists := active[visit]; exists {
-				return reflect.Value{}, fmt.Errorf("contains unsupported cycle at %s", metadataPath(path))
-			}
-			active[visit] = struct{}{}
-			defer delete(active, visit)
-		}
+	leave, err := enterMetadataCloneVisit(value, path, active)
+	if err != nil {
+		return reflect.Value{}, err
 	}
+	defer leave()
 
 	switch value.Kind() {
 	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
@@ -251,15 +247,7 @@ func cloneMetadataValueAt(
 		reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.String:
 		return value, nil
 	case reflect.Array:
-		copy := reflect.New(value.Type()).Elem()
-		for i := range value.Len() {
-			item, err := cloneMetadataValueAt(value.Index(i), fmt.Sprintf("%s[%d]", path, i), active)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			copy.Index(i).Set(item)
-		}
-		return copy, nil
+		return cloneMetadataElements(reflect.New(value.Type()).Elem(), value, path, active)
 	case reflect.Interface:
 		if value.IsNil() {
 			return reflect.Zero(value.Type()), nil
@@ -268,27 +256,14 @@ func cloneMetadataValueAt(
 		if err != nil {
 			return reflect.Value{}, err
 		}
-		copy := reflect.New(value.Type()).Elem()
-		copy.Set(item)
-		return copy, nil
+		cloned := reflect.New(value.Type()).Elem()
+		cloned.Set(item)
+		return cloned, nil
 	case reflect.Map:
 		if value.IsNil() {
 			return reflect.Zero(value.Type()), nil
 		}
-		copy := reflect.MakeMapWithSize(value.Type(), value.Len())
-		iterator := value.MapRange()
-		for iterator.Next() {
-			key, err := cloneMetadataValueAt(iterator.Key(), path+"{key}", active)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			item, err := cloneMetadataValueAt(iterator.Value(), path+"[value]", active)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			copy.SetMapIndex(key, item)
-		}
-		return copy, nil
+		return cloneMetadataMap(value, path, active)
 	case reflect.Pointer:
 		if value.IsNil() {
 			return reflect.Zero(value.Type()), nil
@@ -297,41 +272,16 @@ func cloneMetadataValueAt(
 		if err != nil {
 			return reflect.Value{}, err
 		}
-		copy := reflect.New(value.Type().Elem())
-		copy.Elem().Set(item)
-		return copy, nil
+		cloned := reflect.New(value.Type().Elem())
+		cloned.Elem().Set(item)
+		return cloned, nil
 	case reflect.Slice:
 		if value.IsNil() {
 			return reflect.Zero(value.Type()), nil
 		}
-		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Len())
-		for i := range value.Len() {
-			item, err := cloneMetadataValueAt(value.Index(i), fmt.Sprintf("%s[%d]", path, i), active)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			copy.Index(i).Set(item)
-		}
-		return copy, nil
+		return cloneMetadataElements(reflect.MakeSlice(value.Type(), value.Len(), value.Len()), value, path, active)
 	case reflect.Struct:
-		copy := reflect.New(value.Type()).Elem()
-		copy.Set(value)
-		for i := range value.NumField() {
-			fieldInfo := value.Type().Field(i)
-			fieldPath := path + "." + fieldInfo.Name
-			if fieldInfo.PkgPath != "" {
-				if metadataValueContainsMutableReference(value.Field(i)) {
-					return reflect.Value{}, fmt.Errorf("contains unsupported unexported mutable value at %s", fieldPath)
-				}
-				continue
-			}
-			field, err := cloneMetadataValueAt(value.Field(i), fieldPath, active)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			copy.Field(i).Set(field)
-		}
-		return copy, nil
+		return cloneMetadataStruct(value, path, active)
 	case reflect.Chan, reflect.Func:
 		if value.IsNil() {
 			return reflect.Zero(value.Type()), nil
@@ -345,6 +295,91 @@ func cloneMetadataValueAt(
 	default:
 		return reflect.Value{}, fmt.Errorf("contains unsupported %s value at %s", value.Kind(), metadataPath(path))
 	}
+}
+
+// enterMetadataCloneVisit records a non-nil reference value as being cloned and returns the func that
+// removes it again, so a reference reached from itself is rejected as a cycle.
+func enterMetadataCloneVisit(
+	value reflect.Value,
+	path string,
+	active map[metadataCloneVisit]struct{},
+) (func(), error) {
+	switch value.Kind() {
+	case reflect.Map, reflect.Pointer, reflect.Slice:
+	default:
+		return func() {}, nil
+	}
+	if value.IsNil() {
+		return func() {}, nil
+	}
+	visit := metadataCloneVisit{typeID: value.Type(), pointer: uintptr(value.UnsafePointer())}
+	if _, exists := active[visit]; exists {
+		return nil, fmt.Errorf("contains unsupported cycle at %s", metadataPath(path))
+	}
+	active[visit] = struct{}{}
+	return func() { delete(active, visit) }, nil
+}
+
+func cloneMetadataElements(
+	cloned reflect.Value,
+	value reflect.Value,
+	path string,
+	active map[metadataCloneVisit]struct{},
+) (reflect.Value, error) {
+	for i := range value.Len() {
+		item, err := cloneMetadataValueAt(value.Index(i), fmt.Sprintf("%s[%d]", path, i), active)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		cloned.Index(i).Set(item)
+	}
+	return cloned, nil
+}
+
+func cloneMetadataMap(
+	value reflect.Value,
+	path string,
+	active map[metadataCloneVisit]struct{},
+) (reflect.Value, error) {
+	cloned := reflect.MakeMapWithSize(value.Type(), value.Len())
+	iterator := value.MapRange()
+	for iterator.Next() {
+		key, err := cloneMetadataValueAt(iterator.Key(), path+"{key}", active)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		item, err := cloneMetadataValueAt(iterator.Value(), path+"[value]", active)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		cloned.SetMapIndex(key, item)
+	}
+	return cloned, nil
+}
+
+func cloneMetadataStruct(
+	value reflect.Value,
+	path string,
+	active map[metadataCloneVisit]struct{},
+) (reflect.Value, error) {
+	cloned := reflect.New(value.Type()).Elem()
+	cloned.Set(value)
+	for i := range value.NumField() {
+		fieldInfo := value.Type().Field(i)
+		fieldPath := path + "." + fieldInfo.Name
+		if fieldInfo.PkgPath != "" {
+			if metadataValueContainsMutableReference(value.Field(i)) {
+				return reflect.Value{}, fmt.Errorf("contains unsupported unexported mutable value at %s", fieldPath)
+			}
+			continue
+		}
+		field, err := cloneMetadataValueAt(value.Field(i), fieldPath, active)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		cloned.Field(i).Set(field)
+	}
+	return cloned, nil
 }
 
 func metadataValueContainsMutableReference(value reflect.Value) bool {
@@ -363,6 +398,7 @@ func metadataValueContainsMutableReference(value reflect.Value) bool {
 				return true
 			}
 		}
+	default:
 	}
 	return false
 }
@@ -430,7 +466,7 @@ func validateSettingDefaultMetadata(
 	switch metadata.Kind {
 	case SettingDefaultConcrete:
 		if len(metadata.Constrained) != 0 || metadata.Opaque.ResultType != nil || metadata.Opaque.Reason != "" {
-			return fmt.Errorf("concrete default has conflicting metadata")
+			return errors.New("concrete default has conflicting metadata")
 		}
 		if metadata.Value == nil {
 			switch resultType.Kind() {
@@ -443,11 +479,11 @@ func validateSettingDefaultMetadata(
 		}
 	case SettingDefaultConstrained:
 		if !allowConstrained {
-			return fmt.Errorf("nested constrained default")
+			return errors.New("nested constrained default")
 		}
 		if metadata.Value != nil || len(metadata.Constrained) == 0 ||
 			metadata.Opaque.ResultType != nil || metadata.Opaque.Reason != "" {
-			return fmt.Errorf("constrained default has conflicting or empty metadata")
+			return errors.New("constrained default has conflicting or empty metadata")
 		}
 		for _, constrained := range metadata.Constrained {
 			if err := validateSettingDefaultMetadata(constrained.Default, resultType, false); err != nil {
@@ -457,7 +493,7 @@ func validateSettingDefaultMetadata(
 	case SettingDefaultOpaque:
 		if metadata.Value != nil || len(metadata.Constrained) != 0 ||
 			metadata.Opaque.ResultType == nil || metadata.Opaque.Reason == "" {
-			return fmt.Errorf("opaque default has incomplete or conflicting metadata")
+			return errors.New("opaque default has incomplete or conflicting metadata")
 		}
 		if metadata.Opaque.ResultType != resultType {
 			return fmt.Errorf("opaque default result type %s does not match %s", metadata.Opaque.ResultType, resultType)

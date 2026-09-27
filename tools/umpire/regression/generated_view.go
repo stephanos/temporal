@@ -170,7 +170,7 @@ func validateSources(modelRoot string, sources []string) error {
 		return errors.New("at least one Lean source is required")
 	}
 	if !slices.IsSorted(sources) {
-		return errors.New("Lean sources are not in canonical order")
+		return errors.New("Lean sources are not in canonical order") //nolint:staticcheck // ST1005: "Lean" is a proper noun
 	}
 	for index, source := range sources {
 		if index > 0 && source == sources[index-1] {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	tDebug "go.temporal.io/server/common/debug"
+	"go.temporal.io/server/common/debug"
 	"go.temporal.io/server/common/log"
 )
 
@@ -155,6 +155,7 @@ func newScenario(
 	}
 
 	s.ctx, s.ctxCancelFn = context.WithTimeout(context.Background(), s.timeout)
+	t.Cleanup(s.ctxCancelFn)
 	return s
 }
 
@@ -163,7 +164,8 @@ func (s *Scenario) Logger() log.Logger {
 }
 
 func (s *Scenario) Context(timeout time.Duration) context.Context {
-	c, _ := context.WithTimeout(s.ctx, timeout)
+	c, cancel := context.WithTimeout(s.ctx, timeout)
+	s.t.Cleanup(cancel)
 	return c
 }
 
@@ -174,6 +176,8 @@ func (s *Scenario) Ensure(p propAccessor) {
 	}
 }
 
+// Await blocks until p becomes true and fails the test if the waiter or the scenario times out first.
+//
 // TODO: make this a top-level function that works for properties and futures
 func (s *Scenario) Await(p propAccessor, opts ...WaiterOption) {
 	s.t.Helper()
@@ -186,7 +190,7 @@ func (s *Scenario) Await(p propAccessor, opts ...WaiterOption) {
 		opt.applyWaiter(w)
 	}
 
-	waiterCtx, cancelFn := context.WithTimeout(context.Background(), w.timeout*tDebug.TimeoutMultiplier)
+	waiterCtx, cancelFn := context.WithTimeout(context.Background(), w.timeout*debug.TimeoutMultiplier)
 	defer cancelFn()
 
 	ticker := time.NewTicker(w.backoff)
@@ -241,6 +245,8 @@ func (s *Scenario) genContext() *genContext {
 	return s.genCtx
 }
 
+// Run explores every combination of the scenario's generator choices, running testFn once per combination.
+//
 // TODO: check there is no duplicate scenario run
 func (s *Scenario) Run(testFn func(*Scenario)) {
 	// ==== exploration run to collect all choice generators
@@ -291,10 +297,10 @@ func (s *Scenario) Run(testFn func(*Scenario)) {
 				}
 
 				divisor := 1
-				for otherId, otherInfo := range genIdx {
+				for otherID, otherInfo := range genIdx {
 					if otherInfo.index > info.index {
 						if otherInfo.choices <= 0 {
-							panic(fmt.Sprintf("generator %s has invalid variant count: %d", otherId, otherInfo.choices))
+							panic(fmt.Sprintf("generator %s has invalid variant count: %d", otherID, otherInfo.choices))
 						}
 						divisor *= otherInfo.choices
 					}
@@ -317,6 +323,8 @@ func (s *Scenario) VerifyOnce() {
 	// TODO
 }
 
+// Maybe returns a generated choice for name, so the scenario is run both with and without the branch.
+//
 // TODO: panic if same name is used twice
 // TODO: `any` and `all` combinators like `sync.WaitGroup`
 func (s *Scenario) Maybe(name string) bool {
