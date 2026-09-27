@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-27T16:40:33.580663Z",
   "created_at": "2026-09-27T15:27:40.451790Z",
   "default_impl": null,
   "default_review": null,
@@ -86,15 +86,47 @@
       "task": "fn-95-gomad-f1-restore-the-checkout-on.3",
       "timestamp": "2026-09-27T16:33:23.272091Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6d103bcc79978e9ae39c5c85079fa6bc7a9c2dc936b04de3f1f756e5b67a387b",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "64aaae33eea779264f87fb99f4a1a97c1c127f22",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 276873,
+      "output_sha256": "e2ffec602ee8ad2bf2c7e3a5c11b6d23da23ed70b38646778f78facaf5cd315f",
+      "reservation_id": "ba3f31fe8f3244aa978c8543b17cbeef",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T16:40:33.575310Z",
+      "tool_calls": 14,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-95-gomad-f1-restore-the-checkout-on.2": 1,
-    "impl:fn-95-gomad-f1-restore-the-checkout-on.3": 1
+    "impl:fn-95-gomad-f1-restore-the-checkout-on.3": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-95-gomad-f1-restore-the-checkout-on.2": 0,
     "impl:fn-95-gomad-f1-restore-the-checkout-on.3": 0
   },
@@ -112,5 +144,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T16:33:23.274178Z"
+  "updated_at": "2026-09-27T16:40:33.582696Z"
 }
