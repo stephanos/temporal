@@ -44,9 +44,20 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+Lane H decision (D2): keep the facade wrapper structs `PreparedProgram`, `EntrypointPlan` and `InstructionPlan` (recommended default); only their uncalled methods were removed.
 
+Removed every lane A core declaration: `PreparedProgram.PolicyIdentity`, `ProgramView.MaximumActivations` and its stored result, `InstructionPlan` `Assignments`/`ResponseReads`/`Input`/`Guard`/`Dependencies`/`OutcomeType` with `AssignmentPlan`/`ResponseReadPlan`, `assignment.environmentBindingID`, `PreparedContract.Snapshot`/`ProgramView`, `Path.CheckFanout`, and the facade `InstructionPlan.Guard`/`OutcomeType`/`Dependencies` plus `Expression`/`Expression.Evaluate`. `PreparedCase` now stores its prepared Contract beside the `MonitorFactory`, so `Evaluate` loses the anonymous-interface assertion and its impossible error branch; fake factories are unchanged. The activation ceiling check in `bindReservations` stays, because it still rejects over-ceiling Cases; only the dead assignment of its total went.
+
+Kept, with reason: all six aliases (`ReferenceKind`, `OutcomeSnapshot`, `ReservationTopology`, `ReservationRoute`, `SlotReference`, `InjectFault`). Each is still reachable from a kept facade signature: `ValueReference.Kind` in `EvaluateInput`, `ValidateOutcome` returns `*OutcomeSnapshot`, `Reservations` returns `[]ReservationTopology`, `ReservationCarrierPlan.Routes` from `ReservationCarrier`, and the `Opcode`/`ReferenceKind` constant sets. Removing any of them would expose a `contract.*` type in the public API.
+
+Dead-code evidence: a grep over common/, tests/, tools/, service/ and cmd/ finds zero references to every removed name (tests included). `deadcode -test -tags 'test_dep integration' ./common/testing/testpilot/... ./tests/... ./tools/...` reports nothing in the facade, `contract`, `ir`, `execution` or `verification`; its remaining reports are all fn-94.5's lane (worker/activation/tests). None of the removed methods showed up in `deadcode`, which treats exported methods as live, so grep is the evidence for them.
+
+Tests re-pointed at production paths: the activation-ceiling cases now admit at the ceiling and reject one below with the admission error; `Path` fan-out goes through `Path.Read` with 127/128/129 items; immutability goes through `Source()` clones; derived outcome types come from `node.outcomes` (what `ValidateOutcome` checks); dependencies come from `node.dependencies`. The `execution/README.md` `OutcomeType` text is updated.
+
+Scope note: the `PreparedCase` struct lives in `prepare.go` (facade), not `prepared_case.go`, so that one-line field addition landed there. The verification build was run in a HEAD snapshot with only this diff applied, because fn-94.5's in-progress edits leave `temporal/worker` unbuildable in the shared checkout. Measurement: production 19289, tests 20889, tests/testpilot 2399, proto 1414 lines. This commit's delta is -81 production and +14 test Go lines.
+
+stage: impl-review - ran [fan-out rid 892d7258b69542c9a52c6f0c13a86aa3, 3/3 draws SHIP, review base 0db947dac6]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1d94ab30ff660623d77432c6c76c447935272bc5
+- Tests: baseline: green (go test -race -tags test_dep ./common/testing/testpilot/... pre-edit), go test -race -tags test_dep ./common/testing/testpilot/... (HEAD snapshot + this diff; 11 packages ok), make umpire-check-case-runtime-conformance equivalent in snapshot: both generator modes, diff -ru clean on both testdata trees, generator tests and TestCaseRuntimePublicFacadeConformance ok (Lean binaries reused from model/.lake, model unchanged), make lint-code LINT_CODE_TARGETS=<facade, execution, ir, verification> GOLANGCI_LINT_BASE_REV=735caa401c: 0 issues, deadcode -test -tags 'test_dep integration' ./common/testing/testpilot/... ./tests/... ./tools/...: no core-package reports
 - PRs:
