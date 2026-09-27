@@ -41,9 +41,12 @@ Add the eight retired Driver-seam tokens to the vocabulary gate with pinned test
 - [ ] TBD
 
 ## Done summary
-TBD
+The vocabulary gate now retires OpaqueCapability, CapabilityEffect, CapabilityBridge, CapabilityFactory, NewCapability, InvokeCapability, CapabilitySlot and CapabilityClaim (lowerCamel covers the server's unexported types), pinned by a want row per token plus opaqueCapability and one live no-want row (OpaqueHandleType, OpaqueHandle, HandleBridge, Umpire.Capability, KNOWN_GAP_KIND_CAPABILITY). The live-seam comment is gone, fn-78 left downstreamSpecs, and the two Temporal Driver READMEs and the UMPIRE4_COMPONENTS sentence say handle factory / HandleFactory / handle bridge.
 
+Regression ran after fn-90.8's commit 860ecde37d: exit 0, 45 passing live identities. fn-91.1 recorded no count to compare against; the live suite does not import the only Go package this task touches, so the base count is the same.
+
+stage: impl-review - ran [claude backend, SHIP on first round]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4b1d55a7a6afb2923446b9bd38aa3c2235f9384f
+- Tests: baseline: green (quick commands; CC=/usr/bin/clang), go vet -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/replay/... ./tools/canary/... (rc=0), go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/replay/... ./tools/umpire/internal/retiredvocabulary/... (rc=0), make umpire-check-retired-vocabulary (rc=0); probe: InvokeCapability appended to common/testing/testpilot/temporal/worker/api.go failed it with api.go:52, then reverted, make lint-code-fast GOLANGCI_LINT_BASE_REV=a164116e87b53f3be01be1f7ffb6e8a2807ae0e8 (0 issues), make umpire-check-regression at 860ecde37d (after fn-90.8's pair-fixture commit) (rc=0): 45 passing live identities (25 top-level TestTestpilot*), 0 FAIL, 0 SKIP. fn-91.1 recorded no live-identity count; the live suite's test dependency graph (go list -test -deps ./tests) excludes retiredvocabulary and this task changes only that package and markdown, so the base-commit count equals this one
 - PRs:

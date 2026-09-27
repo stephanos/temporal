@@ -11,7 +11,8 @@
   ],
   "id": "fn-91-say-opaque-handle-in-the-driver-contract",
   "impl_review_rounds": {
-    "fn-91-say-opaque-handle-in-the-driver-contract.1": 0
+    "fn-91-say-opaque-handle-in-the-driver-contract.1": 0,
+    "fn-91-say-opaque-handle-in-the-driver-contract.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -198,10 +199,40 @@
       "task": "fn-91-say-opaque-handle-in-the-driver-contract.1",
       "timestamp": "2026-09-27T06:12:02.077538Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "713c9194446497cc88cf66d81bab344dbae7892839eaff5ca6f0c15e3d84f51f",
+      "backend": "claude",
+      "base_sha": "a164116e87b53f3be01be1f7ffb6e8a2807ae0e8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4b1d55a7a6afb2923446b9bd38aa3c2235f9384f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3693,
+      "output_sha256": "48a3e88b0293b08ef57458c9312907b5e01f0d8fde413c982402c9e5beddbea1",
+      "reservation_id": "048532e548d64a8facb893e5fe093438",
+      "round_consumed": true,
+      "scope": "impl:fn-91-say-opaque-handle-in-the-driver-contract.2",
+      "superseded_by": null,
+      "task": "fn-91-say-opaque-handle-in-the-driver-contract.2",
+      "timestamp": "2026-09-27T07:57:46.177451Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-91-say-opaque-handle-in-the-driver-contract.1": 1,
+    "impl:fn-91-say-opaque-handle-in-the-driver-contract.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -209,6 +240,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-91-say-opaque-handle-in-the-driver-contract.1": 0,
+    "impl:fn-91-say-opaque-handle-in-the-driver-contract.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-91-say-opaque-handle-in-the-driver-contract.md",
@@ -225,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T06:12:02.081835Z"
+  "updated_at": "2026-09-27T07:57:46.179686Z"
 }
