@@ -134,7 +134,7 @@ an SMT backend after it.
 ### Adoption caveats
 
 - Veil is a 2.0 pre-release with no tagged release. It moved to Lean's module system on
-  2026-09-22 and pins Lean 4.32.0; `model/lean-toolchain` pins 4.33.1.
+  2026-09-22 and pins Lean 4.32.0; `model/lean-toolchain` moved from 4.33.1 to match it (fn-88.12).
 - Its SMT automation runs more than ten times slower than Ivy on the authors' own benchmarks
   ([Veil, Dafny 2026 paper](https://verse-lab.org/papers/veil-dafny26.pdf)); Lean-SMT proof
   reconstruction costs another three to five times.

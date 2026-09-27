@@ -6,9 +6,11 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-fn-88 to fn-92 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26 and
-fn-29 are delivered, each with SHIP implementation and completion reviews; their task receipts in
-`.flow/` and the git history carry the details.
+fn-88, fn-89, fn-90 and fn-92 to fn-94 are queued. fn-83, fn-84, fn-87, fn-85, fn-86, fn-46,
+fn-33, fn-22, fn-26, fn-29 and fn-91 are delivered, each with SHIP implementation and completion
+reviews; their task receipts in `.flow/` and the git history carry the details. fn-91 (2026-09-27)
+renamed the Driver seam's Go to the opaque handle family and holds the eight retired names in the
+vocabulary gate.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
@@ -39,12 +41,6 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    Nexus pair Case. A Rule over N instances crosses the wire once with its per-instance values
    instead of N lowered copies; Verdicts stay identical, pinned by a differential test, and only the
    multi-instance pair fixture changes.
-4. **fn-91 — Say opaque handle in the Driver contract**
-   ([spec](../.flow/specs/fn-91-say-opaque-handle-in-the-driver-contract.md)). A mechanical,
-   behavior-preserving rename of the Driver seam's hand-written Go from capability to the opaque
-   handle family, with the retired-vocabulary gate holding the old names. Independent of the others;
-   land it before fn-79 resumes on the same seam.
-
 4. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)). Adds a `compose`
    command that builds one Model from entity machines with declared action synchronization over a
@@ -53,6 +49,34 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
    first cross-entity claims as `verify` Queries. Version one realizes no Case over a composition and
    leaves the caller module, its fixtures, and the canary's pinned Case identity untouched; moving
    the operation entity is the named follow-up. Depends on fn-88, fn-89 and fn-90.
+5. **fn-93 — Simplify the Lean model**
+   ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)), after everything above. A
+   simplification campaign over the handwritten code in `model/`: about 88,100 of its 128,630 Lean
+   lines, measured 2026-09-26. Purely generated code is out of scope. It starts by fixing the defects the investigation found. Production Models get the
+   `schema:` and `evidence:` checks they skip today, one checker replaces the `#print axioms` pins
+   that assert nothing, and test modules no root builds get wired in. It then derives what is
+   written out by hand: enum wire names, keyword parsing, the command registry, one diagnostic
+   type and one JSON helper set. Every golden, Case fixture, Definition ID and Behavior Fingerprint
+   stays byte-identical. Behind owner decisions recorded per task, it deletes code that retired
+   rules left behind (`Umpire.Variations`, the offline Evidence evaluation chain, and the Run,
+   Evidence, Result and Set artifacts, the guarded Property forms, the Bool/Prop denotation copies,
+   and the Lean-side correlated Monitors). It also reuses core Lean where hand-rolled helpers
+   repeat, and cuts `model/` Markdown to one README and one ARCHITECTURE. Authoring gains shorthand without losing any
+   construct. It absorbs fn-60's re-scoped aim, and fn-60 becomes superseded when fn-93 closes.
+6. **fn-94 — Simplify the Testpilot Go runtime**
+   ([spec](../.flow/specs/fn-94-simplify-the-testpilot-go-runtime.md)), after fn-89, fn-90 and
+   fn-91. It is independent of fn-93 and may run beside it. It is the Go counterpart of fn-93, over
+   the 42,067 handwritten lines of `common/testing/testpilot`, `tests/testcore/testpilot`, the live
+   tests and the hand-written `.proto`. Generated code is out of scope.
+   - It first settles whether the `initial_state_fields` and `prior_fields` wire fields should be
+     read or removed: Lean emits them, and Go never reads or validates them.
+   - It removes the residue of the retired untyped Nexus path and the other dead and test-only code.
+   - It validates admitted data once rather than again in each Driver, which follows from SEM-16.
+   - It shares the copied primitives, one opcode table and one workflow binding type.
+   - It consolidates the test fixtures and fakes.
+
+   Behind a per-arm owner decision, it removes protocol arms that no producer emits. The corpus,
+   Driver identity bytes, route wire bytes and the live identity count stay as they are.
 
 ### Carried forward, not specs
 
