@@ -1067,6 +1067,20 @@ func gomadBlockingRead(fd int32, destination unsafe.Pointer, bytes int32) int32 
 	return count
 }
 
+// gomadHostRead blocks on a host descriptor whose answer arrives in wall
+// time, such as a read-only mount lookup. Unlike the simulation transport
+// reader, the waiting goroutine stays a plain syscall, so checkdead does not
+// quiesce and simulation time does not move while the answer is pending.
+//
+//go:linkname gomadHostRead
+//go:nosplit
+func gomadHostRead(fd int32, destination unsafe.Pointer, bytes int32) int32 {
+	entersyscallblock()
+	count := read(fd, destination, bytes)
+	exitsyscall()
+	return count
+}
+
 //go:linkname gomadBlockingWrite
 //go:nosplit
 func gomadBlockingWrite(fd uintptr, source unsafe.Pointer, bytes int32) int32 {
