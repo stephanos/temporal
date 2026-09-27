@@ -91,6 +91,9 @@ separate integration work and must preserve the same Behavior Fingerprints.
   assembling Umpire proof, checking, canonicalization, or planner plumbing.
 - Veil is available only through focused generic support and expert adapters under
   `Temporal.Verify`; ordinary Umpire and Temporal facades never expose it.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* This holds for Veil's symbolic path.
+  Veil's concrete checker is Search's default backend, reached transitively by every `Umpire` and
+  `Temporal` import but named only by `Umpire.Search.Backend.Veil`; authors never write Veil.
 - Umpire3 is neither a dependency nor a semantic oracle for this model.
 
 ## Shared vocabulary and composition
@@ -454,6 +457,19 @@ metaprogramming may remove local boilerplate, but authored declarations remain i
 source-bound. Ordinary Umpire and Temporal imports must remain usable without importing or
 compiling Veil modules.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The last sentence of the paragraph above
+and the first paragraph of this section are superseded for Veil's concrete checker, which is not
+optional. `Umpire.Search` runs it as its default search backend: `Umpire.Search.Product` builds the
+product of the checked table's `SearchView`, the Scenario's progress automaton, and the Property
+monitors, and `Umpire.Search.Backend.Veil` hands that product to the checker. The product is checker
+input derived from `FiniteTable`, not Veil source, and authors keep the commands; there is no Veil
+DSL, `action`, or relational authoring. Veil is one Lake requirement of `model/` at a pinned commit,
+so every `Umpire` and `Temporal` import compiles and loads the checker's modules, and MOD-17 limits
+who may import them. The model's Lean toolchain is the one Veil's pinned commit declares; the two
+move together. Node and npm are model build prerequisites, because Lake builds Veil's widget bundle.
+The rest of this section, the per-family binding under `Temporal.Verify`, applies to the symbolic
+path only.
+
 The binding records canonical and Veil source identities and digests, state/action mappings, the
 claimed relation, assumptions, Limits, exclusions, unsupported vocabulary, and trust mode. Partial
 bindings expose Known Gaps and cannot claim equivalence from matching fixtures alone.
@@ -463,12 +479,26 @@ kernel proof, reconstructed solver proof, trusted solver, bounded symbolic searc
 concrete replay as different trust classes. Timeout, solver unavailability, incomplete search, stale
 digests, and replay disagreement never become success.
 
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The concrete checker adds one class. Its
+checker entry is `IO` and runs while the command elaborates. Every witness it returns is replayed
+against the checked table before it can be `found` or a violation, and a replay failure is
+`invalid`. Its absence answers (`verified-within-limits`, `none-found`, `unsatisfiable`) are search
+within Limits trusted from the pinned checker, not a kernel result. Their oracle is the differential
+test against the frozen `reference` backend on the checked-in models, and Veil's 64-bit state-hash
+deduplication, which can merge distinct states, is their stated trust assumption. The planning
+receipt records the backend, the reason it was chosen, the search unit, and the Veil commit.
+
 Every Veil counterexample must replay through the canonical Umpire transition kernel before it can
 support a semantic violation or promoted regression. Verification receipts reference rather than
 duplicate `Plan` and remain offline build/test artifacts; Veil never enters production
 request paths or server binaries. The normal model build and regression gate do not compile or run
 `Temporal.Verify`; a separate focused verification gate owns Veil's toolchain, cost, and retained
 trust evidence.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* For the concrete checker, the normal model
+build and `make umpire-check-regression` own Veil's pin, toolchain, and cost: the regression gate
+fails when the manifest resolves another Veil commit, and the cold build must fit the CI job
+timeouts or use a `.lake` cache. The focused gate keeps `Temporal.Verify` and the symbolic path.
 
 ## Verification contract
 
@@ -486,6 +516,9 @@ Focused checks must cover:
 - package import direction and absence of Temporal vocabulary under `model/Umpire`;
 - absence of Veil imports from the ordinary `Umpire` and `Temporal` aggregates, Feature, base
   System, and ordinary Tool modules;
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* direct imports only:
+  `search-backend-isolation` admits `Veil.*` in `Umpire.Search.Backend.Veil` alone, and that adapter
+  in `Umpire.Search.Selection` alone;
 - direct elaboration and source-binding of optional declarations under `Temporal.Verify`;
 - checked correspondence between each checker view and its canonical Feature or System model;
 - stale Veil binding rejection, honest trust classes, and canonical counterexample replay; and
@@ -494,6 +527,9 @@ Focused checks must cover:
 Use `make umpire-check-regression` as the stable ordinary repository command; it excludes optional
 Veil adapters. A separate focused command owns `Temporal.Verify` when a family adopts Veil. Current
 source and generated fixtures, not status prose in this document, determine implementation truth.
+
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* `make umpire-check-regression` builds and
+runs the concrete checker backend, which is not an optional Veil adapter.
 
 ## Non-goals
 
@@ -511,3 +547,7 @@ source and generated fixtures, not status prose in this document, determine impl
 - Importing Veil from `Temporal.Feature`, base `Temporal.System`, ordinary `Temporal.Tool`, or the
   ordinary `Temporal` aggregate.
 - Making Veil mandatory, generating Veil source, or importing Umpire3 semantics.
+  *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* Veil's concrete checker is mandatory as
+  Search's backend, and these modules reach it transitively; neither non-goal rules that out. They
+  still rule out a direct `Veil.*` import from these modules, making the symbolic path mandatory,
+  and generating Veil source.
