@@ -89,6 +89,7 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 		"static-preparation-rejection/reply-not-admitted",
 		"static-preparation-rejection/undeclared-evidence",
 		"static-preparation-rejection/duplicate-evidence",
+		"static-preparation-rejection/instance-value",
 		"cleanup-failure-after-proved-violation",
 		"cross-run-isolation",
 		"satisfied/history-evidence",

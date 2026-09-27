@@ -21,6 +21,7 @@ import (
 const (
 	controlCasePath = "../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+	pairCasePath    = "../../../tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json"
 )
 
 type control struct {
@@ -281,5 +282,30 @@ func TestEvaluationLinksNothingThatExecutes(t *testing.T) {
 		"go.temporal.io/server/common/testing/testpilot/temporal",
 	} {
 		require.NotContains(t, dependencies, forbidden)
+	}
+}
+
+// A Rule with instances concludes once per instance and never under its own ID, so the rule-set
+// check expects the pair Case's instance rule IDs beside its correlated rules.
+func TestRuleSetExpectsRuleInstances(t *testing.T) {
+	caseBytes, err := os.ReadFile(pairCasePath)
+	require.NoError(t, err)
+	source, err := testpilot.DecodeCaseProtoJSON(caseBytes)
+	require.NoError(t, err)
+	require.Len(t, source.GetContract().GetRules(), 1)
+	require.Len(t, source.GetContract().GetRules()[0].GetInstances(), 2, "the pair Case's Rule has two instances")
+	verdict := func(ruleIDs ...string) *testpilotspb.Verdict {
+		v := &testpilotspb.Verdict{}
+		for _, id := range append(ruleIDs, "fact-nexusOperationCompleted", "state-succeeded") {
+			v.Rules = append(v.Rules, &testpilotspb.RuleVerdict{RuleId: id})
+		}
+		return v
+	}
+	require.Empty(t, ruleSetCrossed(source.GetContract(), verdict("relation-1", "relation-2")))
+	for name, v := range map[string]*testpilotspb.Verdict{
+		"the Rule's own ID instead of its instances": verdict("relation"),
+		"an instance missing":                        verdict("relation-1"),
+	} {
+		require.Contains(t, ruleSetCrossed(source.GetContract(), v), "the Contract's are", name)
 	}
 }

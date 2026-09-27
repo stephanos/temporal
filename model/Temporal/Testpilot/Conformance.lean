@@ -42,7 +42,9 @@ private def conformanceCase
     (terminal : ContractStateStatus)
     (matchesEvent : Bool)
     (cleanupFailure := false)
-    (guard : Option Expression := none) : Except Umpire.Case.Compiler.Error Case :=
+    (guard : Option Expression := none)
+    (rule : ContractRule := conformanceRule terminal matchesEvent) :
+    Except Umpire.Case.Compiler.Error Case :=
   let property := conformanceProperty caseId
   let definitions := [
     binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,
@@ -58,7 +60,7 @@ private def conformanceCase
     knownGaps := []
     program := conformanceProgram caseId cleanupFailure guard
     contractId := caseId ++ ".contract"
-    properties := [.monitor property (conformanceRule terminal matchesEvent)]
+    properties := [.monitor property rule]
   }
 
 /-- Deterministic public-facade fixtures kept small enough for exact cross-language comparison. -/
@@ -91,6 +93,27 @@ authored and rendered; Go preparation rejects the reference outside its context 
 def conformanceExpressionContextRejectionCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.static-rejection.expression-context"
     .CONTRACT_STATE_STATUS_SATISFIED true (guard := some (Expr.observation "server-version"))
+
+/-- A third static-preparation rejection, of a Rule with instances: the rule compares the completed
+instruction's ID against a text instance value, and its second Rule instance assigns that value an
+integer. Go preparation rejects the assignment at its by-ID location, naming the instance. -/
+def conformanceInstanceValueRejectionCase : Except Umpire.Case.Compiler.Error Case :=
+  conformanceCase "temporal.case.conformance.static-rejection.instance-value"
+    .CONTRACT_STATE_STATUS_SATISFIED true
+    (rule := Contract.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
+      #[Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
+        Contract.state "terminal" .CONTRACT_STATE_STATUS_SATISFIED]
+      #[Contract.transition "complete" "pending" "terminal"
+        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+        (Expr.equal (Expr.runEvent .RUN_EVENT_FIELD_INSTRUCTION_ID)
+          (Expr.instanceValue "instruction"))
+        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
+      (instanceValues := #[Contract.instanceValue "instruction" (Types.scalar .SCALAR_KIND_TEXT)])
+      (instances := #[
+        Contract.ruleInstance "result-1"
+          #[Contract.instanceAssignment "instruction" (Value.text "execute")],
+        Contract.ruleInstance "result-2"
+          #[Contract.instanceAssignment "instruction" (Value.signedInteger 1)]]))
 
 /-! ### Typed worker instruction rejections
 

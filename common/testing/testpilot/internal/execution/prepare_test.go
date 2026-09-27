@@ -2,6 +2,7 @@ package execution
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -825,6 +826,29 @@ func TestPrepareBoundsSurfaceBeforeCloning(t *testing.T) {
 	c.Program.Entrypoints[0].Instructions[0].Instruction.Instruction = (*testpilotspb.Instruction_InvokeRpc)(nil)
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)
+}
+
+// A Case is charged its surface as its Contract's Rule instances expand, so a Case whose instanced
+// Rule fits but whose expansion does not is rejected before the Contract is prepared.
+func TestPrepareBoundsTheCaseSurfaceAsExpanded(t *testing.T) {
+	c, catalog, p := fixture(t)
+	large := strings.Repeat("x", 6<<20)
+	read := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "op"}}}}
+	instance := func(ruleID, value string) *testpilotspb.ContractRuleInstance {
+		return &testpilotspb.ContractRuleInstance{RuleId: ruleID, Assignments: []*testpilotspb.ContractInstanceAssignment{{InstanceValueId: "op", Value: textLiteral(value).GetLiteral()}}}
+	}
+	c.Contract.Rules = []*testpilotspb.ContractRule{{
+		RuleId:         "rule",
+		Transitions:    []*testpilotspb.ContractTransition{{TransitionId: "t", Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{read, proto.CloneOf(read)}}}}}},
+		InstanceValues: []*testpilotspb.ContractInstanceValue{{InstanceValueId: "op", Type: scalar(testpilotspb.SCALAR_KIND_TEXT).GetSingular()}},
+		Instances:      []*testpilotspb.ContractRuleInstance{instance("rule-1", large), instance("rule-2", large+"y")},
+	}}
+	require.NoError(t, ir.CheckSurface(c, ir.DefaultLimits()), "the Case as written fits")
+	_, err := Prepare(c, catalog, p)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+	require.True(t, strings.HasPrefix(diagnostic.Path, "$.contract.rules"), diagnostic.Path)
 }
 
 func TestStructuralCountsAndPathFanout(t *testing.T) {

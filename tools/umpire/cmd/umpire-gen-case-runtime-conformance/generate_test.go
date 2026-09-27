@@ -292,7 +292,7 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 // a variant alone.
 func TestValidateManifestKeepsSixClassesWithTheirRootCases(t *testing.T) {
 	entries := productionManifest()
-	require.Len(t, entries, 16)
+	require.Len(t, entries, 17)
 	require.NoError(t, validateManifest(entries))
 	variant := func(class, name string) manifestEntry {
 		return manifestEntry{Class: class, Variant: name, RendererArg: "render", CaseID: "case", Expected: expectedResult{Class: class}}
