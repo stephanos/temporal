@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"unicode/utf8"
 
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -144,58 +143,34 @@ func (a *admission) bindPolicy(policy Profile) error {
 	if err := checkInstructionDefaults(policy.InstructionDefaults, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.CommandTypes) > len(enumspb.CommandType_name) || len(policy.EnvironmentBindings) > 10000 {
+	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.CommandTypes) > len(enumspb.CommandType_name) {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
-	var environmentBytes int64
 	for _, binding := range policy.EnvironmentBindings {
-		if !validID(binding.ID) {
-			return invalid(ir.Malformed, "policy.environment_bindings", "invalid environment binding identity")
-		}
-		if binding.Value == "" || !utf8.ValidString(binding.Value) {
-			return invalid(ir.Malformed, "policy.environment_bindings", "invalid environment binding value")
-		}
-		if _, exists := a.environment[binding.ID]; exists {
-			return invalid(ir.Malformed, "policy.environment_bindings", "duplicate environment binding")
-		}
-		bindingBytes := int64(len(binding.ID) + len(binding.Value))
-		if bindingBytes > policy.Limits.MaxRequestBytes-environmentBytes {
-			return invalid(ir.LimitExceeded, "policy.environment_bindings", "environment binding byte ceiling exceeded")
-		}
 		if err := a.charge(1); err != nil {
 			return err
 		}
-		environmentBytes += bindingBytes
 		a.environment[binding.ID] = binding.Value
 	}
-	snapshot := policy
-	snapshot.Limits = proto.CloneOf(policy.Limits)
-	snapshot.Roles = slices.Clone(policy.Roles)
-	snapshot.Opcodes = slices.Clone(policy.Opcodes)
-	snapshot.CommandTypes = slices.Clone(policy.CommandTypes)
-	snapshot.EnvironmentBindings = slices.Clone(policy.EnvironmentBindings)
-	for i, role := range snapshot.Roles {
-		bound, err := a.bindRolePolicy(role, policy.Limits)
-		if err != nil {
+	for _, role := range policy.Roles {
+		if err := a.bindRolePolicy(role, policy.Limits); err != nil {
 			return err
 		}
-		snapshot.Roles[i] = bound
 	}
-	for _, opcode := range snapshot.Opcodes {
+	for _, opcode := range policy.Opcodes {
 		if opcode < contract.InvokeRPC || opcode > contract.MaxOpcode || a.opcodes[opcode] {
 			return invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")
 		}
 		a.opcodes[opcode] = true
 	}
-	for _, commandType := range snapshot.CommandTypes {
+	for _, commandType := range policy.CommandTypes {
 		if _, declared := enumspb.CommandType_name[int32(commandType)]; !declared || commandType == enumspb.COMMAND_TYPE_UNSPECIFIED || a.commandTypes[commandType] {
 			return invalid(ir.Malformed, "policy.command_types", "invalid or duplicate command type")
 		}
 		a.commandTypes[commandType] = true
 	}
-	a.prepared.policy = snapshot
-	a.prepared.limits = snapshot.Limits
-	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
+	a.prepared.limits = policy.Limits
+	a.prepared.instructionDefaults = policy.InstructionDefaults
 	return nil
 }
 
@@ -210,49 +185,42 @@ func checkInstructionDefaults(defaults contract.InstructionDefaults, limits *tes
 	}
 	return nil
 }
-func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotspb.ProgramLimits) (contract.RolePolicy, error) {
+func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotspb.ProgramLimits) error {
 	if !validID(role.ID) || role.Kind < testpilotspb.ROLE_KIND_ENDPOINT || role.Kind > testpilotspb.ROLE_KIND_PARTICIPANT {
-		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid role")
+		return invalid(ir.Malformed, "policy.roles", "invalid role")
 	}
 	if _, exists := a.allowed[role.ID]; exists {
-		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "duplicate role")
+		return invalid(ir.Malformed, "policy.roles", "duplicate role")
 	}
 	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
-		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
+		return invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
 	methods := make(map[string]bool, len(role.Methods))
 	for _, method := range role.Methods {
 		if len(method) > 256 {
-			return contract.RolePolicy{}, invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
+			return invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
 		}
 		if err := a.charge(1); err != nil {
-			return contract.RolePolicy{}, err
+			return err
 		}
 		if methods[method] {
-			return contract.RolePolicy{}, invalid(ir.Malformed, "policy.methods", "duplicate method")
+			return invalid(ir.Malformed, "policy.methods", "duplicate method")
 		}
 		methods[method] = true
 		if _, err := a.prepared.catalog.Method(method); err != nil {
-			return contract.RolePolicy{}, err
+			return err
 		}
 	}
 	carriers := make(map[string]contract.ReservationCarrierPolicy, len(role.ReservationCarriers))
 	for _, carrier := range role.ReservationCarriers {
 		if err := a.bindCarrierPolicy(carrier, methods, limits, carriers); err != nil {
-			return contract.RolePolicy{}, err
+			return err
 		}
 	}
-	bound := role
-	bound.Methods = slices.Clone(role.Methods)
-	bound.ReservationCarriers = make([]contract.ReservationCarrierPolicy, len(role.ReservationCarriers))
-	for i, carrier := range role.ReservationCarriers {
-		bound.ReservationCarriers[i] = carrier
-		bound.ReservationCarriers[i].Shapes = slices.Clone(carrier.Shapes)
-	}
-	a.allowed[role.ID] = bound
+	a.allowed[role.ID] = role
 	a.methods[role.ID] = methods
 	a.carriers[role.ID] = carriers
-	return bound, nil
+	return nil
 }
 
 func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy, methods map[string]bool, limits *testpilotspb.ProgramLimits, carriers map[string]contract.ReservationCarrierPolicy) error {
@@ -293,9 +261,7 @@ func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy,
 	if err := a.charge(1); err != nil {
 		return err
 	}
-	bound := carrier
-	bound.Shapes = slices.Clone(carrier.Shapes)
-	carriers[carrier.Method] = bound
+	carriers[carrier.Method] = carrier
 	return nil
 }
 func (a *admission) bindSchemas() error {

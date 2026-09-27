@@ -14,9 +14,9 @@ import (
 
 // PreparedCase owns immutable admission products, never a live Profile or Driver.
 type PreparedCase struct {
-	source   *testpilotspb.Case
-	program  *execution.PreparedProgram
-	factory  execution.MonitorFactory
+	source  *testpilotspb.Case
+	program *execution.PreparedProgram
+	factory execution.MonitorFactory
 	// contract is factory's own prepared Contract, which Evaluate replays a closed Run through.
 	contract *verification.PreparedContract
 	identity DriverIdentity
@@ -28,7 +28,8 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if isNil(profile) {
 		return nil, preparationError(errors.New("Profile is required"), "profile")
 	}
-	spec := profile.Snapshot().Snapshot()
+	// The snapshot is Prepare's one clone of the Profile; admission holds its values as given.
+	spec := profile.Snapshot()
 	if spec.Catalog == nil || spec.Catalog.catalog == nil {
 		return nil, preparationError(errors.New("Profile catalog is required"), "profile.catalog")
 	}
@@ -36,7 +37,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if err != nil {
 		return nil, preparationError(err, "profile.environment_bindings")
 	}
-	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, CommandTypes: spec.CommandTypes, EnvironmentBindings: spec.EnvironmentBindings, EnvironmentFingerprint: fingerprint, Limits: spec.ProgramLimits, InstructionDefaults: spec.InstructionDefaults}
+	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, CommandTypes: spec.CommandTypes, EnvironmentBindings: spec.EnvironmentBindings, Limits: spec.ProgramLimits, InstructionDefaults: spec.InstructionDefaults}
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
 		return nil, preparationError(err, "program")

@@ -14,18 +14,19 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// Profile is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
+// Profile is the part of a static Driver snapshot Program admission reads. Prepare holds its
+// collections and resource ceilings as given, so its caller passes a snapshot it owns and never
+// mutates; the facade passes its one clone, whose environment bindings BindingFingerprint admitted.
 type Profile struct {
 	Identity        string
 	CatalogIdentity string
 	Roles           []contract.RolePolicy
 	Opcodes         []contract.Opcode
 	// CommandTypes are the workflow command types the Profile admits a WorkflowCommand to carry.
-	CommandTypes           []enumspb.CommandType
-	EnvironmentBindings    []contract.EnvironmentBinding
-	EnvironmentFingerprint string
-	Limits                 *testpilotspb.ProgramLimits
-	InstructionDefaults    contract.InstructionDefaults
+	CommandTypes        []enumspb.CommandType
+	EnvironmentBindings []contract.EnvironmentBinding
+	Limits              *testpilotspb.ProgramLimits
+	InstructionDefaults contract.InstructionDefaults
 }
 
 type Observation struct {
@@ -76,15 +77,14 @@ func (v ProgramView) Limits() *testpilotspb.ProgramLimits { return proto.CloneOf
 type PreparedProgram struct {
 	source  *testpilotspb.Program
 	catalog *ir.Catalog
-	policy  Profile
 	// limits is the Profile's Program ceiling snapshot; a Program declares no ceilings of its own.
-	limits                 *testpilotspb.ProgramLimits
-	view                   ProgramView
-	graphs                 []*graph
-	slots                  map[string]ir.Type
-	carriers               map[carrierCoordinate]contract.ReservationCarrierPlan
-	roles                  map[string]resolvedRole
-	environmentFingerprint string
+	limits              *testpilotspb.ProgramLimits
+	instructionDefaults contract.InstructionDefaults
+	view                ProgramView
+	graphs              []*graph
+	slots               map[string]ir.Type
+	carriers            map[carrierCoordinate]contract.ReservationCarrierPlan
+	roles               map[string]resolvedRole
 	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
 	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
 	// those lifts, and a read's, emit into.

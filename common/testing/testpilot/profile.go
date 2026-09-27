@@ -63,7 +63,8 @@ func (c *Catalog) CheckMethod(name string) error {
 	return nil
 }
 
-// Profile supplies static authorization only. Snapshot must not perform target I/O.
+// Profile supplies static authorization only. Snapshot must not perform target I/O, and returns a
+// spec its caller owns: no collection or limit in it is shared with the Profile or a prior snapshot.
 // Identity must change whenever authorization, reservation carrier policy, resource ceilings,
 // instruction defaults or role bindings change; rotating credentials for the same authorized identity
 // does not change it.
@@ -135,27 +136,19 @@ func (p ProfileSpec) BindingFingerprint() (string, error) {
 	if p.ProgramLimits == nil {
 		return "", preparationError(errors.New("Profile Program limits are required"), "profile.program_limits")
 	}
-	if len(p.EnvironmentBindings) > 10000 {
-		return "", preparationError(errors.New("Profile environment binding collection ceiling exceeded"), "profile.environment_bindings")
-	}
-	bindings := slices.Clone(p.EnvironmentBindings)
-	slices.SortFunc(bindings, func(a, b EnvironmentBinding) int { return cmp.Compare(a.ID, b.ID) })
 	var total int64
-	for i, binding := range bindings {
-		if !validEnvironmentID(binding.ID) || !utf8.ValidString(binding.ID) {
-			return "", preparationError(fmt.Errorf("Profile environment binding %d has an invalid identity", i), "profile.environment_bindings")
-		}
-		if binding.Value == "" || !utf8.ValidString(binding.Value) {
-			return "", preparationError(fmt.Errorf("Profile environment binding %q has an invalid value", binding.ID), "profile.environment_bindings")
-		}
-		if i > 0 && bindings[i-1].ID == binding.ID {
-			return "", preparationError(fmt.Errorf("Profile environment binding %q is duplicated", binding.ID), "profile.environment_bindings")
-		}
-		bytes := int64(len(binding.ID) + len(binding.Value))
-		if bytes > p.ProgramLimits.MaxRequestBytes-total {
-			return "", preparationError(errors.New("Profile environment binding byte ceiling exceeded"), "profile.environment_bindings")
-		}
-		total += bytes
+	bindings, err := sortedByID(p.EnvironmentBindings, "Profile environment binding", "identity", "profile.environment_bindings",
+		func(binding EnvironmentBinding) (string, string) { return binding.ID, binding.Value },
+		func(binding EnvironmentBinding) error {
+			bytes := int64(len(binding.ID) + len(binding.Value))
+			if bytes > p.ProgramLimits.MaxRequestBytes-total {
+				return errors.New("Profile environment binding byte ceiling exceeded")
+			}
+			total += bytes
+			return nil
+		})
+	if err != nil {
+		return "", err
 	}
 	canonical := []byte("testpilot.environment-bindings/v1")
 	for _, binding := range bindings {
@@ -185,23 +178,43 @@ func (p ProfileSpec) canonicalConfiguration() ([]ConfigurationValue, error) {
 	if len(p.Configuration) == 0 {
 		return nil, nil
 	}
-	if len(p.Configuration) > 10000 {
-		return nil, preparationError(errors.New("Profile configuration collection ceiling exceeded"), "profile.configuration")
+	return sortedByID(p.Configuration, "Profile configuration", "key", "profile.configuration",
+		func(value ConfigurationValue) (string, string) { return value.Key, value.Value }, nil)
+}
+
+// sortedByID clones entries sorted by identity and admits each in that order: an identity spelled
+// like an environment identity, a non-empty UTF-8 value, no identity twice, then admit when given.
+// noun names an entry and idNoun its identity in the errors, which carry path.
+func sortedByID[T any](entries []T, noun, idNoun, path string, fields func(T) (id, value string), admit func(T) error) ([]T, error) {
+	if len(entries) > 10000 {
+		return nil, preparationError(fmt.Errorf("%s collection ceiling exceeded", noun), path)
 	}
-	values := slices.Clone(p.Configuration)
-	slices.SortFunc(values, func(a, b ConfigurationValue) int { return cmp.Compare(a.Key, b.Key) })
-	for i, value := range values {
-		if !validEnvironmentID(value.Key) || !utf8.ValidString(value.Key) {
-			return nil, preparationError(fmt.Errorf("Profile configuration value %d has an invalid key", i), "profile.configuration")
+	sorted := slices.Clone(entries)
+	slices.SortFunc(sorted, func(a, b T) int {
+		left, _ := fields(a)
+		right, _ := fields(b)
+		return cmp.Compare(left, right)
+	})
+	previous := ""
+	for i, entry := range sorted {
+		id, value := fields(entry)
+		if !validEnvironmentID(id) || !utf8.ValidString(id) {
+			return nil, preparationError(fmt.Errorf("%s %d has an invalid %s", noun, i, idNoun), path)
 		}
-		if value.Value == "" || !utf8.ValidString(value.Value) {
-			return nil, preparationError(fmt.Errorf("Profile configuration %q has an invalid value", value.Key), "profile.configuration")
+		if value == "" || !utf8.ValidString(value) {
+			return nil, preparationError(fmt.Errorf("%s %q has an invalid value", noun, id), path)
 		}
-		if i > 0 && values[i-1].Key == value.Key {
-			return nil, preparationError(fmt.Errorf("Profile configuration %q is duplicated", value.Key), "profile.configuration")
+		if i > 0 && previous == id {
+			return nil, preparationError(fmt.Errorf("%s %q is duplicated", noun, id), path)
+		}
+		previous = id
+		if admit != nil {
+			if err := admit(entry); err != nil {
+				return nil, preparationError(err, path)
+			}
 		}
 	}
-	return values, nil
+	return sorted, nil
 }
 
 func validEnvironmentID(id string) bool {

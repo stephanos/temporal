@@ -136,7 +136,7 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 // writes none, within the Profile's ceilings.
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.GetLimits()
-	n.timeoutMilliseconds, n.maxAttempts = a.prepared.policy.InstructionDefaults.Resolve(bounds)
+	n.timeoutMilliseconds, n.maxAttempts = a.prepared.instructionDefaults.Resolve(bounds)
 	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
 		return invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
 	}
