@@ -119,6 +119,28 @@ func TestBuildReportRejectsMismatchedPerRunReplay(t *testing.T) {
 	}
 }
 
+// The runner reports an exact choice replay whenever the choice tape replays
+// without divergence, even when other evidence (a stream digest) still
+// diverges; that is a replay divergence outside the choice tape, not invalid
+// evidence.
+func TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence(t *testing.T) {
+	evidence := successfulEvidence()
+	evidence.Choices = &runner.ChoiceEvidence{Profile: "gomad3-choice-trace/v2"}
+	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify", "--replay-successes"}, Executions: []QualificationExecution{
+		{CampaignPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-1", Attempted: true, Divergence: "stderr.full_sha256", ChoiceReplayStatus: ChoiceReplayExact}},
+		{CampaignPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true, ChoiceReplayStatus: ChoiceReplayExact}},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Qualified || ClassifyQualification(report) != "replay_divergence" {
+		t.Fatalf("report = %#v", report)
+	}
+	if _, err := WriteQualificationReport(t.TempDir(), report); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestBuildReportRejectsInvalidEvidenceSet(t *testing.T) {
 	evidence := successfulEvidence()
 	for _, input := range []QualificationInput{

@@ -353,11 +353,7 @@ func cloneReplay(replay *QualificationReplay, artifactPath string) (*Qualificati
 		return nil, errors.New("replay does not match its retained artifact and result")
 	}
 	switch replay.ChoiceReplayStatus {
-	case "", ChoiceReplayNone:
-	case ChoiceReplayExact:
-		if !replay.Match {
-			return nil, errors.New("exact choice replay status requires a match")
-		}
+	case "", ChoiceReplayNone, ChoiceReplayExact:
 	case ChoiceReplayDiverged:
 		if replay.Match {
 			return nil, errors.New("diverged choice replay status cannot match")
