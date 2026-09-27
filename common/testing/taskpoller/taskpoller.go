@@ -75,7 +75,7 @@ var (
 		return func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
 			return &workflowservice.RespondActivityTaskCompletedRequest{
 				// TODO
-				//Result: tv.Any().Payloads(),
+				// Result: tv.Any().Payloads(),
 			}, nil
 		}
 	}

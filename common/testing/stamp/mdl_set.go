@@ -43,6 +43,8 @@ func NewModelSet() *ModelSet {
 	}
 }
 
+// RegisterModel registers the model type M and indexes its scope, action handlers and properties.
+//
 // TODO: check that struct has no fields at all (we don't want any state there)
 // TODO: type check parent matches model somehow?
 // TODO: fail when 2 params of a handler have the same type
@@ -75,8 +77,8 @@ func RegisterModel[M registerModel](set *ModelSet) {
 
 	// register model handlers
 	// TODO: scan unexported methods, too, in case user accidentally made one private
-	//mdlInst := reflect.New(mdlType.structType).Interface().(modelWrapper)
-	//mdlInstVal := reflect.ValueOf(mdlInst)
+	// mdlInst := reflect.New(mdlType.structType).Interface().(modelWrapper)
+	// mdlInstVal := reflect.ValueOf(mdlInst)
 	for i := 0; i < ptrType.NumMethod(); i++ {
 		method := ptrType.Method(i)
 		methodType := method.Type
@@ -110,8 +112,7 @@ func RegisterModel[M registerModel](set *ModelSet) {
 	// TODO: parse doc tag and add it to the property
 	for i := 0; i < elemType.NumField(); i++ {
 		field := elemType.Field(i)
-		switch {
-		case field.Type.Implements(propClonerType):
+		if reflect.PointerTo(field.Type).Implements(propClonerType) {
 			pm := propMetadata{name: field.Name, t: field.Type}
 			set.propMetadataIdx[mdlType] = append(set.propMetadataIdx[mdlType], pm)
 		}
@@ -138,7 +139,7 @@ func (s ModelSet) newModel(
 	// apply property metadata
 	for _, pm := range s.propMetadataIdx[mdlType] {
 		field := v.Elem().FieldByName(pm.getName())
-		curProp := field.Interface().(propCloner)
+		curProp := field.Addr().Interface().(propCloner)
 		newProp := curProp.createFromMetadata(pm)
 		field.Set(reflect.ValueOf(newProp))
 	}

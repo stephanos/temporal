@@ -56,7 +56,7 @@ type (
 	}
 	payload       any
 	actOption     any // TODO: add marker
-	actIdDebugOpt struct {
+	actIDDebugOpt struct {
 		id ActID
 	}
 	actTimeoutOpt struct {
@@ -77,7 +77,7 @@ func NewActorModel[AM modelAccessor](mdl AM) ActorModel[AM] {
 
 func newSeed(values ...any) int {
 	h := fnv.New32a()
-	fmt.Fprintf(h, "%v", values)
+	_, _ = fmt.Fprintf(h, "%v", values)
 	return int(h.Sum32())
 }
 
@@ -85,9 +85,11 @@ func WithDebugActID() actOption {
 	if _, ok := os.LookupEnv("CI"); ok {
 		panic("WithDebugActID is not available in CI, only for local debugging")
 	}
-	return actIdDebugOpt{id: DebugActID}
+	return actIDDebugOpt{id: DebugActID}
 }
 
+// WithActTimeout bounds how long an action may take.
+//
 // TODO: unify timeout options
 func WithActTimeout(timeout time.Duration) actOption {
 	return actTimeoutOpt{timeout: timeout}
@@ -161,7 +163,7 @@ func ActAsync[
 	AG actionGen[A, AMA, TMA, P], // the trigger type
 ](actor A, actionGen AG, opts ...actOption) Future[TMA] {
 	f := newFuture[TMA](actor.getModel().getEnv().getTestEnv(), func() (TMA, error) {
-		return act(actor, actionGen, append(opts)...)
+		return act(actor, actionGen, opts...)
 	})
 	return f
 }
@@ -182,7 +184,7 @@ func act[
 	actParams := ActionParams{ActID: ActID("act:" + uuid.NewString())} // prefix identifies actions from a scenario
 	for _, opt := range opts {
 		switch o := opt.(type) {
-		case actIdDebugOpt:
+		case actIDDebugOpt:
 			actParams.ActID = o.id
 		case actReqOnlyOpt:
 			actParams.ReqOnly = true
@@ -220,7 +222,7 @@ func act[
 	actMonitor.start(actParams.ActID)
 
 	env.Info(fmt.Sprintf("Sending '%v'",
-		simpleSpew.Sdump(actParams.Payload)), actionIdTag(actParams.ActID))
+		simpleSpew.Sdump(actParams.Payload)), actionIDTag(actParams.ActID))
 
 	// TODO: make configurable
 	ctx := tenv.Context(timeout)

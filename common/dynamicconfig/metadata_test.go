@@ -319,7 +319,7 @@ func TestRegisteredSettingMetadataReturnsDeepCopies(t *testing.T) {
 	first[0].Default.Constrained[0].Constraints.Namespace = "mutated namespace"
 	first[0].Default.Constrained[0].Default.Value = "mutated value"
 	first[1].Default.Value.(map[string]any)["slice"].([]string)[0] = "mutated"
-	first = append(first, SettingMetadata{Key: "injected"})
+	_ = append(first, SettingMetadata{Key: "injected"})
 
 	second, err := RegisteredSettingMetadata()
 	require.NoError(t, err)

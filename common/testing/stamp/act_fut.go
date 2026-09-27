@@ -51,6 +51,8 @@ func newFuture[T any](
 	return fut
 }
 
+// Await blocks until the future resolves and returns its value.
+//
 // TODO: replace with top-level function
 func (f *Future[T]) Await() T {
 	// TODO: configurable timeout

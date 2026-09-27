@@ -342,12 +342,12 @@ func newClusterWithPersistenceTestBaseFactory(
 		logger.Fatal("Failed to start pprof", tag.Error(err))
 	}
 
-	cluster := newTemporal(t, temporalParams)
-	if err = cluster.Start(); err != nil {
+	host := newTemporal(t, temporalParams)
+	if err = host.Start(); err != nil {
 		return nil, err
 	}
 
-	return &TestCluster{testBase: testBase, host: cluster}, nil
+	return &TestCluster{testBase: testBase, host: host}, nil
 }
 
 func newPProfInitializerImpl(logger log.Logger, port int) *pprof.PProfInitializerImpl {

@@ -41,13 +41,13 @@ func (p propMetadata) getOwner() modelWrapper {
 	return p.owner
 }
 
-func (p Prop[T]) createFromMetadata(metadata propMetadata) any {
+func (p *Prop[T]) createFromMetadata(metadata propMetadata) any {
 	return Prop[T]{
 		propMetadata: metadata,
 	}
 }
 
-func (p Prop[T]) String() string {
+func (p *Prop[T]) String() string {
 	return p.name
 }
 

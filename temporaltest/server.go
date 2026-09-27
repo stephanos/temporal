@@ -50,11 +50,11 @@ func (ts *TestServer) fatal(err error) {
 func (ts *TestServer) NewWorker(taskQueue string, registerFunc func(registry worker.Registry)) worker.Worker {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultClientStartupTimeout)
 	defer cancel()
-	worker, err := ts.NewWorkerWithContext(ctx, taskQueue, registerFunc)
+	temporalWorker, err := ts.NewWorkerWithContext(ctx, taskQueue, registerFunc)
 	if err != nil {
 		ts.fatal(err)
 	}
-	return worker
+	return temporalWorker
 }
 
 // NewWorkerWithContext registers and starts a Temporal worker on the specified
@@ -75,11 +75,11 @@ func (ts *TestServer) NewWorkerWithContext(
 func (ts *TestServer) NewWorkerWithOptions(taskQueue string, registerFunc func(registry worker.Registry), opts worker.Options) worker.Worker {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultClientStartupTimeout)
 	defer cancel()
-	worker, err := ts.NewWorkerWithOptionsContext(ctx, taskQueue, registerFunc, opts)
+	temporalWorker, err := ts.NewWorkerWithOptionsContext(ctx, taskQueue, registerFunc, opts)
 	if err != nil {
 		ts.fatal(err)
 	}
-	return worker
+	return temporalWorker
 }
 
 // NewWorkerWithOptionsContext returns a Temporal worker on the specified task
@@ -149,11 +149,11 @@ func (ts *TestServer) NewWorkerWithOptionsContext(
 func (ts *TestServer) GetDefaultClient() client.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultClientStartupTimeout)
 	defer cancel()
-	client, err := ts.GetDefaultClientWithContext(ctx)
+	temporalClient, err := ts.GetDefaultClientWithContext(ctx)
 	if err != nil {
 		ts.fatal(err)
 	}
-	return client
+	return temporalClient
 }
 
 // GetDefaultClientWithContext returns the default Temporal client configured
@@ -201,11 +201,11 @@ func (ts *TestServer) GetFrontendHostPort() string {
 func (ts *TestServer) NewClientWithOptions(opts client.Options) client.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultClientStartupTimeout)
 	defer cancel()
-	client, err := ts.NewClientWithOptionsContext(ctx, opts)
+	temporalClient, err := ts.NewClientWithOptionsContext(ctx, opts)
 	if err != nil {
 		ts.fatal(err)
 	}
-	return client
+	return temporalClient
 }
 
 // NewClientWithOptionsContext returns a new Temporal client configured for

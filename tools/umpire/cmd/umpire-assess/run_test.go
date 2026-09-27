@@ -39,7 +39,7 @@ func resolvedTemp(t *testing.T) string {
 
 // subjectFiles writes the control Case and its recorded Run, the Run edited and re-recorded from
 // the Case (optionally edited too), and returns their paths.
-func subjectFiles(t *testing.T, editCase func(*testpilotspb.Case), editRun func(*testpilotspb.Run)) (string, string) {
+func subjectFiles(t *testing.T, editCase func(*testpilotspb.Case), editRun func(*testpilotspb.Run)) (casePath string, runPath string) {
 	t.Helper()
 	caseBytes, err := os.ReadFile(controlCasePath)
 	require.NoError(t, err)
@@ -68,7 +68,7 @@ func subjectFiles(t *testing.T, editCase func(*testpilotspb.Case), editRun func(
 		require.NoError(t, err)
 	}
 	directory := t.TempDir()
-	casePath, runPath := filepath.Join(directory, "case.json"), filepath.Join(directory, "run.json")
+	casePath, runPath = filepath.Join(directory, "case.json"), filepath.Join(directory, "run.json")
 	require.NoError(t, os.WriteFile(casePath, caseBytes, 0o644))
 	require.NoError(t, os.WriteFile(runPath, recorded, 0o644))
 	return casePath, runPath

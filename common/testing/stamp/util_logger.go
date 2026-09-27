@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	actionIdTag = func(t ActID) tag.ZapTag {
+	actionIDTag = func(t ActID) tag.ZapTag {
 		return tag.NewStringTag("actionID", string(t))
 	}
 )

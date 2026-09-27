@@ -29,6 +29,8 @@ type (
 	}
 )
 
+// Consume routes act to the model of type T with the given id under parent.
+//
 // TODO: type-check parent
 func Consume[T, P modelWrapper](
 	r routerWrapper,
@@ -58,12 +60,12 @@ func initRouter(rw routerWrapper, env modelEnv) {
 			panic(fmt.Sprintf("Route %q has %d parameters, expected 1\n", methodName, methodType.NumIn()-1))
 		}
 		// TODO: callback is optional
-		//if methodType.NumOut() != 1 {
-		//	panic(fmt.Sprintf("Route %q has %d return values, expected 1\n", methodName, methodType.NumOut()))
-		//}
-		//if methodType.Out(0).Kind() != reflect.Func {
-		//	panic(fmt.Sprintf("Route %q has return type %q, expected func\n", methodName, methodType.Out(0)))
-		//}
+		// if methodType.NumOut() != 1 {
+		// 	panic(fmt.Sprintf("Route %q has %d return values, expected 1\n", methodName, methodType.NumOut()))
+		// }
+		// if methodType.Out(0).Kind() != reflect.Func {
+		// 	panic(fmt.Sprintf("Route %q has return type %q, expected func\n", methodName, methodType.Out(0)))
+		// }
 
 		incomingActionType := methodType.In(1)
 		routeIndex[mustGetTypeParam(incomingActionType)] = method
@@ -134,9 +136,7 @@ func (r *Router) consume(
 	}
 
 	mdl, cb := r.getRouter().env.consume(mdlType, parent.getModel(), id, act)
-	if errs := act.GetValidationErrors(); len(errs) > 0 {
-		// TODO: use validation errors
-	}
+	// TODO: use validation errors from act.GetValidationErrors()
 
 	r.routeContextLock.Lock()
 	ctx := r.routeContexts[act.ID()]

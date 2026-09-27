@@ -112,7 +112,7 @@ func (m *internalModel) setModel(_ *internalModel) {
 	panic("not implemented")
 }
 
-func (m *internalModel) is_model() {
+func (m *internalModel) isModel() {
 	panic("not implemented")
 }
 

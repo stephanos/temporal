@@ -962,15 +962,18 @@ lint-actions: $(ACTIONLINT)
 
 .PHONY: lint-code lint-code-fast
 # --new-from-rev filters reported issues _after_ analysis; this target also reduces package inputs _before_ analysis.
+# testdata and nested modules are skipped like `./...` skips them: listing such a package explicitly would lint it.
 lint-code-fast:
 	@if ! git rev-parse --verify --quiet "$(GOLANGCI_LINT_BASE_REV)^{commit}" >/dev/null; then \
 		printf $(RED) "GOLANGCI_LINT_BASE_REV=$(GOLANGCI_LINT_BASE_REV) is not a known commit; fetch it or override GOLANGCI_LINT_BASE_REV"; \
 		exit 1; \
 	fi
 	@base=$$(git merge-base HEAD "$(GOLANGCI_LINT_BASE_REV)"); \
+	excludes=$$(git ls-files --cached --others --exclude-standard -- '*/go.mod' \
+	  | sed 's|/go.mod$$|/**|; s|^|:(exclude,glob)|'); \
 	targets=$$({ \
-		git diff --no-renames --name-only "$$base" -- '*.go'; \
-		git ls-files --others --exclude-standard -- '*.go'; \
+		git diff --no-renames --name-only "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes; \
+		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes; \
 	} | sed 's|^|./|; s|/[^/]*$$||' | sort -u \
 	  | while read -r dir; do [ -d "$$dir" ] && printf '%s ' "$$dir"; done); \
 	if [ -z "$$targets" ]; then \

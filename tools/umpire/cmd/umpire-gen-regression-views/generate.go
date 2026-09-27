@@ -120,35 +120,9 @@ func runGeneration(
 
 	records := make([]generatedViewRecord, 0, len(entries))
 	for _, entry := range entries {
-		inspected, inspectErr := dependencies.Inspect(modelRoot, entry.Identity)
-		encoded, err := requireInspectorArtifact(entry.Identity, inspected, inspectErr)
+		live, err := checkGeneratedViewEntry(entry, repositoryRoot, modelRoot, dependencies)
 		if err != nil {
 			return err
-		}
-		live, err := extractGeneratedView(entry, encoded, modelRoot)
-		if err != nil {
-			return fmt.Errorf("inspect regression generated view %q: %w", entry.Identity, err)
-		}
-
-		fixturePath, err := resolveFixturePath(repositoryRoot, entry.FixturePath)
-		if err != nil {
-			return fmt.Errorf("read regression generated view fixture for %q: %w", entry.Identity, err)
-		}
-		fixtureBytes, err := dependencies.ReadFile(fixturePath)
-		if err != nil {
-			return fmt.Errorf(
-				"read regression generated view fixture %q for %q: %w",
-				entry.FixturePath,
-				entry.Identity,
-				err,
-			)
-		}
-		fixture, err := extractGeneratedView(entry, fixtureBytes, modelRoot)
-		if err != nil {
-			return fmt.Errorf("validate regression generated view fixture for %q: %w", entry.Identity, err)
-		}
-		if err := compareGeneratedViewRecords(live, fixture); err != nil {
-			return fmt.Errorf("cross-check regression generated view fixture for %q: %w", entry.Identity, err)
 		}
 		records = append(records, live)
 	}
@@ -184,6 +158,47 @@ func runGeneration(
 		return fmt.Errorf("retire obsolete regression generated view: %w", err)
 	}
 	return nil
+}
+
+// checkGeneratedViewEntry inspects the live generated view for entry and cross-checks it against the
+// entry's checked-in fixture.
+func checkGeneratedViewEntry(
+	entry manifestEntry,
+	repositoryRoot string,
+	modelRoot string,
+	dependencies generationDependencies,
+) (generatedViewRecord, error) {
+	inspected, inspectErr := dependencies.Inspect(modelRoot, entry.Identity)
+	encoded, err := requireInspectorArtifact(entry.Identity, inspected, inspectErr)
+	if err != nil {
+		return generatedViewRecord{}, err
+	}
+	live, err := extractGeneratedView(entry, encoded, modelRoot)
+	if err != nil {
+		return generatedViewRecord{}, fmt.Errorf("inspect regression generated view %q: %w", entry.Identity, err)
+	}
+
+	fixturePath, err := resolveFixturePath(repositoryRoot, entry.FixturePath)
+	if err != nil {
+		return generatedViewRecord{}, fmt.Errorf("read regression generated view fixture for %q: %w", entry.Identity, err)
+	}
+	fixtureBytes, err := dependencies.ReadFile(fixturePath)
+	if err != nil {
+		return generatedViewRecord{}, fmt.Errorf(
+			"read regression generated view fixture %q for %q: %w",
+			entry.FixturePath,
+			entry.Identity,
+			err,
+		)
+	}
+	fixture, err := extractGeneratedView(entry, fixtureBytes, modelRoot)
+	if err != nil {
+		return generatedViewRecord{}, fmt.Errorf("validate regression generated view fixture for %q: %w", entry.Identity, err)
+	}
+	if err := compareGeneratedViewRecords(live, fixture); err != nil {
+		return generatedViewRecord{}, fmt.Errorf("cross-check regression generated view fixture for %q: %w", entry.Identity, err)
+	}
+	return live, nil
 }
 
 func validateGenerationDependencies(dependencies generationDependencies) error {

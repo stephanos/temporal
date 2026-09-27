@@ -92,7 +92,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationCancelation(chasmEnabled bool
 	}
 
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	firstCancelSeen := false
@@ -307,7 +307,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationCancellationCrossTree(chasmEn
 	for _, tc := range testCases {
 		s.Run(tc.name, func(s *NexusWorkflowTestSuite) {
 			env := s.newTestEnv(true)
-			ctx := env.Context()
+			ctx := s.Context()
 			taskQueue := testcore.RandomizeStr(s.T().Name())
 
 			env.OverrideDynamicConfig(chasmnexus.EnableChasmWorkflowOperations, tc.enableChasmAtSchedule)
@@ -391,7 +391,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationCancellationBufferedCrossTree
 	}
 
 	env := s.newTestEnv(true)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 	// Schedule the operation in the HSM tree.
 	env.OverrideDynamicConfig(chasmnexus.EnableChasmWorkflowOperations, false)
@@ -511,7 +511,7 @@ func (s *NexusWorkflowTestSuite) assertNexusOperationTree(ctx context.Context, e
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationSyncCompletion(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	handlerLink := &commonpb.Link_WorkflowEvent{
@@ -636,7 +636,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationRetriesAfterHTTPFault(chasmEn
 // endpoint, and real workflow type. It runs for both the HSM and CHASM engines.
 func (s *NexusWorkflowTestSuite) TestNexusOperationCallerMetrics(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	h := nexustest.Handler{
@@ -840,7 +840,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncStandaloneActivityComple
 	}
 	cluster.OverrideDynamicConfig(s.T(), activity.Enabled, nsValues)
 	cluster.OverrideDynamicConfig(s.T(), activity.EnableCallbacks, nsValues)
-	ctx := env.Context()
+	ctx := s.Context()
 
 	capture := env.StartNamespaceMetricCapture()
 
@@ -984,7 +984,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncStandaloneActivityComple
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationSyncCompletion_LargePayload(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	h := nexustest.Handler{
@@ -1023,7 +1023,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationSyncCompletion_LargePayload(c
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletion(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	testClusterInfo, err := env.FrontendClient().GetClusterInfo(ctx, &workflowservice.GetClusterInfoRequest{})
@@ -1357,7 +1357,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletion(chasmEnabled 
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionBeforeStart(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueues := []string{testcore.RandomizeStr(s.T().Name()), testcore.RandomizeStr(s.T().Name())}
 	wfRuns := []client.WorkflowRun{}
 	nexusTasks := []*workflowservice.PollNexusTaskQueueResponse{}
@@ -1616,7 +1616,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionBeforeStart(ch
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncFailure(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	var callbackToken, publicCallbackURL string
@@ -1680,7 +1680,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncFailure(chasmEnabled boo
 func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEnabled bool) {
 	s.Run("NamespaceNotFound", func(s *NexusWorkflowTestSuite) {
 		env := s.newTestEnv(chasmEnabled, testcore.WithDedicatedCluster())
-		ctx := env.Context()
+		ctx := s.Context()
 		// Generate a token with a non-existent namespace ID
 		tokenWithBadNamespace, err := s.generateValidCallbackToken("namespace-doesnt-exist-id", testcore.RandomizeStr("workflow"), uuid.NewString())
 		s.NoError(err)
@@ -1700,7 +1700,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 
 	s.Run("NamespaceNotFoundNoIdentifier", func(s *NexusWorkflowTestSuite) {
 		env := s.newTestEnv(chasmEnabled, testcore.WithDedicatedCluster())
-		ctx := env.Context()
+		ctx := s.Context()
 		// Generate a token with a non-existent namespace ID
 		tokenWithBadNamespace, err := s.generateValidCallbackToken("namespace-doesnt-exist-id", testcore.RandomizeStr("workflow"), uuid.NewString())
 		s.NoError(err)
@@ -1720,7 +1720,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 
 	s.Run("OperationTokenTooLong", func(s *NexusWorkflowTestSuite) {
 		env := s.newTestEnv(chasmEnabled, testcore.WithDedicatedCluster())
-		ctx := env.Context()
+		ctx := s.Context()
 		publicCallbackURL := "http://" + env.HttpAPIAddress() + "/" + commonnexus.RouteCompletionCallback.Path(env.Namespace().String())
 
 		// Generate a valid callback token to get past initial validation
@@ -1747,7 +1747,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 
 	s.Run("OperationTokenTooLongNoIdentifier", func(s *NexusWorkflowTestSuite) {
 		env := s.newTestEnv(chasmEnabled, testcore.WithDedicatedCluster())
-		ctx := env.Context()
+		ctx := s.Context()
 		publicCallbackURL := "http://" + env.HttpAPIAddress() + commonnexus.PathCompletionCallbackNoIdentifier
 		// Generate a valid callback token to get past initial validation
 		namespaceID := env.NamespaceID().String()
@@ -1780,7 +1780,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 		publicCallbackURL := "http://" + env.HttpAPIAddress() + "/" + commonnexus.RouteCompletionCallback.Path(env.Namespace().String())
 		// metrics collection is not initialized before callback validation
 		// Send request without callback token, helper does not add token if blank
-		err := s.sendNexusCompletionRequest(env.Context(), publicCallbackURL, completion)
+		err := s.sendNexusCompletionRequest(s.Context(), publicCallbackURL, completion)
 		// Verify we get the correct error response
 		var handlerErr *nexus.HandlerError
 		s.ErrorAs(err, &handlerErr)
@@ -1796,7 +1796,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 		publicCallbackURL := "http://" + env.HttpAPIAddress() + commonnexus.PathCompletionCallbackNoIdentifier
 		// metrics collection is not initialized before callback validation
 		// Send request without callback token, helper does not add token if blank
-		err := s.sendNexusCompletionRequest(env.Context(), publicCallbackURL, completion)
+		err := s.sendNexusCompletionRequest(s.Context(), publicCallbackURL, completion)
 		// Verify we get the correct error response
 		var handlerErr *nexus.HandlerError
 		s.ErrorAs(err, &handlerErr)
@@ -1824,7 +1824,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 		client := nexusrpc.NewCompletionHTTPClient(nexusrpc.CompletionHTTPClientOptions{
 			Serializer: commonnexus.PayloadSerializer,
 		})
-		err = client.CompleteOperation(env.Context(), publicCallbackURL, completion)
+		err = client.CompleteOperation(s.Context(), publicCallbackURL, completion)
 		completionRequests := capture.Metric("nexus_completion_requests")
 		var handlerErr *nexus.HandlerError
 		s.ErrorAs(err, &handlerErr)
@@ -1854,7 +1854,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionErrors(chasmEn
 		client := nexusrpc.NewCompletionHTTPClient(nexusrpc.CompletionHTTPClientOptions{
 			Serializer: commonnexus.PayloadSerializer,
 		})
-		err = client.CompleteOperation(env.Context(), publicCallbackURL, completion)
+		err = client.CompleteOperation(s.Context(), publicCallbackURL, completion)
 		completionRequests := capture.Metric("nexus_completion_requests")
 		var handlerErr *nexus.HandlerError
 		s.ErrorAs(err, &handlerErr)
@@ -1886,7 +1886,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionAuthErrors(cha
 
 	publicCallbackURL := "http://" + env.HttpAPIAddress() + "/" + commonnexus.RouteCompletionCallback.Path(env.Namespace().String())
 	capture := env.StartNamespaceMetricCapture()
-	err = s.sendNexusCompletionRequest(env.Context(), publicCallbackURL, completion)
+	err = s.sendNexusCompletionRequest(s.Context(), publicCallbackURL, completion)
 	completionRequests := capture.Metric("nexus_completion_requests")
 	var handlerErr *nexus.HandlerError
 	s.ErrorAs(err, &handlerErr)
@@ -1916,7 +1916,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionAuthErrorsNoId
 	}
 	publicCallbackURL := "http://" + env.HttpAPIAddress() + commonnexus.PathCompletionCallbackNoIdentifier
 	capture := env.StartNamespaceMetricCapture()
-	err = s.sendNexusCompletionRequest(env.Context(), publicCallbackURL, completion)
+	err = s.sendNexusCompletionRequest(s.Context(), publicCallbackURL, completion)
 	completionRequests := capture.Metric("nexus_completion_requests")
 	var handlerErr *nexus.HandlerError
 	s.ErrorAs(err, &handlerErr)
@@ -1935,7 +1935,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionInternalAuth(c
 		nexusoperations.CallbackURLTemplate,
 		"http://INTERNAL/namespaces/{{.NamespaceName}}/nexus/callback")
 
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 	endpointName := testcore.RandomizedNexusEndpoint(s.T().Name())
 
@@ -2008,7 +2008,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationCancelBeforeStarted_Cancelati
 		s.T().Skip("Blocked on CHASM Nexus cancellation before start support")
 	}
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	canStartCh := make(chan struct{})
@@ -2080,7 +2080,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationAsyncCompletionAfterReset(cha
 		s.T().Skip("Blocked on CHASM Nexus async completion after reset support")
 	}
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	var callbackToken, publicCallbackUrl string
@@ -2687,7 +2687,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationSyncNexusFailure(chasmEnabled
 			}
 		},
 	}
-	endpointName := env.createRandomExternalNexusServer(env.Context(), s.T(), h)
+	endpointName := env.createRandomExternalNexusServer(s.Context(), s.T(), h)
 
 	w := worker.New(
 		env.SdkClient(),
@@ -2711,7 +2711,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationSyncNexusFailure(chasmEnabled
 		TaskQueue: taskQueue,
 	}, callerWF)
 	s.NoError(err)
-	wfErr := run.Get(env.Context(), nil)
+	wfErr := run.Get(s.Context(), nil)
 
 	var handlerErr *nexus.HandlerError
 	s.ErrorAs(wfErr, &handlerErr)
@@ -2987,7 +2987,7 @@ func (s *NexusWorkflowTestSuite) TestNexusAsyncOperationWithMultipleCallers(chas
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationScheduleToCloseTimeout(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 	endpointName := testcore.RandomizedNexusEndpoint(s.T().Name())
 
@@ -3060,7 +3060,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationScheduleToCloseTimeout(chasmE
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationScheduleToStartTimeout(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 	endpointName := testcore.RandomizedNexusEndpoint(s.T().Name())
 
@@ -3303,7 +3303,7 @@ func (s *NexusWorkflowTestSuite) sendNexusCompletionRequest(
 // __temporal_system endpoint.
 func (s *NexusWorkflowTestSuite) TestNexusOperationSystemEndpoint(chasmEnabled bool) {
 	env := s.newTestEnv(chasmEnabled)
-	ctx := env.Context()
+	ctx := s.Context()
 	taskQueue := testcore.RandomizeStr(s.T().Name())
 
 	run, err := env.SdkClient().ExecuteWorkflow(ctx, client.StartWorkflowOptions{
