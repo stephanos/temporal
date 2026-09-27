@@ -575,6 +575,31 @@ func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("binding")}}
 }
 
+func TestConcurrentEnvironmentPreparationsResolveIndependently(t *testing.T) {
+	c, catalog, base := fixture(t)
+	configureEnvironmentCase(c, &base)
+	for i := 0; i < 8; i++ {
+		i := i
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
+			policy := base
+			value := fmt.Sprintf("environment-%d", i)
+			policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: value}}
+			prepared, err := Prepare(c, catalog, policy)
+			require.NoError(t, err)
+			store, err := newValueStore(prepared, "run")
+			require.NoError(t, err)
+			values, err := store.activate("controller", "activation")
+			require.NoError(t, err)
+			request, dispatched, _, err := values.request(t.Context(), contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
+			require.NoError(t, err)
+			require.True(t, dispatched)
+			textField := request.ProtoReflect().Descriptor().Fields().ByName("text")
+			require.Equal(t, value, request.ProtoReflect().Get(textField).String())
+		})
+	}
+}
+
 func TestConcurrentEnvironmentRequestsUsePreparedSnapshot(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	configureEnvironmentCase(c, &policy)
