@@ -237,7 +237,10 @@ gains the constructors for the three messages and the reference arm.
   per instance, in Rule declaration then instance declaration order; the Executor-stop `Violation`,
   transition traces, the all-satisfied count and the correlated verdicts' position count Rule
   instances; online `Observe` and offline `Evaluate` answer identically. A Contract that passes R2 is
-  admitted exactly when its expansion is. Errors: every ceiling (rules, states, transitions,
+  admitted exactly when its expansion is, except that the authored Contract (and its Case) is also
+  held, as written, to the surface and byte ceilings that bound untrusted input before it is walked,
+  so declarations or assignments no predicate reads can reject a Contract whose expansion, which
+  drops them, is admitted. Errors: every ceiling (rules, states, transitions,
   captures, binding, per-event and total work) is charged per instance with each instance value
   reference charged the inlined literal's cost, and a Case over one rejects at preparation naming
   the same ceiling its expansion would; the rule-count ceiling is checked before per-instance

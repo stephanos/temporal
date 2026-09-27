@@ -665,7 +665,7 @@ func TestPrepareLocatesInstanceErrors(t *testing.T) {
 			later.RuleId, later.InstanceValues, later.Instances = "rule-2", nil, nil
 			later.Transitions[0].Predicate = boolean(true)
 			c.Rules = append(c.Rules, later)
-		}, mismatch(ir.Malformed, "contract", duplicateRule)},
+		}, mismatch(ir.Malformed, rule+".instances[rule-2]", duplicateRule)},
 		"empty read": {func(c *testpilotspb.Contract) {
 			c.Rules[0].Transitions[0].Predicate.GetAll().Operands[1].GetCompare().Right = instanceValue("")
 		}, mismatch(ir.Malformed, rule+".transitions[first].predicate.all[1].compare.right.reference.instance_value_id", "instance value reference names no instance value")},
@@ -700,7 +700,9 @@ func TestPrepareRejectsARuleInstanceNamedLikeACorrelatedRule(t *testing.T) {
 	require.NoError(t, err)
 	rule.Instances[0].RuleId = c.Correlated.Rules[0].RuleId
 	_, err = Prepare(c, catalog, view, ceiling, correlated)
-	require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract", Detail: "invalid clause provenance"}, err)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, &ir.Error{Category: ir.Malformed, Path: fmt.Sprintf("contract.rules[%s].instances[%s]", rule.RuleId, rule.Instances[0].RuleId), Detail: "invalid or duplicate rule identity"}, diagnostic)
 }
 
 // requireSameAdmission prepares source and its expansion and requires the same outcome: both

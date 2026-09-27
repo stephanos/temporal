@@ -99,6 +99,9 @@ type admission struct {
 	// would be.
 	instance *ruleInstance
 	recorded *ledger
+	// declaredRuleIDs holds every Rule's and correlated rule's own ID, so a Rule instance colliding
+	// with one declared later is rejected at the instance rather than at the later rule.
+	declaredRuleIDs map[string]bool
 }
 
 func (p *PreparedContract) Snapshot() *testpilotspb.Contract   { return proto.CloneOf(p.source) }
@@ -238,6 +241,13 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := a.bindScope(); err != nil {
 		return nil, err
 	}
+	a.declaredRuleIDs = map[string]bool{}
+	for _, rule := range p.source.Rules {
+		a.declaredRuleIDs[rule.RuleId] = true
+	}
+	for _, rule := range p.source.GetCorrelated().GetRules() {
+		a.declaredRuleIDs[rule.RuleId] = true
+	}
 	seen := map[string]bool{}
 	for _, rule := range p.source.Rules {
 		if !validID(rule.RuleId) || seen[rule.RuleId] {
@@ -321,7 +331,7 @@ func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[stri
 	instances := make([]ruleInstance, 0, len(rule.Instances))
 	for _, instance := range rule.Instances {
 		located := fmt.Sprintf("%s.instances[%s]", path, instance.RuleId)
-		if !validID(instance.RuleId) || seen[instance.RuleId] {
+		if !validID(instance.RuleId) || seen[instance.RuleId] || a.declaredRuleIDs[instance.RuleId] {
 			return nil, nil, invalidAt(ir.Malformed, located, "invalid or duplicate rule identity")
 		}
 		seen[instance.RuleId] = true
