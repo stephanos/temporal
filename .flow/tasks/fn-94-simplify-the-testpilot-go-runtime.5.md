@@ -44,9 +44,15 @@ make lint-code-fast
 
 
 ## Done summary
-TBD
+Removed lane A's Driver-side dead and test-only code, the untyped Nexus residue and the live runCase trio; tests now use the production paths (Session.parentTerminal, preparedNexusHeader, Outage.Restore, stoppedLocked, the bundle's handle, newPreparedCompositeSession over a captured conformance Program). The empty typed sync reply was pinned first (744223b49a, "synchronous without payload" in TestSessionAnswersTypedReplies: the caller receives the SDK's binary/null payload) and still passes after the fallback went; a mutation to an empty RawValue fails it. The three reserved-header merges are now the one in preparedNexusHeader (case header, SDK header and route, with any collision refused). PrepareNexus takes no header or value.
 
+Tests: go test -race ./common/testing/testpilot/temporal/... green. The fn-94.2 goldens are untouched and green. Live Go step of umpire-check-live-tests at 5bc236723d, with other workers' dirty files pinned to HEAD by a go -overlay: 45 passing, 0 failing, equal to fn-94.2's count. TestTestpilotWorkflowStartCase keeps its name and exercised both namespaces. An unpinned run failed 12 identities: the canary harness build hit another worker's mid-edit execution/prepare.go, and NexusCallerScheduleToStartTimeout/hsm failed once. The pinned rerun was clean. deadcode -test over Testpilot, tests and tools reports no Testpilot function. lint-code-fast: my packages are clean. Its one issue is gci in common/testing/testpilot/prepare.go, from fn-94.4's commit 1d94ab30ff.
+
+baseline: green (focused Quick commands, pre-edit)
+Follow-up: tests/testpilot_signature_test.go:116,123 comments still say "runCase" and "runCaseWithBinding". That file is outside this task's Touches, so fn-94.15 or fn-94.17 should reword them. The commit range 735caa401c..HEAD also holds fn-94.3/fn-94.4 commits; only 744223b49a and 5bc236723d belong to this task.
+
+stage: impl-review - ran [codex fan-out rid 312bca414082493f80f9f232333a7f55: correctness/contracts/integration all SHIP..SHIP]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 744223b49af4ec3f1986e94725264af5b609657f, 5bc236723d3a27a7c8e456ad758b964f54618dfd
+- Tests: go test -race -tags test_dep ./common/testing/testpilot/temporal/..., go vet -tags test_dep ./tests/..., go test -v -count=1 -timeout 30m -tags 'test_dep integration' ./tests -run '^TestTestpilot' (Go step of make umpire-check-live-tests, physical TMPDIR; 45 passing, 0 failing), deadcode -test -tags 'test_dep integration' ./common/testing/testpilot/... ./tests/... ./tools/... (no Testpilot entries), make lint-code-fast (only issue: gci in common/testing/testpilot/prepare.go from fn-94.4, outside this task)
 - PRs:
