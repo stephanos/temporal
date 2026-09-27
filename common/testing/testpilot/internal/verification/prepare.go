@@ -2,7 +2,9 @@
 package verification
 
 import (
+	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -31,7 +33,37 @@ type machine struct {
 	captureTypes []ir.Type
 	transitions  []*ir.Expression
 	outgoing     []map[testpilotspb.RunEventKind][]int
+	// instanceValues types each value the Rule's instances assign; a predicate reads one as always
+	// available.
+	instanceValues map[string]ir.Type
+	// instances are the Rule's instances in declaration order; a plain Rule has none.
+	instances []ruleInstance
 }
+
+// ruleInstance is one evaluation of a Rule, concluding under its own rule ID.
+type ruleInstance struct {
+	ruleID string
+	values map[string]*testpilotspb.Value
+	// work is, per instance value, the binding work its inlined literal costs over its reference.
+	work map[string]int64
+}
+
+// readWork is what the instance value reads cost this instance beyond their references' binding.
+func (r *ruleInstance) readWork(reads map[string]int64) int64 {
+	var work int64
+	for id, count := range reads {
+		work += count * r.work[id]
+	}
+	return work
+}
+
+// ledgerEntry is admission charges a Rule's binding made to one counter, replayed per further instance.
+type ledgerEntry struct {
+	total          *int64
+	value, ceiling int64
+	reads          map[string]int64
+}
+
 type admission struct {
 	prepared                                    *PreparedContract
 	catalog                                     *ir.Catalog
@@ -40,6 +72,13 @@ type admission struct {
 	limits                                      ir.Limits
 	work                                        int64
 	states, transitions, captures, captureBytes int64
+	// ruleCount counts Rule instances, a plain Rule as one, as the Contract's expansion counts rules.
+	ruleCount int64
+	// instance prices instance value reads while its Rule binds. While recording, each charge also
+	// enters ledger, so every further instance is charged exactly as its expanded copy would be.
+	instance  *ruleInstance
+	recording bool
+	ledger    []ledgerEntry
 }
 
 func (p *PreparedContract) Snapshot() *testpilotspb.Contract   { return proto.CloneOf(p.source) }
@@ -106,7 +145,44 @@ func add(total *int64, value, ceiling int64) error {
 	*total += value
 	return nil
 }
-func (a *admission) charge(value int64) error { return add(&a.work, value, ir.DefaultLimits().Work) }
+func (a *admission) charge(value int64) error {
+	return a.count(&a.work, value, ir.DefaultLimits().Work, nil)
+}
+
+// count adds value to total under ceiling, with each instance value read priced at the current
+// Rule instance's inlined literal, and records the charge while a Rule with instances binds.
+// Consecutive charges to one counter merge: every value is nonnegative, so their sum exceeds the
+// ceiling exactly when one of them would, with the same error.
+func (a *admission) count(total *int64, value, ceiling int64, reads map[string]int64) error {
+	if a.recording {
+		if last := len(a.ledger) - 1; last >= 0 && a.ledger[last].total == total {
+			a.ledger[last].value += value
+			for id, n := range reads {
+				if a.ledger[last].reads == nil {
+					a.ledger[last].reads = map[string]int64{}
+				}
+				a.ledger[last].reads[id] += n
+			}
+		} else {
+			a.ledger = append(a.ledger, ledgerEntry{total: total, value: value, ceiling: ceiling, reads: maps.Clone(reads)})
+		}
+	}
+	if a.instance != nil {
+		value += a.instance.readWork(reads)
+	}
+	return add(total, value, ceiling)
+}
+
+func tally(reads []string) map[string]int64 {
+	if len(reads) == 0 {
+		return nil
+	}
+	counts := map[string]int64{}
+	for _, id := range reads {
+		counts[id]++
+	}
+	return counts
+}
 
 // Prepare admits static machines under the Profile's Contract and correlated ceilings; each
 // evaluator will own fresh state and capture values. A Contract without a correlated contract needs
@@ -124,14 +200,19 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := checkLimits(ceiling, hardLimits()); err != nil {
 		return nil, err
 	}
-	if int64(len(source.Rules)) > ceiling.MaxRules {
+	// Rule instances count as the rules of the expansion, checked before any is allocated.
+	var ruleCount int64
+	for _, rule := range source.Rules {
+		ruleCount += max(1, int64(len(rule.Instances)))
+	}
+	if ruleCount > ceiling.MaxRules {
 		return nil, invalid(ir.LimitExceeded, "rule count exceeds ceiling")
 	}
 	p := &PreparedContract{source: proto.CloneOf(source), limits: proto.CloneOf(ceiling), correlatedLimits: proto.CloneOf(correlatedCeiling), program: program, catalog: catalog, observations: map[string]ir.Type{}}
 	for _, observation := range program.Observations() {
 		p.observations[observation.ID] = observation.Type
 	}
-	a := &admission{prepared: p, catalog: catalog, scope: map[ir.Reference]ir.Binding{}, limits: ir.DefaultLimits()}
+	a := &admission{prepared: p, catalog: catalog, scope: map[ir.Reference]ir.Binding{}, limits: ir.DefaultLimits(), ruleCount: ruleCount}
 	a.limits.Depth = p.limits.MaxExpressionDepth
 	a.limits.Fanout = program.Limits().MaxPathFanout
 	var err error
@@ -148,7 +229,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 			return nil, invalid(ir.Malformed, "invalid or duplicate rule identity")
 		}
 		seen[rule.RuleId] = true
-		m, bindErr := a.bindMachine(rule)
+		m, bindErr := a.bindRule(rule, seen)
 		if bindErr != nil {
 			return nil, fmt.Errorf("rule %s: %w", rule.RuleId, bindErr)
 		}
@@ -165,12 +246,170 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 func scalarType(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
-func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, error) {
-	limits := a.prepared.limits
-	if err := add(&a.states, int64(len(rule.States)), limits.MaxStates); err != nil {
+
+// bindRule admits a Rule and its instances. The Rule binds once, as its first instance would, and
+// each further instance is charged what binding its expanded copy would cost, so the Contract is
+// admitted exactly when its expansion is and rejects on the same ceiling.
+func (a *admission) bindRule(rule *testpilotspb.ContractRule, seen map[string]bool) (*machine, error) {
+	values, instances, err := a.bindInstances(rule, seen)
+	if err != nil {
 		return nil, err
 	}
-	if err := add(&a.transitions, int64(len(rule.Transitions)), limits.MaxTransitions); err != nil {
+	if err := checkInstanceValueReads(rule, values); err != nil {
+		return nil, err
+	}
+	if len(instances) > 0 {
+		a.instance, a.recording, a.ledger = &instances[0], true, nil
+	}
+	m, err := a.bindMachine(rule, values)
+	ledger := a.ledger
+	a.recording, a.ledger = false, nil
+	defer func() { a.instance = nil }()
+	if err != nil {
+		return nil, err
+	}
+	m.instances = instances
+	for i := 1; i < len(instances); i++ {
+		a.instance = &instances[i]
+		for _, entry := range ledger {
+			if err := a.count(entry.total, entry.value, entry.ceiling, entry.reads); err != nil {
+				return nil, fmt.Errorf("instance %s: %w", instances[i].ruleID, err)
+			}
+		}
+	}
+	return m, nil
+}
+
+// bindInstances checks a Rule's declared instance values and its instances before binding: every
+// instance assigns every declared value exactly once, in declaration order, with a value of its
+// declared type, and names a rule ID no other rule, instance or correlated rule uses.
+func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[string]bool) (map[string]ir.Type, []ruleInstance, error) {
+	path := fmt.Sprintf("contract.rules[%s]", rule.RuleId)
+	if len(rule.InstanceValues) > 0 && len(rule.Instances) == 0 {
+		return nil, nil, invalidAt(ir.Malformed, path+".instances", "declared instance values require Rule instances")
+	}
+	if len(rule.Instances) > 0 && len(rule.InstanceValues) == 0 {
+		return nil, nil, invalidAt(ir.Malformed, path+".instance_values", "Rule instances require declared instance values")
+	}
+	types := make(map[string]ir.Type, len(rule.InstanceValues))
+	for _, declared := range rule.InstanceValues {
+		located := fmt.Sprintf("%s.instance_values[%s]", path, declared.InstanceValueId)
+		if _, duplicate := types[declared.InstanceValueId]; duplicate || !validID(declared.InstanceValueId) {
+			return nil, nil, invalidAt(ir.Malformed, located, "invalid or duplicate instance value identity")
+		}
+		typ, err := a.instanceValueType(declared.Type, located+".type")
+		if err != nil {
+			return nil, nil, err
+		}
+		types[declared.InstanceValueId] = typ
+	}
+	instances := make([]ruleInstance, 0, len(rule.Instances))
+	for _, instance := range rule.Instances {
+		located := fmt.Sprintf("%s.instances[%s]", path, instance.RuleId)
+		if !validID(instance.RuleId) || seen[instance.RuleId] {
+			return nil, nil, invalidAt(ir.Malformed, located, "invalid or duplicate rule identity")
+		}
+		seen[instance.RuleId] = true
+		bound := ruleInstance{ruleID: instance.RuleId, values: map[string]*testpilotspb.Value{}, work: map[string]int64{}}
+		for position, assignment := range instance.Assignments {
+			id := assignment.InstanceValueId
+			at := fmt.Sprintf("%s.assignments[%s]", located, id)
+			typ, declared := types[id]
+			if !declared {
+				return nil, nil, invalidAt(ir.Unknown, at, "assignment names an undeclared instance value")
+			}
+			if _, repeated := bound.values[id]; repeated {
+				return nil, nil, invalidAt(ir.Malformed, at, "instance value is assigned more than once")
+			}
+			// Every earlier assignment named a distinct declared value, so position indexes a declaration.
+			if rule.InstanceValues[position].InstanceValueId != id {
+				return nil, nil, invalidAt(ir.Malformed, at, "assignments follow the instance values' declaration order")
+			}
+			if assignment.Value == nil {
+				return nil, nil, invalidAt(ir.Malformed, at, "assignment value is required")
+			}
+			if err := a.catalog.CheckLiteral(assignment.Value, typ, a.limits); err != nil {
+				return nil, nil, relocate(err, at)
+			}
+			work, err := a.catalog.InstanceValueWork(id, assignment.Value, typ)
+			if err != nil {
+				return nil, nil, relocate(err, at)
+			}
+			bound.values[id], bound.work[id] = assignment.Value, work
+		}
+		if len(bound.values) < len(rule.InstanceValues) {
+			missing := rule.InstanceValues[len(bound.values)].InstanceValueId
+			return nil, nil, invalidAt(ir.Malformed, fmt.Sprintf("%s.assignments[%s]", located, missing), "instance omits a declared instance value")
+		}
+		instances = append(instances, bound)
+	}
+	return types, instances, nil
+}
+
+// instanceValueType binds a declared instance value type, which is text, integer or enum. A boolean
+// is not admitted: capture analysis prunes paths on boolean literals, which a Rule analyzed once for
+// all of its instances cannot do per instance.
+func (a *admission) instanceValueType(declared *testpilotspb.SingularType, path string) (ir.Type, error) {
+	switch typ := declared.GetType().(type) {
+	case *testpilotspb.SingularType_Scalar:
+		kind := typ.Scalar.GetKind()
+		if kind == testpilotspb.SCALAR_KIND_BOOLEAN {
+			return ir.Type{}, invalidAt(ir.Malformed, path, "an instance value cannot be boolean")
+		}
+		if kind != testpilotspb.SCALAR_KIND_TEXT && (kind < testpilotspb.SCALAR_KIND_INT32 || kind > testpilotspb.SCALAR_KIND_SFIXED64) {
+			return ir.Type{}, invalidAt(ir.Malformed, path, "instance value requires a text, integer or enum type")
+		}
+	case *testpilotspb.SingularType_Enumeration:
+	default:
+		return ir.Type{}, invalidAt(ir.Malformed, path, "instance value requires a text, integer or enum type")
+	}
+	bound, err := a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: proto.CloneOf(declared)}})
+	if err != nil {
+		return ir.Type{}, relocate(err, path)
+	}
+	return bound, nil
+}
+
+// checkInstanceValueReads locates, at its predicate, an instance value reference that is empty or
+// names a value the Rule does not declare, which binding would report unlocated.
+func checkInstanceValueReads(rule *testpilotspb.ContractRule, declared map[string]ir.Type) error {
+	for _, tr := range rule.Transitions {
+		err := ir.WalkReferences(predicatePath(rule, tr), tr.GetPredicate(), func(path string, reference *testpilotspb.Reference) error {
+			read, ok := reference.GetReference().(*testpilotspb.Reference_InstanceValueId)
+			if !ok {
+				return nil
+			}
+			located := path + ".reference.instance_value_id"
+			if read.InstanceValueId == "" {
+				return invalidAt(ir.Malformed, located, "instance value reference names no instance value")
+			}
+			if _, exists := declared[read.InstanceValueId]; !exists {
+				return invalidAt(ir.Unknown, located, "instance value is not declared by the rule")
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// relocate places an unlocated ir diagnostic at path.
+func relocate(err error, path string) error {
+	var diagnostic *ir.Error
+	if !errors.As(err, &diagnostic) {
+		return err
+	}
+	return invalidAt(diagnostic.Category, path, diagnostic.Detail)
+}
+
+func (a *admission) bindMachine(rule *testpilotspb.ContractRule, instanceValues map[string]ir.Type) (*machine, error) {
+	limits := a.prepared.limits
+	if err := a.count(&a.states, int64(len(rule.States)), limits.MaxStates, nil); err != nil {
+		return nil, err
+	}
+	if err := a.count(&a.transitions, int64(len(rule.Transitions)), limits.MaxTransitions, nil); err != nil {
 		return nil, err
 	}
 	if len(rule.States) == 0 || len(rule.Transitions) == 0 {
@@ -179,7 +418,7 @@ func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, erro
 	if rule.Kind != testpilotspb.CONTRACT_RULE_KIND_SAFETY && rule.Kind != testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		return nil, invalid(ir.Unknown, "unsupported rule kind")
 	}
-	m := &machine{source: rule, states: map[string]int{}, captures: map[string]int{}, outgoing: make([]map[testpilotspb.RunEventKind][]int, len(rule.States))}
+	m := &machine{source: rule, states: map[string]int{}, captures: map[string]int{}, outgoing: make([]map[testpilotspb.RunEventKind][]int, len(rule.States)), instanceValues: instanceValues}
 	if err := a.bindStates(m); err != nil {
 		return nil, err
 	}
@@ -200,13 +439,14 @@ func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, erro
 }
 
 func (a *admission) bind(conditions []ir.Condition, value *testpilotspb.Expression, path string, expected *ir.Type, scope map[ir.Reference]ir.Binding) (*ir.Expression, error) {
-	limits := a.limits
-	limits.Work = min(limits.Work, ir.DefaultLimits().Work-a.work)
-	bound, err := a.catalog.BindConditionedExpression(conditions, ir.Site{Context: ir.ContractContext, Path: path}, value, expected, scope, limits)
+	// The binding is bounded by the hard work ceiling alone and then charged against what remains, so
+	// admission rejects on the remaining work at the charge, where a Rule instance's charge can be
+	// replayed, rather than midway through the expression.
+	bound, err := a.catalog.BindConditionedExpression(conditions, ir.Site{Context: ir.ContractContext, Path: path}, value, expected, scope, a.limits)
 	if err != nil {
 		return nil, err
 	}
-	if err := a.charge(bound.BindingWork()); err != nil {
+	if err := a.count(&a.work, bound.BindingWork(), ir.DefaultLimits().Work, tally(bound.InstanceValueReads())); err != nil {
 		return nil, err
 	}
 	return bound, nil

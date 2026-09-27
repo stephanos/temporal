@@ -247,7 +247,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			}
 		}
 	}
-	if int64(len(seen)+len(s.Rules)) > limits.MaxRules {
+	if a.ruleCount+int64(len(s.Rules)) > limits.MaxRules {
 		return invalid(ir.LimitExceeded, "combined rule count exceeds ceiling")
 	}
 	// Capture identities are one namespace across the capability: a retained occurrence is named by

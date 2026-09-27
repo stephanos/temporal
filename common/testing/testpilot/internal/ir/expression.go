@@ -26,6 +26,9 @@ const (
 	// declares the arms a context's event kinds may carry; an authored expression reaches one only
 	// through a path whose first segment names it.
 	EventPayloadReference
+	// InstanceValueReference is a value each Rule instance assigns, named by ID. It stands for the
+	// literal the instance inlines, so it is always available and never adapts to its context.
+	InstanceValueReference
 )
 
 type Reference struct {
@@ -57,7 +60,7 @@ const (
 // admittedReferences names the Reference arms each context admits.
 var admittedReferences = map[Context]map[protoreflect.Name]bool{
 	ProgramContext:      {"slot_id": true, "outcome": true, "run": true, "environment_binding_id": true},
-	ContractContext:     {"observation_id": true, "run_event": true, "capture_id": true},
+	ContractContext:     {"observation_id": true, "run_event": true, "capture_id": true, "instance_value_id": true},
 	CorrelatedContext:   {"evidence_field_id": true, "correlated_capture": true, "correlated_step": true},
 	EvidenceLiftContext: {"projected_value": true},
 }
@@ -75,36 +78,45 @@ func admitReference(context Context, path string, arm protoreflect.Name) error {
 // context does not admit, at the path BindExpression would report. It is the context check for
 // expressions a caller evaluates without binding them.
 func AdmitReferences(site Site, source *testpilotspb.Expression) error {
+	return WalkReferences(site.Path, source, func(path string, reference *testpilotspb.Reference) error {
+		message := reference.ProtoReflect()
+		if arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference")); arm != nil {
+			return admitReference(site.Context, path+".reference", arm.Name())
+		}
+		return nil
+	})
+}
+
+// WalkReferences calls visit, in evaluation order, with each Reference in source and the path of the
+// expression holding it, in the path grammar BindExpression reports; it stops at visit's first error.
+func WalkReferences(path string, source *testpilotspb.Expression, visit func(path string, reference *testpilotspb.Reference) error) error {
 	switch v := source.GetExpression().(type) {
 	case *testpilotspb.Expression_Reference:
-		message := v.Reference.ProtoReflect()
-		if arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference")); arm != nil {
-			return admitReference(site.Context, site.Path+".reference", arm.Name())
-		}
+		return visit(path, v.Reference)
 	case *testpilotspb.Expression_Path:
-		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".path.operand"}, v.Path.GetOperand())
+		return WalkReferences(path+".path.operand", v.Path.GetOperand(), visit)
 	case *testpilotspb.Expression_Present:
-		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".present"}, v.Present.GetOperand())
+		return WalkReferences(path+".present", v.Present.GetOperand(), visit)
 	case *testpilotspb.Expression_Not:
-		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".not"}, v.Not.GetOperand())
+		return WalkReferences(path+".not", v.Not.GetOperand(), visit)
 	case *testpilotspb.Expression_Compare:
-		if err := AdmitReferences(Site{Context: site.Context, Path: site.Path + ".compare.left"}, v.Compare.GetLeft()); err != nil {
+		if err := WalkReferences(path+".compare.left", v.Compare.GetLeft(), visit); err != nil {
 			return err
 		}
-		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".compare.right"}, v.Compare.GetRight())
+		return WalkReferences(path+".compare.right", v.Compare.GetRight(), visit)
 	case *testpilotspb.Expression_All:
-		return admitOperands(site, ".all", v.All.GetOperands())
+		return walkOperands(path+".all", v.All.GetOperands(), visit)
 	case *testpilotspb.Expression_Any:
-		return admitOperands(site, ".any", v.Any.GetOperands())
+		return walkOperands(path+".any", v.Any.GetOperands(), visit)
 	default:
 		// A literal reads no reference.
 	}
 	return nil
 }
 
-func admitOperands(site Site, group string, operands []*testpilotspb.Expression) error {
+func walkOperands(path string, operands []*testpilotspb.Expression, visit func(path string, reference *testpilotspb.Reference) error) error {
 	for index, operand := range operands {
-		if err := AdmitReferences(Site{Context: site.Context, Path: fmt.Sprintf("%s%s[%d]", site.Path, group, index)}, operand); err != nil {
+		if err := WalkReferences(fmt.Sprintf("%s[%d]", path, index), operand, visit); err != nil {
 			return err
 		}
 	}
@@ -142,6 +154,8 @@ type Expression struct {
 	comparison  testpilotspb.ComparisonOperator
 	absent      bool
 	key         string
+	// instanceValueReads names each instance value reference its binding call bound, once per read.
+	instanceValueReads []string
 }
 
 func (e *Expression) BindingWork() int64                          { return e.bindingWork }
@@ -154,11 +168,17 @@ func (e *Expression) Path() *Path                                 { return e.pat
 func (e *Expression) Comparison() testpilotspb.ComparisonOperator { return e.comparison }
 func (e *Expression) MayBeAbsent() bool                           { return e.absent }
 
+// InstanceValueReads names, once per read, each instance value reference the binding call that
+// produced e bound, its conditions included, so a caller can charge each read what the literal a
+// Rule instance inlines for it costs.
+func (e *Expression) InstanceValueReads() []string { return slices.Clone(e.instanceValueReads) }
+
 type compiler struct {
-	catalog *Catalog
-	context Context
-	scope   map[Reference]Binding
-	budget  budget
+	catalog            *Catalog
+	context            Context
+	scope              map[Reference]Binding
+	budget             budget
+	instanceValueReads []string
 }
 
 func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
@@ -172,6 +192,7 @@ func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, exp
 	result, err := binder.bind(source, site.Path, expected, nil, false, 1)
 	if err == nil {
 		result.bindingWork = binder.budget.work
+		result.instanceValueReads = binder.instanceValueReads
 	}
 	return result, err
 }
@@ -249,6 +270,7 @@ func (c *Catalog) bindConditionedExpression(conditions []Condition, site Site, s
 	compiled, err := binder.bind(source, site.Path, expected, facts, false, 1)
 	if err == nil {
 		compiled.bindingWork = binder.budget.work
+		compiled.instanceValueReads = binder.instanceValueReads
 	}
 	return compiledGuard, compiled, err
 }
@@ -309,7 +331,14 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 		}
 		result.operator = ReferenceValue
 		result.typ = binding.Type
-		result.key = referenceKey(reference)
+		if reference.Kind == InstanceValueReference {
+			if err := b.instanceValue(binding.Type, expected, path); err != nil {
+				return nil, err
+			}
+			b.instanceValueReads = append(b.instanceValueReads, reference.ID)
+		} else {
+			result.key = referenceKey(reference)
+		}
 		result.absent = !binding.Available && !facts[result.key]
 	}
 	if result.typ.opaque {
@@ -322,6 +351,38 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 		return nil, invalid(Unavailable, "expression", "reference or path read requires an explicit presence guard")
 	}
 	return result, nil
+}
+
+// instanceValue admits an instance value of the declared type where expected is required. The
+// literal a Rule instance inlines for it takes its type from its context, or is text without one, so
+// the declared type must be exactly that type for the Rule to bind as each of its expansions does.
+func (b *compiler) instanceValue(declared Type, expected *Type, path string) error {
+	want := b.catalog.scalarType(testpilotspb.SCALAR_KIND_TEXT)
+	if expected != nil {
+		want = *expected
+	}
+	if !declared.Equal(want) {
+		return invalid(TypeMismatch, path+".reference.instance_value_id", "instance value is used where its declared type is not the expected type")
+	}
+	return nil
+}
+
+// InstanceValueWork is the binding work a Rule instance's literal value, inlined as typ, costs over
+// a reference to the instance value id, so a Rule bound once is charged as each expansion binds.
+func (c *Catalog) InstanceValueWork(id string, value *testpilotspb.Value, typ Type) (int64, error) {
+	inlined := budget{limits: DefaultLimits()}
+	if err := inspectSurface((&testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: value}}).ProtoReflect(), &inlined, "expression"); err != nil {
+		return 0, err
+	}
+	if err := c.checkLiteral(value, typ, &inlined, 1); err != nil {
+		return 0, err
+	}
+	reference := budget{limits: DefaultLimits()}
+	source := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: id}}}}
+	if err := inspectSurface(source.ProtoReflect(), &reference, "expression"); err != nil {
+		return 0, err
+	}
+	return inlined.work - reference.work, nil
 }
 
 // node binds one Expression located at path. Child paths name the child by its operator, with the
@@ -377,6 +438,8 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 		result = Reference{Kind: ObservationReference, ID: value.String()}
 	case "capture_id":
 		result = Reference{Kind: CaptureReference, ID: value.String()}
+	case "instance_value_id":
+		result = Reference{Kind: InstanceValueReference, ID: value.String()}
 	case "outcome":
 		message := value.Message()
 		instruction := messageField(message, "instruction")
@@ -538,9 +601,7 @@ func (b *compiler) logicalNode(operator Operator, operands []proto.Message, path
 func (b *compiler) pair(left proto.Message, leftPath string, right proto.Message, rightPath string, facts map[string]bool, depth int64) ([]*Expression, error) {
 	first, second := left, right
 	firstPath, secondPath := leftPath, rightPath
-	leftKind, _ := expressionVariant(left)
-	rightKind, _ := expressionVariant(right)
-	reversed := leftKind == "literal" && rightKind != "literal"
+	reversed := b.literalLike(left) && !b.literalLike(right)
 	if reversed {
 		first, second = right, left
 		firstPath, secondPath = rightPath, leftPath
@@ -557,6 +618,17 @@ func (b *compiler) pair(left proto.Message, leftPath string, right proto.Message
 		return []*Expression{other, a}, nil
 	}
 	return []*Expression{a, other}, nil
+}
+
+// literalLike reports whether source binds as a literal does: a literal, or an instance value its
+// context admits, which stands for the literal each Rule instance inlines.
+func (b *compiler) literalLike(source proto.Message) bool {
+	if kind, _ := expressionVariant(source); kind == "literal" {
+		return true
+	}
+	expression, ok := source.(*testpilotspb.Expression)
+	_, instance := expression.GetReference().GetReference().(*testpilotspb.Reference_InstanceValueId)
+	return ok && instance && admittedReferences[b.context]["instance_value_id"]
 }
 
 func (b *compiler) logical(operands []proto.Message, path string, facts map[string]bool, continuing bool, depth int64) ([]*Expression, error) {

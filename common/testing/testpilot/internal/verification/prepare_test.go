@@ -9,6 +9,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -498,4 +499,333 @@ func TestPrepareRejectsAPlainContractBeyondItsOwnPerEventCeiling(t *testing.T) {
 	ceiling.MaxWorkPerEvent = 1
 	_, err = Prepare(source, catalog, program, ceiling, nil)
 	require.Error(t, err)
+}
+
+func instanceValue(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: id}}}}
+}
+func text(value string) *testpilotspb.Value {
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
+}
+func singular(typ *testpilotspb.ValueType) *testpilotspb.SingularType { return typ.GetSingular() }
+func assignment(id string, value *testpilotspb.Value) *testpilotspb.ContractInstanceAssignment {
+	return &testpilotspb.ContractInstanceAssignment{InstanceValueId: id, Value: value}
+}
+
+// readsInstanceValue compares the text Observation against the instance value op.
+func readsInstanceValue() *testpilotspb.Expression {
+	return all(present(observation("text")), equal(observation("text"), instanceValue("op")))
+}
+
+// instanced declares the text instance value op on rule and one instance per text, assigning it.
+func instanced(rule *testpilotspb.ContractRule, texts ...string) {
+	rule.InstanceValues = []*testpilotspb.ContractInstanceValue{{InstanceValueId: "op", Type: singular(scalar(testpilotspb.SCALAR_KIND_TEXT))}}
+	rule.Instances = nil
+	for i, value := range texts {
+		rule.Instances = append(rule.Instances, &testpilotspb.ContractRuleInstance{RuleId: fmt.Sprintf("%s-%d", rule.RuleId, i+1), Assignments: []*testpilotspb.ContractInstanceAssignment{assignment("op", text(value))}})
+	}
+}
+
+// expand writes each Rule instance as a plain Rule under the instance's rule ID, with its instance
+// values inlined as literals.
+func expand(source *testpilotspb.Contract) *testpilotspb.Contract {
+	expanded := proto.CloneOf(source)
+	expanded.Rules = nil
+	for _, rule := range source.Rules {
+		if len(rule.Instances) == 0 {
+			expanded.Rules = append(expanded.Rules, proto.CloneOf(rule))
+			continue
+		}
+		for _, instance := range rule.Instances {
+			copied := proto.CloneOf(rule)
+			copied.RuleId, copied.InstanceValues, copied.Instances = instance.RuleId, nil, nil
+			values := map[string]*testpilotspb.Value{}
+			for _, a := range instance.Assignments {
+				values[a.InstanceValueId] = a.Value
+			}
+			for _, tr := range copied.Transitions {
+				inline(tr.Predicate, values)
+			}
+			expanded.Rules = append(expanded.Rules, copied)
+		}
+	}
+	return expanded
+}
+func inline(e *testpilotspb.Expression, values map[string]*testpilotspb.Value) {
+	switch v := e.GetExpression().(type) {
+	case *testpilotspb.Expression_Reference:
+		if read, ok := v.Reference.GetReference().(*testpilotspb.Reference_InstanceValueId); ok {
+			e.Expression = &testpilotspb.Expression_Literal{Literal: proto.CloneOf(values[read.InstanceValueId])}
+		}
+	case *testpilotspb.Expression_Path:
+		inline(v.Path.GetOperand(), values)
+	case *testpilotspb.Expression_Present:
+		inline(v.Present.GetOperand(), values)
+	case *testpilotspb.Expression_Not:
+		inline(v.Not.GetOperand(), values)
+	case *testpilotspb.Expression_Compare:
+		inline(v.Compare.GetLeft(), values)
+		inline(v.Compare.GetRight(), values)
+	case *testpilotspb.Expression_All:
+		for _, operand := range v.All.GetOperands() {
+			inline(operand, values)
+		}
+	case *testpilotspb.Expression_Any:
+		for _, operand := range v.Any.GetOperands() {
+			inline(operand, values)
+		}
+	default:
+		// A literal holds no instance value.
+	}
+}
+
+// A Rule with instances binds once and keeps its instances in declaration order with their values;
+// a single instance and a declared value no predicate reads are admitted like their expansions.
+func TestPrepareAdmitsRuleInstances(t *testing.T) {
+	for name, tc := range map[string]struct {
+		mutate func(*testpilotspb.ContractRule)
+		ids    []string
+	}{
+		"two instances": {func(r *testpilotspb.ContractRule) {
+			instanced(r, "a", "b")
+			r.Transitions[0].Predicate = readsInstanceValue()
+		}, []string{"rule-1", "rule-2"}},
+		"one instance": {func(r *testpilotspb.ContractRule) {
+			instanced(r, "a")
+			r.Transitions[0].Predicate = readsInstanceValue()
+		}, []string{"rule-1"}},
+		"unread value": {func(r *testpilotspb.ContractRule) { instanced(r, "a", "b") }, []string{"rule-1", "rule-2"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, policy := fixture(t)
+			tc.mutate(c.Rules[0])
+			prepared, err := Prepare(c, catalog, view, policy, nil)
+			require.NoError(t, err)
+			_, err = Prepare(expand(c), catalog, view, policy, nil)
+			require.NoError(t, err)
+			var ids []string
+			for i, instance := range prepared.rules[0].instances {
+				ids = append(ids, instance.ruleID)
+				require.True(t, proto.Equal(c.Rules[0].Instances[i].Assignments[0].Value, instance.values["op"]))
+			}
+			require.Equal(t, tc.ids, ids)
+		})
+	}
+}
+
+// Every malformed instance declaration, instance or instance value read rejects at preparation,
+// located by rule, instance and instance value ID.
+func TestPrepareLocatesInstanceErrors(t *testing.T) {
+	const rule = "contract.rules[rule]"
+	enumeration := &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(testpilotspb.RunEventKind(0).Descriptor().FullName())}}}
+	second := func(r *testpilotspb.ContractRule) {
+		r.InstanceValues = append(r.InstanceValues, &testpilotspb.ContractInstanceValue{InstanceValueId: "n", Type: singular(scalar(testpilotspb.SCALAR_KIND_INT64))})
+		for _, instance := range r.Instances {
+			instance.Assignments = append(instance.Assignments, assignment("n", &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "1"}}))
+		}
+	}
+	mismatch := func(category ir.ErrorCategory, path, detail string) *ir.Error {
+		return &ir.Error{Category: category, Path: path, Detail: detail}
+	}
+	typeRequired := "instance value requires a text, integer or enum type"
+	duplicateRule := "invalid or duplicate rule identity"
+	for name, tc := range map[string]struct {
+		mutate func(*testpilotspb.Contract)
+		want   *ir.Error
+	}{
+		"values without instances": {func(c *testpilotspb.Contract) { c.Rules[0].Instances = nil },
+			mismatch(ir.Malformed, rule+".instances", "declared instance values require Rule instances")},
+		"instances without values": {func(c *testpilotspb.Contract) { c.Rules[0].InstanceValues = nil },
+			mismatch(ir.Malformed, rule+".instance_values", "Rule instances require declared instance values")},
+		"empty value ID": {func(c *testpilotspb.Contract) { c.Rules[0].InstanceValues[0].InstanceValueId = "" },
+			mismatch(ir.Malformed, rule+".instance_values[]", "invalid or duplicate instance value identity")},
+		"invalid value ID": {func(c *testpilotspb.Contract) { c.Rules[0].InstanceValues[0].InstanceValueId = "o p" },
+			mismatch(ir.Malformed, rule+".instance_values[o p]", "invalid or duplicate instance value identity")},
+		"duplicate value ID": {func(c *testpilotspb.Contract) {
+			c.Rules[0].InstanceValues = append(c.Rules[0].InstanceValues, proto.CloneOf(c.Rules[0].InstanceValues[0]))
+		}, mismatch(ir.Malformed, rule+".instance_values[op]", "invalid or duplicate instance value identity")},
+		"unset type": {func(c *testpilotspb.Contract) { c.Rules[0].InstanceValues[0].Type = nil },
+			mismatch(ir.Malformed, rule+".instance_values[op].type", typeRequired)},
+		"boolean type": {func(c *testpilotspb.Contract) {
+			c.Rules[0].InstanceValues[0].Type = singular(scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
+		}, mismatch(ir.Malformed, rule+".instance_values[op].type", "an instance value cannot be boolean")},
+		"floating type": {func(c *testpilotspb.Contract) {
+			c.Rules[0].InstanceValues[0].Type = singular(scalar(testpilotspb.SCALAR_KIND_DOUBLE))
+		}, mismatch(ir.Malformed, rule+".instance_values[op].type", typeRequired)},
+		"message type": {func(c *testpilotspb.Contract) {
+			c.Rules[0].InstanceValues[0].Type = singular(messageType("example.Empty"))
+		},
+			mismatch(ir.Malformed, rule+".instance_values[op].type", typeRequired)},
+		"declared type not expected": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].Predicate = all(present(observation("id")), equal(observation("id"), instanceValue("op")))
+		}, mismatch(ir.TypeMismatch, rule+".transitions[first].predicate.all[1].compare.right.reference.instance_value_id", "instance value is used where its declared type is not the expected type")},
+		"omitted assignment": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[1].Assignments = nil },
+			mismatch(ir.Malformed, rule+".instances[rule-2].assignments[op]", "instance omits a declared instance value")},
+		"repeated assignment": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Instances[0].Assignments = append(c.Rules[0].Instances[0].Assignments, assignment("op", text("again")))
+		}, mismatch(ir.Malformed, rule+".instances[rule-1].assignments[op]", "instance value is assigned more than once")},
+		"reordered assignments": {func(c *testpilotspb.Contract) {
+			second(c.Rules[0])
+			assignments := c.Rules[0].Instances[0].Assignments
+			assignments[0], assignments[1] = assignments[1], assignments[0]
+		}, mismatch(ir.Malformed, rule+".instances[rule-1].assignments[n]", "assignments follow the instance values' declaration order")},
+		"undeclared assignment": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[0].Assignments[0].InstanceValueId = "missing" },
+			mismatch(ir.Unknown, rule+".instances[rule-1].assignments[missing]", "assignment names an undeclared instance value")},
+		"unset assignment value": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[0].Assignments[0].Value = nil },
+			mismatch(ir.Malformed, rule+".instances[rule-1].assignments[op]", "assignment value is required")},
+		"wrong assignment type": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Instances[0].Assignments[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "1"}}
+		}, mismatch(ir.TypeMismatch, rule+".instances[rule-1].assignments[op]", "literal does not match its declared type")},
+		"undefined enum value": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].Predicate = boolean(true)
+			c.Rules[0].InstanceValues[0].Type = enumeration
+			c.Rules[0].Instances[0].Assignments[0].Value = ir.EnumValue(testpilotspb.RunEventKind(0).Descriptor(), protoreflect.EnumNumber(testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+			c.Rules[0].Instances[1].Assignments[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "RUN_EVENT_KIND_NONE"}}}
+		}, mismatch(ir.Unknown, rule+".instances[rule-2].assignments[op]", fmt.Sprintf("enum %s declares no value %q", testpilotspb.RunEventKind(0).Descriptor().FullName(), "RUN_EVENT_KIND_NONE"))},
+		"empty instance ID": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[0].RuleId = "" },
+			mismatch(ir.Malformed, rule+".instances[]", duplicateRule)},
+		"invalid instance ID": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[0].RuleId = "rule 1" },
+			mismatch(ir.Malformed, rule+".instances[rule 1]", duplicateRule)},
+		"instance ID of its Rule": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[1].RuleId = "rule" },
+			mismatch(ir.Malformed, rule+".instances[rule]", duplicateRule)},
+		"instance ID of another instance": {func(c *testpilotspb.Contract) { c.Rules[0].Instances[1].RuleId = "rule-1" },
+			mismatch(ir.Malformed, rule+".instances[rule-1]", duplicateRule)},
+		"instance ID of an earlier Rule": {func(c *testpilotspb.Contract) {
+			earlier := proto.CloneOf(c.Rules[0])
+			earlier.RuleId, earlier.InstanceValues, earlier.Instances = "earlier", nil, nil
+			earlier.Transitions[0].Predicate = boolean(true)
+			c.Rules = append([]*testpilotspb.ContractRule{earlier}, c.Rules...)
+			c.Rules[1].Instances[0].RuleId = "earlier"
+		}, mismatch(ir.Malformed, rule+".instances[earlier]", duplicateRule)},
+		"Rule ID of an earlier instance": {func(c *testpilotspb.Contract) {
+			later := proto.CloneOf(c.Rules[0])
+			later.RuleId, later.InstanceValues, later.Instances = "rule-2", nil, nil
+			later.Transitions[0].Predicate = boolean(true)
+			c.Rules = append(c.Rules, later)
+		}, mismatch(ir.Malformed, "contract", duplicateRule)},
+		"empty read": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].Predicate.GetAll().Operands[1].GetCompare().Right = instanceValue("")
+		}, mismatch(ir.Malformed, rule+".transitions[first].predicate.all[1].compare.right.reference.instance_value_id", "instance value reference names no instance value")},
+		"undeclared read": {func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].Predicate.GetAll().Operands[1].GetCompare().Right = instanceValue("missing")
+		}, mismatch(ir.Unknown, rule+".transitions[first].predicate.all[1].compare.right.reference.instance_value_id", "instance value is not declared by the rule")},
+		"read in a plain Rule": {func(c *testpilotspb.Contract) {
+			c.Rules[0].InstanceValues, c.Rules[0].Instances = nil, nil
+		}, mismatch(ir.Unknown, rule+".transitions[first].predicate.all[1].compare.right.reference.instance_value_id", "instance value is not declared by the rule")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, policy := fixture(t)
+			instanced(c.Rules[0], "a", "b")
+			c.Rules[0].Transitions[0].Predicate = readsInstanceValue()
+			tc.mutate(c)
+			_, err := Prepare(c, catalog, view, policy, nil)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, tc.want, diagnostic)
+		})
+	}
+}
+
+// Rule instance IDs share one namespace with correlated rule IDs.
+func TestPrepareRejectsARuleInstanceNamedLikeACorrelatedRule(t *testing.T) {
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	plain, _, _, _ := fixture(t)
+	rule := plain.Rules[0]
+	instanced(rule, "a")
+	c.Rules = []*testpilotspb.ContractRule{rule}
+	_, err := Prepare(c, catalog, view, ceiling, correlated)
+	require.NoError(t, err)
+	rule.Instances[0].RuleId = c.Correlated.Rules[0].RuleId
+	_, err = Prepare(c, catalog, view, ceiling, correlated)
+	require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract", Detail: "invalid clause provenance"}, err)
+}
+
+// requireSameAdmission prepares source and its expansion and requires the same outcome: both
+// admitted, or both rejected with the same diagnostic. It reports whether they were admitted.
+func requireSameAdmission(t *testing.T, source *testpilotspb.Contract, catalog *ir.Catalog, view execution.ProgramView, ceiling *testpilotspb.ContractLimits) bool {
+	t.Helper()
+	_, instancedErr := Prepare(source, catalog, view, ceiling, nil)
+	_, expandedErr := Prepare(expand(source), catalog, view, ceiling, nil)
+	if expandedErr == nil {
+		require.NoError(t, instancedErr)
+		return true
+	}
+	var want, got *ir.Error
+	require.ErrorAs(t, expandedErr, &want)
+	require.ErrorAs(t, instancedErr, &got)
+	require.Equal(t, want, got)
+	return false
+}
+
+// Every Contract ceiling is charged per Rule instance, with each instance value read charged its
+// inlined literal: for each ceiling, the instanced Contract and its expansion are rejected below
+// the expansion's least admitted value, with the same diagnostic, and both admitted at it.
+func TestPrepareChargesCeilingsPerRuleInstance(t *testing.T) {
+	source, catalog, view, _ := fixture(t)
+	generous := &testpilotspb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
+	plain := source.Rules[0]
+	plain.RuleId = "plain"
+	rule := proto.CloneOf(plain)
+	rule.RuleId = "rule"
+	addCapture(rule)
+	rule.States = append(rule.States, &testpilotspb.ContractState{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
+	rule.Transitions = []*testpilotspb.ContractTransition{
+		transition("save", "start", "middle", all(present(observation("id")), present(observation("text")), equal(observation("text"), instanceValue("op")))),
+		transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved")))),
+		transition("reject", "middle", "bad", all(present(observation("text")), not(equal(instanceValue("op"), observation("text"))))),
+	}
+	assign(rule.Transitions[0])
+	instanced(rule, "a", "a much longer instance value than the first", "c")
+	source.Rules = append(source.Rules, rule)
+	fields := generous.ProtoReflect().Descriptor().Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		t.Run(string(field.Name()), func(t *testing.T) {
+			with := func(value int64) *testpilotspb.ContractLimits {
+				limits := proto.CloneOf(generous)
+				limits.ProtoReflect().Set(field, protoreflect.ValueOfInt64(value))
+				return limits
+			}
+			// Admission is monotone in each ceiling, so the expansion's least admitted value is found by bisection.
+			low, high := int64(0), generous.ProtoReflect().Get(field).Int()
+			_, err := Prepare(expand(source), catalog, view, with(high), nil)
+			require.NoError(t, err)
+			for high-low > 1 {
+				middle := low + (high-low)/2
+				if _, err := Prepare(expand(source), catalog, view, with(middle), nil); err == nil {
+					high = middle
+				} else {
+					low = middle
+				}
+			}
+			require.True(t, requireSameAdmission(t, source, catalog, view, with(high)))
+			if low > 0 {
+				require.False(t, requireSameAdmission(t, source, catalog, view, with(low)))
+			}
+		})
+	}
+	// Binding work has no Profile ceiling, so it is reached by growing the instance count of a Rule
+	// whose transitions on one event kind rebind every earlier predicate.
+	t.Run("binding work", func(t *testing.T) {
+		source, catalog, view, _ := fixture(t)
+		rule := source.Rules[0]
+		rule.Transitions = nil
+		for i := 0; i < 24; i++ {
+			rule.Transitions = append(rule.Transitions, transition(fmt.Sprint("t", i), "start", "good", readsInstanceValue()))
+		}
+		admitted, rejected := false, false
+		for count := 1; count <= 40; count++ {
+			texts := make([]string, count)
+			for i := range texts {
+				texts[i] = fmt.Sprint("value", i)
+			}
+			instanced(rule, texts...)
+			if requireSameAdmission(t, source, catalog, view, generous) {
+				admitted = true
+			} else {
+				rejected = true
+			}
+		}
+		require.True(t, admitted && rejected, "the instance count sweep crosses the binding work ceiling")
+	})
 }
