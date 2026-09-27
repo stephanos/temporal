@@ -1549,11 +1549,11 @@
     {
       "id": "fn-89-one-contract-rule-per-entity",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-85-model-side-effects-as-typed-actions-and",
         "fn-86-retire-hand-written-models-one",
