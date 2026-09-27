@@ -229,6 +229,17 @@ make umpire-check-regression   # final gate
   Veil's module system. A build that succeeds but fails any other condition is `defer-closure`. A
   compiler or Lake error is `defer-incompatible`. Either defer closes every later task as not
   applicable, each task closing itself with the R1 receipt identity as evidence (R13).
+- **Amended adopt conditions (2026-09-27, R22).** R1's receipt was `defer-incompatible` (Veil
+  declares Lean 4.32.0; its proofs fail under 4.33.1) and found the checker entry `findReachable`
+  in `IO` with an unbounded loop. Because Veil removes a large amount of checker code Umpire would
+  otherwise own, the decision is re-taken under two amendments: the model's toolchain may move to
+  Veil's declared toolchain, and the checker entry may be `IO` when Umpire runs it during command
+  elaboration, every witness it returns passes the R10 kernel replay gate, and an absence answer is
+  recorded as trusted from the checker, with task .9's differential test as its oracle
+  on the pinned models. Veil's 64-bit state-hash deduplication can merge distinct states; the
+  receipt records it and `AUTHORING.md` states it as the trust assumption of a `veil` absence
+  answer. The other `adopt` conditions stand. Tasks after .1 wait on R22 instead of closing under
+  R13; a `defer-*` R22 decision closes them under R13 with the R22 receipt.
 - **Selecting roots is not vendoring.** Lake building only the imported modules of an unmodified
   pinned checkout is allowed. Patching, copying, or forking any Veil source is not.
 - **Nondeterministic frontier order.** If R1 shows the checker iterates a hash map or runs in
@@ -348,6 +359,15 @@ make umpire-check-regression   # final gate
 - **R21:** A rollback drill on a scratch branch produces exactly the permitted diff listed under
   Edge Cases and every Query returns to `reference`; the diff stat is recorded in the task
   evidence. Errors: any other file in the diff fails the drill.
+- **R22:** A second probe re-runs R1 in a temporary copy of `model/` whose `lean-toolchain` is
+  Veil's declared toolchain and whose Lean requirements (Batteries, protobuf, binary) move to
+  revisions for it, and appends a receipt naming: the toolchain and every requirement revision, the
+  model-side changes needed for the whole model to build and `make umpire-check-goldens` to pass on
+  it (as a file list and a line count), whether the checker closure builds unchanged, the facts R1
+  lists, and the decision under the amended adopt conditions (Edge Cases). An `adopt` is followed by
+  a toolchain-alignment task that lands those model-side changes before task .2. Errors: as R1; a
+  model file that cannot build on the older toolchain without changing a Property's meaning, a
+  fingerprint, or a golden is `defer-incompatible` naming the file.
 
 ## Boundaries
 <!-- scope: business -->
