@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-27T18:17:14.879330Z",
   "created_at": "2026-09-27T15:27:41.062793Z",
   "default_impl": null,
   "default_review": null,
@@ -124,22 +124,54 @@
       "task": "fn-96-gomad-f2-close-the-go127-port-on.3",
       "timestamp": "2026-09-27T18:10:00.463125Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a1c706824404cd2685412ae3fb2d98ba6fad9556e039a684521112b3d2a6c9f9",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "81c1c0d0d59d31128d5f288f93aec58092e3462d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 761964,
+      "output_sha256": "8cd7aebfd1e3860c6901c0af76829a88ed85ea3d6d4476f4f937ee957989491a",
+      "reservation_id": "352633ae63534431b7e105911401cf1b",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T18:17:14.866104Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-96-gomad-f2-close-the-go127-port-on.1": 1,
     "impl:fn-96-gomad-f2-close-the-go127-port-on.2": 1,
-    "impl:fn-96-gomad-f2-close-the-go127-port-on.3": 1
+    "impl:fn-96-gomad-f2-close-the-go127-port-on.3": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-96-gomad-f2-close-the-go127-port-on.1": 0,
     "impl:fn-96-gomad-f2-close-the-go127-port-on.2": 0,
     "impl:fn-96-gomad-f2-close-the-go127-port-on.3": 0
   },
   "spec_path": ".flow/specs/fn-96-gomad-f2-close-the-go127-port-on.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F2: close the go1.27 port on darwin/arm64",
   "tracker": {
     "baseHashFlow": null,
@@ -152,5 +184,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T18:10:00.465307Z"
+  "updated_at": "2026-09-27T18:17:18.851580Z"
 }
