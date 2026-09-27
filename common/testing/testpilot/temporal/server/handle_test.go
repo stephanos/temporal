@@ -13,10 +13,11 @@ import (
 
 func handleSession(t *testing.T, h *Driver, source *testpilotspb.Case, run string) (*Session, testpilot.Coordinate) {
 	t.Helper()
-	program := proto.CloneOf(source.Program)
-	program.Entrypoints = append(program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "worker", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{}}})
-	program.Slots = append(program.Slots, &testpilotspb.Slot{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}})
-	s, err := h.open(t.Context(), run, program, h.profile.ProgramLimits)
+	source = proto.CloneOf(source)
+	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "task-queue"})
+	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "worker", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "handles", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
+	source.Program.Slots = append(source.Program.Slots, &testpilotspb.Slot{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}})
+	s, err := h.OpenSession(t.Context(), run, prepared(t, h, source))
 	require.NoError(t, err)
 	return s, testpilot.Coordinate{RunID: run, EntrypointID: "worker", ActivationID: "activation", InstructionID: "publish", Attempt: 1}
 }
@@ -167,4 +168,34 @@ func TestHandleContractCheckDoesNotHoldDriverLock(t *testing.T) {
 	require.NoError(t, other.Close(ctx))
 	close(effect.release)
 	require.NoError(t, <-result)
+}
+
+// The claim is checked again once the lock is re-taken after Accepts, so a claim replaced while
+// its contract check ran cannot invoke the handle.
+func TestHandleClaimReplacedDuringContractCheckCannotInvoke(t *testing.T) {
+	h, source, _ := fixture(t, "127.0.0.1:1")
+	s, origin := handleSession(t, h, source, "run")
+	effect := blockingHandleEffect{entered: make(chan struct{}), release: make(chan struct{})}
+	opaque, err := s.NewHandle(t.Context(), origin, effect)
+	require.NoError(t, err)
+	require.NoError(t, s.Publish(t.Context(), origin, "handle", opaque))
+	claimCtx, abandon := context.WithCancel(t.Context())
+	defer abandon()
+	claim, err := s.Consume(claimCtx, "handle")
+	require.NoError(t, err)
+	result := make(chan error, 1)
+	go func() {
+		_, err := s.InvokeHandle(t.Context(), coordinate("run", "check"), claim, handleValue())
+		result <- err
+	}()
+	<-effect.entered
+	abandon()
+	_, err = s.Consume(t.Context(), "handle")
+	require.NoError(t, err)
+	close(effect.release)
+	require.ErrorIs(t, <-result, errUnauthorized)
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	require.False(t, opaque.(*opaqueHandle).used)
+	require.Zero(t, s.attempts)
 }

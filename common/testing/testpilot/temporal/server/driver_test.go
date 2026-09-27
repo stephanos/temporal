@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -35,7 +36,7 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	require.NoError(t, err)
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 4, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}}}
+	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}}}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
@@ -45,6 +46,34 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	require.NoError(t, err)
 	return host, source, []protoreflect.MethodDescriptor{healthpb.File_grpc_health_v1_health_proto.Services().ByName("Health").Methods().ByName("Check"), file.Services().Get(0).Methods().Get(0)}
 }
+
+// prepared is source's Program as preparation hands it to h.
+func prepared(t *testing.T, h *Driver, source *testpilotspb.Case) testpilot.PreparedProgram {
+	t.Helper()
+	preparedCase, err := testpilot.Prepare(source, h)
+	require.NoError(t, err)
+	capture := &programCapture{host: h}
+	_, _, err = preparedCase.Run(t.Context(), capture)
+	require.ErrorIs(t, err, errProgramCaptured)
+	return capture.program
+}
+
+var errProgramCaptured = errors.New("prepared Program captured")
+
+type programCapture struct {
+	host    *Driver
+	program testpilot.PreparedProgram
+}
+
+func (d *programCapture) Identity(ctx context.Context) (testpilot.DriverIdentity, error) {
+	return d.host.Identity(ctx)
+}
+func (*programCapture) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
+func (d *programCapture) Open(_ context.Context, _ string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+	d.program = program
+	return nil, errProgramCaptured
+}
+
 func rpcNode(id, method string) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 2000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 }
@@ -86,7 +115,7 @@ func TestUnaryTransportAndResponseOwnership(t *testing.T) {
 		return handler(ctx, req)
 	})
 	h, source, methods := fixture(t, address)
-	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)
 	expected := []proto.Message{&healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, wrapperspb.Int64(5)}
 	for i, node := range []string{"check", "length"} {
@@ -129,28 +158,38 @@ func TestPreparationAndRuntimeRejection(t *testing.T) {
 	profile.Roles[0].Methods = profile.Roles[0].Methods[1:]
 	_, err := testpilot.Prepare(source, profile)
 	require.Error(t, err)
-	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)
+	retried := coordinate("run", "check")
+	retried.Attempt = 2
 	for _, test := range []struct {
 		name       string
 		coordinate testpilot.Coordinate
 		role       string
 		method     protoreflect.MethodDescriptor
 		message    proto.Message
+		want       error
 	}{
-		{"wrong run", coordinate("foreign", "check"), "endpoint", methods[0], request(methods[0], "")},
-		{"wrong role", coordinate("run", "check"), "missing", methods[0], request(methods[0], "")},
-		{"wrong descriptor", coordinate("run", "check"), "endpoint", methods[0], wrapperspb.String("")},
-		{"oversized", coordinate("run", "check"), "endpoint", methods[0], request(methods[0], strings.Repeat("x", 4096))},
-		{"stream", coordinate("run", "check"), "endpoint", methods[0].Parent().(protoreflect.ServiceDescriptor).Methods().ByName("Watch"), request(methods[0], "")},
+		{"wrong run", coordinate("foreign", "check"), "endpoint", methods[0], request(methods[0], ""), errUnauthorized},
+		{"unknown instruction", coordinate("run", "missing"), "endpoint", methods[0], request(methods[0], ""), errUnauthorized},
+		{"attempt beyond the instruction's", retried, "endpoint", methods[0], request(methods[0], ""), errUnauthorized},
+		{"wrong role", coordinate("run", "check"), "missing", methods[0], request(methods[0], ""), errUnauthorized},
+		{"method the instruction does not name", coordinate("run", "check"), "endpoint", methods[1], request(methods[1], "x"), errUnauthorized},
+		{"wrong descriptor", coordinate("run", "check"), "endpoint", methods[0], wrapperspb.String(""), errUnauthorized},
+		{"oversized", coordinate("run", "check"), "endpoint", methods[0], request(methods[0], strings.Repeat("x", 4096)), errCapacity},
+		{"stream", coordinate("run", "check"), "endpoint", methods[0].Parent().(protoreflect.ServiceDescriptor).Methods().ByName("Watch"), request(methods[0], ""), errUnauthorized},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			handle, err := s.InvokeRPC(t.Context(), test.coordinate, test.role, test.method, test.message)
-			require.Error(t, err)
+			require.ErrorIs(t, err, test.want)
 			require.Nil(t, handle)
 			require.NotContains(t, err.Error(), "host-secret")
 		})
 	}
+	// A poll is authorized only for a ReadEvidence instruction, even on the method an RPC names.
+	polled, err := s.PollRPC(t.Context(), coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""), time.Millisecond, func(context.Context, proto.Message) (bool, error) { return true, nil })
+	require.ErrorIs(t, err, errUnauthorized)
+	require.Nil(t, polled)
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	handle, err := s.InvokeRPC(ctx, coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""))
@@ -184,7 +223,7 @@ func TestProtocolFailureTimeoutCancellationAndResponseLimit(t *testing.T) {
 			if kind == "timeout" {
 				source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 20}
 			}
-			s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+			s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 			require.NoError(t, err)
 			handle, err := s.InvokeRPC(t.Context(), coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""))
 			require.NoError(t, err)
@@ -208,6 +247,34 @@ func TestProtocolFailureTimeoutCancellationAndResponseLimit(t *testing.T) {
 		})
 	}
 }
+
+// A session reads each instruction's bounds from its prepared plan: a node that writes no limits
+// runs under the defaults preparation resolved, whatever the Profile's defaults are at call time.
+func TestSessionReadsPreparedInstructionBounds(t *testing.T) {
+	address := startGRPC(t, func(ctx context.Context, _ any, _ *grpc.UnaryServerInfo, _ grpc.UnaryHandler) (any, error) {
+		<-ctx.Done()
+		return nil, ctx.Err()
+	})
+	h, source, methods := fixture(t, address)
+	source.Program.Entrypoints[0].Instructions[0].Limits = nil
+	h.profile.InstructionDefaults = testpilot.InstructionDefaults{TimeoutMilliseconds: 20, MaxAttempts: 2}
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
+	require.NoError(t, err)
+	h.profile.InstructionDefaults = testpilot.InstructionDefaults{}
+	beyond := coordinate("run", "check")
+	beyond.Attempt = 3
+	denied, err := s.InvokeRPC(t.Context(), beyond, "endpoint", methods[0], request(methods[0], ""))
+	require.ErrorIs(t, err, errUnauthorized)
+	require.Nil(t, denied)
+	last := coordinate("run", "check")
+	last.Attempt = 2
+	handle, err := s.InvokeRPC(t.Context(), last, "endpoint", methods[0], request(methods[0], ""))
+	require.NoError(t, err)
+	result, err := handle.Wait(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, result.Outcome.Status)
+	require.NoError(t, s.Close(t.Context()))
+}
 func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 	address := startGRPC(t, nil)
 	h, source, methods := fixture(t, address)
@@ -216,7 +283,7 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 			t.Run(fmt.Sprintf("run%d", i), func(t *testing.T) {
 				t.Parallel()
 				run := fmt.Sprintf("run%d", i)
-				s, err := h.open(t.Context(), run, source.Program, h.profile.ProgramLimits)
+				s, err := h.OpenSession(t.Context(), run, prepared(t, h, source))
 				require.NoError(t, err)
 				handle, err := s.InvokeRPC(t.Context(), coordinate(run, "length"), "endpoint", methods[1], request(methods[1], run))
 				require.NoError(t, err)
@@ -228,10 +295,10 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 		}
 	})
 	h.profile.ProgramLimits.MaxAttempts = 1
-	s, err := h.open(t.Context(), "stuck", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "stuck", prepared(t, h, source))
 	require.NoError(t, err)
 	released := make(chan struct{})
-	e, err := s.start(t.Context(), coordinate("stuck", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult {
+	e, err := s.start(t.Context(), coordinate("stuck", "check"), 2000, func(context.Context) testpilot.EffectResult {
 		<-released
 		return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}
 	})
@@ -241,7 +308,7 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 	require.ErrorIs(t, e.Drain(ctx), context.DeadlineExceeded)
 	require.NoError(t, s.Quarantine(t.Context(), e))
 	require.NoError(t, s.Close(t.Context()))
-	other, err := h.open(t.Context(), "other", source.Program, h.profile.ProgramLimits)
+	other, err := h.OpenSession(t.Context(), "other", prepared(t, h, source))
 	require.NoError(t, err)
 	denied, err := other.InvokeRPC(t.Context(), coordinate("other", "check"), "endpoint", methods[0], request(methods[0], ""))
 	require.ErrorIs(t, err, errCapacity)
@@ -266,9 +333,9 @@ var _ testpilot.Session = (*Session)(nil)
 func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	address := startGRPC(t, nil)
 	h, source, methods := fixture(t, address)
-	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)
-	_, err = h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	_, err = h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.Error(t, err)
 	handle, err := s.InvokeRPC(t.Context(), coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""))
 	require.NoError(t, err)
@@ -287,6 +354,6 @@ func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	require.ErrorIs(t, err, errClosed)
 	require.Nil(t, denied)
 	require.NoError(t, h.Close(t.Context()))
-	_, err = h.open(t.Context(), "later", source.Program, h.profile.ProgramLimits)
+	_, err = h.OpenSession(t.Context(), "later", prepared(t, h, source))
 	require.ErrorIs(t, err, errClosed)
 }

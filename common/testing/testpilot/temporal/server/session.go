@@ -26,8 +26,7 @@ type Session struct {
 	runID                         string
 	entries                       map[string]struct{}
 	controllers                   map[string]struct{}
-	nodes                         map[nodeKey]*testpilotspb.InstructionNode
-	evidence                      map[string]*testpilotspb.EvidenceDeclaration
+	instructions                  map[nodeKey]testpilot.InstructionPlan
 	effects                       map[*effect]struct{}
 	handles                       map[*opaqueHandle]struct{}
 	slots                         map[string]*handleSlot
@@ -53,46 +52,58 @@ func (s *Session) InjectFault(ctx context.Context, _ testpilot.Coordinate, _ str
 	return nil, errUnauthorized
 }
 
-func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.InstructionNode, error) {
+func (s *Session) controllerPlan(c testpilot.Coordinate) (testpilot.InstructionPlan, error) {
 	if c.RunID != s.runID || c.ActivationID == "" || len(c.ActivationID) > 256 || c.Attempt <= 0 {
-		return nil, errUnauthorized
+		return testpilot.InstructionPlan{}, errUnauthorized
 	}
 	if _, ok := s.controllers[c.EntrypointID]; !ok {
-		return nil, errUnauthorized
+		return testpilot.InstructionPlan{}, errUnauthorized
 	}
-	n := s.nodes[nodeKey{c.EntrypointID, c.InstructionID}]
-	if n == nil {
-		return nil, errUnauthorized
+	plan, ok := s.instructions[nodeKey{c.EntrypointID, c.InstructionID}]
+	if !ok || c.Attempt > plan.MaxAttempts() {
+		return testpilot.InstructionPlan{}, errUnauthorized
 	}
-	// The Program was prepared under this Driver's Profile, so its defaults are the node's.
-	if _, maxAttempts := s.host.profile.InstructionDefaults.Resolve(n.GetLimits()); c.Attempt > maxAttempts {
-		return nil, errUnauthorized
+	return plan, nil
+}
+
+// authorizeUnary is the authority boundary both unary effects share: the coordinate names a
+// prepared controller instruction, the call names the role that instruction's opcode arm declares
+// and the method it was admitted with, and the request is a bounded message of the method's input.
+func (s *Session) authorizeUnary(ctx context.Context, c testpilot.Coordinate, opcode testpilot.Opcode, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.InstructionPlan, endpoint, error) {
+	if err := primitive.ContextError(ctx, errInvalid); err != nil {
+		return testpilot.InstructionPlan{}, endpoint{}, err
 	}
-	return n, nil
+	plan, err := s.controllerPlan(c)
+	if err != nil {
+		return testpilot.InstructionPlan{}, endpoint{}, err
+	}
+	if primitive.NilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || primitive.NilValue(request) {
+		return testpilot.InstructionPlan{}, endpoint{}, errUnauthorized
+	}
+	instruction := plan.Source().GetInstruction()
+	declared := instruction.GetInvokeRpc().GetEndpointRoleId()
+	if opcode == testpilot.ReadEvidence {
+		declared = instruction.GetReadEvidence().GetEndpointRoleId()
+	}
+	path := primitive.MethodPath(method)
+	target, ok := s.host.endpoints[role]
+	if !ok || !target.methods[path] || declared != role || primitive.NilValue(plan.Method()) || primitive.MethodPath(plan.Method()) != path || request.ProtoReflect().Descriptor() != method.Input() {
+		return testpilot.InstructionPlan{}, endpoint{}, errUnauthorized
+	}
+	if int64(proto.Size(request)) > s.host.profile.ProgramLimits.MaxRequestBytes {
+		return testpilot.InstructionPlan{}, endpoint{}, errCapacity
+	}
+	return plan, target, nil
 }
 
 func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	if err := primitive.ContextError(ctx, errInvalid); err != nil {
-		return nil, err
-	}
-	n, err := s.controllerNode(c)
+	plan, endpoint, err := s.authorizeUnary(ctx, c, testpilot.InvokeRPC, role, method, request)
 	if err != nil {
 		return nil, err
 	}
-	rpc := n.GetInstruction().GetInvokeRpc()
-	if rpc == nil || primitive.NilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || primitive.NilValue(request) {
-		return nil, errUnauthorized
-	}
 	path := primitive.MethodPath(method)
-	endpoint, ok := s.host.endpoints[role]
-	if !ok || !endpoint.methods[path] || rpc.EndpointRoleId != role || rpc.Method != path || request.ProtoReflect().Descriptor() != method.Input() {
-		return nil, errUnauthorized
-	}
-	if int64(proto.Size(request)) > s.host.profile.ProgramLimits.MaxRequestBytes {
-		return nil, errCapacity
-	}
 	request = proto.Clone(request)
-	handle, err := s.start(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
+	handle, err := s.start(ctx, c, plan.TimeoutMilliseconds(), func(ctx context.Context) testpilot.EffectResult {
 		response := dynamicpb.NewMessage(method.Output())
 		ctx = metadata.NewOutgoingContext(ctx, endpoint.metadata.Copy())
 		err := endpoint.connection.Invoke(ctx, path, request, response, grpc.MaxCallRecvMsgSize(int(s.host.profile.ProgramLimits.MaxInstructionResponseBytes)))
@@ -111,28 +122,16 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 // accepts a response or the instruction's timeout ends it. One effect, one attempt: the polls are
 // the effect's own calls, so the Session's attempt and identity accounting sees the instruction once.
 func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if err := primitive.ContextError(ctx, errInvalid); err != nil {
-		return nil, err
-	}
-	n, err := s.controllerNode(c)
+	plan, endpoint, err := s.authorizeUnary(ctx, c, testpilot.ReadEvidence, role, method, request)
 	if err != nil {
 		return nil, err
 	}
-	read := n.GetInstruction().GetReadEvidence()
-	declaration := s.evidence[read.GetEvidenceId()]
-	if read == nil || declaration.GetRead() == nil || primitive.NilValue(method) || method.IsStreamingClient() || method.IsStreamingServer() || primitive.NilValue(request) || interval <= 0 || satisfied == nil {
+	if interval <= 0 || satisfied == nil {
 		return nil, errUnauthorized
 	}
 	path := primitive.MethodPath(method)
-	endpoint, ok := s.host.endpoints[role]
-	if !ok || !endpoint.methods[path] || read.EndpointRoleId != role || declaration.GetRead().GetMethod() != path || request.ProtoReflect().Descriptor() != method.Input() {
-		return nil, errUnauthorized
-	}
-	if int64(proto.Size(request)) > s.host.profile.ProgramLimits.MaxRequestBytes {
-		return nil, errCapacity
-	}
 	request = proto.Clone(request)
-	handle, err := s.start(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
+	handle, err := s.start(ctx, c, plan.TimeoutMilliseconds(), func(ctx context.Context) testpilot.EffectResult {
 		for {
 			response := dynamicpb.NewMessage(method.Output())
 			callCtx := metadata.NewOutgoingContext(ctx, endpoint.metadata.Copy())
@@ -183,15 +182,15 @@ type effect struct {
 	quarantined bool
 }
 
-func (s *Session) start(ctx context.Context, c testpilot.Coordinate, bounds *testpilotspb.InstructionLimits, call func(context.Context) testpilot.EffectResult) (*effect, error) {
+func (s *Session) start(ctx context.Context, c testpilot.Coordinate, timeoutMilliseconds int64, call func(context.Context) testpilot.EffectResult) (*effect, error) {
 	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	defer s.host.mu.Unlock()
-	return s.startLocked(ctx, c, bounds, call)
+	return s.startLocked(ctx, c, timeoutMilliseconds, call)
 }
 
-func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, bounds *testpilotspb.InstructionLimits, call func(context.Context) testpilot.EffectResult) (*effect, error) {
+func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, timeoutMilliseconds int64, call func(context.Context) testpilot.EffectResult) (*effect, error) {
 	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
@@ -205,7 +204,6 @@ func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, bound
 	if s.host.effects >= limits.MaxAttempts || s.attempts >= limits.MaxAttempts {
 		return nil, errCapacity
 	}
-	timeoutMilliseconds, _ := s.host.profile.InstructionDefaults.Resolve(bounds)
 	timeout := min(timeoutMilliseconds, max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds))
 	if timeout <= 0 {
 		return nil, errInvalid

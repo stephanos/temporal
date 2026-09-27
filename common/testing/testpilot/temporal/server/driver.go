@@ -4,15 +4,14 @@ package server
 import (
 	"context"
 	"errors"
-	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/proto"
 )
 
 // Endpoint is Driver configuration, never a Case or retained Run value.
@@ -59,7 +58,7 @@ func New(options Options) (*Driver, error) {
 	if !validProfile(p) {
 		return nil, errInvalid
 	}
-	h := &Driver{mu: primitive.NewMutex(), profile: cloneProfile(p), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session)}
+	h := &Driver{mu: primitive.NewMutex(), profile: p.Snapshot(), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session)}
 	for _, role := range p.Roles {
 		if role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || len(role.Methods) == 0 {
 			continue
@@ -91,9 +90,21 @@ func New(options Options) (*Driver, error) {
 	return h, nil
 }
 
+// programCeiling is the Program ceiling execution admits a Profile under.
+var programCeiling = &testpilotspb.ProgramLimits{
+	MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000,
+	MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000,
+	MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
+	MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
+	MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20,
+}
+
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
-	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxInstructionResponseBytes <= 0 || l.MaxInstructionResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
+	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || len(p.Roles) > 10000 {
+		return false
+	}
+	if ir.CheckCeilings(l, programCeiling, func(string) error { return errInvalid }) != nil {
 		return false
 	}
 	total := 0
@@ -106,19 +117,7 @@ func validProfile(p testpilot.ProfileSpec) bool {
 	return true
 }
 
-func cloneProfile(p testpilot.ProfileSpec) testpilot.ProfileSpec {
-	p.Roles = slices.Clone(p.Roles)
-	for i := range p.Roles {
-		p.Roles[i].Methods = slices.Clone(p.Roles[i].Methods)
-	}
-	p.Opcodes = slices.Clone(p.Opcodes)
-	p.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
-	p.ProgramLimits = proto.CloneOf(p.ProgramLimits)
-	p.ContractLimits = proto.CloneOf(p.ContractLimits)
-	return p
-}
-
-func (h *Driver) Snapshot() testpilot.ProfileSpec { return cloneProfile(h.profile) }
+func (h *Driver) Snapshot() testpilot.ProfileSpec { return h.profile.Snapshot() }
 func (h *Driver) Identity(ctx context.Context) (testpilot.DriverIdentity, error) {
 	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return testpilot.DriverIdentity{}, err
@@ -144,26 +143,43 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 }
 
 func (h *Driver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if err := primitive.ContextError(ctx, errInvalid); err != nil {
+	s, err := h.OpenSession(ctx, runID, program)
+	if err != nil {
 		return nil, err
 	}
-	return h.open(ctx, runID, program.Snapshot(), program.Limits())
+	return s, nil
 }
 
-// OpenSession retains the concrete server session for composite Driver wiring.
+// OpenSession retains the concrete server session for composite Driver wiring. The session indexes
+// the prepared instruction plans, so it reads node bounds and defaults as preparation resolved them.
 func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilot.PreparedProgram) (*Session, error) {
 	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
-	return h.open(ctx, runID, program.Snapshot(), program.Limits())
-}
-
-func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.Program, limits *testpilotspb.ProgramLimits) (*Session, error) {
-	if err := primitive.ContextError(ctx, errInvalid); err != nil {
-		return nil, err
-	}
-	if runID == "" || len(runID) > 256 || program == nil || limits == nil {
+	source := program.Snapshot()
+	if runID == "" || len(runID) > 256 || source == nil {
 		return nil, errInvalid
+	}
+	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]struct{}), controllers: make(map[string]struct{}), instructions: make(map[nodeKey]testpilot.InstructionPlan), slots: make(map[string]*handleSlot), handles: make(map[*opaqueHandle]struct{}), closedSignal: make(chan struct{})}
+	index := func(entry testpilot.EntrypointPlan, controller bool) {
+		s.entries[entry.ID()] = struct{}{}
+		if controller {
+			s.controllers[entry.ID()] = struct{}{}
+		}
+		for _, plan := range entry.Instructions() {
+			s.instructions[nodeKey{entry.ID(), plan.Source().GetInstructionId()}] = plan
+		}
+	}
+	for _, entry := range program.Entrypoints() {
+		index(entry, entry.Kind() == testpilot.ControllerEntrypoint)
+	}
+	if cleanup, ok := program.Cleanup(); ok {
+		index(cleanup, true)
+	}
+	for _, slot := range source.Slots {
+		if slot.GetOpaqueHandle() != nil {
+			s.slots[slot.SlotId] = &handleSlot{ready: make(chan struct{})}
+		}
 	}
 	if err := h.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
@@ -177,31 +193,6 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 	}
 	if int64(len(h.sessions)) >= h.profile.ProgramLimits.MaxActivations {
 		return nil, errCapacity
-	}
-	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]struct{}), controllers: make(map[string]struct{}), nodes: make(map[nodeKey]*testpilotspb.InstructionNode), evidence: make(map[string]*testpilotspb.EvidenceDeclaration), slots: make(map[string]*handleSlot), handles: make(map[*opaqueHandle]struct{}), closedSignal: make(chan struct{})}
-	for _, entry := range program.Entrypoints {
-		s.entries[entry.EntrypointId] = struct{}{}
-		if entry.GetController() != nil {
-			s.controllers[entry.EntrypointId] = struct{}{}
-		}
-		for _, node := range entry.Instructions {
-			s.nodes[nodeKey{entry.EntrypointId, node.InstructionId}] = proto.CloneOf(node)
-		}
-	}
-	for _, declaration := range program.Evidence {
-		s.evidence[declaration.GetEvidenceId()] = proto.CloneOf(declaration)
-	}
-	if cleanup := program.Cleanup; cleanup != nil {
-		s.entries[cleanup.EntrypointId] = struct{}{}
-		s.controllers[cleanup.EntrypointId] = struct{}{}
-		for _, node := range cleanup.Instructions {
-			s.nodes[nodeKey{cleanup.EntrypointId, node.InstructionId}] = proto.CloneOf(node)
-		}
-	}
-	for _, slot := range program.Slots {
-		if slot.GetOpaqueHandle() != nil {
-			s.slots[slot.SlotId] = &handleSlot{ready: make(chan struct{})}
-		}
 	}
 	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err

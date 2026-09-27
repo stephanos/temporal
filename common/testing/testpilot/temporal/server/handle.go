@@ -71,7 +71,7 @@ func (s *Session) InvokeHandle(ctx context.Context, c testpilot.Coordinate, clai
 	if err := primitive.ContextError(ctx, errInvalid); err != nil {
 		return nil, err
 	}
-	n, err := s.controllerNode(c)
+	plan, err := s.controllerPlan(c)
 	if err != nil {
 		return nil, err
 	}
@@ -85,33 +85,24 @@ func (s *Session) InvokeHandle(ctx context.Context, c testpilot.Coordinate, clai
 	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
 	}
+	if !s.claimValidLocked(claim) {
+		s.host.mu.Unlock()
+		return nil, errUnauthorized
+	}
 	opaque := claim.handle
-	slot := s.slots[opaque.published]
-	if opaque.used || primitive.NilValue(opaque.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
-		s.host.mu.Unlock()
-		return nil, errUnauthorized
-	}
-	if _, exists := s.handles[opaque]; !exists {
-		s.host.mu.Unlock()
-		return nil, errUnauthorized
-	}
 	invoke := opaque.invoke
 	s.host.mu.Unlock()
-	if !invoke.Accepts(ctx, n.GetInstruction(), input) {
+	if !invoke.Accepts(ctx, plan.Source().GetInstruction(), input) {
 		return nil, errUnauthorized
 	}
 	if err := s.host.mu.LockContext(ctx, errInvalid); err != nil {
 		return nil, err
 	}
 	defer s.host.mu.Unlock()
-	slot = s.slots[opaque.published]
-	if opaque.used || primitive.NilValue(opaque.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
+	if !s.claimValidLocked(claim) {
 		return nil, errUnauthorized
 	}
-	if _, exists := s.handles[opaque]; !exists {
-		return nil, errUnauthorized
-	}
-	handle, err := s.startLocked(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
+	handle, err := s.startLocked(ctx, c, plan.TimeoutMilliseconds(), func(ctx context.Context) testpilot.EffectResult {
 		return invoke.Invoke(ctx, input, s.host.profile.ProgramLimits.MaxInstructionResponseBytes)
 	})
 	if err != nil {
@@ -122,6 +113,18 @@ func (s *Session) InvokeHandle(ctx context.Context, c testpilot.Coordinate, clai
 	opaque.invoke = nil
 	delete(s.handles, opaque)
 	return handle, nil
+}
+
+// claimValidLocked reports whether claim is still the current, unreleased claim on a live handle
+// of this Session.
+func (s *Session) claimValidLocked(claim *handleClaim) bool {
+	opaque := claim.handle
+	slot := s.slots[opaque.published]
+	if opaque.used || primitive.NilValue(opaque.invoke) || claim.released.Load() || claim.context.Err() != nil || slot == nil || slot.claim != claim {
+		return false
+	}
+	_, exists := s.handles[opaque]
+	return exists
 }
 
 func (s *Session) Bridge(ctx context.Context) (testpilot.HandleBridge, error) {
