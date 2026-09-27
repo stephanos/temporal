@@ -69,7 +69,7 @@ func TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter(t *testin
 	}
 	grpcSelected := false
 	for _, adapter := range prepared.Adapters {
-		if adapter.Module == "google.golang.org/grpc" && adapter.Version == "v1.80.0" {
+		if adapter.Module == "google.golang.org/grpc" && adapter.Version == "v1.83.2" {
 			grpcSelected = true
 		}
 	}

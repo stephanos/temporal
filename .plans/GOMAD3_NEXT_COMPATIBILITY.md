@@ -157,7 +157,7 @@ Plausible candidates, subject to corpus evidence:
 Do not implement UDP, general host networking, subprocesses, or broad raw-descriptor emulation merely for API completeness. Their state spaces and host semantics are large, and subprocesses violate the current single-target containment model.
 
 The first evidence-ranked adapter is implemented for exact
-`google.golang.org/grpc@v1.80.0`. Its private bounded module replacement removes
+`google.golang.org/grpc@v1.83.2`. Its private bounded module replacement removes
 only the Unix `net.Dialer.Control` keepalive callback and its `syscall` and
 `x/sys/unix` imports while preserving the negative `KeepAlive` value. Exact
 module, source, original/replacement inventory, rewritten package source-set,

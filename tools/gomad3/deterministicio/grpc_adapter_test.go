@@ -23,12 +23,12 @@ func TestPinnedGRPCModuleInventory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	moduleRoot := filepath.Join(strings.TrimSpace(string(moduleCache)), "google.golang.org", "grpc@v1.80.0")
+	moduleRoot := filepath.Join(strings.TrimSpace(string(moduleCache)), "google.golang.org", "grpc@v1.83.2")
 	got, err := target.DigestAdapterSourceInventory(moduleRoot)
 	if err != nil {
 		t.Fatal(err)
 	}
-	const want = "sha256:898dbcb51623418375c8e521c4ef8a8f8ebf146ce81be290f3894267f0edf554"
+	const want = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
 	if got != want {
 		t.Fatalf("gRPC module inventory = %q, want %q", got, want)
 	}
@@ -87,7 +87,7 @@ func TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor(t *testing.T) {
 func TestPrepareGRPCRecordsExactPrivateReplacement(t *testing.T) {
 	moduleCache := pinnedModuleCache(t)
 	root := t.TempDir()
-	identity := gomadversion.AdapterIdentity{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="}
+	identity := gomadversion.AdapterIdentity{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="}
 	prepared, err := prepareGRPC(moduleCache, root, identity)
 	if err != nil {
 		t.Fatal(err)
@@ -150,7 +150,7 @@ func TestProfileRejectsUnsupportedGRPCVersion(t *testing.T) {
 
 func TestProfileRejectsExistingGRPCReplacement(t *testing.T) {
 	workingDirectory := t.TempDir()
-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.80.0\n\nreplace google.golang.org/grpc => ./grpc\n"
+	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace google.golang.org/grpc => ./grpc\n"
 	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestProfileRejectsExistingGRPCReplacement(t *testing.T) {
 
 func TestProfileRejectsExistingGRPCReplacementBlock(t *testing.T) {
 	workingDirectory := t.TempDir()
-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.80.0\n\nreplace (\n\tgoogle.golang.org/grpc => ./grpc\n)\n"
+	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace (\n\tgoogle.golang.org/grpc => ./grpc\n)\n"
 	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -174,10 +174,10 @@ func TestProfileRejectsExistingGRPCReplacementBlock(t *testing.T) {
 
 func TestProfileRejectsChangedGRPCModuleSum(t *testing.T) {
 	workingDirectory := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.80.0\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("google.golang.org/grpc v1.80.0 h1:changed\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("google.golang.org/grpc v1.83.2 h1:changed\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, pinnedModuleCache(t))
@@ -188,7 +188,7 @@ func TestProfileRejectsChangedGRPCModuleSum(t *testing.T) {
 
 func TestProfileRejectsBuildModFileWithGRPCAdapter(t *testing.T) {
 	workingDirectory := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.80.0\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	_, _, err := Default().PrepareBuildAdapters(target.Spec{
@@ -211,7 +211,7 @@ func TestVerifyGRPCModuleRejectsInventoryDrift(t *testing.T) {
 
 func readPinnedGRPCKeepalive(t *testing.T) []byte {
 	t.Helper()
-	contents, err := os.ReadFile(filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.80.0", "internal", "tcp_keepalive_unix.go"))
+	contents, err := os.ReadFile(filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.83.2", "internal", "tcp_keepalive_unix.go"))
 	if err != nil {
 		t.Fatal(err)
 	}

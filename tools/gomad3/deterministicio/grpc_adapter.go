@@ -12,15 +12,19 @@ import (
 
 const (
 	grpcModulePath                       = "google.golang.org/grpc"
-	grpcVersion                          = "v1.80.0"
-	grpcSum                              = "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="
-	grpcOriginalSourceInventorySHA256    = "sha256:898dbcb51623418375c8e521c4ef8a8f8ebf146ce81be290f3894267f0edf554"
+	grpcVersion                          = "v1.83.2"
+	grpcSum                              = "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
+	grpcOriginalSourceInventorySHA256    = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
 	grpcKeepaliveSourceSHA256            = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
 	grpcKeepaliveReplacementSHA256       = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
-	grpcReplacementSourceInventorySHA256 = "sha256:c7bc18ca5d634815e79fb169b528c434b24eeb890f9d1ebc86922e864ee01404"
-	grpcPreparedInternalSourceSetSHA256  = "sha256:348f37231e8391fd9361eb84ed9d5a39b9cacc4136461ce103ccc828be7db250"
+	grpcReplacementSourceInventorySHA256 = "sha256:4c214069ba0d413c7a2169d8ddbd7aa578540510e7737204124f236fc04dbadf"
 	grpcKeepalivePath                    = "internal/tcp_keepalive_unix.go"
 )
+
+var grpcPreparedInternalSourceSetSHA256 = hostPin(map[string]string{
+	"darwin/arm64": "sha256:348f37231e8391fd9361eb84ed9d5a39b9cacc4136461ce103ccc828be7db250",
+	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
+})
 
 func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	if identity.Module != grpcModulePath || identity.Version != grpcVersion || identity.Sum != grpcSum {
