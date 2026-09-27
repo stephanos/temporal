@@ -69,7 +69,10 @@ private theorem pendingAfter_within (remaining : Nat) (here next : Bool) :
   simp only [pendingAfter] at member
   split at member
   · simp at member
-  · split at member <;> simp at member <;> omega
+  · split at member
+    · simp at member
+    · simp at member
+      omega
 
 private theorem bound_within {bound : Nat} {condition : Prop} [Decidable condition] :
     ∀ remaining ∈ (if condition then some bound else none), remaining ≤ bound := by
