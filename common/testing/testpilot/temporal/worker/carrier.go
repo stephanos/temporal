@@ -12,12 +12,9 @@ import (
 )
 
 type Carrier struct {
-	session  *Session
-	mu       contextMutex
-	bundle   delivery.Bundle
-	origin   testpilot.Coordinate
-	workflow delivery.Activation
-	admitted bool
+	session *Session
+	bundle  delivery.Bundle
+	origin  testpilot.Coordinate
 }
 
 func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, binding WorkflowBinding, handles []testpilot.ReservationHandle) (*Carrier, error) {
@@ -49,7 +46,7 @@ func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate
 	if err != nil {
 		return nil, err
 	}
-	carrier := &Carrier{session: s, mu: newContextMutex(), bundle: bundle, origin: origin}
+	carrier := &Carrier{session: s, bundle: bundle, origin: origin}
 	s.carriers[origin] = carrier
 	s.host.addWorkflowRouteLocked(s, key)
 	return carrier, nil
@@ -71,13 +68,6 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 	}
 	entry, exists := s.definition.entries[workflowEntrypoint]
 	return exists && entry.plan.Kind() == testpilot.WorkflowEntrypoint && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
-}
-
-func (c *Carrier) Handles() []testpilot.EffectHandle {
-	if c == nil {
-		return nil
-	}
-	return c.bundle.Handles()
 }
 
 func (c *Carrier) PrepareRPC(ctx context.Context, role string, method protoreflect.MethodDescriptor, request proto.Message, maximumBytes int64) (proto.Message, error) {
@@ -121,35 +111,4 @@ func (c *Carrier) TriggerTerminal(ctx context.Context, disposition delivery.Trig
 	}
 	release, err := c.session.ledger.TriggerTerminal(ctx, c.bundle, disposition)
 	return release.Unused(), err
-}
-
-func (c *Carrier) ParentTerminal(ctx context.Context) (int, error) {
-	if c == nil || c.session == nil {
-		return 0, ErrInvalid
-	}
-	if err := c.mu.lock(ctx); err != nil {
-		return 0, err
-	}
-	defer c.mu.unlock()
-	if !c.admitted {
-		return 0, ErrInvalid
-	}
-	release, err := c.session.ledger.ParentTerminal(ctx, c.workflow)
-	return release.Unused(), err
-}
-
-func (c *Carrier) Quarantine(ctx context.Context, handle testpilot.EffectHandle) error {
-	if c == nil || c.session == nil {
-		return ErrInvalid
-	}
-	return c.session.Quarantine(ctx, handle)
-}
-
-func (c *Carrier) admitWorkflow(activation delivery.Activation) {
-	if c.mu.lock(context.Background()) != nil {
-		return
-	}
-	defer c.mu.unlock()
-	c.workflow = activation
-	c.admitted = true
 }

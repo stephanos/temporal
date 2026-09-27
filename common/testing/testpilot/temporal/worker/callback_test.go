@@ -13,14 +13,13 @@ import (
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
-	"go.temporal.io/sdk/converter"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	commonnexus "go.temporal.io/server/common/nexus"
 	"google.golang.org/protobuf/proto"
 )
 
-func callbackValue() *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
+func callbackPayload() *commonpb.Payload {
+	return runtimePayload("result")
 }
 
 func callbackLimits() *testpilotspb.ProgramLimits {
@@ -47,7 +46,7 @@ func TestCompletionTransportPreservesPayloadAndCredentials(t *testing.T) {
 	require.NoError(t, err)
 	header["authorization"] = "changed"
 
-	result := effect.Invoke(t.Context(), callbackValue(), 4096)
+	result := effect.Invoke(t.Context(), callbackPayload(), 4096)
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.Status)
 	require.Nil(t, result.Response)
 	require.Empty(t, result.Outcome.Detail)
@@ -57,9 +56,7 @@ func TestCompletionTransportPreservesPayloadAndCredentials(t *testing.T) {
 	require.Equal(t, "operation-secret", req.token)
 	var payload *commonpb.Payload
 	require.NoError(t, commonnexus.PayloadSerializer.Deserialize(&nexus.Content{Header: nexus.Header{"type": req.contentType}, Data: req.data}, &payload))
-	var decoded *testpilotspb.Value
-	require.NoError(t, converter.GetDefaultDataConverter().FromPayload(payload, &decoded))
-	require.True(t, proto.Equal(callbackValue(), decoded))
+	require.True(t, proto.Equal(callbackPayload(), payload))
 	require.NotContains(t, fmt.Sprint(result), "secret")
 }
 
@@ -141,7 +138,7 @@ func TestCompletionTransportClassifiesFailures(t *testing.T) {
 				ctx, cancel = context.WithTimeout(ctx, 20*time.Millisecond)
 				defer cancel()
 			}
-			result := effect.Invoke(ctx, callbackValue(), 4096)
+			result := effect.Invoke(ctx, callbackPayload(), 4096)
 			want := testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 			if mode == "timeout" {
 				want = testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT
@@ -167,7 +164,7 @@ func TestCompletionTransportResolvesOnlyTrustedSystemCallbacks(t *testing.T) {
 	require.NoError(t, err)
 	effect, err := transport.newEffect(completionInfo{URL: commonnexus.SystemCallbackURL, OperationToken: "token"})
 	require.NoError(t, err)
-	result := effect.Invoke(t.Context(), callbackValue(), 4096)
+	result := effect.Invoke(t.Context(), callbackPayload(), 4096)
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.Status)
 	require.Equal(t, commonnexus.PathCompletionCallbackNoIdentifier, <-paths)
 

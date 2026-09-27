@@ -30,9 +30,10 @@ Case offline with two handler reservations.
 Live tests no longer hand-write a Profile at all. `bindCase` under `tests/` takes a decoded Case and
 an explicit `CaseBinding` (identity, namespace, task queue, Nexus endpoint, and whether this test
 creates the endpoint), derives the Profile, provisions, prepares, and returns the bound Case;
-`runCase` is the single-shot wrapper that loads a fixture by name, binds it, runs once, and fails
-the test on a Run error. Tests that vary bindings, run concurrently, or deliberately omit a
-resource call `bindCase` directly. Both are test helpers outside the public facade, so MOD-12's
+`runCapturedCase` is the single-shot wrapper that loads a fixture by name, binds it, runs once,
+captures the closed Run when `UMPIRE_REPEAT_RUN_DIR` is set, and fails the test on a Run error;
+`runCapturedCaseWithBinding` does the same over a binding the caller chose. Tests that run
+concurrently or deliberately omit a resource call `bindCase` directly. Both are test helpers outside the public facade, so MOD-12's
 `Prepare` then `Run` sequence is unchanged.
 
 The worker-outage fixture (`workerOutageTests-survived`) is the fault Case, produced from the

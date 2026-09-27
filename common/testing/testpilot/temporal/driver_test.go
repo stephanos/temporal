@@ -3,6 +3,8 @@ package temporal
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 func TestCompositeSessionKeepsControllerAndWorkerAuthoritySeparate(t *testing.T) {
 	controller := &recordingControllerSession{bridge: &recordingBridge{}}
 	workers := &recordingWorkerSession{}
-	session := newCompositeSession(controller, workers, testpilot.PreparedProgram{})
+	session := newPreparedCompositeSession(controller, workers, preparedConformanceProgram(t))
 	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 
 	reservations, err := session.Reserve(t.Context(), testpilot.ReservationRequest{Origin: origin, EntrypointID: "workflow", Count: 1})
@@ -42,15 +44,54 @@ func TestCompositeSessionKeepsControllerAndWorkerAuthoritySeparate(t *testing.T)
 // worker use has no worker Session and therefore no queue to stop.
 func TestCompositeSessionRoutesFaultsToTheWorker(t *testing.T) {
 	workers := &recordingWorkerSession{}
-	session := newCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, workers, testpilot.PreparedProgram{})
+	program := preparedConformanceProgram(t)
+	session := newPreparedCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, workers, program)
 	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "stop", Attempt: 1}
 	_, err := session.InjectFault(t.Context(), origin, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
 	require.NoError(t, err)
 	require.Equal(t, 1, workers.faults)
 
-	workerless := newCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, nil, testpilot.PreparedProgram{})
+	workerless := newPreparedCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, nil, program)
 	_, err = workerless.InjectFault(t.Context(), origin, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
 	require.ErrorIs(t, err, ErrInvalid)
+}
+
+// preparedConformanceProgram is the satisfied conformance Case's Program as preparation hands it to
+// a Driver. It declares no reservation carrier at the coordinates these tests invoke from.
+func preparedConformanceProgram(t *testing.T) testpilot.PreparedProgram {
+	t.Helper()
+	encoded, err := os.ReadFile(filepath.Join("..", "testdata", "case-runtime-conformance", "satisfied", "case.json"))
+	require.NoError(t, err)
+	source, err := testpilot.DecodeCaseProtoJSON(encoded)
+	require.NoError(t, err)
+	catalog, err := NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	profile, err := DeriveProfile(source, catalog, Environment{Identity: "composite"})
+	require.NoError(t, err)
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	capture := &programCaptureDriver{identity: prepared.Identity()}
+	_, _, err = prepared.Run(t.Context(), capture)
+	require.ErrorIs(t, err, errProgramCaptured)
+	return capture.program
+}
+
+var errProgramCaptured = errors.New("prepared Program captured")
+
+type programCaptureDriver struct {
+	identity testpilot.DriverIdentity
+	program  testpilot.PreparedProgram
+}
+
+func (d *programCaptureDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
+	return d.identity, nil
+}
+
+func (*programCaptureDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
+
+func (d *programCaptureDriver) Open(_ context.Context, _ string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+	d.program = program
+	return nil, errProgramCaptured
 }
 
 type recordingControllerSession struct {

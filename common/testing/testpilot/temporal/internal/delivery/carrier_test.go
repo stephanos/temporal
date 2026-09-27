@@ -4,11 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
@@ -135,26 +133,17 @@ func TestStartResponseMustAgreeWithFirstWorkflowDelivery(t *testing.T) {
 	require.Zero(t, other.workflow.consumeCount.Load())
 }
 
-func TestPrepareNexusPreservesHeaderAndFullValue(t *testing.T) {
+// A prepared dispatch carries the route alone; the worker merges it into the Case's own header.
+func TestPrepareNexusReturnsAnIndependentRouteHeader(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	workflow := admitWorkflow(t, f, "temporal-run")
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "unchanged"}}
-	header := nexus.Header{"application": "kept"}
-	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", header, value)
+	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus")
 	require.NoError(t, err)
-	require.Equal(t, nexus.Header{"application": "kept"}, header)
-	require.Equal(t, "kept", dispatch.Header().Get("application"))
-	require.NotEmpty(t, dispatch.Header().Get(reservedNexusHeader))
-	require.True(t, proto.Equal(value, dispatch.Value()))
+	header := dispatch.Header()
+	require.Len(t, header, 1)
+	route := header.Get(reservedNexusHeader)
+	require.NotEmpty(t, route)
 
-	returnedHeader := dispatch.Header()
-	returnedHeader.Set("application", "changed")
-	returnedValue := dispatch.Value()
-	returnedValue.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
-	require.Equal(t, "kept", dispatch.Header().Get("application"))
-	require.Equal(t, "unchanged", dispatch.Value().GetTextValue())
-
-	header.Set(reservedNexusHeader, "anything")
-	_, err = f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", header, value)
-	require.ErrorIs(t, err, ErrReservedHeader)
+	header.Set(reservedNexusHeader, "changed")
+	require.Equal(t, route, dispatch.Header().Get(reservedNexusHeader))
 }

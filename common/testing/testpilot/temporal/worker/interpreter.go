@@ -31,9 +31,8 @@ const (
 )
 
 type nexusResult struct {
-	done  chan struct{}
-	kind  replyKind
-	value *testpilotspb.Value
+	done chan struct{}
+	kind replyKind
 	// raw is a typed synchronous reply's payload, returned unconverted.
 	raw   *commonpb.Payload
 	token string
@@ -55,9 +54,6 @@ type workflowInterpreter struct {
 	ctx     workflow.Context
 	state   *activation.State
 	futures map[string]workflow.NexusOperationFuture
-	// typed marks the futures a schedule command started, whose results are payloads rather than
-	// interpreter values.
-	typed map[string]bool
 }
 
 func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
@@ -69,7 +65,7 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 	if err != nil {
 		return nil, err
 	}
-	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture), typed: make(map[string]bool)}
+	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
 	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
 		if err := ctx.Err(); err != nil {
@@ -119,15 +115,10 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 		ready, err = workflow.AwaitWithTimeout(i.ctx, time.Duration(instruction.TimeoutMilliseconds())*time.Millisecond, future.IsReady)
 	}
 	if err == nil {
-		switch {
-		case !ready:
-			err = context.DeadlineExceeded
-		case i.typed[await.GetInstruction().GetInstructionId()]:
+		if ready {
 			result, err = awaitedPayload(i.ctx, future)
-		default:
-			var value testpilotspb.Value
-			err = future.Get(i.ctx, &value)
-			result = &value
+		} else {
+			err = context.DeadlineExceeded
 		}
 	}
 	outcome := outcomeForError(err)
@@ -191,7 +182,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 			}
 		}()
 		interpreted, err := s.interpretNexus(ctx, delivered, options, result)
-		result.kind, result.value, result.raw, result.token, result.err = interpreted.kind, interpreted.value, interpreted.raw, interpreted.token, err
+		result.kind, result.raw, result.token, result.err = interpreted.kind, interpreted.raw, interpreted.token, err
 		result.replied = interpreted.replied
 	}()
 	// Whether the next delivery on this route resumes or replays is read under the lock, so it is
@@ -331,10 +322,11 @@ func (r *nexusResult) response() (nexus.HandlerStartOperationResult[any], error)
 	}
 	switch r.kind {
 	case replySynchronous:
-		if r.raw != nil {
-			return &nexus.HandlerStartOperationResultSync[any]{Value: converter.NewRawValue(proto.CloneOf(r.raw))}, nil
+		// A reply without a payload answers nil, which the SDK sends as its nil payload.
+		if r.raw == nil {
+			return &nexus.HandlerStartOperationResultSync[any]{}, nil
 		}
-		return &nexus.HandlerStartOperationResultSync[any]{Value: proto.CloneOf(r.value)}, nil
+		return &nexus.HandlerStartOperationResultSync[any]{Value: converter.NewRawValue(proto.CloneOf(r.raw))}, nil
 	case replyAsynchronous:
 		return &nexus.HandlerStartOperationResultAsync{OperationToken: r.token}, nil
 	default:

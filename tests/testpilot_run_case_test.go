@@ -86,28 +86,3 @@ func bindsNexusEndpoint(source *testpilotpb.Case) bool {
 	}
 	return false
 }
-
-// runCase is the happy path: load the named fixture, create the resources its own name implies,
-// run once, and fail the test on a Run error. A new live test is this call plus its Verdict
-// assertions. Tests that vary the binding, run concurrently, or deliberately omit a resource call
-// runCaseWithBinding or bindCase directly.
-func runCase(t *testing.T, env *testcore.TestEnv, name string) (*testpilotpb.Run, *testpilotpb.Verdict) {
-	t.Helper()
-	source := loadTestpilotCase(t, name)
-	return runBoundCase(t, env, source, defaultBinding(name, source))
-}
-
-// runCaseWithBinding is runCase over a binding the caller chose.
-func runCaseWithBinding(t *testing.T, env *testcore.TestEnv, name string, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
-	t.Helper()
-	return runBoundCase(t, env, loadTestpilotCase(t, name), binding)
-}
-
-func runBoundCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
-	t.Helper()
-	binding.CreateEndpoint = binding.NexusEndpoint != ""
-	live := bindCase(t, env, source, binding)
-	run, verdict, err := live.prepared.Run(env.Context(), live.driver)
-	require.NoError(t, err)
-	return run, verdict
-}

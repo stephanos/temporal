@@ -8,7 +8,6 @@ import (
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -35,7 +34,6 @@ type NexusDelivery struct {
 
 type NexusDispatch struct {
 	header nexus.Header
-	value  *testpilotspb.Value
 }
 
 type startRequestFields struct {
@@ -43,8 +41,7 @@ type startRequestFields struct {
 	header                                         protoreflect.Message
 }
 
-func (d NexusDispatch) Header() nexus.Header       { return maps.Clone(d.header) }
-func (d NexusDispatch) Value() *testpilotspb.Value { return proto.CloneOf(d.value) }
+func (d NexusDispatch) Header() nexus.Header { return maps.Clone(d.header) }
 
 func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, method protoreflect.MethodDescriptor, request proto.Message, maximumBytes int64) (proto.Message, error) {
 	if err := contextError(ctx); err != nil {
@@ -186,15 +183,12 @@ func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (
 	return activation, nil
 }
 
-func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceInstructionID string, header nexus.Header, value *testpilotspb.Value) (NexusDispatch, error) {
+func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceInstructionID string) (NexusDispatch, error) {
 	if err := contextError(ctx); err != nil {
 		return NexusDispatch{}, err
 	}
 	if !validRouteText(sourceInstructionID) {
 		return NexusDispatch{}, ErrInvalid
-	}
-	if _, collision := header[reservedNexusHeader]; collision {
-		return NexusDispatch{}, ErrReservedHeader
 	}
 	if err := l.mu.LockContext(ctx); err != nil {
 		return NexusDispatch{}, err
@@ -226,16 +220,11 @@ func (l *Ledger) PrepareNexus(ctx context.Context, workflow Activation, sourceIn
 	if err != nil {
 		return NexusDispatch{}, err
 	}
-	routeValue := base64.RawURLEncoding.EncodeToString(encoded)
-	preparedHeader := maps.Clone(header)
-	if preparedHeader == nil {
-		preparedHeader = make(nexus.Header)
-	}
-	preparedHeader[reservedNexusHeader] = routeValue
+	preparedHeader := nexus.Header{reservedNexusHeader: base64.RawURLEncoding.EncodeToString(encoded)}
 	if nexusHeaderBytes(preparedHeader) > l.config.Limits.MaxHeaderBytes {
 		return NexusDispatch{}, ErrCapacity
 	}
-	return NexusDispatch{header: preparedHeader, value: proto.CloneOf(value)}, nil
+	return NexusDispatch{header: preparedHeader}, nil
 }
 
 func (l *Ledger) AdmitNexus(ctx context.Context, delivery NexusDelivery) (Activation, error) {

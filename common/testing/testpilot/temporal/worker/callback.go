@@ -110,18 +110,11 @@ func (completionEffect) Accepts(_ context.Context, instruction *testpilotspb.Ins
 	}
 }
 
-// Invoke delivers the completion: an interpreter value as a protobuf payload of its own type, a
-// carried payload as it is, and a carried failure as the operation error it denotes.
+// Invoke delivers the completion: a carried payload as it is, and a carried failure as the
+// operation error it denotes.
 func (e completionEffect) Invoke(ctx context.Context, input proto.Message, maxResponseBytes int64) testpilot.EffectResult {
 	invalidArgument := testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "invalid_argument"}}
 	switch typed := input.(type) {
-	case *testpilotspb.Value:
-		data, err := proto.Marshal(typed)
-		if err != nil {
-			return invalidArgument
-		}
-		payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/protobuf"), "messageType": []byte("temporal.server.api.testpilot.v1.Value")}, Data: data}
-		return e.transport.complete(ctx, e.info, payload, nil, maxResponseBytes)
 	case *commonpb.Payload:
 		return e.transport.complete(ctx, e.info, proto.CloneOf(typed), nil, maxResponseBytes)
 	case *failurepb.Failure:

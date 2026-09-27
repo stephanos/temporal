@@ -54,7 +54,7 @@ type caseNexusHeaderKey struct{}
 
 // scheduleNexus issues the schedule command: the operation's input is the carried payload, passed
 // through the data converter unconverted, and its timeouts are the carried durations, the
-// schedule-to-close one defaulting to the instruction's own timeout as the untyped start does.
+// schedule-to-close one defaulting to the instruction's own timeout.
 func (i *workflowInterpreter) scheduleNexus(index int, instruction testpilot.InstructionPlan) error {
 	source := instruction.Source()
 	attributes := scheduleNexusOperation(source.GetInstruction())
@@ -83,7 +83,6 @@ func (i *workflowInterpreter) scheduleNexus(index int, instruction testpilot.Ins
 	}
 	future := workflow.NewNexusClient(endpoint, attributes.GetService()).ExecuteOperation(operationCtx, attributes.GetOperation(), input, options)
 	i.futures[source.GetInstructionId()] = future
-	i.typed[source.GetInstructionId()] = true
 	var execution workflow.NexusOperationExecution
 	err := future.GetNexusOperationExecution().Get(i.ctx, &execution)
 	return i.state.Admit(context.Background(), index, outcomeForError(err))

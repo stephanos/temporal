@@ -23,8 +23,8 @@ import (
 func TestConcurrentRunsRouteReorderedWorkflowAndNexusExactly(t *testing.T) {
 	prepared := preparedRuntimeFixture(t, replySynchronous)
 	host, definition := runtimeTestDriver(t, prepared)
-	sessionA, carrierA, requestA := runtimeTestSession(t, host, definition, prepared, "run-a", "workflow-a")
-	sessionB, carrierB, requestB := runtimeTestSession(t, host, definition, prepared, "run-b", "workflow-b")
+	sessionA, _, requestA := runtimeTestSession(t, host, definition, prepared, "run-a", "workflow-a")
+	sessionB, _, requestB := runtimeTestSession(t, host, definition, prepared, "run-b", "workflow-b")
 
 	workflowB, err := host.admitWorkflow(workflowDelivery(requestB, "temporal-run-b"))
 	require.NoError(t, err)
@@ -39,9 +39,9 @@ func TestConcurrentRunsRouteReorderedWorkflowAndNexusExactly(t *testing.T) {
 	require.True(t, replayA.replay)
 	require.Equal(t, workflowA.activation.Coordinate(), replayA.activation.Coordinate())
 
-	headerB, valueB, err := sessionB.preparedNexusDispatch(workflowB.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "b"}})
+	headerB, err := sessionB.preparedNexusHeader(workflowB.activation, "start")
 	require.NoError(t, err)
-	headerA, valueA, err := sessionA.preparedNexusDispatch(workflowA.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "a"}})
+	headerA, err := sessionA.preparedNexusHeader(workflowA.activation, "start")
 	require.NoError(t, err)
 	nexusB, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: headerB, RequestID: "request-b"}, func() {})
 	require.NoError(t, err)
@@ -49,17 +49,15 @@ func TestConcurrentRunsRouteReorderedWorkflowAndNexusExactly(t *testing.T) {
 	require.NoError(t, err)
 	require.Same(t, sessionA, nexusA.session)
 	require.Same(t, sessionB, nexusB.session)
-	require.Equal(t, "a", valueA.GetTextValue())
-	require.Equal(t, "b", valueB.GetTextValue())
 	require.Equal(t, 4, host.routeAssociations)
 
 	_, err = host.admitWorkflow(workflowDelivery(requestA, "crossed-run"))
 	require.ErrorIs(t, err, delivery.ErrRouteConflict)
 	_, err = host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: headerA, RequestID: "crossed-request"}, func() {})
 	require.ErrorIs(t, err, delivery.ErrRouteConflict)
-	_, err = carrierA.ParentTerminal(t.Context())
+	_, err = sessionA.parentTerminal(t.Context(), workflowA.activation)
 	require.NoError(t, err)
-	_, err = carrierB.ParentTerminal(t.Context())
+	_, err = sessionB.parentTerminal(t.Context(), workflowB.activation)
 	require.NoError(t, err)
 }
 
@@ -77,9 +75,8 @@ func TestAdmittedWorkflowUsesImmutableNexusDispatchAfterStop(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, replay.replay)
 	require.Equal(t, routed.activation.Coordinate(), replay.activation.Coordinate())
-	header, value, err := session.preparedNexusDispatch(routed.activation, "start", nexus.Header{"user": "value"}, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	header, err := session.preparedNexusHeader(routed.activation, "start", nexus.Header{"user": "value"})
 	require.NoError(t, err)
-	require.Equal(t, "request", value.GetTextValue())
 	require.Equal(t, "value", header["user"])
 	require.Len(t, canceler.cancellations, 1)
 	require.Equal(t, workflowCancellation{workflowID: "workflow", runID: "temporal-run"}, canceler.cancellations[0])
@@ -134,15 +131,15 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 			return &struct{ run string }{run: "run"}, nil
 		},
 	}
-	session, carrier, request := runtimeTestSessionWithOptions(t, host, definition, prepared, "run", "workflow", options)
+	session, _, request := runtimeTestSessionWithOptions(t, host, definition, prepared, "run", "workflow", options)
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
-	dispatchHeader, dispatchValue, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	dispatchHeader, err := session.preparedNexusHeader(workflowRoute.activation, "start")
 	require.NoError(t, err)
 	nexusRoute, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"}, func() {})
 	require.NoError(t, err)
 
-	result, err := session.executeNexus(t.Context(), nexusRoute.activation, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", CallbackHeader: nexus.Header{"authorization": "secret"}, RequestID: "request-id"})
+	result, err := session.executeNexus(t.Context(), nexusRoute.activation, nil, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", CallbackHeader: nexus.Header{"authorization": "secret"}, RequestID: "request-id"})
 	require.NoError(t, err)
 	require.Equal(t, "request-id", result.(*nexus.HandlerStartOperationResultAsync).OperationToken)
 	require.Equal(t, 1, factoryCalls)
@@ -153,11 +150,11 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	replay, err := session.ledger.AdmitNexus(t.Context(), delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"})
 	require.NoError(t, err)
 	require.True(t, replay.Replay())
-	_, err = session.executeNexus(t.Context(), replay, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://crossed.invalid", RequestID: "request-id"})
+	_, err = session.executeNexus(t.Context(), replay, nil, nexus.StartOperationOptions{CallbackURL: "https://crossed.invalid", RequestID: "request-id"})
 	require.NoError(t, err)
 	require.Equal(t, 1, factoryCalls)
 
-	_, err = carrier.ParentTerminal(t.Context())
+	_, err = session.parentTerminal(t.Context(), workflowRoute.activation)
 	require.NoError(t, err)
 	session.finishActivation(workflowRoute.activation, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, nil)
 	session.finishActivation(nexusRoute.activation, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, nil)
@@ -185,7 +182,7 @@ func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
 	session.finishActivation(workflowRoute.activation, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, nil)
-	dispatchHeader, dispatchValue, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	dispatchHeader, err := session.preparedNexusHeader(workflowRoute.activation, "start")
 	require.NoError(t, err)
 	activationCtx, cancelActivation := context.WithCancel(t.Context())
 	nexusRoute, err := host.admitNexus(activationCtx, "task-queue", delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"}, cancelActivation)
@@ -193,7 +190,7 @@ func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
 
 	result := make(chan error, 1)
 	go func() {
-		_, err := session.executeNexus(activationCtx, nexusRoute.activation, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
+		_, err := session.executeNexus(activationCtx, nexusRoute.activation, nil, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 		result <- err
 	}()
 	<-factoryStarted
@@ -216,16 +213,16 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 	session, _, request := runtimeTestSessionWithOptions(t, host, definition, prepared, "run", "workflow", options)
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
-	dispatchHeader, dispatchValue, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	dispatchHeader, err := session.preparedNexusHeader(workflowRoute.activation, "start")
 	require.NoError(t, err)
 	nexusRoute, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"}, func() {})
 	require.NoError(t, err)
 
-	_, err = session.executeNexus(t.Context(), nexusRoute.activation, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
+	_, err = session.executeNexus(t.Context(), nexusRoute.activation, nil, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 	require.EqualError(t, err, "nexus handler activation panicked")
 	replay, err := session.ledger.AdmitNexus(t.Context(), delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"})
 	require.NoError(t, err)
-	_, err = session.executeNexus(t.Context(), replay, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
+	_, err = session.executeNexus(t.Context(), replay, nil, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 	require.EqualError(t, err, "nexus handler activation panicked")
 }
 
@@ -235,7 +232,7 @@ func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
 	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 	require.NoError(t, err)
-	header, _, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	header, err := session.preparedNexusHeader(workflowRoute.activation, "start")
 	require.NoError(t, err)
 	routed, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
 	require.NoError(t, err)
@@ -245,7 +242,7 @@ func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
 	result, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{}, &nexusResult{})
 	require.ErrorIs(t, err, context.Canceled)
 	require.Zero(t, result.kind)
-	require.Nil(t, result.value)
+	require.Nil(t, result.raw)
 	require.Empty(t, result.token)
 }
 

@@ -159,9 +159,6 @@ func (s *Session) admitWorkflow(input delivery.WorkflowDelivery) (delivery.Activ
 	}
 	admitted := &workflowAdmission{activation: activation, temporalRunID: input.TemporalRunID}
 	s.workflowAdmissions[key] = admitted
-	if carrier := s.carriers[activation.Reservation().Origin]; carrier != nil {
-		carrier.admitWorkflow(activation)
-	}
 	return activation, admitted, false, nil
 }
 
@@ -194,7 +191,7 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 		if s.nexusDispatch[key] != nil {
 			continue
 		}
-		dispatch, err := s.ledger.PrepareNexus(context.Background(), activation, sourceID, nil, nil)
+		dispatch, err := s.ledger.PrepareNexus(context.Background(), activation, sourceID)
 		if err != nil {
 			return err
 		}
@@ -218,20 +215,10 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 	return nil
 }
 
-func (s *Session) preparedNexusDispatch(activation delivery.Activation, sourceID string, header nexus.Header, value *testpilotspb.Value) (nexus.Header, *testpilotspb.Value, error) {
-	if value == nil {
-		return nil, nil, ErrInvalid
-	}
-	prepared, err := s.preparedNexusHeader(activation, sourceID, header)
-	if err != nil {
-		return nil, nil, err
-	}
-	return prepared, proto.CloneOf(value), nil
-}
-
 // preparedNexusHeader is the header a Nexus dispatch of the named start instruction carries: the
-// header given, with the Run's routing header merged in, within the request byte ceiling.
-func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID string, header nexus.Header) (nexus.Header, error) {
+// headers given and the Run's routing header, merged within the request byte ceiling. A name two of
+// them carry is refused, so no header can shadow the route.
+func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID string, headers ...nexus.Header) (nexus.Header, error) {
 	if s == nil || sourceID == "" || s.mu.lock(context.Background()) != nil {
 		return nil, ErrInvalid
 	}
@@ -240,15 +227,14 @@ func (s *Session) preparedNexusHeader(activation delivery.Activation, sourceID s
 	if base == nil {
 		return nil, delivery.ErrRouteCrossed
 	}
-	result := maps.Clone(header)
-	if result == nil {
-		result = make(nexus.Header)
-	}
-	for name, route := range base {
-		if _, collision := result[name]; collision {
-			return nil, delivery.ErrReservedHeader
+	result := base
+	for _, header := range headers {
+		for name, value := range header {
+			if _, collision := result[name]; collision {
+				return nil, delivery.ErrReservedHeader
+			}
+			result[name] = value
 		}
-		result[name] = route
 	}
 	if nexusHeaderBytes(result) > s.host.options.requestBytes {
 		return nil, ErrCapacity
@@ -476,8 +462,4 @@ func (s *Session) lateDiagnostic(ctx context.Context, code string) {
 	}
 	defer cancel()
 	_ = s.Diagnose(ctx, s.runID, &testpilotspb.RunDiagnostic{Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT, Code: code, Detail: "reserved worker delivery rejected after Run closure"})
-}
-
-func validCoordinate(coordinate testpilot.Coordinate) bool {
-	return coordinate.RunID != "" && coordinate.EntrypointID != "" && coordinate.ActivationID != "" && coordinate.Attempt > 0
 }

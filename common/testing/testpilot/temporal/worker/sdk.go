@@ -15,7 +15,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
-	"google.golang.org/protobuf/proto"
 )
 
 type sdkManagedWorker struct{ sdkworker.Worker }
@@ -96,25 +95,13 @@ func (i *workflowOutboundInterceptor) ExecuteNexusOperation(ctx workflow.Context
 	if !ok || !sourceOK {
 		return failedNexusOperationFuture(ctx, ErrInvalid)
 	}
-	// The untyped start dispatches an interpreter value; a schedule command dispatches the payload it
-	// carries unconverted, or none, under the Case's own Nexus header.
-	header := input.NexusHeader
-	switch value := input.Input.(type) {
-	case *testpilotspb.Value:
-		input.Input = proto.CloneOf(value)
-	case converter.RawValue, nil:
-		caseHeader, _ := ctx.Value(caseNexusHeaderKey{}).(nexus.Header)
-		header = maps.Clone(caseHeader)
-		for name, value := range input.NexusHeader {
-			if _, collision := header[name]; collision {
-				return failedNexusOperationFuture(ctx, delivery.ErrReservedHeader)
-			}
-			header[name] = value
-		}
-	default:
+	// A schedule command dispatches the payload it carries unconverted, or none, under the Case's
+	// own Nexus header.
+	if _, raw := input.Input.(converter.RawValue); !raw && input.Input != nil {
 		return failedNexusOperationFuture(ctx, ErrInvalid)
 	}
-	prepared, err := routed.session.preparedNexusHeader(routed.activation, sourceID, header)
+	caseHeader, _ := ctx.Value(caseNexusHeaderKey{}).(nexus.Header)
+	prepared, err := routed.session.preparedNexusHeader(routed.activation, sourceID, caseHeader, input.NexusHeader)
 	if err != nil {
 		return failedNexusOperationFuture(ctx, err)
 	}

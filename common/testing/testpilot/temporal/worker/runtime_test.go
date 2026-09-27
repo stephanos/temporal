@@ -169,22 +169,10 @@ func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 		acquisitions++
 		return &fakeManagedWorker{}, nil
 	})
-	driver := &openCountingDriver{Driver: host}
-	err := driver.Validate(t.Context(), prepared)
+	err := host.Validate(t.Context(), prepared)
 	require.ErrorIs(t, err, ErrInvalid)
-	require.Zero(t, driver.opens)
 	require.Zero(t, acquisitions)
 	require.Empty(t, host.registry.groups)
-}
-
-type openCountingDriver struct {
-	*Driver
-	opens int
-}
-
-func (d *openCountingDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	d.opens++
-	return d.Driver.Open(ctx, runID, program)
 }
 
 func authorizeGetHistory(profile *testpilot.ProfileSpec) {
@@ -306,7 +294,7 @@ func TestRegistrationRejectsIncompatibleQueueBeforeStart(t *testing.T) {
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		require.NoError(t, release.release(ctx))
+		require.NoError(t, newOutage(release, OutagePlan{}).Restore(ctx))
 	})
 	_, err = registry.acquire(t.Context(), "run-2", []queueRegistration{{queue: "queue", workflows: []string{"other"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}}, false, nil)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
@@ -324,8 +312,8 @@ func TestRegistrationSharesExactSignatureAndBoundsRetainedStates(t *testing.T) {
 	release2, err := registry.acquire(t.Context(), "run-2", requirements, false, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, starts)
-	require.NoError(t, release1.release(t.Context()))
-	require.NoError(t, release2.release(t.Context()))
+	require.NoError(t, newOutage(release1, OutagePlan{}).Restore(t.Context()))
+	require.NoError(t, newOutage(release2, OutagePlan{}).Restore(t.Context()))
 	_, err = registry.acquire(t.Context(), "run-3", []queueRegistration{{queue: "other", workflows: []string{"workflow"}}}, false, nil)
 	require.ErrorIs(t, err, ErrCapacity)
 }
@@ -407,7 +395,7 @@ func TestRegistrationUsesStructuralNexusSignatures(t *testing.T) {
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		require.NoError(t, release.release(ctx))
+		require.NoError(t, newOutage(release, OutagePlan{}).Restore(ctx))
 	})
 	_, err = registry.acquire(t.Context(), "run-b", []queueRegistration{{queue: "queue", nexus: []nexusRegistration{{service: "a", operation: "b/c"}}}}, false, nil)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
