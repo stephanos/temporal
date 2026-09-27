@@ -17,6 +17,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
 func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
@@ -61,7 +62,7 @@ func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	if prepared.Compatibility == nil {
 		t.Fatal("compatibility packs are null")
 	}
-	if prepared.GoVersion != "go1.26.4" || prepared.BuildKey == "" || prepared.TargetGOOS != runtime.GOOS || prepared.TargetGOARCH != runtime.GOARCH {
+	if prepared.GoVersion != gomadversion.GoVersion || prepared.BuildKey == "" || prepared.TargetGOOS != runtime.GOOS || prepared.TargetGOARCH != runtime.GOARCH {
 		t.Fatalf("toolchain identity = %#v", prepared)
 	}
 	if prepared.Argv[0] != "gomad3-target" {
