@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-27T20:16:02.366093Z",
   "created_at": "2026-09-27T15:27:41.670758Z",
   "default_impl": null,
   "default_review": null,
@@ -141,20 +141,52 @@
       "task": "fn-97-gomad-f3-qualify-the-frontend.2",
       "timestamp": "2026-09-27T20:10:13.055933Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b92552cf523a17aeedd481c653c5979953c3add1ac0b768d4e72830ff7bf21fc",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad0224285cd6a73758df469adb67972643972831",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1779329,
+      "output_sha256": "c5e2cb871b4d404788367e25de64c0a2c98bf478b0748ec120b8a183f04a27d1",
+      "reservation_id": "13361388932040748db44c2d7f9ff90a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T20:16:02.343444Z",
+      "tool_calls": 17,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-97-gomad-f3-qualify-the-frontend.1": 1,
-    "impl:fn-97-gomad-f3-qualify-the-frontend.2": 1
+    "impl:fn-97-gomad-f3-qualify-the-frontend.2": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-97-gomad-f3-qualify-the-frontend.1": 0,
     "impl:fn-97-gomad-f3-qualify-the-frontend.2": 0
   },
   "spec_path": ".flow/specs/fn-97-gomad-f3-qualify-the-frontend.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F3: qualify the frontend functional probe",
   "tracker": {
     "baseHashFlow": null,
@@ -167,5 +199,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T20:10:13.057943Z"
+  "updated_at": "2026-09-27T20:16:07.222097Z"
 }
