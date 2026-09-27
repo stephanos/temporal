@@ -29,7 +29,7 @@
       },
       {
         "definitionId": "temporal.workflow.start.property.submittedTypeIsRecorded",
-        "behaviorFingerprint": "sha256:b99bae6d516b4cfbebff6c089704c256ce68cd30b77833ece9d3d1c33c96e0c3",
+        "behaviorFingerprint": "sha256:4a7bfce8e2cb20075d91fd43d361b2b10bbb59dd260d9cb9f0a77c3afa29cfa8",
         "kind": "DEFINITION_KIND_PROPERTY"
       }
     ],
