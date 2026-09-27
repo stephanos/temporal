@@ -1,9 +1,12 @@
 # Temporal controller transport
 
-`New(Options)` freezes the public Profile and configured transport endpoints, creates lazy shared
-gRPC channels, and performs no target calls. Supply its `Snapshot` through `testpilot.Prepare`. The
-root facade passes an admitted `PreparedProgram` to `Open`; this package copies its controller node
-bounds and coordinates without rebinding descriptors, expressions, assignments, or response reads.
+`New(Options)` checks the Profile's Program limits against the shared ceiling check once, freezes
+the Profile and configured transport endpoints, creates lazy shared gRPC channels, and performs no
+target calls. Supply its `Snapshot` through `testpilot.Prepare`. The root facade passes an admitted
+`PreparedProgram` to `Open` (the composite Driver calls `OpenSession` for the concrete Session);
+the Session indexes its `InstructionPlan` values and reads each instruction's resolved timeout and
+attempt bounds from them, without rebinding descriptors, expressions, assignments, or response
+reads.
 
 Runtime dispatch accepts a prepared unary descriptor and an already constructed message with that
 exact input descriptor. Unknown, streaming, and unauthorized methods fail public preparation.

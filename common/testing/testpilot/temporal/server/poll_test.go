@@ -136,7 +136,7 @@ func attemptOf(t *testing.T, response proto.Message) int32 {
 func TestPollRPCRepeatsTheReadUntilSatisfied(t *testing.T) {
 	var calls atomic.Int32
 	h, source, method := pollFixture(t, startDescribe(t, pendingFile(t), &calls))
-	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)
 	request := dynamicpb.NewMessage(method.Input())
 	var seen []int32
@@ -163,7 +163,7 @@ func TestPollRPCRepeatsTheReadUntilSatisfied(t *testing.T) {
 func TestPollRPCRefusesWhatTheDeclarationDoesNotAdmit(t *testing.T) {
 	var calls atomic.Int32
 	h, source, method := pollFixture(t, startDescribe(t, pendingFile(t), &calls))
-	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)
 	request := dynamicpb.NewMessage(method.Input())
 	accept := func(context.Context, proto.Message) (bool, error) { return true, nil }

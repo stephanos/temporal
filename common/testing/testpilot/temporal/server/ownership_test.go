@@ -35,10 +35,11 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 				require.NoError(t, s.Publish(t.Context(), origin, "handle", opaque))
 			}
 			handle := &effect{session: s}
+			program := prepared(t, h, source)
 			call := func(ctx context.Context) error {
 				switch operation {
 				case "open":
-					_, err := h.open(ctx, "new", source.Program, h.profile.ProgramLimits)
+					_, err := h.OpenSession(ctx, "new", program)
 					return err
 				case "mint":
 					_, err := s.NewHandle(ctx, origin, successfulHandleEffect())
@@ -110,10 +111,10 @@ func TestRejectedHandleInvocationRestoresClaimForCleanup(t *testing.T) {
 			if failure == "canceled" {
 				cancel()
 			} else {
-				other, err := h.open(t.Context(), "other", source.Program, h.profile.ProgramLimits)
+				other, err := h.OpenSession(t.Context(), "other", prepared(t, h, source))
 				require.NoError(t, err)
 				h.profile.ProgramLimits.MaxAttempts = 1
-				blocker, err = other.start(t.Context(), coordinate("other", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult { <-release; return testpilot.EffectResult{} })
+				blocker, err = other.start(t.Context(), coordinate("other", "check"), 2000, func(context.Context) testpilot.EffectResult { <-release; return testpilot.EffectResult{} })
 				require.NoError(t, err)
 			}
 			denied, err := s.InvokeHandle(ctx, coordinate("run", "check"), original, handleValue())
