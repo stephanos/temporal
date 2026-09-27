@@ -366,7 +366,11 @@ filesystem, entropy, and time operations to those same generic boundaries.
 The exact `google.golang.org/grpc@v1.83.2` adapter removes its Unix raw-socket
 keepalive callback because Gomad's in-memory TCP connections have no kernel
 socket to configure; it preserves the negative `KeepAlive` value and does not
-claim kernel keepalive support.
+claim kernel keepalive support. On Linux it also compiles gRPC's own non-Linux
+`internal/channelz`, `internal/syscall`, and ready-reader implementations, so
+channelz socket introspection, TCP user timeouts, CPU-time reads, and
+non-blocking ready reads stop at the same stubs darwin uses instead of reaching
+raw connections or `x/sys/unix`.
 Each target records the exact adapters it selected, and resume and replay fail
 before execution if an identity is unavailable or changed. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.

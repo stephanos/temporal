@@ -225,6 +225,26 @@ func TestRunPreservesRequestedSeedWhenEvidenceProjectionFails(t *testing.T) {
 	}
 }
 
+func TestRunKeepsNondeterministicSeedClassification(t *testing.T) {
+	root := t.TempDir()
+	report, err := Run(context.Background(), Spec{
+		ManifestPath: writeManifestWithSeeds(t, root, []uint64{7}, "nondeterministic"),
+		GomadPath:    filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "set-report.json"),
+		Execute: failureExecutor(t, "nondeterministic"),
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	workload := report.Workloads[0]
+	if !report.ExpectationsMet || report.Failed != 1 || report.InfrastructureErrors != 0 || workload.Classification != "nondeterministic" || !workload.ExpectationMet {
+		t.Fatalf("report = %#v", report)
+	}
+	if len(workload.Seeds) != 1 || workload.Seeds[0].Seed != 7 || workload.Seeds[0].Classification != "nondeterministic" || workload.Seeds[0].ReplayMatch || workload.Seeds[0].ChoiceReplayExact {
+		t.Fatalf("seed evidence = %#v", workload.Seeds)
+	}
+}
+
 func TestLoadManifestRejectsDuplicateWorkloadNames(t *testing.T) {
 	root := t.TempDir()
 	path := writeManifest(t, root, "unsupported_target")

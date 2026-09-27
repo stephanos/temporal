@@ -73,6 +73,13 @@ type Workload struct {
 	PlatformExpectations map[string]WorkloadExpectation `json:"platform_expectations,omitempty"`
 }
 
+// validSetTier accepts the three qualification tiers: unit-level workloads
+// (1), representative package workloads (2), and functional-cluster workloads
+// (3), which boot the one-box server under the deterministic profile.
+func validSetTier(tier uint64) bool {
+	return tier >= 1 && tier <= 3
+}
+
 func (workload Workload) expectationFor(platform string) WorkloadExpectation {
 	if expectation, found := workload.PlatformExpectations[platform]; found {
 		return expectation
@@ -517,7 +524,7 @@ func validateManifest(manifest Manifest) error {
 		if !setNamePattern.MatchString(workload.ID) || strings.TrimSpace(workload.Name) == "" || !strings.HasPrefix(workload.Package, "./") || packagePath == "" || filepath.ToSlash(filepath.Clean(filepath.FromSlash(packagePath))) != packagePath || strings.HasPrefix(packagePath, "../") || !testNamePattern.MatchString(workload.Test) {
 			return fmt.Errorf("qualification workload %d identity is invalid", index)
 		}
-		if workload.Tier != 1 && workload.Tier != 2 || strings.TrimSpace(workload.Invariant) == "" {
+		if !validSetTier(workload.Tier) || strings.TrimSpace(workload.Invariant) == "" {
 			return fmt.Errorf("qualification workload %s tier or invariant is invalid", workload.ID)
 		}
 		if index > 0 && workload.ID <= manifest.Suites[index-1].ID {
@@ -876,7 +883,7 @@ func validateSetReport(report Report) error {
 	}
 	expectationsMet := report.Completed == report.Selected
 	for index, workload := range report.Workloads {
-		if !setNamePattern.MatchString(workload.ID) || workload.Name == "" || workload.Tier != 1 && workload.Tier != 2 || workload.Invariant == "" || workload.Seeds == nil || workload.Blockers == nil || workload.Choice.Features == nil || workload.CapabilityMode != target.CapabilityModeClosure && workload.CapabilityMode != target.CapabilityModeLinked && workload.CapabilityMode != target.CapabilityModeGuarded || !validSetClassification(workload.Classification) || index > 0 && workload.ID <= report.Workloads[index-1].ID {
+		if !setNamePattern.MatchString(workload.ID) || workload.Name == "" || !validSetTier(workload.Tier) || workload.Invariant == "" || workload.Seeds == nil || workload.Blockers == nil || workload.Choice.Features == nil || workload.CapabilityMode != target.CapabilityModeClosure && workload.CapabilityMode != target.CapabilityModeLinked && workload.CapabilityMode != target.CapabilityModeGuarded || !validSetClassification(workload.Classification) || index > 0 && workload.ID <= report.Workloads[index-1].ID {
 			return fmt.Errorf("qualification set workload %d identity is invalid", index)
 		}
 		if workload.Analysis == nil && workload.AnalysisError == "" || workload.Analysis != nil && workload.AnalysisError != "" {

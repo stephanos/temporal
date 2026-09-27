@@ -325,9 +325,6 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 		}
 		closure.Packages = append(closure.Packages, projected)
 	}
-	if err := validatePreparedAdapterPackages(closure.Packages, replacements); err != nil {
-		return CapabilityReview{}, err
-	}
 	sort.Slice(closure.Packages, func(i, j int) bool {
 		if closure.Packages[i].ImportPath != closure.Packages[j].ImportPath {
 			return closure.Packages[i].ImportPath < closure.Packages[j].ImportPath
@@ -351,29 +348,6 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 		return CapabilityReview{}, err
 	}
 	return capabilityReviewFromClosure(closure, tags, selection), nil
-}
-
-func validatePreparedAdapterPackages(packages []CapabilityPackage, replacements []AdapterReplacement) error {
-	reviewed := make(map[string]bool, len(replacements))
-	prepared := make(map[string]bool, len(replacements))
-	for _, pkg := range packages {
-		if pkg.Module == nil || pkg.Module.Adapter == nil {
-			continue
-		}
-		reviewed[pkg.Module.Path] = true
-		for _, replacement := range replacements {
-			if replacement.Original.Path == pkg.Module.Path && replacement.PreparedPackage == pkg.ImportPath {
-				prepared[pkg.Module.Path] = true
-				break
-			}
-		}
-	}
-	for _, replacement := range replacements {
-		if reviewed[replacement.Original.Path] && !prepared[replacement.Original.Path] {
-			return fmt.Errorf("inspect target capability source: adapter prepared package %s is absent", replacement.PreparedPackage)
-		}
-	}
-	return nil
 }
 
 func projectCapabilityPackage(pkg listedPackage, overlay map[string]string, replacements map[string]AdapterReplacement) (CapabilityPackage, bool, error) {
