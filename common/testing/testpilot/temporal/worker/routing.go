@@ -95,7 +95,7 @@ func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*S
 			candidates[session] = struct{}{}
 		}
 	}
-	return slices.Collect(maps.Keys(candidates)), nil
+	return slices.AppendSeq(make([]*Session, 0, len(candidates)), maps.Keys(candidates)), nil
 }
 
 func (h *Driver) admitWorkflow(input delivery.WorkflowDelivery) (routedWorkflow, error) {

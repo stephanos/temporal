@@ -489,7 +489,7 @@ func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegi
 		queues[queue] = struct{}{}
 	}
 	for queue := range queues {
-		registration, err := (queueRegistration{queue: queue, workflows: slices.Collect(maps.Keys(d.queueWorkflows[queue])), nexus: slices.Collect(maps.Keys(queueNexus[queue]))}).canonical()
+		registration, err := (queueRegistration{queue: queue, workflows: slices.AppendSeq(make([]string, 0, len(d.queueWorkflows[queue])), maps.Keys(d.queueWorkflows[queue])), nexus: slices.AppendSeq(make([]nexusRegistration, 0, len(queueNexus[queue])), maps.Keys(queueNexus[queue]))}).canonical()
 		if err != nil {
 			return err
 		}

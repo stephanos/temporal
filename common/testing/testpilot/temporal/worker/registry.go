@@ -232,22 +232,16 @@ func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, re
 		return errors.Join(startErr, err)
 	}
 	defer r.mu.Unlock()
-	// cmp.Or would do, but staticcheck's SA4023 misreads cmp.Or[error] as never nil.
-	result := startErr
-	if result == nil {
-		result = ctx.Err()
-	}
-	if result == nil {
-		result = r.groupFailure(runID, requirements, dedicated)
-	}
+	result := cmp.Or(startErr, ctx.Err(), r.groupFailure(runID, requirements, dedicated)) //nolint:staticcheck // SA4023 false positive: cmp.Or[error] returns nil when every argument is nil.
+	failed := result != nil                                                               //nolint:staticcheck // SA4023 false positive, as above.
 	for _, group := range created {
-		if result != nil {
+		if failed {
 			delete(r.groups, group.key)
 		}
 		close(group.ready)
 		group.ready = nil
 	}
-	if result != nil {
+	if failed {
 		delete(r.runIDs, runID)
 		return result
 	}

@@ -538,3 +538,11 @@ type fakeManagedWorker struct {
 
 func (w *fakeManagedWorker) Start() error { return w.start() }
 func (w *fakeManagedWorker) Stop()        { w.stops++ }
+
+func TestNexusCandidatesWithoutRouteIsEmptyNotNil(t *testing.T) {
+	host := &Driver{mu: primitive.NewMutex()}
+	candidates, err := host.nexusCandidates(t.Context(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, candidates)
+	require.Empty(t, candidates)
+}
