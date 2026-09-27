@@ -13,7 +13,9 @@
     "fn-90-resolve-the-intermittent-live-testpilot"
   ],
   "id": "fn-89-one-contract-rule-per-entity",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-89-one-contract-rule-per-entity.7": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -178,15 +180,69 @@
       "task": null,
       "timestamp": "2026-09-27T05:51:29.971741Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ee7c67add096a0088112b554172498bc786475e68b2c03b59fb2992a1b046621",
+      "backend": "claude",
+      "base_sha": "928f7deb34985aae3758197a4c54871fbaa1f47b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-06a816b433134e10bc7b4a8b717908fa",
+            "classification": "introduced",
+            "findingId": "finding-06a816b433134e10bc7b4a8b717908fa",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fe923293bf43e87276f8b5a6b28caf85",
+            "classification": "introduced",
+            "findingId": "finding-fe923293bf43e87276f8b5a6b28caf85",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "db2a343633b9c9d65344e4dddc7fe2481eae8382",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4237,
+      "output_sha256": "27be7907cb2872c5434bbda20cf8908ae7c07a327464d9ab074f3fa9e17f0341",
+      "reservation_id": "b48c3270a87a4170a829e003c3b8704f",
+      "round_consumed": true,
+      "scope": "impl:fn-89-one-contract-rule-per-entity.7",
+      "superseded_by": null,
+      "task": "fn-89-one-contract-rule-per-entity.7",
+      "timestamp": "2026-09-27T11:03:41.485000Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-89-one-contract-rule-per-entity.7": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-89-one-contract-rule-per-entity.7": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-89-one-contract-rule-per-entity.md",
@@ -203,5 +259,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T05:56:41.680640Z"
+  "updated_at": "2026-09-27T11:03:41.489659Z"
 }

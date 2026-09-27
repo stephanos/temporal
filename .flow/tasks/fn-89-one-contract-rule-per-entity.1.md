@@ -32,6 +32,9 @@ Add the spec's API Contracts to the wire and to Lean Authoring (R1): `ContractRu
 - fn-88.12 may move the model toolchain from Lean 4.33.1 to 4.32.0 (spec Dependencies). Use no 4.33-only API; land the Lean part wholly on one toolchain.
 - Regenerate only with `make proto`; never hand-edit `.pb.go`.
 
+### Carried (2026-09-27)
+- A first attempt is saved as `.flow/tmp/fn-89.1-wip.patch` (proto, regenerated api, Lean Authoring constructors, protocol_test and ir/expression_test entries). Start from it. After the wire change, run `make umpire-rerecord-pinned-runs` (fn-89.7) and commit the refreshed records with this task.
+
 ## Acceptance
 - [ ] the five protocol additions exist with the spec's names and numbers, each with a leading comment; the rule-local wording is updated
 - [ ] `protocol_test.go`'s Reference arm list includes `instance_value_id`
