@@ -23,10 +23,21 @@ import (
 const (
 	controlCasePath = "../../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "../../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
-	controlCatalog  = "3e6992900900436a60362bb7837323e32a40ba2d420a90e0624b4ef30944a28c"
 )
 
-func fixedCatalog() (string, error) { return controlCatalog, nil }
+// fixedCatalog is the catalog the control Run was recorded under, read from the record so that
+// re-recording it is the only edit a catalog change needs.
+func fixedCatalog() (string, error) {
+	recorded, err := os.ReadFile(controlRunPath)
+	if err != nil {
+		return "", err
+	}
+	decoded, err := recordedrun.Decode(recorded)
+	if err != nil {
+		return "", err
+	}
+	return decoded.Driver.Catalog, nil
+}
 
 // resolvedTemp is a temporary directory named as it really is, so paths the command resolves
 // compare equal.
@@ -164,7 +175,7 @@ func TestAssessRefusesTheCommandLine(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			catalogRead := false
-			code, result, _ := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return controlCatalog, nil }})
+			code, result, _ := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return fixedCatalog() }})
 			require.Equal(t, exitFailed, code)
 			require.Empty(t, result.Status, "no summary for a refused command line")
 			require.False(t, catalogRead, "nothing is read for a refused command line")
@@ -175,7 +186,7 @@ func TestAssessRefusesTheCommandLine(t *testing.T) {
 	for _, profile := range []string{"local", "profiles/local-ephemeral.json", "../evaluation/profiles/local-ephemeral"} {
 		catalogRead := false
 		arguments := []string{"run", "--case", casePath, "--run", runPath, "--profile", profile, "--receipt-root", root}
-		code, result, _ := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return controlCatalog, nil }})
+		code, result, _ := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return fixedCatalog() }})
 		require.Equal(t, exitFailed, code)
 		require.Equal(t, statusUnknownProfile, result.Status, profile)
 		require.Contains(t, result.Detail, "no such Evaluation Profile")

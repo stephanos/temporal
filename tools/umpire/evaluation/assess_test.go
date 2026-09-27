@@ -26,7 +26,7 @@ func localStrict(t *testing.T) Profile {
 func (c control) admitted(t *testing.T, editCase func(*testpilotspb.Case), editRun func(*testpilotspb.Run)) *Subject {
 	t.Helper()
 	caseBytes, recorded := c.pair(t, editCase, editRun)
-	subject, err := Admit(caseBytes, recorded, controlCatalog)
+	subject, err := Admit(caseBytes, recorded, c.catalog())
 	require.NoError(t, err)
 	return subject
 }

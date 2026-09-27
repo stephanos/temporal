@@ -14,7 +14,7 @@ import (
 // recorded Run under testdata is one live Run of it against the test cluster, captured by
 // `TestTestpilotNexusControlForgedCompletionIsViolated` with UMPIRE_CONTROL_RECORD naming the file.
 // The record names the fixture's canonical bytes, so any change to the control's definitions makes
-// it crossed until it is recorded again live.
+// it crossed until it is recorded again live; `make umpire-rerecord-pinned-runs` does that.
 const (
 	controlCasePath = "../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "testdata/nexusCallerControl-forgedCompletion-run.json"

@@ -858,6 +858,58 @@ umpire-check-live-tests:
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
+# The recorded Runs the offline tests pin, each as live-test:variable:record:package:probe -- the
+# live test that records it into the file the variable names, and the offline test that admits
+# it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
+# either leaves the record stale or crossed until it is recorded again live.
+UMPIRE_PINNED_RUNS := \
+	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:tools/umpire/replay/testdata/nexusCallerControl-forgedCompletion-run.json:./tools/umpire/replay:TestControlRecordPinsTheCorrelatedKey \
+	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
+
+# Re-records every pinned Run its probe rejects as stale or crossed, leaves a current one alone, and
+# renders the receipt goldens from the control record again, so an unchanged protocol changes
+# nothing. A probe failing for any other reason stops the target: re-recording would hide it.
+umpire-rerecord-pinned-runs:
+	@printf $(COLOR) "Re-record stale pinned Testpilot Runs..."
+	@set -eu; \
+		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		log=$$(TMPDIR="$$physical_tmpdir" mktemp); \
+		temporary=; \
+		trap 'rm -f "$$log"; [ -z "$$temporary" ] || rm -rf "$$temporary"' EXIT HUP INT TERM; \
+		for pinned in $(UMPIRE_PINNED_RUNS); do \
+			set -- $$(printf '%s' "$$pinned" | tr ':' ' '); \
+			live=$$1; variable=$$2; record=$$3; package=$$4; probe=$$5; \
+			status=0; \
+			TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags test_dep "$$package" \
+				-run "^$$probe"'$$' > "$$log" 2>&1 || status=$$?; \
+			if [ "$$status" -eq 0 ]; then \
+				printf '%s is current.\n' "$$record"; \
+				continue; \
+			fi; \
+			if ! grep -Eq '(stale|crossed): ' "$$log"; then \
+				cat "$$log"; \
+				printf '%s fails %s for another reason than a stale or crossed record.\n' "$$record" "$$probe"; \
+				exit 1; \
+			fi; \
+			printf 'Re-recording %s through %s...\n' "$$record" "$$live"; \
+			temporary=$$(mktemp -d "$$(dirname "$$record")/.rerecord.XXXXXX"); \
+			if ! env "$$variable=$$PWD/$$temporary/run.json" TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -timeout 30m \
+				-tags 'test_dep integration' ./tests -run "^$$live"'$$' > "$$log" 2>&1; then \
+				cat "$$log"; \
+				printf '%s failed; %s is unchanged.\n' "$$live" "$$record"; \
+				exit 1; \
+			fi; \
+			test -s "$$temporary/run.json" || { printf '%s wrote no record.\n' "$$live"; exit 1; }; \
+			mv -f "$$temporary/run.json" "$$record"; \
+			rm -rf "$$temporary"; \
+			temporary=; \
+		done; \
+		UMPIRE_RECEIPT_GOLDENS=write TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags test_dep \
+			./tools/umpire/evaluation -run '^TestReceiptGoldens$$' > "$$log" 2>&1 || { cat "$$log"; exit 1; }
+	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
+			./tools/umpire/replay ./tools/umpire/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
+
 umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/canary/...
@@ -978,7 +1030,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

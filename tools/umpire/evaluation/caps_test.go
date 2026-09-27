@@ -25,7 +25,7 @@ func (c control) paddingFor(t *testing.T, size int) string {
 func TestAdmissionCapsAtNAndNPlusOne(t *testing.T) {
 	c := loadControl(t)
 	admit := func(caseBytes, recorded []byte) error {
-		_, err := Admit(caseBytes, recorded, controlCatalog)
+		_, err := Admit(caseBytes, recorded, c.catalog())
 		return err
 	}
 	oversized := func(t *testing.T, err error) {

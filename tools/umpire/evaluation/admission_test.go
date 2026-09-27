@@ -21,9 +21,6 @@ import (
 const (
 	controlCasePath = "../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
-	// controlCatalog is the catalog the control Run was recorded under; the tree's static catalog
-	// is the same, which TestTheControlRecordIsCurrent pins.
-	controlCatalog = "3e6992900900436a60362bb7837323e32a40ba2d420a90e0624b4ef30944a28c"
 )
 
 type control struct {
@@ -45,6 +42,11 @@ func loadControl(t *testing.T) control {
 	require.NoError(t, err)
 	return control{caseBytes: caseBytes, source: source, decoded: decoded, recorded: recorded}
 }
+
+// catalog is the catalog the control Run was recorded under, read from the record so that
+// re-recording it is the only edit a catalog change needs; the tree's static catalog is the same,
+// which TestTheControlRecordIsCurrent pins.
+func (c control) catalog() string { return c.decoded.Driver.Catalog }
 
 // compactCase is a Case in compact ProtoJSON: canonical, with its own identity.
 func compactCase(t *testing.T, source *testpilotspb.Case) []byte {
@@ -90,7 +92,7 @@ func satisfy(run *testpilotspb.Run) {
 func TestAdmitTheControlRecord(t *testing.T) {
 	c := loadControl(t)
 	require.Empty(t, c.source.GetContract().GetRules(), "the control is correlated-only")
-	subject, err := Admit(c.caseBytes, c.recorded, controlCatalog)
+	subject, err := Admit(c.caseBytes, c.recorded, c.catalog())
 	require.NoError(t, err)
 	caseIdentity, err := recordedrun.CaseIdentity(c.caseBytes)
 	require.NoError(t, err)
@@ -112,7 +114,7 @@ func TestAdmitTheControlRecord(t *testing.T) {
 func TestTheControlRecordIsCurrent(t *testing.T) {
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	require.Equal(t, controlCatalog, catalog.Identity())
+	require.Equal(t, loadControl(t).catalog(), catalog.Identity())
 }
 
 // Negative subjects that are well formed are admitted: a violated Run whose cleanup failed, a
@@ -131,7 +133,7 @@ func TestAdmitAdmitsEveryWellFormedClosedRun(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			caseBytes, recorded := c.pair(t, nil, edit)
-			_, err := Admit(caseBytes, recorded, controlCatalog)
+			_, err := Admit(caseBytes, recorded, c.catalog())
 			require.NoError(t, err)
 		})
 	}
@@ -183,7 +185,7 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 		"a re-spaced record":        {c.caseBytes, respaced(c.recorded), ReasonNoncanonical, "form its writer produces"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			subject, err := Admit(probe.caseBytes, probe.recorded, controlCatalog)
+			subject, err := Admit(probe.caseBytes, probe.recorded, c.catalog())
 			require.Nil(t, subject)
 			rejection, ok := IsRejection(err)
 			require.True(t, ok, "not a rejection: %v", err)
@@ -237,7 +239,7 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 	for name, probe := range pairs {
 		t.Run(name, func(t *testing.T) {
 			caseBytes, recorded := c.pair(t, probe.editCase, probe.editRun)
-			_, err := Admit(caseBytes, recorded, controlCatalog)
+			_, err := Admit(caseBytes, recorded, c.catalog())
 			rejection, ok := IsRejection(err)
 			require.True(t, ok, "not a rejection: %v", err)
 			require.Equal(t, probe.reason, rejection.Reason, rejection.Detail)
@@ -248,7 +250,7 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 	// IDs are names, not hashes: a Case regenerated under the same IDs does not inherit the older
 	// Run, and neither does another Case.
 	for name, caseBytes := range map[string][]byte{"regenerated": regenerated, "another": anotherCase} {
-		_, err := Admit(caseBytes, c.recorded, controlCatalog)
+		_, err := Admit(caseBytes, c.recorded, c.catalog())
 		rejection, ok := IsRejection(err)
 		require.True(t, ok, name)
 		require.Equal(t, ReasonCrossed, rejection.Reason, name)
