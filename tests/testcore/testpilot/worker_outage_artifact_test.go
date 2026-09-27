@@ -62,7 +62,5 @@ func TestWorkerOutageCaseDeclaresAnEventCountDeadline(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, derived.Opcodes, testpilot.InjectFault)
 
-	prepared, err := testpilot.Prepare(source, derived)
-	require.NoError(t, err)
-	require.Equal(t, source.GetCaseId(), prepared.Snapshot().GetCaseId())
+	prepareUnchanged(t, source, derived)
 }

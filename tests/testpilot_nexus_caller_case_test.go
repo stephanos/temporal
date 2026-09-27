@@ -6,14 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	"go.temporal.io/api/serviceerror"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tests/testcore"
@@ -122,7 +120,6 @@ func TestTestpilotNexusCallerStartToCloseTimeout(t *testing.T) {
 func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuery) {
 	t.Helper()
 	caseSource := loadTestpilotCase(t, query.fixture())
-	caseSnapshot := proto.CloneOf(caseSource)
 
 	runs := make([]switchRun, 0, 8)
 	for _, value := range testpilotcore.NexusImplementationSwitch() {
@@ -145,7 +142,6 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 					DynamicConfig: value.Configuration(),
 				}
 				live := bindCase(t, env, caseSource, binding)
-				require.True(t, proto.Equal(caseSnapshot, caseSource))
 				require.Len(t, live.profile.Configuration, len(value.Settings))
 				bindings = append(bindings, binding)
 				lives = append(lives, live)
@@ -154,45 +150,11 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 			require.True(t, proto.Equal(lives[0].prepared.Snapshot(), lives[1].prepared.Snapshot()))
 			require.NotEqual(t, lives[0].prepared.Identity().Bindings, lives[1].prepared.Identity().Bindings)
 
-			results := make(chan testpilotLiveRunResult, len(lives)*2)
-			var pending sync.WaitGroup
-			for index, live := range lives {
-				for range 2 {
-					pending.Go(func() {
-						run, verdict, err := live.prepared.Run(env.Context(), live.driver)
-						results <- testpilotLiveRunResult{environment: index, run: run, verdict: verdict, err: err}
-					})
-				}
-			}
-			pending.Wait()
-			close(results)
-
-			// Every closed Run is captured before any is asserted on, so a failing one leaves the
-			// others' timing behind as well.
-			collected := make([]testpilotLiveRunResult, 0, len(lives)*2)
-			for result := range results {
-				captureRun(t, query.fixture(), lives[result.environment], result.run)
-				collected = append(collected, result)
-			}
-			runIDs := make(map[string]struct{}, len(lives)*2)
-			for _, result := range collected {
-				require.NoError(t, result.err)
-				requireNexusCallerVerdict(t, query, result.run, result.verdict, bindings[result.environment].NexusEndpoint)
-				require.NotContains(t, runIDs, result.run.GetRunId())
-				runIDs[result.run.GetRunId()] = struct{}{}
-
-				// A Run's workflow exists in its own namespace and in no other.
-				_, err := lives[result.environment].client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
-				require.NoError(t, err)
-				_, err = lives[1-result.environment].client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
-				var notFound *serviceerror.NotFound
-				require.ErrorAs(t, err, &notFound)
-				runs = append(runs, switchRun{value: value, binding: bindings[result.environment], live: lives[result.environment], run: result.run, verdict: result.verdict})
-			}
-			for _, live := range lives {
-				require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
-				require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
-			}
+			requireRepeatedRuns(t, env, query.fixture(), caseSource, lives, 2, true,
+				func(index int, run *testpilotpb.Run, verdict *testpilotpb.Verdict) {
+					requireNexusCallerVerdict(t, query, run, verdict, bindings[index].NexusEndpoint)
+					runs = append(runs, switchRun{value: value, binding: bindings[index], live: lives[index], run: run, verdict: verdict})
+				})
 		})
 	}
 	require.Len(t, runs, 8)
@@ -211,7 +173,6 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 		results = append(results, testpilotcore.SwitchVerdict{Value: run.value.Name, Verdict: run.verdict})
 	}
 	require.NoError(t, testpilotcore.CheckSwitchAgreement(testpilotcore.NexusImplementationSwitchName, results))
-	require.True(t, proto.Equal(caseSnapshot, caseSource))
 }
 
 // requireNexusCallerVerdict is what every Run of a caller Query must show: the Run completed and

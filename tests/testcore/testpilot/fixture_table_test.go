@@ -70,10 +70,8 @@ func TestEveryCheckedInFixtureDecodesPreparesAndCarriesItsIdentity(t *testing.T)
 			}
 			derivable++
 
-			prepared, err := testpilot.Prepare(source, profile)
-			require.NoError(t, err, "a derived Profile prepares the Case it was derived from")
-			require.True(t, proto.Equal(source, prepared.Snapshot()),
-				"preparation carries the Case bytes unchanged")
+			// A derived Profile prepares the Case it was derived from.
+			prepareUnchanged(t, source, profile)
 		})
 	}
 

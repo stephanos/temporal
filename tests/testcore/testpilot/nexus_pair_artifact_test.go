@@ -2,21 +2,16 @@ package testpilot
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -77,12 +72,7 @@ func TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances(t *testing.T) {
 	require.Equal(t, []string{NexusPairFirstOperation, NexusPairSecondOperation}, handlers)
 	require.Len(t, source.GetProgram().GetSlots(), 2)
 
-	prepared, err := testpilot.Prepare(source, NexusPairProfile(catalog, NexusCallerEnvironment{
-		Namespace: nexusPairArtifactNamespace, TaskQueue: nexusPairArtifactTaskQueue,
-		HandlerTaskQueue: nexusPairArtifactHandlerTaskQueue, NexusEndpoint: nexusPairArtifactEndpoint,
-	}))
-	require.NoError(t, err)
-	require.Equal(t, source.GetCaseId(), prepared.Snapshot().GetCaseId())
+	prepareUnchanged(t, source, nexusPairArtifactProfile(catalog))
 }
 
 // TestNexusPairCaseReadsEveryInstanceScheduledEvent runs the pair Case offline against a history
@@ -95,11 +85,7 @@ func TestNexusPairCaseReadsEveryInstanceScheduledEvent(t *testing.T) {
 	source := loadLeanCase(t, NexusPairFixture)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	prepared, err := testpilot.Prepare(source, NexusPairProfile(catalog, NexusCallerEnvironment{
-		Namespace: nexusPairArtifactNamespace, TaskQueue: nexusPairArtifactTaskQueue,
-		HandlerTaskQueue: nexusPairArtifactHandlerTaskQueue, NexusEndpoint: nexusPairArtifactEndpoint,
-	}))
-	require.NoError(t, err)
+	prepared := prepareUnchanged(t, source, nexusPairArtifactProfile(catalog))
 
 	run, verdict, err := prepared.Run(t.Context(), &nexusPairGapDriver{identity: prepared.Identity()})
 	require.NoError(t, err)
@@ -127,71 +113,32 @@ func (*nexusPairGapDriver) Open(_ context.Context, runID string, program testpil
 	if program.Snapshot().GetProgramId() != "temporal.case.nexusPairTests.bothComplete.program" {
 		return nil, temporal.ErrInvalid
 	}
-	return &nexusPairGapSession{artifactSession: artifactSession{runID: runID}, bridge: &nexusPairBridge{}}, nil
+	var closed atomic.Bool
+	return &scriptedSession{
+		runID: runID, namespace: nexusPairArtifactNamespace, taskQueue: nexusPairArtifactTaskQueue, bridge: &nexusPairBridge{},
+		history: func(instructionID string) []*historypb.HistoryEvent {
+			events := nexusPairHistory(runID)
+			switch {
+			case instructionID == "await-close":
+				closed.Store(true)
+				return events[len(events)-1:]
+			case !closed.Load():
+				// The first operation scheduled and started; the workflow has not yet scheduled
+				// the second.
+				return events[:2]
+			default:
+				return events
+			}
+		},
+	}, nil
 }
 
-type nexusPairGapSession struct {
-	artifactSession
-	bridge *nexusPairBridge
-	closed atomic.Bool
-}
-
-func (s *nexusPairGapSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	if method == nil {
-		return nil, temporal.ErrInvalid
-	}
-	switch coordinate.InstructionID {
-	case "start-workflow":
-		return &artifactEffect{result: succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})}, nil
-	case "await-close":
-		var typed workflowservice.GetWorkflowExecutionHistoryRequest
-		if err := decodeArtifactRequest(request, &typed); err != nil {
-			return nil, fmt.Errorf("decode close request: %w", err)
-		}
-		if typed.GetHistoryEventFilterType() != enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT {
-			return nil, temporal.ErrInvalid
-		}
-		s.closed.Store(true)
-		events := nexusPairHistory(s.runID)
-		return &artifactEffect{result: succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: events[len(events)-1:]}})}, nil
-	case "await-scheduled", "history":
-		events := nexusPairHistory(s.runID)
-		if !s.closed.Load() {
-			// The first operation scheduled and started; the workflow has not yet scheduled the
-			// second.
-			events = events[:2]
-		}
-		return &artifactEffect{result: succeededResult(&workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: events}})}, nil
-	default:
-		return nil, temporal.ErrInvalid
-	}
-}
-
-// PollRPC answers the scheduled poll once, from the history as it stands when the poll is issued.
-func (s *nexusPairGapSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if coordinate.InstructionID != "await-scheduled" || interval <= 0 || satisfied == nil {
-		return nil, temporal.ErrInvalid
-	}
-	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)
-	if err != nil {
-		return nil, err
-	}
-	result, err := handle.Wait(ctx)
-	if err != nil {
-		return nil, err
-	}
-	done, err := satisfied(ctx, result.Response)
-	if err != nil {
-		return nil, err
-	}
-	if !done {
-		return nil, fmt.Errorf("scheduled poll unsatisfied for run %q: %w", s.runID, temporal.ErrInvalid)
-	}
-	return handle, nil
-}
-
-func (s *nexusPairGapSession) Bridge(context.Context) (testpilot.HandleBridge, error) {
-	return s.bridge, nil
+// nexusPairArtifactProfile is the pair Profile over this package's physical environment values.
+func nexusPairArtifactProfile(catalog *testpilot.Catalog) testpilot.ProfileSpec {
+	return NexusPairProfile(catalog, NexusCallerEnvironment{
+		Namespace: nexusPairArtifactNamespace, TaskQueue: nexusPairArtifactTaskQueue,
+		HandlerTaskQueue: nexusPairArtifactHandlerTaskQueue, NexusEndpoint: nexusPairArtifactEndpoint,
+	})
 }
 
 // nexusPairBridge holds one published authority per instance, each ready at once and consumed once.
@@ -236,9 +183,6 @@ func nexusPairHistory(runID string) []*historypb.HistoryEvent {
 	return []*historypb.HistoryEvent{
 		scheduled(5, NexusPairFirstOperation), started(6, 5), completed(7, 5),
 		scheduled(8, NexusPairSecondOperation), started(9, 8), completed(10, 8),
-		{
-			EventId: 11, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
-			Attributes: &historypb.HistoryEvent_WorkflowExecutionCompletedEventAttributes{WorkflowExecutionCompletedEventAttributes: &historypb.WorkflowExecutionCompletedEventAttributes{}},
-		},
+		closedEvent(11),
 	}
 }

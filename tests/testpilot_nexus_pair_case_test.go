@@ -11,7 +11,6 @@ import (
 	historypb "go.temporal.io/api/history/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
-	"google.golang.org/protobuf/proto"
 )
 
 // nexusPairCleanupTimeout gives the two Nexus handler entrypoints room to stop within the
@@ -26,7 +25,6 @@ const nexusPairCleanupTimeout = 15 * time.Second
 func TestTestpilotNexusPairCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	caseSource := loadTestpilotCase(t, testpilotfixture.NexusPairFixture)
-	caseSnapshot := proto.CloneOf(caseSource)
 
 	environment := CaseBinding{
 		Identity:       "nexus-pair-profile",
@@ -40,38 +38,26 @@ func TestTestpilotNexusPairCase(t *testing.T) {
 
 	rules := []string{testpilotfixture.NexusPairFirstRuleID, testpilotfixture.NexusPairSecondRuleID}
 	operations := []string{testpilotfixture.NexusPairFirstOperation, testpilotfixture.NexusPairSecondOperation}
-	runIDs := make(map[string]struct{}, 2)
-	for range 2 {
-		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
-		require.NoError(t, err)
-		captureRun(t, testpilotfixture.NexusPairFixture, live, run)
-		check := requireRunSatisfied(t, "", run, verdict)
-		// One capture rule per instance, then the scoped clauses the Query's Property lowered into.
-		check.require("rule count", func() {
-			require.Greater(t, len(verdict.GetRules()), len(rules))
-		})
-		for index, ruleID := range rules {
-			rule := verdict.GetRules()[index]
-			check.require("capture rule "+ruleID+" evidence", func() {
-				require.Equal(t, ruleID, rule.GetRuleId())
-				requireCorrelatedNexusPairEvidence(t, run, rule.GetSupportingEventSequences(), operations[index], environment.NexusEndpoint)
+	requireRepeatedRuns(t, env, testpilotfixture.NexusPairFixture, caseSource, []testpilotLiveCase{live}, 2, false,
+		func(_ int, run *testpilotpb.Run, verdict *testpilotpb.Verdict) {
+			check := requireRunSatisfied(t, "", run, verdict)
+			// One capture rule per instance, then the scoped clauses the Query's Property lowered into.
+			check.require("rule count", func() {
+				require.Greater(t, len(verdict.GetRules()), len(rules))
 			})
-		}
-		check.require("clause evidence", func() {
-			for _, rule := range verdict.GetRules()[len(rules):] {
-				require.NotEmpty(t, rule.GetSupportingEventSequences())
+			for index, ruleID := range rules {
+				rule := verdict.GetRules()[index]
+				check.require("capture rule "+ruleID+" evidence", func() {
+					require.Equal(t, ruleID, rule.GetRuleId())
+					requireCorrelatedNexusPairEvidence(t, run, rule.GetSupportingEventSequences(), operations[index], environment.NexusEndpoint)
+				})
 			}
+			check.require("clause evidence", func() {
+				for _, rule := range verdict.GetRules()[len(rules):] {
+					require.NotEmpty(t, rule.GetSupportingEventSequences())
+				}
+			})
 		})
-
-		require.NotContains(t, runIDs, run.GetRunId())
-		runIDs[run.GetRunId()] = struct{}{}
-		_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
-		require.NoError(t, err)
-	}
-
-	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
-	require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
 }
 
 // requireCorrelatedNexusPairEvidence reads one capture rule's supporting Observations back out of
