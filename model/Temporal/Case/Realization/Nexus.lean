@@ -188,6 +188,9 @@ def sharedObservations : Array Observation := #[
 def workflowTypeOf (identity : Umpire.Case.Producer.Identity) : String :=
   "umpire-" ++ identity.fixture ++ "-workflow"
 
+private def awaitScheduledId : String := "await-scheduled"
+private def historyId : String := "history"
+
 private def rpc
     (id method : String)
     (assignments : Array RequestAssignment)
@@ -221,7 +224,7 @@ def awaitCloseNode : InstructionNode :=
 kinds among the resolved rules; a path that records none -- a schedule alone, whose evidence is the
 pending-operation read -- lifts nothing, because a lift with no rule is a Case Prepare rejects. -/
 def historyNode (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
-  rpc "history" getHistoryMethod historyAssignments #[
+  rpc historyId getHistoryMethod historyAssignments #[
     Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
       (#[Program.observationTarget historyObservation] ++
         if resolved.any Evidence.readsHistory then #[Evidence.target correlatedObservation resolved]
@@ -239,9 +242,9 @@ def pendingAttemptsNode (condition : Expression) (pollIntervalMilliseconds : Int
       condition pollIntervalMilliseconds)
 
 /-- The controller's bounded poll of the history for the scheduled event, run until the event
-exists. -/
+exists. It lifts every scheduled event the response that ends it holds, and no later one. -/
 def awaitScheduledNode (pollIntervalMilliseconds : Int64 := 250) : InstructionNode :=
-  Program.node "await-scheduled"
+  Program.node awaitScheduledId
     (Program.readEvidence scheduledEvidenceKindId.value workflowServiceRole
       #[Program.environmentAssignment (field "namespace") workerNamespaceBinding,
         assign (nested ["execution", "workflow_id"]) runId]
@@ -395,7 +398,9 @@ when the path says so, starts the workflow, reads the scheduled event as soon as
 the attempt count when a retryable failure is on the path, waits for the authority the handler
 publishes when a completion is on the path, performs the completion, waits for the workflow to
 close, and only then reads history. Writing those as
-ordered items is what reproduces the dependency edges from path order alone.
+ordered items is what reproduces the dependency edges from path order alone. On a Case over
+several instances the scheduled read runs after the close instead (`controllerNodes`), because
+before it only the first instance's scheduled event is certain to exist.
 
 One plan serves every Query of a set. A synchronous reply and a handler error publish no authority,
 so the wait for it is emitted only when a completion class is on the path; the close-event read is
@@ -422,6 +427,17 @@ and the read confirms the backoff before the retry settles the operation. -/
 private def firstAttemptFailed : Expression :=
   Expr.equal (projected Expr.projectedValue (field "attempt")) (signedInteger 1)
 
+/-- The controller's nodes on a Case over `count` instances. Over one they stay in item order.
+Over several, the scheduled read moves to just before the full history read, where the workflow
+has closed: the workflow schedules each operation only once the one before it has started, and the
+read lifts only the scheduled events the response that ends it holds, so a read placed early can
+end before a later instance is scheduled and never lift that instance's scheduled event. -/
+def controllerNodes (count : Nat) (nodes : Array InstructionNode) : Array InstructionNode :=
+  if count ≤ 1 then nodes else
+  let (scheduled, others) := nodes.toList.partition (·.instruction_id == awaitScheduledId)
+  let (beforeHistory, fromHistory) := others.span (·.instruction_id != historyId)
+  (beforeHistory ++ scheduled ++ fromHistory).toArray
+
 /-- The plan every caller-side Case is assembled from. -/
 def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
   roles := sharedRoles
@@ -429,7 +445,8 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
   instanceSlots := fun placement => #[Program.handleSlot (completionAuthority placement)]
   observations := sharedObservations
   entrypoints := [
-    { activate := fun _ nodes => Program.controller "controller" nodes
+    { activate := fun placement nodes =>
+        Program.controller "controller" (controllerNodes placement.count nodes)
       items := [
         .actions [workerStopAction],
         .fixed fun placement _ => startWorkflowNode (workflowTypeOf placement.identity),
@@ -627,6 +644,15 @@ operation, handler, slot and await carry the instance. -/
 #guard Nexus.operationOf "complete"
     { identity := Umpire.Case.Producer.Identity.ofFixture "t" "x", number := 2, count := 2 }
   == "complete-2"
+
+/- The scheduled read keeps its place on a Case over one instance and follows the close read on a
+Case over several, where every instance's scheduled event is already in history. -/
+#guard ((Nexus.controllerNodes 1 #[Nexus.startWorkflowNode "w", Nexus.awaitScheduledNode,
+    Nexus.awaitCloseNode, Nexus.historyNode []]).map (·.instruction_id)).toList ==
+  ["start-workflow", "await-scheduled", "await-close", "history"]
+#guard ((Nexus.controllerNodes 2 #[Nexus.startWorkflowNode "w", Nexus.awaitScheduledNode,
+    Nexus.awaitCloseNode, Nexus.historyNode []]).map (·.instruction_id)).toList ==
+  ["start-workflow", "await-close", "await-scheduled", "history"]
 #guard (match Nexus.pendingAttemptsSource.recorded with
   | .read method path =>
       method == ReadKind.describeWorkflowExecutionMethod && path == "pending_nexus_operations"
