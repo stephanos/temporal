@@ -1,13 +1,74 @@
 {
   "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T15:27:42.298725Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-97-gomad-f3-qualify-the-frontend"
   ],
   "id": "fn-98-gomad-f4-close-the-tests-capability",
+  "impl_review_rounds": {
+    "fn-98-gomad-f4-close-the-tests-capability.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2f8fa127e590b08aa26d783fac83f69c404a4693b42b4e252e06031489a521ff",
+      "backend": "codex",
+      "base_sha": "a700c84a77a88e7a2ed593f1fc553db4d3223f18",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f5651a2198ef448c06f2615c88306277",
+            "classification": "introduced",
+            "findingId": "finding-f5651a2198ef448c06f2615c88306277",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a700c84a77a88e7a2ed593f1fc553db4d3223f18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1355,
+      "output_sha256": "4cde44f07915229b1a97b06548776ff8bc3243ee899e84ea90b8f6c3c17c11fb",
+      "reservation_id": "edc20c4fff134508a71db0ed4f62ce3b",
+      "round_consumed": true,
+      "scope": "impl:fn-98-gomad-f4-close-the-tests-capability.1",
+      "superseded_by": null,
+      "task": "fn-98-gomad-f4-close-the-tests-capability.1",
+      "timestamp": "2026-09-27T20:20:42.255421Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-98-gomad-f4-close-the-tests-capability.1": 0
+  },
   "spec_path": ".flow/specs/fn-98-gomad-f4-close-the-tests-capability.md",
   "status": "open",
   "title": "Gomad F4: close the ./tests capability closure on darwin/arm64",
@@ -22,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:28:22.377415Z"
+  "updated_at": "2026-09-27T20:20:42.258005Z"
 }
