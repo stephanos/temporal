@@ -2,6 +2,7 @@ package ir
 
 import (
 	"iter"
+	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,12 @@ import (
 )
 
 var contractRules = (&testpilotspb.Contract{}).ProtoReflect().Descriptor().Fields().ByName("rules")
+
+// HasRuleInstances reports whether any of rules declares Rule instances, so its Contract must also
+// be charged as expanded.
+func HasRuleInstances(rules []*testpilotspb.ContractRule) bool {
+	return slices.ContainsFunc(rules, func(rule *testpilotspb.ContractRule) bool { return len(rule.Instances) > 0 })
+}
 
 // ExpandRuleInstances is the Expansion that writes each Contract Rule with instances out as its
 // expansion's plain Rules, ExpandRule's, wherever the Contract sits in the checked message.

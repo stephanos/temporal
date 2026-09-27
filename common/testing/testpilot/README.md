@@ -19,8 +19,9 @@ private prepared resources, and includes the complete binding fingerprint in Pre
 Monitor, and only then opens a per-Run `Session`. Validation failure produces no Session, Run, Verdict,
 or effect. `PreparedCase.Evaluate` replays a closed Run's events through the same prepared Contract
 with no Driver and no target, the offline semantic replay: it returns the Verdict that reading gives
-and, per violated rule, the Run Event whose evidence resolved it and that evidence (a monitor rule's
-observation ids, or none when its deadline violated it; a correlated rule's evidence kind). Scheduling, recording, expression admission, and Contract evaluation stay private to this
+and, per violated Rule instance or correlated rule, the Run Event whose evidence resolved it and that
+evidence (a Rule instance's observation ids, or none when its Deadline violated it; a correlated
+rule's evidence kind). Scheduling, recording, expression admission, and Contract evaluation stay private to this
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
 
@@ -153,6 +154,15 @@ first planned use.
 9. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
    `make umpire-check-case-runtime-conformance` fails on a stale fixture.
 
+A Contract Rule may declare instance values and a list of Rule instances (`ContractRule.instances`).
+Preparation binds the Rule once and charges every ceiling per Rule instance, as the expansion (one
+plain Rule per instance, each instance value inlined as a literal) would be charged, so an extension
+that adds binding or evaluation work to a Contract charges it per instance too. The expansion is
+written once, as `ir.ExpandRule`, and `ir.HasRuleInstances` gates the expanded-surface charge that
+`execution.Prepare` and `verification.Prepare` both apply. A differential test
+(`TestRuleInstancesEvaluateAsTheirExpansion`) holds each Contract with instances to its expansion's
+Verdict and admission.
+
 ### A new instruction
 
 1. A message in `instruction.proto` and an arm appended to `Instruction.instruction`. The arm's field
@@ -240,6 +250,18 @@ first planned use.
 7. `TestExpressionContextsRejectReferencesOutsideThem` covers every arm in every context; the
    `static-preparation-rejection/expression-context` conformance variant pins the rejection's shape.
 8. and 9. As above.
+
+`Reference.instance_value_id` followed this list: `Expr.instanceValue` in `Testpilot.Authoring`;
+`ir.InstanceValueReference`, which binds only where its declared type is the expected type, as the
+literal an instance inlines would; admitted only in the Contract context, where
+`verification.checkInstanceValueReads` locates an empty or undeclared reference at its transition
+predicate before binding, and the Evaluator resolves it from the evaluated Rule instance's
+assignments. `TestInstanceValuesBindAsTheLiteralEachInstanceInlines` and
+`TestPrepareLocatesInstanceErrors` pin it, and the `static-preparation-rejection/instance-value`
+conformance variant pins one rejection a non-Lean Producer sees. The corpus does not pin the
+expanded Case-size charge: tripping the 16 MiB Case-size limit (`ir.DefaultLimits`) takes a Case of
+several MiB, too large to commit as a fixture, so `TestPrepareBoundsTheCaseSurfaceAsExpanded` in
+`internal/execution` covers it instead.
 
 ### Worked example: `FAULT_KIND_WORKER_STOP`
 

@@ -42,7 +42,7 @@ may construct the same IR directly and use Umpire without the model toolchain.
 1. Express bounded Temporal interactions as typed data rather than scenario-specific Go code.
 2. Invoke any authorized unary protobuf RPC through one dynamic instruction.
 3. Keep workflow, activity, and Nexus-handler execution on Temporal SDK APIs only.
-4. Compile safety and bounded-liveness properties into deterministic monitor machines.
+4. Compile safety and bounded-liveness properties into deterministic Contract Rules.
 5. Use the same Contract semantics during execution and for offline evaluation.
 6. Validate a Case once, then reuse its immutable prepared form for many sequential or concurrent
    Runs.
@@ -69,7 +69,7 @@ The umbrella and public namespace remain **Umpire**.
 - A **Producer** creates a **Case**. The Lean Producer is a Compiler.
 - A **Case** is exactly one **Program** and one **Contract**.
 - A **Program** is a bounded acyclic graph of typed instructions.
-- A **Contract** is a set of deterministic safety and bounded-liveness monitors.
+- A **Contract** is a set of deterministic safety and bounded-liveness Rules.
 - An **Executor** interprets a Program through a **Host**.
 - A **Host** binds symbolic roles and performs concrete primitive interactions.
 - One execution attempt produces an append-only **Run** of immutable **Run Events**.
@@ -90,7 +90,7 @@ The implementation should converge on this package topology:
 api/umpire/v1
   value.proto       typed values, expressions, paths, Slots, Observations
   program.proto     Program, entrypoints, nodes, instructions, limits
-  contract.proto    deterministic monitor machines
+  contract.proto    deterministic Contract Rules
   run.proto         Run, RunEvent, disposition, Verdict support
   case.proto        Case and version envelope
 
@@ -264,7 +264,7 @@ relative projections to that element. No full response or response digest is ret
 
 ## Contract IR
 
-Lean compiles rich model properties into bounded deterministic monitor machines. Go implements one
+Lean compiles rich model properties into bounded deterministic Rules. Go implements one
 generic transition interpreter; it does not contain property-specific operators or Temporal/Nexus
 checks.
 
@@ -277,9 +277,23 @@ Each Contract rule declares:
 - terminal satisfied and violated states;
 - an explicit horizon for bounded liveness;
 - references to supporting Run Events;
-- bounded typed scalar capture declarations and transition assignments for cross-event comparisons.
+- bounded typed scalar capture declarations and transition assignments for cross-event comparisons;
+- optionally, typed instance values and a list of Rule instances, each naming its own rule ID and
+  assigning every instance value.
 
-Captures are single-assignment and local to a rule and Run. They copy declared scalar Observations
+A Rule with no instances is its own single instance and concludes under its own rule ID. A Rule
+with instances is declared once for an entity and evaluated once per Rule instance, never under its
+own ID: preparation binds the Rule once, with each instance value typed by its declaration and
+always available, and a transition predicate reads the evaluated instance's value through
+`Reference.instance_value_id`. Only predicate operands vary per instance; states, transitions,
+Deadlines and kinds are the Rule's. Each Rule instance concludes in its own `RuleVerdict`, in Rule
+declaration then instance declaration order, and every Contract ceiling is charged per instance as
+the expansion (one plain Rule per instance, each value inlined as a literal) would be charged, so
+the instanced Contract is admitted exactly when its expansion is and yields its Verdict byte for
+byte. The Lean Producer folds a relation's per-placement Rules into one Rule with instances when a
+Scenario runs over more than one instance.
+
+Captures are single-assignment and local to one Rule instance and Run. They copy declared scalar Observations
 (including bounded text/bytes and enum values) and retain the producing Run Event reference.
 Predicates read pre-transition captures; the selected transition atomically assigns captures and
 changes state. Later predicates may read assigned captures or explicitly test their presence.
@@ -320,7 +334,7 @@ The same event, capture, failure-status, and closure semantics apply live and of
 - descriptor, method, streaming, path, presence, oneof, map, and repeated-field validation;
 - Contract state-machine, capture/dataflow, expression, horizon, and work-bound validation;
 - Host capability and authorization policy checks;
-- compilation of descriptor accessors, scheduler indexes, and monitor transition indexes.
+- compilation of descriptor accessors, scheduler indexes, and Rule transition indexes.
 
 Success returns an immutable, concurrency-safe `PreparedCase` bound to the exact immutable Host
 Profile and descriptor catalog used for preparation. It contains no Run ID, live client, credential,
@@ -581,7 +595,7 @@ mismatches fail preparation before Run creation or target-side I/O.
   event.
 - Channels and workers may be shared, while Slots, Run recording, Host sessions, and Evaluator state
   remain per Run.
-- Monitor transition cases should be indexed by event kind to keep incremental work predictable.
+- Rule transition cases should be indexed by event kind to keep incremental work predictable.
 
 At ten times the Run rate, the design scales through PreparedCase reuse and shared Host resources;
 per-Run memory remains bounded by declared limits. Host policy provides backpressure through
@@ -712,7 +726,7 @@ new expected output is a separate reviewed action. The complete tagged live gate
 
 ### Producer and integration tests
 
-- Lean compilation emits a reproducible Case and valid monitor machines;
+- Lean compilation emits a reproducible Case and valid Contract Rules;
 - an unrelated `GetSystemInfo` Case with a different Contract topology compiles and prepares against
   the exact authorized descriptor with zero Host I/O and no runtime specialization;
 - Go admission accepts the Lean output and agrees on typed values and paths;
