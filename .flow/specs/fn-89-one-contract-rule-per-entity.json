@@ -14,6 +14,7 @@
   ],
   "id": "fn-89-one-contract-rule-per-entity",
   "impl_review_rounds": {
+    "fn-89-one-contract-rule-per-entity.1": 0,
     "fn-89-one-contract-rule-per-entity.7": 0
   },
   "next_task": 1,
@@ -232,9 +233,45 @@
       "task": "fn-89-one-contract-rule-per-entity.7",
       "timestamp": "2026-09-27T11:03:41.485000Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b097a4e169cf163e51cad832cf25e11616ab7a81ade9cc9ffef3c2368fbb8517",
+      "backend": "claude",
+      "base_sha": "881ae00d110fc8bee7ec52829220a02fd38cbaae",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4dfc90dedf4f2f142233cd02bc0a14f1be199748",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "opus",
+      "outcome": "verdict",
+      "output_bytes": 3686,
+      "output_sha256": "5d0226f772da70d01cd99f22057d3e08cfbd31bd5b54ded717800760091a3ee2",
+      "reservation_id": "73bf3cce76c942f38d98cb4262fb4a8b",
+      "round_consumed": true,
+      "scope": "impl:fn-89-one-contract-rule-per-entity.1",
+      "superseded_by": null,
+      "task": "fn-89-one-contract-rule-per-entity.1",
+      "timestamp": "2026-09-27T11:17:03.570625Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-89-one-contract-rule-per-entity.1": 1,
     "impl:fn-89-one-contract-rule-per-entity.7": 1,
     "plan": 1,
     "plan#completion": 0
@@ -242,6 +279,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-89-one-contract-rule-per-entity.1": 0,
     "impl:fn-89-one-contract-rule-per-entity.7": 0,
     "plan": 0
   },
@@ -259,5 +297,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:03:41.489659Z"
+  "updated_at": "2026-09-27T11:17:03.572772Z"
 }

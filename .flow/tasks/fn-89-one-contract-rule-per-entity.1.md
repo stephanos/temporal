@@ -44,9 +44,12 @@ Add the spec's API Contracts to the wire and to Lean Authoring (R1): `ContractRu
 - [ ] `go build ./...` and `go vet -tags test_dep ./common/testing/testpilot/...` pass
 
 ## Done summary
-TBD
+Added the R1 protocol surface: `ContractRule.instance_values = 8` / `instances = 9`, the `ContractInstanceValue`, `ContractRuleInstance` and `ContractInstanceAssignment` messages, and `Reference.instance_value_id = 13`, all with leading comments in the spec's vocabulary; the rule-local wording now reads "local to one Rule instance". Lean Authoring gains `Expr.instanceValue`, `Contract.instanceValue`, `Contract.instanceAssignment` and `Contract.ruleInstance`, and `Contract.rule` takes `instanceValues`/`instances` that default to empty, with guards in `Tests/Authoring.lean`. The Go `ir` admission is an allow-list, so the new arm is rejected everywhere until fn-89.2 (probed in `ir/expression_test.go`), and `protocol_test.go` pins the arm list. The pinned Runs and receipts were re-recorded via `make umpire-rerecord-pinned-runs`: only the catalog and run identities changed, and the conformance fixtures are byte-identical.
 
+Follow-up: re-recorded Runs carry the local worker hostname (`...@Stephans-MacBook-Air-2.local@`, previously `...@vm@`). This comes from the fn-89.7 target, not this task. `lint-model` was inconclusive in the shared tree (see evidence).
+
+stage: impl-review - ran (claude:opus:high, first-pass SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4dfc90dedf4f2f142233cd02bc0a14f1be199748, 964b57e54d2a533603354e98ca426f9ce4fd4865
+- Tests: baseline: green (go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/... pre-edit), make lint-protos protoc proto-codegen (generated api/testpilot/v1 byte-identical to the patch), make umpire-rerecord-pinned-runs (re-recorded 2 Runs + 3 receipts; only catalog/run identities changed), go build ./..., go vet -tags test_dep ./common/testing/testpilot/..., go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., make lint-code-fast, make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, make umpire-check-case-runtime-conformance (no fixture byte changed), make canary-check-case, INCONCLUSIVE: LEAN_NUM_THREADS=1 make lint-model - fails only on concurrent fn-88.4 uncommitted Umpire.Search.Product/MonitorProofs WIP and a stale Temporal/API/Types.olean build artifact from overlapping builds; neither touched by this diff
 - PRs:
