@@ -207,6 +207,9 @@ jobs:
       - name: Verify qualified host
         run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
 
+      - name: DIAGNOSTIC run the host-clock escape audit first
+        run: make -C tools/gomad3 clock-audit
+
       - name: Produce checked upgrade qualification dossier
         env:
           GOMAD3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
