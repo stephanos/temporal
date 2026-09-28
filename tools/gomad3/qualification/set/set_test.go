@@ -521,6 +521,26 @@ func TestRunAnalyzesEveryWorkloadBeforeTargetExecution(t *testing.T) {
 	}
 }
 
+func TestAnalysisCommandBoundsAnalysisByWorkloadBudget(t *testing.T) {
+	manifest := Manifest{RunTimeout: "2m", OverallTimeout: "5m", TerminateGrace: "1s"}
+	for _, test := range []struct {
+		name     string
+		override string
+		want     string
+	}{
+		{name: "manifest", want: "--timeout=5m0s"},
+		{name: "workload override", override: "20m", want: "--timeout=20m0s"},
+		{name: "analyzer maximum", override: "45m", want: "--timeout=30m0s"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			command := analysisCommand(Spec{}, manifest, Workload{CapabilityMode: target.CapabilityModeGuarded, Package: "./p", Test: "TestP", OverallTimeout: test.override})
+			if !slices.Contains(command.Args, test.want) {
+				t.Fatalf("analysis arguments = %v, want %s", command.Args, test.want)
+			}
+		})
+	}
+}
+
 func TestRunClassifiesEveryWorkloadWhenAnalysisFails(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/target\n\ngo 1.26.4\n"), 0o600); err != nil {

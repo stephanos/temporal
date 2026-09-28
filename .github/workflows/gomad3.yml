@@ -139,13 +139,6 @@ jobs:
       # the ten `functional-*` suites of the F6 slice, which darwin/arm64
       # qualifies but no linux/amd64 run has re-measured since the fixes that
       # closed their linux divergences.
-      - name: DIAGNOSTIC analyze the frontend probe
-        continue-on-error: true
-        run: >-
-          tools/gomad3/.bin/gomad analyze --format=json --capability-mode=guarded
-          --build-tag=disable_grpc_modules --build-tag=test_dep
-          go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' > /dev/null
-
       - name: Requalify representative Temporal workloads
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: make gomad3-qualification
@@ -176,6 +169,17 @@ jobs:
           path: tools/gomad3/.toolchain/temporal-qualification-set.json
           if-no-files-found: error
           retention-days: 90
+
+      - name: DIAGNOSTIC upload the Linux Temporal qualification reports
+        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomad3-linux-temporal-reports-${{ github.run_id }}
+          path: |
+            tools/gomad3/.toolchain/temporal-qualification/qualifications
+            tools/gomad3/.toolchain/temporal-qualification/v1/*/campaign.json
+            tools/gomad3/.toolchain/temporal-qualification/v1/*/failures/*/stderr
+          retention-days: 7
 
   core:
     runs-on: macos-15

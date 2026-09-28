@@ -17,9 +17,14 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
+// maximumAnalysisTimeout is the largest --timeout gomad analyze accepts.
+const maximumAnalysisTimeout = 30 * time.Minute
+
 func analysisCommand(config Spec, manifest Manifest, workload Workload) Command {
 	runTimeout, overallTimeout := workloadTimeouts(manifest, workload)
-	args := []string{"analyze", "--format=json", "--capability-mode=" + string(workload.CapabilityMode)}
+	// Analysis builds the target, so on a cold build cache it needs the
+	// workload's whole budget rather than the analyzer's per-mode default.
+	args := []string{"analyze", "--format=json", "--capability-mode=" + string(workload.CapabilityMode), "--timeout=" + min(overallTimeout, maximumAnalysisTimeout).String()}
 	for _, value := range workload.BuildTags {
 		args = append(args, "--build-tag="+value)
 	}
