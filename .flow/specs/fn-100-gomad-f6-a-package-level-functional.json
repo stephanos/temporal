@@ -1,13 +1,36 @@
 {
   "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T15:27:43.545553Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-99-gomad-f5-one-workflow-executing"
   ],
   "id": "fn-100-gomad-f6-a-package-level-functional",
+  "impl_review_rounds": {
+    "fn-100-gomad-f6-a-package-level-functional.3": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-100-gomad-f6-a-package-level-functional.3": 1
+  },
+  "review_reservations": {
+    "7e1c209eed334b81a252e9d536c0ea9b": {
+      "artifact_sha256": "3d4a509bdb1bd54b468a6c2a8865dd08d2e06cc20f6e14ecc71c5ed9335a0a7b",
+      "counter_scope": "impl:fn-100-gomad-f6-a-package-level-functional.3",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-100-gomad-f6-a-package-level-functional.md",
   "status": "open",
   "title": "Gomad F6: a package-level functional slice",
@@ -22,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:28:23.134593Z"
+  "updated_at": "2026-09-28T15:15:24.124789Z"
 }

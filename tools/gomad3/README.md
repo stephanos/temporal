@@ -254,6 +254,10 @@ evidence and is never executed. An expectation names one classification;
 `unrepeatable` accepts either `nondeterministic` or `replay_divergence` for a
 workload whose same-seed evidence is still being made to reproduce, so the
 report records whichever the run produced without counting it as a surprise.
+An `unsupported_target` expectation names its boundary with `import_path` and
+`capability`; every other non-qualified expectation names the blocker it
+accepts with a `finding` identity, such as the milestone section that records
+it, and a `qualified` expectation names neither.
 Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.

@@ -50,7 +50,10 @@ suites that had diverged on linux. Their linux/amd64 expectation is
 `intermittent` because linux last measured them before the environment-filter
 and mark-start greying fixes, when six of twenty seed runs qualified; those
 fixes are platform-neutral, but until a linux run re-measures the slice the
-manifest does not claim `qualified` there. Each slice suite inherits the
+manifest does not claim `qualified` there, and each of those expectations names
+`GOMAD_MILESTONES.md#f6-a-package-level-functional-slice` as its `finding`. The
+other non-qualified expectations name their milestone sections the same way.
+Each slice suite inherits the
 two-minute `run_timeout` (the longest measured darwin execution took 7 s of
 wall time; the 20-minute overall timeout covers the cold `./tests` build) and
 requires the modeled probes every measured run observed:

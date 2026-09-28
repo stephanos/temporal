@@ -96,6 +96,7 @@ type WorkloadExpectation struct {
 	Classification string `json:"classification"`
 	ImportPath     string `json:"import_path,omitempty"`
 	Capability     string `json:"capability,omitempty"`
+	Finding        string `json:"finding,omitempty"`
 }
 
 type Report struct {
@@ -240,6 +241,7 @@ func invalidReport(err error) error {
 
 var setNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 var testNamePattern = regexp.MustCompile(`^Test[A-Za-z0-9_]+$`)
+var findingPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/#-]*$`)
 
 func LoadManifest(path string) (Manifest, error) {
 	file, info, err := hostfs.OpenPath(path)
@@ -577,16 +579,22 @@ func validateManifest(manifest Manifest) error {
 func validateExpectation(expectation WorkloadExpectation) error {
 	switch expectation.Classification {
 	case "qualified":
-		if expectation.ImportPath != "" || expectation.Capability != "" {
-			return errors.New("qualified expectation cannot include an unsupported boundary")
+		if expectation.ImportPath != "" || expectation.Capability != "" || expectation.Finding != "" {
+			return errors.New("qualified expectation cannot include an unsupported boundary or finding")
 		}
 	case "unsupported_target":
 		if expectation.ImportPath == "" || expectation.Capability == "" {
 			return errors.New("unsupported expectation requires exact import and capability")
 		}
+		if expectation.Finding != "" {
+			return errors.New("unsupported expectation names its boundary, not a finding")
+		}
 	case "target_failure", "nondeterministic", "replay_divergence", "unrepeatable", "intermittent":
 		if expectation.ImportPath != "" || expectation.Capability != "" {
 			return errors.New("failure expectation cannot include an unsupported boundary")
+		}
+		if !findingPattern.MatchString(expectation.Finding) {
+			return fmt.Errorf("%s expectation requires a finding identity", expectation.Classification)
 		}
 	default:
 		return fmt.Errorf("unknown qualification expectation %q", expectation.Classification)

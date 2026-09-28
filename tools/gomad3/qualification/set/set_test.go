@@ -403,6 +403,47 @@ func TestLoadManifestRejectsUnknownRequiredProbes(t *testing.T) {
 	}
 }
 
+func TestLoadManifestRequiresFindingOnFailureExpectations(t *testing.T) {
+	root := t.TempDir()
+	path := writeManifest(t, root, "qualified")
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	suite := manifest["suites"].([]any)[0].(map[string]any)
+	boundary := map[string]any{"classification": "unsupported_target", "import_path": "example.com/host", "capability": "foreign:assembly:host.s"}
+	for name, test := range map[string]struct {
+		expectation map[string]any
+		wantErr     string
+	}{
+		"intermittent with finding":    {expectation: map[string]any{"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}},
+		"intermittent without finding": {expectation: map[string]any{"classification": "intermittent"}, wantErr: "intermittent expectation requires a finding identity"},
+		"target failure blank finding": {expectation: map[string]any{"classification": "target_failure", "finding": " "}, wantErr: "target_failure expectation requires a finding identity"},
+		"qualified with finding":       {expectation: map[string]any{"classification": "qualified", "finding": "F6"}, wantErr: "qualified expectation cannot include an unsupported boundary or finding"},
+		"unsupported with finding":     {expectation: map[string]any{"classification": "unsupported_target", "import_path": "example.com/host", "capability": "foreign:assembly:host.s", "finding": "F6"}, wantErr: "unsupported expectation names its boundary, not a finding"},
+		"unsupported without finding":  {expectation: boundary},
+	} {
+		t.Run(name, func(t *testing.T) {
+			suite["expectation"] = test.expectation
+			contents, err := json.Marshal(manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, contents, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			_, err = LoadManifest(path)
+			if test.wantErr == "" && err != nil || test.wantErr != "" && (err == nil || !strings.Contains(err.Error(), test.wantErr)) {
+				t.Fatalf("LoadManifest(%v) error = %v, want %q", test.expectation, err, test.wantErr)
+			}
+		})
+	}
+}
+
 func TestIdentifyModuleRequiresExactSafeGoMod(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/target\n\ngo 1.26.4\n"), 0o600); err != nil {
@@ -581,6 +622,8 @@ func writeManifestWithSeeds(t *testing.T, root string, seeds []uint64, classific
 	if classification == "unsupported_target" {
 		expectation["import_path"] = "golang.org/x/net/internal/socket"
 		expectation["capability"] = "uses go:linkname in sys_unix.go"
+	} else if classification != "qualified" {
+		expectation["finding"] = "fixture-finding"
 	}
 	manifest := map[string]any{
 		"schema": ManifestSchema, "name": "test-set", "description": "portable fixture", "module": "example.com/target",
@@ -704,7 +747,7 @@ func TestLoadManifestResolvesPlatformExpectationsForTheHost(t *testing.T) {
 	suite := manifest["suites"].([]any)[0].(map[string]any)
 	suite["platform_expectations"] = map[string]any{
 		host:         map[string]any{"classification": "unsupported_target", "import_path": "example.com/host", "capability": "foreign:assembly:host.s"},
-		"plan9/mips": map[string]any{"classification": "target_failure"},
+		"plan9/mips": map[string]any{"classification": "target_failure", "finding": "fixture-finding"},
 	}
 	write := func() {
 		contents, err = json.Marshal(manifest)
