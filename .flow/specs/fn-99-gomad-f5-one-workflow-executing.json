@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-28T03:54:32.108528Z",
   "created_at": "2026-09-27T15:27:42.928223Z",
   "default_impl": null,
   "default_review": null,
@@ -141,20 +141,52 @@
       "task": "fn-99-gomad-f5-one-workflow-executing.2",
       "timestamp": "2026-09-28T03:48:58.524234Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3c2c7333742938ce0168fcc64fb91e50bb2ea1f77f96441f90a676c95ab5087e",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "679e4828666f821f2d45d82ae2dbb57713843a89",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1616575,
+      "output_sha256": "485c35b4a9c0d78cc1e41b2e2231cd10019c0b1757fbe50952d0a82459c52703",
+      "reservation_id": "db67aa16e85649ef9639797608580438",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-28T03:54:32.087680Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-99-gomad-f5-one-workflow-executing.1": 1,
-    "impl:fn-99-gomad-f5-one-workflow-executing.2": 1
+    "impl:fn-99-gomad-f5-one-workflow-executing.2": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-99-gomad-f5-one-workflow-executing.1": 0,
     "impl:fn-99-gomad-f5-one-workflow-executing.2": 0
   },
   "spec_path": ".flow/specs/fn-99-gomad-f5-one-workflow-executing.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F5: one workflow-executing functional test, deterministic",
   "tracker": {
     "baseHashFlow": null,
@@ -167,5 +199,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-28T03:48:58.526293Z"
+  "updated_at": "2026-09-28T03:54:35.889391Z"
 }
