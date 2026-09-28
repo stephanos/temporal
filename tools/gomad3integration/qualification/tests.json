@@ -455,7 +455,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -797,7 +796,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -859,7 +857,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -977,7 +974,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -1039,7 +1035,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -2333,7 +2328,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -2955,7 +2949,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -4053,7 +4046,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -4087,7 +4079,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
@@ -4149,7 +4140,6 @@
       ],
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
