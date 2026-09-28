@@ -40,9 +40,42 @@ LEAN_NUM_THREADS=1 make lint-model
 - [ ] Every existing Property in `Temporal.Feature` and the Umpire fixtures enumerates to the same clauses as before; both differential expected blocks unchanged except the new lines
 - [ ] `lake build UmpireTests TemporalModelTests` and `LEAN_NUM_THREADS=1 make lint-model` pass
 ## Done summary
-TBD
+A same-step Property can now fix one state field. The predicate enumeration fixes field `f` at value `v` when every accepted step holds `v`, some state holds another value of `f` with the other structure fields kept, and the predicate rejects every accepted step changed that way. The field reading runs only when no whole state is fixed and the state, outcome and facts alone do not carry the predicate, so every Property that enumerated before keeps its clauses. `lake build UmpireTests TemporalModelTests` passes with both differential blocks unchanged apart from the one new line.
 
+- `PropertyRequirement.stateFieldClause label fieldName spelling` lowers in `authoredProperty` to `.transitionContract … (PropertyPattern.exact .resultingState <field's Definition ID> spelling)`. Search needed no change.
+- The arms added to `requirementTerm`, `liftedProperty`, `refinedProperty` and `Compose.acrossClasses` cover every exhaustive consumer.
+- The generated enumeration call passes a `StateFields` view (`Syntax.lean` `stateFieldsView`):
+  - a machine passes its states and only its structure fields, so a refinement's abstract field is excluded;
+  - a composition passes every combination of member states (not only the reachable ones) and lowers each member's fields as `compose` does.
+- Refusals, both pinned in `model/Umpire/Command/Tests/Authoring.lean` on a local `leverMachine`/`crankMachine`:
+  - `instances:` refuses a field clause in `checkInstances` (`fieldOverInstancesMessage`), reported at the Scenario;
+  - `refines:` refuses it in the `query` command at the Property (`refinedFieldMessage`).
+  - Without these guards the lowered clause names a field the target's capability does not declare, and Property admission rejects it as `unknownReference`. A red run confirmed this.
+- Fixtures in `model/Umpire/Command/Tests/Compose.lean`:
+  - `repliesWhileRunning` (bare `when: reply` over both classes) fixes the `agent` field while the job varies. Its `verify` Query `repliesRunning` reads `veil default` with both backends agreeing in `Umpire/Search/Tests/Differential.lean`.
+  - `expiryFails` fixes `job_phase` alone.
+  - A cross-field disjunction is refused as `notCarried`, naming the step `false-failed_halted`.
+  - The one-state `beaconed` member still reports `fixesNothing`.
+  - `frontOpens` on `gatedAgent`, whose gates lift together, fixes `front`.
+- `Tests/Authoring.lean` also pins the field fix, the whole-state fix winning (`pulledFresh`), and a field claim on the refining machine itself (`crankPulledDown`).
+
+Deviations and notes:
+- One edit falls outside the declared Touches: `model/Umpire/Command/Compose.lean` `acrossClasses` needed a one-arm addition, because it matches `PropertyRequirement` exhaustively and the plan's consumer list missed it.
+- `Tests/Authoring.lean` now imports `Umpire.Command`. Its mutation helpers bind their type variables in a section, because `Umpire.Command.Action` would otherwise capture the auto-bound `Action`.
+- The one-state `BeaconState` fixture sets `genInjectivity false`. Without it, `simpNF` flags its trivial `mk.injEq`.
+- Field fixing applies to same-step claims only. Transition claims enumerate as before.
+- No hard proof was involved: fixing a field is evaluation only.
+- Follow-up for task .5: the caller claim needs the `handlerWorker` member's phase field to exist as a lowered field (`worker` for a one-field member), which `compose` already provides.
+
+Review round 1 (Codex fan-out, rid 83734eff18b94f05ba87b76758bb9822) was NEEDS_WORK with one deduplicated finding: alterations ranged over the reachable catalog with derived fields held. dfcd059c62 fixed it, and round 2 was SHIP.
+
+baseline: green (focused lake build, pre-edit)
+Gates: focused lake build rc=0; lake build UmpireTests TemporalModelTests rc=0; LEAN_NUM_THREADS=1 make lint-model rc=0 at dfcd059c62.
+
+stage: impl-review - ran [round 1 NEEDS_WORK (codex fan-out) .. round 2 SHIP]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 732f700b3545de8519b74864e146f8defc30ecd9, dfcd059c6232dd3baef76bd2e22ff4938f4ba880
+- Tests: cd model && lake build Umpire.Command.Tests.Compose Umpire.Command.Tests.Authoring Umpire.Search.Tests.Differential TemporalModelTests.SearchDifferential, cd model && lake build UmpireTests TemporalModelTests, LEAN_NUM_THREADS=1 make lint-model
 - PRs:
