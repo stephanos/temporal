@@ -1083,8 +1083,10 @@ re-measured, so that inference is unconfirmed there.
 
 The ten suites are in `temporal.json` as tier 3 `functional-*` workloads, `qualified` on
 darwin/arm64. Each requires the modeled probes every measured run observed
-(`stdlib.net.interfaces`, `stdlib.os.getwd`, `stdlib.os.newfile`, `stdlib.os.openfile`), so a
-boundary change that drops one fails the set. Their linux/amd64 expectation is `intermittent`
+(`stdlib.net.interfaces`, `stdlib.os.newfile`, `stdlib.os.openfile`), so a boundary change
+that drops one fails the set. `stdlib.os.getwd` was required at first and dropped on 2026-09-28:
+only darwin's `os` package init calls `Getwd`, so every linux run failed the suites with
+`semantic_coverage_failure`. Their linux/amd64 expectation is `intermittent`
 with `finding: GOMAD_MILESTONES.md#f6-a-package-level-functional-slice`: expectations gained a
 `finding` field, which `qualify-set` requires on every non-qualified, non-`unsupported_target`
 expectation and rejects on the others, and the existing F3 and F5 expectations name their
@@ -1127,6 +1129,31 @@ gate run in CI.
   qualification, never a replay of the Mac one. The modernc libc adapter and its pack landed
   for Linux on 2026-09-27. Still open for Linux: a host-clock escape audit to replace DTrace,
   and the `./tests` closure.
+- Linux re-measurement, 2026-09-28 (fork run 36493869196, linux/amd64, both seeds, exact
+  replay): all 18 supported workloads qualify, 10 stay at the amd64 xxhash boundary, 0 failed,
+  0 infrastructure errors, 36 replays with none diverged, 40 s of reported execution time
+  (the requalification step took 19 minutes of job wall time), 9.0 GB of
+  retained Campaigns. `temporal.json` now expects `qualified` on linux/amd64 for the F5
+  user-timers and activity batch cancel suites and the ten F6 suites. The F3 probe stays
+  `intermittent` there: seed 17 was `nondeterministic` in run 36466396209 and qualified in the
+  three runs since. Per-seed linux execution time and retained bytes (seed 11 / seed 17):
+
+  | Workload | Seconds | Campaign MB | Trace MB | Choice decisions |
+  |---|---|---|---|---|
+  | frontend-system-info (F3) | 0.2 / 0.5 | 366 | 0 | 3353 / 3289 |
+  | user-timers-workflow (F5) | 0.4 / 0.4 | 322 | 1 | 5701 / 5729 |
+  | activity-batch-cancel-boundary (F4/F5) | 2.4 / 2.6 | 339 | 16 | 58580 / 58654 |
+  | functional-activity (F6) | 1.1 / 1.0 | 329 | 8 | 27728 / 28424 |
+  | functional-cancel (F6) | 0.9 / 1.0 | 327 | 5 | 21699 / 21837 |
+  | functional-child-workflow (F6) | 1.0 / 1.0 | 328 | 7 | 26059 / 25880 |
+  | functional-continue-as-new (F6) | 1.9 / 2.0 | 336 | 15 | 52018 / 51969 |
+  | functional-cron (F6) | 0.5 / 0.5 | 324 | 2 | 9960 / 9897 |
+  | functional-query (F6) | 0.9 / 1.0 | 329 | 7 | 25696 / 25495 |
+  | functional-signal-chasm (F6) | 2.3 / 2.4 | 338 | 16 | 57913 / 59670 |
+  | functional-timer (F6) | 0.4 / 0.4 | 323 | 2 | 8669 / 8614 |
+  | functional-update (F6) | 4.8 / 4.6 | 361 | 39 | 132936 / 133145 |
+  | functional-workflow (F6) | 2.0 / 1.8 | 337 | 16 | 55444 / 55698 |
+
 - Move the Temporal qualification from weekly cron to a required check on changes under
   `tools/gomad3`, `tests`, `tests/testcore`, `go.mod`, and any server package the closure
   review names.

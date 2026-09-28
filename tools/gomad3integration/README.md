@@ -36,37 +36,35 @@ path-free `gomad3.qualification-set-report/v1` to
 boundaries are exact analyzer dispositions, not claims of support; the report
 keeps actual supported and unsupported counts separate from expectation
 matching.
-The probe's linux/amd64 expectation is `unrepeatable`: it runs to a successful
-exit under guarded mode, but its same-seed evidence does not yet reproduce in
-every run, and the report records `nondeterministic` or `replay_divergence`
-as observed. Its darwin/arm64 expectation is `qualified`: since darwin targets
+The probe's linux/amd64 expectation is `intermittent`: it runs to a successful
+exit under guarded mode and qualified on both seeds in the last three linux
+runs, but seed 17 did not reproduce its evidence in fork run 36466396209, so
+the report keeps whichever of `qualified`, `nondeterministic`, or
+`replay_divergence` the run produced. Its darwin/arm64 expectation is `qualified`: since darwin targets
 re-execute with ASLR disabled, both seeds reproduce their evidence across
 repetitions and replay with exact choice replay.
 The user-timers and activity batch cancel suites' darwin/arm64 expectation is
 `qualified`: since the runtime greys the scheduler structures at mark start
 (GOMAD_MILESTONES.md F5), both seeds reproduce their evidence across
 repetitions and replay with exact choice replay, and all 28 darwin workloads
-are supported. Their linux/amd64 expectation stays `intermittent`, as last
-measured there before that runtime change: the suites run the one-box cluster
-to a successful exit with exact I/O evidence, and the report keeps whichever of
-`qualified`, `nondeterministic`, or `replay_divergence` the run produced until
-a linux/amd64 run re-measures them.
-The F6 slice follows the same split. On darwin/arm64 all ten suites qualify
-on both seeds with exact replay, including four fresh repetitions of the six
-suites that had diverged on linux. Their linux/amd64 expectation is
-`intermittent` because linux last measured them before the environment-filter
-and mark-start greying fixes, when six of twenty seed runs qualified; those
-fixes are platform-neutral, but until a linux run re-measures the slice the
-manifest does not claim `qualified` there, and each of those expectations names
-`GOMAD_MILESTONES.md#f6-a-package-level-functional-slice` as its `finding`. The
-other non-qualified expectations name their milestone sections the same way.
+are supported. Their linux/amd64 expectation is `qualified` too: fork run
+36493869196 qualified both seeds with exact replay, as had the four linux runs
+before it.
+The F6 slice is `qualified` on both platforms. On darwin/arm64 all ten suites
+qualify on both seeds with exact replay, including four fresh repetitions of the
+six suites that had diverged on linux. On linux/amd64, fork run 36493869196
+qualified all ten on both seeds with exact replay, which confirms that the
+platform-neutral environment-filter and mark-start greying fixes closed the
+earlier linux divergences. Each non-qualified expectation names its milestone
+section as its `finding`.
 Each slice suite inherits the
 two-minute `run_timeout` (the longest measured darwin execution took 7 s of
 wall time; the 20-minute overall timeout covers the cold `./tests` build) and
-requires the modeled probes every measured run observed:
-`stdlib.os.openfile` (the read-only schema mount lookup), `stdlib.os.getwd`,
-`stdlib.os.newfile`, and `stdlib.net.interfaces`, so a boundary change that
-silently drops one of those operations fails the set. The set rejects an
+requires the modeled probes every measured run observed on both platforms:
+`stdlib.os.openfile` (the read-only schema mount lookup), `stdlib.os.newfile`,
+and `stdlib.net.interfaces`, so a boundary change that silently drops one of
+those operations fails the set. `stdlib.os.getwd` is not required: only
+darwin's `os` package init calls `Getwd`, so linux never observes it. The set rejects an
 unknown `required_probes` name when it loads the manifest.
 Nine package workloads build with the `gomad` tag, which cuts the cloud
 credential providers that import `os/exec`. On darwin/arm64 they and
