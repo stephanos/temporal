@@ -369,6 +369,40 @@ func TestLoadManifestRejectsDuplicateWorkloadNames(t *testing.T) {
 	}
 }
 
+func TestLoadManifestRejectsUnknownRequiredProbes(t *testing.T) {
+	root := t.TempDir()
+	path := writeManifest(t, root, "qualified")
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	suite := manifest["suites"].([]any)[0].(map[string]any)
+	for _, test := range []struct {
+		probes  []string
+		wantErr string
+	}{
+		{probes: []string{"stdlib.os.getwd", "stdlib.os.openfile"}},
+		{probes: []string{"stdlib.os.getwdx", "stdlib.os.openfile"}, wantErr: `unknown required semantic probe "stdlib.os.getwdx"`},
+	} {
+		suite["required_probes"] = test.probes
+		contents, err = json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		_, err := LoadManifest(path)
+		if test.wantErr == "" && err != nil || test.wantErr != "" && (err == nil || !strings.Contains(err.Error(), test.wantErr)) {
+			t.Fatalf("LoadManifest(%v) error = %v, want %q", test.probes, err, test.wantErr)
+		}
+	}
+}
+
 func TestIdentifyModuleRequiresExactSafeGoMod(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/target\n\ngo 1.26.4\n"), 0o600); err != nil {
