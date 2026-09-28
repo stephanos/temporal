@@ -27,7 +27,11 @@
       "success_bytes_limit": 1073741824,
       "execution_timeout": "6m",
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent"}
+      "expectation": {"classification": "intermittent"},
+      "platform_expectations": {
+        "darwin/arm64": {"classification": "qualified"},
+        "linux/amd64": {"classification": "intermittent"}
+      }
     },
     {
       "id": "clock-context-timeout",
@@ -359,7 +363,11 @@
       "success_bytes_limit": 1073741824,
       "execution_timeout": "6m",
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent"}
+      "expectation": {"classification": "intermittent"},
+      "platform_expectations": {
+        "darwin/arm64": {"classification": "qualified"},
+        "linux/amd64": {"classification": "intermittent"}
+      }
     }
   ]
 }

@@ -157,6 +157,17 @@ The pacer turned that into a different trigger for the next cycle. Targets now b
 for the general question (a collector whose observations are recorded choices), but it is no
 longer on the F6 path.
 
+Update, 2026-09-27 (darwin/arm64): the classic collector still had a host-timed input. The first
+assist of a cycle drained different mark work between same-seed runs because the write barrier
+shaded a not-yet-marked `m` struct through `execute`'s `gp.m = mp` (which M runs a goroutine
+after a syscall hand-off is host timing), and because an M parked in `findRunnable` kept its
+`allpSnapshot`, so `allp` was greyed from the M in one run and from the globals in another. The
+runtime now greys every `m`, `g0`, `gsignal`, and `g` at mark start and stops parking `allp` in
+the M under Gomad, and `TestUserTimersTestSuite` qualifies on both seeds with `--repeat 4` on
+darwin/arm64. The pattern holds: each divergence so far was a host-timed input to the marker's
+order, closed by making that input deterministic rather than by recording collector events, so
+the research item stays open for the general question only.
+
 ## Complete track coverage
 
 The tables below account for every named capability and delivery stage in the four detailed roadmaps. The companion documents remain normative for their non-goals, module boundaries, protocols, error classifications, 10×-load behavior, trade-offs, verification plans, and exit criteria.
