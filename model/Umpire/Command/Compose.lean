@@ -224,6 +224,8 @@ def acrossClasses (enumerated : List (String × EnumeratedProperty)) : Enumerate
   let relabel := fun (key : String) (requirement : PropertyRequirement) =>
     match requirement with
     | .stateClause label spelling => .stateClause (key ++ "-" ++ label) spelling
+    | .stateFieldClause label fieldName spelling =>
+        .stateFieldClause (key ++ "-" ++ label) fieldName spelling
     | .outcomeClause label spelling => .outcomeClause (key ++ "-" ++ label) spelling
     | .factClause label spelling => .factClause (key ++ "-" ++ label) spelling
   match enumerated.findSome? (·.2.refusal) with

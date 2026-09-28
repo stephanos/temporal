@@ -357,6 +357,14 @@ private unsafe def evalEnumeratedUnsafe (declName : Name) :
 @[implemented_by evalEnumeratedUnsafe]
 private opaque evalEnumerated (declName : Name) : Elab.Term.TermElabM EnumeratedProperty
 
+private unsafe def evalPropertyNamesUnsafe (declName : Name) :
+    Elab.Term.TermElabM PropertyNames :=
+  Meta.evalExpr PropertyNames (.const ``Umpire.Command.PropertyNames []) (.const declName [])
+
+/-- A Property's enumerated names, read off the definition its command emitted. -/
+@[implemented_by evalPropertyNamesUnsafe]
+private opaque evalPropertyNames (declName : Name) : Elab.Term.TermElabM PropertyNames
+
 private unsafe def evalRefinementReportUnsafe (declName : Name) :
     Elab.Term.TermElabM RefinementReport :=
   Meta.evalExpr RefinementReport (.const ``Umpire.Command.RefinementReport []) (.const declName [])
@@ -368,6 +376,9 @@ private opaque evalRefinementReport (declName : Name) : Elab.Term.TermElabM Refi
 private def requirementTerm : PropertyRequirement → CommandElabM Term
   | .stateClause label spelling =>
       `(Umpire.Command.PropertyRequirement.stateClause $(Lean.quote label) $(Lean.quote spelling))
+  | .stateFieldClause label fieldName spelling =>
+      `(Umpire.Command.PropertyRequirement.stateFieldClause $(Lean.quote label)
+        $(Lean.quote fieldName) $(Lean.quote spelling))
   | .outcomeClause label spelling =>
       `(Umpire.Command.PropertyRequirement.outcomeClause $(Lean.quote label) $(Lean.quote spelling))
   | .factClause label spelling =>
@@ -430,12 +441,14 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
   let factKeyFor := mkIdent (machineName ++ `factKeyFor)
   let actionKeyFor := mkIdent (machineName ++ `actionKeyFor)
   let transitions := mkIdent (machineName ++ `transitions)
+  let declared := mkIdent machineName
   let enumeratedAt := fun (key : String) => do
     let keyLiteral := Lean.quote key
     `(term| Umpire.Command.enumerateSameStep
       $states
       $outcomes
       { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
+      (Umpire.Command.DeclaredModel.stateFieldsOf ($declared))
       $keyLiteral
       (($transitions).filter (fun row => $actionKeyFor row.action == $keyLiteral)
         |>.flatMap (·.results))
@@ -770,6 +783,11 @@ private def unliftableMessage (kind spelling : String) (refined refining : Name)
 that name; a Property on the refined machine is read on the refining one through the values of \
 the same name, and a state through its `map:`"
 
+private def refinedFieldMessage (fieldName : String) (refined refining : Name) : String :=
+  s!"the Property fixes the state field '{fieldName}' of '{refined}', and '{refining}' reads each \
+of its states as a whole state of '{refined}' through its `map:`, so it holds no field \
+'{fieldName}' to address; a Property read through a refinement fixes a whole state"
+
 private def liftedInstancesMessage : String :=
   "a Property on the refined machine is read on one instance of the refining one; a Query over \
 several instances names a Property on the machine its Scenario runs over"
@@ -812,6 +830,10 @@ private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM Quer
   require "action" refining.actions declaredProperty.actions
   require "outcome" refining.outcomes declaredProperty.outcomes
   require "fact" refining.facts declaredProperty.facts
+  if let some fieldName := (← liftTermElabM (evalPropertyNames (propertyName ++ `names))).fixedField?
+  then
+    throwErrorAt propertyRef
+      (refinedFieldMessage fieldName declaredProperty.model declaredScenario.model)
   pure { model := declaredScenario.model, lifted := some declaredProperty.model }
 
 /-- The admission a Query evaluates: over the machine itself, or over the product of the instances

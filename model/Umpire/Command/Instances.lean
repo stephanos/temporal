@@ -223,6 +223,13 @@ def liftedProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
         | .stateClause label spelling =>
             .transitionContract (clauseId label) trigger
               (PropertyPattern.exact .resultingState (slotFieldId slot) spelling)
+        -- The product holds each slot's whole state as its field, so no product field is the
+        -- machine's own: the clause names the machine's field, which the product's capability does
+        -- not declare, and `checkInstances` refuses the claim with the reason before that.
+        | .stateFieldClause label fieldName spelling =>
+            .transitionContract (clauseId label) trigger
+              (PropertyPattern.exact .resultingState
+                ((model.stateFieldIds.lookup fieldName).getD unknownId) spelling)
         | .outcomeClause label spelling =>
             .transitionContract (clauseId label) trigger (.outcome (values.namedOutcome spelling))
         | .factClause label spelling =>
@@ -278,6 +285,12 @@ def transitionOverInstancesMessage : String :=
 and another instance's step would leave that instance where it was; a Scenario over several \
 instances names a same-step Property under `when:`"
 
+/-- Why a claim on one state field is not read over several instances. -/
+def fieldOverInstancesMessage (fieldName : String) : String :=
+  s!"the Property fixes the state field '{fieldName}', and a Query over several instances reads \
+each instance's whole state as one field of the product, so there is no field '{fieldName}' to \
+address; a Scenario over several instances names a Property that fixes a whole state"
+
 /-- Check a Query over `count` instances of one machine: the product is searched, and what a
 Producer reads is the first instance's projection of what the Search selected, with every
 instance's actions as the Program's path. -/
@@ -301,6 +314,8 @@ def checkInstances [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       | .priorState _ => true
       | .action _ => false) then
     throw (.instances transitionOverInstancesMessage)
+  if let some fieldName := propertyNames.fixedField? then
+    throw (.instances (fieldOverInstancesMessage fieldName))
   if count == 0 then
     throw (.instances "an instance count of zero admits no instance to run the Scenario over")
   if let some stray := scenarioNames.occurrences.find? fun occurrence =>

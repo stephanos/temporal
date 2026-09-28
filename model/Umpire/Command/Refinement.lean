@@ -164,6 +164,14 @@ def refinedProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
     match requirement with
     | .stateClause label spelling =>
         .transitionContract (clauseId label) selected (abstractPattern .resultingState spelling)
+    -- The map reads a whole state as the refined machine's, so the refining machine holds no
+    -- field of it: the clause names the refined machine's field, which the refining machine's
+    -- capability does not declare, and the `query` command refuses the claim with the reason
+    -- before that.
+    | .stateFieldClause label fieldName spelling =>
+        .transitionContract (clauseId label) selected
+          (PropertyPattern.exact .resultingState
+            ((refined.stateFieldIds.lookup fieldName).getD unknownId) spelling)
     | .outcomeClause label spelling =>
         .transitionContract (clauseId label) selected (.outcome (values.namedOutcome spelling))
     | .factClause label spelling =>

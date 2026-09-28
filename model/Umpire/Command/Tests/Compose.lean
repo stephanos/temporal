@@ -239,6 +239,48 @@ property pokes
 
 #guard pokes.names.groups.map (·.trigger) == [.action "job_poke-error", .action "job_poke-ok"]
 
+/- A reply never fires while the agent is halted: every reply, whichever result, leaves the agent
+running while the job is done or failed, poked or not. No whole state is fixed, so the claim fixes
+the agent's one field. -/
+property repliesWhileRunning
+  machine: pipeline
+  when: reply
+  holds: fun step => step.state.agent.phase == .running
+
+#guard repliesWhileRunning.names.groups.map (fun group => (group.trigger, group.requirements)) ==
+  [(.action "reply-error", [.stateFieldClause "reply-error-field-agent-running" "agent" "running"]),
+    (.action "reply-ok", [.stateFieldClause "reply-ok-field-agent-running" "agent" "running"])]
+
+scenario pokedReply
+  model: pipeline
+  starts: job.pending
+  actions: [job.poke (ok), reply (error)]
+
+query repliesRunning
+  verify: repliesWhileRunning
+  in: pokedReply
+  limits: three
+
+/- An expiry fixes the job's phase alone: the job's flag and the agent both vary. -/
+property expiryFails
+  machine: pipeline
+  when: job.expire
+  holds: fun step => step.state.job.phase == .failed
+
+#guard expiryFails.names.groups.map (·.requirements) ==
+  [[.stateFieldClause "field-job_phase-failed" "job_phase" "failed"]]
+
+/- A claim that reads the job's flag or the agent's phase fixes neither, and the step it cannot tell
+apart is named. -/
+/--
+error: the predicate is not a conjunction of one state, one outcome and facts at `job_expire`: the clauses it fixes cannot tell the step to false-failed_halted with outcome job_accepted and facts [job_expired] apart from the steps it accepts; a Property is one such conjunction, so split it or restate it
+-/
+#guard_msgs in
+property pokedOrRunning
+  machine: pipeline
+  when: job.expire
+  holds: fun step => step.state.job.poked || step.state.agent.phase == .running
+
 end Forward
 
 namespace Reordered
@@ -706,6 +748,68 @@ compose lamped
     lamp: Lamp.lampMachine
   starts: [job.pending]
   ends: [job.done]
+
+/-! ### A member with one state
+
+A beacon is always lit, so a claim that it is lit fixes nothing: its one field has no other value
+to change to, as a machine with one outcome fixes no outcome. -/
+
+namespace Beacon
+
+entity beacon
+
+enum BeaconPhase
+  | lit
+
+structure BeaconState where
+  phase : BeaconPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum BeaconOutcome
+  | accepted
+
+inductive BeaconFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action blink
+  party: agent
+  on: beacon
+
+def blinkStep (state : BeaconState) : List (Step BeaconState BeaconOutcome BeaconFact) :=
+  [{ outcome := .accepted, state, facts := [] }]
+
+machine beaconMachine
+  for: beacon
+  state: BeaconState
+  starts: [lit]
+  ends: [lit]
+  steps:
+    blink: blinkStep
+
+end Beacon
+
+structure BeaconedState where
+  job : Job.JobState
+  beacon : Beacon.BeaconState
+  deriving BEq, DecidableEq, Repr
+
+compose beaconed
+  for: [Job.job, Beacon.beacon]
+  state: BeaconedState
+  members:
+    job: Job.jobMachine
+    beacon: Beacon.beaconMachine
+  starts: [job.pending]
+  ends: [job.done, job.failed]
+
+/--
+error: the predicate holds on every step of this machine at `job_expire` and fixes no state, outcome or fact, so it claims nothing
+-/
+#guard_msgs in
+property alwaysLit
+  machine: beaconed
+  when: job.expire
+  holds: fun step => step.state.beacon.phase == .lit
 
 /-! ### A synchronized action no reachable state enables
 

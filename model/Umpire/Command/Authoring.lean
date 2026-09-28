@@ -229,6 +229,15 @@ def actionIdAt (model : DeclaredModel Setup State Action Outcome Fact) (index : 
     DefinitionId :=
   (model.actionIds[index]?).getD unknownId
 
+/-- A state's fields by name, in the structure's field order: what a same-step claim's predicate
+enumeration changes one at a time. A state outside the catalog holds none. -/
+def stateFieldsOf (model : DeclaredModel Setup State Action Outcome Fact) (state : State) :
+    List (String × String) :=
+  match model.states.findIdx? (· == state) with
+  | some index => ((model.stateFieldValues[index]?).getD []).filterMap fun (definitionId, spelling) =>
+      (model.stateFieldIds.find? (·.2 == definitionId)).map fun (field, _) => (field, spelling)
+  | none => []
+
 
 
 
@@ -393,9 +402,10 @@ abbrev unknownValue := Umpire.Case.Producer.unknownValue
 /-- One requirement a Property's predicate fixes: its clause label and the member spelling it
 selects. The label is the clause's own key -- `state-succeeded`, `outcome-completed`,
 `fact-settled` -- so two Properties that fix the same value carry the same clause id under their
-own names. -/
+own names. A state field clause names the field it fixes beside the spelling that field holds. -/
 inductive PropertyRequirement where
   | stateClause (label spelling : String)
+  | stateFieldClause (label fieldName spelling : String)
   | outcomeClause (label spelling : String)
   | factClause (label spelling : String)
   deriving BEq, Repr, Inhabited
@@ -420,6 +430,14 @@ structure PropertyNames where
   declaration : String
   roleName : String
   groups : List PropertyGroup
+
+/-- The first state field the requirements fix, by name: what a reading that has no field to
+address refuses. -/
+def PropertyNames.fixedField? (names : PropertyNames) : Option String :=
+  names.groups.findSome? fun group => group.requirements.findSome? fun requirement =>
+    match requirement with
+    | .stateFieldClause _ fieldName _ => some fieldName
+    | _ => none
 
 /-- One occurrence of a Scenario: its label, the Action it selects, and the instance that takes
 it, numbered from one. A Scenario over one instance names instance one throughout. -/
@@ -468,6 +486,10 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
     | .stateClause label spelling =>
         .transitionContract (model.origin.ownedId "property" names.declaration label) selected
           (.resultingState (values.namedState spelling))
+    | .stateFieldClause label fieldName spelling =>
+        .transitionContract (model.origin.ownedId "property" names.declaration label) selected
+          (PropertyPattern.exact .resultingState
+            ((model.stateFieldIds.lookup fieldName).getD unknownId) spelling)
     | .outcomeClause label spelling =>
         .transitionContract (model.origin.ownedId "property" names.declaration label) selected
           (.outcome (values.namedOutcome spelling))

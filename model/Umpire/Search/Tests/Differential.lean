@@ -573,6 +573,8 @@ on `veil`. -/
 /--
 info: Umpire.Command.Tests.Compose.Forward.expires: veil default, found 4 paths, found 4 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
 ---
+info: Umpire.Command.Tests.Compose.Forward.repliesRunning: veil default, verified-within-limits 3 paths, verified-within-limits 3 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
+---
 info: Umpire.Command.Tests.Compose.Forward.settles: veil default, verified-within-limits 2 paths, verified-within-limits 2 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
 ---
 info: Umpire.Command.Tests.Compose.Reordered.settles: veil default, verified-within-limits 2 paths, verified-within-limits 2 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
