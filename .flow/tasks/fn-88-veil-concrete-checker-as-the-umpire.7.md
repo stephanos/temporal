@@ -33,6 +33,10 @@ Update the model documentation for the landed backend, run the rollback drill ag
 - R20: measure one cold CI run once .6 makes CI build Veil (push to the fork and read the run, or record why not); add a `.lake` cache to `.github/workflows/umpire.yml` if it does not fit the 30/40-minute job timeouts. Pin Node for CI if the runner's default is not enough for Veil's widget build.
 - Rerun `LEAN_NUM_THREADS=1 make lint-model` on a quiet host; its last `lake lint` step was inconclusive at .5.
 
+### Carried from fn-88.10 (2026-09-28)
+- `model/ARCHITECTURE.md` lines ~208 and ~212 still say Replay candidates are named by the "Plan checksum"; they are now named by `witnessKey` (the checksum with `explored` cleared).
+- R20: the Umpire workflow runs on pushes to `stephanos/umpire`. The conductor pushed 089f9ef966 to the fork branch `stephanos/umpire`, which started run 36377425097 (`gh run view 36377425097 -R stephanos/temporal --json jobs`); read each Lean job's duration against its 30/40-minute timeout from that run (it is the first with Veil in the build and a cold `.lake`), and record it. If a job exceeded or came near its timeout, add the `.lake` cache step and Node pin to `.github/workflows/umpire.yml` (update `tools/umpire/regression/ci_workflow_test.go`'s pinned steps); the conductor will push again to measure.
+
 ## Acceptance
 - [ ] Model docs updated as listed; `make umpire-check-inventory` and `make umpire-check-plan-index` pass
 - [ ] `UMPIRE4_ORDER.md` records the adopt (or defer) result and the R1 receipt
