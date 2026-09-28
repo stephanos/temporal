@@ -1,40 +1,51 @@
 ---
-satisfies: [R3, R4, R11]
+satisfies: [R3, R4, R11, R14, R15]
 ---
 # fn-92-compose-entity-machines-into-one-system.2 The compose command: generated unions, synchronization, key resolution, reachable literal table
 
 ## Description
-Add `compose` to `Umpire.Command` with `for:`, `state:`, `members:`, `sync:`, `starts:`, `ends:`; generate tagged-union Action, Outcome, and Fact types; key unsynchronized actions `<field>.<member key>` and synchronized ones by their `sync:` name; extend Scenario and Property key resolution; build the reachable literal table by a frontier walk; elaborate to a `CheckedModel`; reject a `set` over a composition. Proofs and the per-composition check are task .3.
+Add `compose` to `Umpire.Command` with `for:`, `state:`, `members:`, `sync:`, `starts:`, `ends:`; generate the tagged-union Action, Outcome, and Fact types; key unsynchronized actions `<field>_<member key>` and synchronized ones by their `sync:` name, resolving dotted author references to those keys; lower member state fields as `<field>_<memberField>` state fields; extend Scenario and Property key resolution; build the reachable literal table by a frontier walk; elaborate to `Umpire.Command.DeclaredModel`; reject a `set` over a composition; list the fixture Queries in the Umpire differential sweep (R3, R4, R11, R14, R15's lowering half). Proofs and the per-composition check are task .3; field-addressed requirements are task .7.
 
 **Size:** M
-**Files:** `model/Umpire/Command/Compose.lean` (new), `model/Umpire/Command/Syntax.lean` (keyword, keys, elaborator dispatch, Scenario `actions:` and `starts:` resolution, Property `when:` resolution, `set` rejection), `model/Umpire/Command/Registry.lean` (record compositions), `model/Umpire/Command/Tests/Compose.lean` (new), `model/Umpire/Command/Tests.lean` (register)
-**Touches:** [model/Umpire/Command/Compose.lean, model/Umpire/Command/Syntax.lean, model/Umpire/Command/Registry.lean, model/Umpire/Command/Tests/Compose.lean, model/Umpire/Command/Tests.lean]
+**Files:** `model/Umpire/Command/Compose.lean` (new), `model/Umpire/Command/Syntax.lean` (keyword, keys, elaborator dispatch, Scenario `actions:` and `starts:` resolution, Property `when:` resolution, `set` rejection), `model/Umpire/Command/Registry.lean` (record compositions), `model/Umpire/Command/Tests/Compose.lean` (new: fixture compositions, located errors, fingerprint test, a whole-state `verify` Query, a `find` Query with a composed witness), `model/UmpireTests.lean` (import), `model/Umpire/Search/Tests/Differential.lean` (import the fixture module; expected lines in the `sweep [\`Umpire]` block at :570-582)
+**Touches:** [model/Umpire/Command/Compose.lean, model/Umpire/Command/Syntax.lean, model/Umpire/Command/Registry.lean, model/Umpire/Command/Tests/Compose.lean, model/UmpireTests.lean, model/Umpire/Search/Tests/Differential.lean]
 
 ### Approach
-- Keyword via `declarationKeyword` (`Syntax.lean:374-384`); `compose` is not the reserved party spelling (`:1522`).
-- Generate `<name>.Action`, `<name>.Outcome`, `<name>.Fact` inductives with one constructor per member field wrapping the member's type; catalog keys `<field>.<member key>`; member Definition IDs kept inside constructors as `instances` keeps them (`Instances.lean:72-190`); synchronized action constructor and key named by the `sync:` line.
-- Frontier BFS from composed start states over member tables: unsynchronized action steps its owner; synchronized step enabled only when every participant has a row, results the ordered product sorted by `stepOrderKey`, refused above 16; classless participants match every class; timers per member; catalog = reachable states sorted by `modelValueOrderKey`; emit a literal `FiniteTable`; bound check reachable states × actions vs `enumerationBound` (`Finite.lean:123`); drop never-enabled actions with a located warning.
-- Key resolution: the Scenario elaborator keeps only the last dotted component (`Syntax.lean:595`) and splits `starts:` on `-` (`:561-563`); extend both, and Property `when:`, to resolve `operation.handlerReply (async)` and `sync:` names against the composed catalog. Every path that reads `members (α := State)` for a machine reads the catalog for a composition (`declareModel`, `Registry.recordModel.states`, Scenario `starts:`).
-- Located errors pinned with `#guard_msgs`: unsynchronized shared name, participant input mismatch, product above 16, bound exceeded with counts, `set` over a composition (`Syntax.lean:2700-2722`).
-- Fingerprint test: reorder `members:` and `sync:` lines in a fixture composition and assert equal fingerprints.
+- Keyword via `declarationKeyword` (`Syntax.lean:381-390`); `compose` is not the reserved party spelling (`:1529`, `:2721`). Machine keys are the `machineKey` category (`:1663-1674`); the composition gets its own category.
+- Generate `<name>.Action`, `<name>.Outcome`, `<name>.Fact` inductives by quoting `inductive … deriving DecidableEq, Repr, …` into `elabCommand` (`Syntax.lean:148-150` shape), one constructor per member field wrapping the member's type; catalog keys `<field>_<member key>` and composed state keys `_`-joined in field order, as `slottedKey`/`slotsKey` spell them (`Instances.lean:49-53`), because `FiniteCatalog.validKey` (`Table.lean:31-33`) admits only alphanumerics, `-`, and `_`; a member field name containing `_` is a located error; member Definition IDs kept inside constructors as `instances` keeps them (`Instances.lean:72-190`, `origin.ownedId` 84-89); synchronized action constructor and key named by the `sync:` line; the `-compose-<name>` owner formed as `instancesOwner` (`:60`) forms its own.
+- State fields: `DeclaredModel.stateFieldIds`/`stateFieldValues` (`Authoring.lean:189-195`, `names.stateFields` 313-316) list each member's fields under `<field>_<memberField>`, never the member as one field; `Predicate.lean:14-30` (a disjunction across fields is refused) is why. Fixing a field is task .7; this task's fixture `verify` Query names a unique whole composed state.
+- Frontier BFS from composed start states over member tables (`reachableFrom`, `Finite.lean:167`, as the shape): unsynchronized action steps its owner; synchronized step enabled only when every participant has a row, results the ordered product sorted by `stepOrderKey` (`Instances.lean:102-104`), refused above 16; classless participants match every class; timers, `unobservable:`, `evidence:` lifted per member under `<field>.`; catalog = reachable states sorted by an injective total key built on `modelValueOrderKey` (`:91-97`), sorted at elaboration with `List.mergeSort`, then emitted as a literal `FiniteTable`; bound check reachable states × actions vs `enumerationBound` (`Finite.lean:123`); drop never-enabled actions with a located warning.
+- Key resolution: the Scenario elaborator keeps the last dotted component of an action term (`actionKeyOf`, `Syntax.lean:246-257`, used at `:598-606`) and splits `starts:` on `-` (`:570`); extend both, and Property `when:` (`propertyWhen` `:393`, `:442-451`, bare or classed), to resolve the dotted `operation.handlerReply (async)`, bare `operation.handlerReply`, and `sync:` names to the `_` catalog keys; composed `starts:`/`ends:` name member-qualified values, replacing the one-carrying-field rule (`:2126-2158`, `endsAcrossFieldsMessage` 1743). Every path that reads `members (α := State)` for a machine (`:409-410, 429-430, 2105, 2326-2347, 2403-2406`) reads the catalog for a composition.
+- Elaborate to `declareModel` (`Authoring.lean:284`, emitted at `Syntax.lean:2401-2408`) and record with `Registry.recordModel` (`:2470-2481`); a `set` naming a composition is refused beside `systemBoundMessage` (`:2721`).
+- Located errors pinned with `#guard_msgs`: unsynchronized shared name, participant input mismatch, `sync:` naming a timer, member field name containing `_`, product above 16, bound exceeded with counts, `starts:`/`ends:` value naming no member field, `set` over a composition.
+- Fingerprint test: reorder `members:` and `sync:` lines in a fixture composition and assert equal fingerprints; reorder the `state:` fields and assert a different one. Pin `FiniteCatalog.Valid` on the composed catalogs.
+- Fixture Queries: one `verify` whose Property names a unique whole composed state (every field, as `succeededOnRetry` does in `Caller/Model.lean:485-494`) and one `find` whose witness is a composed trace (R14); import the fixture module in `Search/Tests/Differential.lean` and add their lines to the Umpire sweep's expected block, both reading `veil default`.
 
 ### Investigation targets
 **Required:**
-- `model/Umpire/Command/Instances.lean:63-190`
-- `model/Umpire/Command/Syntax.lean:548-620, 561-595, 1656-1700, 1866-2000, 2157-2170, 2379-2492, 2700-2722`
-- `model/Umpire/Command/Authoring.lean:170-300`
-- `model/Umpire/Command/Finite.lean:82-170`
+- `model/Umpire/Command/Instances.lean:60-104`
+- `model/Umpire/Command/Syntax.lean:242-330, 393, 442-451, 555-638, 1663-1674, 1873-2211, 2326-2347, 2401-2408, 2470-2481, 2637-2721`
+- `model/Umpire/Command/Authoring.lean:170-210, 284, 313-316`
+- `model/Umpire/Command/Finite.lean:82-170`; `model/Umpire/Command/Predicate.lean:14-30`
+- `model/Umpire/Search/Tests/Differential.lean:534-582`; `model/Umpire/Search/Selection.lean:38-59`
 
 ### Key context
 - The author's state structure derives no `Finite`; the reachable list is the catalog.
+- `UmpireTests` is an explicit import list (`model/UmpireTests.lean`); nothing globs `Command/Tests/`.
+- `List.mergeSort` is stable: ties would carry `members:` order into the fingerprint, so the sort key is injective.
 
+### Quick commands
+```bash
+cd model && lake build Umpire.Command Umpire.Command.Tests.Compose Umpire.Search.Tests.Differential
+LEAN_NUM_THREADS=1 make lint-model
+```
 ## Acceptance
-- [ ] `compose` elaborates a fixture composition to a `CheckedModel` usable by `property`, `scenario`, `limits`, `query`, with Scenario `actions:` and Property `when:` resolving composed and synchronized keys
-- [ ] Generated unions with member-prefixed keys; no catalog collision for two members with `accepted`
-- [ ] Reachable literal table; fingerprint unchanged under `members:`/`sync:` reordering (pinned)
+- [ ] `compose` elaborates a fixture composition to an `Umpire.Command.DeclaredModel` usable by `property`, `scenario`, `limits`, `query`, with Scenario `actions:`/`starts:` and Property `when:` (bare and classed) resolving composed and synchronized keys, and `starts:`/`ends:` taking member-qualified values
+- [ ] Generated unions with `validKey`-legal `<field>_<member key>` keys, composed catalogs pinned `Valid`; no catalog collision for two members with `accepted`; member state fields lowered as `<field>_<memberField>`; a whole-state fixture Property enumerates and verifies
+- [ ] Reachable literal table; fingerprint unchanged under `members:`/`sync:` reordering and changed under `state:` field reordering (pinned)
 - [ ] Every listed located error pinned; `set` over a composition rejected
-- [ ] `make lint-model` passes
-
+- [ ] The fixture `verify` and `find` Queries appear in the Umpire differential's expected block as `veil default` with both backends agreeing, and the `find` witness passes the kernel replay gate (R14)
+- [ ] `lake build UmpireTests` and `LEAN_NUM_THREADS=1 make lint-model` pass
 ## Done summary
 TBD
 

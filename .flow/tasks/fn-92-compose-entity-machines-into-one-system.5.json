@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-92-compose-entity-machines-into-one-system.1",
     "fn-92-compose-entity-machines-into-one-system.3",
-    "fn-92-compose-entity-machines-into-one-system.4"
+    "fn-92-compose-entity-machines-into-one-system.4",
+    "fn-92-compose-entity-machines-into-one-system.7"
   ],
   "id": "fn-92-compose-entity-machines-into-one-system.5",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-92-compose-entity-machines-into-one-system.5.md",
   "status": "todo",
   "title": "The nexusCaller composition: handlerReply never fires while the worker is stopped",
-  "updated_at": "2026-09-27T01:48:07.824405Z"
+  "updated_at": "2026-09-28T02:26:41.222250Z"
 }
