@@ -262,6 +262,17 @@ Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
 
+By default every Campaign a set run produces stays under `--artifacts`, which
+for the 28-workload Temporal manifest is about 11 GiB. `--prune-qualified-artifacts`
+(`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
+once a seed is `qualified`, its successful repetitions were replayed exactly,
+and the set report holds its evidence, the run deletes that seed's retained
+Campaigns and keeps its qualification report. Seeds with any other outcome keep
+everything. The set report records `qualified_artifacts_pruned` for the run and
+`artifacts_pruned` for each pruned seed, so those seeds cannot be replayed
+later; `OpenReport` rejects a pruned seed that is not a replayed, matching,
+qualified one. A pruning failure stops the run with status 3.
+
 Compare two validated reports with `gomad compare-support`. Clean and improved
 comparisons return 0, regressions or review-required changes return 1,
 incomparable inputs return 2, and output failures return 3. A boundary change

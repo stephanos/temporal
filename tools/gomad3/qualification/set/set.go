@@ -100,32 +100,36 @@ type WorkloadExpectation struct {
 }
 
 type Report struct {
-	Schema               string                       `json:"schema"`
-	Name                 string                       `json:"name"`
-	Description          string                       `json:"description"`
-	ManifestSHA256       record.SHA256                `json:"manifest_sha256"`
-	Seeds                []record.Uint64String        `json:"seeds"`
-	Module               ModuleIdentity               `json:"module"`
-	Platform             PlatformIdentity             `json:"platform"`
-	Toolchain            capabilityanalysis.Toolchain `json:"toolchain"`
-	IOProfile            deterministicio.Contract     `json:"io_profile"`
-	Dimensions           EvidenceDimensions           `json:"dimensions"`
-	ExpectationsMet      bool                         `json:"expectations_met"`
-	Selected             uint64                       `json:"selected"`
-	AnalysisCompleted    uint64                       `json:"analysis_completed"`
-	Completed            uint64                       `json:"completed"`
-	Supported            uint64                       `json:"supported"`
-	Unsupported          uint64                       `json:"unsupported"`
-	Failed               uint64                       `json:"failed"`
-	InfrastructureErrors uint64                       `json:"infrastructure_errors"`
-	Replayed             uint64                       `json:"replayed"`
-	ReplayDiverged       uint64                       `json:"replay_diverged"`
-	Cancelled            uint64                       `json:"cancelled"`
-	TimedOut             uint64                       `json:"timed_out"`
-	ElapsedNanos         record.Uint64String          `json:"elapsed_nanos"`
-	ArtifactBytes        record.Uint64String          `json:"artifact_bytes"`
-	TraceBytes           record.Uint64String          `json:"trace_bytes"`
-	Workloads            []WorkloadReport             `json:"workloads"`
+	Schema         string                       `json:"schema"`
+	Name           string                       `json:"name"`
+	Description    string                       `json:"description"`
+	ManifestSHA256 record.SHA256                `json:"manifest_sha256"`
+	Seeds          []record.Uint64String        `json:"seeds"`
+	Module         ModuleIdentity               `json:"module"`
+	Platform       PlatformIdentity             `json:"platform"`
+	Toolchain      capabilityanalysis.Toolchain `json:"toolchain"`
+	IOProfile      deterministicio.Contract     `json:"io_profile"`
+	Dimensions     EvidenceDimensions           `json:"dimensions"`
+	// QualifiedArtifactsPruned records that the run pruned qualified seeds'
+	// retained Campaigns; each pruned seed says so, so no reader expects to
+	// replay its artifacts.
+	QualifiedArtifactsPruned bool                `json:"qualified_artifacts_pruned,omitempty"`
+	ExpectationsMet          bool                `json:"expectations_met"`
+	Selected                 uint64              `json:"selected"`
+	AnalysisCompleted        uint64              `json:"analysis_completed"`
+	Completed                uint64              `json:"completed"`
+	Supported                uint64              `json:"supported"`
+	Unsupported              uint64              `json:"unsupported"`
+	Failed                   uint64              `json:"failed"`
+	InfrastructureErrors     uint64              `json:"infrastructure_errors"`
+	Replayed                 uint64              `json:"replayed"`
+	ReplayDiverged           uint64              `json:"replay_diverged"`
+	Cancelled                uint64              `json:"cancelled"`
+	TimedOut                 uint64              `json:"timed_out"`
+	ElapsedNanos             record.Uint64String `json:"elapsed_nanos"`
+	ArtifactBytes            record.Uint64String `json:"artifact_bytes"`
+	TraceBytes               record.Uint64String `json:"trace_bytes"`
+	Workloads                []WorkloadReport    `json:"workloads"`
 }
 
 type WorkloadReport struct {
@@ -164,6 +168,7 @@ type SeedReport struct {
 	ReplayMatch       bool                `json:"replay_match"`
 	ReplayDivergence  string              `json:"replay_divergence,omitempty"`
 	ChoiceReplayExact bool                `json:"choice_replay_exact,omitempty"`
+	ArtifactsPruned   bool                `json:"artifacts_pruned,omitempty"`
 	ElapsedNanos      record.Uint64String `json:"elapsed_nanos"`
 	ArtifactBytes     record.Uint64String `json:"artifact_bytes"`
 	TraceBytes        record.Uint64String `json:"trace_bytes"`
@@ -189,7 +194,12 @@ type Spec struct {
 	WorkingDir   string
 	ArtifactRoot string
 	OutputPath   string
-	Execute      ExecuteFunc
+	// PruneQualifiedArtifacts deletes each qualified seed's retained Campaigns
+	// once its evidence is projected into the set report, keeping the seed's
+	// qualification report, so a set's disk use is bounded by one seed rather
+	// than the whole manifest.
+	PruneQualifiedArtifacts bool
+	Execute                 ExecuteFunc
 }
 
 type Command struct {
@@ -305,8 +315,9 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 	report := Report{
 		Schema: ReportSchema, Name: manifest.Name, Description: manifest.Description,
 		ManifestSHA256: record.HashBytes(manifestBytes), Module: moduleIdentity,
-		Dimensions: EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
-		Selected:   uint64(len(manifest.Suites)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
+		Dimensions:               EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
+		QualifiedArtifactsPruned: config.PruneQualifiedArtifacts,
+		Selected:                 uint64(len(manifest.Suites)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
 		Workloads: make([]WorkloadReport, len(manifest.Suites)),
 	}
 	for index, seed := range manifest.Seeds {
@@ -405,6 +416,11 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 				if evidenceErr != nil {
 					classification = retainedErrorClassification(result, evidenceErr)
 					seedReport.Classification = classification
+				} else if config.PruneQualifiedArtifacts && classification == "qualified" {
+					if pruneErr := pruneQualifiedCampaigns(config.ArtifactRoot, opened); pruneErr != nil {
+						return report, fmt.Errorf("prune qualified artifacts of %s seed %d: %w", workload.ID, seed, pruneErr)
+					}
+					seedReport.ArtifactsPruned = true
 				}
 				report.Workloads[index].Seeds = append(report.Workloads[index].Seeds, seedReport)
 				addSeedTotals(&report, seedReport)
@@ -921,6 +937,9 @@ func validateSetReport(report Report) error {
 		for seedIndex, seed := range workload.Seeds {
 			if seed.Choice.Features == nil || seed.ChoiceReplayExact && (!seed.Replayed || !seed.ReplayMatch || !seed.Choice.ExactReplayAvailable || seed.Choice.TapeSHA256 == "") || !validSetClassification(seed.Classification) || seedIndex >= len(report.Seeds) || seed.Seed != report.Seeds[seedIndex] {
 				return fmt.Errorf("qualification set workload %s seed evidence is invalid", workload.ID)
+			}
+			if seed.ArtifactsPruned && (!report.QualifiedArtifactsPruned || seed.Classification != "qualified" || !seed.Replayed || !seed.ReplayMatch) {
+				return fmt.Errorf("qualification set workload %s pruned artifacts it had not qualified and replayed", workload.ID)
 			}
 		}
 		if workload.Choice.ExactReplayAvailable && (!workload.Choice.Available || workload.Choice.Profile != choice.Profile) {
