@@ -617,6 +617,16 @@ the collector's view of live memory does not depend on when the host answered;
 simulation transport reads are exempt because they block until the simulation
 advances.
 
+At the start of every mark phase, while the world is still stopped, the
+runtime greys every M with its g0 and gsignal and every goroutine, and an idle
+M does not keep the `allp` snapshot that `findRunnable` takes before dropping
+its P. Which M runs a goroutine after a syscall hand-off, and which Ms park
+through `findRunnable`, are host timing; the collector otherwise shaded those
+structures from the write barrier or from the parked M at host-timed points,
+and because the assist that ends a mark phase stops on a work boundary, the
+same-seed run-queue order of a cluster-sized target diverged from its first
+collection on darwin/arm64.
+
 On darwin/arm64 an activated target re-executes itself once with ASLR
 disabled before runtime initialization continues. The darwin/arm64 linker
 produces only position-independent executables and the kernel slides every

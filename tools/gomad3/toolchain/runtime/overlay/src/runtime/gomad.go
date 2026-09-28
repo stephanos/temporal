@@ -827,6 +827,30 @@ func gomadMarkWorkerAllowed(pp *p) bool {
 	return !runqempty(pp) || !sched.runq.empty() || !work.assistQueue.q.empty()
 }
 
+// gomadGreyRuntimeStructures greys every m, its g0 and gsignal, and every g
+// while the world is still stopped at mark start. Which M runs a goroutine
+// after a syscall hand-off is host timing, and execute's gp.m = mp write
+// shades that M through the write barrier; an M scanned early also greys its
+// curg and g0 early. With the classic collector the total scan work of these
+// objects is fixed, but the assist that ends the mark phase stops on a work
+// boundary, so greying them at a host-timed moment moved that boundary between
+// same-seed runs. Greying them all here, in allm and allgs order, puts the
+// same work at the same point of every cycle.
+func gomadGreyRuntimeStructures() {
+	for mp := allm; mp != nil; mp = mp.alllink {
+		shade(uintptr(unsafe.Pointer(mp)))
+		if mp.g0 != nil {
+			shade(uintptr(unsafe.Pointer(mp.g0)))
+		}
+		if mp.gsignal != nil {
+			shade(uintptr(unsafe.Pointer(mp.gsignal)))
+		}
+	}
+	forEachG(func(gp *g) {
+		shade(uintptr(unsafe.Pointer(gp)))
+	})
+}
+
 // gomadArrivals holds goroutines whose host syscall returned while another
 // goroutine held the P. The host decides when such a syscall returns, so a
 // goroutine is admitted only once the P has nothing else to run, one per idle

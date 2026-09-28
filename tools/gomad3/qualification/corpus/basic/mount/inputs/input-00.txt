@@ -1,0 +1,12 @@
+input 00 line 000 5513e3eabba6d75402c1c34c
+input 00 line 001 a93875fe509ac2fae0e0939d
+input 00 line 002 9dc6366a2003d418ace6b6c7
+input 00 line 003 ecbe93f9c7fbf3c6a01b3bff
+input 00 line 004 341a66fe9750f5ee9b016bb2
+input 00 line 005 c2f817b7c4677f4f428d0a88
+input 00 line 006 67c37a4a0e9b3ba242292b85
+input 00 line 007 8cc99d736ffa5304e6de4440
+input 00 line 008 c42c02c8e37202ff4a884733
+input 00 line 009 83a3bc0957c3a54c24dae9b8
+input 00 line 010 0defac9f07c4e1ee79de868e
+input 00 line 011 7946ce37994acad4dd4fab92

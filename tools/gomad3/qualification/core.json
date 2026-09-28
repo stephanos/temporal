@@ -3,7 +3,9 @@
   "name": "gomad3-core",
   "description": "Fast application-neutral Gomad v3 mechanism qualification",
   "module": "gomad3.core.corpus",
-  "seeds": [17],
+  "seeds": [
+    17
+  ],
   "repeat": 2,
   "run_timeout": "2m",
   "overall_timeout": "5m",
@@ -89,6 +91,31 @@
       }
     },
     {
+      "id": "mount-reads-under-collection",
+      "name": "Mount reads under collection",
+      "tier": 1,
+      "capability_mode": "closure",
+      "invariant": "read-only mount lookups that hand the P off while the collector cycles leave the schedule repeatable",
+      "package": "./basic/mount",
+      "test": "TestMountReadsUnderCollectionAreRepeatable",
+      "read_only_mounts": [
+        {
+          "source": "./basic/mount/inputs",
+          "target": "/inputs"
+        }
+      ],
+      "required_probes": [
+        "stdlib.os.file.read"
+      ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "sqlite-transaction",
       "name": "SQLite transaction",
       "tier": 1,
@@ -96,6 +123,25 @@
       "invariant": "SQLite commit and rollback preserve transactional state",
       "package": "./thirdparty/persistence",
       "test": "TestSQLiteCommitAndRollbackPreserveState",
+      "required_probes": [
+        "stdlib.os.getpid"
+      ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "sqlite-write-ahead-log",
+      "name": "SQLite write-ahead log",
+      "tier": 1,
+      "capability_mode": "closure",
+      "invariant": "a WAL-mode SQLite database maps its shared index through the modeled libc boundary and reads back a committed write",
+      "package": "./thirdparty/persistence",
+      "test": "TestSQLiteWriteAheadLogCommitIsReadable",
       "required_probes": [
         "stdlib.os.getpid"
       ],

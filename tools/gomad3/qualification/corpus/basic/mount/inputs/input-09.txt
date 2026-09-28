@@ -1,0 +1,12 @@
+input 09 line 000 269439fd152149fec49151e1
+input 09 line 001 465db89f720332c01df16495
+input 09 line 002 8eb625d3c0595535af2fa65c
+input 09 line 003 d108ac7694c474f4792f5d88
+input 09 line 004 aceea65272192df3e9cee56f
+input 09 line 005 7af8536c5a4c2206aea984bc
+input 09 line 006 f3981b386ec256dcbf97c2b9
+input 09 line 007 7ed0a593a2d98187aa7e7b76
+input 09 line 008 94bde72ac7ab146ef3b3e3e6
+input 09 line 009 7ec3d7b0d7f20085c6a51336
+input 09 line 010 e1df727a224cdcb375a5f0b8
+input 09 line 011 c6bf1e8db18754ed2f9f65e3
