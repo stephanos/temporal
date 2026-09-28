@@ -7,6 +7,7 @@ import Umpire.Command.Schema
 import Umpire.Command.Registry
 import Umpire.Command.Predicate
 import Umpire.Command.Instances
+import Umpire.Command.Compose
 import Umpire.Command.Refinement
 import Umpire.Command.Claims
 import Umpire.Command.Coverage
@@ -255,6 +256,18 @@ private partial def actionKeyOf (stx : Term) : String :=
   | `($number:num) => toString number.getNat
   | _ => (stx.raw.reprint.getD "").trimAscii.toString
 
+/-- The key a `when:` line or a Scenario action names on a composition: a dotted `field.action` is
+that member's own action, keyed `field_action`, and a bare name is a `sync:` name, with any class
+written after either joined the way `actionKeyOf` joins it. -/
+private partial def composedActionKeyOf (stx : Term) : String :=
+  let components := fun (head : Ident) => head.getId.eraseMacroScopes.components.map (·.toString)
+  match stx with
+  | `(($inner)) => composedActionKeyOf inner
+  | `($head:ident $arguments*) => Compose.referenceKey (components head)
+      (arguments.toList.map fun argument => actionKeyOf ⟨argument.raw⟩)
+  | `($head:ident) => Compose.referenceKey (components head) []
+  | _ => actionKeyOf stx
+
 /-- The arity a predicate's type has over the machine's `Step`, or the reason it has none. -/
 private def predicateArity (predicateRef : Term) (stateDecl outcomeDecl factDecl : Name)
     (type : Expr) : CommandElabM Nat := liftTermElabM do
@@ -392,12 +405,23 @@ private def declarationKeyword (word : String) : Lean.Parser.Parser :=
 /-- The `when:` line of a same-step claim: the Action, bare or with its class applied. -/
 syntax propertyWhen := "when:" term
 
+/-- The state and outcome domains a predicate is enumerated over: a machine's are its domains'
+members, and a composition's are its catalogs, because its state structure is the author's and
+enumerates nothing -- the states are the ones the composition reaches. -/
+private def enumeratedDomains (declaredModel : Registry.ModelEntry) :
+    CommandElabM (Term × Term) := do
+  if (Registry.composition? (← getEnv) declaredModel.declName).isSome then
+    let composed := mkIdent declaredModel.declName
+    pure (← `(($composed).states), ← `(($composed).outcomes))
+  else
+    pure (← `(Umpire.Command.members (α := $(mkIdent declaredModel.stateType))),
+      ← `(Umpire.Command.members (α := $(mkIdent declaredModel.outcomeType))))
+
 /-- The definition that enumerates a same-step claim over the machine's table. -/
 private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
     (key : String) (predicateRef : Term) : CommandElabM (TSyntax `command) := do
   let machineName := declaredModel.declName
-  let stateType := mkIdent declaredModel.stateType
-  let outcomeType := mkIdent declaredModel.outcomeType
+  let (states, outcomes) ← enumeratedDomains declaredModel
   let stateKeyFor := mkIdent (machineName ++ `stateKeyFor)
   let outcomeKeyFor := mkIdent (machineName ++ `outcomeKeyFor)
   let factKeyFor := mkIdent (machineName ++ `factKeyFor)
@@ -406,8 +430,8 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
   let keyLiteral := Lean.quote key
   `(command|
     def $enumeratedName : Umpire.Command.EnumeratedProperty := Umpire.Command.enumerateSameStep
-      (Umpire.Command.members (α := $stateType))
-      (Umpire.Command.members (α := $outcomeType))
+      $states
+      $outcomes
       { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
       $keyLiteral
       (($transitions).filter (fun row => $actionKeyFor row.action == $keyLiteral)
@@ -418,16 +442,15 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
 private def transitionCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
     (predicateRef : Term) : CommandElabM (TSyntax `command) := do
   let machineName := declaredModel.declName
-  let stateType := mkIdent declaredModel.stateType
-  let outcomeType := mkIdent declaredModel.outcomeType
+  let (states, outcomes) ← enumeratedDomains declaredModel
   let stateKeyFor := mkIdent (machineName ++ `stateKeyFor)
   let outcomeKeyFor := mkIdent (machineName ++ `outcomeKeyFor)
   let factKeyFor := mkIdent (machineName ++ `factKeyFor)
   let transitions := mkIdent (machineName ++ `transitions)
   `(command|
     def $enumeratedName : Umpire.Command.EnumeratedProperty := Umpire.Command.enumerateTransition
-      (Umpire.Command.members (α := $stateType))
-      (Umpire.Command.members (α := $outcomeType))
+      $states
+      $outcomes
       { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
       ($transitions)
       ($predicateRef))
@@ -449,7 +472,9 @@ elab propertyKeyword name:ident
       | some trigger => do
           let `(propertyWhen| when: $actionRef:term) := trigger
             | throwErrorAt trigger "unsupported `when:` line"
-          let key := actionKeyOf actionRef
+          let key := if (Registry.composition? (← getEnv) declaredModel.declName).isSome then
+              composedActionKeyOf actionRef
+            else actionKeyOf actionRef
           unless declaredModel.actions.contains key do
             throwErrorAt actionRef (unknownMemberMessage "action" key
               (declaredModel.actions.toList.map Name.mkSimple))
@@ -563,11 +588,23 @@ elab scenarioKeyword name:ident
     -- The setup state must be one the Model can start in, not merely one it declares. A machine
     -- over a structured state keys a state by every field, and a `starts:` line names its phase:
     -- the one start state whose first field holds that spelling is the one meant.
+    --
+    -- A composition's start state is named by its key, or by one member's value,
+    -- `workflow.pending`: the one start state whose member holds it.
+    let composition := Registry.composition? (← getEnv) declaredModel.declName
     let startKey ← do
       let spelling := setupRef.getId.eraseMacroScopes.toString
-      let byPhase := declaredModel.starts.filter fun key =>
-        !declaredModel.starts.contains spelling &&
-          ((key.splitOn "-").head?).getD key == spelling
+      let written := setupRef.getId.eraseMacroScopes.components
+      let byPhase : Array String := match composition, written with
+        | some composed, [field, value] =>
+            let holds := fun (entry : String × Array (String × String)) => entry.2.any
+              fun (member, key) =>
+                member == field.toString && Compose.actionName key == value.toString
+            (composed.starts.filter holds).map (·.1)
+        | some _, _ => #[]
+        | none, _ => declaredModel.starts.filter fun key =>
+            !declaredModel.starts.contains spelling &&
+              ((key.splitOn "-").head?).getD key == spelling
       match byPhase.toList with
       | [key] => pure key
       | _ => resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
@@ -593,14 +630,24 @@ elab scenarioKeyword name:ident
       let `(scenarioAction| $actionRef:ident $[$arguments?:scenarioArguments]? $[$number?:num]?) :=
           entry
         | throwErrorAt entry "unsupported action"
-      let spelling ← match arguments? with
-        | none =>
+      -- On a composition a dotted action is a member's own and a bare one a `sync:` name, both
+      -- keyed the way the composed catalog keys them.
+      let components := actionRef.getId.eraseMacroScopes.components.map (·.toString)
+      let spelling ← match arguments?, composition with
+        | none, some _ =>
+            let key := Compose.referenceKey components []
+            unless declaredModel.actions.contains key do
+              throwErrorAt actionRef (unknownMemberMessage "action" key
+                (declaredModel.actions.toList.map Name.mkSimple))
+            pure key
+        | none, none =>
             resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
-        | some arguments =>
+        | some arguments, _ =>
             let `(scenarioArguments| ($inputs:term,*)) := arguments
               | throwErrorAt arguments "unsupported action"
-            let key := "-".intercalate (actionRef.getId.eraseMacroScopes.getString! ::
-              inputs.getElems.toList.map fun input => actionKeyOf ⟨input.raw⟩)
+            let classKeys := inputs.getElems.toList.map fun input => actionKeyOf ⟨input.raw⟩
+            let key := if composition.isSome then Compose.referenceKey components classKeys
+              else "-".intercalate (actionRef.getId.eraseMacroScopes.getString! :: classKeys)
             unless declaredModel.actions.contains key do
               throwErrorAt entry (unknownMemberMessage "action" key
                 (declaredModel.actions.toList.map Name.mkSimple))
@@ -2498,6 +2545,502 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       | none => .anonymous })
 
 
+/-! ### The compose command
+
+A composition is one Model built from several machines: the author's state structure has one field
+per member, `members:` says which machine each field holds, and `sync:` says which members' actions
+are one step. It defines no behavior of its own. Every row is a combination of member rows, walked
+by `Umpire.Command.Compose` from the composed start states and emitted as a literal table, so what a
+Query searches is what the member tables authorize together.
+
+The Action, Outcome and Fact domains are generated as tagged unions with one constructor per member
+field, wrapping that member's own type, and one Action constructor per `sync:` line: two members'
+catalogs share keys -- `accepted` twice -- and the union keeps them apart, so a predicate writes
+`step.facts.contains (.job .replied)`. The state structure is the author's, because a predicate
+reads its field names; it derives no `Finite`, and the states the composition reaches are its
+catalog. -/
+
+/-- One `sync:` line: the synchronized action's name and its participants, each `field.action`. -/
+syntax composeSync := ident ":" sepBy1(ident, " ∥ ")
+
+/-- One indented key of a `compose` declaration. -/
+declare_syntax_cat composeKey
+syntax "for:" "[" ident,+ "]" : composeKey
+syntax "state:" ident : composeKey
+syntax "members:" withPosition((colGe ident ":" ident)+) : composeKey
+syntax "sync:" withPosition((colGe composeSync)+) : composeKey
+syntax "starts:" "[" ident,+ "]" : composeKey
+syntax "ends:" "[" ident,+ "]" : composeKey
+
+@[run_parser_attribute_hooks] private def composeKeyword := declarationKeyword "compose"
+
+private def composedStateMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a structure; a composition's `state:` names a structure with one field per \
+member, whose field names are what a predicate reads"
+
+private def memberFieldUnderscoreMessage (field : String) : String :=
+  s!"member field '{field}' contains '_'; a composed key joins a member's own key to its field with \
+`_`, so a field name carries none"
+
+private def notAStateFieldMessage (field : String) (fields : List String) : String :=
+  s!"'{field}' is not a field of the composition's state structure; its fields are \
+{", ".intercalate fields}"
+
+private def unlistedFieldMessage (field : String) : String :=
+  s!"the state structure's field '{field}' has no `members:` line; every field holds one member"
+
+private def memberNotMachineMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a machine declared by a `machine` command; each member is a machine"
+
+private def memberStateMessage (field : String) (machine expected : Name) (found : Expr) :
+    MessageData :=
+  m!"the field '{field}' is {found}, and '{machine}' keeps {expected}; a member field holds its \
+machine's state"
+
+private def untrackedEntityMessage (machine entity : Name) : String :=
+  s!"'{machine}' tracks '{entity}', which `for:` does not name; `for:` names every entity the \
+members track"
+
+private def unusedEntityMessage (entity : String) : String :=
+  s!"no member tracks '{entity}'; `for:` names the entities the members track"
+
+private def composedValueMessage (spelling : String) (fields : List String) : String :=
+  s!"'{spelling}' names no value of a member field; `starts:` and `ends:` name `field.value`, one \
+of the member fields {", ".intercalate fields} and a value its machine's state holds"
+
+private def unstartedValueMessage (spelling : String) : String :=
+  s!"no start state of the member holds '{spelling}'; a composition starts each member where its \
+machine starts"
+
+private def participantShapeMessage (spelling : String) : String :=
+  s!"'{spelling}' is not `field.action`; a `sync:` participant names a member field and one of its \
+actions"
+
+private def syncNameMessage (spelling : String) : String :=
+  s!"'{spelling}' is already a member field or `sync:` name; each synchronized action is named once \
+and apart from the members"
+
+private def neverEnabledMessage (key : String) : String :=
+  s!"'{key}' is never enabled: no composed state the composition reaches has a row for it, so its \
+catalog leaves it out"
+
+/-- Whether a member state holds a value in one of its fields, spelled the way `starts:` and `ends:`
+spell it: an enum member's own name, or a class's constructor. -/
+private def holdsValue (state : ClassValue) (spelling : String) : Bool :=
+  match state with
+  | .applied _ fields => fields.any fun (_, held) => match held with
+      | .atom declared => declared.getString! == spelling
+      | .applied constructor _ => constructor.getString! == spelling
+  | .atom _ => false
+
+/-- One member as the command resolved it: its field, the machine and Model it holds, and each of
+that machine's domains as the class trees whose keys its table carries. -/
+private structure ComposedMember where
+  field : String
+  ref : Ident
+  machine : Registry.MachineEntry
+  model : Registry.ModelEntry
+  states : List ClassValue
+  actions : List ClassValue
+  outcomes : List ClassValue
+  facts : List ClassValue
+  /-- Whether the machine's state has one field, which is then lowered under the member field's
+  own name. -/
+  single : Bool
+  rows : List Compose.KeyRow
+  deriving Inhabited
+
+private unsafe def evalKeyRowsUnsafe (machine : Name) :
+    Elab.Term.TermElabM (List Compose.KeyRow) := do
+  let rows ← Meta.mkAppM ``Umpire.Command.Compose.keyRows #[← mkConstWithLevelParams machine]
+  Meta.evalExpr (List Compose.KeyRow)
+    (.app (.const ``List [Level.zero]) (.const ``Umpire.Command.Compose.KeyRow [])) rows
+
+/-- A member's rows by key, read off the Model its `machine` command declared. -/
+@[implemented_by evalKeyRowsUnsafe]
+private opaque evalKeyRows (machine : Name) : Elab.Term.TermElabM (List Compose.KeyRow)
+
+elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => do
+  let mut entityRefs : Array Ident := #[]
+  let mut stateRef : Option Ident := none
+  let mut memberRefs : Array (Ident × Ident) := #[]
+  let mut syncRefs : Array (Syntax × Ident × Array Ident) := #[]
+  let mut startRefs : Array Ident := #[]
+  let mut endRefs : Array Ident := #[]
+  for entry in keys do
+    match entry with
+    | `(composeKey| for: [$entityList,*]) => do
+        if !entityRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "compose" "for:")
+        entityRefs := entityList.getElems
+    | `(composeKey| state: $typeRef:ident) => do
+        if stateRef.isSome then throwErrorAt entry (duplicateKeyMessage "compose" "state:")
+        stateRef := some typeRef
+    | `(composeKey| members: $[$fields:ident : $machines:ident]*) => do
+        if !memberRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "compose" "members:")
+        memberRefs := fields.zip machines
+    | `(composeKey| sync: $[$lines:composeSync]*) => do
+        if !syncRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "compose" "sync:")
+        for line in lines do
+          let `(composeSync| $syncName:ident : $participants∥*) := line
+            | throwErrorAt line "unsupported `sync:` line"
+          syncRefs := syncRefs.push (line, syncName, participants.getElems)
+    | `(composeKey| starts: [$values,*]) => do
+        if !startRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "compose" "starts:")
+        startRefs := values.getElems
+    | `(composeKey| ends: [$values,*]) => do
+        if !endRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "compose" "ends:")
+        endRefs := values.getElems
+    | _ => throwErrorAt entry "unsupported compose key"
+  let some stateType := stateRef
+    | throwErrorAt name (missingKeyMessage "compose" "state:")
+  if entityRefs.isEmpty then throwErrorAt name (missingKeyMessage "compose" "for:")
+  if memberRefs.isEmpty then throwErrorAt name (missingKeyMessage "compose" "members:")
+  if startRefs.isEmpty then throwErrorAt name (missingKeyMessage "compose" "starts:")
+  if endRefs.isEmpty then throwErrorAt name (missingKeyMessage "compose" "ends:")
+  let entities ← entityRefs.mapM resolveEntity
+  let stateDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
+  let environment ← getEnv
+  unless isStructure environment stateDecl do
+    throwErrorAt stateType (composedStateMessage stateType.getId)
+  -- The members are taken in the structure's field order, never in the order the `members:` lines
+  -- are written: that order is the composed key's, and it is the author's structure that says it.
+  let fieldNames := (getStructureFieldsFlattened environment stateDecl
+    (includeSubobjectFields := false)).map (·.toString)
+  let spellingOf := fun (ref : Ident) => ref.getId.eraseMacroScopes.toString
+  for (fieldRef, _) in memberRefs do
+    let field := spellingOf fieldRef
+    if field.contains '_' then throwErrorAt fieldRef (memberFieldUnderscoreMessage field)
+    unless fieldNames.contains field do
+      throwErrorAt fieldRef (notAStateFieldMessage field fieldNames.toList)
+    if (memberRefs.filter fun (other, _) => spellingOf other == field).size > 1 then
+      throwErrorAt fieldRef (duplicateKeyMessage "compose" field)
+  let stateTypeExpr ← liftTermElabM (mkConstWithLevelParams stateDecl)
+  let mut members : Array ComposedMember := #[]
+  for field in fieldNames do
+    let some (fieldRef, machineRef) := memberRefs.find? fun (other, _) => spellingOf other == field
+      | throwErrorAt stateType (unlistedFieldMessage field)
+    let machineName? ← try
+        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo machineRef)
+      catch failure =>
+        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    let some machine := machineName?.bind (Registry.machine? environment)
+      | throwErrorAt machineRef (memberNotMachineMessage machineRef.getId)
+    let some model := Registry.model? environment machine.declName
+      | throwErrorAt machineRef (memberNotMachineMessage machineRef.getId)
+    liftTermElabM do
+      let fieldType ← Meta.inferType
+        (← Meta.mkProjection (← Meta.mkFreshExprMVar stateTypeExpr) (Name.mkSimple field))
+      unless ← Meta.isDefEq fieldType (← mkConstWithLevelParams model.stateType) do
+        throwErrorAt fieldRef (memberStateMessage field machine.declName model.stateType fieldType)
+    unless entities.any (·.declName == machine.entity) do
+      throwErrorAt machineRef (untrackedEntityMessage machine.declName machine.entity)
+    members := members.push {
+      field, ref := fieldRef, machine, model
+      states := ← domainMembers machineRef model.stateType
+      actions := ← domainMembers machineRef model.actionType
+      outcomes := ← domainMembers machineRef model.outcomeType
+      facts := ← domainMembers machineRef model.factType
+      single := (getStructureFieldsFlattened environment model.stateType
+        (includeSubobjectFields := false)).size == 1
+      rows := ← liftTermElabM (evalKeyRows machine.declName) }
+  for (entity, entityRef) in entities.zip entityRefs do
+    unless members.any (·.machine.entity == entity.declName) do
+      throwErrorAt entityRef (unusedEntityMessage entity.name)
+  -- `starts:` and `ends:` name one member's value, `field.value`.
+  let resolveValue : Ident → CommandElabM (Nat × String) := fun valueRef => do
+    let spelling := valueRef.getId.eraseMacroScopes.toString
+    match valueRef.getId.eraseMacroScopes.components.map (·.toString) with
+    | [field, value] =>
+        match members.findIdx? (·.field == field) with
+        | some slot =>
+            unless members[slot]!.states.any (holdsValue · value) do
+              throwErrorAt valueRef (composedValueMessage spelling fieldNames.toList)
+            pure (slot, value)
+        | none => throwErrorAt valueRef (composedValueMessage spelling fieldNames.toList)
+    | _ => throwErrorAt valueRef (composedValueMessage spelling fieldNames.toList)
+  let startValues ← startRefs.mapM fun startRef => do pure (startRef, ← resolveValue startRef)
+  let endValues ← endRefs.mapM resolveValue
+  -- A member named under `starts:` starts where its machine starts and holds a named value; one
+  -- not named starts wherever its machine does.
+  let mut composeMembers : Array Compose.Member := #[]
+  for (member, slot) in members.zipIdx do
+    let named := startValues.filter fun (_, at?, _) => at? == slot
+    let holds := fun (key : String) (value : String) =>
+      (member.states.find? (·.key == key)).any (holdsValue · value)
+    for (startRef, _, value) in named do
+      unless member.model.starts.any (holds · value) do
+        throwErrorAt startRef (unstartedValueMessage startRef.getId.eraseMacroScopes.toString)
+    composeMembers := composeMembers.push {
+      field := member.field
+      actions := member.model.actions.toList
+      timers := member.machine.timers.toList
+      starts := member.model.starts.toList.filter fun key =>
+        named.isEmpty || named.any fun (_, _, value) => holds key value
+      rows := member.rows }
+  let mut syncLines : Array Compose.SyncLine := #[]
+  let mut taken : Array String := fieldNames
+  for (_, syncName, participants) in syncRefs do
+    let spelling := spellingOf syncName
+    if taken.contains spelling then throwErrorAt syncName (syncNameMessage spelling)
+    taken := taken.push spelling
+    let resolved ← participants.mapM fun participant => do
+      match participant.getId.eraseMacroScopes.components.map (·.toString) with
+      | [field, action] => pure (field, action)
+      | _ => throwErrorAt participant (participantShapeMessage participant.getId.toString)
+    syncLines := syncLines.push { name := spelling, participants := resolved.toList }
+  -- Where a refusal belongs: the participant it names, the `sync:` line, or the member.
+  let lineRef := fun (line : Nat) => ((syncRefs[line]?).map (·.1)).getD name.raw
+  let memberRef := fun (field : String) =>
+    ((members.find? (·.field == field)).map (·.ref.raw)).getD name.raw
+  let refOf : Compose.ComposeError → Syntax := fun error => match error with
+    | .unknownParticipant line field action | .timerSynchronized line field action =>
+        (((syncRefs[line]?).bind fun (_, _, participants) => participants.find? fun participant =>
+          participant.getId.eraseMacroScopes.toString == field ++ "." ++ action).map (·.raw)).getD
+          (lineRef line)
+    | .repeatedParticipant line _ | .inputMismatch line _ _ | .productTooLarge line _ _ _ =>
+        lineRef line
+    | .unsynchronizedShared _ fields => memberRef ((fields.getLast?).getD "")
+    | .boundExceeded _ _ _ => name.raw
+  let enclosing ← getCurrNamespace
+  let conventions := Registry.conventionsFor environment enclosing
+  let origin := Origin.of conventions.root (semanticFamilyOf conventions.namespacePrefix enclosing)
+    (modulePath (← getMainModule))
+  let ownerKey := Compose.owner name.getId.toString
+  let candidates ← match Compose.candidates composeMembers.toList syncLines.toList with
+    | .ok candidates => pure candidates
+    | .error error => throwErrorAt (refOf error) error.message
+  let walked ← match Compose.walk origin ownerKey composeMembers.toList candidates with
+    | .ok walked => pure walked
+    | .error error => throwErrorAt (refOf error) error.message
+  for dropped in walked.dropped do
+    let anchor := match dropped.sync, dropped.participants.head? with
+      | some line, _ => lineRef line
+      | none, some (slot, _) => memberRef members[slot]!.field
+      | none, none => name.raw
+    logWarningAt anchor (neverEnabledMessage dropped.key)
+  -- The generated domains: one constructor per member field wrapping its own type, and one
+  -- Action constructor per `sync:` line carrying its classed participant's inputs.
+  let declared := enclosing ++ name.getId
+  let declaredBefore := environment.contains declared
+  let actionType := mkIdentFrom name (name.getId ++ `Action)
+  let outcomeType := mkIdentFrom name (name.getId ++ `Outcome)
+  let factType := mkIdentFrom name (name.getId ++ `Fact)
+  let actionDecl := enclosing ++ actionType.getId
+  let outcomeDecl := enclosing ++ outcomeType.getId
+  let factDecl := enclosing ++ factType.getId
+  let wrapping := fun (typeOf : ComposedMember → Name) => members.mapM fun member => do
+    let binder ← `(Lean.Parser.Term.bracketedBinderF|
+      ($(mkIdent `value) : $(mkIdent (typeOf member))))
+    `(Lean.Parser.Command.ctor|
+      | $(mkIdent (Name.mkSimple member.field)):ident $binder:bracketedBinder)
+  let classedAction := fun (line : Compose.SyncLine) =>
+    line.participants.findSome? fun (field, action) =>
+      (members.find? (·.field == field)).bind fun member =>
+        if member.model.actions.contains action then none
+        else member.machine.actionDecls.findSome? fun actionDecl =>
+          (Registry.action? environment actionDecl).filter (·.name == action)
+  let syncConstructors ← syncLines.mapM fun line => do
+    let inputs := ((classedAction line).map (·.inputFields)).getD #[]
+    let binders ← inputs.mapM fun (field, domain) =>
+      `(Lean.Parser.Term.bracketedBinderF| ($(mkIdent (Name.mkSimple field)) : $(mkIdent domain)))
+    `(Lean.Parser.Command.ctor| | $(mkIdent (Name.mkSimple line.name)):ident $binders*)
+  let actionConstructors := (← wrapping (·.model.actionType)) ++ syncConstructors
+  elabGenerated (← `(command|
+    inductive $actionType where
+      $actionConstructors:ctor*
+      deriving BEq, DecidableEq, Repr))
+  let outcomeConstructors ← wrapping (·.model.outcomeType)
+  elabGenerated (← `(command|
+    inductive $outcomeType where
+      $outcomeConstructors:ctor*
+      deriving BEq, DecidableEq, Repr))
+  let factConstructors ← wrapping (·.model.factType)
+  elabGenerated (← `(command|
+    inductive $factType where
+      $factConstructors:ctor*
+      deriving BEq, DecidableEq, Repr))
+  -- Terms for the values the walk named by key.
+  let stateConstructor := (getStructureCtor environment stateDecl).name
+  let stateTerm : List String → CommandElabM Term := fun components => do
+    let mut arguments : Array Term := #[]
+    for (key, member) in components.zip members.toList do
+      let some value := member.states.find? (·.key == key)
+        | throwErrorAt name s!"no state '{key}' of member '{member.field}'"
+      arguments := arguments.push (← value.term)
+    `($(mkIdent stateConstructor) $arguments*)
+  -- A composed outcome or fact key is `field_key`, and a field has no `_`.
+  let memberValueTerm : Name → (ComposedMember → List ClassValue) → String →
+      CommandElabM Term := fun typeDecl pick composed => do
+      let (field, key) := match composed.splitOn "_" with
+        | field :: rest => (field, "_".intercalate rest)
+        | [] => ("", "")
+      let some member := members.find? (·.field == field)
+        | throwErrorAt name s!"no member '{field}'"
+      let some value := (pick member).find? (·.key == key)
+        | throwErrorAt name s!"no value '{key}' of member '{field}'"
+      `($(mkIdent (typeDecl ++ Name.mkSimple field)) $(← value.term))
+  let classedValue : Compose.Candidate → Option ClassValue := fun candidate =>
+    candidate.participants.findSome? fun (slot, key) =>
+      if Compose.actionName key == key then none else members[slot]!.actions.find? (·.key == key)
+  let actionTerm : Compose.Candidate → CommandElabM Term := fun candidate => do
+    match candidate.sync with
+    | none =>
+        let some (slot, key) := candidate.participants.head?
+          | throwErrorAt name s!"no participant of '{candidate.key}'"
+        let member := members[slot]!
+        let some value := member.actions.find? (·.key == key)
+          | throwErrorAt name s!"no action '{key}' of member '{member.field}'"
+        `($(mkIdent (actionDecl ++ Name.mkSimple member.field)) $(← value.term))
+    | some line =>
+        let arguments ← match classedValue candidate with
+          | some (.applied _ fields) => fields.mapM (·.2.term)
+          | _ => pure #[]
+        `($(mkIdent (actionDecl ++ Name.mkSimple syncLines[line]!.name)) $arguments*)
+  let isTerminal := fun (components : List String) => endValues.any fun (slot, value) =>
+    (members[slot]!.states.find? (·.key == (components[slot]?).getD "")).any (holdsValue · value)
+  let quoteKeys : List String → Array Term := fun keys => (keys.map Lean.quote).toArray
+  let stateKeys := walked.states.map Compose.stateKey
+  let actionKeys := walked.actions.map (·.key)
+  let outcomeCatalog := members.toList.flatMap fun member =>
+    member.outcomes.map (Compose.memberKey member.field ·.key)
+  let factCatalog := members.toList.flatMap fun member =>
+    member.facts.map (Compose.memberKey member.field ·.key)
+  let statesName := mkIdentFrom name (name.getId ++ `states)
+  let actionsName := mkIdentFrom name (name.getId ++ `actions)
+  let outcomesName := mkIdentFrom name (name.getId ++ `outcomes)
+  let factsName := mkIdentFrom name (name.getId ++ `facts)
+  let stateKeysName := mkIdentFrom name (name.getId ++ `stateKeys)
+  let actionKeysName := mkIdentFrom name (name.getId ++ `actionKeys)
+  let outcomeKeysName := mkIdentFrom name (name.getId ++ `outcomeKeys)
+  let factKeysName := mkIdentFrom name (name.getId ++ `factKeys)
+  let stateTerms ← walked.states.toArray.mapM stateTerm
+  elabGenerated (← `(command| def $statesName : List $stateType := [$stateTerms,*]))
+  let actionTerms ← walked.actions.toArray.mapM actionTerm
+  elabGenerated (← `(command| def $actionsName : List $actionType := [$actionTerms,*]))
+  let outcomeTerms ← outcomeCatalog.toArray.mapM (memberValueTerm outcomeDecl (·.outcomes))
+  elabGenerated (← `(command| def $outcomesName : List $outcomeType := [$outcomeTerms,*]))
+  let factTerms ← factCatalog.toArray.mapM (memberValueTerm factDecl (·.facts))
+  elabGenerated (← `(command| def $factsName : List $factType := [$factTerms,*]))
+  -- The key functions every command that reads a Model by name reads, over the catalogs.
+  let keyFor := fun (suffix : Name) (keysName catalogName : Ident) (keys : List String)
+      (valueType : Ident) => do
+    elabGenerated (← `(command| def $keysName : Array String := #[$(quoteKeys keys),*]))
+    let keyForName := mkIdentFrom name (name.getId ++ suffix)
+    elabGenerated (← `(command|
+      def $keyForName (value : $valueType) : String :=
+        match ($catalogName).idxOf? value with
+        | some at? => ($keysName)[at?]!
+        | none => ""))
+  keyFor `stateKeyFor stateKeysName statesName stateKeys stateType
+  keyFor `actionKeyFor actionKeysName actionsName actionKeys actionType
+  keyFor `outcomeKeyFor outcomeKeysName outcomesName outcomeCatalog outcomeType
+  keyFor `factKeyFor factKeysName factsName factCatalog factType
+  let startsName := mkIdentFrom name (name.getId ++ `starts)
+  let terminalName := mkIdentFrom name (name.getId ++ `ends)
+  let startTerms ← walked.initial.toArray.mapM stateTerm
+  let terminalTerms ← (walked.states.filter isTerminal).toArray.mapM stateTerm
+  elabGenerated (← `(command| def $startsName : List $stateType := [$startTerms,*]))
+  elabGenerated (← `(command| def $terminalName : List $stateType := [$terminalTerms,*]))
+  let rowTerms ← walked.rows.toArray.mapM fun row => do
+    let some candidate := walked.actions.find? (·.key == row.action)
+      | throwErrorAt name s!"no action '{row.action}'"
+    let results ← row.results.toArray.mapM fun result => do
+      let facts ← result.facts.toArray.mapM (memberValueTerm factDecl (·.facts))
+      `({ outcome := $(← memberValueTerm outcomeDecl (·.outcomes) result.outcome)
+          state := $(← stateTerm result.state)
+          facts := [$facts,*] })
+    `({ key := $(Lean.quote (Compose.stateKey row.source ++ "-" ++ row.action))
+        source := $(← stateTerm row.source)
+        action := $(← actionTerm candidate)
+        results := [$results,*] })
+  let transitionsName := mkIdentFrom name (name.getId ++ `transitions)
+  elabGenerated (← `(command|
+    def $transitionsName :
+        List (Umpire.FiniteTransitionRow $stateType $actionType $outcomeType $factType) :=
+      [$rowTerms,*]))
+  -- The setup is the command's own, named after the first start state, as a machine's is.
+  let setupKey := Compose.stateKey ((walked.initial.head?).getD [])
+  let setupType := mkIdentFrom name (name.getId ++ `Setup)
+  let setupConstructor := Name.mkSimple setupKey
+  elabGenerated (← `(command|
+    inductive $setupType where
+      | $(mkIdent setupConstructor):ident
+      deriving BEq, DecidableEq, Repr))
+  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructor)
+  -- Each member's state fields are the composed state's own, `<field>_<memberField>`, or `<field>`
+  -- for a member whose state has one field: the member itself is never one field, because a
+  -- predicate over a nested structure would fix one field only as a disjunction across fields.
+  let loweredFields := fun (components : List String) =>
+    (components.zip members.toList).flatMap fun (key, member) =>
+      match member.states.find? (·.key == key) with
+      | some (.applied _ fields) => fields.toList.map fun (memberField, value) =>
+          (if member.single then member.field else member.field ++ "_" ++ memberField, value.key)
+      | _ => []
+  let stateFieldTerms ← walked.states.toArray.mapM fun components => do
+    let pairs ← (loweredFields components).toArray.mapM fun (field, spelling) =>
+      `(term| ($(Lean.quote field), $(Lean.quote spelling)))
+    `(term| [$pairs,*])
+  let actionClassTerms ← walked.actions.toArray.mapM fun candidate => do
+    let (actionName, value?) := match candidate.sync, candidate.participants.head? with
+      | some line, _ => (syncLines[line]!.name, classedValue candidate)
+      | none, some (slot, key) =>
+          (Compose.memberKey members[slot]!.field (Compose.actionName key),
+            members[slot]!.actions.find? (·.key == key))
+      | none, none => (candidate.key, none)
+    let held := match value? with
+      | some (.applied _ fields) => fields
+      | _ => #[]
+    let pairs ← held.mapM fun (field, value) =>
+      `(term| ($(Lean.quote field), $(Lean.quote value.render)))
+    `(term| ($(Lean.quote actionName), [$pairs,*]))
+  let names ← `(term|
+    { declaration := $(Lean.quote ownerKey)
+      roleName := $(Lean.quote name.getId.toString)
+      setup := $(Lean.quote setupKey)
+      stateKeys := [$(quoteKeys stateKeys),*]
+      stateFields := [$stateFieldTerms,*]
+      actionKeys := [$(quoteKeys actionKeys),*]
+      outcomeKeys := [$(quoteKeys outcomeCatalog),*]
+      factKeys := [$(quoteKeys factCatalog),*]
+      actionClasses := [$actionClassTerms,*] })
+  let originValue ← originTerm
+  elabGenerated (← `(command|
+    $[$doc?:docComment]? def $name := Umpire.Command.declareModel $originValue $names ($setupName)
+      $statesName $actionsName $outcomesName $factsName $startsName $terminalName
+      $transitionsName (by exact ⟨rfl, rfl, rfl⟩)))
+  if declaredBefore then
+    throwErrorAt name (alreadyDeclaredMessage declared)
+  unless (← getEnv).contains declared &&
+      !(← liftCoreM (Lean.collectAxioms declared)).contains ``sorryAx do
+    throwErrorAt name (unprovenTableMessage walked.states.length walked.actions.length)
+  liftCoreM (Registry.recordModel {
+    declName := declared
+    role := name.getId.toString
+    stateType := stateDecl
+    actionType := actionDecl
+    outcomeType := outcomeDecl
+    factType := factDecl
+    «states» := stateKeys.toArray
+    «actions» := actionKeys.toArray
+    «outcomes» := outcomeCatalog.toArray
+    «facts» := factCatalog.toArray
+    «starts» := (walked.initial.map Compose.stateKey).toArray })
+  liftCoreM (Registry.recordComposition {
+    declName := declared
+    name := name.getId.toString
+    stateType := stateDecl
+    members := members.map fun member => (member.field, member.machine.declName)
+    syncs := syncLines.map fun line => (line.name, line.participants.toArray)
+    starts := (walked.initial.map fun components =>
+      (Compose.stateKey components,
+        ((members.toList.map (·.field)).zip components).toArray)).toArray
+    timers := members.flatMap fun member =>
+      member.machine.timers.map (Compose.memberKey member.field)
+    unobservable := members.flatMap fun member =>
+      member.machine.unobservable.map (Compose.memberKey member.field)
+    evidence := members.flatMap fun member => member.machine.evidence.map fun (fact, observed) =>
+      (Compose.memberKey member.field fact, observed) })
+
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
   let mut read : Option Ident := none
@@ -2560,6 +3103,11 @@ except `system` to `driven` or `observed`"
 private def systemBoundMessage : String :=
   "`system` is the implementation under test and performs no declared action; a set binds every \
 other party and never `system`"
+
+private def composedSetMessage (spelling : String) (composition : Name) : String :=
+  s!"'{spelling}' runs on the composition '{composition}'; a composed Model is verified by `verify` \
+Queries and no set runs over one in version one, because no realization performs several \
+machines' actions as one Case"
 
 private def unknownPartyMessage (party : String) : String :=
   s!"no declared action is performed by party '{party}'; a set binds the parties the Model's \
@@ -2691,6 +3239,8 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
         some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo covered)
       catch failure =>
         if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    if let some composed := machineName?.bind (Registry.composition? environment) then
+      throwErrorAt covered (composedSetMessage covered.getId.toString composed.declName)
     let some declared := machineName?.bind (Registry.machine? environment)
       | throwErrorAt covered (notAMachineMessage covered.getId.toString)
     resolvedMachine := some (machineName?.getD .anonymous, declared)
@@ -2703,6 +3253,11 @@ elab doc?:(docComment)? setKeyword name:ident keys:setKey+ : command => do
         if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
     let some declared := queryName?.bind (Registry.query? environment)
       | throwErrorAt queryRef (undeclaredMessage "query" queryRef.getId)
+    -- Before anything reads the Query's machine: a composition is not one, and every check below
+    -- would report that as something else.
+    if let some composed := (Registry.scenario? environment declared.scenario).bind fun entry =>
+        Registry.composition? environment entry.model then
+      throwErrorAt queryRef (composedSetMessage queryRef.getId.toString composed.declName)
     resolvedQueries := resolvedQueries.push (queryRef, queryName?.getD .anonymous, declared)
   let steppedOn : Array Name := (resolvedQueries.flatMap fun (_, _, declared) =>
     match Registry.scenario? environment declared.scenario with

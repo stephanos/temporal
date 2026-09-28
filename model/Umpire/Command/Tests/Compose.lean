@@ -1,0 +1,694 @@
+import Umpire.Command
+
+/-!
+# The `compose` command
+
+A job and the agent that serves it, composed into one Model. The job replies once while pending,
+may be poked first, expires on a timer, and stutters on a halt; the agent halts, resumes, and serves
+while running. The composition synchronizes the two halts and the reply with the agent's `serve`, so
+a reply is a step only while the agent runs. Both members' outcomes are `accepted`, and the
+generated union keeps them apart.
+
+The same composition is declared three times: as written, with its `members:` and `sync:` lines
+reordered, and with its state structure's fields swapped. Each declares one `verify` Query under
+the same Definition IDs -- each namespace hangs its IDs off the same root -- so their Behavior
+Fingerprints compare the Models and nothing else. The other fixtures are the located errors the
+command reports, and one composition that never enables a synchronized action.
+-/
+
+namespace Umpire.Command.Tests.Compose
+
+open Umpire Umpire.Command
+
+model_conventions root "umpire" under Umpire.Command.Tests.Compose
+
+/-! ### The members -/
+
+namespace Job
+
+entity job
+  key: jobId
+
+enum Reply
+  | ok
+  | error
+
+enum JobPhase
+  | pending
+  | done
+  | failed
+
+structure JobState where
+  phase : JobPhase
+  poked : Bool
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum JobOutcome
+  | accepted
+
+enum JobFact
+  | replied
+  | expired
+
+action reply
+  party: agent
+  on: job
+  input:
+    result: Reply
+
+action halt
+  party: agent
+
+action poke
+  party: agent
+  on: job
+  input:
+    result: Reply
+
+/-- A pending job replies with the result it is given. -/
+def replyStep (state : JobState) (result : Reply) : List (Step JobState JobOutcome JobFact) :=
+  if state.phase != .pending then [] else
+  match result with
+  | .ok => [{ outcome := .accepted, state := { state with phase := .done }, facts := [.replied] }]
+  | .error =>
+      [{ outcome := .accepted, state := { state with phase := .failed }, facts := [.replied] }]
+
+/-- A halt the job does not feel. -/
+def haltStep (state : JobState) : List (Step JobState JobOutcome JobFact) :=
+  [{ outcome := .accepted, state, facts := [] }]
+
+/-- A pending job is poked, whatever the result. -/
+def pokeStep (state : JobState) (_ : Reply) : List (Step JobState JobOutcome JobFact) :=
+  if state.phase != .pending then [] else
+  [{ outcome := .accepted, state := { state with poked := true }, facts := [] }]
+
+/-- A pending job expires. -/
+def expireStep (state : JobState) : List (Step JobState JobOutcome JobFact) :=
+  if state.phase != .pending then [] else
+  [{ outcome := .accepted, state := { state with phase := .failed }, facts := [.expired] }]
+
+machine jobMachine
+  for: job
+  state: JobState
+  starts: [pending]
+  ends: [done, failed]
+  timers: [expire]
+  unobservable: [expire]
+  steps:
+    reply: replyStep
+    halt: haltStep
+    poke: pokeStep
+    expire: expireStep
+
+end Job
+
+namespace Agent
+
+entity agent
+  key: queue
+
+enum AgentPhase
+  | running
+  | halted
+
+structure AgentState where
+  phase : AgentPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum AgentOutcome
+  | accepted
+
+inductive AgentFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action halt
+  party: agent
+
+action resume
+  party: agent
+
+action serve
+  party: agent
+  on: agent
+
+def haltStep (state : AgentState) : List (Step AgentState AgentOutcome AgentFact) :=
+  if state.phase != .running then [] else
+  [{ outcome := .accepted, state := { phase := .halted }, facts := [] }]
+
+def resumeStep (state : AgentState) : List (Step AgentState AgentOutcome AgentFact) :=
+  if state.phase != .halted then [] else
+  [{ outcome := .accepted, state := { phase := .running }, facts := [] }]
+
+def serveStep (state : AgentState) : List (Step AgentState AgentOutcome AgentFact) :=
+  if state.phase != .running then [] else
+  [{ outcome := .accepted, state, facts := [] }]
+
+machine agentMachine
+  for: agent
+  state: AgentState
+  starts: [running]
+  ends: [running, halted]
+  steps:
+    halt: haltStep
+    resume: resumeStep
+    serve: serveStep
+
+end Agent
+
+/-! ### The composition, and a Query over it of each form -/
+
+namespace Forward
+
+model_conventions root "umpire" under Umpire.Command.Tests.Compose.Forward
+
+structure PipelineState where
+  job : Job.JobState
+  agent : Agent.AgentState
+  deriving BEq, DecidableEq, Repr
+
+compose pipeline
+  for: [Job.job, Agent.agent]
+  state: PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: job.halt ∥ agent.halt
+    reply: job.reply ∥ agent.serve
+  starts: [job.pending, agent.running]
+  ends: [job.done, job.failed]
+
+limits three
+  steps: 3
+  actions: 3
+  search: 64
+
+/- An ok reply to an unpoked job leaves it done with the agent running: one whole composed state,
+named field by field. -/
+property settled
+  machine: pipeline
+  when: reply ok
+  holds: fun step =>
+    step.state.job.phase == .done && !step.state.job.poked && step.state.agent.phase == .running
+
+scenario replied
+  model: pipeline
+  starts: job.pending
+  actions: [reply (ok)]
+
+query settles
+  verify: settled
+  in: replied
+  limits: three
+
+/- A poked job that expires while the agent is halted. -/
+property expiredWhileHalted
+  machine: pipeline
+  when: job.expire
+  holds: fun step =>
+    step.state.job.phase == .failed && step.state.job.poked && step.state.agent.phase == .halted
+
+scenario outage
+  model: pipeline
+  starts: job.pending
+  actions: [job.poke (ok), halt, job.expire]
+
+query expires
+  find: expiredWhileHalted
+  in: outage
+  limits: three
+
+end Forward
+
+namespace Reordered
+
+model_conventions root "umpire" under Umpire.Command.Tests.Compose.Reordered
+
+structure PipelineState where
+  job : Job.JobState
+  agent : Agent.AgentState
+  deriving BEq, DecidableEq, Repr
+
+compose pipeline
+  for: [Agent.agent, Job.job]
+  state: PipelineState
+  members:
+    agent: Agent.agentMachine
+    job: Job.jobMachine
+  sync:
+    reply: job.reply ∥ agent.serve
+    halt: job.halt ∥ agent.halt
+  starts: [agent.running, job.pending]
+  ends: [job.failed, job.done]
+
+limits three
+  steps: 3
+  actions: 3
+  search: 64
+
+property settled
+  machine: pipeline
+  when: reply ok
+  holds: fun step =>
+    step.state.job.phase == .done && !step.state.job.poked && step.state.agent.phase == .running
+
+scenario replied
+  model: pipeline
+  starts: job.pending
+  actions: [reply (ok)]
+
+query settles
+  verify: settled
+  in: replied
+  limits: three
+
+end Reordered
+
+namespace Swapped
+
+model_conventions root "umpire" under Umpire.Command.Tests.Compose.Swapped
+
+structure PipelineState where
+  agent : Agent.AgentState
+  job : Job.JobState
+  deriving BEq, DecidableEq, Repr
+
+compose pipeline
+  for: [Job.job, Agent.agent]
+  state: PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: job.halt ∥ agent.halt
+    reply: job.reply ∥ agent.serve
+  starts: [job.pending, agent.running]
+  ends: [job.done, job.failed]
+
+limits three
+  steps: 3
+  actions: 3
+  search: 64
+
+property settled
+  machine: pipeline
+  when: reply ok
+  holds: fun step =>
+    step.state.job.phase == .done && !step.state.job.poked && step.state.agent.phase == .running
+
+scenario replied
+  model: pipeline
+  starts: job.pending
+  actions: [reply (ok)]
+
+query settles
+  verify: settled
+  in: replied
+  limits: three
+
+end Swapped
+
+/-! ### The composed table
+
+Every state is keyed by the job's key and the agent's joined with `_`, and the catalog is sorted by
+key rather than by the order the walk found them. The synchronized actions are keyed by their
+`sync:` names, the job's own by `job_`, and the agent's resume by `agent_`. -/
+
+open Forward in
+#guard pipeline.table.states.map (·.key) == ["done-false_halted", "done-false_running",
+  "done-true_halted", "done-true_running", "failed-false_halted", "failed-false_running",
+  "failed-true_halted", "failed-true_running", "pending-false_halted", "pending-false_running",
+  "pending-true_halted", "pending-true_running"]
+
+open Forward in
+#guard pipeline.table.actions.map (·.key) ==
+  ["agent_resume", "halt", "job_expire", "job_poke-error", "job_poke-ok", "reply-error", "reply-ok"]
+
+/- A reply is a row only where the agent runs, and a halt only where it has not halted. -/
+open Forward in
+#guard (pipeline.table.transitions.filter fun row =>
+    row.key.endsWith "reply-ok" || row.key.endsWith "-halt").map (·.key) ==
+  ["done-false_running-halt", "done-true_running-halt", "failed-false_running-halt",
+    "failed-true_running-halt", "pending-false_running-halt", "pending-false_running-reply-ok",
+    "pending-true_running-halt", "pending-true_running-reply-ok"]
+
+/- Both members' outcomes are `accepted`; the catalog holds each under its member. -/
+open Forward in
+#guard pipeline.table.outcomes.map (·.key) == ["job_accepted", "agent_accepted"]
+
+open Forward in
+#guard pipeline.table.facts.map (·.key) == ["job_replied", "job_expired"]
+
+/- Each member's state fields are the composed state's own: the job's two under `job_`, the agent's
+one field as `agent`. -/
+open Forward in
+#guard pipeline.stateFieldIds.map (·.1) == ["job_phase", "job_poked", "agent"]
+
+/- One start state, and the eight in which the job is done or failed end it. -/
+open Forward in
+#guard pipeline.initial.map pipeline.stateKeyFor == ["pending-false_running"] &&
+  pipeline.terminal.length == 8
+
+open Forward in
+theorem pipeline_catalogs_valid :
+    pipeline.table.states.Valid ∧ pipeline.table.actions.Valid ∧
+      pipeline.table.outcomes.Valid ∧ pipeline.table.facts.Valid :=
+  ⟨⟨by decide +kernel, by decide +kernel, by decide +kernel⟩,
+    ⟨by decide +kernel, by decide +kernel, by decide +kernel⟩,
+    ⟨by decide +kernel, by decide +kernel, by decide +kernel⟩,
+    ⟨by decide +kernel, by decide +kernel, by decide +kernel⟩⟩
+
+/-! ### The Behavior Fingerprint
+
+Reordering the `members:` and `sync:` lines leaves the Model as it was; swapping the state
+structure's fields reorders every composed key, as reordering a machine's fields does. -/
+
+private def fingerprintOf {Setup State Action Outcome Fact : Type} [BEq Setup] [BEq State]
+    [BEq Action] [BEq Outcome] [BEq Fact] {m : DeclaredModel Setup State Action Outcome Fact}
+    (checked : Except AdmissionError (CheckedModel m)) : Option String :=
+  checked.toOption.map (·.query.behaviorFingerprint.render)
+
+#guard (fingerprintOf Forward.settles).isSome
+#guard fingerprintOf Forward.settles == fingerprintOf Reordered.settles
+#guard fingerprintOf Forward.settles != fingerprintOf Swapped.settles
+
+/-! ### What the command refuses -/
+
+namespace Dial
+
+entity dial
+
+enum Level
+  | low
+  | high
+
+structure DialState where
+  level : Level
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum DialOutcome
+  | accepted
+
+inductive DialFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action turn
+  party: agent
+  on: dial
+  input:
+    level: Level
+
+def turnStep (_ : DialState) (level : Level) : List (Step DialState DialOutcome DialFact) :=
+  [{ outcome := .accepted, state := { level }, facts := [] }]
+
+machine dialMachine
+  for: dial
+  state: DialState
+  starts: [low]
+  ends: [low, high]
+  steps:
+    turn: turnStep
+
+end Dial
+
+namespace Spread
+
+entity spread
+
+enum SpreadPhase
+  | spreading
+
+structure SpreadState where
+  phase : SpreadPhase
+  level : Fin 5
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum SpreadOutcome
+  | accepted
+
+inductive SpreadFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action scatter
+  party: agent
+  on: spread
+
+/-- Any level scatters to every level. -/
+def scatterStep (state : SpreadState) : List (Step SpreadState SpreadOutcome SpreadFact) :=
+  (members (α := Fin 5)).map fun level =>
+    { outcome := .accepted, state := { state with level }, facts := [] }
+
+machine spreadMachine
+  for: spread
+  state: SpreadState
+  starts: [spreading]
+  ends: [spreading]
+  steps:
+    scatter: scatterStep
+
+end Spread
+
+namespace Counter
+
+entity counter
+
+enum CounterPhase
+  | counting
+
+structure CounterState where
+  phase : CounterPhase
+  count : Fin 128
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum CounterOutcome
+  | accepted
+
+inductive CounterFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+def tickStep (state : CounterState) : List (Step CounterState CounterOutcome CounterFact) :=
+  [{ outcome := .accepted, state := { state with count := saturatingSucc state.count }, facts := [] }]
+
+machine counterMachine
+  for: counter
+  state: CounterState
+  starts: [counting]
+  ends: [counting]
+  timers: [tick]
+  unobservable: [tick]
+  steps:
+    tick: tickStep
+
+end Counter
+
+structure DialedState where
+  job : Job.JobState
+  dial : Dial.DialState
+  deriving BEq, DecidableEq, Repr
+
+structure UnderscoredState where
+  my_job : Job.JobState
+  agent : Agent.AgentState
+  deriving BEq, DecidableEq, Repr
+
+structure SpreadPair where
+  front : Spread.SpreadState
+  back : Spread.SpreadState
+  deriving BEq, DecidableEq, Repr
+
+structure CounterPair where
+  left : Counter.CounterState
+  right : Counter.CounterState
+  deriving BEq, DecidableEq, Repr
+
+/--
+error: members job, agent each own an action named 'halt' and no `sync:` line names every one of them; two members' actions of one name are synchronized explicitly
+-/
+#guard_msgs in
+compose unsynced
+  for: [Job.job, Agent.agent]
+  state: Forward.PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    reply: job.reply ∥ agent.serve
+  starts: [job.pending]
+  ends: [job.done]
+
+/--
+error: 'job.reply' and 'dial.turn' range over different inputs; a synchronized action takes one class per step, so its classed participants take the same input domains
+-/
+#guard_msgs in
+compose mismatched
+  for: [Job.job, Dial.dial]
+  state: DialedState
+  members:
+    job: Job.jobMachine
+    dial: Dial.dialMachine
+  sync:
+    reply: job.reply ∥ dial.turn
+  starts: [job.pending]
+  ends: [job.done]
+
+/--
+error: 'job.expire' is a timer; a timer is `system` behaviour one member fires on its own, so no `sync:` line names it
+-/
+#guard_msgs in
+compose timed
+  for: [Job.job, Agent.agent]
+  state: Forward.PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: job.halt ∥ agent.halt
+    expire: job.expire ∥ agent.serve
+  starts: [job.pending]
+  ends: [job.done]
+
+/--
+error: member field 'my_job' contains '_'; a composed key joins a member's own key to its field with `_`, so a field name carries none
+-/
+#guard_msgs in
+compose underscored
+  for: [Job.job, Agent.agent]
+  state: UnderscoredState
+  members:
+    my_job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: my_job.halt ∥ agent.halt
+  starts: [agent.running]
+  ends: [agent.halted]
+
+/--
+error: 'scatter' multiplies its participants' results out to 25 steps; a synchronized step has at most 16 results
+-/
+#guard_msgs in
+compose scattered
+  for: [Spread.spread]
+  state: SpreadPair
+  members:
+    front: Spread.spreadMachine
+    back: Spread.spreadMachine
+  sync:
+    scatter: front.scatter ∥ back.scatter
+  starts: [front.spreading]
+  ends: [front.spreading]
+
+/--
+error: the composition reaches at least 8193 states over 2 action classes, 16386 evaluations, and the bound is 16384; compose smaller machines
+-/
+#guard_msgs in
+compose counted
+  for: [Counter.counter]
+  state: CounterPair
+  members:
+    left: Counter.counterMachine
+    right: Counter.counterMachine
+  starts: [left.counting]
+  ends: [left.counting]
+
+/--
+error: 'nobody.done' names no value of a member field; `starts:` and `ends:` name `field.value`, one of the member fields job, agent and a value its machine's state holds
+-/
+#guard_msgs in
+compose unended
+  for: [Job.job, Agent.agent]
+  state: Forward.PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: job.halt ∥ agent.halt
+    reply: job.reply ∥ agent.serve
+  starts: [job.pending]
+  ends: [nobody.done]
+
+/--
+error: 'Forward.expires' runs on the composition 'Umpire.Command.Tests.Compose.Forward.pipeline'; a composed Model is verified by `verify` Queries and no set runs over one in version one, because no realization performs several machines' actions as one Case
+-/
+#guard_msgs in
+set pipelineTests
+  purpose: functional
+  bind:
+    agent: driven
+  queries: [Forward.expires]
+
+/-! ### A synchronized action no reachable state enables
+
+Two gates lift together and pass together; `early` would pass the front while the back is still
+closed, which no reachable state is. The catalog leaves it out and says so. -/
+
+namespace Gate
+
+entity gate
+
+enum GatePhase
+  | closed
+  | opened
+
+structure GateState where
+  phase : GatePhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum GateOutcome
+  | accepted
+
+inductive GateFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action lift
+  party: agent
+  on: gate
+
+action pass
+  party: agent
+  on: gate
+
+def liftStep (state : GateState) : List (Step GateState GateOutcome GateFact) :=
+  if state.phase != .closed then [] else
+  [{ outcome := .accepted, state := { phase := .opened }, facts := [] }]
+
+def passStep (state : GateState) : List (Step GateState GateOutcome GateFact) :=
+  if state.phase != .opened then [] else
+  [{ outcome := .accepted, state, facts := [] }]
+
+machine gateMachine
+  for: gate
+  state: GateState
+  starts: [closed]
+  ends: [opened]
+  steps:
+    lift: liftStep
+    pass: passStep
+
+end Gate
+
+structure GatesState where
+  front : Gate.GateState
+  back : Gate.GateState
+  deriving BEq, DecidableEq, Repr
+
+/--
+warning: 'early' is never enabled: no composed state the composition reaches has a row for it, so its catalog leaves it out
+-/
+#guard_msgs in
+compose gates
+  for: [Gate.gate]
+  state: GatesState
+  members:
+    front: Gate.gateMachine
+    back: Gate.gateMachine
+  sync:
+    lift: front.lift ∥ back.lift
+    pass: front.pass ∥ back.pass
+    early: front.pass ∥ back.lift
+  starts: [front.closed]
+  ends: [front.opened]
+
+#guard gates.table.actions.map (·.key) == ["lift", "pass"]
+#guard gates.table.states.map (·.key) == ["closed_closed", "opened_opened"]
+
+end Umpire.Command.Tests.Compose

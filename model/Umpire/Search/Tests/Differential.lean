@@ -1,4 +1,5 @@
 import Umpire.Command
+import Umpire.Command.Tests.Compose
 import Umpire.Search.Admission
 import Umpire.Search.Tests.Fixtures
 import Umpire.Search.Tests.Monitor
@@ -564,11 +565,20 @@ def sweep (namespaces : List Name) : CommandElabM Unit := do
 
 /-! ### The Switch
 
-Every `query` block of the Umpire Models this module imports -- the Switch's and the Replay tests'
--- and the three Queries admitted against the Switch. Their Scenarios pin their schedules, so each
-Query is on `veil`. -/
+Every `query` block of the Umpire Models this module imports -- the Switch's, the Replay tests' and
+the `compose` fixtures', whose `find` witness is a composed trace the replay gate re-executes -- and
+the three Queries admitted against the Switch. Their Scenarios pin their schedules, so each Query is
+on `veil`. -/
 
 /--
+info: Umpire.Command.Tests.Compose.Forward.expires: veil default, found 4 paths, found 4 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
+---
+info: Umpire.Command.Tests.Compose.Forward.settles: veil default, verified-within-limits 2 paths, verified-within-limits 2 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
+---
+info: Umpire.Command.Tests.Compose.Reordered.settles: veil default, verified-within-limits 2 paths, verified-within-limits 2 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
+---
+info: Umpire.Command.Tests.Compose.Swapped.settles: veil default, verified-within-limits 2 paths, verified-within-limits 2 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)
+---
 info: Umpire.Examples.Switch.exactAction: veil default, found 2 paths, found 2 states; automaton ok, monitors ok (Query depth 1, clause table depth 1)
 ---
 info: Umpire.ReplayTests.softAfterHard: veil default, found 3 paths, found 3 states; automaton ok, monitors ok (Query depth 3, clause table depth 3)

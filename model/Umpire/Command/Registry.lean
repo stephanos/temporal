@@ -155,6 +155,29 @@ structure MachineEntry where
   abstraction : Name := .anonymous
   deriving Inhabited, Repr, BEq
 
+/-- One declared composition: the machine each member field holds and what the command lifted from
+them. Its Model is recorded as any Model is; this is what a later command needs to know beyond it --
+that the Model is a composition, how an author's dotted reference reads, and which member each start
+state holds where. -/
+structure CompositionEntry where
+  declName : Name
+  name : String
+  /-- The author's state structure. -/
+  stateType : Name
+  /-- Each member as (field, the machine's declaration name), in the state structure's field
+  order. -/
+  members : Array (String × Name)
+  /-- Each `sync:` line as its name and its participants, (member field, action name). -/
+  syncs : Array (String × Array (String × String))
+  /-- Each start state's key with each member's state key in it, (member field, key). -/
+  starts : Array (String × Array (String × String))
+  /-- The members' timers, unobservable timers, and `evidence:` lines, under the composed keys
+  `<field>_<key>` the catalogs give them. -/
+  timers : Array String
+  unobservable : Array String
+  evidence : Array (String × String)
+  deriving Inhabited, Repr, BEq
+
 /-- One declared set: its purpose, the Queries it runs and the switch it repeats over, for the
 command that produces its Cases to read. -/
 structure SetEntry where
@@ -237,6 +260,13 @@ initialize machineExtension : SimplePersistentEnvExtension MachineEntry (Array M
     addImportedFn := collect
   }
 
+initialize compositionExtension :
+    SimplePersistentEnvExtension CompositionEntry (Array CompositionEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize entityExtension : SimplePersistentEnvExtension EntityEntry (Array EntityEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
@@ -296,6 +326,9 @@ def recordDomain (entry : DomainEntry) : CoreM Unit :=
 def recordMachine (entry : MachineEntry) : CoreM Unit :=
   modifyEnv fun env => machineExtension.addEntry env entry
 
+def recordComposition (entry : CompositionEntry) : CoreM Unit :=
+  modifyEnv fun env => compositionExtension.addEntry env entry
+
 def recordAction (entry : ActionEntry) : CoreM Unit :=
   modifyEnv fun env => actionExtension.addEntry env entry
 
@@ -341,6 +374,11 @@ def machines (env : Environment) : Array MachineEntry := machineExtension.getSta
 
 def machine? (env : Environment) (declName : Name) : Option MachineEntry :=
   (machines env).find? (·.declName == declName)
+
+def compositions (env : Environment) : Array CompositionEntry := compositionExtension.getState env
+
+def composition? (env : Environment) (declName : Name) : Option CompositionEntry :=
+  (compositions env).find? (·.declName == declName)
 
 def entities (env : Environment) : Array EntityEntry := entityExtension.getState env
 
