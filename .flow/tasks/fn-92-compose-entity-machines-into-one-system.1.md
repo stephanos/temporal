@@ -42,9 +42,21 @@ go test -tags test_dep ./tools/umpire/replay/... ./tools/umpire/evaluation/... .
 - [ ] Every fixture, the canary fixture, the goldens, and the Go readers of the recorded control Run unchanged and passing
 - [ ] `LEAN_NUM_THREADS=1 make lint-model` passes
 ## Done summary
-TBD
+Added `Temporal.Feature.Worker.Model`: `entity worker` keyed by `taskQueue`, `workerStop`, `workerResume`, classless `serve`, and machine `polling` with both phases terminal. Its Tests pin the table, the `temporal.worker.*` Definition IDs, and the axioms. Also added the `feature-entity-uniqueness` pass to `umpire-lint`. The pure rule lives in `model/ModelLint/Entity.lean`. The driver imports every production feature module the source discovery found and reads `Registry.entities` and `Registry.actions`. The allowlist is exactly the four duplicates the spec names. The controlled violation is pinned in `umpire-lint-tests --controlled-entity-violation` and in a fourth `lint-model` block.
 
+Two changes fall outside the declared Touches. `model/lakefile.lean` gains one `ModelLint.Entity` root in `ModelLintSupport`, because Lake does not build a module missing from a lib root. A binder in `ModelLint.lean` is renamed from `message` to `reason`, because `message` is a token once `Umpire.Command.Registry` is imported.
+
+Review round 1 found two issues, both fixed in 82ef51002b. First, the lint read only the aggregate roots. Second, the worker module lacked `Temporal.Case.Conventions`, so its IDs used `temporal.feature.worker`. Round 2 returned SHIP.
+
+Gate status: the builtin lint step of `LEAN_NUM_THREADS=1 make lint-model` is INCONCLUSIVE. Every earlier `lint-model` step passed. The last step, `lake lint --builtin-only`, failed on `.olean` files that concurrent builds from other sessions in the shared checkout removed. It must be rerun on a quiet host before `done`.
+
+stage: impl-review - ran [round 1 NEEDS_WORK (codex fan-out, rid e30014d67b354d9aaa1047197e32b01f) .. round 2 SHIP]
+
+
+The lint-model gate left inconclusive by the worker (concurrent builds) was rerun by the conductor on a quiet host after fn-88 closed: exit 0 in 4443 s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 151e282205153be568f35fd2d7a6731e18abe4fc, 82ef51002be3ebfc72e9db3e35e878e970a4c337
+- Tests: baseline: not run pre-edit (the task's Quick commands were first run post-edit; no Go or fixture source changed), cd model && lake build Temporal.Feature.Worker.Tests (green; table pin confirmed red first), cd model && lake exe umpire-lint-tests (green; entity cases confirmed red with an allowance removed), cd model && lake exe umpire-lint-tests --controlled-entity-violation (exit 1, exact diagnostic), cd model && lake exe umpire-lint (green; red with the workerResume allowance removed: 'duplicate action workerResume: Temporal.Feature.Worker.Model and Temporal.Feature.Workflow.Outage.Model'), make umpire-check-case-runtime-conformance && make canary-check-case && make umpire-check-goldens (green, no fixture or golden diff; run on 151e282205), go test -tags test_dep ./tools/umpire/replay/... ./tools/umpire/evaluation/... ./tools/umpire/cmd/umpire-assess/... (green), LEAN_NUM_THREADS=1 make lint-model: INCONCLUSIVE - every step through umpire-lint passed (both runs, the second on the fixed code), the final lake lint --builtin-only step failed twice on missing .olean files while other sessions rebuilt Umpire.Search/Temporal.API in the shared checkout; a scoped builtin lint hit the same race, LEAN_NUM_THREADS=1 make lint-model (conductor, quiet host after fn-88 closed, 2026-09-28): exit 0 in 4443 s
 - PRs:
