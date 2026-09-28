@@ -1,0 +1,29 @@
+{
+  "backend": "codex",
+  "counter_scope": "impl:fn-100-gomad-f6-a-package-level-functional.4",
+  "failure_class": "fanout_abandoned",
+  "finalized": {
+    "digest": "not_applicable",
+    "receipt": "not_applicable",
+    "status": "not_applicable"
+  },
+  "metadata": null,
+  "outcome": "transport_failure",
+  "receipt_payload": null,
+  "receipt_target": null,
+  "reservation_id": "71638784a2f2440fa84560f14be54f22",
+  "reset_rounds_on_ship": false,
+  "response": "fan-out dispatched; no finalize landed before this refund-intent journal was replayed",
+  "response_sha256": "6ea4de7239adcef700fcf360528c3918564fc4300515f3a62b9a089c94e74f20",
+  "review_kind": "impl",
+  "review_type": "impl",
+  "reviewed_base_sha": "8e3f40c1eb527864e54ba9b483e20a5de4f5cbaa",
+  "reviewed_head_sha": "12a22658f82bf3a4fac3d09b1cc4b3f40fffe32d",
+  "scope": "impl:fn-100-gomad-f6-a-package-level-functional.4",
+  "spec_id": "fn-100-gomad-f6-a-package-level-functional",
+  "status_target": null,
+  "superseded_by": null,
+  "task_id": "fn-100-gomad-f6-a-package-level-functional.4",
+  "timestamp": "2026-09-28T16:35:58.056830Z",
+  "verdict": null
+}
