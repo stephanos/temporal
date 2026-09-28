@@ -375,6 +375,9 @@ make umpire-check-regression   # final gate
 - **R20:** The cold `lake build` of the model with Veil fits the existing `umpire.yml` job
   timeouts, measured in one CI run, or the same task adds a `.lake` cache step to that workflow.
   Errors: a timeout is a finding for GOV-02, not a silent widening.
+  Measured 2026-09-28 (CI run 36393502944 on `stephanos/umpire` at 271889d3d7, cold `.lake`, Veil
+  required, the runner's default Node): portability 24m39s of its 40-minute timeout, canary 17m03s
+  of its 30-minute timeout; both passed, so no `.lake` cache or Node pin was added.
 - **R21:** A rollback drill on a scratch branch produces exactly the permitted diff listed under
   Edge Cases and every Query returns to `reference`; the diff stat is recorded in the task
   evidence. Errors: any other file in the diff fails the drill.

@@ -92,6 +92,7 @@ Measured 2026-09-27 and 2026-09-28 on a macOS host, Lean 4.32.0 (fn-88.12, fn-90
 | `make umpire-check-lean-api` | exit 0; regenerates the Lean API into a temp directory and fails on any drift from the committed output |
 | `make lint-code-fast` | 0 issues (it skips `testdata` and nested modules, as `./...` does) |
 | `make umpire-check-plan-index` | valid |
+| CI `Umpire` workflow (cold `.lake`, Veil required) | run 36393502944: portability 24m39s of 40, canary 17m03s of 30, both green |
 | `TestTestpilotOwnsCaseProtocolAndRuntime` | passes: the Temporal Drivers reach Program ceilings through `testpilot.WithinProgramCeiling`, never `internal/ir` or `internal/execution` |
 
 Intermittent-failure rates at the fn-90 closeout (7d0997b990), all zero: the umpire-run test 0/50,
