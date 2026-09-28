@@ -33,6 +33,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	output := flags.String("output", ".gomad/qualification-set.json", "qualification set report")
 	format := flags.String("format", "text", "text or json")
 	check := flags.Bool("check", false, "validate the manifest without executing targets")
+	pruneQualified := flags.Bool("prune-qualified-artifacts", false, "delete each qualified seed's retained Campaigns once its evidence is final")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 {
 		return 2
 	}
@@ -67,7 +68,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	}
 	report, runErr := dependencies.run(context.Background(), qualificationset.Spec{
 		ManifestPath: *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,
-		ArtifactRoot: *artifacts, OutputPath: *output,
+		ArtifactRoot: *artifacts, OutputPath: *output, PruneQualifiedArtifacts: *pruneQualified,
 	})
 	if err := writeQualificationSetResult(stdout, *format, report); err != nil {
 		return writeCommandError(stderr, 3, "write qualification set result: %v\n", err)

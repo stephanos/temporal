@@ -56,8 +56,8 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 		},
 	}
 	var stdout, stderr bytes.Buffer
-	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomad3.qualification-set-report/v1"`) {
+	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--prune-qualified-artifacts", "--format", "json"}, &stdout, &stderr, dependencies)
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !observed.PruneQualifiedArtifacts || !strings.Contains(stdout.String(), `"schema":"gomad3.qualification-set-report/v1"`) {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }

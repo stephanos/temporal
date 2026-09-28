@@ -12,6 +12,9 @@ COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMAD3_CACHE_MAX_AGE_DAYS ?= 14
 GOMAD3_QUALIFICATION_ARTIFACTS ?= .toolchain/qualification
 GOMAD3_QUALIFICATION_OUTPUT ?= .toolchain/qualification-set.json
+# GOMAD3_QUALIFICATION_PRUNE=1 deletes each qualified seed's retained Campaigns
+# once its evidence is in the set report, keeping its qualification report.
+GOMAD3_QUALIFICATION_PRUNE ?= 0
 
 generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate
@@ -68,9 +71,11 @@ runner: toolchain
 qualification-set: runner
 	@test -n "$(GOMAD3_QUALIFICATION_MANIFEST)" || { echo "GOMAD3_QUALIFICATION_MANIFEST is required" >&2; exit 2; }
 	@test -n "$(GOMAD3_QUALIFICATION_WORKDIR)" || { echo "GOMAD3_QUALIFICATION_WORKDIR is required" >&2; exit 2; }
+	@case '$(GOMAD3_QUALIFICATION_PRUNE)' in 0|1) ;; *) echo "GOMAD3_QUALIFICATION_PRUNE must be 0 or 1" >&2; exit 2;; esac
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED .bin/gomad qualify-set \
 		--manifest="$(GOMAD3_QUALIFICATION_MANIFEST)" --working-dir="$(GOMAD3_QUALIFICATION_WORKDIR)" \
-		--artifacts="$(GOMAD3_QUALIFICATION_ARTIFACTS)" --output="$(GOMAD3_QUALIFICATION_OUTPUT)"
+		--artifacts="$(GOMAD3_QUALIFICATION_ARTIFACTS)" --output="$(GOMAD3_QUALIFICATION_OUTPUT)" \
+		$(if $(filter 1,$(GOMAD3_QUALIFICATION_PRUNE)),--prune-qualified-artifacts)
 
 # Packs are scoped to one platform, so each host qualifies only the requests
 # that name it.

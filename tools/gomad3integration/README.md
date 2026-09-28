@@ -11,6 +11,13 @@ make gomad3-integration-test
 make gomad3-qualification
 ```
 
+A full run retains about 11 GiB of Campaigns under
+`tools/gomad3/.toolchain/temporal-qualification`. Where disk is short,
+`make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1` deletes each qualified
+seed's Campaigns after its exact replay and keeps its qualification report; the
+set report then marks those seeds `artifacts_pruned` (see
+`tools/gomad3/README.md`).
+
 The v3 manifest owns 15 tier 2 package workloads, the tier 3
 `frontend-system-info` functional probe (`./tests/gomadfunctional`, guarded
 capability mode), the tier 3 `user-timers-workflow` functional suite
