@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-28T00:35:42.439513Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-28T01:21:41.703787Z",
   "created_at": "2026-09-27T15:27:42.298725Z",
   "default_impl": null,
   "default_review": null,
@@ -17,7 +17,7 @@
     "fn-98-gomad-f4-close-the-tests-capability.5": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "review_attempts": [
@@ -311,13 +311,58 @@
       "task": "fn-98-gomad-f4-close-the-tests-capability.5",
       "timestamp": "2026-09-28T01:16:06.674205Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bb0ea678c407b2f8eaa61bcae6c7fc4dab8e949d44ee53cfed256d0bdfc4b4a9",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-07544bb5dc04464129acf1b65d9900b5",
+            "classification": "introduced",
+            "findingId": "finding-07544bb5dc04464129acf1b65d9900b5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e7438de2292ac93acb6a8fec742152558512a644",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 4369,
+      "output_sha256": "2387eb017d0f519383a0b5d9188b9e8137cb1b67a9b61903c84da5fe21306c20",
+      "reservation_id": "7c1e0f43cb6046419fa06ec37c19066a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-28T01:21:41.700890Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-98-gomad-f4-close-the-tests-capability.1": 1,
     "impl:fn-98-gomad-f4-close-the-tests-capability.2": 1,
     "impl:fn-98-gomad-f4-close-the-tests-capability.3": 1,
-    "impl:fn-98-gomad-f4-close-the-tests-capability.5": 1
+    "impl:fn-98-gomad-f4-close-the-tests-capability.5": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -329,7 +374,7 @@
     "impl:fn-98-gomad-f4-close-the-tests-capability.5": 0
   },
   "spec_path": ".flow/specs/fn-98-gomad-f4-close-the-tests-capability.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F4: close the ./tests capability closure on darwin/arm64",
   "tracker": {
     "baseHashFlow": null,
@@ -342,5 +387,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-28T01:16:06.676843Z"
+  "updated_at": "2026-09-28T01:21:46.758313Z"
 }
