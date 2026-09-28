@@ -7,8 +7,8 @@ satisfies: [R11, R18, R19]
 Make Exploration ledger credit and Replay violation keys compare by outcome and witness rather than by `explored` or `artifactChecksum` alone; rebuild the list of goldens the cutover flips and re-pin them in one reviewed commit; confirm determinism twice locally and once in CI. Adopt mode only.
 
 **Size:** M
-**Files:** `model/Umpire/Exploration/**` (ledger credit), `model/Umpire/Replay.lean` (`admitKept` key), `model/Temporal/Tool/ExplorationBridge*.lean`, `model/Temporal/Tool/ReplayBridge*.lean`, bridge tests, and the goldens on the R18 list
-**Touches:** [model/Umpire/Exploration/**, model/Umpire/Replay.lean, model/Temporal/Tool/**, model/Umpire/Inventory/Tests/**, model/Umpire/Query/Tests/**, model/Temporal/Feature/**/Fixtures/**]
+**Files:** `model/Umpire/Search/Selection.lean` (set `Selection.cutover := true` in the same commit as the golden re-pin), `model/Umpire/Exploration/**` (ledger credit), `model/Umpire/Replay.lean` (`admitKept` key), `model/Temporal/Tool/ExplorationBridge*.lean`, `model/Temporal/Tool/ReplayBridge*.lean`, bridge tests, and the goldens on the R18 list
+**Touches:** [model/Umpire/Search/Selection.lean, model/Umpire/Exploration/**, model/Umpire/Replay.lean, model/Temporal/Tool/**, model/Umpire/Inventory/Tests/**, model/Umpire/Query/Tests/**, model/Temporal/Feature/**/Fixtures/**]
 
 ### Approach
 - R19: where `candidateDigest` and the Replay `digest` are `artifactChecksum` (`model/Umpire/Exploration/Target.lean`, `model/Umpire/Replay.lean` `admitKept`), key on outcome plus witness; add a bridge test where one Query falls back to `reference` and neither a ledger status nor a Replay key changes.
