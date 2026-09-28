@@ -47,9 +47,36 @@ LEAN_NUM_THREADS=1 make lint-model
 - [ ] The fixture `verify` and `find` Queries appear in the Umpire differential's expected block as `veil default` with both backends agreeing, and the `find` witness passes the kernel replay gate (R14)
 - [ ] `lake build UmpireTests` and `LEAN_NUM_THREADS=1 make lint-model` pass
 ## Done summary
-TBD
+Added the `compose` command to `Umpire.Command`. It takes `for:`, `state:`, `members:`, `sync:`, `starts:`, and `ends:`. It generates tagged-union Action, Outcome, and Fact types without injectivity lemmas. It keys member actions as `<field>_<key>` and synchronized actions by their `sync:` name. It lowers member state fields as `<field>_<memberField>`, or `<field>` for a one-field member. It walks the reachable states breadth-first over the member tables, in the new `Umpire.Command.Compose` module, and emits the result as a literal `FiniteTable` through `declareModel`. Every catalog, the start states, and each row's results are sorted by the lowered order key. Scenario `actions:`/`starts:` and Property `when:` resolve dotted and `sync:` references. A bare classed `when:` claims every class. A `set` over a composition is refused.
 
+`model/Umpire/Command/Tests/Compose.lean` pins these:
+- the composed catalogs, and `FiniteCatalog.Valid` on them;
+- a fingerprint that is unchanged when `members:`/`sync:` lines are reordered and changes when the state fields are reordered;
+- ten located errors, including the review-added `_`-in-member-state-key and sync-name collision cases;
+- a never-enabled warning.
+
+Four fixture Queries (three `verify`, one `find` with a composed witness) read `veil default` in the Umpire differential sweep.
+
+Deviations:
+- The owner key is `compose-<name>`, because a leading `-` would make an odd ID segment.
+- Lifted timers, unobservable entries, and evidence are recorded in `Registry.CompositionEntry` under the composed `<field>_<key>` spelling, not `<field>.`, to match the catalogs.
+- Nothing in the elaboration or enumeration needed a proof. Composition proofs are task .3's.
+
+Review round 1 (Codex fan-out) was NEEDS_WORK with 5 findings, all fixed in 48a0ba914a:
+- a bare classed `when:` was not expanded to every class;
+- a sync name could collide with a member action key;
+- member state keys containing `_` made composed keys non-injective;
+- input compatibility compared spellings, not domains;
+- Scenario start resolution matched only the first key segment.
+
+Round 2 was SHIP. The first `lint-model` run failed on simpNF, because a union constructor whose payload domain has one member gets an `injEq` that simp proves by itself. 05fae56ae1 sets `genInjectivity false` on the generated unions, and round 3 was SHIP.
+
+baseline: green (focused lake build, pre-edit). lint-model: rc=0.
+
+stage: impl-review - ran [round 1 NEEDS_WORK (codex fan-out, rid f16b1b0f4b7d4b40acf13797aa29852c) .. round 3 SHIP]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 881a7b413addb72615dae277337a0e8f25d8232d, 48a0ba914a33f6675fa7cdaa6052041c818a4202, 05fae56ae1228b56dfd3b7b81607810a3226dd13
+- Tests: cd model && lake build Umpire.Command Umpire.Command.Tests.Compose Umpire.Search.Tests.Differential, cd model && lake build UmpireTests, LEAN_NUM_THREADS=1 make lint-model
 - PRs:
