@@ -426,14 +426,21 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 // DownloadModule places module in the pinned Go command's module cache, so a
 // build input read from the cache does not depend on an earlier build having
 // fetched it, and fails unless the downloaded module has the pinned checksum.
-func DownloadModule(ctx context.Context, root, workingDir string, module ModuleIdentity) error {
+// It runs outside every module, because inside one the go command records
+// the downloaded module's sums in that module's go.sum.
+func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (retErr error) {
 	goCommand, err := filepath.Abs(filepath.Join(root, "bin", "go"))
 	if err != nil {
 		return fmt.Errorf("resolve pinned Go command: %w", err)
 	}
+	outside, err := os.MkdirTemp("", "gomad3-module-download-")
+	if err != nil {
+		return fmt.Errorf("create module download directory: %w", err)
+	}
+	defer func() { retErr = errors.Join(retErr, os.RemoveAll(outside)) }()
 	query := module.Path + "@" + module.Version
 	command := exec.CommandContext(ctx, goCommand, "mod", "download", "-json", query)
-	command.Dir = workingDir
+	command.Dir = outside
 	command.Env = targetbuild.Environment()
 	var stderr strings.Builder
 	command.Stderr = &stderr

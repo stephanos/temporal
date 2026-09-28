@@ -222,7 +222,7 @@ func TestDownloadModuleFetchesPinnedModuleIntoCleanCache(t *testing.T) {
 			t.Setenv("GOMODCACHE", moduleCache)
 			t.Setenv("GOPROXY", "file://"+filepath.ToSlash(proxy))
 			t.Setenv("GOSUMDB", "off")
-			err := DownloadModule(context.Background(), toolchainRoot(t), t.TempDir(), test.module)
+			err := DownloadModule(context.Background(), toolchainRoot(t), test.module)
 			if test.wantErr != "" {
 				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
 					t.Fatalf("DownloadModule() error = %v, want %q", err, test.wantErr)

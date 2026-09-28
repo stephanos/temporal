@@ -1,6 +1,7 @@
 package deterministicio
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -138,5 +139,30 @@ func TestNewAdapterRegistryRejectsDuplicateImplementations(t *testing.T) {
 	_, err := newAdapterRegistry([]gomadversion.AdapterIdentity{identity}, []adapterImplementation{implementation, implementation})
 	if err == nil {
 		t.Fatal("newAdapterRegistry() succeeded")
+	}
+}
+
+func TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading(t *testing.T) {
+	workingDirectory := t.TempDir()
+	moduleFile := []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n")
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), moduleFile, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// A toolchain root without a Go command fails any download attempt with a
+	// different error, so the rejection must come before one.
+	_, _, err := Default().PrepareTargetBuildAdapters(context.Background(), target.Spec{
+		PreparationRoot: t.TempDir(), WorkingDir: workingDirectory, ToolchainRoot: t.TempDir(),
+	})
+	if !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "module sum") {
+		t.Fatalf("PrepareTargetBuildAdapters() error = %v", err)
+	}
+	for name, want := range map[string][]byte{"go.mod": moduleFile, "go.sum": {}} {
+		got, readErr := os.ReadFile(filepath.Join(workingDirectory, name))
+		if readErr != nil || string(got) != string(want) {
+			t.Fatalf("%s = %q, %v; want unchanged %q", name, got, readErr, want)
+		}
 	}
 }
