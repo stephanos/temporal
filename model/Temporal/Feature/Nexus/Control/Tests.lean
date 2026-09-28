@@ -21,16 +21,30 @@ open temporal.server.api.testpilot.v1
 
 /- The non-retryable error from `scheduled` has two rows: the platform's, failing the operation
 with the failed event, and the forged one, completing it with the completed event. -/
-#guard (controlHandlerReplyStep { phase := .scheduled } (.handlerError (retryable := false))).map
+#guard (nexusControl.step { phase := .scheduled }
+    (.handlerReply (.handlerError (retryable := false)))).map
     (fun step => (step.state.phase, step.facts)) ==
   [(.failed, [.nexusOperationFailed]), (.succeeded, [.nexusOperationCompleted])]
 
 /- Every other reply has the platform's one row, so the machine is the pair Model's plus the
 forged row. -/
-#guard (controlHandlerReplyStep { phase := .scheduled } .syncSuccess).length == 1
-#guard (controlHandlerReplyStep { phase := .scheduled } (.handlerError (retryable := true))).length == 1
+#guard (nexusControl.step { phase := .scheduled } (.handlerReply .syncSuccess)).length == 1
+#guard (nexusControl.step { phase := .scheduled }
+    (.handlerReply (.handlerError (retryable := true)))).length == 1
 /- Every class the machine steps on: the eight schedules, six replies and three resolutions. -/
 #guard nexusControl.actionKeys.size == 17
+
+/- The one function the control writes returns the forged result and nothing else: every other
+row, the real one beside it included, is the pair machine's. -/
+#guard (controlForgedStep { phase := .scheduled } (.handlerError (retryable := false))).map
+    (fun step => (step.state.phase, step.facts)) == [(.succeeded, [.nexusOperationCompleted])]
+#guard (controlForgedStep { phase := .scheduled } (.handlerError (retryable := true))).isEmpty
+#guard (controlForgedStep { phase := .started } (.handlerError (retryable := false))).isEmpty
+
+/- The derived machine keeps the pair machine's state, catalogs and evidence under its own name. -/
+#guard nexusControl.stateKeys == Temporal.Feature.Nexus.Pair.pair.stateKeys
+#guard nexusControl.actionKeys == Temporal.Feature.Nexus.Pair.pair.actionKeys
+#guard nexusControl.factKeys == Temporal.Feature.Nexus.Pair.pair.factKeys
 
 /-! ### The Case -/
 

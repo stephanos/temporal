@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus.Caller.Model
+import Temporal.Feature.Nexus.Pair.Model
 
 /-!
 # The negative control
@@ -30,86 +30,30 @@ namespace Temporal.Feature.Nexus.Control
 open Umpire
 open Umpire.Command
 open Temporal.Feature.Nexus.Caller
+open Temporal.Feature.Nexus.Pair
 
 /-! ### The machine
 
-The operation without its deadlines and retries, as the pair Model keeps it, plus the forged row. -/
+The pair Model's machine -- the operation without its deadlines and retries -- plus the forged row.
+The machine is derived from it rather than copied: every row is the pair machine's, and the one
+function written here returns the one result the platform never takes. -/
 
-enum ControlPhase
-  | unscheduled
-  | scheduled
-  | started
-  | succeeded
-  | failed
-  | canceled
-
-structure ControlState where
-  phase : ControlPhase
-  deriving BEq, DecidableEq, Repr, Finite
-
-enum ControlOutcome
-  | accepted
-  | notFound
-
-enum ControlFact
-  | nexusOperationScheduled
-  | nexusOperationStarted
-  | nexusOperationCompleted
-  | nexusOperationFailed
-  | nexusOperationCanceled
-
-private def moves (phase : ControlPhase) (recorded : List ControlFact) :
-    Step ControlState ControlOutcome ControlFact :=
-  { outcome := .accepted, state := { phase }, facts := recorded }
-
-/-- The caller's schedule command. The deadlines it sets are not modeled here: no timer is. -/
-def controlScheduleStep (state : ControlState)
-    (_scheduleToClose _scheduleToStart _startToClose : Timeout) :
-    List (Step ControlState ControlOutcome ControlFact) :=
-  if state.phase != .unscheduled then [] else [moves .scheduled [.nexusOperationScheduled]]
-
-/-- The handler's reply. Every arm is the platform's, and the non-retryable error has the forged
-row beside its real one: the platform fails the operation and records the failed event, and the
-control also claims it may succeed and record the completed event. -/
-def controlHandlerReplyStep (state : ControlState) (reply : Reply) :
-    List (Step ControlState ControlOutcome ControlFact) :=
+/-- The forged row: the non-retryable error completes the operation and records the completed
+event. The platform's row for that error, which fails the operation and records the failed event,
+is the pair machine's and stays beside it. -/
+def controlForgedStep (state : PairState) (reply : Reply) :
+    List (Step PairState PairOutcome PairFact) :=
   if state.phase != .scheduled then [] else
   match reply with
-  | .syncSuccess => [moves .succeeded [.nexusOperationCompleted]]
-  | .async => [moves .started [.nexusOperationStarted]]
-  | .operationFailed => [moves .failed [.nexusOperationFailed]]
-  | .operationCanceled => [moves .canceled [.nexusOperationCanceled]]
   | .handlerError false =>
-      [moves .failed [.nexusOperationFailed], moves .succeeded [.nexusOperationCompleted]]
-  | .handlerError true => [{ outcome := .accepted, state, facts := [] }]
-
-/-- The caller's completion of a started operation. One that arrives after the operation is over
-is not found. -/
-def controlCompleteStep (state : ControlState) (resolution : Resolution) :
-    List (Step ControlState ControlOutcome ControlFact) :=
-  if state.phase == .succeeded || state.phase == .failed || state.phase == .canceled then
-    [{ outcome := .notFound, state, facts := [] }]
-  else if state.phase != .started then [] else
-  match resolution with
-  | .succeeded => [moves .succeeded [.nexusOperationCompleted]]
-  | .failed => [moves .failed [.nexusOperationFailed]]
-  | .canceled => [moves .canceled [.nexusOperationCanceled]]
+      [{ outcome := .accepted, state := { phase := .succeeded },
+         facts := [.nexusOperationCompleted] }]
+  | _ => []
 
 machine nexusControl
-  for: operation
-  state: ControlState
-  starts: [unscheduled]
-  ends: [succeeded, failed, canceled]
-  evidence:
-    nexusOperationScheduled: nexusOperationScheduled
-    nexusOperationStarted: nexusOperationStarted
-    nexusOperationCompleted: nexusOperationCompleted
-    nexusOperationFailed: nexusOperationFailed
-    nexusOperationCanceled: nexusOperationCanceled
-  steps:
-    schedule: controlScheduleStep
-    handlerReply: controlHandlerReplyStep
-    complete: controlCompleteStep
+  from: pair
+  extend:
+    handlerReply: controlForgedStep
 
 /-! ### The claim the platform contradicts -/
 

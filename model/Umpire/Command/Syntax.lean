@@ -9,6 +9,7 @@ import Umpire.Command.Predicate
 import Umpire.Command.Instances
 import Umpire.Command.Compose
 import Umpire.Command.ComposeProofs
+import Umpire.Command.Derived
 import Umpire.Command.Refinement
 import Umpire.Command.Claims
 import Umpire.Command.Coverage
@@ -1733,6 +1734,9 @@ syntax "evidence:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
 syntax "refines:" ident : machineKey
 syntax "map:" ident : machineKey
+syntax "from:" ident : machineKey
+syntax "restrict:" "[" ident,+ "]" : machineKey
+syntax "extend:" withPosition((colGe ident ":" ident)+) : machineKey
 
 @[run_parser_attribute_hooks] private def machineKeyword := declarationKeyword "machine"
 
@@ -1854,6 +1858,48 @@ private def undecidedRefinementMessage (rows : Nat) : String :=
   s!"the refinement did not decide over its {rows} rows, so no witness was synthesized; the \
 derived step mapping checked, so this is the size of the machine rather than its rows"
 
+private def derivationWithoutFromMessage (key : String) : String :=
+  s!"`{key}` derives a machine from another, so it needs a `from:` line naming the machine it \
+derives from"
+
+private def derivedOwnKeyMessage : String :=
+  "a machine with `from:` takes its entity, state, starts, ends, steps, evidence and timers from the \
+machine it derives from; it adds only `restrict:` and `extend:`"
+
+private def undeclaredSourceMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a machine declared by a `machine` command; `from:` names the machine this \
+one derives from"
+
+private def restrictTimerMessage (spelling : String) : String :=
+  s!"'{spelling}' is a timer; `restrict:` names the actions a derived machine keeps, and a timer is \
+the source's system behaviour rather than an action a composition synchronizes"
+
+private def absentActionMessage (key spelling : String) (stepped : String) : String :=
+  s!"the machine this one derives from does not step on '{spelling}', so `{key}` cannot name it; it \
+steps on {stepped}"
+
+private def duplicateDerivationMessage (key spelling : String) : String :=
+  s!"`{key}` names '{spelling}' twice"
+
+private def extendDisabledMessage (spelling state action : String) : String :=
+  s!"the extension of '{spelling}' returns a result at state '{state}' for '{action}', where the \
+source has no row; `extend:` adds results to the source's rows and never enables an action"
+
+private def extendDuplicateMessage (spelling state action : String) : String :=
+  s!"the extension of '{spelling}' returns a result the row at state '{state}' for '{action}' \
+already holds, or returns it twice"
+
+private unsafe def evalStringListTermUnsafe (term : Term) : Elab.Term.TermElabM (List String) := do
+  let type := Expr.app (.const ``List [Level.zero]) (.const ``String [])
+  let value ← Elab.Term.elabTermEnsuringType term type
+  Elab.Term.synthesizeSyntheticMVarsNoPostponing
+  Meta.evalExpr (List String) type (← instantiateMVars value)
+
+/-- A list of keys read off a closed term over declarations the command already emitted, without
+declaring the term. -/
+@[implemented_by evalStringListTermUnsafe]
+private opaque evalStringListTerm (term : Term) : Elab.Term.TermElabM (List String)
+
 /-- Elaborate one of a machine's generated declarations.
 
 A machine's definitions are as long as its state space: `DESIGN.md` section 3's protocol machine has
@@ -1931,6 +1977,141 @@ private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name)
         | throwErrorAt stepRef (stepSignatureMessage declName)
       pure (outcomeName, factName)
 
+/-- What a `from:` line derives a machine from: the source's declarations, the steps the derived
+machine keeps, each over a function generated for it, and the timers it keeps. -/
+private structure Derivation where
+  source : Registry.MachineEntry
+  sourceModel : Registry.ModelEntry
+  entity : Registry.EntityEntry
+  steps : Array ResolvedStep
+  timers : Array String
+
+/-- Resolve a derived machine's `from:`, `restrict:` and `extend:` lines and generate one step
+function per action it keeps.
+
+Each generated function steps the source's own dispatcher on the source's own action, so a step
+function the source module keeps private is still reached, and an extended action's function adds
+the author's results to it in the order Search admits them. An extension is checked against the
+source over every state and every class of its action before anything reads the derived table:
+a result where the source has no row, or one the row already holds, is refused at its `extend:`
+line. -/
+private def deriveMachine (name sourceRef : Ident) (restrictRefs : Array Ident)
+    (extendRefs : Array (Ident × Ident)) : CommandElabM Derivation := do
+  let env ← getEnv
+  let declName? ← try
+      some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo sourceRef)
+    catch failure =>
+      if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+  let some source := declName?.bind (Registry.machine? env)
+    | throwErrorAt sourceRef (undeclaredSourceMessage sourceRef.getId)
+  let some sourceModel := Registry.model? env source.declName
+    | throwErrorAt sourceRef (undeclaredSourceMessage sourceRef.getId)
+  let some entity := Registry.entity? env source.entity
+    | throwErrorAt sourceRef (undeclaredSourceMessage sourceRef.getId)
+  -- The source's steps in its own order, each with its action's inputs: a timer has none and no
+  -- declaration, the way the source recorded it.
+  let sourceSteps ← source.steps.mapM fun (spelling, _) => do
+    if source.timers.contains spelling then
+      pure ({ declName := .anonymous, name := spelling, party := "system", subject := none
+              inputFields := #[], results := none } : Registry.ActionEntry)
+    else
+      let some declared := source.actionDecls.findSome? fun actionDecl =>
+          (Registry.action? env actionDecl).filter (·.name == spelling)
+        | throwErrorAt sourceRef (undeclaredSourceMessage sourceRef.getId)
+      pure declared
+  let stepped := ", ".intercalate (sourceSteps.toList.map fun entry => s!"'{entry.name}'")
+  -- `restrict:` applies first, so an `extend:` line names what the restriction kept.
+  let mut kept := sourceSteps
+  unless restrictRefs.isEmpty do
+    let mut listed : Array String := #[]
+    for restrictRef in restrictRefs do
+      let spelling := restrictRef.getId.getString!
+      if source.timers.contains spelling then
+        throwErrorAt restrictRef (restrictTimerMessage spelling)
+      unless sourceSteps.any (·.name == spelling) do
+        throwErrorAt restrictRef (absentActionMessage "restrict:" spelling stepped)
+      if listed.contains spelling then
+        throwErrorAt restrictRef (duplicateDerivationMessage "restrict:" spelling)
+      listed := listed.push spelling
+    kept := sourceSteps.filter fun entry => listed.contains entry.name
+  let stateIdent := mkIdentFrom sourceRef (`_root_ ++ source.stateType)
+  let outcomeIdent := mkIdentFrom sourceRef (`_root_ ++ sourceModel.outcomeType)
+  let factIdent := mkIdentFrom sourceRef (`_root_ ++ sourceModel.factType)
+  let sourceIdent := fun (suffix : Name) =>
+    mkIdentFrom sourceRef (`_root_ ++ source.declName ++ suffix)
+  let mut extensions : Array (String × Ident × Ident) := #[]
+  for (actionRef, functionRef) in extendRefs do
+    let spelling := actionRef.getId.getString!
+    let some entry := kept.find? (·.name == spelling)
+      | throwErrorAt actionRef (absentActionMessage "extend:" spelling
+          (", ".intercalate (kept.toList.map fun entry => s!"'{entry.name}'")))
+    if extensions.any (·.1 == spelling) then
+      throwErrorAt actionRef (duplicateDerivationMessage "extend:" spelling)
+    let functionDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo functionRef)
+    let found ← stepResultDomains functionRef functionDecl source.stateType
+      (entry.inputFields.map Prod.snd)
+    unless found == (sourceModel.outcomeType, sourceModel.factType) do
+      throwErrorAt functionRef (disagreeingDomainsMessage sourceModel.outcomeType
+        sourceModel.factType found.1 found.2)
+    extensions := extensions.push (spelling, actionRef, functionRef)
+  let stateBinder := mkIdent `state
+  let carriedOf := fun (entry : Registry.ActionEntry) =>
+    (List.range entry.inputFields.size).toArray.map fun index =>
+      mkIdent (Name.mkSimple s!"carried{index}")
+  let origin ← originTerm
+  let owner := Lean.quote name.getId.toString
+  let mut steps : Array ResolvedStep := #[]
+  for entry in kept do
+    let carried := carriedOf entry
+    let taken := Syntax.mkApp (sourceIdent (`Action ++ Name.mkSimple entry.name)) carried
+    let inherited ← `(term| $(sourceIdent `step) $stateBinder ($taken))
+    let body ← match extensions.find? (·.1 == entry.name) with
+      | none => pure inherited
+      | some (_, _, functionRef) =>
+          `(term| Umpire.Command.Derived.extendResults $origin $owner
+            $(sourceIdent `stateKeyFor) $(sourceIdent `outcomeKeyFor) $(sourceIdent `factKeyFor)
+            ($inherited) ($(Syntax.mkApp functionRef (#[stateBinder] ++ carried))))
+    let lambda ← carried.foldrM (init := body) fun binder inner =>
+      `(term| fun $binder:ident => $inner)
+    let resultType ← `(term| List (Umpire.Step $stateIdent $outcomeIdent $factIdent))
+    let functionType ← (entry.inputFields.map Prod.snd).foldrM (init := resultType)
+      fun domain inner => `(term| $(mkIdent (`_root_ ++ domain)) → $inner)
+    let functionName := mkIdentFrom name (name.getId ++ `derived ++ Name.mkSimple entry.name)
+    elabGenerated (← `(command|
+      def $functionName : $stateIdent → $functionType := fun $stateBinder:ident => $lambda))
+    steps := steps.push {
+      action := entry
+      domains := entry.inputFields.map Prod.snd
+      function := functionName }
+  -- Each extension against the source, over every state and every member of the source's Action
+  -- catalog; the other actions' members extend by nothing.
+  for (spelling, actionRef, functionRef) in extensions do
+    let arms ← sourceSteps.mapM fun entry => do
+      let carried := carriedOf entry
+      if entry.name == spelling then
+        `(Lean.Parser.Term.matchAltExpr|
+          | $(Syntax.mkApp (sourceIdent (`Action ++ Name.mkSimple entry.name)) carried) =>
+              $(Syntax.mkApp functionRef (#[stateBinder] ++ carried)))
+      else
+        let holes ← carried.mapM fun _ => `(term| _)
+        `(Lean.Parser.Term.matchAltExpr|
+          | $(Syntax.mkApp (sourceIdent (`Action ++ Name.mkSimple entry.name)) holes) => [])
+    let conflict ← `(term|
+      ((Umpire.Command.Derived.firstConflict (Umpire.Command.members (α := $stateIdent))
+          $(sourceIdent `actions) $(sourceIdent `stateKeyFor) $(sourceIdent `actionKeyFor)
+          $(sourceIdent `outcomeKeyFor) $(sourceIdent `factKeyFor) $(sourceIdent `step)
+          (fun $stateBinder:ident taken => match taken with $arms:matchAlt*)).map
+        Umpire.Command.Derived.ExtendConflict.fields).getD [])
+    match ← liftTermElabM (evalStringListTerm conflict) with
+    | ["disabledSource", state, action] =>
+        throwErrorAt actionRef (extendDisabledMessage spelling state action)
+    | ["duplicate", state, action] =>
+        throwErrorAt actionRef (extendDuplicateMessage spelling state action)
+    | _ => pure ()
+  -- A restriction keeps no timer, since `restrict:` names none.
+  let timers := if restrictRefs.isEmpty then source.timers else #[]
+  pure { source, sourceModel, entity, steps, timers }
+
 elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => do
   -- A machine's generated definitions are as long as its state space: `DESIGN.md` section 3's
   -- protocol machine has 224 states, so its key array, its terminal list and its enumerated table
@@ -1948,8 +2129,39 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut stepRefs : Array (Ident × Ident) := #[]
   let mut refinesRef : Option Ident := none
   let mut mapRef : Option Ident := none
+  let mut fromRef : Option Ident := none
+  let mut restrictEntry : Option Syntax := none
+  let mut restrictRefs : Array Ident := #[]
+  let mut extendEntry : Option Syntax := none
+  let mut extendRefs : Array (Ident × Ident) := #[]
+  -- The keys a derived machine takes from its source, so a `from:` line can refuse the first.
+  let mut authoredKeys : Array Syntax := #[]
   for entry in keys do
     match entry with
+    | `(machineKey| from: $sourceRef:ident) => do
+        if fromRef.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "from:")
+        fromRef := some sourceRef
+    | `(machineKey| restrict: [$members,*]) => do
+        if restrictEntry.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "restrict:")
+        restrictEntry := some entry
+        restrictRefs := members.getElems
+    | `(machineKey| extend: $[$extended:ident : $extension:ident]*) => do
+        if extendEntry.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "extend:")
+        extendEntry := some entry
+        for takenOn in extended, function? in extension do
+          extendRefs := extendRefs.push (takenOn, function?)
+    | _ => authoredKeys := authoredKeys.push entry
+  if fromRef.isSome then
+    if let some entry := authoredKeys[0]? then throwErrorAt entry derivedOwnKeyMessage
+  else
+    if let some entry := restrictEntry then
+      throwErrorAt entry (derivationWithoutFromMessage "restrict:")
+    if let some entry := extendEntry then
+      throwErrorAt entry (derivationWithoutFromMessage "extend:")
+  for entry in keys do
+    match entry with
+    | `(machineKey| from: $_:ident) | `(machineKey| restrict: [$_,*]) => pure ()
+    | `(machineKey| extend: $[$_:ident : $_:ident]*) => pure ()
     | `(machineKey| refines: $refinedRef:ident) => do
         if refinesRef.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "refines:")
         refinesRef := some refinedRef
@@ -2003,18 +2215,29 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         for takenOn in stepped, function? in written do
           stepRefs := stepRefs.push (takenOn, function?)
     | _ => throwErrorAt entry "unsupported machine key"
+  -- A derived machine is the source's entity, state and steps, so everything below reads it as if
+  -- the author had written them, except where the source's own lines are values rather than
+  -- spellings: its starts, ends, setup and evidence, which are carried over further down.
+  let derivation ← fromRef.mapM fun sourceRef =>
+    deriveMachine name sourceRef restrictRefs extendRefs
+  if let some derived := derivation then
+    entity := some derived.entity
+    stateRef := some (mkIdentFrom name (`_root_ ++ derived.source.stateType))
+    evidenceRefs := derived.source.evidence.map fun (recorded, observed) =>
+      (mkIdentFrom name (Name.mkSimple recorded), mkIdentFrom name (Name.mkSimple observed))
   let some declaredEntity := entity
     | throwErrorAt name (missingKeyMessage "machine" "for:")
   let some stateType := stateRef
     | throwErrorAt name (missingKeyMessage "machine" "state:")
-  if stepRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "steps:")
-  -- Without `starts:` a Model begins nowhere, so nothing is reachable, every Property holds
-  -- vacuously and the stuck check passes by having nothing to check.
-  if startRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "starts:")
-  -- Without `ends:` no state is terminal: `terminal` names nothing, a Search runs to its limit on
-  -- every path, the stuck check has no state it is allowed to stop in, and a Property that requires
-  -- an instance to finish holds by never being reached. A machine says where it ends.
-  if endRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "ends:")
+  if derivation.isNone then
+    if stepRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "steps:")
+    -- Without `starts:` a Model begins nowhere, so nothing is reachable, every Property holds
+    -- vacuously and the stuck check passes by having nothing to check.
+    if startRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "starts:")
+    -- Without `ends:` no state is terminal: `terminal` names nothing, a Search runs to its limit on
+    -- every path, the stuck check has no state it is allowed to stop in, and a Property that
+    -- requires an instance to finish holds by never being reached. A machine says where it ends.
+    if endRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "ends:")
   -- A refinement is a `refines:` and a `map:` together: the machine refined, and the function that
   -- reads this machine's state as its state. Neither says anything without the other.
   let refinement ← match refinesRef, mapRef with
@@ -2053,8 +2276,10 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         unless shaped do
           throwErrorAt mapFn (mapShapeMessage mapDecl stateDecl refinedModel.stateType)
   -- Every `steps:` line, resolved before anything is generated from any of them.
-  let timerNames := timerRefs.map fun timerRef => timerRef.getId.getString!
-  let mut steps : Array ResolvedStep := #[]
+  let timerNames := match derivation with
+    | some derived => derived.timers
+    | none => timerRefs.map fun timerRef => timerRef.getId.getString!
+  let mut steps : Array ResolvedStep := (derivation.map (·.steps)).getD #[]
   let mut timersStepped : Array String := #[]
   for (actionRef, functionRef) in stepRefs do
     let spelling := actionRef.getId.getString!
@@ -2217,7 +2442,16 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
             match held with
             | .atom declared => declared.getString! == spelling
             | .applied constructor _ => constructor.getString! == spelling
-  let terminalTerms ← (stateMembers.filter isTerminal).toArray.mapM ClassValue.term
+  -- A derived machine ends where its source does, and the source's `ends:` values are read off the
+  -- list the source emitted.
+  let sourceDecl := fun (derived : Derivation) (suffix : Name) =>
+    mkIdentFrom name (`_root_ ++ derived.source.declName ++ suffix)
+  let terminalTerms ← match derivation with
+    | none => (stateMembers.filter isTerminal).toArray.mapM ClassValue.term
+    | some derived => do
+        let ends ← liftTermElabM (evalStringListTerm (← `(term|
+          ($(sourceDecl derived `ends)).map $(sourceDecl derived `stateKeyFor))))
+        (stateMembers.filter fun member => ends.contains member.key).toArray.mapM ClassValue.term
   -- The walk is bounded. A step function is evaluated once per (state, action) pair whether or not
   -- the pair is enabled, so a machine whose state structure multiplies out past the bound is
   -- refused with both factors rather than enumerated part-way into a table smaller than the Model.
@@ -2272,6 +2506,22 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         throwErrorAt startRef (unsortedInitialMessage member.key earlier)
     startTerms := startTerms.push (← member.term)
     startKeys := startKeys.push member.key
+  if let some derived := derivation then
+    for key in derived.sourceModel.starts do
+      if let some member := stateMembers.find? (·.key == key) then
+        startTerms := startTerms.push (← member.term)
+        startKeys := startKeys.push key
+    -- A restriction can drop every row that returns a fact, and an evidence line for a fact no row
+    -- returns confirms nothing, so the source's lines are kept only for what the derived rows return.
+    let returned ← liftTermElabM (evalStringListTerm (← `(term|
+      (($transitionsName).flatMap fun row => row.results.flatMap fun result =>
+        result.facts.map $(sourceDecl derived `factKeyFor)).eraseDups)))
+    evidenceRefs := evidenceRefs.filter fun (recordedRef, _) =>
+      let spelling := recordedRef.getId.getString!
+      factMembersEarly.any fun member =>
+        returned.contains member.key && match member with
+          | .atom _ => member.key == spelling
+          | .applied constructor _ => member.key == spelling || constructor.getString! == spelling
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
   -- something that never happens, which is a mistake about the machine and not about the evidence.
   let factNames := factMembersEarly.map fun member => member.key
@@ -2331,7 +2581,12 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         else some ($actionKeyForName taken)))
   let silent ← liftTermElabM (evalStringList ((← getCurrNamespace) ++ silentName.getId))
   let idle ← liftTermElabM (evalStringList ((← getCurrNamespace) ++ idleName.getId))
-  let unobservableNames := unobservableRefs.map fun timerRef => timerRef.getId.getString!
+  -- A derived machine keeps the source's unobservable timers it still has and that still record
+  -- nothing; an extension that records evidence makes its timer observable.
+  let unobservableNames := match derivation with
+    | some derived => derived.source.unobservable.filter fun spelling =>
+        timerNames.contains spelling && silent.contains spelling
+    | none => unobservableRefs.map fun timerRef => timerRef.getId.getString!
   for timerRef in timerRefs do
     let spelling := timerRef.getId.getString!
     if idle.contains spelling then
@@ -2359,7 +2614,16 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- it -- the phase, not the key naming every field, which a structured state punctuates into
   -- something no catalog key admits -- which is the convention the `model` command set and what
   -- keeps a migrated Model's canonical setup key where it was.
-  let setupConstructor := Name.mkSimple (startRefs[0]!.getId.getString!)
+  -- A derived machine's setup is its source's: the same constructor, and the same parameters.
+  let setupConstructor ← match derivation with
+    | none => pure (Name.mkSimple (startRefs[0]!.getId.getString!))
+    | some derived => do
+        let sourceSetup ← liftCoreM (getConstInfoInduct (derived.source.declName ++ `Setup))
+        pure (Name.mkSimple (sourceSetup.ctors.head!.getString!))
+  if let some derived := derivation then
+    let parameters ← liftTermElabM (evalStringListTerm (← `(term|
+      ($(sourceDecl derived .anonymous)).setupParameters.map Prod.fst)))
+    setupParameters := parameters.toArray.map fun parameter => (parameter, .anonymous)
   let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructor)
   -- The constructor is built rather than written: an identifier inside a quotation is hygienic, so a
   -- literal one would be declared under a macro scope and no name outside this command could
