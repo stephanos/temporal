@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"debug/buildinfo"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -420,6 +421,40 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 		return "", errors.New("pinned module cache is not a directory")
 	}
 	return path, nil
+}
+
+// DownloadModule places module in the pinned Go command's module cache, so a
+// build input read from the cache does not depend on an earlier build having
+// fetched it, and fails unless the downloaded module has the pinned checksum.
+func DownloadModule(ctx context.Context, root, workingDir string, module ModuleIdentity) error {
+	goCommand, err := filepath.Abs(filepath.Join(root, "bin", "go"))
+	if err != nil {
+		return fmt.Errorf("resolve pinned Go command: %w", err)
+	}
+	query := module.Path + "@" + module.Version
+	command := exec.CommandContext(ctx, goCommand, "mod", "download", "-json", query)
+	command.Dir = workingDir
+	command.Env = targetbuild.Environment()
+	var stderr strings.Builder
+	command.Stderr = &stderr
+	output, runErr := command.Output()
+	var downloaded struct {
+		Sum   string
+		Error string
+	}
+	if err := json.Unmarshal(output, &downloaded); err != nil {
+		return fmt.Errorf("download pinned module %s: %w: %s", query, errors.Join(runErr, err), strings.TrimSpace(stderr.String()))
+	}
+	if downloaded.Error != "" {
+		return fmt.Errorf("download pinned module %s: %s", query, downloaded.Error)
+	}
+	if runErr != nil {
+		return fmt.Errorf("download pinned module %s: %w: %s", query, runErr, strings.TrimSpace(stderr.String()))
+	}
+	if downloaded.Sum != module.Sum {
+		return fmt.Errorf("pinned module %s checksum mismatch: got %q, want %q", query, downloaded.Sum, module.Sum)
+	}
+	return nil
 }
 
 func WriteProvenance(path string, provenance Provenance) error {

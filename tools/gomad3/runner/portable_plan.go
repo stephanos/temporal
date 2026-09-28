@@ -120,11 +120,7 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	preparer := config.Preparer
 	selectedAdapters := []deterministicio.BuildAdapter{}
 	if preparer == nil {
-		moduleCache, cacheErr := target.ReadModuleCache(ctx, config.Target.ToolchainRoot)
-		if cacheErr != nil {
-			return CampaignPlanResult{}, cacheErr
-		}
-		config.Target, selectedAdapters, err = profile.PrepareBuildAdapters(config.Target, moduleCache)
+		config.Target, selectedAdapters, err = profile.PrepareTargetBuildAdapters(ctx, config.Target)
 		if err != nil {
 			return CampaignPlanResult{}, err
 		}

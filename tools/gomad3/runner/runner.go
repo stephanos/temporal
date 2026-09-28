@@ -518,12 +518,8 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		preparer := config.Preparer
 		selectedAdapters := []deterministicio.BuildAdapter{}
 		if preparer == nil {
-			moduleCache, cacheErr := target.ReadModuleCache(overallCtx, config.Target.ToolchainRoot)
-			if cacheErr != nil {
-				return summary, cacheErr
-			}
 			var profileErr error
-			config.Target, selectedAdapters, profileErr = selectedProfile.PrepareBuildAdapters(config.Target, moduleCache)
+			config.Target, selectedAdapters, profileErr = selectedProfile.PrepareTargetBuildAdapters(overallCtx, config.Target)
 			if profileErr != nil {
 				return summary, profileErr
 			}

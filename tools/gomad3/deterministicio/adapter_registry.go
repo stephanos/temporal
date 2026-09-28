@@ -1,6 +1,7 @@
 package deterministicio
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -145,6 +146,33 @@ func SelectedAdapters(adapters []BuildAdapter) []Adapter {
 	return result
 }
 
+// selected returns the adapters whose modules the target module at
+// workingDirectory requires, with the target's module file.
+func (registry adapterRegistry) selected(workingDirectory string) ([]adapterDefinition, []byte, error) {
+	if len(registry.definitions) == 0 {
+		return nil, nil, nil
+	}
+	moduleFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.mod"))
+	if err != nil {
+		return nil, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module file: %w", err))
+	}
+	selected := make([]adapterDefinition, 0, len(registry.definitions))
+	for _, definition := range registry.definitions {
+		version, detectErr := detectModuleVersion(moduleFile, definition.identity.Module)
+		if detectErr != nil {
+			return nil, nil, invalidBuildAdapterConfiguration(detectErr)
+		}
+		if version == "" {
+			continue
+		}
+		if version != definition.identity.Version {
+			return nil, nil, invalidBuildAdapterConfiguration(fmt.Errorf("unsupported %s version %q", definition.identity.Module, version))
+		}
+		selected = append(selected, definition)
+	}
+	return selected, moduleFile, nil
+}
+
 func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {
 	if len(registry.definitions) == 0 {
 		return spec, []BuildAdapter{}, nil
@@ -153,23 +181,9 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if err != nil {
 		return target.Spec{}, nil, fmt.Errorf("resolve target working directory: %w", err)
 	}
-	moduleFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.mod"))
+	selected, moduleFile, err := registry.selected(workingDirectory)
 	if err != nil {
-		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module file: %w", err))
-	}
-	selected := make([]adapterDefinition, 0, len(registry.definitions))
-	for _, definition := range registry.definitions {
-		version, detectErr := detectModuleVersion(moduleFile, definition.identity.Module)
-		if detectErr != nil {
-			return target.Spec{}, nil, invalidBuildAdapterConfiguration(detectErr)
-		}
-		if version == "" {
-			continue
-		}
-		if version != definition.identity.Version {
-			return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("unsupported %s version %q", definition.identity.Module, version))
-		}
-		selected = append(selected, definition)
+		return target.Spec{}, nil, err
 	}
 	if len(selected) == 0 {
 		return spec, []BuildAdapter{}, nil
@@ -242,6 +256,38 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	}
 	spec.BuildModFile = modFilePath
 	return spec, evidence, nil
+}
+
+// PrepareTargetBuildAdapters prepares spec's build adapters from the module
+// cache of spec's pinned toolchain after downloading each selected adapter's
+// pinned module into it, so a clean module cache prepares the same adapters.
+func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.Spec) (target.Spec, []BuildAdapter, error) {
+	definition, err := profile.validated()
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	workingDirectory, err := filepath.Abs(spec.WorkingDir)
+	if err != nil {
+		return target.Spec{}, nil, fmt.Errorf("resolve target working directory: %w", err)
+	}
+	selected, _, err := definition.adapters.selected(workingDirectory)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	if len(selected) == 0 {
+		return profile.PrepareBuildAdapters(spec, "")
+	}
+	for _, adapter := range selected {
+		identity := target.ModuleIdentity{Path: adapter.identity.Module, Version: adapter.identity.Version, Sum: adapter.identity.Sum}
+		if err := target.DownloadModule(ctx, spec.ToolchainRoot, workingDirectory, identity); err != nil {
+			return target.Spec{}, nil, err
+		}
+	}
+	moduleCache, err := target.ReadModuleCache(ctx, spec.ToolchainRoot)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	return profile.PrepareBuildAdapters(spec, moduleCache)
 }
 
 func (profile Spec) PrepareBuildAdapters(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {

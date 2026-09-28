@@ -59,11 +59,7 @@ func prepareAnalysisTarget(ctx context.Context, spec target.Spec) (target.Spec, 
 		return target.Spec{}, nil, nil, errors.Join(fmt.Errorf("make analysis preparation directory private: %w", err), cleanup())
 	}
 	spec.PreparationRoot = root
-	moduleCache, err := target.ReadModuleCache(ctx, spec.ToolchainRoot)
-	if err != nil {
-		return target.Spec{}, nil, nil, errors.Join(err, cleanup())
-	}
-	prepared, adapters, err := deterministicio.Default().PrepareBuildAdapters(spec, moduleCache)
+	prepared, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
 	if err != nil {
 		return target.Spec{}, nil, nil, errors.Join(err, cleanup())
 	}
