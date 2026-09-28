@@ -24,9 +24,12 @@ unfolds.
 implements: a composed action is enabled at a composed state where every participant's member has
 a row from its own component; its results are every combination of one result per participant,
 the first participant's outcome reported, each participant's component moved, and every
-participant's facts in member order. The theorems are about that function and the literal, so a
-walk that found a row the members do not authorize, missed a row they do, or kept a state no start
-reaches is refused by the kernel rather than trusted.
+participant's facts in member order. The actions it is asked about are the composition's
+candidates, computed from the generated Action domain rather than read off the literal: every
+member's own action a `sync:` line does not name, and every class of every synchronized action.
+The theorems are about that function, those candidates and the literal, so a walk that found a row
+the members do not authorize, missed a row they do, dropped an action some reachable state
+enables, or kept a state no start reaches is refused by the kernel rather than trusted.
 -/
 
 namespace Umpire.Command.Compose
@@ -114,6 +117,17 @@ def IndexedLiteral.ofModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [B
           { outcome := view.outcome step.outcome
             state := view.state step.state
             facts := step.facts.map view.fact } } }
+
+/-- The composition's candidate actions, from every action of the generated domain read through
+the view: a synchronized action is every candidate with more than one participant, and a member's
+own action is a candidate unless a synchronized one names it, since that member's action is then
+one step with the others' rather than a step of its own. A `sync:` line with one participant reads
+as that participant's own action, which is the same candidate either way. -/
+def candidatesOf (actions : List (List (Nat × Nat))) : List (List (Nat × Nat)) :=
+  actions.filter fun candidate =>
+    match candidate with
+    | [participant] => !actions.any fun other => other.length > 1 && other.contains participant
+    | _ => true
 
 /-! ### The composition function -/
 
@@ -213,54 +227,59 @@ def reach (rows : List ComposedIndexedRow) :
       let found := absorb (frontier.flatMap (successors rows)) (seen, [])
       reach rows fuel found.2 found.1
 
-/-- Whether a composed literal is the composition of its members over the states its starts
-reach: every start holds one start per member and is a catalog state; every row is at a catalog
-state, by a catalog action, holds what the composition function says there, and steps to catalog
-states; every catalog state has a row for each catalog action the composition function enables
-there; and every catalog state is reached from a start. -/
-def composedTableAgrees (members : List IndexedMember) (literal : IndexedLiteral) : Bool :=
+/-- Whether a composed literal is the composition of its members over the candidates and the
+states its starts reach: every start holds one start per member and is a catalog state; every
+catalog action is a candidate; every row is at a catalog state, by a catalog action, holds what the
+composition function says there, and steps to catalog states; every catalog state has a row for
+each candidate the composition function enables there; and every catalog state is reached from a
+start. -/
+def composedTableAgrees (members : List IndexedMember) (candidates : List (List (Nat × Nat)))
+    (literal : IndexedLiteral) : Bool :=
   literal.starts.all (fun start =>
     startOfMembers members start && decide (start ∈ literal.states)) &&
+  literal.actions.all (fun action => decide (action ∈ candidates)) &&
   literal.rows.all (fun row =>
     decide (row.source ∈ literal.states) && decide (row.participants ∈ literal.actions) &&
       rowAgrees members row &&
       row.results.all fun result => decide (result.state ∈ literal.states)) &&
-  literal.states.all (sourceComplete members literal.actions literal.rows) &&
+  literal.states.all (sourceComplete members candidates literal.rows) &&
   literal.states.all fun state =>
     decide (state ∈ reach literal.rows (literal.states.length + 1) literal.starts literal.starts)
 
 /-! ### What a `true` proves -/
 
-/-- A composed state the composition function reaches from a start through the catalog's
-actions. -/
-inductive Reachable (members : List IndexedMember) (actions : List (List (Nat × Nat)))
+/-- A composed state the composition function reaches from a start through the candidates. -/
+inductive Reachable (members : List IndexedMember) (candidates : List (List (Nat × Nat)))
     (starts : List (List Nat)) : List Nat → Prop
-  | start {state : List Nat} (member : state ∈ starts) : Reachable members actions starts state
+  | start {state : List Nat} (member : state ∈ starts) : Reachable members candidates starts state
   | step {source : List Nat} {participants : List (Nat × Nat)}
       {results : List ComposedIndexedStep} {result : ComposedIndexedStep}
-      (reached : Reachable members actions starts source) (action : participants ∈ actions)
+      (reached : Reachable members candidates starts source) (action : participants ∈ candidates)
       (composed : stepsFrom members source participants = some results)
-      (member : result ∈ results) : Reachable members actions starts result.state
+      (member : result ∈ results) : Reachable members candidates starts result.state
 
-/-- What the decided check says: the literal's starts are the members', its rows are the
-composition function's at reached states, and the composition function's rows at reached states
-are its. -/
-structure ComposedAgreement (members : List IndexedMember) (literal : IndexedLiteral) : Prop where
+/-- What the decided check says: the literal's starts are the members', its actions are
+candidates, its rows are the composition function's at reached states, and the composition
+function's rows at reached states are its. -/
+structure ComposedAgreement (members : List IndexedMember) (candidates : List (List (Nat × Nat)))
+    (literal : IndexedLiteral) : Prop where
   /-- Every start holds one start state per member. -/
   starts : ∀ start ∈ literal.starts, start.length = members.length ∧
     ∀ (slot : Nat) (member : IndexedMember) (component : Nat),
       members[slot]? = some member → start[slot]? = some component → component ∈ member.starts
+  /-- Every catalog action is a candidate. -/
+  catalog : ∀ action ∈ literal.actions, action ∈ candidates
   /-- Every row is at a reached state, by a catalog action, and holds the results the composition
   function gives there. -/
   sound : ∀ row ∈ literal.rows,
-    Reachable members literal.actions literal.starts row.source ∧
+    Reachable members candidates literal.starts row.source ∧
       row.participants ∈ literal.actions ∧
       ∃ results, stepsFrom members row.source row.participants = some results ∧
         ∀ result, result ∈ results ↔ result ∈ row.results
-  /-- Every catalog action the composition function enables at a reached state has a row there
-  with its results. -/
-  complete : ∀ source, Reachable members literal.actions literal.starts source →
-    ∀ participants ∈ literal.actions, ∀ results,
+  /-- Every candidate the composition function enables at a reached state has a row there with
+  its results. -/
+  complete : ∀ source, Reachable members candidates literal.starts source →
+    ∀ participants ∈ candidates, ∀ results,
       stepsFrom members source participants = some results →
         ∃ row ∈ literal.rows, row.source = source ∧ row.participants = participants ∧
           ∀ result, result ∈ results ↔ result ∈ row.results
@@ -357,10 +376,12 @@ theorem mem_reach {rows : List ComposedIndexedRow} {R : List Nat → Prop}
       exact mem_reach closed fuel _ _ newR seenR'
 
 /-- The decided check is the agreement: what `composedTableAgrees` evaluates to `true` on holds. -/
-theorem ComposedAgreement.ofChecked {members : List IndexedMember} {literal : IndexedLiteral}
-    (checked : composedTableAgrees members literal = true) : ComposedAgreement members literal := by
+theorem ComposedAgreement.ofChecked {members : List IndexedMember}
+    {candidates : List (List (Nat × Nat))} {literal : IndexedLiteral}
+    (checked : composedTableAgrees members candidates literal = true) :
+    ComposedAgreement members candidates literal := by
   simp only [composedTableAgrees, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq] at checked
-  obtain ⟨⟨⟨starts, rows⟩, complete⟩, reached⟩ := checked
+  obtain ⟨⟨⟨⟨starts, catalog⟩, rows⟩, complete⟩, reached⟩ := checked
   have rowSays : ∀ row ∈ literal.rows, row.source ∈ literal.states ∧
       row.participants ∈ literal.actions ∧
       (∃ results, stepsFrom members row.source row.participants = some results ∧
@@ -369,9 +390,9 @@ theorem ComposedAgreement.ofChecked {members : List IndexedMember} {literal : In
     intro row mem
     obtain ⟨⟨⟨source, action⟩, agrees⟩, closed⟩ := rows row mem
     exact ⟨source, action, rowAgrees_iff.1 agrees, closed⟩
-  have edge : ∀ source, Reachable members literal.actions literal.starts source →
+  have edge : ∀ source, Reachable members candidates literal.starts source →
       ∀ state ∈ successors literal.rows source,
-        Reachable members literal.actions literal.starts state := by
+        Reachable members candidates literal.starts state := by
     intro source reachedSource state mem
     simp only [successors, rowsFrom, List.mem_flatMap, List.mem_filter, List.mem_map,
       decide_eq_true_eq] at mem
@@ -379,12 +400,12 @@ theorem ComposedAgreement.ofChecked {members : List IndexedMember} {literal : In
     obtain ⟨_, action, ⟨results, composed, same⟩, _⟩ := rowSays row rowMem
     subst stateEq
     rw [← sourceEq] at reachedSource
-    exact Reachable.step reachedSource action composed ((same result).2 resultMem)
+    exact Reachable.step reachedSource (catalog _ action) composed ((same result).2 resultMem)
   have statesReachable : ∀ state ∈ literal.states,
-      Reachable members literal.actions literal.starts state := fun state mem =>
+      Reachable members candidates literal.starts state := fun state mem =>
     mem_reach edge _ literal.starts literal.starts (fun _ mem => .start mem)
       (fun _ mem => .start mem) state (reached state mem)
-  have inStates : ∀ state, Reachable members literal.actions literal.starts state →
+  have inStates : ∀ state, Reachable members candidates literal.starts state →
       state ∈ literal.states := by
     intro state reachedState
     induction reachedState with
@@ -396,7 +417,7 @@ theorem ComposedAgreement.ofChecked {members : List IndexedMember} {literal : In
         rw [sourceEq, participantsEq, composed] at composed'
         obtain rfl := Option.some.inj composed'
         exact closed _ ((same _).1 mem)
-  refine ⟨fun start mem => startOfMembers_iff.1 (starts start mem).1, fun row mem => ?_,
+  refine ⟨fun start mem => startOfMembers_iff.1 (starts start mem).1, catalog, fun row mem => ?_,
     fun source reachedSource participants action results composed => ?_⟩
   · obtain ⟨sourceMem, action, agrees, _⟩ := rowSays row mem
     exact ⟨statesReachable row.source sourceMem, action, agrees⟩

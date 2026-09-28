@@ -6,9 +6,10 @@ import Umpire.Command.Tests.Compose
 The agreement check over tables by position, on tables small enough to read: two members, a lamp
 that lights and a switch that flips, composed so that the lamp lights only when the switch flips.
 The literal the walk would emit passes the check; a literal with a row the members do not
-authorize, one missing a row they do, one keeping a state no start reaches, one whose row steps to
-a state outside its catalog, and one starting where a member does not fail it, each on the clause
-the failure is about. The command's refusal is pinned through `elabComposedAgreement` over one of
+authorize, one missing a row they do, one missing an enabled action with its rows and the states
+only it reaches, one whose catalog holds an action that is no candidate, one keeping a state no
+start reaches, one whose row steps to a state outside its catalog, and one starting where a member
+does not fail it, each on the clause the failure is about. The command's refusal is pinned through `elabComposedAgreement` over one of
 those literals, since the walk itself emits nothing the check refuses, and the axioms of the
 generic theorem and of a fixture composition's own agreement theorem are pinned.
 -/
@@ -40,6 +41,10 @@ private def switch : IndexedMember := {
 private def flip : List (Nat × Nat) := [(0, 1), (1, 0)]
 private def light : List (Nat × Nat) := [(0, 0), (1, 1)]
 
+/- The candidates, read off every action of a composed domain: the two synchronized actions, and
+no member's own action, since each is named by one of them. -/
+#guard candidatesOf [[(0, 0)], [(0, 1)], [(1, 0)], [(1, 1)], flip, light] == [flip, light]
+
 /-- From `[dark, off]`: a flip reaches `[dark, on]`, a light there reaches `[lit, on]`, and flips
 move the switch under the lamp; `light` has no row while the switch is off. -/
 private def literal : IndexedLiteral := {
@@ -53,7 +58,7 @@ private def literal : IndexedLiteral := {
     { source := [1, 1], participants := flip, results := [{ outcome := (0, 0), state := [1, 0], facts := [] }] },
     { source := [1, 0], participants := flip, results := [{ outcome := (0, 0), state := [1, 1], facts := [] }] }] }
 
-#guard composedTableAgrees [lamp, switch] literal
+#guard composedTableAgrees [lamp, switch] [flip, light] literal
 
 /- The composition function at the start: a flip moves the switch, and a light has no row. -/
 #guard stepsFrom [lamp, switch] [0, 0] flip ==
@@ -62,38 +67,51 @@ private def literal : IndexedLiteral := {
 
 /- The order the rows list results in is not the check's: a row holds the same results either
 way. -/
-#guard composedTableAgrees [lamp, switch]
+#guard composedTableAgrees [lamp, switch] [flip, light]
   { literal with rows := literal.rows.map fun row => { row with results := row.results.reverse } }
 
 /-! ### What the check refuses -/
 
 /- A row the members do not authorize: a light while the switch is off. -/
-#guard !composedTableAgrees [lamp, switch] { literal with rows := literal.rows ++
+#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with rows := literal.rows ++
   [{ source := [0, 0], participants := light,
      results := [{ outcome := (0, 0), state := [1, 0], facts := [(0, 0)] }] }] }
 
 /- A row with the wrong result: the light's fact left out. -/
-#guard !composedTableAgrees [lamp, switch] { literal with rows := literal.rows.map fun row =>
+#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with rows := literal.rows.map fun row =>
   if row.participants == light then { row with results := [{ outcome := (0, 0), state := [1, 1], facts := [] }] }
   else row }
 
 /- A row the members authorize, missing: the flip from `[lit, on]`. -/
-#guard !composedTableAgrees [lamp, switch]
+#guard !composedTableAgrees [lamp, switch] [flip, light]
   { literal with rows := literal.rows.filter (·.source != [1, 1]) }
+
+/- An enabled action dropped whole: `light` out of the catalog with its row and the two lit states
+only it reaches. What remains agrees with itself, and the candidates are what say it is short. -/
+#guard !composedTableAgrees [lamp, switch] [flip, light]
+  { starts := [[0, 0]], states := [[0, 0], [0, 1]], actions := [flip],
+    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 }
+#guard composedTableAgrees [lamp, switch] [flip]
+  { starts := [[0, 0]], states := [[0, 0], [0, 1]], actions := [flip],
+    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 }
+
+/- A catalog action that is no candidate. -/
+#guard !composedTableAgrees [lamp, switch] [flip] literal
 
 /- A state no start reaches, kept in the catalog: one beyond both members' catalogs, which no row
 leaves or enters, so every row still agrees. -/
-#guard !composedTableAgrees [lamp, switch] { literal with states := literal.states ++ [[2, 2]] }
+#guard !composedTableAgrees [lamp, switch] [flip, light]
+  { literal with states := literal.states ++ [[2, 2]] }
 
 /- A row stepping outside the catalog: `[lit, off]` dropped from the states. -/
-#guard !composedTableAgrees [lamp, switch]
+#guard !composedTableAgrees [lamp, switch] [flip, light]
   { literal with states := literal.states.filter (· != [1, 0]) }
 
 /- A start no member starts in: the switch on. -/
-#guard !composedTableAgrees [lamp, switch] { literal with starts := [[0, 1]] }
+#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with starts := [[0, 1]] }
 
 /- A start of the wrong width. -/
-#guard !composedTableAgrees [lamp, switch] { literal with starts := [[0]] }
+#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with starts := [[0]] }
 
 /-! ### What the command does with it
 
@@ -111,8 +129,10 @@ run_cmd do
     Umpire.Command.Tests.ComposeProofs.switch])
   let missingRow ← `(term| { Umpire.Command.Tests.ComposeProofs.literal with
     rows := Umpire.Command.Tests.ComposeProofs.literal.rows.filter (·.source != [1, 1]) })
+  let candidates ← `(term| [Umpire.Command.Tests.ComposeProofs.flip,
+    Umpire.Command.Tests.ComposeProofs.light])
   Umpire.Command.elabComposedAgreement .missing "lamped" (Lean.mkIdent `lampedRefused) members
-    missingRow 4 2
+    candidates missingRow 4 2
 
 /-- info: 'Umpire.Command.Tests.ComposeProofs.lampedRefused' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs in
@@ -121,9 +141,11 @@ run_cmd do
 run_cmd do
   let members ← `(term| [Umpire.Command.Tests.ComposeProofs.lamp,
     Umpire.Command.Tests.ComposeProofs.switch])
+  let candidates ← `(term| [Umpire.Command.Tests.ComposeProofs.flip,
+    Umpire.Command.Tests.ComposeProofs.light])
   let literal ← `(term| Umpire.Command.Tests.ComposeProofs.literal)
   Umpire.Command.elabComposedAgreement .missing "lamped" (Lean.mkIdent `lampedAgrees) members
-    literal 4 2
+    candidates literal 4 2
 
 /-- info: 'Umpire.Command.Tests.ComposeProofs.lampedAgrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
@@ -142,10 +164,21 @@ The generic theorem, and the agreement theorem `compose` declared for the fixtur
 #print axioms Umpire.Command.Tests.Compose.Forward.pipeline.agrees
 
 /- The fixture composition's literal, read through the view the command generated, is what the
-check saw: 12 states, 7 actions, and its rows by position. -/
+check saw: 12 states, 7 actions, and its rows by position. Its candidates, read off the Action
+domain in the domain's own order, are its seven catalog actions: the job's two pokes and its
+expire, the agent's resume, the halt, and the two replies. -/
 #guard (IndexedLiteral.ofModel Compose.Forward.pipeline Compose.Forward.pipeline.view).states.length
   == 12
 #guard (IndexedLiteral.ofModel Compose.Forward.pipeline Compose.Forward.pipeline.view).actions ==
   [[(1, 1)], [(0, 1), (1, 0)], [(0, 0)], [(0, 2)], [(0, 3)], [(0, 4), (1, 2)], [(0, 5), (1, 2)]]
+#guard candidatesOf ((Umpire.Command.members (α := Compose.Forward.pipeline.Action)).map
+    Compose.Forward.pipeline.view.action) ==
+  [[(0, 3)], [(0, 2)], [(0, 0)], [(1, 1)], [(0, 1), (1, 0)], [(0, 5), (1, 2)], [(0, 4), (1, 2)]]
+
+/- The gates composition's catalog left `early` out as never enabled; the candidates keep it, and
+the theorem holds because no reachable state enables it. -/
+#guard (candidatesOf ((Umpire.Command.members (α := Compose.gates.Action)).map
+    Compose.gates.view.action)).length == 3 &&
+  (IndexedLiteral.ofModel Compose.gates Compose.gates.view).actions.length == 2
 
 end Umpire.Command.Tests.ComposeProofs

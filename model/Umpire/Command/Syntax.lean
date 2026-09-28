@@ -2645,14 +2645,16 @@ theorem; the walk emitted a row the members do not authorize, missed one they do
 no start reaches"
 
 /-- Declare a composition's agreement theorem, `Umpire.Command.Compose.ComposedAgreement` over the
-members' tables and the literal by position, decided by the kernel over the rows rather than
-written by the author, and refuse the composition at `anchor` when the kernel does not decide it.
+members' tables, the candidate actions and the literal by position, decided by the kernel over the
+rows rather than written by the author, and refuse the composition at `anchor` when the kernel does
+not decide it.
 `elabCommand` logs a failed decision rather than throwing it, so the theorem is read back for
 `sorryAx` the way the machine command reads its table's law. -/
 def elabComposedAgreement (anchor : Syntax) (spelling : String) (theoremName : Ident)
-    (members literal : Term) (states actions : Nat) : CommandElabM Unit := do
+    (members candidates literal : Term) (states actions : Nat) : CommandElabM Unit := do
   elabGenerated (← `(command|
-    theorem $theoremName : Umpire.Command.Compose.ComposedAgreement $members $literal :=
+    theorem $theoremName :
+        Umpire.Command.Compose.ComposedAgreement $members $candidates $literal :=
       Umpire.Command.Compose.ComposedAgreement.ofChecked (by decide +kernel)))
   let declared := (← getCurrNamespace) ++ theoremName.getId
   let decided ← if (← getEnv).contains declared then
@@ -2892,12 +2894,14 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
     let binders ← inputs.mapM fun (field, domain) =>
       `(Lean.Parser.Term.bracketedBinderF| ($(mkIdent (Name.mkSimple field)) : $(mkIdent domain)))
     `(Lean.Parser.Command.ctor| | $(mkIdent (Name.mkSimple line.name)):ident $binders*)
+  -- The Action domain is finite so that the agreement theorem's candidates are every action of the
+  -- domain, read off the type rather than off the walk that is being checked.
   let actionConstructors := (← wrapping (·.model.actionType)) ++ syncConstructors
   elabGenerated (← `(command|
     set_option genInjectivity false in
     inductive $actionType where
       $actionConstructors:ctor*
-      deriving BEq, DecidableEq, Repr))
+      deriving BEq, DecidableEq, Repr, Umpire.Command.Finite))
   let outcomeConstructors ← wrapping (·.model.outcomeType)
   elabGenerated (← `(command|
     set_option genInjectivity false in
@@ -3066,8 +3070,9 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
     throwErrorAt name (unprovenTableMessage walked.states.length walked.actions.length)
   -- The agreement theorem: the literal the walk emitted, read as positions in the members' own
   -- catalogs through the view generated here, is the composition of the members' tables over
-  -- every state the starts reach. The kernel decides it over the rows, so the walk is checked
-  -- rather than trusted, and a composition it refuses is not declared as agreed.
+  -- every candidate of the Action domain and every state the starts reach. The kernel decides it
+  -- over the rows, so the walk is checked rather than trusted, and a composition it refuses is not
+  -- declared as agreed.
   let memberModel := fun (member : ComposedMember) => mkIdent member.machine.declName
   let positionIn := fun (member : ComposedMember) (catalog : Name) (value : Term) =>
     `(term| Umpire.Command.Compose.position ($(memberModel member)).table.$(mkIdent catalog) $value)
@@ -3109,6 +3114,8 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
     `(term| Umpire.Command.Compose.IndexedMember.ofModel ($(memberModel member)))
   elabComposedAgreement name name.getId.toString (mkIdentFrom name (name.getId ++ `agrees))
     (← `(term| [$memberTerms,*]))
+    (← `(term| Umpire.Command.Compose.candidatesOf
+      ((Umpire.Command.members (α := $actionType)).map ($viewName).action)))
     (← `(term| Umpire.Command.Compose.IndexedLiteral.ofModel ($name) $viewName))
     walked.states.length walked.actions.length
   liftCoreM (Registry.recordModel {
