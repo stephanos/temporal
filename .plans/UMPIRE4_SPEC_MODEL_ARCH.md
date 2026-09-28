@@ -370,7 +370,7 @@ checked Query + SearchView (from the machine command's FiniteTable)
    Umpire.Search.Selection ── unsupported clause, Scenario, strategy, or form ──▶ reference
                 │
                 ▼
-   Umpire.Search.Backend.Veil: Veil concrete checker, IO, run during command elaboration
+   Umpire.Search.Backend.Veil: Veil's pure breadth-first step, within the search Limit
                 │
        witness or absence answer
                 │
@@ -382,10 +382,10 @@ checked Query + SearchView (from the machine command's FiniteTable)
 ```
 
 A witness from this path passes the same replay against canonical semantics that the bullets below
-require. An absence answer is search within Limits trusted from the pinned checker: the
-differential test against the frozen `reference` backend is its oracle on the checked-in models,
-and Veil's 64-bit state-hash deduplication, which can merge distinct states, is its stated trust
-assumption. The planning receipt records which basis applies.
+require. An absence answer is search within Limits by the pinned checker, not a kernel proof. It
+rests on the adapter's equivalence theorems, on deduplication by whole product state, and on the
+differential test against the frozen `reference` backend on the checked-in models as its oracle.
+The planning receipt records which basis applies.
 
 Formal verification branches from checked semantics rather than from runtime artifacts:
 
@@ -580,7 +580,7 @@ The target architecture is realized when:
 - Accepting a Veil proof or counterexample without a checked binding to canonical semantics.
   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* For the concrete checker the checked
   binding is the adapter's equivalence theorems over the product plus kernel replay of every
-  witness. Reporting a `veil` absence answer as a kernel proof, rather than as search trusted from
-  the checker, is the rejected design.
+  witness. Reporting a `veil` absence answer as a kernel proof, rather than as search within
+  Limits by the pinned checker, is the rejected design.
 - Duplicating Temporal semantic authority in Go, Generated Views, runtime adapters, evidence
   mappings, or formal-checker declarations.

@@ -23,7 +23,11 @@ Shared
 
 Umpire.Core ──▶ Model.Types ──▶ Model.Canonical ──▶ Model.Check
                                                        ├──▶ Property / Scenario semantics
-                                                       │       └──▶ Query semantics ──▶ Search ──▶ Search.Admission
+                                                       │       └──▶ Query semantics ──▶ Search ──▶ Search.Product
+                                                       │                                                  │
+                                                       │                                Veil ──▶ Search.Backend.Veil
+                                                       │                                                  │
+                                                       │                     Search.Admission ◀── Search.Selection
                                                        ├──▶ Model.Elab ──▶ Model authoring facade
                                                        └──▶ Model.Table ──▶ Model authoring facade
 
@@ -51,6 +55,15 @@ is not imported by the production aggregate. A production module under `Temporal
 `Umpire.Command`; `Temporal.Case` and the Implementation Link are outside that rule. `make
 lint-model` checks these edges against the full source inventory and compiled module metadata, the
 authoring-path rule as a direct-import rule and the rest as reachability.
+
+Search has two backends. `Umpire.Search` holds the frozen `reference` traversal and the
+finalization both backends share, and imports none of the modules below it in the diagram.
+`Search.Product` builds a Query's product state space, `Search.Backend.Veil` runs Veil's concrete
+checker over it, and `Search.Selection` chooses the backend for each Query. Veil is the model's
+third external Lake requirement, after Batteries and protobuf, pinned to one commit that `make
+umpire-check-veil-pin` checks; building it runs `npm`, so Node and npm are build prerequisites.
+`search-backend-isolation`, a direct-import rule, lets only `Search.Backend.Veil` import `Veil.*`
+and only `Search.Selection`, or a test, import the adapter.
 
 `make umpire-export-model-module-index` projects the same source inventory and compiled metadata
 into a `temporal-model-module-index/v1` document (`ModelLint.ModuleIndex`, exported by
@@ -205,17 +218,19 @@ canonical bytes are the subject's, answering `crossed` otherwise. `Umpire.Replay
 (`dropPrefixStep i`, last prefix step first, over the Scenario's exact action sequence) and the
 monotonic `Reduction`: each edited Query is re-admitted, one the Model does not admit is
 `inapplicable` and produces no Case, and an admitted one is handed out as one whole Case named by
-its Plan checksum. `observe` takes the coordinator's class for the candidate's Runs, never a Case
-edit, and `finish` reports `minimized`, `irreducible` or `incomplete` with every edit's fate. A
-`minimized` or `irreducible` result carries the retained candidate's review-only proposal, compiled
-by `Umpire.Command.Promotion.propose` -- the compiler `Umpire.Exploration.Promotion` calls too --
-from its admitted Query and keyed on its Plan checksum digest; both commands write proposals
-through `tools/umpire/internal/cli`, outside the model, resolving symlinks and never replacing a
-file. `umpire-replay run` is the Go side: `tools/umpire/replay` admits the subject and replays it
-offline through `PreparedCase.Evaluate` before anything is opened, derives the Contract-relative
-key, reruns the subject twice under its recorded Profile identity, drives the bounded reduction
-over the bridge through the transport the exploration client shares (`campaign.Conn`), and
-renders one report with each answer in its own field.
+its witness key: the Plan checksum with `explored` cleared (`Umpire.Command.Promotion.witnessKey`),
+so the Case name does not depend on which backend searched. `observe` takes the coordinator's class
+for the candidate's Runs, never a Case edit, and `finish` reports `minimized`, `irreducible` or
+`incomplete` with every edit's fate. A `minimized` or `irreducible` result carries the retained
+candidate's review-only proposal, compiled by `Umpire.Command.Promotion.propose` -- the compiler
+`Umpire.Exploration.Promotion` calls too -- from its admitted Query and keyed on its witness key's
+digest; both commands write proposals through `tools/umpire/internal/cli`, outside the model,
+resolving symlinks and never replacing a file. `umpire-replay run` is the Go side:
+`tools/umpire/replay` admits the subject and replays it offline through `PreparedCase.Evaluate`
+before anything is opened, derives the Contract-relative key, reruns the subject twice under its
+recorded Profile identity, drives the bounded reduction over the bridge through the transport the
+exploration client shares (`campaign.Conn`), and renders one report with each answer in its own
+field.
 
 Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
 symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the

@@ -31,6 +31,9 @@ Focused public imports are available by responsibility:
 | `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces; `EvidenceStructure.analyze` returns the Evidence structure whose `orderingFault?` and `closureFault?` give the first fault for a raw bundle or an accepted trace. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
 | `Umpire.Search` | Deterministic incremental planning over checked Queries; `Search.admit` owns the Property, Scenario, Known Gap, Query, and search-view chain and returns an `AdmittedQuery`. |
+| `Umpire.Search.Product` | A Query's product state space: the search view's state, the Scenario's progress automaton, and the Property monitors, with a fired-clause bitset. |
+| `Umpire.Search.Backend.Veil` | The `veil` backend: Veil's concrete breadth-first checker over the product, with its equivalence theorems. The only importer of `Veil.*`. |
+| `Umpire.Search.Selection` | Chooses `veil` or `reference` for each Query and records why; the only production importer of the adapter. |
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
@@ -121,10 +124,23 @@ constructor infers Model outcomes or checker success. `Search.admit` composes th
 Known Gap, Query, and search-view checks in that order against one checked Model. It returns the
 first stage that rejected as one `AdmissionDiagnostic`, carrying that stage's own typed error, or an
 `AdmittedQuery` indexed by the Model. The admitted search view is private: `AdmittedQuery.search`,
-`searchWithIntent`, and `analyzeBranches` use it, and `AdmittedQuery.withQuery` re-pairs it with
-another checked Query over the same Model. `SearchView.retarget` is the one transport of a view
-across a proved Model equality. A Property-only Query admits against an unconstrained Scenario that
-binds the Model's setup roles.
+`searchWithIntent`, `searchWith`, and `analyzeBranches` use it, and `AdmittedQuery.withQuery`
+re-pairs it with another checked Query over the same Model. `SearchView.retarget` is the one
+transport of a view across a proved Model equality. A Property-only Query admits against an
+unconstrained Scenario that binds the Model's setup roles.
+
+An admitted Query searches on the backend `Umpire.Search.Selection` chooses. `veil` runs Veil's
+concrete breadth-first checker over the Query's product state space; Selection chooses it when the
+strategy is not `seeded`, every Property clause lowers to a monitor, and the Scenario lowers to a
+progress automaton, and otherwise chooses the frozen path-enumerating `reference` traversal and
+records the reason in the planning receipt. No flag, Query field, or environment variable chooses
+the backend; `AdmittedQuery.searchWith` names one for tests. Both backends return a `BackendResult`
+that `finalizeBackendResult` finalizes the same way. Its kernel replay gate accepts a witness only
+when the trace starts from a proven initial state of one of the search's setups, every step is a
+search-view member within the depth bound, and the admission, ending, endpoint, and coverage
+decision the reference traversal makes holds on it; a witness that fails is `invalid` with
+`unreplayableWitness`, never `found`. The `search` Limit bounds candidate paths on `reference` and
+product states on `veil`, and `explored.traces` counts the same unit.
 
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary

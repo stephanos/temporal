@@ -614,6 +614,24 @@ property startToCloseFires
 A `scenario` is one path: the classed actions in order from a starting phase. Each path below is
 one upstream functional test's shape. `limits` bound the search that finds the path's witness.
 
+`steps` and `actions` bound the length of a trace, and the search explores to the smaller of the
+two. What `search` counts depends on the backend. The frozen `reference` backend enumerates
+candidate paths, so `search` bounds paths and a state reached along two paths counts twice. The
+`veil` backend, Veil's concrete checker over the product of the Model state, the Scenario's
+progress and the Property monitors, visits each product state once, so `search` bounds product
+states. A Query runs on `veil` unless its strategy is `seeded` or its Property or Scenario uses a
+construct no monitor or progress automaton encodes yet; then it runs on `reference`. The planning
+receipt records the backend, the reason and the unit.
+
+The two backends earn trust differently. On either one, a witness counts only after it is replayed
+against the Model's checked table. An absence answer (`verified-within-limits`, `none-found`,
+`unsatisfiable`) is search within the Limits, not a kernel proof. On `veil` it comes from the pinned
+Veil checker's breadth-first step, which the search runs as an ordinary pure function, and rests
+on the adapter's theorems that Veil's transition system is the product's own relation, on
+deduplication that compares whole product states rather than hashes, and on the differential test,
+which runs every checked-in Query on both backends and requires the same answer wherever
+`reference` finishes within its Limits.
+
 <!-- authoring: scenarios -->
 ```lean
 /-! ### The paths the Queries run

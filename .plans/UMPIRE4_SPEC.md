@@ -467,10 +467,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   If it finds no candidate, it proves absence only within those Limits.
   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* On the `veil` backend a candidate is a
   product state, not a path, and "every candidate" means every product state reachable within the
-  depth the Limits allow. Its absence answer holds within those Limits and under the checker's trust
-  assumption: Veil deduplicates states by a 64-bit hash, so two distinct states with equal hashes
-  merge. That answer is trusted from the checker, not replayed by the kernel; VER-06 names it as its
-  own basis.
+  depth the Limits allow. Its absence answer holds within those Limits. It comes from the pinned
+  Veil checker's breadth-first step, which Search runs as a pure function and which deduplicates by
+  whole product state, not replayed by the kernel; VER-06 names it as its own basis.
 - **Query (`Umpire.Query`).** A bounded question about a Model, within explicit Limits. Its
   `Umpire.Query.Form` is `verify`, `find`, `findViolation`, or `pick`; its `Umpire.Query.Ending`
   says which Traces count as complete. `Umpire.CheckedQuery` is an admitted one.
@@ -485,9 +484,10 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   state, the Scenario's progress, and the Property monitors. `Umpire.Search.Selection` chooses
   `veil` when every clause and the Scenario lower, the strategy is not `seeded`, and the Query form
   is supported, and `reference` otherwise, recording the reason; no CLI flag, Query field, or
-  environment variable chooses it. The checker's entry is `IO` and runs while the command
-  elaborates. A `veil` witness counts only after kernel replay, as a `reference` witness does; a
-  `veil` absence answer is trusted from the checker (Exhaustive Search, VER-06).
+  environment variable chooses it. Search drives the checker's pure breadth-first step itself,
+  within the `search` Limit, so Search stays a pure total function and nothing runs during
+  elaboration. A `veil` witness counts only after kernel replay, as a `reference` witness does; a
+  `veil` absence answer is its own basis (Exhaustive Search, VER-06).
   `Umpire.SearchStats` also records the backend, the reason, whether its unit is paths or states,
   and, on `veil`, the pinned Veil commit; its `backendPulls` counter is renamed `enumeratorPulls`,
   and the planning receipt carrying them moves to `umpire-planning-receipt/v2`. `Umpire.PlanResult`
@@ -811,9 +811,10 @@ it.
   Search within Limits now has two bases. On `reference` it is Lean-evaluated search whose witnesses
   and absence answers come from code in this repository. On `veil` a witness is still
   kernel-replayed (VER-05), but an absence answer (`verified-within-limits`, `none-found`,
-  `unsatisfiable`) is trusted from the pinned Veil checker. Its oracle is the differential test
-  against `reference` on the checked-in models, and its stated trust assumption is Veil's 64-bit
-  state-hash deduplication. The planning receipt records which basis applies through its backend and
+  `unsatisfiable`) comes from the pinned Veil checker's breadth-first step. It rests on the
+  adapter's theorems that Veil's transition system is the product's own relation, on deduplication
+  by whole product state, and on the differential test against `reference` on the checked-in
+  models as its oracle. The planning receipt records which basis applies through its backend and
   Veil-commit fields, and neither basis is reported as a kernel proof. This part of VER-06 binds
   the default search backend, not only opt-in checkers.
 

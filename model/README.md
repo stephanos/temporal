@@ -487,6 +487,14 @@ active vocabulary and semantic inventory, runs every package under `tools/umpire
 and runs the complete live selector with `-tags 'test_dep integration' -run '^TestTestpilot'`. The live
 gate compares the entire inherited failure-identity set, so both additions and deletions fail.
 
+The model requires Veil at one pinned commit for the `veil` search backend. `make
+umpire-check-veil-pin`, which the regression check runs first, fails unless `model/lakefile.lean`,
+`model/lake-manifest.json` and `Umpire.Search.Backend.Veil.commit` name the same revision, and
+proves it rejects a planted manifest that resolves another. Building Veil runs `npm` for its widget,
+so Node and npm must be on `PATH`. From a cold `.lake`, Veil's checker closure (Aesop and 31 Veil
+modules) built in 74 s wall at the fn-88 R22 probe and 58 s with Batteries warm at fn-88.5; the
+whole model built in about 15 minutes at fn-88.12, before Veil was added.
+
 `make lint-model` runs Lean declaration linting and validates the complete first-party import graph.
 The regression boundary intentionally adds no broad generated-Lean API drift check and no new
 GitHub Actions surface.
