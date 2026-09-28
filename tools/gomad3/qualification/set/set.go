@@ -537,6 +537,9 @@ func validateManifest(manifest Manifest) error {
 		if !sortedUnique(workload.BuildTags) || !sortedUnique(workload.Environment) || !sortedUnique(workload.RequiredProbes) {
 			return fmt.Errorf("qualification workload %s lists must be sorted and unique", workload.ID)
 		}
+		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, workload.RequiredProbes); err != nil {
+			return fmt.Errorf("qualification workload %s: %w", workload.ID, err)
+		}
 		if workload.CapabilityMode != target.CapabilityModeClosure && workload.CapabilityMode != target.CapabilityModeLinked && workload.CapabilityMode != target.CapabilityModeGuarded {
 			return fmt.Errorf("qualification workload %s capability mode is invalid", workload.ID)
 		}
