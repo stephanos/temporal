@@ -77,12 +77,12 @@ reason, where it does not; `searchWith .reference` is the reference search. -/
 #guard (searchWith .reference (query (.find property)) view).toOption ==
   (Umpire.search (query (.find property)) view).toOption
 
-/-! Until the cutover, `search` runs every Query on `reference`: a Query Selection sends to `veil`
-searches exactly as the reference does, and one it rules out records its reason. -/
-#guard cutover == false
+/-! Since the cutover, `search` runs a Query on the backend Selection chooses: one it sends to
+`veil` searches exactly as `searchWith .veil` does, and one it rules out records its reason. -/
+#guard cutover == true
 
 #guard (Search.Selection.search (query (.find property)) view).toOption ==
-  (Umpire.search (query (.find property)) view).toOption
+  (searchWith .veil (query (.find property)) view).toOption
 
 #guard backendOf (Search.Selection.search (query (.find logicalTimeProperty)) view) ==
   some ("reference", "unsupported-clause:logical-time-limit")
@@ -92,7 +92,7 @@ searches exactly as the reference does, and one it rules out records its reason.
 #guard [Examples.Switch.exactActionAdmitted.search,
     Examples.Switch.exactActionAdmitted.searchWith .reference,
     Examples.Switch.exactActionAdmitted.searchWith .veil].map backendOf ==
-  [some ("reference", "default"), some ("reference", "default"), some ("veil", "default")]
+  [some ("veil", "default"), some ("reference", "default"), some ("veil", "default")]
 
 #guard (Examples.Switch.exactActionAdmitted.searchWith .veil).toOption.map
     (·.result.outcome.name) ==
