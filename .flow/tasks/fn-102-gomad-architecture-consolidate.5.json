@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T23:45:21.302930Z",
+  "depends_on": [
+    "fn-102-gomad-architecture-consolidate.4"
+  ],
+  "id": "fn-102-gomad-architecture-consolidate.5",
+  "priority": null,
+  "spec": "fn-102-gomad-architecture-consolidate",
+  "spec_path": ".flow/tasks/fn-102-gomad-architecture-consolidate.5.md",
+  "status": "todo",
+  "title": "Enforce package coverage, purity, and public signature visibility",
+  "updated_at": "2026-09-27T23:52:48.023093Z"
+}
