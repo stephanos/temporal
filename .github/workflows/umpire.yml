@@ -31,6 +31,8 @@ jobs:
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
           working_directory: model
           cache: false
+      - name: Generate the API descriptor set the model build reads
+        run: make proto/api.binpb
       - name: Run package-local Testpilot and Umpire Producer tests
         run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
       - name: Run the live Umpire tests
@@ -51,6 +53,8 @@ jobs:
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
           working_directory: model
           cache: false
+      - name: Generate the API descriptor set the model build reads
+        run: make proto/api.binpb
       - name: Run the canary's unit tests
         run: mise exec -- go test -count=1 -tags test_dep ./tools/canary/...
       - name: Run the canary harness build's tests
