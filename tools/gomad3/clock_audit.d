@@ -1,5 +1,10 @@
 #pragma D option quiet
 
+dtrace:::BEGIN
+{
+	printf("GOMAD3_AUDIT_READY\n");
+}
+
 pid$target::main.auditStart:entry
 {
 	started = 1;
