@@ -215,6 +215,12 @@ func pinnedReflect2PackID(t *testing.T) string {
 func pinnedReflect2ListedPackage(t *testing.T) listedPackage {
 	t.Helper()
 	_, sFiles := pinnedReflect2Host(t)
+	module := &listedModule{
+		Path: "github.com/modern-go/reflect2", Version: "v1.0.3-0.20250322232337-35a7c28c31ee", Sum: "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
+	}
+	if err := DownloadModule(context.Background(), toolchainRoot(t), t.TempDir(), ModuleIdentity{Path: module.Path, Version: module.Version, Sum: module.Sum}); err != nil {
+		t.Fatal(err)
+	}
 	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
 	if err != nil {
 		t.Fatal(err)
@@ -227,9 +233,7 @@ func pinnedReflect2ListedPackage(t *testing.T) listedPackage {
 			"unsafe_array.go", "unsafe_eface.go", "unsafe_field.go", "unsafe_iface.go", "unsafe_link.go", "unsafe_map.go", "unsafe_ptr.go", "unsafe_slice.go", "unsafe_struct.go", "unsafe_type.go",
 		},
 		SFiles: sFiles,
-		Module: &listedModule{
-			Path: "github.com/modern-go/reflect2", Version: "v1.0.3-0.20250322232337-35a7c28c31ee", Sum: "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
-		},
+		Module: module,
 	}
 }
 
