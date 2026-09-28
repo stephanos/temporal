@@ -1,4 +1,5 @@
 import Temporal.Case.Syntax
+import Temporal.Feature.Worker.Model
 
 /-!
 # The worker-outage Model
@@ -12,6 +13,11 @@ at either, and the Case says so in a Known Gap. Whether the faults happen in tha
 resume is not long in coming, is the outage-order rule the Producer derives from the Program: a
 bounded-liveness rule over the recorded faults whose deadline is an event count, never elapsed
 time, so a slow runner cannot turn a healthy outage into a violated one.
+
+The workflow machine alone cannot say what the outage does to the worker: its two faults are
+stutter rows. Composed with the worker entity's machine, the faults are the worker's own phase
+changes and the wait is the worker serving, so the composition can verify the claim the outage is
+about: a stopped worker completes no workflow.
 -/
 
 namespace Temporal.Feature.Workflow.Outage
@@ -137,5 +143,52 @@ set workerOutageTests
 case workerOutageCases
   realizes workerOutageTests
   as Temporal.Case.Realization.workflowOutage
+
+/-! ### The workflow and its worker
+
+The outage machine composed with the worker of the workflow's task queue. The two faults are one
+step of both: the workflow's stutter row and the worker's phase change. The wait is the worker
+serving the workflow task, so it has a row only while the worker polls, and the workflow completes
+in no state where the worker is stopped. The functional set stays over the machine alone; the
+composition is what the cross-entity claim is verified over. -/
+
+structure WorkerOutageState where
+  workflow : OutageState
+  worker : Worker.WorkerState
+  deriving BEq, DecidableEq, Repr
+
+compose workerOutage
+  for: [workflow, Worker.worker]
+  state: WorkerOutageState
+  members:
+    workflow: workflowOutage
+    worker: Worker.polling
+  sync:
+    workerStop: workflow.workerStop ∥ worker.workerStop
+    workerResume: workflow.workerResume ∥ worker.workerResume
+    awaitCompletion: workflow.awaitCompletion ∥ worker.serve
+  starts: [workflow.pending, worker.polling]
+  ends: [workflow.completed]
+
+/- A completion leaves the one composed state in which the workflow is completed and its worker is
+polling, and records the completed event: no workflow completes while its worker is stopped. -/
+property completedByPollingWorker
+  machine: workerOutage
+  when: awaitCompletion
+  holds: fun step =>
+    step.state.workflow.phase == .completed && step.state.worker.phase == .polling &&
+      step.facts.contains (.workflow .workflowExecutionCompleted)
+
+/- The outage over the composition: the stop and the resume move the worker, and the wait is
+served by the resumed worker. -/
+scenario outageServed
+  model: workerOutage
+  starts: workflow.pending
+  actions: [workerStop, workflow.startWorkflow, workerResume, awaitCompletion]
+
+query stoppedWorkerCompletesNothing
+  verify: completedByPollingWorker
+  in: outageServed
+  limits: four
 
 end Temporal.Feature.Workflow.Outage

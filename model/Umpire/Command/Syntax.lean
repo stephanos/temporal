@@ -8,6 +8,7 @@ import Umpire.Command.Registry
 import Umpire.Command.Predicate
 import Umpire.Command.Instances
 import Umpire.Command.Compose
+import Umpire.Command.ComposeProofs
 import Umpire.Command.Refinement
 import Umpire.Command.Claims
 import Umpire.Command.Coverage
@@ -2637,6 +2638,29 @@ private def neverEnabledMessage (key : String) : String :=
   s!"'{key}' is never enabled: no composed state the composition reaches has a row for it, so its \
 catalog leaves it out"
 
+private def disagreeingLiteralMessage (spelling : String) (states actions : Nat) : String :=
+  s!"the literal table of '{spelling}', {states} states over {actions} actions, is not the \
+composition of its members over the states its starts reach, so the kernel refused its agreement \
+theorem; the walk emitted a row the members do not authorize, missed one they do, or kept a state \
+no start reaches"
+
+/-- Declare a composition's agreement theorem, `Umpire.Command.Compose.ComposedAgreement` over the
+members' tables and the literal by position, decided by the kernel over the rows rather than
+written by the author, and refuse the composition at `anchor` when the kernel does not decide it.
+`elabCommand` logs a failed decision rather than throwing it, so the theorem is read back for
+`sorryAx` the way the machine command reads its table's law. -/
+def elabComposedAgreement (anchor : Syntax) (spelling : String) (theoremName : Ident)
+    (members literal : Term) (states actions : Nat) : CommandElabM Unit := do
+  elabGenerated (← `(command|
+    theorem $theoremName : Umpire.Command.Compose.ComposedAgreement $members $literal :=
+      Umpire.Command.Compose.ComposedAgreement.ofChecked (by decide +kernel)))
+  let declared := (← getCurrNamespace) ++ theoremName.getId
+  let decided ← if (← getEnv).contains declared then
+      pure !(← liftCoreM (Lean.collectAxioms declared)).contains ``sorryAx
+    else pure false
+  unless decided do
+    throwErrorAt anchor (disagreeingLiteralMessage spelling states actions)
+
 /-- The values a member state holds in its fields, spelled the way `starts:` and `ends:` spell
 them: an enum member's own name, or a class's constructor. -/
 private def heldValues (state : ClassValue) : Array String :=
@@ -3040,6 +3064,53 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
   unless (← getEnv).contains declared &&
       !(← liftCoreM (Lean.collectAxioms declared)).contains ``sorryAx do
     throwErrorAt name (unprovenTableMessage walked.states.length walked.actions.length)
+  -- The agreement theorem: the literal the walk emitted, read as positions in the members' own
+  -- catalogs through the view generated here, is the composition of the members' tables over
+  -- every state the starts reach. The kernel decides it over the rows, so the walk is checked
+  -- rather than trusted, and a composition it refuses is not declared as agreed.
+  let memberModel := fun (member : ComposedMember) => mkIdent member.machine.declName
+  let positionIn := fun (member : ComposedMember) (catalog : Name) (value : Term) =>
+    `(term| Umpire.Command.Compose.position ($(memberModel member)).table.$(mkIdent catalog) $value)
+  let stateBinder := mkIdent `state
+  let valueBinder := mkIdent `value
+  let stateComponents ← members.mapM fun member =>
+    positionIn member `states (mkIdent (`state ++ Name.mkSimple member.field))
+  let memberArms := fun (catalog : Name) (wrap : Term → CommandElabM Term) =>
+    members.toList.zipIdx.toArray.mapM fun (member, slot) => do
+      let position ← positionIn member catalog valueBinder
+      `(Lean.Parser.Term.matchAltExpr|
+        | .$(mkIdent (Name.mkSimple member.field)):ident $valueBinder:ident =>
+          $(← wrap (← `(term| ($(Lean.quote slot), $position)))))
+  let ownArms ← memberArms `actions fun position => `(term| [$position])
+  let syncArms ← syncLines.mapM fun line => do
+    let inputs := ((classedAction line).map (·.inputFields)).getD #[]
+    let carried := (List.range inputs.size).toArray.map fun index =>
+      mkIdent (Name.mkSimple s!"carried{index}")
+    let participants ← line.participants.toArray.mapM fun (field, action) => do
+      let some (member, slot) := members.toList.zipIdx.find? (·.1.field == field)
+        | throwErrorAt name s!"no member '{field}'"
+      let constructor := mkIdent (member.model.actionType ++ Name.mkSimple action)
+      let value ← if member.model.actions.contains action then `(term| $constructor)
+        else `(term| $constructor $carried*)
+      `(term| ($(Lean.quote slot), $(← positionIn member `actions value)))
+    `(Lean.Parser.Term.matchAltExpr|
+      | .$(mkIdent (Name.mkSimple line.name)):ident $carried* => [$participants,*])
+  let outcomeArms ← memberArms `outcomes pure
+  let factArms ← memberArms `facts pure
+  let viewName := mkIdentFrom name (name.getId ++ `view)
+  elabGenerated (← `(command|
+    def $viewName : Umpire.Command.Compose.IndexedView $stateType $actionType $outcomeType
+        $factType := {
+      state := fun $stateBinder:ident => [$stateComponents,*]
+      action := fun action => match action with $(ownArms ++ syncArms):matchAlt*
+      outcome := fun outcome => match outcome with $outcomeArms:matchAlt*
+      fact := fun fact => match fact with $factArms:matchAlt* }))
+  let memberTerms ← members.mapM fun member =>
+    `(term| Umpire.Command.Compose.IndexedMember.ofModel ($(memberModel member)))
+  elabComposedAgreement name name.getId.toString (mkIdentFrom name (name.getId ++ `agrees))
+    (← `(term| [$memberTerms,*]))
+    (← `(term| Umpire.Command.Compose.IndexedLiteral.ofModel ($name) $viewName))
+    walked.states.length walked.actions.length
   liftCoreM (Registry.recordModel {
     declName := declared
     role := name.getId.toString

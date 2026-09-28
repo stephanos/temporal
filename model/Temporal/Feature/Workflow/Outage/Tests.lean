@@ -103,4 +103,42 @@ that completed the workflow. -/
   some [("evidence.workflowExecutionCompleted",
     "attributes<workflow_execution_completed_event_attributes>.workflow_task_completed_event_id")]
 
+/-! ### The composition
+
+The outage machine with its worker: six reachable states of the nine, since a completed workflow
+never returns to pending, and four actions, the three synchronized ones and the workflow's own
+start. The worker's `serve` is never its own action: it is the wait. The kernel decided that the
+literal is the composition of the two machines' tables, with no axiom beyond the machines'. -/
+
+#guard workerOutage.table.states.length == 6
+#guard workerOutage.table.states.map (·.key) == ["completed_polling", "completed_stopped",
+  "pending_polling", "pending_stopped", "started_polling", "started_stopped"]
+#guard workerOutage.actionKeys ==
+  #["awaitCompletion", "workerResume", "workerStop", "workflow_startWorkflow"]
+#guard workerOutage.table.transitions.length == 9
+
+/- The wait has a row only where the worker polls. -/
+#guard (workerOutage.table.transitions.filter (·.key.endsWith "-awaitCompletion")).map (·.key) ==
+  ["started_polling-awaitCompletion"]
+
+/-- info: 'Temporal.Feature.Workflow.Outage.workerOutage' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms workerOutage
+
+/--
+info: 'Temporal.Feature.Workflow.Outage.workerOutage.agrees' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms workerOutage.agrees
+
+/- The claim fixes the one whole state a completion leaves, and the completed event. -/
+#guard completedByPollingWorker.names.groups.map (fun group => (group.trigger, group.requirements)) ==
+  [(.action "awaitCompletion", [.stateClause "state-completed_polling" "completed_polling",
+    .factClause "fact-workflow_workflowExecutionCompleted" "workflow_workflowExecutionCompleted"])]
+
+/- Verified over the outage path: the one completion is served by the resumed worker. -/
+#guard (match stoppedWorkerCompletesNothing with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "verified-within-limits"
+
 end Temporal.Feature.Workflow.Outage.Tests

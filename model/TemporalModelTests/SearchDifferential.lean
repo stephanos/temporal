@@ -92,6 +92,8 @@ info: Temporal.Feature.Nexus.Tests.Machines.retryCompletes: veil default, found 
 ---
 info: Temporal.Feature.System.Info.answered: veil default, found 2 paths, found 2 states; automaton ok, monitors ok (Query depth 1, clause table depth 1)
 ---
+info: Temporal.Feature.Workflow.Outage.stoppedWorkerCompletesNothing: veil default, verified-within-limits 5 paths, verified-within-limits 5 states; automaton ok, monitors ok (Query depth 4, clause table depth 4)
+---
 info: Temporal.Feature.Workflow.Outage.survived: veil default, found 5 paths, found 5 states; automaton ok, monitors ok (Query depth 4, clause table depth 4)
 ---
 info: Temporal.Feature.Workflow.Start.started: veil default, found 2 paths, found 2 states; automaton ok, monitors ok (Query depth 1, clause table depth 1)

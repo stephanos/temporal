@@ -45,6 +45,7 @@ import Umpire.Case.Tests.Projection
 import Umpire.Case.Tests.ProjectionBoundary
 import Umpire.Case.Tests.ObservedPath
 import Umpire.Command.Tests.Compose
+import Umpire.Command.Tests.ComposeProofs
 
 namespace UmpireTests
 
