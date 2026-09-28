@@ -129,6 +129,22 @@ func DecodePack(data []byte) (Pack, error) {
 }
 
 func ValidatePack(candidate Pack) error {
+	if err := ValidatePackStructure(candidate); err != nil {
+		return err
+	}
+	for index, rule := range candidate.Rules {
+		for _, capability := range rule.Capabilities {
+			if Unadmittable(capability) {
+				return fmt.Errorf("compatibility pack rule %d: capability %s is never admitted", index, capability)
+			}
+		}
+	}
+	return nil
+}
+
+// ValidatePackStructure checks everything ValidatePack does except the
+// admission ban, so a request can validate the denied facts it records.
+func ValidatePackStructure(candidate Pack) error {
 	if candidate.Schema != PackSchema || !packIDPattern.MatchString(candidate.ID) {
 		return errors.New("compatibility pack identity is invalid")
 	}
@@ -282,11 +298,6 @@ func validatePackRule(rule PackRule) error {
 	}
 	if len(rule.Capabilities)+len(rule.Linknames) == 0 || len(rule.Capabilities)+len(rule.Linknames) > maximumPackFacts || !sortedUniqueBy(rule.Capabilities, validCapability) {
 		return errors.New("capability inventory is not canonical")
-	}
-	for _, capability := range rule.Capabilities {
-		if Unadmittable(capability) {
-			return fmt.Errorf("capability %s is never admitted", capability)
-		}
 	}
 	if !slices.IsSortedFunc(rule.Linknames, comparePackLinkname) || hasDuplicatePackLinknames(rule.Linknames) {
 		return errors.New("linkname inventory is not sorted and unique")
