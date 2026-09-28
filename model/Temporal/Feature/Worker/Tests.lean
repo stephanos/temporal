@@ -29,6 +29,14 @@ fault has a row only from the phase it leaves. -/
    ("polling-workerStop", ["stopped"]),
    ("stopped-workerResume", ["polling"])]
 
+/- The declarations hang off the `temporal` root, with `Temporal.Feature` as scaffolding, as every
+Temporal Model's do. -/
+#guard [worker.id.value, workerStop.id.value, workerResume.id.value, serve.id.value,
+    polling.targetId.value] ==
+  ["temporal.worker.entity.worker", "temporal.worker.action.workerStop",
+   "temporal.worker.action.workerResume", "temporal.worker.action.serve",
+   "temporal.worker.target.polling"]
+
 /-- info: 'Temporal.Feature.Worker.polling' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms polling

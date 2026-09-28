@@ -26,23 +26,25 @@ private def replay (transcript : PackageModules.BuildTranscript) : IO Unit :=
 the model root the lint runs in. -/
 private def handwrittenInventoryPath : System.FilePath := "HANDWRITTEN_INVENTORY.md"
 
-private unsafe def lintImportGraph : IO Bool := do
+/-- The import-graph pass, and the owned source modules it discovered (none when discovery or a
+later phase failed), which the declaration pass reads rather than discovering them again. -/
+private unsafe def lintImportGraph : IO (Bool × Array Name) := do
   match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
   | .error (.discovery reason) =>
       IO.eprintln (PackageModules.discoveryFailureMessage reason)
-      pure false
+      pure (false, #[])
   | .error (.sources issues) =>
       for issue in issues do
         IO.eprintln (ImportGraph.InventoryIssue.render issue)
-      pure false
+      pure (false, #[])
   | .error (.build transcript) =>
       replay transcript
       IO.eprintln PackageModules.buildFailureMessage
-      pure false
+      pure (false, #[])
   | .error (.metadata issues) =>
       for issue in issues do
         IO.eprintln issue.render
-      pure false
+      pure (false, #[])
   | .ok loaded =>
       replay loaded.transcript
       -- The hand-written ledger is an input of the lint: a module that builds authoring records
@@ -58,11 +60,12 @@ private unsafe def lintImportGraph : IO Bool := do
       -- The records' names may point into the mapped module data, so the regions stay reachable
       -- until every reader above has finished with them.
       let _loadedRegionCount := loaded.regions.size
+      let discovered := loaded.sources.map (·.module)
       if inventoryIssues.isEmpty && violations.isEmpty then
         IO.println "-- Model import-graph linting passed."
-        pure true
+        pure (true, discovered)
       else
-        pure false
+        pure (false, discovered)
 
 end ModelLint
 
@@ -116,17 +119,19 @@ private unsafe def lintModule (module : Name) : IO Bool := do
       IO.println s!"-- Batteries linting passed for {module}."
       pure true
 
-/-- The production feature root, whose modules the uniqueness rule is about, and the lint
-environment beside it, so a feature module only a test reaches is still read. -/
-private def entityLintModules : Array Name := #[`Temporal.Feature, `Temporal.Lint]
-
 /-- `feature-entity-uniqueness` reads declarations, which the import-graph rules cannot see and the
-Batteries pass has no rule for, so it is its own pass over an imported environment's registry. -/
-private unsafe def lintFeatureEntities : IO Bool := do
+Batteries pass has no rule for, so it is its own pass over an imported environment's registry. The
+environment imports every production feature module the source discovery found, so a module no
+aggregate imports is read all the same. -/
+private unsafe def lintFeatureEntities (discovered : Array Name) : IO Bool := do
+  let roots := ModelLint.Entity.importRoots discovered
+  if roots.isEmpty then
+    IO.eprintln "[model-entity/feature-entity-uniqueness] no production feature module discovered"
+    return false
   initSearchPath (← findSysroot)
-  entityLintModules.forM buildIfNeeded
+  roots.forM buildIfNeeded
   Lean.enableInitializersExecution
-  let env ← importModules (entityLintModules.map fun module => { module }) {}
+  let env ← importModules (roots.map fun module => { module }) {}
     (trustLevel := 1024) (loadExts := true)
   let mut declarations : Array ModelLint.Entity.Declaration := #[]
   let mut unplaced : Array Name := #[]
@@ -154,7 +159,7 @@ private unsafe def lintFeatureEntities : IO Bool := do
     pure false
 
 unsafe def main : IO UInt32 := do
-  let graphPassed ← ModelLint.lintImportGraph
+  let (graphPassed, discovered) ← ModelLint.lintImportGraph
   let passed ← lintModules.mapM lintModule
-  let entitiesPassed ← lintFeatureEntities
+  let entitiesPassed ← lintFeatureEntities discovered
   pure <| ModelLint.ImportGraph.exitCode graphPassed (passed.all id && entitiesPassed)

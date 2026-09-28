@@ -84,6 +84,12 @@ def inScope (module : Lean.Name) : Bool :=
 private def nameLt (left right : Lean.Name) : Bool :=
   left.toString < right.toString
 
+/-- The modules the declaration pass imports: every in-scope module of the owned sources, in name
+order. Importing them directly, rather than an aggregate, is what reaches a feature module nothing
+else imports. -/
+def importRoots (sources : Array Lean.Name) : Array Lean.Name :=
+  (sources.filter inScope).qsort nameLt
+
 /-- Every in-scope declaration whose name another in-scope module of the same kind declares. The
 first declaring module in name order holds the name; with an allowance, the allowance's modules hold
 it instead, so a module the allowance does not name fails even when it sorts first. Deterministic:

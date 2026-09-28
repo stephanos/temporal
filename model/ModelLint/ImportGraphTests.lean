@@ -760,6 +760,19 @@ private def testFeatureEntityUniqueness : IO Unit := do
     requireEqual testCase.label
       ((ModelLint.Entity.check ModelLint.Entity.allowlist testCase.declarations).map (·.render))
       testCase.expected
+  -- The declaration pass imports each discovered production feature module itself, so one no
+  -- aggregate imports is still compared; tests, specimens, and other roots are not imported.
+  requireEqual "the declaration pass imports every discovered production feature module"
+    (ModelLint.Entity.importRoots #[
+      `Temporal.Feature.Worker.Model,
+      `Temporal.Feature,
+      `Temporal.Feature.Unreferenced.Model,
+      `Temporal.Feature.Worker.Tests,
+      `Temporal.Feature.Nexus.Success.Model,
+      `Temporal.Lint,
+      `Temporal.Feature.Nexus.Caller.Model])
+    #[`Temporal.Feature.Nexus.Caller.Model, `Temporal.Feature.Unreferenced.Model,
+      `Temporal.Feature.Worker.Model]
 
 /-- The planted entity-uniqueness violation the Makefile asserts byte for byte. -/
 private def controlledEntityViolations : Array ModelLint.Entity.Violation :=
