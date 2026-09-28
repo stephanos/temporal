@@ -660,6 +660,7 @@ entity lamp
 
 enum LampPhase
   | lit_up
+  | dark
 
 structure LampState where
   phase : LampPhase
@@ -682,7 +683,7 @@ machine lampMachine
   for: lamp
   state: LampState
   starts: [lit_up]
-  ends: [lit_up]
+  ends: [lit_up, dark]
   steps:
     glow: glowStep
 

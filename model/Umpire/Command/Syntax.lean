@@ -2840,7 +2840,10 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
       | none, none => name.raw
     logWarningAt anchor (neverEnabledMessage dropped.key)
   -- The generated domains: one constructor per member field wrapping its own type, and one
-  -- Action constructor per `sync:` line carrying its classed participant's inputs.
+  -- Action constructor per `sync:` line carrying its classed participant's inputs. They carry no
+  -- injectivity lemmas: a member domain with one member -- an outcome that is only `accepted` --
+  -- makes a constructor's `injEq` a simp lemma simp proves by itself, which the model lint
+  -- refuses, and the derived `DecidableEq` does not need them.
   let declared := enclosing ++ name.getId
   let declaredBefore := environment.contains declared
   let actionType := mkIdentFrom name (name.getId ++ `Action)
@@ -2867,16 +2870,19 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
     `(Lean.Parser.Command.ctor| | $(mkIdent (Name.mkSimple line.name)):ident $binders*)
   let actionConstructors := (← wrapping (·.model.actionType)) ++ syncConstructors
   elabGenerated (← `(command|
+    set_option genInjectivity false in
     inductive $actionType where
       $actionConstructors:ctor*
       deriving BEq, DecidableEq, Repr))
   let outcomeConstructors ← wrapping (·.model.outcomeType)
   elabGenerated (← `(command|
+    set_option genInjectivity false in
     inductive $outcomeType where
       $outcomeConstructors:ctor*
       deriving BEq, DecidableEq, Repr))
   let factConstructors ← wrapping (·.model.factType)
   elabGenerated (← `(command|
+    set_option genInjectivity false in
     inductive $factType where
       $factConstructors:ctor*
       deriving BEq, DecidableEq, Repr))
