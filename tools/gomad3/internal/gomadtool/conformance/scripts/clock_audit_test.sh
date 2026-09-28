@@ -15,7 +15,6 @@ trap cleanup EXIT
 env -u GOMADSEED -u GOMAD3_CHILD_SEED CGO_ENABLED=0 GOWORK=off \
 	"$go_bin" -C "$root/internal/gomadtool/conformance/testdata" build -trimpath -o "$test_tmp/clock-audit" ./clock_audit
 "$go_bin" tool nm "$test_tmp/clock-audit" >"$test_tmp/clock-audit.nm"
-cc -Wall -Werror -o "$test_tmp/spawn" "$root/internal/gomadtool/conformance/testdata/clock_audit_spawn/spawn.c"
 if ! grep -Fq ' main.auditStart' "$test_tmp/clock-audit.nm"; then
 	printf 'gomad3 clock audit marker is absent from the probe binary\n' >&2
 	exit 1
@@ -39,26 +38,24 @@ run_trace() {
 	if [[ -n $seed ]]; then
 		environment+=(GOMADSEED="$seed")
 	fi
-	# An activated target re-executes itself when its image is slid, which
-	# would discard probes placed by dtrace -c, so it starts suspended and
-	# unslid and the tracer attaches before it runs.
-	"${environment[@]}" "$test_tmp/spawn" "$test_tmp/$name.pid" "$test_tmp/clock-audit" >"$test_tmp/$name.out" 2>&1 &
-	local spawner=$! attempt
+	# The probe stops itself after an activated runtime re-executed its image
+	# unslid, which would discard probes placed by dtrace -c, so the tracer
+	# attaches to the final image and resumes it once its probes are enabled.
+	"${environment[@]}" "$test_tmp/clock-audit" >"$test_tmp/$name.out" 2>&1 &
+	local target=$! attempt
 	for ((attempt = 0; attempt < 600; attempt++)); do
-		[[ -s $test_tmp/$name.pid ]] && break
+		[[ $(ps -o stat= -p "$target") == T* ]] && break
 		sleep 0.1
 	done
-	local pid
-	pid=$(<"$test_tmp/$name.pid")
-	"${dtrace_sudo[@]}" /usr/sbin/dtrace -q -s "$probe" -p "$pid" >"$output" 2>&1 &
+	"${dtrace_sudo[@]}" /usr/sbin/dtrace -q -s "$probe" -p "$target" >"$output" 2>&1 &
 	local tracer=$!
 	for ((attempt = 0; attempt < 600; attempt++)); do
 		grep -Fq 'GOMAD3_AUDIT_READY' "$output" && break
-		kill -0 "$tracer" 2>/dev/null || break
+		ps -p "$tracer" >/dev/null || break
 		sleep 0.1
 	done
-	kill -CONT "$pid"
-	if ! wait "$tracer" || ! wait "$spawner" || ! grep -Fq 'GOMAD3_AUDIT_READY' "$output"; then
+	kill -CONT "$target"
+	if ! wait "$tracer" || ! grep -Fq 'GOMAD3_AUDIT_READY' "$output" || ! grep -Eq '^-?[0-9]+ 1$' "$test_tmp/$name.out"; then
 		printf 'gomad3 clock audit tracer failed for %s\n' "$name" >&2
 		cat "$output" "$test_tmp/$name.out" >&2
 		exit 1
