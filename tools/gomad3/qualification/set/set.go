@@ -254,7 +254,10 @@ func invalidReport(err error) error {
 }
 
 var setNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
-var testNamePattern = regexp.MustCompile(`^Test[A-Za-z0-9_]+$`)
+
+// testNamePattern admits every name the go command runs as a top-level test,
+// since generated manifests list them all.
+var testNamePattern = regexp.MustCompile(`^Test[\p{L}\p{Nd}_]*$`)
 var findingPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/#-]*$`)
 
 func LoadManifest(path string) (Manifest, error) {
