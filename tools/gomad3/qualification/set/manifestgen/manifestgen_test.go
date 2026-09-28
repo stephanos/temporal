@@ -355,6 +355,20 @@ func TestPackagesThatCannotYieldStableWorkloadsAreRefused(t *testing.T) {
 	}
 }
 
+func TestBareAndNonASCIITestNamesBecomeWorkloads(t *testing.T) {
+	root := writeFixture(t, baseSpec())
+	writeFile(t, filepath.Join(root, "pkg", "names_test.go"), "package fixture\n\nimport \"testing\"\n\nfunc Test(t *testing.T) {}\n\nfunc TestÉclair(t *testing.T) {}\n")
+	if err := run(root, false); err != nil {
+		t.Fatal(err)
+	}
+	manifest := loadGenerated(t, root)
+	for test, id := range map[string]string{"Test": "fixture", "TestÉclair": "fixture-u00e9clair"} {
+		if workload, found := workloadFor(manifest, test); !found || workload.ID != id || workload.Expectation.Classification != "qualified" {
+			t.Fatalf("workload for %s = %+v (found %v), want id %s", test, workload, found, id)
+		}
+	}
+}
+
 func TestWorkloadID(t *testing.T) {
 	for test, want := range map[string]string{
 		"TestActivityTestSuite":            "tests-activity-test-suite",
@@ -364,6 +378,8 @@ func TestWorkloadID(t *testing.T) {
 		"TestPartitionScalingUpFromDC":     "tests-partition-scaling-up-from-dc",
 		"TestSchedule_V1":                  "tests-schedule-v1",
 		"TestHTTPAPITestSuite":             "tests-httpapi-test-suite",
+		"Test":                             "tests",
+		"TestΩmega":                        "tests-u03c9mega",
 	} {
 		if got := WorkloadID("tests", test); got != want {
 			t.Errorf("WorkloadID(%s) = %s, want %s", test, got, want)

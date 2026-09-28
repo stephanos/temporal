@@ -97,7 +97,6 @@ type Exclusion struct {
 	Reason string `json:"reason"`
 }
 
-var testNamePattern = regexp.MustCompile(`^Test[A-Za-z0-9_]+$`)
 var workloadIDPattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 
 // Config names the files of one generation. Relative Spec and Output paths
@@ -406,9 +405,6 @@ func Generate(spec Spec, tests []string) (set.Manifest, error) {
 		if _, excluded := spec.Exclusions[test]; excluded {
 			continue
 		}
-		if !testNamePattern.MatchString(test) {
-			return set.Manifest{}, fmt.Errorf("test name %s cannot identify a qualification workload", test)
-		}
 		id := WorkloadID(spec.IDPrefix, test)
 		if previous, collides := owners[id]; collides {
 			return set.Manifest{}, fmt.Errorf("tests %s and %s share workload identity %s", previous, test, id)
@@ -451,7 +447,7 @@ func workload(spec Spec, test, id string) set.Workload {
 
 // WorkloadID derives a stable workload identity from a test name: the prefix,
 // then the name without Test in lower-case words, split at case changes and
-// underscores.
+// underscores, with each non-ASCII rune spelled as its code point.
 func WorkloadID(prefix, test string) string {
 	runes := []rune(strings.TrimPrefix(test, "Test"))
 	var id strings.Builder
@@ -473,7 +469,13 @@ func WorkloadID(prefix, test string) string {
 			id.WriteByte('-')
 			separate = false
 		}
-		id.WriteRune(unicode.ToLower(current))
+		lower := unicode.ToLower(current)
+		if lower >= 'a' && lower <= 'z' || lower >= '0' && lower <= '9' {
+			id.WriteRune(lower)
+		} else {
+			// Workload identities are ASCII; a Unicode test name keeps a stable one.
+			fmt.Fprintf(&id, "u%04x", lower)
+		}
 	}
 	return id.String()
 }
