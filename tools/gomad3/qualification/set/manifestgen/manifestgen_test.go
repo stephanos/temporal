@@ -332,6 +332,10 @@ func TestPackagesThatCannotYieldStableWorkloadsAreRefused(t *testing.T) {
 			file: "only_linux_test.go", contents: "package fixture\n\nimport \"testing\"\n\nfunc TestLinuxOnly(t *testing.T) {}\n",
 			want: "lists different tests on linux/amd64",
 		},
+		"architecture feature test": {
+			file: "amd64_feature_test.go", contents: "//go:build amd64.v1\n\npackage fixture\n\nimport \"testing\"\n\nfunc TestAMD64Only(t *testing.T) {}\n",
+			want: "lists different tests on linux/amd64",
+		},
 		"colliding identities": {
 			file: "collide_test.go", contents: "package fixture\n\nimport \"testing\"\n\nfunc TestAlpha_Suite(t *testing.T) {}\n",
 			want: "share workload identity fixture-alpha-suite",
