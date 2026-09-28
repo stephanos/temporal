@@ -1,3 +1,4 @@
+import ModelLint.Entity
 import ModelLint.ImportGraph
 import ModelLint.ModuleIndexTests
 import ModelLint.PackageModulesTests
@@ -705,6 +706,67 @@ private def controlledAuthoringViolations : Array Violation :=
     moduleRecord `Umpire.Model
   ]
 
+private def declaration (kind : ModelLint.Entity.Kind) (name : String) (module : Lean.Name) :
+    ModelLint.Entity.Declaration :=
+  { kind, name, module }
+
+/-- Every declaration the allowlist names, in every module it names: the model as it stands. -/
+private def allowlistedDeclarations : Array ModelLint.Entity.Declaration :=
+  ModelLint.Entity.allowlist.flatMap fun allowance =>
+    allowance.modules.map (declaration allowance.kind allowance.name)
+
+private structure EntityCase where
+  label : String
+  declarations : Array ModelLint.Entity.Declaration
+  expected : Array String
+
+private def entityCases : Array EntityCase := #[
+  { label := "the allowlisted duplicates pass", declarations := allowlistedDeclarations,
+    expected := #[] },
+  { label := "an unallowlisted duplicate names both modules",
+    declarations := #[
+      declaration .action "serve" `Temporal.Feature.Worker.Model,
+      declaration .action "serve" `Temporal.Feature.Nexus.Planted],
+    expected := #["[model-entity/feature-entity-uniqueness] duplicate action serve: \
+      Temporal.Feature.Nexus.Planted and Temporal.Feature.Worker.Model"] },
+  { label := "an allowlisted name in a module the allowance omits fails, sorted first or not",
+    declarations := allowlistedDeclarations ++ #[
+      declaration .entity "workflow" `Temporal.Feature.Alpha.Model,
+      declaration .action "workerResume" `Temporal.Feature.Zulu.Model],
+    expected := #[
+      "[model-entity/feature-entity-uniqueness] duplicate entity workflow: \
+        Temporal.Feature.Nexus.Caller.Model and Temporal.Feature.Alpha.Model",
+      "[model-entity/feature-entity-uniqueness] duplicate action workerResume: \
+        Temporal.Feature.Worker.Model and Temporal.Feature.Zulu.Model"] },
+  { label := "an entity and an action may share a name",
+    declarations := #[
+      declaration .entity "worker" `Temporal.Feature.Worker.Model,
+      declaration .action "worker" `Temporal.Feature.Nexus.Caller.Model],
+    expected := #[] },
+  { label := "test and specimen modules and modules outside the features are excluded",
+    declarations := #[
+      declaration .entity "operation" `Temporal.Feature.Nexus.Caller.Model,
+      declaration .entity "operation" `Temporal.Feature.Nexus.Success.Model,
+      declaration .entity "operation" `Temporal.Feature.Nexus.Tests.Commands,
+      declaration .entity "operation" `Temporal.Feature.Nexus.Success.RaceSyntaxTests,
+      declaration .entity "operation" `Temporal.Feature.NexusTests,
+      declaration .entity "operation" `Temporal.System.Nexus.Model,
+      declaration .entity "operation" `UmpireTests.Model],
+    expected := #[] }
+]
+
+private def testFeatureEntityUniqueness : IO Unit := do
+  for testCase in entityCases do
+    requireEqual testCase.label
+      ((ModelLint.Entity.check ModelLint.Entity.allowlist testCase.declarations).map (·.render))
+      testCase.expected
+
+/-- The planted entity-uniqueness violation the Makefile asserts byte for byte. -/
+private def controlledEntityViolations : Array ModelLint.Entity.Violation :=
+  ModelLint.Entity.check ModelLint.Entity.allowlist #[
+    declaration .action "serve" `Temporal.Feature.Worker.Model,
+    declaration .action "serve" `Temporal.Feature.Planted]
+
 private unsafe def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
@@ -728,6 +790,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testHandwrittenInventory
   testAuthoringPathIsolation
   testSearchBackendIsolation
+  testFeatureEntityUniqueness
   testExternalLeaves
   testStableShortestPath
   testMultipleFindings
@@ -747,7 +810,12 @@ unsafe def main (args : List String) : IO UInt32 :=
   | ["--controlled-authoring-violation"] => runControlledViolation controlledAuthoringViolations
   | ["--controlled-search-backend-violation"] =>
       runControlledViolation controlledSearchBackendViolations
+  | ["--controlled-entity-violation"] => do
+      for violation in controlledEntityViolations do
+        IO.eprintln violation.render
+      pure <| exitCode controlledEntityViolations.isEmpty true
   | _ => do
       IO.eprintln "usage: umpire-lint-tests [--controlled-violation | \
-        --controlled-authoring-violation | --controlled-search-backend-violation]"
+        --controlled-authoring-violation | --controlled-search-backend-violation | \
+        --controlled-entity-violation]"
       pure 2

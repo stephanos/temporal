@@ -1,9 +1,11 @@
 import Batteries.Tactic.Lint
 import Lake.CLI.Main
+import ModelLint.Entity
 import ModelLint.ImportGraph
 import ModelLint.PackageModules
 import Tools.LeanImportGraph.Metadata
 import Tools.LeanSourceInventory
+import Umpire.Command.Registry
 
 /-! Whole-environment model linting beyond Lean's built-in declaration linters. -/
 
@@ -26,8 +28,8 @@ private def handwrittenInventoryPath : System.FilePath := "HANDWRITTEN_INVENTORY
 
 private unsafe def lintImportGraph : IO Bool := do
   match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
-  | .error (.discovery message) =>
-      IO.eprintln (PackageModules.discoveryFailureMessage message)
+  | .error (.discovery reason) =>
+      IO.eprintln (PackageModules.discoveryFailureMessage reason)
       pure false
   | .error (.sources issues) =>
       for issue in issues do
@@ -114,7 +116,45 @@ private unsafe def lintModule (module : Name) : IO Bool := do
       IO.println s!"-- Batteries linting passed for {module}."
       pure true
 
+/-- The production feature root, whose modules the uniqueness rule is about, and the lint
+environment beside it, so a feature module only a test reaches is still read. -/
+private def entityLintModules : Array Name := #[`Temporal.Feature, `Temporal.Lint]
+
+/-- `feature-entity-uniqueness` reads declarations, which the import-graph rules cannot see and the
+Batteries pass has no rule for, so it is its own pass over an imported environment's registry. -/
+private unsafe def lintFeatureEntities : IO Bool := do
+  initSearchPath (← findSysroot)
+  entityLintModules.forM buildIfNeeded
+  Lean.enableInitializersExecution
+  let env ← importModules (entityLintModules.map fun module => { module }) {}
+    (trustLevel := 1024) (loadExts := true)
+  let mut declarations : Array ModelLint.Entity.Declaration := #[]
+  let mut unplaced : Array Name := #[]
+  let declared := (Umpire.Command.Registry.entities env).map (fun entry =>
+      (ModelLint.Entity.Kind.entity, entry.name, entry.declName)) ++
+    (Umpire.Command.Registry.actions env).map fun entry =>
+      (ModelLint.Entity.Kind.action, entry.name, entry.declName)
+  for (kind, name, declName) in declared do
+    match env.getModuleIdxFor? declName with
+    | some index =>
+        declarations := declarations.push
+          { kind, name, module := env.header.moduleNames[index.toNat]! }
+    | none => unplaced := unplaced.push declName
+  -- A declaration no imported module owns is one the rule cannot place, so it fails rather than
+  -- being left out of the comparison.
+  for declName in unplaced do
+    IO.eprintln s!"[model-entity/feature-entity-uniqueness] no declaring module for {declName}"
+  let violations := ModelLint.Entity.check ModelLint.Entity.allowlist declarations
+  for violation in violations do
+    IO.eprintln violation.render
+  if unplaced.isEmpty && violations.isEmpty then
+    IO.println "-- Feature entity uniqueness linting passed."
+    pure true
+  else
+    pure false
+
 unsafe def main : IO UInt32 := do
   let graphPassed ← ModelLint.lintImportGraph
   let passed ← lintModules.mapM lintModule
-  pure <| ModelLint.ImportGraph.exitCode graphPassed (passed.all id)
+  let entitiesPassed ← lintFeatureEntities
+  pure <| ModelLint.ImportGraph.exitCode graphPassed (passed.all id && entitiesPassed)

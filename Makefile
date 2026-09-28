@@ -1136,6 +1136,13 @@ lint-model: umpire-check-inventory
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/search-backend-isolation] forbidden direct import: Umpire.Search -> Veil.Core.Tools.ModelChecker.Concrete.Checker'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
+	@diagnostics=$$(mktemp); \
+		trap 'rm -f "$$diagnostics"' EXIT; \
+		status=0; \
+		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-entity-violation 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -eq 1; \
+		expected='[model-entity/feature-entity-uniqueness] duplicate action serve: Temporal.Feature.Planted and Temporal.Feature.Worker.Model'; \
+		test "$$(cat "$$diagnostics")" = "$$expected"
 	@cd model && $(LEAN_LAKE) exe umpire-lint
 	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
 

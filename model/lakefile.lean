@@ -98,6 +98,7 @@ lean_lib ModelLintSupport where
     `Tools.LeanImportGraphTests,
     `Tools.LeanSourceInventory,
     `Tools.LeanSourceInventoryTests,
+    `ModelLint.Entity,
     `ModelLint.ImportGraph,
     `ModelLint.PackageModules,
     `ModelLint.PackageModulesTests,
