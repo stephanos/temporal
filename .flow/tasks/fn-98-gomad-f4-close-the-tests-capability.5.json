@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-28T00:36:02.916083Z",
+  "depends_on": [],
+  "id": "fn-98-gomad-f4-close-the-tests-capability.5",
+  "priority": null,
+  "spec": "fn-98-gomad-f4-close-the-tests-capability",
+  "spec_path": ".flow/tasks/fn-98-gomad-f4-close-the-tests-capability.5.md",
+  "status": "todo",
+  "title": "Remove os/exec and os/signal admissions from the modernc libc packs",
+  "updated_at": "2026-09-28T00:36:02.916083Z"
+}
