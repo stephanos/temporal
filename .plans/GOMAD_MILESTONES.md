@@ -33,7 +33,7 @@ milestone's status here.
 | F1 | `fn-95-gomad-f1-restore-the-checkout-on` | done |
 | F2 | `fn-96-gomad-f2-close-the-go127-port-on` | done (the DTrace clock audit needs a root run) |
 | F3 | `fn-97-gomad-f3-qualify-the-frontend` | done on darwin/arm64 (linux/amd64 not re-measured) |
-| F4 | `fn-98-gomad-f4-close-the-tests-capability` | open on darwin/arm64 |
+| F4 | `fn-98-gomad-f4-close-the-tests-capability` | done on darwin/arm64 (activity batch cancel is tier-3 `intermittent`) |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
@@ -745,6 +745,48 @@ functional-tests packs name `functional-tests`), and the qualification set for p
 per-platform `COMPATIBILITY_PACK_QUALIFICATIONS` list in `tools/gomad3/Makefile`, where the
 darwin tests pack sits exactly as the linux one does. The darwin `core` CI job now asserts the
 closed closure with the same step as the linux job.
+
+F4 was applied on darwin/arm64 on 2026-09-27. Every acceptance item was measured on this host:
+
+- **Packs and pins.** Every pack is current against the profile digest. The fx, SDK, and otel
+  darwin prepared source-set pins were observed and are unchanged (see above).
+- **The `./tests` closure.** It reports `supported` with zero blockers over 1043 packages,
+  selecting the five packs listed above.
+- **The eleven leaf cases.** None of them carries a forbidden import on darwin. Ten are
+  `qualified` with exact replay: the sqlite persistence boundary, the cache, dither, poller,
+  queue-key, sqlite schema rewrite, transition-history, update-abort, version-set merge, and
+  workflow-backoff cases. All but the cache case run with the `gomad` tag. The eleventh,
+  activity batch cancel, is now a tier-3 `./tests` suite. It runs to success, but its
+  same-seed evidence is `intermittent` (`replay_divergence` on the latest run). Two new exact
+  darwin packs make this possible. `temporal-leaf-xsys-darwin-arm64` admits the
+  `golang.org/x/sys/unix` facts that the Prometheus client reaches.
+  `temporal-leaf-xxhash-darwin-arm64` admits the arm64 assembly of xxhash and
+  klauspost/compress. `!gomad` build-tag seams keep the Cassandra, MySQL, and PostgreSQL
+  files out of the gomad build of `common/persistence/tests`. On linux/amd64,
+  `platform_expectations` now expects the ten leaf cases to stop at
+  `foreign:assembly:xxhash_amd64.s`. That is an `add_exact_pack` fact the darwin-scoped packs
+  do not admit, not a forbidden import.
+- **The corpus.** `make gomad3-qualification` meets its expectations with 16 supported,
+  0 unsupported, 2 failed (both intermittent tier 3), and 0 infrastructure errors, 18/18
+  completed. Commit `5285983bb9` fixed set-report validation for a seed whose repetitions
+  recorded different choice tapes. Such a seed now withholds choice-replay exactness; before
+  the fix, it failed the run as unusable.
+- **Server build and stock suite.** `go build ./...` passes with and without
+  `-tags gomad,test_dep,disable_grpc_modules`. The unit tests of the seam packages
+  (`temporal`, `common/config`, `sqlplugin`, `common/archiver/provider`, the Elasticsearch
+  client, `service/worker`, `tests/testcore`, and `service/history/workflow/update`) pass
+  under `test_dep`. The 82 SQLite tests of `common/persistence/tests` pass with and without
+  the tag. Under the `gomad` tag, five tests fail as the seams intend:
+  `TestNewServer`, `TestNewServerWithOTEL`, and `TestNewServerWithJSONEncoding` configure
+  ringpop membership, and the two `TestSQLResolvePassword_Command*` tests run the password
+  command that the tag refuses. `make lint-code-fast` cannot run on this branch as written.
+  It lints every package changed since the merge base, and that set includes the nested
+  `tools/gomad3` and `tests/mixedbrain` modules and the `integration`-only
+  `tools/gomad3integration`, all of which fail to typecheck in the main module.
+  `make lint-code` over the seam packages reports 0 issues, and so does its `go vet
+  -vettool=errortype` step once the stale go1.26 `.bin/errortype` is rebuilt with go1.27.
+  `go test -tags test_dep -run '^TestActivityAPIBatchCancelClientTestSuite$' ./tests` passes
+  natively with the seams at their defaults.
 
 **Constraints.**
 
