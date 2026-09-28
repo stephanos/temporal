@@ -42,7 +42,7 @@ jobs:
           check-latest: false
           cache: true
 
-      - name: Validate generated outputs, patches, scripts, and compatibility packs
+      - name: Validate generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest
         working-directory: tools/gomad3
         run: make validate
 

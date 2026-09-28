@@ -1,4 +1,4 @@
-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility test-harness test-builder test-live-capability test-runtime test-upstream test
+.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -15,6 +15,11 @@ GOMAD3_QUALIFICATION_OUTPUT ?= .toolchain/qualification-set.json
 # GOMAD3_QUALIFICATION_PRUNE=1 deletes each qualified seed's retained Campaigns
 # once its evidence is in the set report, keeping its qualification report.
 GOMAD3_QUALIFICATION_PRUNE ?= 0
+# The ./tests qualification manifest is generated from the package's test list
+# and the spec's defaults, overrides, and exclusions; never edit it by hand.
+TESTS_QUALIFICATION_GENERATE := qualification-manifest-generate --root=$(CURDIR)/../.. \
+	--spec=tools/gomad3integration/qualification/tests.generator.json \
+	--output=tools/gomad3integration/qualification/tests.json
 
 generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate
@@ -22,6 +27,10 @@ generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack generate --root=$(CURDIR)
+	$(MAKE) tests-qualification-generate
+
+tests-qualification-generate:
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE)
 
 clean:
 	rm -rf -- "$(CURDIR)/.bin" "$(COMPILER_TEST_OVERLAY)" "$(CURDIR)/.toolchain/compiler-test"
@@ -115,7 +124,7 @@ overlay-test: toolchain
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
 
-validate: validate-toolchain validate-compatibility
+validate: validate-toolchain validate-compatibility validate-qualification
 
 validate-toolchain:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
@@ -127,6 +136,9 @@ validate-toolchain:
 
 validate-compatibility:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=$(CURDIR)
+
+validate-qualification:
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check
 
 test-harness:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \

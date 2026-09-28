@@ -74,6 +74,37 @@ credential providers that import `os/exec`. On darwin/arm64 they and
 linux/amd64 their expectation is the amd64 xxhash assembly, which no linux
 pack admits for these closures.
 
+## The generated `./tests` manifest
+
+`qualification/tests.json` qualifies every top-level test of `./tests`, one
+tier 3 workload per test. It is generated, never edited:
+`make -C tools/gomad3 generate` (or `tests-qualification-generate`) lists the
+tests `go test -list` reports under the `disable_grpc_modules`, `gomad`, and
+`test_dep` tags on darwin/arm64 and linux/amd64 and applies
+`qualification/tests.generator.json`, which holds the manifest and workload
+defaults (the F6 slice's closure mode, tags, schema mount, 64 MiB choices,
+retention, and timeouts), per-test overrides, and exclusions.
+`make -C tools/gomad3 validate`, which CI runs, fails when the checked-in
+manifest is stale relative to `./tests` or the spec.
+
+A new test therefore lands expecting `qualified` on both platforms and fails
+the set when it is not. An override changes a test's `expectation`,
+`platform_expectations`, or `required_probes`; a failure expectation names its
+`finding` as elsewhere. A test leaves the set only by an exclusion with an
+`owner`, a `date` (`YYYY-MM-DD`), and a `reason`; an exclusion missing any of
+them, or an override or exclusion naming a test `./tests` no longer declares,
+is refused. `temporal.json` stays the representative corpus.
+
+```sh
+make gomad3-tests-qualification
+```
+
+regenerates the manifest and runs the set with
+`GOMAD3_QUALIFICATION_PRUNE=1`, writing
+`tools/gomad3/.toolchain/tests-qualification-set.json`.
+
+## Capability closure of `./tests`
+
 The functional test package itself has a closed capability closure on
 linux/amd64 and darwin/arm64 under the `gomad` build tag:
 

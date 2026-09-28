@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-09-27T15:28:25.939968Z",
   "depends_on": [
-    "fn-101-gomad-f7-any-functional-test-and-ci.1"
+    "fn-101-gomad-f7-any-functional-test-and-ci.1",
+    "fn-101-gomad-f7-any-functional-test-and-ci.5"
   ],
   "id": "fn-101-gomad-f7-any-functional-test-and-ci.2",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.2.md",
   "status": "todo",
   "title": "Shard the full set with plan/execute-shard/merge and qualify ./tests on darwin",
-  "updated_at": "2026-09-27T15:28:25.939968Z"
+  "updated_at": "2026-09-28T16:55:15.890953Z"
 }
