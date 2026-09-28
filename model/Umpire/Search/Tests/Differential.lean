@@ -415,15 +415,15 @@ def checkOver (model : DeclaredModel Setup State Action Outcome Fact)
   let checkedProperty ←
     Property.check (PropertyCheckContext.ofTarget target) (property vocabulary)
       |>.mapError (.admission ∘ .property)
-  let checkedBehavior ← Scenario.check (.ofTarget target) (behavior vocabulary)
+  let checkedScenario ← Scenario.check (.ofTarget target) (behavior vocabulary)
     |>.mapError (.admission ∘ .scenario)
-  let checked ← Query.check (.ofTarget target) (shape.toQuery checkedProperty checkedBehavior)
+  let checked ← Query.check (.ofTarget target) (shape.toQuery checkedProperty checkedScenario)
     |>.mapError (.admission ∘ .query)
   pure ⟨{ checked with target, completeness := (ModelCompleteness.ofTarget target).completeness },
     rfl⟩
 
 /-- The checked Model and vocabulary a declared Model's Queries are admitted over. -/
-def checkedTarget (model : DeclaredModel Setup State Action Outcome Fact) :
+def targetAndVocabulary (model : DeclaredModel Setup State Action Outcome Fact) :
     Except AdmissionError (QueryModel model.lawStatement × ModelVocabulary) := do
   let target ← checkFiniteTarget model.table model.table model.identity model.modelSpec
     model.composition |>.mapError .invalidTarget
@@ -436,7 +436,7 @@ def admitQuery (model : DeclaredModel Setup State Action Outcome Fact) (key : St
     (property : ModelVocabulary → Property) (behavior : Option (ModelVocabulary → Scenario))
     (form : QueryFormKind) (limits : Limits) (knownGaps : List KnownGap := []) :
     Except AdmissionError ((target : QueryModel model.lawStatement) × AdmittedQuery target) := do
-  let (target, vocabulary) ← checkedTarget model
+  let (target, vocabulary) ← targetAndVocabulary model
   let admitted ← admitOver model target vocabulary key property behavior form limits knownGaps
   pure ⟨target, admitted⟩
 
@@ -501,7 +501,7 @@ how many agree and how many ran on `veil`, then each line that differs or did no
 def campaignLine (model : DeclaredModel Setup State Action Outcome Fact) (set : SetDeclaration)
     (limits : Limits) : String :=
   let planned := set.targets.filterMap (Exploration.Campaign.planTarget model set limits)
-  match checkedTarget model, planned with
+  match targetAndVocabulary model, planned with
   | .error error, _ => "not admitted: " ++ admissionFailure error
   | .ok _, [] => "0 candidates"
   | .ok (checked, vocabulary), (baseKey, baseProperty, baseBehavior) :: _ =>
