@@ -95,7 +95,7 @@ jobs:
           .schema == "gomad3.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
           .seeds == ["17"] and .expectations_met and
-          .selected == 5 and .completed == 5 and .supported == 5 and
+          .selected == 7 and .completed == 7 and .supported == 7 and
           .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | select(.classification == "qualified") | .choice.available and
           .choice.exact_replay_available and
@@ -198,7 +198,7 @@ jobs:
           jq -e '
           .schema == "gomad3.qualification-set-report/v1" and
           .seeds == ["17"] and
-          .selected == 5 and .completed == 5 and .supported == 5 and
+          .selected == 7 and .completed == 7 and .supported == 7 and
           .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | .classification == "qualified" and .choice.available and
           .choice.exact_replay_available and

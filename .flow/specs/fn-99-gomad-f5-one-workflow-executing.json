@@ -1,13 +1,74 @@
 {
   "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T15:27:42.928223Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-98-gomad-f4-close-the-tests-capability"
   ],
   "id": "fn-99-gomad-f5-one-workflow-executing",
+  "impl_review_rounds": {
+    "fn-99-gomad-f5-one-workflow-executing.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c3ef50ab554e7267eefc0aa9bf2cbb221c88d1f5c5b8900ba47f1e884009243f",
+      "backend": "codex",
+      "base_sha": "0ebd601791623530e62362b1206b3f089c78600a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-17950022b1a723cc227caedc51136036",
+            "classification": "introduced",
+            "findingId": "finding-17950022b1a723cc227caedc51136036",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2d8f937d3e3a44d22a49a753a871d95502f0e092",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1955,
+      "output_sha256": "33a2aa12dc4b964c9fdf2d4dec641cbf416e62d23f1b07a12beabf7ba06914ce",
+      "reservation_id": "161aaeb65062491b865848d1b09e0c80",
+      "round_consumed": true,
+      "scope": "impl:fn-99-gomad-f5-one-workflow-executing.1",
+      "superseded_by": null,
+      "task": "fn-99-gomad-f5-one-workflow-executing.1",
+      "timestamp": "2026-09-28T03:23:14.111223Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-99-gomad-f5-one-workflow-executing.1": 0
+  },
   "spec_path": ".flow/specs/fn-99-gomad-f5-one-workflow-executing.md",
   "status": "open",
   "title": "Gomad F5: one workflow-executing functional test, deterministic",
@@ -22,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:28:22.753370Z"
+  "updated_at": "2026-09-28T03:23:14.113908Z"
 }
