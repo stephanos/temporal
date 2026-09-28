@@ -139,6 +139,13 @@ jobs:
       # the ten `functional-*` suites of the F6 slice, which darwin/arm64
       # qualifies but no linux/amd64 run has re-measured since the fixes that
       # closed their linux divergences.
+      - name: DIAGNOSTIC analyze the frontend probe
+        continue-on-error: true
+        run: >-
+          tools/gomad3/.bin/gomad analyze --format=json --capability-mode=guarded
+          --build-tag=disable_grpc_modules --build-tag=test_dep
+          go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' > /dev/null
+
       - name: Requalify representative Temporal workloads
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: make gomad3-qualification
@@ -242,7 +249,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version-file: go.mod
+          go-version-file: tools/gomad3/go.mod
           check-latest: true
           cache: true
 
