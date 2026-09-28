@@ -35,7 +35,7 @@ milestone's status here.
 | F3 | `fn-97-gomad-f3-qualify-the-frontend` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | done on darwin/arm64 (activity batch cancel is tier-3 `intermittent`) |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | done on darwin/arm64 (linux/amd64 not re-measured) |
-| F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
+| F6 | `fn-100-gomad-f6-a-package-level-functional` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
 
@@ -1041,6 +1041,69 @@ scheduler structures at mark start. That fix may change the slice's divergence p
 which predates it, and the deterministic-GC research item in
 [GOMAD3_NEXT.md](GOMAD3_NEXT.md#milestone-7-evaluate-research-extensions) may need its
 conclusion updated once the slice is re-measured.
+
+Re-measured on darwin/arm64 on 2026-09-28 (toolchain
+`bb4304eb5330c18e658bfc0806f69b0ce1399944229a06f41134cb391b05e01d`). All ten suites qualify on
+seeds 11 and 17 with `gomad qualify --repeat 2`: both fresh repetitions of every seed produce
+the same evidence, every retained success replays with `replay_match` and exact choice replay,
+and every repetition exits 0 with no watchdog termination and no `GOMAD_CAPABILITY_DENIED`.
+The five suites that had diverged between fresh repetitions on linux, and the cancel suite, then
+ran with `--repeat 4` on both seeds; all 24 fresh repetitions reproduced the `--repeat 2`
+evidence and replayed exactly. No suite is classified as evidence divergence on darwin, so
+there was nothing left to triage. Per-suite measurements, identical in those runs and in the
+full set run below (17 transcript records, 2176 bytes, in every suite; wall time is the
+longest single execution in the set run):
+
+| Suite | Decisions (seed 11 / 17) | Choice records (11 / 17) | Virtual time | Peak goroutines | Wall time | Watchdogs | Denials |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `TestActivityTestSuite` | 27907 / 27595 | 42309 / 41842 | 13.6 s / 13.1 s | 1455 | 1.7 s | 0 | 0 |
+| `TestCancelWorkflowSuite` | 21777 / 21774 | 30927 / 30973 | 0 s | 1355 | 1.8 s | 0 | 0 |
+| `TestChildWorkflowSuite` | 26045 / 25863 | 39014 / 38763 | 13.0 s | 1248 | 1.7 s | 0 | 0 |
+| `TestContinueAsNewTestSuite` | 51612 / 52239 | 80173 / 80963 | 36.4 s | 1170 | 2.0 s | 0 | 0 |
+| `TestCronTestSuite` | 9901 / 10008 | 14473 / 14651 | 15.0 s | 720 | 1.6 s | 0 | 0 |
+| `TestQueryWorkflowSuite` | 25633 / 25581 | 39046 / 38998 | 11.3 s | 1409 | 1.8 s | 0 | 0 |
+| `TestSignalWorkflowTestSuiteChasm` | 57986 / 59741 | 86512 / 89312 | 57.0 s | 1944 | 2.2 s | 0 | 0 |
+| `TestWorkflowTimerTestSuite` | 8720 / 8596 | 12796 / 12646 | 8.0 s | 707 | 1.6 s | 0 | 0 |
+| `TestWorkflowUpdateSuite` | 132626 / 132540 | 206774 / 206561 | 22.5 s / 22.4 s | 4588 | 3.0 s | 0 | 0 |
+| `TestWorkflowTestSuite` | 56053 / 55687 | 86253 / 85681 | 13.1 s / 13.4 s | 2135 | 2.1 s | 0 | 0 |
+
+The cancel suite's 0 s of virtual time is real: every log timestamp is the simulation epoch and
+all four cancel tests appear in its stderr. The query suite's stdout is only `PASS` because it
+logs to stderr, which names each query test. No suite needs more than the two-minute
+`run_timeout`; the 20-minute overall timeout covers the cold `./tests` build.
+
+The linux divergences are explained, as an inference, by channels fixed after the linux
+measurement, all platform-neutral: the Green Tea scan-work accounting (targets build with
+`GOEXPERIMENT=nogreenteagc`), the environment filter that copied Gomad control variables into Go
+strings (the replay-only differences, including cancel's), mark-start greying and the M's
+`allp` snapshot (the fresh-repetition divergences in signal, update, child, cron 17, and timer
+17), and the update registry's admission order (`compareAdmission`, the update suite's test
+failure). The darwin-only ASLR re-execution cannot account for them. linux/amd64 has not been
+re-measured, so that inference is unconfirmed there.
+
+The ten suites are in `temporal.json` as tier 3 `functional-*` workloads, `qualified` on
+darwin/arm64. Each requires the modeled probes every measured run observed
+(`stdlib.net.interfaces`, `stdlib.os.getwd`, `stdlib.os.newfile`, `stdlib.os.openfile`), so a
+boundary change that drops one fails the set. Their linux/amd64 expectation is `intermittent`
+with `finding: GOMAD_MILESTONES.md#f6-a-package-level-functional-slice`: expectations gained a
+`finding` field, which `qualify-set` requires on every non-qualified, non-`unsupported_target`
+expectation and rejects on the others, and the existing F3 and F5 expectations name their
+sections the same way.
+
+A full `make gomad3-qualification` retains about 11 GiB of Campaigns, more than the free disk
+of the measuring host and of a CI macOS runner, and an earlier full run was stopped by its disk
+guard at 22 of 28 workloads. `qualify-set --prune-qualified-artifacts`
+(`GOMAD3_QUALIFICATION_PRUNE=1`) now deletes a qualified seed's Campaigns once its successful
+repetitions were replayed exactly and the set report holds its evidence, keeping the seed's
+qualification report; the set report records `qualified_artifacts_pruned` and a per-seed
+`artifacts_pruned`, and a report that marks any other seed pruned is rejected. With it, one
+uninterrupted `make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1` at manifest
+`sha256:e10842d4` took 31 minutes and peaked at 340 MiB of retained artifacts: expectations met,
+28 of 28 selected, completed, and supported, 0 failed, 0 infrastructure errors, 56 of 56 seeds
+replayed with none diverged, and the darwin CI assertion true. Every one of the 56 seed reports
+exits 0 with identical evidence across both repetitions. Acceptance is met on darwin/arm64: ten
+of ten suites qualify, none is classified as evidence divergence, and every non-qualified
+expectation names a finding.
 
 ## F7: any functional test, and CI
 
