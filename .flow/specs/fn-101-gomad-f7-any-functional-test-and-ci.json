@@ -1,13 +1,36 @@
 {
   "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T15:27:44.177599Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-100-gomad-f6-a-package-level-functional"
   ],
   "id": "fn-101-gomad-f7-any-functional-test-and-ci",
+  "impl_review_rounds": {
+    "fn-101-gomad-f7-any-functional-test-and-ci.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-101-gomad-f7-any-functional-test-and-ci.1": 1
+  },
+  "review_reservations": {
+    "10d565c30ccc4dfba352486f6de455ab": {
+      "artifact_sha256": "84cc353c1852f31962b9b8f9bbc7641bcc6628553a0e8601f57b4b913c38a34a",
+      "counter_scope": "impl:fn-101-gomad-f7-any-functional-test-and-ci.1",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-101-gomad-f7-any-functional-test-and-ci.md",
   "status": "open",
   "title": "Gomad F7: any functional test, and CI",
@@ -22,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:28:31.638783Z"
+  "updated_at": "2026-09-28T16:58:32.621664Z"
 }

@@ -276,10 +276,27 @@ func ListTests(dir string, tags []string, platforms []string) ([]string, error) 
 	return listed, nil
 }
 
+// baselineFeatureTags are the architecture feature tags the go command sets
+// for the default GOAMD64 and GOARM64 levels, which qualification builds use.
+var baselineFeatureTags = map[string]string{
+	"amd64": "amd64.v1",
+	"arm64": "arm64.v8.0",
+}
+
 func listPlatformTests(dir string, tags []string, goos, goarch string) ([]string, error) {
+	featureTag, known := baselineFeatureTags[goarch]
+	if !known {
+		return nil, fmt.Errorf("no baseline architecture feature tag is known for %s/%s", goos, goarch)
+	}
 	buildContext := build.Default
 	buildContext.GOOS, buildContext.GOARCH = goos, goarch
 	buildContext.BuildTags = slices.Clone(tags)
+	// build.Default carries the host architecture's feature tags; swap them for
+	// the target's so files constrained on, say, amd64.v1 match as go test would.
+	buildContext.ToolTags = slices.DeleteFunc(slices.Clone(build.Default.ToolTags), func(tag string) bool {
+		return strings.HasPrefix(tag, build.Default.GOARCH+".")
+	})
+	buildContext.ToolTags = append(buildContext.ToolTags, featureTag)
 	// Qualification builds targets without cgo.
 	buildContext.CgoEnabled = false
 	entries, err := os.ReadDir(dir)
