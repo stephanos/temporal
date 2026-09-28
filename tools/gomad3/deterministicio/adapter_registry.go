@@ -173,6 +173,21 @@ func (registry adapterRegistry) selected(workingDirectory string) ([]adapterDefi
 	return selected, moduleFile, nil
 }
 
+// requireAdapterSums returns the target module's sums after checking that
+// they pin every selected adapter's exact identity.
+func requireAdapterSums(workingDirectory string, selected []adapterDefinition) ([]byte, error) {
+	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
+	if err != nil {
+		return nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module sums: %w", err))
+	}
+	for _, definition := range selected {
+		if !hasExactModuleSum(sumFile, definition.identity) {
+			return nil, invalidBuildAdapterConfiguration(fmt.Errorf("target module sum for %s@%s is missing or modified", definition.identity.Module, definition.identity.Version))
+		}
+	}
+	return sumFile, nil
+}
+
 func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {
 	if len(registry.definitions) == 0 {
 		return spec, []BuildAdapter{}, nil
@@ -194,14 +209,9 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if spec.BuildModFile != "" {
 		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("deterministic I/O build adapters cannot replace an existing build modfile"))
 	}
-	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
+	sumFile, err := requireAdapterSums(workingDirectory, selected)
 	if err != nil {
-		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module sums: %w", err))
-	}
-	for _, definition := range selected {
-		if !hasExactModuleSum(sumFile, definition.identity) {
-			return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("target module sum for %s@%s is missing or modified", definition.identity.Module, definition.identity.Version))
-		}
+		return target.Spec{}, nil, err
 	}
 	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
 	if err != nil {
@@ -277,9 +287,12 @@ func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.
 	if len(selected) == 0 {
 		return profile.PrepareBuildAdapters(spec, "")
 	}
+	if _, err := requireAdapterSums(workingDirectory, selected); err != nil {
+		return target.Spec{}, nil, err
+	}
 	for _, adapter := range selected {
 		identity := target.ModuleIdentity{Path: adapter.identity.Module, Version: adapter.identity.Version, Sum: adapter.identity.Sum}
-		if err := target.DownloadModule(ctx, spec.ToolchainRoot, workingDirectory, identity); err != nil {
+		if err := target.DownloadModule(ctx, spec.ToolchainRoot, identity); err != nil {
 			return target.Spec{}, nil, err
 		}
 	}
