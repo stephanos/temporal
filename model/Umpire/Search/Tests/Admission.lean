@@ -86,7 +86,7 @@ example : (rejections.map (·.map fun diagnostic =>
 
 /-! Admit then search yields the staged `PlanResult` and the same checked declarations. -/
 example :
-    exactActionAdmitted.search.toOption = (search exactActionQuery
+    exactActionAdmitted.search.toOption = (Search.Selection.search exactActionQuery
       ((SearchView.ofCheckedQuery target.id exactActionQuery).toOption.get
         (by native_decide))).toOption ∧
     (exactActionAdmitted.query.id, exactActionAdmitted.query.canonicalMetadata,

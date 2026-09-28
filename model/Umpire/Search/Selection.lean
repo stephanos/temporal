@@ -80,10 +80,10 @@ def run (choice : Choice query) (view : SearchView query.target) : BackendResult
 
 end Choice
 
-/-- Whether `search` runs a Query on `veil` when `select` chooses it. It stays `false` until the
-cutover re-pins, in one commit, the goldens `veil` changes (fn-88 R18); until then a Query `select`
-sends to `veil` runs on `reference` with reason `default`. -/
-def cutover : Bool := false
+/-- Whether `search` runs a Query on `veil` when `select` chooses it. The cutover set it in the
+one commit that re-pinned the goldens `veil` changes (fn-88 R18); `false` sends every Query `select`
+chooses `veil` for to `reference` with reason `default`. -/
+def cutover : Bool := true
 
 /-- Search a Query on the backend `select` chooses, through the shared finalization and its kernel
 replay gate. -/
