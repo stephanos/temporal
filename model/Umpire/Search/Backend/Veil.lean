@@ -47,6 +47,9 @@ trace.
   which is the shortest.
 - `stateBound`: `Limits.search` product states were visited and the frontier is not empty.
 - `invalid`: evaluating a Property on a witness trace failed.
+
+Every ending carries the trust basis of each clause kind the Query's monitors lower
+(`QueryMonitors.trust`), which the planning receipt records beside the Veil commit.
 -/
 
 namespace Umpire.Search.Backend.Veil
@@ -240,15 +243,17 @@ private def observeEndpoint (query : CheckedQuery LawStatement)
   pure ({ observer with observations, witnessed, endpoints := observer.endpoints + 1 },
     if stops then trace? else none)
 
-private def Observer.finish (query : CheckedQuery LawStatement) (observer : Observer)
-    (context : Context) : PlanningObservations := { observer.observations with
+private def Observer.finish (query : CheckedQuery LawStatement)
+    (monitored : MonitoredProduct query.target) (observer : Observer) (context : Context) :
+    PlanningObservations := { observer.observations with
   explored := observer.explored query
   instrumentation := {
     enumeratorPulls := observer.processed
     generatedCandidates := context.1.statesFound
     peakActiveFrontierDepth := context.1.currentFrontierDepth + 1
     searchBackend := .veil commit
-    searchUnit := .states } }
+    searchUnit := .states
+    monitorTrust := monitored.monitors.trust.map fun (kind, basis) => (kind.name, basis.name) } }
 
 /-- Run the checker one product state at a time, at most `remaining` more states. -/
 private def drive (query : CheckedQuery LawStatement) (monitored : MonitoredProduct query.target)
@@ -257,10 +262,10 @@ private def drive (query : CheckedQuery LawStatement) (monitored : MonitoredProd
       (List (Transition × Veil.ExecutionOutcome Int (Located Monitored))) ())
     (remaining : Nat) (context : Context) (observer : Observer) : BackendResult :=
   match context.2.dequeue? with
-  | none => .complete (observer.finish query context)
+  | none => .complete (observer.finish query monitored context)
   | some (item, _) =>
       match remaining with
-      | 0 => .stateBound observer.processed (observer.finish query context)
+      | 0 => .stateBound observer.processed (observer.finish query monitored context)
       | remaining + 1 =>
           let next := context.bfsStep (parameters query monitored) () sys.tr
           let observer := { observer with
@@ -274,8 +279,9 @@ private def drive (query : CheckedQuery LawStatement) (monitored : MonitoredProd
           | some state =>
               match observeEndpoint query monitored next { observer with lastEndpoint := state }
                   state with
-              | .error error => .invalid error (observer.finish query next)
-              | .ok (observer, some trace) => .violationFound trace (observer.finish query next)
+              | .error error => .invalid error (observer.finish query monitored next)
+              | .ok (observer, some trace) =>
+                  .violationFound trace (observer.finish query monitored next)
               | .ok (observer, none) => drive query monitored sys remaining next observer
 
 /-- Search a Query's product with Veil's checker. -/

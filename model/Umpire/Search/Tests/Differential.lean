@@ -16,7 +16,8 @@ The R8 differential: a Query runs on `reference` and on `veil` through `Admitted
 and the two results are compared exactly as the fn-88 API Contracts define. Where the reference
 terminates, the outcomes, the witness `Scenario.Trace`, the Plan artifact bytes except `explored`,
 and the planning receipt JSON except the exempt fields must be equal. The exempt receipt fields are
-the four backend fields (`searchBackend`, `backendReason`, `searchUnit`, `veilCommit`), the
+the backend fields (`searchBackend`, `backendReason`, `searchUnit`, `veilCommit`, and
+`monitorTrust`, which only `veil` carries like `veilCommit`), the
 `SearchStats` counter the receipt carries (`enumeratorPulls`), the `triggers` evidence, the
 `explored` counts, and, for a `verify` that found a counterexample, `searchComplete`,
 `searchTermination` and `coverage`. The receipt's `explored` is the same `ExploredCounts` as the
@@ -75,8 +76,8 @@ def withExplored (plan : Plan) (explored : ExploredCounts) : Plan :=
 
 /-- The receipt fields a comparison exempts. -/
 def exemptReceiptFields (verifyCounterexample : Bool) : List String :=
-  ["searchBackend", "backendReason", "searchUnit", "veilCommit", "enumeratorPulls", "triggers",
-    "explored"] ++
+  ["searchBackend", "backendReason", "searchUnit", "veilCommit", "monitorTrust", "enumeratorPulls",
+    "triggers", "explored"] ++
   if verifyCounterexample then ["searchComplete", "searchTermination", "coverage"] else []
 
 /-- The receipt JSON with every exempt field set to `null`. -/

@@ -532,8 +532,8 @@ def SearchUnit.name : SearchUnit → String
   | .states => "states"
 
 /-- Search accounting and backend identity. The counters are backend-specific work measures; the
-last three fields say which backend ran (under `veil`, with the pinned Veil commit), why, and what
-its search bound counts. -/
+backend fields say which backend ran (under `veil`, with the pinned Veil commit), why, what its
+search bound counts, and what its monitors' agreement with the evaluator rests on. -/
 structure SearchStats where
   enumeratorPulls : Nat := 0
   generatedCandidates : Nat := 0
@@ -545,6 +545,10 @@ structure SearchStats where
   searchBackend : SearchBackend := .reference
   backendReason : BackendReason := .default
   searchUnit : SearchUnit := .paths
+  /-- Under `veil`, each clause kind the Query's monitors lower, by name, with the basis its
+  monitor's agreement with the evaluator rests on (`kernel` or `testing`, fn-88 R6). The
+  `reference` backend evaluates clauses directly and records none. -/
+  monitorTrust : List (String × String) := []
   deriving BEq, DecidableEq, Repr
 
 inductive PlanningOutcome where
@@ -679,7 +683,8 @@ assurance method, and exact model paths supporting realized trigger coverage. It
 names the in-memory projection, not a persisted artifact format: nothing stores these bytes and no
 reader outside this module parses them, so the tag carries no compatibility promise. Version 2 adds
 the backend that answered the Query, the reason it was selected, the unit its search bound counts,
-the enumerator pull count, and, only under `veil`, the pinned Veil commit. -/
+the enumerator pull count, and, only under `veil`, the pinned Veil commit and the trust basis of
+each clause kind its monitors lower. -/
 def canonicalPlanningReceiptJson (run : PlanResult) : String :=
   let result := run.result
   let stats := run.instrumentation
@@ -693,7 +698,8 @@ def canonicalPlanningReceiptJson (run : PlanResult) : String :=
     | .counterexample => "counterexample" | .stillPending => "still-pending"
   let limits := result.metadata.completeness.limits
   let veilCommit := match stats.searchBackend with
-    | .veil commit => [("veilCommit", Lean.Json.str commit)]
+    | .veil commit => [("veilCommit", Lean.Json.str commit),
+        ("monitorTrust", .mkObj (stats.monitorTrust.map fun (kind, basis) => (kind, .str basis)))]
     | .reference => []
   Lean.Json.compress <| .mkObj <| veilCommit ++ [
     ("formatVersion", .str "umpire-planning-receipt/v2"),

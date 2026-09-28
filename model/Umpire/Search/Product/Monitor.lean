@@ -52,7 +52,8 @@ surface; nothing is weakened silently.
 
 ## Evidence that a monitor is the evaluator (R6)
 
-The evidence for every kind is **testing** (`MonitorKind.trustBasis`): the clause semantics
+The evidence for every kind is **testing** (`MonitorKind.trustBasis`, which a `veil` planning
+receipt records per kind as `monitorTrust`): the clause semantics
 (`clauseEndpointAnswer`, the view construction) are private to `Umpire.Property.Evaluate` and
 `Umpire.Property.Check`, which no other module can unfold. `Umpire.Search.Tests.Monitor` compares
 every monitor's answers and fired bits with `evaluatePropertyEndpoint` under both endings,
@@ -411,6 +412,12 @@ structure QueryMonitors where
   clauses : List ClauseMonitor
   /-- The Model's fields of a state, as `checkPropertyEvaluationInput` reads them. -/
   stateFields : ModelValue → List ModelValue
+
+/-- Each clause kind these monitors use, in `MonitorKind.all` order, with its trust basis: what the
+planning receipt records under `veil` (R6). -/
+def QueryMonitors.trust (monitors : QueryMonitors) : List (MonitorKind × TrustBasis) :=
+  (MonitorKind.all.filter fun kind => monitors.clauses.any (·.monitor.kind == kind)).map
+    fun kind => (kind, kind.trustBasis)
 
 /-- Lower every clause of these Properties, or name the first one version one cannot encode. -/
 def QueryMonitors.lower (properties : List CheckedProperty)

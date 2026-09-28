@@ -81,7 +81,8 @@ private def endpointRun
     (canonicalPlanningReceiptJson run).contains "checked-finite-enumeration/v1") == some true
 
 /-! Receipt v2 names the backend that answered, why, the unit its search bound counts, and the
-enumerator pull count; the Veil commit appears only under `veil`, the one backend that carries it. -/
+enumerator pull count; the Veil commit and the monitors' trust basis per clause kind appear only
+under `veil`, the one backend that carries them. -/
 private def receiptHas (run : PlanResult) (fragments : List String) : Bool :=
   fragments.all fun fragment => (canonicalPlanningReceiptJson run).contains fragment
 
@@ -94,9 +95,11 @@ private def receiptHas (run : PlanResult) (fragments : List String) : Bool :=
 
 #guard (endpointRun .final true (.verify (temporalProperty true true))).map (fun run =>
     receiptHas { run with instrumentation := { run.instrumentation with
-        searchBackend := .veil "0123abc", searchUnit := .states } }
+        searchBackend := .veil "0123abc", searchUnit := .states,
+        monitorTrust := [("stateInvariant", "testing")] } }
       ["\"searchBackend\":\"veil\"", "\"searchUnit\":\"states\"",
-        "\"veilCommit\":\"0123abc\""]) == some true
+        "\"veilCommit\":\"0123abc\"",
+        "\"monitorTrust\":{\"stateInvariant\":\"testing\"}"]) == some true
 
 /-! The reference backend reports a stopping trace, an exhausted depth bound, and the search bound
 as the three `BackendResult` endings. -/

@@ -207,7 +207,7 @@ error: Unknown identifier `Umpire.replayFailure`
 #check Umpire.replayFailure
 
 /-! `Search.lean` is frozen: its line count is pinned, so any growth is a visible diff. -/
-/-- info: 1427 -/
+/-- info: 1433 -/
 #guard_msgs in
 #eval show Lean.Elab.Command.CommandElabM Unit from do
   let file : System.FilePath := ← Lean.getFileName

@@ -489,7 +489,8 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   elaboration. A `veil` witness counts only after kernel replay, as a `reference` witness does; a
   `veil` absence answer is its own basis (Exhaustive Search, VER-06).
   `Umpire.SearchStats` also records the backend, the reason, whether its unit is paths or states,
-  and, on `veil`, the pinned Veil commit; its `backendPulls` counter is renamed `enumeratorPulls`,
+  and, on `veil`, the pinned Veil commit and the trust basis (`kernel` or `testing`) of each
+  clause kind its monitors lower; its `backendPulls` counter is renamed `enumeratorPulls`,
   and the planning receipt carrying them moves to `umpire-planning-receipt/v2`. `Umpire.PlanResult`
   and the Plan artifact keep their shape; under `veil`, `explored.traces` counts product states
   visited, and the `search` Limit bounds product states instead of candidate paths.

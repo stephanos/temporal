@@ -157,16 +157,25 @@ private def endpointRuns : List (Option (PlanResult × PlanResult)) :=
 
 /-! ### Receipt
 
-A `veil` run names its backend, the unit its bound counts and the pinned commit, which only the
-`veil` backend carries. -/
+A `veil` run names its backend, the unit its bound counts, the pinned commit and the trust basis of
+each clause kind its monitors lower, which only the `veil` backend carries. -/
 #guard (fixtureRuns.head?.join).map (fun (reference, veil) =>
     (reference.instrumentation.searchBackend, veil.instrumentation.searchBackend,
       veil.instrumentation.searchUnit,
       (canonicalPlanningReceiptJson veil).contains
         s!"\"veilCommit\":\"{Veil.commit}\"",
       (canonicalPlanningReceiptJson veil).contains "\"searchBackend\":\"veil\"",
-      (canonicalPlanningReceiptJson reference).contains "veilCommit")) ==
-  some (.reference, .veil Veil.commit, .states, true, true, false)
+      (canonicalPlanningReceiptJson reference).contains "veilCommit",
+      (canonicalPlanningReceiptJson reference).contains "monitorTrust")) ==
+  some (.reference, .veil Veil.commit, .states, true, true, false, false)
+
+/-! A `veil` receipt records `kernel` or `testing` for each clause kind the Query's monitors lower
+(R6); the Query here has one `eventuallyWithin` clause. -/
+#guard endpointRuns[3]!.map (fun (_, veil) =>
+    (veil.instrumentation.monitorTrust,
+      (canonicalPlanningReceiptJson veil).contains
+        "\"monitorTrust\":{\"eventuallyWithin\":\"testing\"}")) ==
+  some ([("eventuallyWithin", "testing")], true)
 
 /-! ### Axiom inventories of the adapter theorems (R7) -/
 

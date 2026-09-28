@@ -210,7 +210,9 @@ Data shapes:
   Nothing else is exempt. (Amended 2026-09-27 by fn-88.9: the receipt's `explored` object is the
   same `ExploredCounts` as the Plan's exempt `explored`, and under `veil` its `traces` count product
   states by design (Data shapes), so it is exempt in the receipt too; each run's receipt `explored`
-  must still equal its own Plan's.)
+  must still equal its own Plan's. Amended 2026-09-28 by the completion review: R6's per-clause-kind
+  trust basis is the receipt's `monitorTrust` object, which, like `veilCommit`, only `veil` carries,
+  so it is exempt as a backend field.)
 - Determinism: identical `CheckedQuery` and `Limits` produce identical Plan bytes, receipt JSON,
   and witness on one machine and across machines (PLN-02).
 - The Veil dependency is a normal Lake requirement of `model/`. `make umpire-build-model`,
@@ -362,7 +364,8 @@ make umpire-check-regression   # final gate
   under the same completeness-evidence and admitted-endpoint gates `finalizePlanning` applies
   today. Errors: no error surface beyond the reason field.
 - **R17:** The planning receipt is `umpire-planning-receipt/v2` with `searchBackend`,
-  `backendReason`, `searchUnit`, `veilCommit`, and `enumeratorPulls`; the Plan artifact codec and
+  `backendReason`, `searchUnit`, `veilCommit`, `monitorTrust` (R6; like `veilCommit`, `veil` only),
+  and `enumeratorPulls`; the Plan artifact codec and
   the Go `artifactv2` decoder are unchanged, and `boundWasHit` keeps its comparison with
   `explored.traces`. Errors: no error surface beyond the receipt goldens.
 - **R18:** One reviewed commit re-pins exactly the goldens the cutover flips, each listed in the
