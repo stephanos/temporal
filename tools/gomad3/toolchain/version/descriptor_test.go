@@ -35,7 +35,8 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "consumer.mk"), []byte(makeConsumer), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	makeCommand := exec.Command("make", "-f", "consumer.mk", "print")
+	// GNU make prints directory banners when a parent make -C exported -w in MAKEFLAGS.
+	makeCommand := exec.Command("make", "--no-print-directory", "-f", "consumer.mk", "print")
 	makeCommand.Dir = root
 	if output, err := makeCommand.CombinedOutput(); err != nil || string(output) != "go1.26.4|toolchain/runtime/go1.26.4.patch|expected-intercepts-go1.26.4.txt|deterministicio/boundary/go1.26.4-darwin-arm64.md\n" {
 		t.Fatalf("generated Make output = %q, error = %v", output, err)

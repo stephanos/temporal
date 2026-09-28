@@ -19,6 +19,7 @@ import (
 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
 func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
@@ -329,7 +330,13 @@ func writeUpgradeFixture(t *testing.T, collide bool) string {
 	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "overlay", "src", "os", "gomad.go"), []byte("package os\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	manifest := `{"schema_version":1,"manifest_version":"go1.26.4-darwin-arm64-v1","go_version":"go1.26.4","platforms":["darwin/arm64"],"intercepts":[{"package":"os","symbol":"OpenFile","signature":"func(name string, flag int, perm FileMode) (*File, error)","hook":"gomadInterceptOpenFile"}]}`
+	// The fixture declares the platforms the real toolchain qualifies, so Run
+	// accepts the host on every qualified platform and rejects it elsewhere.
+	platforms, err := json.Marshal(gomadversion.SupportedPlatforms[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := `{"schema_version":1,"manifest_version":"go1.26.4-darwin-arm64-v1","go_version":"go1.26.4","platforms":` + string(platforms) + `,"intercepts":[{"package":"os","symbol":"OpenFile","signature":"func(name string, flag int, perm FileMode) (*File, error)","hook":"gomadInterceptOpenFile"}]}`
 	if err := os.WriteFile(filepath.Join(root, "deterministicio", "boundary", "manifest.json"), []byte(manifest), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -343,14 +350,14 @@ func writeUpgradeFixture(t *testing.T, collide bool) string {
   "schema_version": 1,
   "go_version": "go1.26.4",
   "archive": {"name":"go1.26.4.src.tar.gz","url":"https://go.dev/dl/go1.26.4.src.tar.gz","sha256":"%x"},
-  "supported_platforms": ["darwin/arm64"],
+  "supported_platforms": %s,
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
   "patch": "toolchain/runtime/go1.26.4.patch",
   "adapters": [{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],
   "patch_allowlist": ["src/runtime/proc.go"],
   "overlay_allowlist": ["src/os/gomad.go"]
 }
-`, digest)
+`, digest, platforms)
 	if err := os.WriteFile(filepath.Join(root, "toolchain", "version", "version.json"), []byte(descriptor), 0o600); err != nil {
 		t.Fatal(err)
 	}

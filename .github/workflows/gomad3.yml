@@ -75,11 +75,7 @@ jobs:
           make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test
           world-test test-builder test-live-capability test-upstream test-runtime
 
-      # The host tier waits on the remaining I/O fixtures and on host tests that
-      # still assume darwin/arm64, so it reports without gating until
-      # GOMAD_MILESTONES.md closes them.
       - name: Run the host tier
-        continue-on-error: true
         run: make -C tools/gomad3 test-host
 
       - name: Qualify the Linux compatibility packs and the core corpus
@@ -153,7 +149,7 @@ jobs:
           .selected == 28 and .completed == 28 and .unsupported == 10 and
           (.supported + .failed) == 18 and .supported >= 5 and
           .infrastructure_errors == 0 and
-          ([.workloads[] | select(.id == "frontend-system-info") | .classification == "nondeterministic" or .classification == "replay_divergence"] | all) and
+          ([.workloads[] | select(.id == "frontend-system-info") | .expectation_met and (.classification == "qualified" or .classification == "nondeterministic" or .classification == "replay_divergence")] | all) and
           ([.workloads[] | select(.id == "user-timers-workflow" or .id == "activity-batch-cancel-boundary" or (.id | startswith("functional-"))) | .expectation_met and (.classification == "qualified" or .classification == "nondeterministic" or .classification == "replay_divergence")] | all) and
           ([.workloads[] | select(.classification == "qualified") |
           (.seeds | length) == 2 and .choice.available and

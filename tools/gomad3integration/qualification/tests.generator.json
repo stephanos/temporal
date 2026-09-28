@@ -49,7 +49,6 @@
     "TestActivityTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -57,7 +56,6 @@
     "TestCancelWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -65,7 +63,6 @@
     "TestChildWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -73,7 +70,6 @@
     "TestContinueAsNewTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -81,7 +77,6 @@
     "TestCronTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -89,7 +84,6 @@
     "TestQueryWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -97,7 +91,6 @@
     "TestSignalWorkflowTestSuiteChasm": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -105,7 +98,6 @@
     "TestWorkflowTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -113,7 +105,6 @@
     "TestWorkflowTimerTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
@@ -121,7 +112,6 @@
     "TestWorkflowUpdateSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
-        "stdlib.os.getwd",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
