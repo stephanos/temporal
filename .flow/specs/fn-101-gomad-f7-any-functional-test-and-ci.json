@@ -11,7 +11,7 @@
   ],
   "id": "fn-101-gomad-f7-any-functional-test-and-ci",
   "impl_review_rounds": {
-    "fn-101-gomad-f7-any-functional-test-and-ci.1": 1
+    "fn-101-gomad-f7-any-functional-test-and-ci.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -88,9 +88,55 @@
       "task": "fn-101-gomad-f7-any-functional-test-and-ci.1",
       "timestamp": "2026-09-28T17:05:32.331964Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8cc9bb3d3995412a6a97c01691310dd6275ea68a833f15d9fc06f02009346abf",
+      "backend": "codex",
+      "base_sha": "76e0ad296286759f5c81ca5be6c34c85bd6115df",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b3570acc38e8625317a75c39a01667d6",
+            "classification": "introduced",
+            "findingId": "finding-b3570acc38e8625317a75c39a01667d6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d6bb940da05ec3f6bcae18efd2848cde74ce537a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1043,
+      "output_sha256": "1c8d91a529d017fb48aba51bc507f85fc0b35a2b7f3d66aeb7b0d7d8aec1b4b0",
+      "reservation_id": "04d07d6356b64605b0667b9b9ade7d05",
+      "round_consumed": true,
+      "scope": "impl:fn-101-gomad-f7-any-functional-test-and-ci.1",
+      "superseded_by": null,
+      "task": "fn-101-gomad-f7-any-functional-test-and-ci.1",
+      "timestamp": "2026-09-28T17:07:32.959013Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-101-gomad-f7-any-functional-test-and-ci.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -110,5 +156,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-28T17:05:32.334373Z"
+  "updated_at": "2026-09-28T17:07:32.961575Z"
 }
