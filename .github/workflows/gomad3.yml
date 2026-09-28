@@ -257,9 +257,8 @@ jobs:
       # probe is `qualified` with exact replay, every tier 2 package suite
       # qualifies (nine under the gomad tag, through the temporal-leaf packs),
       # and the tier 3 user-timers and activity batch cancel suites are
-      # `intermittent`: they run to success and their same-seed evidence
-      # reproduces on some seeds and repetitions but not all, so the
-      # supported/failed split is 18/0, 17/1, or 16/2.
+      # `qualified` with exact replay on both seeds since the mark-start
+      # greying fix GOMAD_MILESTONES.md F5 records, so all 18 are supported.
       - name: Verify portable Temporal qualification evidence
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: >-
@@ -268,10 +267,10 @@ jobs:
           .platform == {"goos": "darwin", "goarch": "arm64"} and
           .seeds == ["11", "17"] and .expectations_met and
           .selected == 18 and .completed == 18 and .unsupported == 0 and
-          (.supported + .failed) == 18 and .supported >= 16 and
+          .supported == 18 and .failed == 0 and
           .infrastructure_errors == 0 and
           ([.workloads[] | select(.tier == 2 and .classification == "qualified")] | length) == 15 and
-          ([.workloads[] | select(.id == "frontend-system-info") | .classification == "qualified"] | all) and
+          ([.workloads[] | select(.tier == 3 and .classification == "qualified")] | length) == 3 and
           ([.workloads[] | select(.classification == "qualified") |
           (.seeds | length) == 2 and .choice.available and
           .choice.exact_replay_available and

@@ -32,16 +32,15 @@ every run, and the report records `nondeterministic` or `replay_divergence`
 as observed. Its darwin/arm64 expectation is `qualified`: since darwin targets
 re-execute with ASLR disabled, both seeds reproduce their evidence across
 repetitions and replay with exact choice replay.
-The user-timers suite's expectation is `intermittent`: it runs the one-box
-cluster to a successful exit with exact I/O evidence, and its same-seed choice
-evidence reproduces on some seeds and repetitions but not all (seed 11 eight of
-eight, seed 17 five of eight on 2026-09-27) because of the collector-side
-divergence GOMAD_MILESTONES.md F5 records; the report keeps whichever of
-`qualified`, `nondeterministic`, or `replay_divergence` the run produced.
-The activity batch cancel suite's expectation is `intermittent` for the same
-reason: it runs the one-box cluster to a successful exit on both seeds, and on
-darwin/arm64 a seed has both qualified with exact choice replay and diverged
-(stderr between repetitions, or a choice-profile divergence on replay).
+The user-timers and activity batch cancel suites' darwin/arm64 expectation is
+`qualified`: since the runtime greys the scheduler structures at mark start
+(GOMAD_MILESTONES.md F5), both seeds reproduce their evidence across
+repetitions and replay with exact choice replay, and all 18 darwin workloads
+are supported. Their linux/amd64 expectation stays `intermittent`, as last
+measured there before that runtime change: the suites run the one-box cluster
+to a successful exit with exact I/O evidence, and the report keeps whichever of
+`qualified`, `nondeterministic`, or `replay_divergence` the run produced until
+a linux/amd64 run re-measures them.
 Nine package workloads build with the `gomad` tag, which cuts the cloud
 credential providers that import `os/exec`. On darwin/arm64 they and
 `temporal-cache-concurrent` qualify through the `temporal-leaf-*` packs; on

@@ -34,7 +34,7 @@ milestone's status here.
 | F2 | `fn-96-gomad-f2-close-the-go127-port-on` | done (the DTrace clock audit needs a root run) |
 | F3 | `fn-97-gomad-f3-qualify-the-frontend` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | done on darwin/arm64 (activity batch cancel is tier-3 `intermittent`) |
-| F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
+| F5 | `fn-99-gomad-f5-one-workflow-executing` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
@@ -924,6 +924,41 @@ or 5 supported and 2 failed. Acceptance therefore stands as: metrics, denials, w
 manifest met; seed-level repeatability met on one of the two seeds with exact replay, open on
 the other through the GC dimension. darwin/arm64 has not been run.
 
+Measured on darwin/arm64 on 2026-09-27, where two further channels surfaced. The suite first did
+not run past schema load: SQLite's WAL index mapping calls `sysconf(_SC_PAGESIZE)`, and the
+darwin modernc libc adapter refused `Xsysconf` as a host capability, so every WAL database
+panicked. The adapter now answers `_SC_PAGESIZE` (4096, the model's block and mapping
+granularity), `_SC_NPROCESSORS_ONLN` (1), and `_SC_GETPW_R_SIZE_MAX` (128) from the model
+(`gomadSysconf`), with the adapter template, the darwin source-set pin, and the four libc packs
+re-pinned; the core corpus gained `sqlite-write-ahead-log`, refused before and qualified after.
+With the suite running, same-seed runs diverged at the first run-queue decision after the first
+collection (ordinal 33 on seed 11, 28 on seed 17), with identical runnable sets in a different
+order. A debug toolchain showed the first assist of a cycle draining different mark work, for
+two reasons: the write barrier shaded a not-yet-marked `m` struct through `execute`'s
+`gp.m = mp`, and which M runs a goroutine after a syscall hand-off is host timing; and an M
+parked through `findRunnable` kept its `allpSnapshot`, so the `allp` array was greyed from the
+M in one run and from the globals in another. The assist that ends the mark phase stops on a
+work boundary, so the boundary moved and the run-queue order followed. The runtime now greys
+every `m`, `g0`, `gsignal`, and `g` at mark start in `startTheWorldWithSema`
+(`gomadGreyRuntimeStructures`), and `snapshotAllp` no longer parks `allp` in the M under Gomad;
+the choice-controller identity and derived wire codecs changed with the overlay, and the core
+corpus gained `mount-reads-under-collection`, nondeterministic before and qualified after.
+
+`gomad qualify --repeat 4` then produced identical canonical evidence per seed, every retained
+success replaying `exact`, with no watchdog termination and no `GOMAD_CAPABILITY_DENIED`. Seed 11:
+17 transcript records (2176 bytes), 5774 choice decisions in 8140 records (781 KB tape), virtual
+time 4.008 s, wall time 1.57 s to 3.20 s, peak 663 goroutines. Seed 17: 17 transcript records
+(2176 bytes), 5701 decisions in 8008 records (769 KB tape), virtual time 4.008 s, wall time
+1.52 s to 1.85 s, peak 664 goroutines. stderr is 52 KB and identical across repetitions.
+`TestActivityAPIBatchCancelClientTestSuite` also qualifies on both seeds (58.8k decisions,
+4.5 s virtual, peak 1565 goroutines). `temporal.json` now states `qualified` for
+`user-timers-workflow` and `activity-batch-cancel-boundary` on darwin/arm64, and
+`make gomad3-qualification` on darwin/arm64 meets every expectation with 18 of 18 workloads
+supported, 0 failed, and 0 infrastructure errors; the darwin CI assertion requires exactly that.
+The linux/amd64 expectations stay `intermittent` as last measured there; the mark-start greying
+and the regenerated libc packs change the runtime linux/amd64 targets use too, so linux/amd64
+needs a requalification run before its expectation can move. Acceptance is met on darwin/arm64.
+
 ## F6: a package-level functional slice
 
 **Spec.** `fn-100-gomad-f6-a-package-level-functional`
@@ -999,6 +1034,13 @@ replayed streams so that difference can be diffed. Triage for the six seed runs 
 diverge between fresh repetitions (signal, update, child, cron 17, timer 17) is open; none of
 the slice is in `temporal.json` yet, and the acceptance stands as: outcome and evidence bounds
 met, evidence divergence still present and under investigation, so the milestone is open.
+
+F5's darwin/arm64 run (2026-09-27) found a further same-seed divergence in the classic collector:
+which M structs the first assist of a cycle greyed depended on host timing, fixed by greying the
+scheduler structures at mark start. That fix may change the slice's divergence picture above,
+which predates it, and the deterministic-GC research item in
+[GOMAD3_NEXT.md](GOMAD3_NEXT.md#milestone-7-evaluate-research-extensions) may need its
+conclusion updated once the slice is re-measured.
 
 ## F7: any functional test, and CI
 
