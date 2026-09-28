@@ -86,21 +86,40 @@ private def render (keys : StepKeys State Outcome Fact) (step : Step State Outco
   s!"the step to {keys.state step.state} with outcome {keys.outcome step.outcome} and facts \
 [{", ".intercalate (step.facts.map keys.fact)}]"
 
+/-- What a same-step claim changes one state field within: the states it may change a step's state
+to, and each state's fields by name, in the structure's field order. Only a state's own structure
+fields are here -- not a refinement's abstract state, which a field change moves with it -- and the
+states are every combination of those fields, not only the ones the Model reaches: a composition's
+members move together, so changing one member's field alone may leave the reachable states, and
+the predicate is read there all the same. Empty for a claim that fixes no field. -/
+structure StateFields (State : Type) where
+  states : List State := []
+  fields : State → List (String × String) := fun _ => []
+
+/-- The structure fields among a state's lowered fields, which drops a refinement's abstract one. -/
+def structureFields (structural : List String) (held : List (String × String)) :
+    List (String × String) :=
+  held.filter (structural.contains ·.1)
+
+/-- One composition member's structure fields under the composed names: `<field>_<memberField>`,
+or `<field>` for a member whose state has one field, as `compose` lowers them. -/
+def memberFields (memberField : String) (structural : List String)
+    (held : List (String × String)) : List (String × String) :=
+  (structureFields structural held).map fun (field, spelling) =>
+    (if structural.length == 1 then memberField else memberField ++ "_" ++ field, spelling)
+
 /-- The state fields a predicate fixes over the accepted steps, as (field, spelling) pairs in the
-state's field order. `fields` reads a state's fields by name; the catalog of one field is every
-spelling the states hold it at. A state with that one field changed is found among `states`, since
-a composition's state is the author's structure and the states it reaches are the only ones there
-are; a field is fixed when some such change exists and the predicate rejects every one. -/
+state's field order. The catalog of one field is every spelling `view.states` hold it at; a field
+is fixed when every accepted step holds one spelling of it, some state holds another with every
+other field kept, and the predicate rejects every accepted step changed to such a state. -/
 private def fixedFields [BEq State]
-    (states : List State)
-    (fields : State → List (String × String))
+    (view : StateFields State)
     (accepted : List (Step State Outcome Fact))
     (accepts : Step State Outcome Fact → Bool) : List (String × String) :=
-  let catalog := states.map fun state => (state, fields state)
-  let heldAt := fun (state : State) => ((catalog.find? (·.1 == state)).map (·.2)).getD []
+  let catalog := view.states.map fun state => (state, view.fields state)
   match accepted.head? with
   | none => []
-  | some first => (heldAt first.state).filter fun (field, spelling) =>
+  | some first => (view.fields first.state).filter fun (field, spelling) =>
     let others := (catalog.filterMap fun (_, held) => held.lookup field).eraseDups.filter (· != spelling)
     -- The states that hold `held` with `field` changed to `other` and every other field kept.
     let changed := fun (held : List (String × String)) (other : String) =>
@@ -108,9 +127,9 @@ private def fixedFields [BEq State]
         if candidate == held.map (fun (name, value) => (name, if name == field then other else value))
         then some state else none
     let alterations := accepted.flatMap fun step =>
-      others.flatMap fun other => (changed (heldAt step.state) other).map fun state =>
+      others.flatMap fun other => (changed (view.fields step.state) other).map fun state =>
         ({ step with state } : Step State Outcome Fact)
-    accepted.all (fun step => (heldAt step.state).lookup field == some spelling) &&
+    accepted.all (fun step => (view.fields step.state).lookup field == some spelling) &&
       !alterations.isEmpty && alterations.all (!accepts ·)
 
 /-- The requirements one predicate fixes over the steps a trigger admits, given the predicate at
@@ -122,8 +141,8 @@ and the predicate rejects every accepted step with it changed. The second condit
 one-member domain from being "fixed" by every predicate: on a machine with one outcome, a claim
 about the outcome claims nothing, and it is not read as if it did.
 
-`fields` reads a state's fields for a claim that may fix one of them; a claim that does not passes
-none. A field is fixed only where no whole state is and the state, outcome and facts alone do not
+`view` holds the states and fields a claim that may fix one field changes; a claim that does not
+passes none. A field is fixed only where no whole state is and the state, outcome and facts alone do not
 carry the predicate, which is what keeps every claim they carry enumerating as it did. -/
 private def fixedRequirements [BEq State] [BEq Outcome] [BEq Fact]
     (states : List State) (outcomes : List Outcome)
@@ -131,7 +150,7 @@ private def fixedRequirements [BEq State] [BEq Outcome] [BEq Fact]
     (results : List (Step State Outcome Fact))
     (accepts : Step State Outcome Fact → Bool)
     (label : String := "")
-    (fields : State → List (String × String) := fun _ => []) :
+    (view : StateFields State := {}) :
     Except (String → PredicateRefusal) (List PropertyRequirement) := do
   let accepted := results.filter accepts
   let some first := accepted.head?
@@ -159,10 +178,10 @@ private def fixedRequirements [BEq State] [BEq Outcome] [BEq Fact]
   let carriedBy := fun (held : List (String × String)) (step : Step State Outcome Fact) =>
     state?.all (step.state == ·) && outcome?.all (step.outcome == ·) &&
       facts.all step.facts.contains &&
-      held.all fun (field, spelling) => (fields step.state).lookup field == some spelling
+      held.all fun (field, spelling) => (view.fields step.state).lookup field == some spelling
   let wholeCarries := (state?.isSome || outcome?.isSome || !facts.isEmpty) &&
     results.all fun step => carriedBy [] step == accepts step
-  let held := if state?.isSome || wholeCarries then [] else fixedFields states fields accepted accepts
+  let held := if state?.isSome || wholeCarries then [] else fixedFields view accepted accepts
   -- The requirements are a conjunction, and they must be the predicate over the table: a step the
   -- conjunction admits that the predicate rejects would let Search find a witness the author's
   -- claim does not accept, and a step it rejects that the predicate accepts would hide one.
@@ -182,18 +201,18 @@ private def fixedRequirements [BEq State] [BEq Outcome] [BEq Fact]
       PropertyRequirement.factClause (label ++ "fact-" ++ keys.fact fact) (keys.fact fact))
 
 /-- A same-step claim: the predicate over the steps one Action produces, wherever the machine
-takes it. `actionKey` is the Action as its clauses name it, and `fields` reads a state's fields by
-name, so the claim may fix one of them. -/
+takes it. `actionKey` is the Action as its clauses name it, and `view` is what the claim may fix
+one state field within. -/
 def enumerateSameStep [BEq State] [BEq Outcome] [BEq Fact]
     (states : List State) (outcomes : List Outcome)
     (keys : StepKeys State Outcome Fact)
-    (fields : State → List (String × String))
+    (view : StateFields State)
     (actionKey : String)
     (results : List (Step State Outcome Fact))
     (holds : Step State Outcome Fact → Bool) : EnumeratedProperty :=
   let trigger := "`" ++ actionKey ++ "`"
   if results.isEmpty then { refusal := some (.noStep trigger) } else
-  match fixedRequirements states outcomes keys results holds (fields := fields) with
+  match fixedRequirements states outcomes keys results holds (view := view) with
   | .error refusal => { refusal := some (refusal trigger) }
   | .ok [] => { refusal := some (.fixesNothing trigger) }
   | .ok requirements => { groups := [{ trigger := .action actionKey, requirements }] }

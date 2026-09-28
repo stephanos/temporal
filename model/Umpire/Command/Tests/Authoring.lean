@@ -167,6 +167,16 @@ machine crankMachine
     pull: crankPullStep
     lift: crankLiftStep
 
+/- A claim on the crank's own phase fixes that field: the lever state it reads as moves with the
+phase, and is not a field the claim holds. -/
+property crankPulledDown
+  machine: crankMachine
+  when: pull
+  holds: fun step => step.state.phase == .down
+
+#guard crankPulledDown.names.groups.map (·.requirements) ==
+  [[.stateFieldClause "field-phase-down" "phase" "down"]]
+
 scenario crankPull
   model: crankMachine
   starts: up

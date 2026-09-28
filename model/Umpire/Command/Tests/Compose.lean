@@ -761,6 +761,8 @@ entity beacon
 enum BeaconPhase
   | lit
 
+-- One field of one value makes `mk.injEq` a lemma simp proves on its own, which `simpNF` refuses.
+set_option genInjectivity false in
 structure BeaconState where
   phase : BeaconPhase
   deriving BEq, DecidableEq, Repr, Finite
@@ -885,5 +887,39 @@ compose gates
 
 #guard gates.table.actions.map (·.key) == ["lift", "pass"]
 #guard gates.table.states.map (·.key) == ["closed_closed", "opened_opened"]
+
+/-! ### A field claim where the members move together
+
+The gates lift together while the agent moves on its own, so no state the composition reaches has
+one gate open and the other closed. A claim that a lift opens the front gate still fixes the front
+gate's field: the predicate is read with that field alone changed, in a state the composition never
+reaches. -/
+
+structure GatedAgentState where
+  front : Gate.GateState
+  back : Gate.GateState
+  agent : Agent.AgentState
+  deriving BEq, DecidableEq, Repr
+
+compose gatedAgent
+  for: [Gate.gate, Agent.agent]
+  state: GatedAgentState
+  members:
+    front: Gate.gateMachine
+    back: Gate.gateMachine
+    agent: Agent.agentMachine
+  sync:
+    lift: front.lift ∥ back.lift
+    pass: front.pass ∥ back.pass
+  starts: [front.closed]
+  ends: [front.opened]
+
+property frontOpens
+  machine: gatedAgent
+  when: lift
+  holds: fun step => step.state.front.phase == .opened
+
+#guard frontOpens.names.groups.map (·.requirements) ==
+  [[.stateFieldClause "field-front-opened" "front" "opened"]]
 
 end Umpire.Command.Tests.Compose

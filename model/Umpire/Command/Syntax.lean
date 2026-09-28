@@ -430,6 +430,48 @@ private def enumeratedDomains (declaredModel : Registry.ModelEntry) :
     pure (← `(Umpire.Command.members (α := $(mkIdent declaredModel.stateType))),
       ← `(Umpire.Command.members (α := $(mkIdent declaredModel.outcomeType))))
 
+/-- A state type's own structure fields by name: none for an enum. -/
+private def structureFieldNames (environment : Environment) (stateType : Name) : List String :=
+  if isStructure environment stateType then
+    (getStructureFieldsFlattened environment stateType (includeSubobjectFields := false)).toList.map
+      (·.toString)
+  else []
+
+/-- What a same-step claim may change one state field within: a machine's states and their
+structure fields; a composition's every combination of its members' states, each member's fields
+lowered as `compose` lowers them, because the states it reaches may move its members together. -/
+private def stateFieldsView (declaredModel : Registry.ModelEntry) : CommandElabM Term := do
+  let environment ← getEnv
+  let quoteNames := fun (names : List String) => ((names.map Lean.quote).toArray : Array Term)
+  let fieldState := mkIdent `fieldState
+  match Registry.composition? environment declaredModel.declName with
+  | none =>
+      let declared := mkIdent declaredModel.declName
+      let structural := quoteNames (structureFieldNames environment declaredModel.stateType)
+      `(({ states := ($declared).states
+           fields := fun $fieldState => Umpire.Command.structureFields [$structural,*]
+             (Umpire.Command.DeclaredModel.stateFieldsOf ($declared) $fieldState) } :
+          Umpire.Command.StateFields _))
+  | some composed =>
+      let members ← composed.members.toList.mapM fun (field, machine) => do
+        let some model := Registry.model? environment machine
+          | throwError "the composition's member '{field}' names no declared Model '{machine}'"
+        pure (field, machine, structureFieldNames environment model.stateType)
+      let componentOf := fun (index : Nat) => mkIdent (Name.mkSimple s!"member{index}")
+      let components := (List.range members.length).toArray.map componentOf
+      let stateType := mkIdent composed.stateType
+      let product ← members.zipIdx.foldrM (init := ← `([(⟨$components,*⟩ : $stateType)]))
+        fun ((_, machine, _), index) inner =>
+          `((($(mkIdent machine)).states).flatMap fun $(componentOf index) => $inner)
+      let parts ← members.toArray.mapM fun (field, machine, structural) =>
+        `(Umpire.Command.memberFields $(Lean.quote field) [$(quoteNames structural),*]
+          (Umpire.Command.DeclaredModel.stateFieldsOf ($(mkIdent machine))
+            ($(mkIdent (composed.stateType ++ Name.mkSimple field)) $fieldState)))
+      let fields ← parts.foldlM (init := ← `(([] : List (String × String))))
+        fun joined part => `($joined ++ $part)
+      `(({ states := $product, fields := fun $fieldState => $fields } :
+          Umpire.Command.StateFields _))
+
 /-- The definition that enumerates a same-step claim over the machine's table: over the one action
 `when:` names, or, where it names a composition's classed action bare, over each of its classes. -/
 private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
@@ -441,14 +483,14 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
   let factKeyFor := mkIdent (machineName ++ `factKeyFor)
   let actionKeyFor := mkIdent (machineName ++ `actionKeyFor)
   let transitions := mkIdent (machineName ++ `transitions)
-  let declared := mkIdent machineName
+  let view ← stateFieldsView declaredModel
   let enumeratedAt := fun (key : String) => do
     let keyLiteral := Lean.quote key
     `(term| Umpire.Command.enumerateSameStep
       $states
       $outcomes
       { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
-      (Umpire.Command.DeclaredModel.stateFieldsOf ($declared))
+      $view
       $keyLiteral
       (($transitions).filter (fun row => $actionKeyFor row.action == $keyLiteral)
         |>.flatMap (·.results))
