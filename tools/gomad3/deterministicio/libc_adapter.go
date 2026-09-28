@@ -22,7 +22,7 @@ const (
 	libcDarwinSHA256       = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
 	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
 	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	gomadLibcAdapterSHA256 = "sha256:82981437bb24c229922a45d01f4620fc2087775d7df6e9140bee83e55c1b95c5"
+	gomadLibcAdapterSHA256 = "sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f"
 	// The linux/amd64 build is a musl translation that reaches the kernel only
 	// through the trampolines in syscall_musl.go, so the Linux model hooks the
 	// syscall number there instead of individual libc functions.
@@ -35,7 +35,7 @@ const (
 // Both platforms' sources are rewritten in every copy; the prepared source set
 // differs because each platform compiles its own file set.
 var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
-	"darwin/arm64": "sha256:c093614d1c66f6545ca658c6353d0c3d0d18161ab1aa22fcb0e54f00cfec907c",
+	"darwin/arm64": "sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935",
 	"linux/amd64":  "sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b",
 })
 
@@ -264,6 +264,7 @@ func rewriteLibcDarwin(contents []byte) ([]byte, error) {
 		{header: "func Xmunmap(t *TLS, addr uintptr, length types.Size_t) int32 {", body: "\tif result, handled := gomadMunmap(t, addr, uint64(length)); handled { return result }\n"},
 		{header: "func Xgettimeofday(t *TLS, tv, tz uintptr) int32 {", body: "\tif result, handled := gomadGettimeofday(t, tv, tz); handled { return result }\n"},
 		{header: "func Xgeteuid(t *TLS) types.Uid_t {", body: "\tif gomadLibcEnabled() { return 0 }\n"},
+		{header: "func Xsysconf(t *TLS, name int32) long {", body: "\tif result, handled := gomadSysconf(t, name); handled { return result }\n"},
 		{header: "func Xrmdir(t *TLS, pathname uintptr) int32 {", body: "\tif gomadLibcEnabled() { return gomadRemove(t, GoString(pathname)) }\n"},
 	}
 	result, err = rewriteFunctions(result, rewrites)

@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/sys/unix"
 	"modernc.org/libc/fcntl"
+	"modernc.org/libc/unistd"
 )
 
 //go:linkname gomadLibcEnabled internal/gomadio.Enabled
@@ -203,6 +204,24 @@ func gomadMmap(t *TLS, address uintptr, length uint64, prot, flags, fd int32, of
 func gomadMunmap(t *TLS, address uintptr, length uint64) (int32, bool) {
 	if !gomadLibcEnabled() { return 0, false }
 	return gomadErrno(t, gomadLibcMunmap(address, length)), true
+}
+
+// gomadSysconf answers the configuration names the stock function serves
+// from the model rather than the host: the modeled filesystem reports 4 KiB
+// blocks and maps at 4 KiB offsets, an activated target runs one P, and the
+// password-buffer bound is the constant the stock function returns. Any other
+// name falls through to the host-capability refusal.
+func gomadSysconf(t *TLS, name int32) (long, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	switch name {
+	case unistd.X_SC_PAGESIZE:
+		return 4096, true
+	case unistd.X_SC_NPROCESSORS_ONLN:
+		return 1, true
+	case unistd.X_SC_GETPW_R_SIZE_MAX:
+		return 128, true
+	}
+	return 0, false
 }
 
 func gomadGettimeofday(t *TLS, tv, tz uintptr) (int32, bool) {
