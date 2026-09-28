@@ -38,9 +38,17 @@ go test -tags test_dep ./tools/umpire/replay/... ./tools/umpire/evaluation/... .
 - [ ] Control and Pair fixtures byte-identical; the four readers of the recorded control Run pass unchanged and the Run is not re-recorded
 - [ ] `make umpire-check-case-runtime-conformance` and `make lint-model` pass
 ## Done summary
-TBD
+Added `from:`, `restrict:` and `extend:` to `machine`. A derived machine keeps its source's entity, state type, starts, ends, setup and evidence, generates its own Action catalog under its own name (so its Definition IDs are its own), and carries no `refines:` or abstract state field. Each step it keeps is a generated function that calls the source's dispatcher. `restrict:` keeps the listed actions, drops every timer and unobservable entry, and drops evidence lines for facts no kept row returns. `extend:` adds the author's results to an action's rows, ordered by the step order key under the derived IDs (`Umpire.Command.Derived`). The sort is a structural insertion sort, because `List.mergeSort` does not reduce in the `rfl` table law. `Nexus/Control` is now `from: pair extend: handlerReply: controlForgedStep`, and that one function is its only step code.
 
+Pins are in `model/Umpire/Command/Tests/Derived.lean`: restricted catalogs and evidence, extended result order, restriction applied before extension, IDs owned by the derived machine, a refining source that is not inherited, and the located errors (restrict naming a timer, an absent action, or one twice; extend naming a dropped action or one twice; extension result at a disabled source; duplicate result; restrict/extend without `from:`; `from:` with authored keys; `from:` naming a non-machine). `Control/Tests.lean` pins the forged function and that the catalogs equal pair's. The Control fixture, the recorded control Run, and the `forgedCompletion` differential line are byte-identical. `make umpire-rerecord-pinned-runs` was not run. The Derived test module declares no Query, so the Umpire differential sweep, which is outside this task's touches, needs no new line (R14).
+
+baseline: green (focused lake build, umpire-check-case-runtime-conformance, Go reader tests, pre-edit)
+Gates: umpire-gen-case-runtime-conformance produced no diff; umpire-check-case-runtime-conformance rc=0; Go reader tests rc=0; lake build UmpireTests TemporalModelTests rc=0; LEAN_NUM_THREADS=1 make lint-model rc=0. The live tests/testpilot_assess_test.go:98 was not run (it needs the test cluster). The fixture and Run bytes it reads are unchanged.
+
+stage: impl-review - ran [round 1 SHIP (codex fan-out, rid c846e9162ccb415d9a6bb5854510abd6, 3/3 draws SHIP, 0 findings)]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e3bfae2c0e99e4f4bc599e5f3213cc1ceb57fee2
+- Tests: cd model && lake build Umpire.Command.Tests.Derived Temporal.Feature.Nexus.Control.Tests, cd model && lake build UmpireTests TemporalModelTests, make umpire-gen-case-runtime-conformance (no diff), make umpire-check-case-runtime-conformance, go test -tags test_dep ./tools/umpire/replay/... ./tools/umpire/evaluation/... ./tools/umpire/cmd/umpire-assess/..., LEAN_NUM_THREADS=1 make lint-model
 - PRs:
