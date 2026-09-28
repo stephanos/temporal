@@ -8,9 +8,10 @@ A replay subject is a violated Run of a Case that one admitted Query produced. R
 Query's Scenario through one sweep of `dropPrefixStep` edits, last prefix step first, each tried
 once against the candidate retained so far: the edited Query is re-admitted through the Query's own
 source; one the Model does not admit is `inapplicable` and produces no Case; an admitted one is
-produced as a whole Case, named by its Plan checksum, which a coordinator runs twice and classes.
-A candidate whose Runs reproduce the subject's violation is retained and becomes what the next edit
-applies to; one that does not is recorded and never retried; a dropped step is never reintroduced.
+produced as a whole Case, named by its Plan's `witnessKey`, which a coordinator runs twice and
+classes. A candidate whose Runs reproduce the subject's violation is retained and becomes what the
+next edit applies to; one that does not is recorded and never retried; a dropped step is never
+reintroduced.
 
 The sweep ends `minimized` when at least one edit was retained, `irreducible` when none was, and
 `incomplete` when an edit stays undecided, the coordinator stops early or the edit cap cut the
@@ -172,6 +173,12 @@ structure Admitted (model : DeclaredModel Setup State Action Outcome Fact) where
   plan : Plan
   digest : String
 
+/-- The admitted form of a Plan, keyed by its `witnessKey`, so that the backend the search ran on
+never changes the digest. -/
+def Admitted.of (admitted : AdmittedModel model) (plan : Plan) : Admitted model :=
+  { admitted, plan
+    digest := Umpire.Exploration.candidateDigest (Umpire.Command.Promotion.witnessKey plan) }
+
 /-- Why the Model did not admit an edited Query, briefly. -/
 def admissionReason : AdmissionError → String
   | .notSelected .. => "not-selected: the Model selects no trace of the edited Scenario"
@@ -186,7 +193,7 @@ def admitKept (source : QuerySource model) (kept : List Nat) : Except String (Ad
   let admitted ← (restrictSource source kept).admit.mapError admissionReason
   let some plan := admitted.checked.run.artifact
     | throw "the admitted Query carries no Plan"
-  pure { admitted, plan, digest := Umpire.Exploration.candidateDigest plan.artifactChecksum }
+  pure (Admitted.of admitted plan)
 
 /-- Produce the admitted form's Case under `identity`. Evidence lines for an Action the edited path
 no longer selects are left out, since a line for an unselected Action is a production error. -/

@@ -21,7 +21,7 @@ bytes. The bridge recovers the admitted Query through its binding table, re-prod
 the set's realization and admits the subject only when the bytes it produces are the subject's;
 otherwise it answers `crossed` and the protocol ends. `admitted` lists the sweep's edits in the
 order they are tried. `next` hands out the next candidate -- the edit, the candidate's digest (the
-edited Query's Plan checksum), its Case ID `temporal.case.<set>.<digest>` and fixture
+edited Query's Plan `witnessKey`), its Case ID `temporal.case.<set>.<digest>` and fixture
 `<set>-<digest>`, its Case checksum as `identity`, and the whole Case -- after passing over, and
 listing, every edit the Model does not admit (`inapplicable`) or whose Case the Producer rejects
 (`rejected`); or it says the sweep is `exhausted`. `observe` takes back what the coordinator
@@ -118,12 +118,11 @@ def recoverSource (setName : String) (source : QuerySource model)
   let admitted ← source.admit.mapError admissionReason
   let some plan := admitted.checked.run.artifact
     | throw "the admitted Query carries no Plan"
-  let digest := Umpire.Exploration.candidateDigest plan.artifactChecksum
+  let subjectForm := Admitted.of admitted plan
   let actions ← editable (source.behavior admitted.checked.vocabulary)
-  let identity := identity.getD (candidateIdentity setName digest)
-  let subjectForm : Admitted model := { admitted, plan, digest }
+  let identity := identity.getD (candidateIdentity setName subjectForm.digest)
   pure {
-    digest
+    digest := subjectForm.digest
     caseId := identity.caseId
     fixture := identity.fixture
     produced := (subjectForm.produce identity production).mapError productionReason
@@ -262,8 +261,8 @@ def parseFrame (line : String) : Except String (Except (Nat × String) Frame) :=
 
 /-! ### Rendering -/
 
-/-- One candidate as `next` hands it out: its edit, its digest (the edited Query's Plan checksum),
-its Case identity, its Case checksum and its canonical bytes. -/
+/-- One candidate as `next` hands it out: its edit, its digest (the edited Query's Plan
+`witnessKey`), its Case identity, its Case checksum and its canonical bytes. -/
 structure Candidate where
   edit : Edit
   digest : String

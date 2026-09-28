@@ -1,4 +1,5 @@
 import Temporal.Tool.ExplorationBridge
+import Umpire.Exploration.Tests.Classed
 import Testpilot.Examples.Synthetic
 import Testpilot.Authoring
 
@@ -661,6 +662,41 @@ private def checkTimers : IO Unit := do
         let unbound := Runner.unrealizable production checked
         require unbound.isEmpty s!"{name} reports unbound members: {unbound.map (·.2)}"
 
+/-! ### A candidate that falls back to `reference` keeps its key
+
+The lamp's free-schedule Query is the one whose backends explore differently: planned on `veil`
+and searched again on `reference`, its Plan differs in `explored` alone. As a candidate of the
+lamp's exploratory set, its identity -- and with it its Case ID -- is the same either way, and so is
+the ledger any Run credits it with. -/
+
+open Umpire.ExplorationTests.Classed in
+private def checkFallback : IO Unit := do
+  let .ok admitted := freeScheduleSource.admit | fail "the free-schedule Query is not admitted"
+  let some plan := admitted.checked.run.artifact | fail "the free-schedule Query has no Plan"
+  let some witness := admitted.checked.witness | fail "the free-schedule Query has no witness"
+  let some fallbackPlan := (admitted.admitted.searchWith .reference).toOption.bind (·.artifact)
+    | fail "the free-schedule Query has no Plan on reference"
+  require (admitted.checked.run.instrumentation.searchBackend.name == "veil")
+    "the free-schedule Query was not planned on veil"
+  require (fallbackPlan.plan.explored != plan.plan.explored)
+    "both backends explored alike, so the fallback changes nothing to key on"
+  let some campaign := (Campaign.check lampMachine classed two).toOption
+    | fail "the lamp's exploratory set is not a campaign"
+  let some selected := classed.targets.head? | fail "the lamp's set has no target"
+  let candidate : Candidate lampMachine := {
+    selected, queryKey := freeScheduleSource.key, admitted, plan
+    covers := coveredTargets classed.targets witness }
+  require (!candidate.covers.isEmpty) "the witness covers no target, so no credit is compared"
+  let fallback := { candidate with plan := fallbackPlan }
+  require (fallback.identity == candidate.identity)
+    s!"the fallback's identity {fallback.identity.render} is not {candidate.identity.render}"
+  require (caseIdOf classed.name fallback.identity == caseIdOf classed.name candidate.identity)
+    "the fallback's Case ID differs"
+  for observation in [Observation.satisfied, .violated, .inconclusive] do
+    require ((campaign.observe fallback observation).ledger ==
+        (campaign.observe candidate observation).ledger)
+      s!"a {observation.name} Run credits the fallback differently"
+
 /-! ### The executable -/
 
 private def executable : IO System.FilePath := do
@@ -704,6 +740,7 @@ def main : IO UInt32 := do
     ("outside", checkOutside),
     ("caller", checkCaller),
     ("timers", checkTimers),
+    ("fallback", checkFallback),
     ("executable", checkExecutable)]
   let mut failed := 0
   for (name, check) in checks do

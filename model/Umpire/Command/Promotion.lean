@@ -6,10 +6,10 @@ import Umpire.Promotion
 
 Every proposal a campaign or a replay compiles comes from the same thing: one admitted Query, its
 checked Model and the Plan its search delivered. The anchor is read off that planning, the
-promoted identities are fresh names under the Model's family keyed by the Plan checksum's digest,
-and the rendered bytes are their own expectation, so `Umpire.Promotion.compilePromotionSource`
-proves that replanning the unchanged Query reproduces the anchor and that the bytes and their
-SHA-256 are what they were. The proposal renders the Model's expected trace; no observed Run
+promoted identities are fresh names under the Model's family keyed by the digest of the Plan's
+`witnessKey`, and the rendered bytes are their own expectation, so
+`Umpire.Promotion.compilePromotionSource` proves that replanning the unchanged Query reproduces the
+anchor and that the bytes and their SHA-256 are what they were. The proposal renders the Model's expected trace; no observed Run
 reaches it. Nothing here touches a file: whoever compiled it writes the bytes where it names.
 
 The exploration campaign and the replay bridge both call `propose`, so a counterexample's proposal
@@ -26,7 +26,18 @@ variable [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
 variable [DecidableEq Outcome] [DecidableEq Fact]
 variable {model : DeclaredModel Setup State Action Outcome Fact}
 
-/-- A Plan checksum's digest, its identity without the algorithm prefix: what fresh promoted names,
+/-- What a Plan is keyed by: the checksum of the Plan with its `explored` counts cleared. The
+Query, the outcome and the witness stay in it; how much the search explored does not, because that
+is the one Plan field in which the `veil` and `reference` backends differ, so a Query that falls
+back to `reference` keeps its key, and with it its ledger credit, its Case ID and its promoted
+names. -/
+def witnessKey (plan : Plan) : ArtifactChecksum :=
+  let steps : Plan.Steps := { plan.plan with explored := {} }
+  let unsealed : Plan := { plan with
+    plan := { steps with artifactChecksum := steps.expectedArtifactChecksum } }
+  unsealed.expectedArtifactChecksum
+
+/-- A Plan key's digest, its identity without the algorithm prefix: what fresh promoted names,
 the source file and a candidate's Case are keyed by. -/
 def digestOf (identity : ArtifactChecksum) : String :=
   let rendered := identity.render
@@ -64,8 +75,8 @@ def spec (model : DeclaredModel Setup State Action Outcome Fact) (digest : Strin
     promotedBehaviorDefinitionId := family.id "behavior" ("regression-" ++ digest)
     promotedQueryDefinitionId := family.id "query" ("regression-" ++ digest) }
 
-/-- One compiled proposal: the Plan it came from, the names it is written under, and the source
-with its digest. -/
+/-- One compiled proposal: the `witnessKey` of the Plan it came from, the names it is written
+under, and the source with its digest. -/
 structure Proposal where
   identity : ArtifactChecksum
   spec : PromotionSourceSpec
@@ -81,11 +92,11 @@ def propose (admitted : AdmittedModel model) (plan : Plan) (location : SourceLoc
         kind := .nonFoundResult
         subject := admitted.checked.query.id
         detail := "the Query's planning result is not a found trace" }
-  let spec := spec model (digestOf plan.artifactChecksum) location
+  let spec := spec model (digestOf (witnessKey plan)) location
   let bytes := renderPromotionSource spec anchor.expectedTrace
   let compiled ← compilePromotionSource admitted.admitted anchor spec
     { bytes, sha256 := promotionSourceSha256 bytes }
-  pure { identity := plan.artifactChecksum, spec, bytes := compiled.sourceBytes, sha256 := compiled.sourceSha256 }
+  pure { identity := witnessKey plan, spec, bytes := compiled.sourceBytes, sha256 := compiled.sourceSha256 }
 
 /-- The file a proposal is named at: `<set>-<digest>.lean`, relative to wherever the caller writes. -/
 def path (setName digest : String) : String := setName ++ "-" ++ digest ++ ".lean"
