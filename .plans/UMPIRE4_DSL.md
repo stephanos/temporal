@@ -481,14 +481,15 @@ kernel proof, reconstructed solver proof, trusted solver, bounded symbolic searc
 concrete replay as different trust classes. Timeout, solver unavailability, incomplete search, stale
 digests, and replay disagreement never become success.
 
-*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The concrete checker adds one class. Its
-checker entry is `IO` and runs while the command elaborates. Every witness it returns is replayed
-against the checked table before it can be `found` or a violation, and a replay failure is
-`invalid`. Its absence answers (`verified-within-limits`, `none-found`, `unsatisfiable`) are search
-within Limits trusted from the pinned checker, not a kernel result. Their oracle is the differential
-test against the frozen `reference` backend on the checked-in models, and Veil's 64-bit state-hash
-deduplication, which can merge distinct states, is their stated trust assumption. The planning
-receipt records the backend, the reason it was chosen, the search unit, and the Veil commit.
+*Amendment (drafted by fn-88; awaiting GOV-02 approval.)* The concrete checker adds one class.
+Search drives the checker's pure breadth-first step itself, within the `search` Limit; nothing runs
+in `IO` or during elaboration. Every witness it returns is replayed against the checked table before
+it can be `found` or a violation, and a replay failure is `invalid`. Its absence answers
+(`verified-within-limits`, `none-found`, `unsatisfiable`) are search within Limits by the pinned
+checker, not a kernel result. They rest on the adapter's equivalence theorems, on deduplication by
+whole product state, and on the differential test against the frozen `reference` backend on the
+checked-in models as their oracle. The planning receipt records the backend, the reason it was
+chosen, the search unit, and the Veil commit.
 
 Every Veil counterexample must replay through the canonical Umpire transition kernel before it can
 support a semantic violation or promoted regression. Verification receipts reference rather than
