@@ -8,7 +8,7 @@ import Umpire.Json
 Writer for the golden families whose only other reader is an `include_str` inside a
 `native_decide` test, and for the coverage targets an exploratory set enumerates. A `Temporal.Tool`
 module may import both the Umpire test fixtures and the Nexus Model; a module under `Umpire/` may
-not import `Temporal`, so this is the one place from which all four families can be rendered
+not import `Temporal`, so this is the one place from which all five families can be rendered
 together.
 -/
 
@@ -74,10 +74,26 @@ private def callerCoverageGoldens : List Golden := [
       (Umpire.Command.coverageJson Temporal.Feature.Nexus.Caller.nexusCallerExploration) }
 ]
 
+/-- The Caller's `retry` Query as the search answers it on `veil`: its Plan, which carries the
+witness, and its planning receipt, which names the backend. Rendered afresh by every golden check,
+locally and in CI, so a Plan byte, receipt byte or witness that differs between runs or machines
+fails the check (fn-88 R11). -/
+private def callerSearchGoldens : IO (List Golden) := do
+  let planPath := "Temporal/Feature/Nexus/Caller/Fixtures/CallerRetryPlan.json"
+  let receiptPath := "Temporal/Feature/Nexus/Caller/Fixtures/CallerRetryPlanningReceipt.json"
+  let run := Temporal.Feature.Nexus.Caller.retry.toOption.map (·.run)
+  pure [
+    { path := planPath,
+      contents := ← required planPath ((run.bind (·.artifact)).map canonicalPlanBytes) },
+    { path := receiptPath,
+      contents := ← required receiptPath
+        (run.map fun run => canonicalPlanningReceiptJson run ++ "\n") }
+  ]
+
 /-- Every golden this writer owns, in a stable order. -/
 def goldens : IO (List Golden) := do
   pure ((← compatibilityGoldens) ++ switchExampleGoldens ++ (← artifactCodecGoldens) ++
-    callerCoverageGoldens)
+    callerCoverageGoldens ++ (← callerSearchGoldens))
 
 /-- Render every golden under `outputRoot`, creating the directories it needs. -/
 def write (outputRoot : System.FilePath) : IO Unit := do

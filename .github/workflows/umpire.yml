@@ -57,3 +57,5 @@ jobs:
         run: mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
       - name: Check the canary's pinned Case and rendered Profiles
         run: make canary-check-case umpire-check-evaluation-profiles
+      - name: Check the model goldens, rendered afresh on this machine
+        run: make umpire-check-goldens

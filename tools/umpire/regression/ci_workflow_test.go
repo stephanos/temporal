@@ -44,6 +44,9 @@ const (
 	canaryTestCommand     = "mise exec -- go test -count=1 -tags test_dep ./tools/canary/..."
 	canaryHarnessCommand  = "mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/"
 	canaryChecksCommand   = "make canary-check-case umpire-check-evaluation-profiles"
+	// The model goldens render afresh in CI too, so a Plan, receipt or witness that differs on
+	// another machine fails there (fn-88 R11).
+	goldensCheckCommand = "make umpire-check-goldens"
 )
 
 type ciWorkflow struct {
@@ -118,6 +121,7 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 					ciWorkflowStep{Name: "Run the canary's unit tests", Run: canaryTestCommand},
 					ciWorkflowStep{Name: "Run the canary harness build's tests", Run: canaryHarnessCommand},
 					ciWorkflowStep{Name: "Check the canary's pinned Case and rendered Profiles", Run: canaryChecksCommand},
+					ciWorkflowStep{Name: "Check the model goldens, rendered afresh on this machine", Run: goldensCheckCommand},
 				),
 			},
 		},
