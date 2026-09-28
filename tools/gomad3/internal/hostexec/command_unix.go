@@ -253,7 +253,15 @@ func SignalGroup(pgid int, signal syscall.Signal) error {
 	if pgid <= 0 {
 		return fmt.Errorf("invalid process group %d", pgid)
 	}
-	if err := syscall.Kill(-pgid, signal); err != nil && !errors.Is(err, syscall.ESRCH) {
+	return classifyGroupSignal(syscall.Kill(-pgid, signal))
+}
+
+// classifyGroupSignal accepts EPERM because darwin reports it for a group whose
+// remaining members are all zombies awaiting their reaper. Every caller confirms
+// the group is gone by probing afterwards, so a group that truly stays
+// unsignalable still fails there.
+func classifyGroupSignal(err error) error {
+	if err != nil && !errors.Is(err, syscall.ESRCH) && !errors.Is(err, syscall.EPERM) {
 		return err
 	}
 	return nil
