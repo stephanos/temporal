@@ -89,6 +89,25 @@ func TestValidateRequestRejectsOperationalPathsAndCollectionOverflow(t *testing.
 	}
 }
 
+func TestValidateRequestRejectsUnadmittableCapabilities(t *testing.T) {
+	for _, capability := range []string{"import:os/exec", "import:os/signal", "import:os/user"} {
+		t.Run(capability, func(t *testing.T) {
+			request := validRequest()
+			request.Packages[0].Facts = []Fact{{Kind: FactCapability, Capability: capability, Disposition: DispositionAllow}}
+			if err := ValidateRequest(request); err == nil || !strings.Contains(err.Error(), capability+" is never admitted") {
+				t.Fatalf("ValidateRequest() = %v", err)
+			}
+			request.Packages[0].Facts = []Fact{
+				{Kind: FactCapability, Capability: capability, Disposition: DispositionDeny},
+				{Kind: FactCapability, Capability: "import:syscall", Disposition: DispositionAllow},
+			}
+			if err := ValidateRequest(request); err != nil {
+				t.Fatalf("ValidateRequest() rejected a denied %s: %v", capability, err)
+			}
+		})
+	}
+}
+
 func validRequest() Request {
 	module := compatibility.PackModule{
 		Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",

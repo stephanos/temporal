@@ -56,6 +56,9 @@ func TestDecodePackV2RejectsWeakOrNonCanonicalPolicy(t *testing.T) {
 		"source-set mismatch":  strings.Replace(validPackV2, "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859", "sha256:3333333333333333333333333333333333333333333333333333333333333333", 1),
 		"unknown field":        strings.Replace(validPackV2, `"id": "example-pack",`, `"id": "example-pack", "unknown": true,`, 1),
 		"trailing data":        validPackV2 + `{}`,
+		"admits os/exec":       strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:os/exec"]`, 1),
+		"admits os/signal":     strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:os/signal", "import:syscall"]`, 1),
+		"admits os/user":       strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:os/user"]`, 1),
 	}
 	for name, encoded := range tests {
 		t.Run(name, func(t *testing.T) {

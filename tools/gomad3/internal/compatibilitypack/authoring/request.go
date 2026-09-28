@@ -232,7 +232,9 @@ func projectPack(request Request, requestSHA256, approvalSHA256 string, includeD
 		rule.Capabilities = []string{}
 		rule.Linknames = []compatibility.PackLinkname{}
 		for _, fact := range selected.Facts {
-			if fact.Disposition != DispositionAllow && !includeDenied {
+			// A denied unadmittable fact stays out of even the validation
+			// projection, because the pack schema rejects it outright.
+			if fact.Disposition != DispositionAllow && (!includeDenied || compatibility.Unadmittable(fact.Capability)) {
 				continue
 			}
 			switch fact.Kind {
@@ -268,6 +270,9 @@ func validateFact(fact Fact) error {
 	case FactCapability:
 		if fact.Capability == "" || fact.Source != "" || fact.SHA256 != "" || len(fact.Directives) != 0 {
 			return errors.New("compatibility-pack capability fact is invalid")
+		}
+		if fact.Disposition == DispositionAllow && compatibility.Unadmittable(fact.Capability) {
+			return fmt.Errorf("compatibility-pack capability %s is never admitted", fact.Capability)
 		}
 	case FactLinkname:
 		if fact.Capability != "" || fact.Source == "" || len(fact.Directives) == 0 {

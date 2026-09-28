@@ -380,6 +380,9 @@ bytes (64 MiB) fail closed. That is the contract SQLite's WAL index needs. Optio
 built-in adapters are an immutable collection generated from `version.json`.
 The current version-pinned `modernc.org/libc` adapter redirects supported
 filesystem, entropy, and time operations to those same generic boundaries.
+Its `system`, `pause`, and `signal` refuse unconditionally, so the prepared
+module imports neither `os/exec` nor `os/signal`; pack validation rejects any
+pack or request that admits `os/exec`, `os/signal`, or `os/user`.
 The exact `google.golang.org/grpc@v1.83.2` adapter removes its Unix raw-socket
 keepalive callback because Gomad's in-memory TCP connections have no kernel
 socket to configure; it preserves the negative `KeepAlive` value and does not
