@@ -180,7 +180,11 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 	if err != nil {
 		return nil, nil, fmt.Errorf("read expected interception report: %w", err)
 	}
-	workspace, err := os.MkdirTemp(filepath.Join(config.Root, ".toolchain"), "interception-test-*")
+	toolchainRoot := filepath.Join(config.Root, ".toolchain")
+	if err := os.MkdirAll(toolchainRoot, 0o755); err != nil {
+		return nil, nil, fmt.Errorf("create interception test workspace: %w", err)
+	}
+	workspace, err := os.MkdirTemp(toolchainRoot, "interception-test-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("create interception test workspace: %w", err)
 	}

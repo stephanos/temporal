@@ -50,15 +50,11 @@ jobs:
         working-directory: tools/gomad3
         run: >-
           go test -count=1 -tags test_dep
-          ./internal/outputcapture
-          ./internal/commandrun
-          ./internal/sourcearchive
-          ./internal/patchset
-          ./internal/toolchainbuild
-          ./internal/testtier
-          ./internal/testdriver
-          ./internal/scriptpolicy
-          ./internal/hosttool
+          ./internal/hostexec
+          ./internal/hostfs
+          ./toolchain
+          ./internal/gomadtool/...
+          ./cmd/gomadtool
 
   core-linux:
     runs-on: ubuntu-latest

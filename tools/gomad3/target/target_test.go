@@ -18,6 +18,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/sumdb/dirhash"
+	modzip "golang.org/x/mod/zip"
 )
 
 func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
@@ -170,6 +173,82 @@ func TestReadModuleCacheUsesPinnedToolchain(t *testing.T) {
 	info, err := os.Stat(moduleCache)
 	if err != nil || !info.IsDir() || !filepath.IsAbs(moduleCache) {
 		t.Fatalf("module cache = %q, info = %#v, error = %v", moduleCache, info, err)
+	}
+}
+
+func TestDownloadModuleFetchesPinnedModuleIntoCleanCache(t *testing.T) {
+	proxy := t.TempDir()
+	pinned := ModuleIdentity{Path: "example.com/pinned", Version: "v1.0.0"}
+	versions := filepath.Join(proxy, "example.com", "pinned", "@v")
+	if err := os.MkdirAll(versions, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	for name, contents := range map[string]string{
+		"list":        "v1.0.0\n",
+		"v1.0.0.info": `{"Version":"v1.0.0","Time":"2026-01-01T00:00:00Z"}`,
+		"v1.0.0.mod":  "module example.com/pinned\n",
+	} {
+		if err := os.WriteFile(filepath.Join(versions, name), []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	source := writeModule(t, map[string]string{"go.mod": "module example.com/pinned\n", "pinned.go": "package pinned\n"})
+	archive, err := os.Create(filepath.Join(versions, "v1.0.0.zip"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := modzip.CreateFromDir(archive, module.Version{Path: pinned.Path, Version: pinned.Version}, source); err != nil {
+		t.Fatal(err)
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	pinned.Sum, err = dirhash.HashZip(archive.Name(), dirhash.Hash1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name    string
+		module  ModuleIdentity
+		wantErr string
+	}{
+		{name: "pinned", module: pinned},
+		{name: "checksum mismatch", module: ModuleIdentity{Path: pinned.Path, Version: pinned.Version, Sum: "h1:modified"}, wantErr: "checksum mismatch"},
+		{name: "missing version", module: ModuleIdentity{Path: pinned.Path, Version: "v1.0.1", Sum: pinned.Sum}, wantErr: "v1.0.1"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			moduleCache := t.TempDir()
+			t.Cleanup(func() { makeWritable(t, moduleCache) })
+			t.Setenv("GOMODCACHE", moduleCache)
+			t.Setenv("GOPROXY", "file://"+filepath.ToSlash(proxy))
+			t.Setenv("GOSUMDB", "off")
+			err := DownloadModule(context.Background(), toolchainRoot(t), t.TempDir(), test.module)
+			if test.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
+					t.Fatalf("DownloadModule() error = %v, want %q", err, test.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := os.Stat(filepath.Join(moduleCache, "example.com", "pinned@v1.0.0", "pinned.go")); err != nil {
+				t.Fatalf("downloaded module is not in the module cache: %v", err)
+			}
+		})
+	}
+}
+
+func makeWritable(t *testing.T, root string) {
+	t.Helper()
+	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || !entry.IsDir() {
+			return err
+		}
+		return os.Chmod(path, 0o700)
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

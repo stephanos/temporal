@@ -36,11 +36,7 @@ func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedC
 		return PreparedCapabilityReview{}, fmt.Errorf("make capability review preparation directory private: %w", err)
 	}
 	spec.PreparationRoot = root
-	moduleCache, err := target.ReadModuleCache(ctx, spec.ToolchainRoot)
-	if err != nil {
-		return PreparedCapabilityReview{}, err
-	}
-	preparedSpec, adapters, err := deterministicio.Default().PrepareBuildAdapters(spec, moduleCache)
+	preparedSpec, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
 	if err != nil {
 		return PreparedCapabilityReview{}, err
 	}
