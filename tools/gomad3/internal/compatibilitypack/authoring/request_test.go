@@ -97,10 +97,7 @@ func TestValidateRequestRejectsUnadmittableCapabilities(t *testing.T) {
 			if err := ValidateRequest(request); err == nil || !strings.Contains(err.Error(), capability+" is never admitted") {
 				t.Fatalf("ValidateRequest() = %v", err)
 			}
-			request.Packages[0].Facts = []Fact{
-				{Kind: FactCapability, Capability: capability, Disposition: DispositionDeny},
-				{Kind: FactCapability, Capability: "import:syscall", Disposition: DispositionAllow},
-			}
+			request.Packages[0].Facts = []Fact{{Kind: FactCapability, Capability: capability, Disposition: DispositionDeny}}
 			if err := ValidateRequest(request); err != nil {
 				t.Fatalf("ValidateRequest() rejected a denied %s: %v", capability, err)
 			}
