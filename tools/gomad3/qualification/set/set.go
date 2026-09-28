@@ -416,22 +416,18 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 				if evidenceErr != nil {
 					classification = retainedErrorClassification(result, evidenceErr)
 					seedReport.Classification = classification
-				} else if config.PruneQualifiedArtifacts && classification == "qualified" {
-					if pruneErr := pruneQualifiedCampaigns(config.ArtifactRoot, opened); pruneErr != nil {
-						return report, fmt.Errorf("prune qualified artifacts of %s seed %d: %w", workload.ID, seed, pruneErr)
-					}
-					seedReport.ArtifactsPruned = true
 				}
-				report.Workloads[index].Seeds = append(report.Workloads[index].Seeds, seedReport)
-				addSeedTotals(&report, seedReport)
+				// Only a seed whose successes were retained and replayed exactly has
+				// Campaigns to prune.
+				seedReport.ArtifactsPruned = evidenceErr == nil && config.PruneQualifiedArtifacts && workload.ReplaySuccesses && classification == "qualified"
 				if classification != "qualified" {
 					allQualified = false
 					if report.Workloads[index].Classification == "" {
 						report.Workloads[index].Classification = classification
 					}
 				}
-				if checkpointErr := writeCheckpoint(context.WithoutCancel(ctx), config.OutputPath+".partial", "qualification", workload.ID+"/"+strconv.FormatUint(seed, 10), report); checkpointErr != nil {
-					return report, checkpointErr
+				if err := recordSeed(ctx, config, &report, index, seedReport, opened); err != nil {
+					return report, err
 				}
 			}
 			coverage, coverageErr := aggregateChoiceCoverage(report.Workloads[index].Seeds)
@@ -471,6 +467,25 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		return report, &ExpectationError{Workloads: failed}
 	}
 	return report, nil
+}
+
+// recordSeed adds a seed's evidence to the report and checkpoints it before
+// pruning the seed's Campaigns, so an interrupted or failed deletion never
+// leaves a seed that claims replayable artifacts it no longer has.
+func recordSeed(ctx context.Context, config Spec, report *Report, index int, seedReport SeedReport, opened qualification.QualificationReport) error {
+	workload := &report.Workloads[index]
+	workload.Seeds = append(workload.Seeds, seedReport)
+	addSeedTotals(report, seedReport)
+	if err := writeCheckpoint(context.WithoutCancel(ctx), config.OutputPath+".partial", "qualification", workload.ID+"/"+strconv.FormatUint(uint64(seedReport.Seed), 10), *report); err != nil {
+		return err
+	}
+	if !seedReport.ArtifactsPruned {
+		return nil
+	}
+	if err := pruneQualifiedCampaigns(config.ArtifactRoot, opened); err != nil {
+		return fmt.Errorf("prune qualified artifacts of %s seed %d: %w", workload.ID, uint64(seedReport.Seed), err)
+	}
+	return nil
 }
 
 func OpenReport(path string) (Report, error) {

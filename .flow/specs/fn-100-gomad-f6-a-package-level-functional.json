@@ -11,7 +11,8 @@
   ],
   "id": "fn-100-gomad-f6-a-package-level-functional",
   "impl_review_rounds": {
-    "fn-100-gomad-f6-a-package-level-functional.3": 0
+    "fn-100-gomad-f6-a-package-level-functional.3": 0,
+    "fn-100-gomad-f6-a-package-level-functional.4": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -84,8 +85,19 @@
   "review_hash_epoch": {
     "impl:fn-100-gomad-f6-a-package-level-functional.3": 1
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-100-gomad-f6-a-package-level-functional.4": 1
+  },
+  "review_reservations": {
+    "71638784a2f2440fa84560f14be54f22": {
+      "artifact_sha256": "0149000b80145aa93028b43e5ee0ebfe94a803aa2b24f70de43af152ef92a9ea",
+      "counter_scope": "impl:fn-100-gomad-f6-a-package-level-functional.4",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-100-gomad-f6-a-package-level-functional.3": 0
   },
@@ -103,5 +115,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-28T15:22:21.532379Z"
+  "updated_at": "2026-09-28T16:35:58.055712Z"
 }
