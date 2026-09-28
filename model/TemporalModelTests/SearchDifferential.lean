@@ -102,20 +102,13 @@ info: exploratory sets, each compared by campaignLine: [Temporal.Feature.Nexus.C
 #guard_msgs in
 run_cmd Umpire.SearchTests.Differential.sweep [`Temporal]
 
-/-! The campaigns the Temporal exploratory sets plan, each candidate Query admitted as the campaign
-admits it and compared on both backends. The Success set's campaign is compared whole. The Caller's
-covers 889 targets over the protocol machine, and admitting a candidate for each takes longer than
-this module's build can; its first 40 targets in catalog order -- rows from the start, each a
-Query of its own Property and Scenario -- are compared, and the rest are left to the campaign. -/
+/-! The campaign the Success exploratory set plans, each candidate Query admitted as the campaign
+admits it and compared on both backends. The Caller's campaign, 889 targets over the protocol
+machine, is compared in the four `TemporalModelTests.SearchDifferential.CallerCampaign` modules. -/
 open Temporal.Feature.Nexus in
-/--
-info: ["2 candidates, 2 agree, 2 on veil", "40 candidates, 40 agree, 40 on veil"]
--/
+/-- info: "2 candidates, 2 agree, 2 on veil" -/
 #guard_msgs in
-#eval [Umpire.SearchTests.Differential.campaignLine Success.lifecycle Success.Tests.exploration
-    Success.shortTrace,
-  Umpire.SearchTests.Differential.campaignLine Caller.nexusProtocol
-    { Caller.nexusCallerExploration with targets := Caller.nexusCallerExploration.targets.take 40 }
-    Caller.four]
+#eval Umpire.SearchTests.Differential.campaignLine Success.lifecycle Success.Tests.exploration
+  Success.shortTrace
 
 end TemporalModelTests.SearchDifferential

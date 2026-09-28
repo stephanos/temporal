@@ -192,8 +192,8 @@ private def limitDifference (form : Query.Form) (reference veil : PlanResult)
 /-- The first difference between the two backends' results for one Query, or `none` when they
 agree as the API Contracts define. -/
 def difference {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
-    (view : SearchView query.target) (reference veil : Except KnownGapError PlanResult) :
-    Option String :=
+    (examined : Unit → List (Except QueryError EndpointDecision))
+    (reference veil : Except KnownGapError PlanResult) : Option String :=
   match reference, veil with
   | .error left, .error right =>
       if left == right then none else some "the Known Gaps are rejected differently"
@@ -201,14 +201,15 @@ def difference {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
   | .ok reference, .ok veil =>
       match reference.result.outcome with
       | .limitReached =>
-          limitDifference query.form reference veil fun _ => examinedEndpoints query view
+          limitDifference query.form reference veil examined
       | _ => terminatedDifference query.form reference veil
 
 /-- One Query's differential, on one line: the backend `searchWith .veil` ran and why, both
 outcomes with what each explored, or the difference. -/
 def line {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
-    (view : SearchView query.target) (reference veil : Except KnownGapError PlanResult) : String :=
-  match difference query view reference veil, reference, veil with
+    (examined : Unit → List (Except QueryError EndpointDecision))
+    (reference veil : Except KnownGapError PlanResult) : String :=
+  match difference query examined reference veil, reference, veil with
   | some difference, _, _ => "DIFFERS " ++ difference
   | none, .ok reference, .ok veil =>
       let backend := veil.instrumentation.searchBackend.name ++ " " ++
@@ -225,13 +226,27 @@ def line {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
 /-- Each backend's outcome and what it explored -- candidate paths on `reference`, product states on
 `veil` -- and the difference between them. -/
 def compared {LawStatement : Law → Prop} (query : CheckedQuery LawStatement)
-    (view : SearchView query.target) (reference veil : Except KnownGapError PlanResult) :
+    (examined : Unit → List (Except QueryError EndpointDecision))
+    (reference veil : Except KnownGapError PlanResult) :
     Option (String × Nat × String × Nat × Option String) := do
   let referenceRun ← reference.toOption
   let veilRun ← veil.toOption
   pure (referenceRun.result.outcome.name, referenceRun.result.metadata.explored.traces,
     veilRun.result.outcome.name, veilRun.result.metadata.explored.traces,
-    difference query view reference veil)
+    difference query examined reference veil)
+
+/-- The endpoints the reference search examines, over the view `Search.admit` builds for the
+Query; built only when a comparison reads it. -/
+def examinedOn {LawStatement : Law → Prop} (query : CheckedQuery LawStatement) :
+    Unit → List (Except QueryError EndpointDecision) := fun _ =>
+  match SearchView.ofCheckedQuery query.target.id query with
+  | .ok view => examinedEndpoints query view
+  | .error _ => [.error {
+      kind := .propertyEvaluationFailure
+      definitionId := query.id
+      sourcePath := query.source.path
+      offendingValue := "no search view"
+      relatedDefinitionIds := [] }]
 
 /-- Both backends through an admitted Query's own view. -/
 def runs {LawStatement : Law → Prop} {target : QueryModel LawStatement}
@@ -241,19 +256,13 @@ def runs {LawStatement : Law → Prop} {target : QueryModel LawStatement}
 
 def admittedLine {LawStatement : Law → Prop} {target : QueryModel LawStatement}
     (admitted : AdmittedQuery target) : String :=
-  match SearchView.ofCheckedQuery admitted.query.target.id admitted.query with
-  | .error _ => "no search view"
-  | .ok view =>
-      let (reference, veil) := runs admitted
-      line admitted.query view reference veil
+  let (reference, veil) := runs admitted
+  line admitted.query (examinedOn admitted.query) reference veil
 
 def admittedCompared {LawStatement : Law → Prop} {target : QueryModel LawStatement}
     (admitted : AdmittedQuery target) : Option (String × Nat × String × Nat × Option String) :=
-  match SearchView.ofCheckedQuery admitted.query.target.id admitted.query with
-  | .error _ => none
-  | .ok view =>
-      let (reference, veil) := runs admitted
-      compared admitted.query view reference veil
+  let (reference, veil) := runs admitted
+  compared admitted.query (examinedOn admitted.query) reference veil
 
 /-! ### The product and monitor checks on one Query -/
 
@@ -367,6 +376,21 @@ variable {Setup State Action Outcome Fact : Type}
   [DecidableEq Fact]
   {model : DeclaredModel Setup State Action Outcome Fact}
 
+/-- The shape `checkAdmitted` gives a Query of this key, form and Limits. -/
+def queryShape (model : DeclaredModel Setup State Action Outcome Fact) (key : String)
+    (form : QueryFormKind) (limits : Limits) : Query.Shape := {
+  id := model.origin.family.id "query" key
+  source := model.origin.source
+  target := model.targetId
+  form := match form with
+    | .selectWitness => .find
+    | .verifyClaim => .verify
+  limits
+  policy := match form with
+    | .selectWitness => .shortest
+    | .verifyClaim => .exhaustive
+}
+
 /-- A Query's admission over a checked Model and its vocabulary, as `checkAdmitted` makes it,
 stopping before the search. `behavior := none` admits a Property-only Query, which constrains no
 trace. -/
@@ -375,18 +399,28 @@ def admitOver (model : DeclaredModel Setup State Action Outcome Fact)
     (property : ModelVocabulary → Property) (behavior : Option (ModelVocabulary → Scenario))
     (form : QueryFormKind) (limits : Limits) (knownGaps : List KnownGap := []) :
     Except AdmissionError (AdmittedQuery target) :=
-  Search.admit target (property vocabulary) (behavior.map (· vocabulary)) {
-    id := model.origin.family.id "query" key
-    source := model.origin.source
-    target := model.targetId
-    form := match form with
-      | .selectWitness => .find
-      | .verifyClaim => .verify
-    limits
-    policy := match form with
-      | .selectWitness => .shortest
-      | .verifyClaim => .exhaustive
-  } knownGaps |>.mapError .admission
+  Search.admit target (property vocabulary) (behavior.map (· vocabulary))
+    (queryShape model key form limits) knownGaps |>.mapError .admission
+
+/-- The checked Query `admitOver` admits, stopping before the search view: every stage of
+`Search.admit` but the last. A campaign's candidates share one Model, so each is paired with one
+admitted view through `AdmittedQuery.withQuery`, as the Variations compiler and Promotion pair
+theirs, instead of building the same view once per candidate. -/
+def checkOver (model : DeclaredModel Setup State Action Outcome Fact)
+    (target : QueryModel model.lawStatement) (vocabulary : ModelVocabulary) (key : String)
+    (property : ModelVocabulary → Property) (behavior : ModelVocabulary → Scenario)
+    (form : QueryFormKind) (limits : Limits) :
+    Except AdmissionError { query : CheckedQuery model.lawStatement // query.target = target } := do
+  let shape := queryShape model key form limits
+  let checkedProperty ←
+    Property.check (PropertyCheckContext.ofTarget target) (property vocabulary)
+      |>.mapError (.admission ∘ .property)
+  let checkedBehavior ← Scenario.check (.ofTarget target) (behavior vocabulary)
+    |>.mapError (.admission ∘ .scenario)
+  let checked ← Query.check (.ofTarget target) (shape.toQuery checkedProperty checkedBehavior)
+    |>.mapError (.admission ∘ .query)
+  pure ⟨{ checked with target, completeness := (ModelCompleteness.ofTarget target).completeness },
+    rfl⟩
 
 /-- The checked Model and vocabulary a declared Model's Queries are admitted over. -/
 def checkedTarget (model : DeclaredModel Setup State Action Outcome Fact) :
@@ -463,24 +497,31 @@ def instancesLine (model : DeclaredModel Setup State Action Outcome Fact) (count
 
 /-- Every Query an exploratory set's campaign plans -- one per target a path reaches within the
 Limits, admitted as `Campaign.nextWith` admits it -- compared on both backends: how many there are,
-how many agree and how many of those ran on `veil`, then each differing line. -/
+how many agree and how many ran on `veil`, then each line that differs or did not run on `veil`. -/
 def campaignLine (model : DeclaredModel Setup State Action Outcome Fact) (set : SetDeclaration)
     (limits : Limits) : String :=
-  match checkedTarget model with
-  | .error error => "not admitted: " ++ admissionFailure error
-  | .ok (checked, vocabulary) =>
-      let lines := set.targets.filterMap fun target =>
-        (Exploration.Campaign.planTarget model set limits target).map
-          fun (queryKey, property, behavior) =>
-            match admitOver model checked vocabulary queryKey property (some behavior)
-                .selectWitness limits with
-            | .error error => queryKey ++ ": not admitted: " ++ admissionFailure error
-            | .ok admitted => queryKey ++ ": " ++ admittedLine admitted
+  let planned := set.targets.filterMap (Exploration.Campaign.planTarget model set limits)
+  match checkedTarget model, planned with
+  | .error error, _ => "not admitted: " ++ admissionFailure error
+  | .ok _, [] => "0 candidates"
+  | .ok (checked, vocabulary), (baseKey, baseProperty, baseBehavior) :: _ =>
+    match admitOver model checked vocabulary baseKey baseProperty (some baseBehavior)
+        .selectWitness limits with
+    | .error error => baseKey ++ ": not admitted: " ++ admissionFailure error
+    | .ok base =>
+      let lines := planned.map fun (queryKey, property, behavior) =>
+        match checkOver model checked vocabulary queryKey property behavior .selectWitness
+            limits with
+        | .error error => queryKey ++ ": not admitted: " ++ admissionFailure error
+        | .ok ⟨query, targetEq⟩ =>
+            queryKey ++ ": " ++ admittedLine (base.withQuery query targetEq)
       let differing := lines.filter fun line => (line.splitOn ": DIFFERS").length > 1
       let onVeil := lines.filter fun line => (line.splitOn ": veil default").length > 1
+      let elsewhere := lines.filter fun line =>
+        (line.splitOn ": DIFFERS").length == 1 && (line.splitOn ": veil default").length == 1
       let agreeing := lines.length - differing.length
       s!"{lines.length} candidates, {agreeing} agree, {onVeil.length} on veil" ++
-        String.join (differing.map ("; " ++ ·))
+        String.join ((differing ++ elsewhere).map ("; " ++ ·))
 
 end Declared
 
@@ -561,7 +602,8 @@ def queryLine {LawStatement : Law → Prop} (query : CheckedQuery LawStatement) 
   match SearchView.ofCheckedQuery query.target.id query with
   | .error _ => "no search view"
   | .ok view =>
-      line query view (Search.Selection.searchWith .reference query view)
+      line query (fun _ => examinedEndpoints query view)
+        (Search.Selection.searchWith .reference query view)
         (Search.Selection.searchWith .veil query view)
 
 private def spaceAssignments : List CheckedVariationAxis → List (List ModelValue)
@@ -603,6 +645,39 @@ open Umpire.Examples.Switch in
   | .ok admitted => admittedLine admitted
   | .error _ => ("not admitted" : String)
 
+/-! The Switch's exact-action Query admitted against its Model authored at other source positions,
+as the migration compatibility tests admit it: a compiler-only move changes no checked semantics,
+so each admission searches the same way. -/
+open Umpire.Examples.Switch in
+private def relocatedLine (line column : Nat) : String :=
+  let occurrence : SourceRef := {
+    id := {
+      sourcePath := "Umpire/Tests/MigrationCompatibility.lean"
+      line
+      column
+      endLine := line
+      endColumn := column + 8
+      localOrdinal := 0 }
+    definitionId := Examples.Switch.targetId
+    path := { role := .modelSpec, owner := Examples.Switch.targetId } }
+  let shape : Query.Shape := {
+    id := exactActionQueryId
+    source := Examples.Switch.source
+    target := Examples.Switch.targetId
+    form := .find
+    limits := Examples.Switch.limits
+    policy := shortestPolicy }
+  match checkModel (Examples.Switch.targetAuthoring.withOccurrences [occurrence]) with
+  | .error _ => "not checked"
+  | .ok relocated =>
+      match Search.admit relocated authoredProperty (some exactActionBehaviorDeclaration) shape with
+      | .ok admitted => admittedLine admitted
+      | .error _ => "not admitted"
+
+/-- info: ["veil default, found 2 paths, found 2 states", "veil default, found 2 paths, found 2 states"] -/
+#guard_msgs in
+#eval [relocatedLine 12 3, relocatedLine 420 19]
+
 /-! A Replay re-admits its subject with a restricted Scenario: every restriction its sweep can
 reach, which always keeps the last step. -/
 /-- info: ["veil default, found 2 paths, found 2 states"] -/
@@ -635,7 +710,8 @@ in exactly the fields a changed backend writes. -/
 #guard ((SearchView.ofCheckedQuery Examples.Switch.exactActionQuery.target.id
     Examples.Switch.exactActionQuery).toOption.bind fun view =>
   Examples.Switch.exactActionRunResult.toOption.map fun run =>
-    difference Examples.Switch.exactActionQuery view (.ok run) (.ok { run with
+    difference Examples.Switch.exactActionQuery (fun _ => examinedEndpoints
+      Examples.Switch.exactActionQuery view) (.ok run) (.ok { run with
       instrumentation := { run.instrumentation with
         searchBackend := .veil "commit", backendReason := .unsupportedStrategy .seeded
         searchUnit := .states, enumeratorPulls := 99 } })) == some none
@@ -648,8 +724,8 @@ in exactly the fields a changed backend writes. -/
 #guard (do
     let found ← Examples.Switch.exactActionRunResult.toOption
     let other ← (run 0 (.find property) .exhaustive).toOption
-    difference (fixtureQuery 0 (.find property) .exhaustive) (incrementalKernel 0) (.ok found)
-      (.ok other)).isSome
+    difference (fixtureQuery 0 (.find property) .exhaustive)
+      (examinedOn (fixtureQuery 0 (.find property) .exhaustive)) (.ok found) (.ok other)).isSome
 
 /-! Where the reference reaches its limit, `veil`'s complete answer is checked against every
 endpoint the reference examined. A bounded response that fires and is never answered is unresolved
@@ -710,7 +786,8 @@ private def sameDepthWitnesses (form : Query.Form) (strategy : SearchStrategy) :
   let reference ← (Search.Selection.searchWith .reference query view).toOption
   let veil ← (Search.Selection.searchWith .veil query view).toOption
   guard (veil.instrumentation.searchBackend != .reference)
-  guard (difference query view (.ok reference) (.ok veil)).isNone
+  guard (difference query (fun _ => examinedEndpoints query view) (.ok reference)
+    (.ok veil)).isNone
   let witness := fun (run : PlanResult) => match run.result.outcome with
     | .found trace _ => trace.trace.steps.map (·.selectedAction.definitionId.value)
     | _ => []
@@ -739,7 +816,8 @@ private def threeInstances : Option ((query : CheckedQuery (fun _ => True)) ×
 /-- Each backend on the three-instance fixture. -/
 private def threeInstanceRuns : Option (String × Nat × String × Nat × Option String) := do
   let ⟨query, view⟩ ← threeInstances
-  compared query view (Search.Selection.searchWith .reference query view)
+  compared query (fun _ => examinedEndpoints query view)
+    (Search.Selection.searchWith .reference query view)
     (Search.Selection.searchWith .veil query view)
 
 /-- info: some ("limit-reached", 32768, "verified-within-limits", 8, none) -/
