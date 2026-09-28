@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047-linux-amd64
 
-Review SHA-256: `sha256:81f19cd41f5aeb27b07435def9cf2322315b05f89fd76faeafe4f71def782181`
+Review SHA-256: `sha256:265b6e094634e89c19471b0e8d1bcbbf4ac9f9e3fad912111bff953912d4703a`
 
 Owner: `temporal-server`
 
@@ -28,7 +28,7 @@ Workload: `sqlite-transaction`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
   - profile `gomad3-deterministic/v1` / `sha256:fb9e07ea6a2d35e9b1283d02428e35a20bf0120b72e8b7e04178c9718ece4834`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
-  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:325d1051e2fb18b4acc64a646144a2a2051d31e155e89328b6b618824652fe48`
+  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681`
   - prepared source set `sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
   - profile `gomad3-deterministic/v1` / `sha256:fb9e07ea6a2d35e9b1283d02428e35a20bf0120b72e8b7e04178c9718ece4834`

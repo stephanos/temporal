@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047-isatty-v021
 
-Review SHA-256: `sha256:d7b1b708650bb6688bf322b70cefb647e1c95b700512735b9fc929096ba72319`
+Review SHA-256: `sha256:ce74c60bcb15b371b28535a0868be26cc263e38d3d58c424c17c10cfc2c171c4`
 
 Owner: `temporal-server`
 
@@ -26,8 +26,8 @@ Workload: `temporal-representative`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
   - profile `gomad3-deterministic/v1` / `sha256:1bf2383d85b1f23bf05f40b99cabf5fa3658ceccd2f376cdbcc10aa515bcdbcd`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
-  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:325d1051e2fb18b4acc64a646144a2a2051d31e155e89328b6b618824652fe48`
-  - prepared source set `sha256:c093614d1c66f6545ca658c6353d0c3d0d18161ab1aa22fcb0e54f00cfec907c`
+  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681`
+  - prepared source set `sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935`
 
 ## Reviewed packages
 
