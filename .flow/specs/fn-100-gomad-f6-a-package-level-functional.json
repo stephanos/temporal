@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-28T16:48:16.869768Z",
   "created_at": "2026-09-27T15:27:43.545553Z",
   "default_impl": null,
   "default_review": null,
@@ -142,20 +142,52 @@
       "task": "fn-100-gomad-f6-a-package-level-functional.4",
       "timestamp": "2026-09-28T16:42:11.212393Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "af8b2d0a6d818aa3ea97a3f9420b59f4a63f77170d596b5c91da84c45c47097d",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "37bfb0a852691fb2c34d336225205d6c324c15e1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 455833,
+      "output_sha256": "811a151da3559475cd399ad421c43ee328dd68c1494d2aad5909c1555414e864",
+      "reservation_id": "58621c0ab0a04892bc87f66336221d84",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-28T16:48:16.862000Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-100-gomad-f6-a-package-level-functional.3": 1,
-    "impl:fn-100-gomad-f6-a-package-level-functional.4": 1
+    "impl:fn-100-gomad-f6-a-package-level-functional.4": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-100-gomad-f6-a-package-level-functional.3": 0,
     "impl:fn-100-gomad-f6-a-package-level-functional.4": 0
   },
   "spec_path": ".flow/specs/fn-100-gomad-f6-a-package-level-functional.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F6: a package-level functional slice",
   "tracker": {
     "baseHashFlow": null,
@@ -168,5 +200,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-28T16:42:11.214459Z"
+  "updated_at": "2026-09-28T16:48:21.755560Z"
 }
