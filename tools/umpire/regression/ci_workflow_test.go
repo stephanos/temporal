@@ -183,6 +183,9 @@ func setup() []ciWorkflowStep {
 				"cache":             false,
 			},
 		},
+		// A fresh checkout lacks the git-ignored descriptor set the model's Lean build reads as an
+		// input file, so both jobs generate it before any Lean step.
+		{Name: "Generate the API descriptor set the model build reads", Run: "make proto/api.binpb"},
 	}
 }
 
