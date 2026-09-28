@@ -1,0 +1,12 @@
+input 05 line 000 575671dc5db4dfa97dcab0ae
+input 05 line 001 b8db3faf75728b2b9ec1e1dc
+input 05 line 002 06a89c05b4eae0f2acac4407
+input 05 line 003 fdfc31f701148d549f3f9896
+input 05 line 004 ff060f43ada244fcedb70735
+input 05 line 005 73eb9911bdc699e1fc157f05
+input 05 line 006 6527243b137e313aee168954
+input 05 line 007 a524479da1a7b96f24eecaa8
+input 05 line 008 723eb67036c816923ec8d1b7
+input 05 line 009 6523f09afbc5ba27530a3abe
+input 05 line 010 b8f2c6f5430ece0e2c2e5541
+input 05 line 011 916639634200482d3a407557

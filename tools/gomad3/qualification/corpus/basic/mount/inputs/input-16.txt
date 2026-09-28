@@ -1,0 +1,12 @@
+input 16 line 000 2ac7a0b8f7dbb803fec9c1aa
+input 16 line 001 aa02a54d34887d0cbf45005a
+input 16 line 002 14123a075eb276b63d03aee8
+input 16 line 003 c649758701cca231a1b9a804
+input 16 line 004 26ad3df94160c8cdb995c96e
+input 16 line 005 56a7807f638a5cca9d9112a1
+input 16 line 006 10f0e751379eba9aa254b8e1
+input 16 line 007 42f02b050bef23804eaf197e
+input 16 line 008 4c6fe04685541b64ac9551f3
+input 16 line 009 3076d9cd0f3fdf6edb079625
+input 16 line 010 d35011ecaff1eca4974647c5
+input 16 line 011 6bbf485ea790f30bd2d7c206

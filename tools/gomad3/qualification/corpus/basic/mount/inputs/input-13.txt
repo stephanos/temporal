@@ -1,0 +1,12 @@
+input 13 line 000 c2765dca9e9c243c46d882f3
+input 13 line 001 f0d9a6798b3c7fd08be38d14
+input 13 line 002 30182b97b6f6a92441bfc0af
+input 13 line 003 b19c4029b08816cd98bddf3f
+input 13 line 004 3fda0a5e1d6dde8c93ea6113
+input 13 line 005 2b593dd179568b67d91cace3
+input 13 line 006 3adbce1133800ed487c7a5ae
+input 13 line 007 9bd71153d63632c630f382f3
+input 13 line 008 aa6d390feb1b70a40b904e34
+input 13 line 009 bfe348545647ca66590fe95f
+input 13 line 010 c4ca105d9cd73fb5aa16421a
+input 13 line 011 54fbd4d930528e8c4f4587ed

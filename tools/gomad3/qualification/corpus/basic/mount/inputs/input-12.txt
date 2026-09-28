@@ -1,0 +1,12 @@
+input 12 line 000 b7c030a4c31e3b15bf6c39f6
+input 12 line 001 b7871fccde16128bf0147480
+input 12 line 002 8bb918ba80792640437c149e
+input 12 line 003 a87aa3a2887305876a7dec0a
+input 12 line 004 cb7f23428c49df369af5ad0a
+input 12 line 005 ec7aeb85af88a4eb0bcb0ea2
+input 12 line 006 d2f6298c62fa23181fa9a8a9
+input 12 line 007 c5bc660c9be52785de41cb5f
+input 12 line 008 2b4a091ea522a2b3fe05d8f8
+input 12 line 009 15ec9e9b46450618320b4b03
+input 12 line 010 606dd5821ad00a82af682c49
+input 12 line 011 b0c7935490dc49fa99a6d63f
