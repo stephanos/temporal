@@ -283,4 +283,41 @@ private def supersededClass? := do
   let candidate ← hardCandidate?
   pure (campaign.observe candidate .inconclusive).ledger.classes.isEmpty).getD false
 
+/-! ### A Query whose backends explore differently
+
+Every checked-in exploration and replay Query fixes its schedule, and over a fixed schedule `veil`
+visits exactly as many product states as `reference` enumerates paths, so their Plans agree even in
+`explored`. This Query leaves the schedule free: one hard toggle, anything around it, and a hard
+toggle must change the lamp, so the witness is a soft toggle and then a hard one. Paths of the free
+schedule revisit product states on the way, which `veil` visits once and `reference` enumerates per
+path, so the two report the same witness with different `explored` counts. The bridge tests search
+it on both backends to show a fallback to `reference` keeps the ledger and the Replay digest. -/
+
+property hardChanges
+  machine: lampMachine
+  when: toggle (hard)
+  holds: fun step => step.outcome == .changed
+
+scenario oneHardToggle
+  model: lampMachine
+  starts: dim
+  actions: [toggle (hard)]
+
+/-- `oneHardToggle` with its schedule freed: the hard toggle is still required, and anything may
+come before or after it. -/
+def anyScheduleHardToggle (values : ModelVocabulary) : Scenario :=
+  let exact := oneHardToggle values
+  { exact with
+    allowedActions := []
+    occurrenceBounds := []
+    ordering := []
+    sequences := []
+    adjacencies := []
+    actionsExactly := none
+    traceExactly := none }
+
+/-- The free-schedule Query as a source the bridge tests admit. -/
+def freeScheduleSource : QuerySource lampMachine :=
+  { key := "freeSchedule", limits := two, property := hardChanges, behavior := anyScheduleHardToggle }
+
 end Umpire.ExplorationTests.Classed

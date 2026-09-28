@@ -1,5 +1,6 @@
 import Umpire.Exploration.Ledger
 import Umpire.Artifact
+import Umpire.Command.Promotion
 
 /-!
 # One campaign over one exploratory set
@@ -45,7 +46,7 @@ structure ToolingFailure where
   deriving BEq, Repr
 
 /-- One candidate: the target it was planned for, its checked Model and admission, its Plan (whose
-checksum is its identity) and every target on its planned witness path. -/
+`witnessKey` is its identity) and every target on its planned witness path. -/
 structure Candidate (model : DeclaredModel Setup State Action Outcome Fact) where
   selected : CoverageTarget
   queryKey : String
@@ -57,7 +58,8 @@ namespace Candidate
 
 variable {model : DeclaredModel Setup State Action Outcome Fact}
 
-def identity (candidate : Candidate model) : ArtifactChecksum := candidate.plan.artifactChecksum
+def identity (candidate : Candidate model) : ArtifactChecksum :=
+  Umpire.Command.Promotion.witnessKey candidate.plan
 
 def binding (candidate : Candidate model) : ArtifactBinding := candidate.plan.artifactBinding
 
@@ -166,7 +168,8 @@ def nextWith : Nat → Campaign model → Next model
                       { selected := target, queryKey, admitted, plan, covers }
                     .candidate candidate { campaign with
                       ledger := campaign.ledger.markPlanned target
-                      history := campaign.history ++ [(plan.artifactChecksum, targetKey target, none)] }
+                      history := campaign.history ++
+                        [(Umpire.Command.Promotion.witnessKey plan, targetKey target, none)] }
                   else
                     .toolingFailure {
                       target := targetKey target

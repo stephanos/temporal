@@ -25,8 +25,8 @@ The Case each candidate carries is produced the way a `case` block's Cases are, 
 candidate's checked Model under the realization the block over the exploratory set names, with the
 machine's claims, evidence catalog and field relations the same block emits. Its identity is the
 candidate's: the Case ID `temporal.case.<set>.<digest>` and the fixture `<set>-<digest>`, where the
-digest is the candidate's Plan checksum, so every candidate's run scope and workflow type are its
-own and nothing is registered in the Temporal Case Registry.
+digest is the candidate's Plan `witnessKey`, so every candidate's run scope and workflow type are
+its own and nothing is registered in the Temporal Case Registry.
 
 A realization binds the class members it can perform, and a machine's table enumerates every
 member: a planned path that performs a member with no binding and no timer behind it is one the

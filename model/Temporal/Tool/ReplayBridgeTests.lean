@@ -1,4 +1,5 @@
 import Temporal.Tool.ReplayBridge
+import Umpire.Exploration.Tests.Classed
 
 /-!
 # What the replay bridge does at its frame boundary
@@ -315,6 +316,26 @@ private def checkExploration : IO Unit := do
   let wrongKind ← runScript [admitQuery 1 explorationSet "retry" (caseIdentity encoded)]
   requireRejected wrongKind 0 1 "is exploratory"
 
+/-! ### A candidate that falls back to `reference` keeps its digest
+
+The lamp's free-schedule Query is admitted on `veil`; searched again on `reference`, its Plan
+differs in `explored` alone, so the digest that names its Case and its proposal is the same. -/
+
+private def checkFallback : IO Unit := do
+  let .ok admitted := Umpire.ExplorationTests.Classed.freeScheduleSource.admit
+    | fail "the free-schedule Query is not admitted"
+  let some plan := admitted.checked.run.artifact | fail "the free-schedule Query has no Plan"
+  let some fallbackPlan := (admitted.admitted.searchWith .reference).toOption.bind (·.artifact)
+    | fail "the free-schedule Query has no Plan on reference"
+  require (admitted.checked.run.instrumentation.searchBackend.name == "veil")
+    "the free-schedule Query was not planned on veil"
+  require (fallbackPlan.plan.explored != plan.plan.explored)
+    "both backends explored alike, so the fallback changes nothing to key on"
+  let subject := Umpire.Replay.Admitted.of admitted plan
+  let fallback := Umpire.Replay.Admitted.of admitted fallbackPlan
+  require (fallback.digest == subject.digest)
+    s!"the fallback's digest {fallback.digest} is not {subject.digest}"
+
 /-! ### Rejections before any Query is admitted -/
 
 private def checkRejections : IO Unit := do
@@ -411,6 +432,7 @@ def main : IO UInt32 := do
     ("crossed", checkCrossed),
     ("caller", checkCaller),
     ("exploration", checkExploration),
+    ("fallback", checkFallback),
     ("rejections", checkRejections),
     ("determinism", checkDeterminism),
     ("executable", checkExecutable)]

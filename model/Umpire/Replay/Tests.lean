@@ -55,7 +55,7 @@ private def actions? : Option (List DefinitionId) :=
 private def whole? := (admitKept softAfterHard.source [0, 1]).toOption
 private def subjectDigest? : Option String :=
   subject?.bind fun admitted => admitted.checked.run.artifact.map fun plan =>
-    Umpire.Exploration.candidateDigest plan.artifactChecksum
+    Umpire.Exploration.candidateDigest (Umpire.Command.Promotion.witnessKey plan)
 #guard whole?.map (·.digest) == subjectDigest?
 
 /-! Dropping the held hard toggle is admitted: one step, a Plan of its own. -/
