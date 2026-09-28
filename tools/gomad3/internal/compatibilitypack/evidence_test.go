@@ -34,7 +34,7 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
 	}
 	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath})
-	if len(evidence[0].Rules[2].GoSources) == 0 || len(evidence[0].Rules[2].ForeignSources) == 0 || !contains(evidence[0].Rules[2].Capabilities, "import:syscall") || !contains(evidence[0].Rules[3].Capabilities, "import:os/exec") {
+	if len(evidence[0].Rules[2].GoSources) == 0 || len(evidence[0].Rules[2].ForeignSources) == 0 || !contains(evidence[0].Rules[2].Capabilities, "import:syscall") || contains(evidence[0].Rules[3].Capabilities, "import:os/exec") {
 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
 	}
 

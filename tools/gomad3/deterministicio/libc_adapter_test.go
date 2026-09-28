@@ -65,7 +65,7 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, text := range []string{"gomadOpen", "gomadRead", "gomadWrite", "gomad: unsupported modernc libc host capability: Xsocket"} {
+	for _, text := range []string{"gomadOpen", "gomadRead", "gomadWrite", "gomad: unsupported modernc libc host capability: Xsocket", "gomad: unsupported modernc libc host capability: Xsystem", "gomad: unsupported modernc libc host capability: Xpause"} {
 		if !strings.Contains(string(replacement), text) {
 			t.Errorf("replacement omitted %q", text)
 		}
@@ -97,6 +97,15 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	for _, name := range []string{"Xsystem", "Xabort", "Xsignal"} {
 		if !strings.Contains(string(guarded), "gomad: unsupported modernc libc host capability: "+name) {
 			t.Errorf("musl host capability %s is not guarded", name)
+		}
+	}
+}
+
+func TestRejectLibcHostImportsRejectsForbiddenImports(t *testing.T) {
+	for _, path := range libcForbiddenHostImports {
+		rewrites := map[string][]byte{"libc_darwin.go": []byte("package libc\n\nimport _ \"" + path + "\"\n")}
+		if err := rejectLibcHostImports(rewrites); err == nil || !strings.Contains(err.Error(), "still imports "+path) {
+			t.Fatalf("rejectLibcHostImports(%s) = %v", path, err)
 		}
 	}
 }

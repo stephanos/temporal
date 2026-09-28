@@ -33,6 +33,12 @@ var (
 	workloadPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,255}$`)
 )
 
+// unadmittableCapabilities reach subprocesses, signal delivery, or the host
+// account database, none of which a deterministic target can model; the code
+// that needs them is removed from the build or rewritten by an adapter, so no
+// pack may allow them. A request may still record one as denied.
+var unadmittableCapabilities = []string{"import:os/exec", "import:os/signal", "import:os/user"}
+
 type Pack struct {
 	Schema        string         `json:"schema"`
 	ID            string         `json:"id"`
@@ -277,6 +283,11 @@ func validatePackRule(rule PackRule) error {
 	if len(rule.Capabilities)+len(rule.Linknames) == 0 || len(rule.Capabilities)+len(rule.Linknames) > maximumPackFacts || !sortedUniqueBy(rule.Capabilities, validCapability) {
 		return errors.New("capability inventory is not canonical")
 	}
+	for _, capability := range rule.Capabilities {
+		if Unadmittable(capability) {
+			return fmt.Errorf("capability %s is never admitted", capability)
+		}
+	}
 	if !slices.IsSortedFunc(rule.Linknames, comparePackLinkname) || hasDuplicatePackLinknames(rule.Linknames) {
 		return errors.New("linkname inventory is not sorted and unique")
 	}
@@ -357,6 +368,11 @@ func validModuleSum(sum string) bool {
 	}
 	decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(sum, "h1:"))
 	return err == nil && len(decoded) == 32
+}
+
+// Unadmittable reports whether no pack may allow capability.
+func Unadmittable(capability string) bool {
+	return slices.Contains(unadmittableCapabilities, capability)
 }
 
 func validSourceName(name string) bool {

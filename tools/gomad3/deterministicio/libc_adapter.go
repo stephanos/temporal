@@ -10,6 +10,8 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
@@ -33,8 +35,8 @@ const (
 // Both platforms' sources are rewritten in every copy; the prepared source set
 // differs because each platform compiles its own file set.
 var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
-	"darwin/arm64": "sha256:4918a258f4b2ccacfb9b3eaafed76d705beede5fe6b3fc006da2d88884813628",
-	"linux/amd64":  "sha256:3575840edd9cd3e3d8cfbcb98dc4316ebb4b2a359ab25b0880d65c4a3dcf3771",
+	"darwin/arm64": "sha256:c093614d1c66f6545ca658c6353d0c3d0d18161ab1aa22fcb0e54f00cfec907c",
+	"linux/amd64":  "sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b",
 })
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
@@ -85,7 +87,7 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 		"libc_musl.go":             libcMuslSHA256,
 		"libc_musl_linux_amd64.go": libcMuslLinuxAmd64SHA256,
 	}
-	rewrites := make(map[string][]byte, len(identities)+1)
+	rewrites := make(map[string][]byte, len(identities)+2)
 	for relative, identity := range identities {
 		path := filepath.Join(moduleSource, relative)
 		info, err := os.Lstat(path)
@@ -100,6 +102,13 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 			return nil, "", fmt.Errorf("pinned modernc libc source %q identity mismatch", relative)
 		}
 		rewrites[relative] = contents
+	}
+	for relative, refusal := range libcHostRefusals {
+		refused, err := refuseLibcHostFunctions(rewrites[relative], refusal)
+		if err != nil {
+			return nil, "", fmt.Errorf("rewrite pinned modernc libc source %q: %w", relative, err)
+		}
+		rewrites[relative] = refused
 	}
 	var err error
 	rewrites["libc_darwin.go"], err = rewriteLibcDarwin(rewrites["libc_darwin.go"])
@@ -126,7 +135,114 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 	}
 	rewrites["gomad_darwin.go"] = []byte(gomadLibcAdapterSource)
 	rewrites["gomad_linux.go"] = []byte(gomadLibcLinuxAdapterSource)
+	if err := rejectLibcHostImports(rewrites); err != nil {
+		return nil, "", err
+	}
 	return rewrites, filepath.Join(moduleSource, "libc_darwin.go"), nil
+}
+
+// libcHostRefusal names the functions of one pinned source whose whole body is
+// replaced by an unconditional refusal, and the imports only those bodies used.
+type libcHostRefusal struct {
+	functions []string
+	imports   []string
+}
+
+// libcHostRefusals detach the prepared module from subprocesses and signal
+// delivery: a deterministic target has no host command to run and no signal
+// to receive, so system, pause, and signal refuse instead of importing
+// os/exec or os/signal.
+var libcHostRefusals = map[string]libcHostRefusal{
+	"libc_darwin.go": {functions: []string{"Xpause", "Xsystem"}, imports: []string{"os/exec", "os/signal"}},
+	"libc_unix.go":   {functions: []string{"Xsignal"}, imports: []string{"modernc.org/libc/signal", "os/signal"}},
+	"libc_musl.go":   {functions: []string{"Xsignal", "Xsystem"}, imports: []string{"os/exec", "os/signal"}},
+}
+
+// libcForbiddenHostImports are never admitted by a compatibility pack, so no
+// rewritten libc source may keep them.
+var libcForbiddenHostImports = []string{"os/exec", "os/signal", "os/user"}
+
+func refuseLibcHostFunctions(contents []byte, refusal libcHostRefusal) ([]byte, error) {
+	files := token.NewFileSet()
+	parsed, err := parser.ParseFile(files, "libc.go", contents, parser.ImportsOnly|parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("parse imports: %w", err)
+	}
+	type edit struct {
+		start, end int
+		text       string
+	}
+	var edits []edit
+	for _, path := range refusal.imports {
+		matches := 0
+		for _, spec := range parsed.Imports {
+			if strings.Trim(spec.Path.Value, "\"") != path {
+				continue
+			}
+			matches++
+			start := files.Position(spec.Pos()).Offset
+			start = bytes.LastIndexByte(contents[:start], '\n') + 1
+			end := files.Position(spec.End()).Offset
+			newline := bytes.IndexByte(contents[end:], '\n')
+			if newline < 0 {
+				return nil, fmt.Errorf("import %q is not on its own line", path)
+			}
+			edits = append(edits, edit{start: start, end: end + newline + 1})
+		}
+		if matches != 1 {
+			return nil, fmt.Errorf("import %q occurs %d times, want 1", path, matches)
+		}
+	}
+	parsed, err = parser.ParseFile(files, "libc.go", contents, 0)
+	if err != nil {
+		return nil, fmt.Errorf("parse source: %w", err)
+	}
+	for _, name := range refusal.functions {
+		matches := 0
+		for _, declaration := range parsed.Decls {
+			function, ok := declaration.(*ast.FuncDecl)
+			if !ok || function.Recv != nil || function.Name.Name != name || function.Body == nil {
+				continue
+			}
+			matches++
+			edits = append(edits, edit{
+				start: files.Position(function.Body.Lbrace).Offset + 1,
+				end:   files.Position(function.Body.Rbrace).Offset,
+				text:  "\n\tpanic(\"gomad: unsupported modernc libc host capability: " + name + "\")\n",
+			})
+		}
+		if matches != 1 {
+			return nil, fmt.Errorf("function %s occurs %d times, want 1", name, matches)
+		}
+	}
+	sort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })
+	var result bytes.Buffer
+	previous := 0
+	for _, edit := range edits {
+		if edit.start < previous {
+			return nil, errors.New("host refusal edits overlap")
+		}
+		result.Write(contents[previous:edit.start])
+		result.WriteString(edit.text)
+		previous = edit.end
+	}
+	result.Write(contents[previous:])
+	return result.Bytes(), nil
+}
+
+func rejectLibcHostImports(rewrites map[string][]byte) error {
+	for relative, contents := range rewrites {
+		parsed, err := parser.ParseFile(token.NewFileSet(), relative, contents, parser.ImportsOnly)
+		if err != nil {
+			return fmt.Errorf("parse rewritten modernc libc source %q: %w", relative, err)
+		}
+		for _, spec := range parsed.Imports {
+			if path := strings.Trim(spec.Path.Value, "\""); slices.Contains(libcForbiddenHostImports, path) {
+				return fmt.Errorf("rewritten modernc libc source %q still imports %s", relative, path)
+			}
+		}
+	}
+	return nil
 }
 
 func rewriteLibcDarwin(contents []byte) ([]byte, error) {

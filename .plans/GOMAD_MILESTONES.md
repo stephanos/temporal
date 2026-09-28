@@ -750,6 +750,24 @@ F4 was applied on darwin/arm64 on 2026-09-27. Every acceptance item was measured
 
 - **Packs and pins.** Every pack is current against the profile digest. The fx, SDK, and otel
   darwin prepared source-set pins were observed and are unchanged (see above).
+- **No `os/exec` or `os/signal` admission.** The spec completion review found that the
+  `modernc-libc-xsys-v041`, `-v047`, and `-v047-linux-amd64` packs admitted `import:os/exec`
+  and `import:os/signal` for `modernc.org/libc`. The libc adapter now replaces the bodies of
+  `system` and `pause` (darwin), `signal` (darwin `libc_unix.go`), and `signal` and `system`
+  (musl) with an unconditional refusal and drops those imports, so the prepared module no
+  longer carries either fact on either platform. Pack and request validation now reject any
+  pack or request that admits `os/exec`, `os/signal`, or `os/user`. The three darwin libc
+  packs (`v041`, `v047`, and `v047-isatty-v021`) were rediscovered, reviewed, and regenerated
+  on darwin/arm64, and the new darwin prepared source-set pin was observed there. Discovery
+  reviews only the host platform, so the linux pin and the `-v047-linux-amd64` request were
+  derived, not observed. The pin is the source-set digest of the linux/amd64 `go list` file
+  set of the rewritten module; the same derivation reproduces the observed darwin pin exactly.
+  The request evidence carries that pin, the new `libc_musl.go` digest, and the
+  host-independent replacement inventory, without the two facts. A linux/amd64
+  `compatibility-pack-qualification` must still confirm them, and a wrong value fails closed
+  as a source-set mismatch. After the change, the `./tests` closure still reports
+  `supported` with zero blockers, the core set qualifies 5/5, and `make gomad3-qualification`
+  meets its expectations as recorded below.
 - **The `./tests` closure.** It reports `supported` with zero blockers over 1043 packages,
   selecting the five packs listed above.
 - **The eleven leaf cases.** None of them carries a forbidden import on darwin. Ten are

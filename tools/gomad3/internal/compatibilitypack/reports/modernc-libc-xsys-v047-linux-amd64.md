@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047-linux-amd64
 
-Review SHA-256: `sha256:da72d8282b4a6017c827a4941e2b49a2c80c50a155073b9cf6cf36c35d279c7d`
+Review SHA-256: `sha256:81f19cd41f5aeb27b07435def9cf2322315b05f89fd76faeafe4f71def782181`
 
 Owner: `temporal-server`
 
@@ -28,8 +28,8 @@ Workload: `sqlite-transaction`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
   - profile `gomad3-deterministic/v1` / `sha256:fb9e07ea6a2d35e9b1283d02428e35a20bf0120b72e8b7e04178c9718ece4834`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
-  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:209b99aafaf00d6563a0f2b1d405fdfa535084c2d66e41a6a04072ce06a8ab3c`
-  - prepared source set `sha256:3575840edd9cd3e3d8cfbcb98dc4316ebb4b2a359ab25b0880d65c4a3dcf3771`
+  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:325d1051e2fb18b4acc64a646144a2a2051d31e155e89328b6b618824652fe48`
+  - prepared source set `sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
   - profile `gomad3-deterministic/v1` / `sha256:fb9e07ea6a2d35e9b1283d02428e35a20bf0120b72e8b7e04178c9718ece4834`
   - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
@@ -136,7 +136,7 @@ Requested facts:
 
 Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
 
-Source set: `sha256:3575840edd9cd3e3d8cfbcb98dc4316ebb4b2a359ab25b0880d65c4a3dcf3771`
+Source set: `sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b`
 
 Go sources:
 
@@ -156,7 +156,7 @@ Go sources:
 - `libc_all.go`: `sha256:dcd4d1f818059ab5a5f9b430b3cacde4290a15907467ed4e396169d64b778c6c`
 - `libc_linux.go`: `sha256:9d7a8c74e114d8399810961efb4b136b4c5d7071ea7cd032db66cc6d7b197c47`
 - `libc_linux_statfs.go`: `sha256:776dc1ba81b32f3add9e03dc39992b0d4e432d9db5891a4b8d417c548d4bfcab`
-- `libc_musl.go`: `sha256:90f61c8e0f0472673cb467bcbfe5c8db745fcd5b7cef3ae2252cadbd40b8570a`
+- `libc_musl.go`: `sha256:ce9c26d451a4fb67a4cb3ec31d9b47f14e6731a6e38c89bab517f203b19f9ea8`
 - `libc_musl_linux_amd64.go`: `sha256:f18c175291702686c3780ea5caf8d098d145f2ec958ba1179e0ced565f94b89a`
 - `mem_musl.go`: `sha256:80f545e7bd8a4a232cadc372a43aabd63b653163d133efc1e1e62e6c5afe72c2`
 - `nodmesg.go`: `sha256:18232e1a56ef0cc8f9d588d7392b3890e37820047f352e8f24889ebd78a16bde`
@@ -179,8 +179,6 @@ Requested facts:
 - `foreign:assembly:abi0_linux_amd64.s`: **allow** — **security-sensitive**
 - `foreign:assembly:tls_linux_amd64.s`: **allow** — **security-sensitive**
 - `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
-- `import:os/exec`: **allow** — **security-sensitive**
-- `import:os/signal`: **allow**
 - `import:syscall`: **allow** — **security-sensitive**
 - `linkname:gomad_linux.go`: **allow** — **security-sensitive**
   - source `sha256:0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0`
