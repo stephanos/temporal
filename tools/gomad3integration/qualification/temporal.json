@@ -30,7 +30,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -86,7 +86,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -108,7 +108,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -130,7 +130,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -152,7 +152,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -174,7 +174,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -196,7 +196,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -218,7 +218,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -240,7 +240,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -262,7 +262,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -284,7 +284,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}
+        "linux/amd64": {"classification": "qualified"}
       }
     },
     {
@@ -586,7 +586,7 @@
       "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"}
+        "linux/amd64": {"classification": "qualified"}
       }
     }
   ]
