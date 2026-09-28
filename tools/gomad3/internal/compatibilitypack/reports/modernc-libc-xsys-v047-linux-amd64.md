@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047-linux-amd64
 
-Review SHA-256: `sha256:265b6e094634e89c19471b0e8d1bcbbf4ac9f9e3fad912111bff953912d4703a`
+Review SHA-256: `sha256:38596e0c3ef094c999f2dabb1179443db85be67661ebafd1cf2947c7236f7e19`
 
 Owner: `temporal-server`
 

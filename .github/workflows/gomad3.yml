@@ -82,27 +82,6 @@ jobs:
         continue-on-error: true
         run: make -C tools/gomad3 test-host
 
-      - name: DIAGNOSTIC discover the Linux compatibility-pack requests
-        continue-on-error: true
-        working-directory: tools/gomad3
-        run: |
-          mkdir -p .toolchain/discovered
-          for entry in modernc-libc-xsys-v047-linux-amd64:$PWD/qualification/corpus temporal-functional-compute-linux-amd64:$PWD/../.. temporal-functional-tests-linux-amd64:$PWD/../..; do
-            request=${entry%%:*}; working=${entry#*:}
-            cp internal/compatibilitypack/requests/$request.json internal/compatibilitypack/requests/discovered-$request.json
-            env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack discover --root=$PWD \
-              --request=internal/compatibilitypack/requests/discovered-$request.json --working-dir=$working || true
-            mv internal/compatibilitypack/requests/discovered-$request.json .toolchain/discovered/$request.json
-          done
-
-      - name: DIAGNOSTIC upload discovered requests
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad3-linux-discovered-${{ github.run_id }}
-          path: tools/gomad3/.toolchain/discovered
-          include-hidden-files: true
-          retention-days: 7
-
       - name: Qualify the Linux compatibility packs and the core corpus
         run: make -C tools/gomad3 compatibility-pack-qualification core-qualification-set
 
