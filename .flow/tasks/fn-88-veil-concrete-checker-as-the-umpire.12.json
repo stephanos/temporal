@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move the model to Veil's declared toolchain",
   "updated_at": "2026-09-27T02:47:34.408221Z"
 }

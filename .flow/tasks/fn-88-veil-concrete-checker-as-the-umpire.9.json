@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Differential test, witness order, and the Caller, Pair, and three-instance pins",
   "updated_at": "2026-09-27T01:08:50.512155Z"
 }

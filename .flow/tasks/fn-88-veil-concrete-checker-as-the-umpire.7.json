@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Model docs, rollback drill, and defer-branch closeout",
   "updated_at": "2026-09-27T01:08:54.945655Z"
 }

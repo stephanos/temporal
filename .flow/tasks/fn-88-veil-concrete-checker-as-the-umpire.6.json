@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Backend selection module and the kernel replay gate",
   "updated_at": "2026-09-27T01:11:28.618945Z"
 }

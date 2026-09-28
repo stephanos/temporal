@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Veil dependency, adapter with equivalence theorems, and the isolation lint rule",
   "updated_at": "2026-09-27T01:08:53.562656Z"
 }

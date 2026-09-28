@@ -7,44 +7,29 @@ this document records delivery order. Architecture and terminology live in the
 ## Current work
 
 Status as of 2026-09-28. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89 and fn-94. Their task receipts in `.flow/` and the git history carry
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89, fn-94 and fn-88. Their task receipts in `.flow/` and the git history carry
 the details.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
-leases, recovery, and publication stay outside Testpilot and Umpire. After a protocol change,
+leases, recovery, and publication stay outside Testpilot and Umpire. Since fn-88, `Umpire.Search`
+runs on Veil's concrete checker (a pure `bfsStep` loop with exact product-state deduplication and
+a kernel replay gate on every witness) on Lean 4.32.0, with the old traversal kept as the frozen
+`reference` backend and differential oracle; planning receipts record each monitored clause
+kind's trust basis. After a protocol change,
 `make umpire-rerecord-pinned-runs` refreshes every catalog-pinned recorded Run (fn-89.7).
 
 ### Delivery queue
 
-1. **fn-88 — Veil concrete checker as the Umpire search engine**
-   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)); all 12 tasks done,
-   awaiting its completion review. Veil's concrete checker is the default engine behind
-   `Umpire.Search`, over the `FiniteTable` the `machine` command enumerates, with Scenarios and
-   Properties lowered to a product of a progress automaton and bounded monitors; the old traversal
-   is the frozen `reference` backend and differential oracle. The R1 probe returned
-   `defer-incompatible` under Lean 4.33.1 (eefea06d19); the R22 probe under Veil's declared
-   toolchain returned `adopt` (4a33beb2e2, receipt in
-   [VEIL_RESULTS](../experiments/umpire-dsl/VEIL_RESULTS.md#fn-88-r22-probe-concrete-checker-under-veils-declared-toolchain)).
-   The model is on Lean 4.32.0 with Veil a required Lake dependency pinned to `517f2bad`. As built,
-   the `veil` backend is pure (it drives Veil's `bfsStep` within `Limits.search`), deduplicates by
-   exact product state, and every witness passes a kernel replay gate; `veil` has been the default
-   since the fn-88.10 cutover, which moved no golden. The GOV-02 drafts state that trust basis and
-   await approval. The R21 rollback drill (fn-88.7, on a
-   scratch clone, not merged) removed the `require`, the adapter, the lint rule and the veil pins,
-   reduced Selection to `reference`, and flipped the one veil receipt golden back: 23 files, all
-   inside the permitted set, with the build and `make umpire-check-regression` green. The
-   reasoning is sections 1 and 6 of
-   [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path.
-2. **fn-92 — Compose entity machines into one Model**
+1. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
-   after fn-88. A `compose` command builds one Model from entity machines with declared action
+   now that fn-88 is delivered. A `compose` command builds one Model from entity machines with declared action
    synchronization over a reachable-state enumeration; `restrict:` and `extend:` derive machines
    from a source table; `Workflow` and `Worker` entity modules are shared by the Start and Outage
    use cases; the first cross-entity claims are `verify` Queries. Version one realizes no Case over
    a composition and leaves the caller module, its fixtures and the canary's pinned Case identity
    untouched.
-3. **fn-93 — Simplify the Lean model**
+2. **fn-93 — Simplify the Lean model**
    ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks (Codex plan
    review SHIP), after fn-88 and fn-92. A simplification campaign over the handwritten Lean in
    `model/`: fix the defects the investigation found, derive what is written out by hand, delete

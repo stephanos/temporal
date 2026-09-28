@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-88-veil-concrete-checker-as-the-umpire",
   "spec_path": ".flow/tasks/fn-88-veil-concrete-checker-as-the-umpire.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Scenario progress automaton and the product state space",
   "updated_at": "2026-09-27T01:08:45.798346Z"
 }
