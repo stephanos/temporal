@@ -44,9 +44,30 @@ Add the differential test that runs every Query reachable through `AdmittedQuery
 - [ ] Defer mode: closed as not applicable citing the R1 receipt identity, nothing added
 
 ## Done summary
-TBD
+Added the fn-88 R8 differential: every Query reachable through `AdmittedQuery.search` and `searchWithIntent` now runs on both backends through `AdmittedQuery.searchWith`, compared with exactly the API Contract exemptions. Also added the R15 witness-order fixture, the R9 Caller, Pair and three-instance pins, and the carried items.
 
+- **Differential** (`model/Umpire/Search/Tests/Differential.lean`, registered in `Umpire/Search/Tests.lean`). Where the reference terminates, the outcome, witness, Plan bytes except `explored`, and receipt JSON except the exempt fields must all be equal. Where the reference reports `limit-reached`, `veil` must not be `invalid` and must not contradict an endpoint the reference examined. `examinedEndpoints` re-decides each such endpoint, and a negative control rejects a `verified` answer after an unresolved endpoint.
+- **Query corpus.** `sweep` covers every `query` declaration. Multi-instance Queries are re-admitted from the arguments their declaration passes to `checkInstances`, so a search that selected nothing is still compared. Also covered: the Switch's hand-admitted and Property-only Queries, every Variations point, the Promotion variant, a Replay re-admission, the migration tests' relocated admissions, and every campaign candidate of every exploratory set. The Caller's 889 targets are split over `TemporalModelTests/SearchDifferential/CallerCampaign1-4`. All 35 Temporal declarations and every candidate agree. Two Caller class-member candidates and two Success instance Queries are rejected before search, and the pins list them.
+- **Scenario and monitor checks** (R14, R6) on every swept Query. The Temporal Models are read to cost-bounded depths, which the pins print.
+- **R15.** Two paths reach one product state at depth one, and both backends report `a · c`: reference 4 paths, `veil` 3 states.
+- **R9.** Caller `terminalHolds`: 4 states. Caller whole protocol machine within `four`: `veil` 171 states against 3525 reference paths. Pair `twoAsync` verify: 7 states. Three-instance fixture: reference `limit-reached` at 32768, `veil` verified with 8 states.
+- **Carried items.**
+  - `Product.Product` is renamed `StateSpace`, and `linter.extra.dupNamespace` is re-enabled.
+  - The three Property orderings are now one helper, `CheckedProperty.sortedById`. The `Search.lean` line pin moved from 1428 to 1427.
+  - `Monitor.productAgrees` was generalized off the Switch `LawStatement`.
+
+Deviations and follow-ups:
+- **Spec amendments.** The API Contracts now name the receipt `explored` exemption, the same counts as the Plan's exempt `explored`; each run's Plan and receipt must still agree. R6 now records the cost-bounded depths on interleaved-instance Models.
+- **Files outside Touches:** `Umpire/Query.lean`, `Search.lean`, `Search/Product.lean`, `Product/Monitor.lean`, `Backend/Veil.lean`, `Tests/Product.lean`, `Tests/Monitor.lean`, `Tests/Replay.lean` (all carried items), and the new `TemporalModelTests/SearchDifferential*` modules. Umpire tests cannot import Temporal.
+- **Vocabulary rename after SHIP.** The regression gate caught retired vocabulary. Commit 11663988d6 renames the helpers only; regression is green after it.
+- **lint-model.** The whole-model builtin `lake lint` step was OOM-killed. The per-module builtin lint over every touched module is clean.
+
+Defer mode: not applicable (R22 adopt).
+
+stage: impl-review - ran [2026-09-27..2026-09-28] (codex fan-out NEEDS_WORK x3 draws; re-review NEEDS_WORK on caller corpus; SHIP at b0867578a2)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6df703a26bcf928f0750cb437494a662c43f1e6c, e37b7f9aba41cb8bf7e9d821f8fb72eba2ce5fb5, c8e7ae4e00317701a23d77cacec5b1f74905dec6, b0867578a2ebe4a51d9babe30a43bace83711323, 11663988d6c4a7d41f01b8b613e6360b7b1cf005
+- Tests: baseline: green (cd model && mise exec -- lake build Umpire.Search Umpire.Search.Product Umpire.Search.Selection Umpire.Search.Tests Umpire.Search.VisibilityTests, pre-edit), cd model && mise exec -- lake build Umpire.Search.Tests TemporalModelTests Temporal.Feature.Nexus.Pair.Tests Temporal.Feature.Nexus.Caller.Tests (green at b0867578a2 and 11663988d6), make umpire-check-goldens (green, byte-identical), make umpire-check-regression (green at 11663988d6, 1735s; the prior run caught retired vocabulary in Differential.lean, fixed in 11663988d6), LEAN_NUM_THREADS=1 make lint-model: import-graph, module-index, Batteries lint passed; the whole-model builtin lake lint step INCONCLUSIVE (OOM-killed, signal 9, peak footprint about 20 GB); lake --wfail lint --builtin-only run per module over every touched module (Umpire.Query, Umpire.Search, Search.Product, Product.Monitor, Backend.Veil, Search.Tests and its Differential/Fixtures/Monitor/Product/Replay, TemporalModelTests and SearchDifferential + CallerCampaign1-4, Caller.Tests, Pair.Tests): all clean, wall times (recorded, not asserted): Umpire.Search.Tests.Differential build 6-8s incl. the three-instance fixture (reference 32768 paths limit-reached, veil 8 states verified); TemporalModelTests.SearchDifferential 225-430s; CallerCampaign1-4 74-311s each in parallel; Caller.Tests 437-532s; Pair.Tests 54-79s, impl-review codex: fan-out NEEDS_WORK (3 findings) -> re-review NEEDS_WORK (1) -> SHIP at b0867578a2
 - PRs:
