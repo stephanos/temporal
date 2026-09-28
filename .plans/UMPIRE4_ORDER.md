@@ -18,18 +18,23 @@ leases, recovery, and publication stay outside Testpilot and Umpire. After a pro
 ### Delivery queue
 
 1. **fn-88 — Veil concrete checker as the Umpire search engine**
-   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)); 9 of 12 tasks done.
-   Veil's concrete checker becomes the engine behind `Umpire.Search`, over the `FiniteTable` the
-   `machine` command enumerates, with Scenarios and Properties lowered to a product of a progress
-   automaton and bounded monitors; today's traversal stays as the frozen `reference` backend and
-   differential oracle. The model is on Lean 4.32.0, Veil's declared toolchain, with Veil a
-   required Lake dependency. As built, the `veil` backend is pure (it drives Veil's `bfsStep`
-   within `Limits.search`) and deduplicates by exact product state, and every witness passes a
-   kernel replay gate. `Selection.cutover` is still `false`, so every Query searches on
-   `reference` until .10. In progress: .9, the differential test and the Caller, Pair and
-   three-instance pins. Remaining: .10, the cutover with the Exploration and Replay keys and the
-   one-commit golden re-pin; .7, docs, the rollback drill, the cold CI build measurement, and the
-   GOV-02 drafts corrected to the as-built trust basis. The reasoning is sections 1 and 6 of
+   ([spec](../.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md)); all 12 tasks done,
+   awaiting its completion review. Veil's concrete checker is the default engine behind
+   `Umpire.Search`, over the `FiniteTable` the `machine` command enumerates, with Scenarios and
+   Properties lowered to a product of a progress automaton and bounded monitors; the old traversal
+   is the frozen `reference` backend and differential oracle. The R1 probe returned
+   `defer-incompatible` under Lean 4.33.1 (eefea06d19); the R22 probe under Veil's declared
+   toolchain returned `adopt` (4a33beb2e2, receipt in
+   [VEIL_RESULTS](../experiments/umpire-dsl/VEIL_RESULTS.md#fn-88-r22-probe-concrete-checker-under-veils-declared-toolchain)).
+   The model is on Lean 4.32.0 with Veil a required Lake dependency pinned to `517f2bad`. As built,
+   the `veil` backend is pure (it drives Veil's `bfsStep` within `Limits.search`), deduplicates by
+   exact product state, and every witness passes a kernel replay gate; `veil` has been the default
+   since the fn-88.10 cutover, which moved no golden. The GOV-02 drafts state that trust basis and
+   await approval. The R21 rollback drill (fn-88.7, on a
+   scratch clone, not merged) removed the `require`, the adapter, the lint rule and the veil pins,
+   reduced Selection to `reference`, and flipped the one veil receipt golden back: 23 files, all
+   inside the permitted set, with the build and `make umpire-check-regression` green. The
+   reasoning is sections 1 and 6 of
    [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md). It adopts no Veil DSL and no SMT path.
 2. **fn-92 — Compose entity machines into one Model**
    ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
@@ -52,9 +57,14 @@ leases, recovery, and publication stay outside Testpilot and Umpire. After a pro
 - **A field path through a repeated field** (deferred from fn-86 R2): selecting the element the
   observation correlates to the row's entity instance. `Temporal.Case.FieldPath` rejects every
   repeated-field path today.
-- **The canary CI job's cold Lean build** (from fn-29): the `canary` job in
-  `.github/workflows/umpire.yml` builds Lean targets with `cache: false` inside a 30-minute
-  timeout; confirm the first CI run fits, and again once fn-88 adds Veil to the build.
+- **The Umpire workflow's cold Lean build** (from fn-29 and fn-88 R20): both jobs in
+  `.github/workflows/umpire.yml` build Lean targets from a cold `.lake` inside 30- and 40-minute
+  timeouts. The first run with Veil (36377425097, 2026-09-28) failed in both jobs because a fresh
+  checkout has no `proto/api.binpb`, the git-ignored descriptor set the model build reads; that
+  input dates from 2026-09-19, and the earlier 2026-09-23 runs failed on it too. Before it stopped,
+  the `portability` job built Veil's closure, the npm widget included, in 84 s with the runner's
+  default Node. fn-88.7 added a `make proto/api.binpb` step to both jobs. The next push measures
+  whether the whole cold build fits; if it does not, add a `.lake` cache step.
 - **The worker ignores the timeouts a Case declares on Finish and NexusHandlerReply** (fn-90.6):
   the 5000 ms bounds on `finish-workflow` and `respond-async` bind nothing. A Case-authority gap.
 - **Run capture records no workflow or handler instruction events** (fn-90.3, .6): a bounded
@@ -78,7 +88,7 @@ Measured 2026-09-27 and 2026-09-28 on a macOS host, Lean 4.32.0 (fn-88.12, fn-90
 | ---- | ------ |
 | `make umpire-check-regression` | exit 0, **45 passing live identities** (13 `TestTestpilotCanary*`), about 14 minutes |
 | `make umpire-check-live-tests` | five consecutive passes at the fn-90 closeout, 45 identities, no retry, about 6 minutes each |
-| `LEAN_NUM_THREADS=1 make lint-model` | exit 0: import graph with the authoring-path rule and both controlled violations, no declaration-linter findings, no `--wfail` builtin warnings. It needs about 6 GB and fails spuriously when another `lake build` shares `model/.lake` |
+| `LEAN_NUM_THREADS=1 make lint-model` | exit 0: import graph with the authoring-path and search-backend-isolation rules and all three controlled violations, no declaration-linter findings, no `--wfail` builtin warnings (fn-88.7, Veil required, quiet host; 82 minutes single-threaded because the builtin step rebuilt the model). It needs about 6 GB and fails spuriously when another `lake build` shares `model/.lake` |
 | `make umpire-check-lean-api` | exit 0; regenerates the Lean API into a temp directory and fails on any drift from the committed output |
 | `make lint-code-fast` | 0 issues (it skips `testdata` and nested modules, as `./...` does) |
 | `make umpire-check-plan-index` | valid |
