@@ -169,8 +169,10 @@ structure CompositionEntry where
   members : Array (String × Name)
   /-- Each `sync:` line as its name and its participants, (member field, action name). -/
   syncs : Array (String × Array (String × String))
-  /-- Each start state's key with each member's state key in it, (member field, key). -/
-  starts : Array (String × Array (String × String))
+  /-- Each start state's key with the values each member holds in it, (member field, the value
+  spellings its state's fields hold), so a Scenario's `field.value` names the one start state whose
+  member holds that value in any of its fields. -/
+  starts : Array (String × Array (String × Array String))
   /-- The members' timers, unobservable timers, and `evidence:` lines, under the composed keys
   `<field>_<key>` the catalogs give them. -/
   timers : Array String

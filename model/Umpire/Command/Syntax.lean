@@ -417,9 +417,10 @@ private def enumeratedDomains (declaredModel : Registry.ModelEntry) :
     pure (← `(Umpire.Command.members (α := $(mkIdent declaredModel.stateType))),
       ← `(Umpire.Command.members (α := $(mkIdent declaredModel.outcomeType))))
 
-/-- The definition that enumerates a same-step claim over the machine's table. -/
+/-- The definition that enumerates a same-step claim over the machine's table: over the one action
+`when:` names, or, where it names a composition's classed action bare, over each of its classes. -/
 private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
-    (key : String) (predicateRef : Term) : CommandElabM (TSyntax `command) := do
+    (keys : List String) (predicateRef : Term) : CommandElabM (TSyntax `command) := do
   let machineName := declaredModel.declName
   let (states, outcomes) ← enumeratedDomains declaredModel
   let stateKeyFor := mkIdent (machineName ++ `stateKeyFor)
@@ -427,9 +428,9 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
   let factKeyFor := mkIdent (machineName ++ `factKeyFor)
   let actionKeyFor := mkIdent (machineName ++ `actionKeyFor)
   let transitions := mkIdent (machineName ++ `transitions)
-  let keyLiteral := Lean.quote key
-  `(command|
-    def $enumeratedName : Umpire.Command.EnumeratedProperty := Umpire.Command.enumerateSameStep
+  let enumeratedAt := fun (key : String) => do
+    let keyLiteral := Lean.quote key
+    `(term| Umpire.Command.enumerateSameStep
       $states
       $outcomes
       { state := $stateKeyFor, outcome := $outcomeKeyFor, fact := $factKeyFor }
@@ -437,6 +438,15 @@ private def sameStepCommand (enumeratedName : Ident) (declaredModel : Registry.M
       (($transitions).filter (fun row => $actionKeyFor row.action == $keyLiteral)
         |>.flatMap (·.results))
       ($predicateRef))
+  match keys with
+  | [key] => `(command|
+      def $enumeratedName : Umpire.Command.EnumeratedProperty := $(← enumeratedAt key))
+  | _ =>
+      let perClass ← keys.toArray.mapM fun key => do
+        `(term| ($(Lean.quote key), $(← enumeratedAt key)))
+      `(command|
+        def $enumeratedName : Umpire.Command.EnumeratedProperty :=
+          Umpire.Command.Compose.acrossClasses [$perClass,*])
 
 /-- The definition that enumerates a transition claim over the machine's table. -/
 private def transitionCommand (enumeratedName : Ident) (declaredModel : Registry.ModelEntry)
@@ -472,10 +482,14 @@ elab propertyKeyword name:ident
       | some trigger => do
           let `(propertyWhen| when: $actionRef:term) := trigger
             | throwErrorAt trigger "unsupported `when:` line"
-          let key := if (Registry.composition? (← getEnv) declaredModel.declName).isSome then
-              composedActionKeyOf actionRef
-            else actionKeyOf actionRef
-          unless declaredModel.actions.contains key do
+          let composed := (Registry.composition? (← getEnv) declaredModel.declName).isSome
+          let key := if composed then composedActionKeyOf actionRef else actionKeyOf actionRef
+          -- On a composition a classed action named bare is every one of its classes.
+          let keys := if declaredModel.actions.contains key then [key]
+            else if composed then declaredModel.actions.toList.filter fun declared =>
+              declared != key && Compose.actionName declared == key
+            else []
+          if keys.isEmpty then
             throwErrorAt actionRef (unknownMemberMessage "action" key
               (declaredModel.actions.toList.map Name.mkSimple))
           -- Hover a bare action's constructor where there is one; a classed key has none.
@@ -483,7 +497,7 @@ elab propertyKeyword name:ident
             let points := declaredModel.actionType ++ Name.mkSimple key
             if (← getEnv).contains points then
               liftTermElabM (Lean.Elab.addConstInfo head points)
-          sameStepCommand enumeratedName declaredModel key predicateRef
+          sameStepCommand enumeratedName declaredModel keys predicateRef
       | none => transitionCommand enumeratedName declaredModel predicateRef
     elabCommand enumerated
     let result ← liftTermElabM (evalEnumerated ((← getCurrNamespace) ++ enumeratedName.getId))
@@ -597,9 +611,8 @@ elab scenarioKeyword name:ident
       let written := setupRef.getId.eraseMacroScopes.components
       let byPhase : Array String := match composition, written with
         | some composed, [field, value] =>
-            let holds := fun (entry : String × Array (String × String)) => entry.2.any
-              fun (member, key) =>
-                member == field.toString && Compose.actionName key == value.toString
+            let holds := fun (entry : String × Array (String × Array String)) => entry.2.any
+              fun (member, held) => member == field.toString && held.contains value.toString
             (composed.starts.filter holds).map (·.1)
         | some _, _ => #[]
         | none, _ => declaredModel.starts.filter fun key =>
@@ -2624,14 +2637,18 @@ private def neverEnabledMessage (key : String) : String :=
   s!"'{key}' is never enabled: no composed state the composition reaches has a row for it, so its \
 catalog leaves it out"
 
-/-- Whether a member state holds a value in one of its fields, spelled the way `starts:` and `ends:`
-spell it: an enum member's own name, or a class's constructor. -/
-private def holdsValue (state : ClassValue) (spelling : String) : Bool :=
+/-- The values a member state holds in its fields, spelled the way `starts:` and `ends:` spell
+them: an enum member's own name, or a class's constructor. -/
+private def heldValues (state : ClassValue) : Array String :=
   match state with
-  | .applied _ fields => fields.any fun (_, held) => match held with
-      | .atom declared => declared.getString! == spelling
-      | .applied constructor _ => constructor.getString! == spelling
-  | .atom _ => false
+  | .applied _ fields => fields.map fun (_, held) => match held with
+      | .atom declared => declared.getString!
+      | .applied constructor _ => constructor.getString!
+  | .atom _ => #[]
+
+/-- Whether a member state holds a value in one of its fields. -/
+private def holdsValue (state : ClassValue) (spelling : String) : Bool :=
+  (heldValues state).contains spelling
 
 /-- One member as the command resolved it: its field, the machine and Model it holds, and each of
 that machine's domains as the class trees whose keys its table carries. -/
@@ -2772,7 +2789,10 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
         throwErrorAt startRef (unstartedValueMessage startRef.getId.eraseMacroScopes.toString)
     composeMembers := composeMembers.push {
       field := member.field
+      states := member.model.states.toList
       actions := member.model.actions.toList
+      domains := (member.machine.actionDecls.filterMap (Registry.action? environment)).toList.map
+        fun action => (action.name, action.inputFields.toList.map (·.2.toString))
       timers := member.machine.timers.toList
       starts := member.model.starts.toList.filter fun key =>
         named.isEmpty || named.any fun (_, _, value) => holds key value
@@ -2797,8 +2817,9 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
         (((syncRefs[line]?).bind fun (_, _, participants) => participants.find? fun participant =>
           participant.getId.eraseMacroScopes.toString == field ++ "." ++ action).map (·.raw)).getD
           (lineRef line)
-    | .repeatedParticipant line _ | .inputMismatch line _ _ | .productTooLarge line _ _ _ =>
-        lineRef line
+    | .repeatedParticipant line _ | .inputMismatch line _ _ | .productTooLarge line _ _ _
+    | .duplicateAction line _ => lineRef line
+    | .underscoredState field _ => memberRef field
     | .unsynchronizedShared _ fields => memberRef ((fields.getLast?).getD "")
     | .boundExceeded _ _ _ => name.raw
   let enclosing ← getCurrNamespace
@@ -3032,8 +3053,9 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
     members := members.map fun member => (member.field, member.machine.declName)
     syncs := syncLines.map fun line => (line.name, line.participants.toArray)
     starts := (walked.initial.map fun components =>
-      (Compose.stateKey components,
-        ((members.toList.map (·.field)).zip components).toArray)).toArray
+      (Compose.stateKey components, (components.zip members.toList).toArray.map
+        fun (key, member) => (member.field, heldValues ((member.states.find? (·.key == key)).getD
+          (.atom .anonymous))))).toArray
     timers := members.flatMap fun member =>
       member.machine.timers.map (Compose.memberKey member.field)
     unobservable := members.flatMap fun member =>

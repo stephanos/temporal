@@ -38,9 +38,11 @@ enum JobPhase
   | done
   | failed
 
+/-- The flag comes first, so a job's phase is not its key's first segment: a Scenario's
+`job.pending` is matched against every field its state holds. -/
 structure JobState where
-  phase : JobPhase
   poked : Bool
+  phase : JobPhase
   deriving BEq, DecidableEq, Repr, Finite
 
 enum JobOutcome
@@ -218,6 +220,25 @@ query expires
   in: outage
   limits: three
 
+/- A classed action named bare is a claim about each of its classes: every reply, whichever
+result, records that the job replied. -/
+property replies
+  machine: pipeline
+  when: reply
+  holds: fun step => step.facts.contains (.job .replied)
+
+/- A member's own classed action, named bare. -/
+property pokes
+  machine: pipeline
+  when: job.poke
+  holds: fun step => step.outcome == .job .accepted
+
+#guard replies.names.groups.map (fun group => (group.trigger, group.requirements)) ==
+  [(.action "reply-error", [.factClause "reply-error-fact-job_replied" "job_replied"]),
+    (.action "reply-ok", [.factClause "reply-ok-fact-job_replied" "job_replied"])]
+
+#guard pokes.names.groups.map (·.trigger) == [.action "job_poke-error", .action "job_poke-ok"]
+
 end Forward
 
 namespace Reordered
@@ -315,10 +336,10 @@ key rather than by the order the walk found them. The synchronized actions are k
 `sync:` names, the job's own by `job_`, and the agent's resume by `agent_`. -/
 
 open Forward in
-#guard pipeline.table.states.map (·.key) == ["done-false_halted", "done-false_running",
-  "done-true_halted", "done-true_running", "failed-false_halted", "failed-false_running",
-  "failed-true_halted", "failed-true_running", "pending-false_halted", "pending-false_running",
-  "pending-true_halted", "pending-true_running"]
+#guard pipeline.table.states.map (·.key) == ["false-done_halted", "false-done_running",
+  "false-failed_halted", "false-failed_running", "false-pending_halted", "false-pending_running",
+  "true-done_halted", "true-done_running", "true-failed_halted", "true-failed_running",
+  "true-pending_halted", "true-pending_running"]
 
 open Forward in
 #guard pipeline.table.actions.map (·.key) ==
@@ -328,9 +349,9 @@ open Forward in
 open Forward in
 #guard (pipeline.table.transitions.filter fun row =>
     row.key.endsWith "reply-ok" || row.key.endsWith "-halt").map (·.key) ==
-  ["done-false_running-halt", "done-true_running-halt", "failed-false_running-halt",
-    "failed-true_running-halt", "pending-false_running-halt", "pending-false_running-reply-ok",
-    "pending-true_running-halt", "pending-true_running-reply-ok"]
+  ["false-done_running-halt", "false-failed_running-halt", "false-pending_running-halt",
+    "false-pending_running-reply-ok", "true-done_running-halt", "true-failed_running-halt",
+    "true-pending_running-halt", "true-pending_running-reply-ok"]
 
 /- Both members' outcomes are `accepted`; the catalog holds each under its member. -/
 open Forward in
@@ -342,11 +363,11 @@ open Forward in
 /- Each member's state fields are the composed state's own: the job's two under `job_`, the agent's
 one field as `agent`. -/
 open Forward in
-#guard pipeline.stateFieldIds.map (·.1) == ["job_phase", "job_poked", "agent"]
+#guard pipeline.stateFieldIds.map (·.1) == ["job_poked", "job_phase", "agent"]
 
 /- One start state, and the eight in which the job is done or failed end it. -/
 open Forward in
-#guard pipeline.initial.map pipeline.stateKeyFor == ["pending-false_running"] &&
+#guard pipeline.initial.map pipeline.stateKeyFor == ["false-pending_running"] &&
   pipeline.terminal.length == 8
 
 open Forward in
@@ -378,12 +399,13 @@ namespace Dial
 
 entity dial
 
-enum Level
-  | low
-  | high
+/-- Spelled as the job's `Reply` is, and a different domain. -/
+enum Setting
+  | ok
+  | error
 
 structure DialState where
-  level : Level
+  setting : Setting
   deriving BEq, DecidableEq, Repr, Finite
 
 enum DialOutcome
@@ -396,16 +418,16 @@ action turn
   party: agent
   on: dial
   input:
-    level: Level
+    setting: Setting
 
-def turnStep (_ : DialState) (level : Level) : List (Step DialState DialOutcome DialFact) :=
-  [{ outcome := .accepted, state := { level }, facts := [] }]
+def turnStep (_ : DialState) (setting : Setting) : List (Step DialState DialOutcome DialFact) :=
+  [{ outcome := .accepted, state := { setting }, facts := [] }]
 
 machine dialMachine
   for: dial
   state: DialState
-  starts: [low]
-  ends: [low, high]
+  starts: [ok]
+  ends: [ok, error]
   steps:
     turn: turnStep
 
@@ -615,6 +637,74 @@ set pipelineTests
   bind:
     agent: driven
   queries: [Forward.expires]
+
+/--
+error: 'agent_resume' is already the key of another action of the composition; a `sync:` name keys its action, so it is spelled apart from every member's `<field>_<action>` key
+-/
+#guard_msgs in
+compose collided
+  for: [Job.job, Agent.agent]
+  state: Forward.PipelineState
+  members:
+    job: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    agent_resume: job.halt ∥ agent.halt
+    reply: job.reply ∥ agent.serve
+  starts: [job.pending]
+  ends: [job.done]
+
+namespace Lamp
+
+entity lamp
+
+enum LampPhase
+  | lit_up
+
+structure LampState where
+  phase : LampPhase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum LampOutcome
+  | accepted
+
+inductive LampFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+action glow
+  party: agent
+  on: lamp
+
+def glowStep (state : LampState) : List (Step LampState LampOutcome LampFact) :=
+  [{ outcome := .accepted, state, facts := [] }]
+
+machine lampMachine
+  for: lamp
+  state: LampState
+  starts: [lit_up]
+  ends: [lit_up]
+  steps:
+    glow: glowStep
+
+end Lamp
+
+structure LampedState where
+  job : Job.JobState
+  lamp : Lamp.LampState
+  deriving BEq, DecidableEq, Repr
+
+/--
+error: member 'lamp' has a state keyed 'lit_up', which contains '_'; a composed state joins its members' keys with `_`, so a member's state key carries none
+-/
+#guard_msgs in
+compose lamped
+  for: [Job.job, Lamp.lamp]
+  state: LampedState
+  members:
+    job: Job.jobMachine
+    lamp: Lamp.lampMachine
+  starts: [job.pending]
+  ends: [job.done]
 
 /-! ### A synchronized action no reachable state enables
 

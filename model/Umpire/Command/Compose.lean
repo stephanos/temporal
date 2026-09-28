@@ -2,6 +2,7 @@ import Std.Data.HashMap
 import Std.Data.HashSet
 import Umpire.Command.Authoring
 import Umpire.Command.Finite
+import Umpire.Command.Predicate
 
 /-!
 # Composing machines into one Model
@@ -66,7 +67,11 @@ def keyRows [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
 names of its timers, the states it starts in, and its rows. -/
 structure Member where
   field : String
+  /-- The machine's state keys, which the composed state key joins with `_`. -/
+  states : List String := []
   actions : List String
+  /-- Each action's input domains, in order, by the action's name. A timer takes none. -/
+  domains : List (String × List String) := []
   timers : List String := []
   starts : List String
   rows : List KeyRow
@@ -119,6 +124,8 @@ inductive ComposeError where
   | timerSynchronized (line : Nat) (field timer : String)
   | inputMismatch (line : Nat) (first second : String)
   | unsynchronizedShared (action : String) (fields : List String)
+  | duplicateAction (line : Nat) (key : String)
+  | underscoredState (field key : String)
   | productTooLarge (line : Nat) (key : String) (count bound : Nat)
   | boundExceeded (states actions bound : Nat)
   deriving BEq, Repr, Inhabited
@@ -139,6 +146,12 @@ class per step, so its classed participants take the same input domains"
   | .unsynchronizedShared action fields =>
       s!"members {", ".intercalate fields} each own an action named '{action}' and no `sync:` \
 line names every one of them; two members' actions of one name are synchronized explicitly"
+  | .duplicateAction _ key =>
+      s!"'{key}' is already the key of another action of the composition; a `sync:` name keys its \
+action, so it is spelled apart from every member's `<field>_<action>` key"
+  | .underscoredState field key =>
+      s!"member '{field}' has a state keyed '{key}', which contains '_'; a composed state joins its \
+members' keys with `_`, so a member's state key carries none"
   | .productTooLarge _ key count bound =>
       s!"'{key}' multiplies its participants' results out to {count} steps; a synchronized step \
 has at most {bound} results"
@@ -151,6 +164,10 @@ names, and one action per `sync:` line and class. Members are in the state struc
 order. -/
 def candidates (members : List Member) (syncs : List SyncLine) :
     Except ComposeError (List Candidate) := do
+  -- A composed state key is read back apart only if no member's key contains the separator.
+  for member in members do
+    if let some key := member.states.find? (·.contains '_') then
+      throw (.underscoredState member.field key)
   let position := fun (field : String) => members.findIdx? (·.field == field)
   let mut synced : List (Nat × String) := []
   let mut fromSyncs : List Candidate := []
@@ -169,8 +186,13 @@ def candidates (members : List Member) (syncs : List SyncLine) :
       synced := (slot, action) :: synced
     let classed := resolved.filter fun (_, _, classes) => !classes.isEmpty
     let spell := fun (slot : Nat) (action : String) => members[slot]!.field ++ "." ++ action
+    -- Classed participants take one class per step, so they range over the same domains: the
+    -- same declarations, not merely constructors spelled alike.
+    let inputsOf := fun (slot : Nat) (action : String) (classes : List String) =>
+      (((members[slot]!.domains.find? (·.1 == action)).map (·.2)).getD [], classes)
     if let some (firstAt, firstAction, firstClasses) := classed.head? then
-      if let some (slot, action, _) := classed.find? (·.2.2 != firstClasses) then
+      if let some (slot, action, _) := classed.find? fun (slot, action, classes) =>
+          inputsOf slot action classes != inputsOf firstAt firstAction firstClasses then
         throw (.inputMismatch index (spell firstAt firstAction) (spell slot action))
     let classes := ((classed.head?).map (·.2.2)).getD [""]
     fromSyncs := fromSyncs ++ classes.map fun suffix => {
@@ -189,7 +211,26 @@ def candidates (members : List Member) (syncs : List SyncLine) :
   let own := members.zipIdx.flatMap fun (member, slot) =>
     (member.actions.filter fun key => !synced.contains (slot, actionName key)).map fun key =>
       { key := memberKey member.field key, sync := none, participants := [(slot, key)] }
-  pure (own ++ fromSyncs)
+  let all := own ++ fromSyncs
+  if let some duplicate := fromSyncs.find? fun candidate =>
+      (all.filter (·.key == candidate.key)).length > 1 then
+    throw (.duplicateAction (duplicate.sync.getD 0) duplicate.key)
+  pure all
+
+/-- A same-step claim written with a bare classed action is a claim about every one of its classes:
+the per-class enumerations, each group's clause labels prefixed by its class key so two classes that
+fix one value are two clauses. The first refusal is the claim's. -/
+def acrossClasses (enumerated : List (String × EnumeratedProperty)) : EnumeratedProperty :=
+  let relabel := fun (key : String) (requirement : PropertyRequirement) =>
+    match requirement with
+    | .stateClause label spelling => .stateClause (key ++ "-" ++ label) spelling
+    | .outcomeClause label spelling => .outcomeClause (key ++ "-" ++ label) spelling
+    | .factClause label spelling => .factClause (key ++ "-" ++ label) spelling
+  match enumerated.findSome? (·.2.refusal) with
+  | some refusal => { refusal := some refusal }
+  | none => { groups := enumerated.flatMap fun (key, property) =>
+      property.groups.map fun group =>
+        { group with requirements := group.requirements.map (relabel key) } }
 
 /-- One composed result: the reported outcome's key, every member's state key, and the facts'
 keys. -/
