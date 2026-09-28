@@ -389,17 +389,21 @@ The user journey depends on a maintained deterministic product. `gomadtool` prov
 
 ### Keep generated contracts synchronized
 
-Three commands generate or verify different canonical domains:
+Four commands generate or verify different canonical domains:
 
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool version-generate --check --root=.
 go -C tools/gomad3 run ./cmd/gomadtool protocol-generate --check --root=.
 go -C tools/gomad3 run ./cmd/gomadtool boundary-generate --check --root=.
+go -C tools/gomad3 run ./cmd/gomadtool qualification-manifest-generate --check --root=../.. \
+  --spec=tools/gomad3integration/qualification/tests.generator.json \
+  --output=tools/gomad3integration/qualification/tests.json
 ```
 
 - `version-generate` derives consumers of the release descriptor.
 - `protocol-generate` derives both endpoints and tests for the declared cross-process protocols.
 - `boundary-generate` derives the reviewed host-capability inventory and compiler interception evidence.
+- `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec.
 
 Without `--check`, these commands update generated outputs. `boundary-generate` also supports focused maintenance modes: `--discover` lists candidate host-capability entry points, `--qualify` verifies declared signatures and candidate coverage, `--refresh` updates reviewed source fingerprints, and `--check-compiler-tests` validates compiler conformance declarations.
 

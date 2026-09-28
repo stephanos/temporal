@@ -31,6 +31,10 @@ const ReportSchema = "gomad3.qualification-set-report/v1"
 
 const maximumCommandOutputBytes = 64 << 20
 const maximumManifestBytes = 1 << 20
+
+// maximumManifestSuites admits one workload per top-level test of a generated
+// package-wide manifest such as ./tests.
+const maximumManifestSuites = 512
 const maximumSetReportBytes = 64 << 20
 
 type Manifest struct {
@@ -276,7 +280,7 @@ func LoadManifest(path string) (Manifest, error) {
 	if len(manifest.Seeds) != 0 {
 		manifest.Seed = manifest.Seeds[0]
 	}
-	if err := validateManifest(manifest); err != nil {
+	if err := ValidateManifest(manifest); err != nil {
 		return Manifest{}, err
 	}
 	return manifest, nil
@@ -527,8 +531,10 @@ func OpenReport(path string) (Report, error) {
 	return report, nil
 }
 
-func validateManifest(manifest Manifest) error {
-	if manifest.Schema != ManifestSchema || !setNamePattern.MatchString(manifest.Name) || manifest.Repeat < 2 || manifest.Repeat > 32 || len(manifest.Seeds) == 0 || len(manifest.Seeds) > 32 || len(manifest.Suites) == 0 || len(manifest.Suites) > 64 || manifest.OutputBytes == 0 || manifest.WorldTransitionBytes == 0 {
+// ValidateManifest applies the checks LoadManifest enforces, so a generator
+// can refuse to write a manifest the qualification set would reject.
+func ValidateManifest(manifest Manifest) error {
+	if manifest.Schema != ManifestSchema || !setNamePattern.MatchString(manifest.Name) || manifest.Repeat < 2 || manifest.Repeat > 32 || len(manifest.Seeds) == 0 || len(manifest.Seeds) > 32 || len(manifest.Suites) == 0 || len(manifest.Suites) > maximumManifestSuites || manifest.OutputBytes == 0 || manifest.WorldTransitionBytes == 0 {
 		return errors.New("qualification set manifest identity or bounds are invalid")
 	}
 	if strings.TrimSpace(manifest.Description) == "" || strings.TrimSpace(manifest.Module) == "" || strings.ContainsAny(manifest.Module, "\x00\n\r\t ") {

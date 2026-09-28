@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-28T16:55:09.966676Z",
+  "depends_on": [
+    "fn-101-gomad-f7-any-functional-test-and-ci.1"
+  ],
+  "id": "fn-101-gomad-f7-any-functional-test-and-ci.5",
+  "priority": null,
+  "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
+  "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.5.md",
+  "status": "todo",
+  "title": "Make the gomad3 workflow pass on a clean checkout (linux and macOS runners)",
+  "updated_at": "2026-09-28T16:55:15.293919Z"
+}

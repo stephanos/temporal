@@ -1,0 +1,4194 @@
+{
+  "schema": "gomad3.qualification-set/v3",
+  "name": "temporal-tests",
+  "description": "Every top-level test of the Temporal ./tests package, generated from its test list",
+  "module": "go.temporal.io/server",
+  "seeds": [
+    11,
+    17
+  ],
+  "repeat": 2,
+  "run_timeout": "2m",
+  "overall_timeout": "5m",
+  "terminate_grace": "2s",
+  "output_bytes": 8388608,
+  "world_transition_bytes": 67108864,
+  "suites": [
+    {
+      "id": "tests-acquire-shard-suite",
+      "name": "TestAcquireShardSuite",
+      "tier": 3,
+      "invariant": "TestAcquireShardSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAcquireShardSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-cancel-client-test-suite",
+      "name": "TestActivityAPIBatchCancelClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityAPIBatchCancelClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchCancelClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-delete-client-test-suite",
+      "name": "TestActivityAPIBatchDeleteClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityAPIBatchDeleteClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchDeleteClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-reset-client-test-suite",
+      "name": "TestActivityAPIBatchResetClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityAPIBatchResetClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchResetClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-security-test-suite",
+      "name": "TestActivityAPIBatchSecurityTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityAPIBatchSecurityTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchSecurityTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-terminate-client-test-suite",
+      "name": "TestActivityAPIBatchTerminateClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityAPIBatchTerminateClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchTerminateClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-unpause-client-test-suite",
+      "name": "TestActivityApiBatchUnpauseClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiBatchUnpauseClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiBatchUnpauseClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-batch-update-options-client-test-suite",
+      "name": "TestActivityApiBatchUpdateOptionsClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiBatchUpdateOptionsClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiBatchUpdateOptionsClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-pause-attributes-to-activity-in-context-metadata",
+      "name": "TestActivityApiPause_AttributesToActivityInContextMetadata",
+      "tier": 3,
+      "invariant": "TestActivityApiPause_AttributesToActivityInContextMetadata passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiPause_AttributesToActivityInContextMetadata",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-pause-client-test-suite",
+      "name": "TestActivityApiPauseClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiPauseClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiPauseClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-reset-client-test-suite",
+      "name": "TestActivityApiResetClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiResetClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiResetClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-rules-client-test-suite",
+      "name": "TestActivityApiRulesClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiRulesClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiRulesClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-update-client-test-suite",
+      "name": "TestActivityApiUpdateClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityApiUpdateClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiUpdateClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-client-test-suite",
+      "name": "TestActivityClientTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-parity-test-suite",
+      "name": "TestActivityParityTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityParityTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityParityTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-test-suite",
+      "name": "TestActivityTestSuite",
+      "tier": 3,
+      "invariant": "TestActivityTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-update-execution-options-api",
+      "name": "TestActivityUpdateExecutionOptionsApi",
+      "tier": 3,
+      "invariant": "TestActivityUpdateExecutionOptionsApi passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityUpdateExecutionOptionsApi",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-add-tasks-suite",
+      "name": "TestAddTasksSuite",
+      "tier": 3,
+      "invariant": "TestAddTasksSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAddTasksSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-admin-batch-refresh-workflow-tasks-test-suite",
+      "name": "TestAdminBatchRefreshWorkflowTasksTestSuite",
+      "tier": 3,
+      "invariant": "TestAdminBatchRefreshWorkflowTasksTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdminBatchRefreshWorkflowTasksTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-admin-rebuild-mutable-state-chasm-disabled",
+      "name": "TestAdminRebuildMutableState_ChasmDisabled",
+      "tier": 3,
+      "invariant": "TestAdminRebuildMutableState_ChasmDisabled passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdminRebuildMutableState_ChasmDisabled",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-admin-rebuild-mutable-state-chasm-enabled",
+      "name": "TestAdminRebuildMutableState_ChasmEnabled",
+      "tier": 3,
+      "invariant": "TestAdminRebuildMutableState_ChasmEnabled passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdminRebuildMutableState_ChasmEnabled",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-advanced-visibility-suite",
+      "name": "TestAdvancedVisibilitySuite",
+      "tier": 3,
+      "invariant": "TestAdvancedVisibilitySuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdvancedVisibilitySuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-advanced-visibility-suite-legacy",
+      "name": "TestAdvancedVisibilitySuiteLegacy",
+      "tier": 3,
+      "invariant": "TestAdvancedVisibilitySuiteLegacy passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdvancedVisibilitySuiteLegacy",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-archival-suite",
+      "name": "TestArchivalSuite",
+      "tier": 3,
+      "invariant": "TestArchivalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestArchivalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-callbacks-migration-suite",
+      "name": "TestCallbacksMigrationSuite",
+      "tier": 3,
+      "invariant": "TestCallbacksMigrationSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCallbacksMigrationSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-callbacks-suite-chasm",
+      "name": "TestCallbacksSuiteCHASM",
+      "tier": 3,
+      "invariant": "TestCallbacksSuiteCHASM passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCallbacksSuiteCHASM",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-callbacks-suite-hsm",
+      "name": "TestCallbacksSuiteHSM",
+      "tier": 3,
+      "invariant": "TestCallbacksSuiteHSM passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCallbacksSuiteHSM",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-cancel-workflow-suite",
+      "name": "TestCancelWorkflowSuite",
+      "tier": 3,
+      "invariant": "TestCancelWorkflowSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCancelWorkflowSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-chasm-suite",
+      "name": "TestChasmSuite",
+      "tier": 3,
+      "invariant": "TestChasmSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestChasmSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-child-workflow-suite",
+      "name": "TestChildWorkflowSuite",
+      "tier": 3,
+      "invariant": "TestChildWorkflowSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestChildWorkflowSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-client-data-converter-test-suite",
+      "name": "TestClientDataConverterTestSuite",
+      "tier": 3,
+      "invariant": "TestClientDataConverterTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestClientDataConverterTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-client-misc-test-suite",
+      "name": "TestClientMiscTestSuite",
+      "tier": 3,
+      "invariant": "TestClientMiscTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestClientMiscTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-completion-callbacks-suite",
+      "name": "TestCompletionCallbacksSuite",
+      "tier": 3,
+      "invariant": "TestCompletionCallbacksSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCompletionCallbacksSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-continue-as-new-test-suite",
+      "name": "TestContinueAsNewTestSuite",
+      "tier": 3,
+      "invariant": "TestContinueAsNewTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestContinueAsNewTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-cron-test-client-suite",
+      "name": "TestCronTestClientSuite",
+      "tier": 3,
+      "invariant": "TestCronTestClientSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCronTestClientSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-cron-test-suite",
+      "name": "TestCronTestSuite",
+      "tier": 3,
+      "invariant": "TestCronTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestCronTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-describe-test-suite",
+      "name": "TestDescribeTestSuite",
+      "tier": 3,
+      "invariant": "TestDescribeTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestDescribeTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-dispatch-cancel-to-worker-with-eager-activity",
+      "name": "TestDispatchCancelToWorkerWithEagerActivity",
+      "tier": 3,
+      "invariant": "TestDispatchCancelToWorkerWithEagerActivity passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestDispatchCancelToWorkerWithEagerActivity",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-driver-context-reflects-extension",
+      "name": "TestDriverContextReflectsExtension",
+      "tier": 3,
+      "invariant": "TestDriverContextReflectsExtension passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestDriverContextReflectsExtension",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-eager-workflow-test-suite",
+      "name": "TestEagerWorkflowTestSuite",
+      "tier": 3,
+      "invariant": "TestEagerWorkflowTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestEagerWorkflowTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-fairness-auto-enable-suite",
+      "name": "TestFairnessAutoEnableSuite",
+      "tier": 3,
+      "invariant": "TestFairnessAutoEnableSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestFairnessAutoEnableSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-fairness-suite",
+      "name": "TestFairnessSuite",
+      "tier": 3,
+      "invariant": "TestFairnessSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestFairnessSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-get-history-suite-disable-transition-history",
+      "name": "TestGetHistorySuite_DisableTransitionHistory",
+      "tier": 3,
+      "invariant": "TestGetHistorySuite_DisableTransitionHistory passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestGetHistorySuite_DisableTransitionHistory",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-get-history-suite-enable-transition-history",
+      "name": "TestGetHistorySuite_EnableTransitionHistory",
+      "tier": 3,
+      "invariant": "TestGetHistorySuite_EnableTransitionHistory passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestGetHistorySuite_EnableTransitionHistory",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-history-node-cleanup-suite",
+      "name": "TestHistoryNodeCleanupSuite",
+      "tier": 3,
+      "invariant": "TestHistoryNodeCleanupSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestHistoryNodeCleanupSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-http-api-test-suite",
+      "name": "TestHttpApiTestSuite",
+      "tier": 3,
+      "invariant": "TestHttpApiTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestHttpApiTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-links-test-suite",
+      "name": "TestLinksTestSuite",
+      "tier": 3,
+      "invariant": "TestLinksTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestLinksTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-list-schedules-preserves-v2-schedule-id-with-v1-prefix",
+      "name": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix",
+      "tier": 3,
+      "invariant": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-max-buffered-event-suite",
+      "name": "TestMaxBufferedEventSuite",
+      "tier": 3,
+      "invariant": "TestMaxBufferedEventSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestMaxBufferedEventSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-mirrored-include-exclude-spec",
+      "name": "TestMirroredIncludeExcludeSpec",
+      "tier": 3,
+      "invariant": "TestMirroredIncludeExcludeSpec passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestMirroredIncludeExcludeSpec",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-mirrored-include-exclude-spec-on-update",
+      "name": "TestMirroredIncludeExcludeSpecOnUpdate",
+      "tier": 3,
+      "invariant": "TestMirroredIncludeExcludeSpecOnUpdate passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestMirroredIncludeExcludeSpecOnUpdate",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-model-refuses-unrealizable-events",
+      "name": "TestModelRefusesUnrealizableEvents",
+      "tier": 3,
+      "invariant": "TestModelRefusesUnrealizableEvents passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestModelRefusesUnrealizableEvents",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-namespace-interceptor-test-suite",
+      "name": "TestNamespaceInterceptorTestSuite",
+      "tier": 3,
+      "invariant": "TestNamespaceInterceptorTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNamespaceInterceptorTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-namespace-suite",
+      "name": "TestNamespaceSuite",
+      "tier": 3,
+      "invariant": "TestNamespaceSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNamespaceSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-api-test-suite-with-legacy-error-paths",
+      "name": "TestNexusApiTestSuiteWithLegacyErrorPaths",
+      "tier": 3,
+      "invariant": "TestNexusApiTestSuiteWithLegacyErrorPaths passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusApiTestSuiteWithLegacyErrorPaths",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-api-test-suite-with-temporal-failures",
+      "name": "TestNexusApiTestSuiteWithTemporalFailures",
+      "tier": 3,
+      "invariant": "TestNexusApiTestSuiteWithTemporalFailures passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusApiTestSuiteWithTemporalFailures",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-api-validation-test-suite",
+      "name": "TestNexusAPIValidationTestSuite",
+      "tier": 3,
+      "invariant": "TestNexusAPIValidationTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusAPIValidationTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-endpoints-common-suite",
+      "name": "TestNexusEndpointsCommonSuite",
+      "tier": 3,
+      "invariant": "TestNexusEndpointsCommonSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusEndpointsCommonSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-endpoints-matching-suite",
+      "name": "TestNexusEndpointsMatchingSuite",
+      "tier": 3,
+      "invariant": "TestNexusEndpointsMatchingSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusEndpointsMatchingSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-endpoints-operator-suite",
+      "name": "TestNexusEndpointsOperatorSuite",
+      "tier": 3,
+      "invariant": "TestNexusEndpointsOperatorSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusEndpointsOperatorSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-matching-test-suite",
+      "name": "TestNexusMatchingTestSuite",
+      "tier": 3,
+      "invariant": "TestNexusMatchingTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusMatchingTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-otel-suite",
+      "name": "TestNexusOTELSuite",
+      "tier": 3,
+      "invariant": "TestNexusOTELSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusOTELSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-standalone-callbacks-test-suite",
+      "name": "TestNexusStandaloneCallbacksTestSuite",
+      "tier": 3,
+      "invariant": "TestNexusStandaloneCallbacksTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusStandaloneCallbacksTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-standalone-test-suite",
+      "name": "TestNexusStandaloneTestSuite",
+      "tier": 3,
+      "invariant": "TestNexusStandaloneTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusStandaloneTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-workflow-test-suite-chasm",
+      "name": "TestNexusWorkflowTestSuiteCHASM",
+      "tier": 3,
+      "invariant": "TestNexusWorkflowTestSuiteCHASM passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusWorkflowTestSuiteCHASM",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-workflow-test-suite-hsm",
+      "name": "TestNexusWorkflowTestSuiteHSM",
+      "tier": 3,
+      "invariant": "TestNexusWorkflowTestSuiteHSM passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusWorkflowTestSuiteHSM",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-workflow-update-test-suite",
+      "name": "TestNexusWorkflowUpdateTestSuite",
+      "tier": 3,
+      "invariant": "TestNexusWorkflowUpdateTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusWorkflowUpdateTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nil-search-attribute-suite",
+      "name": "TestNilSearchAttributeSuite",
+      "tier": 3,
+      "invariant": "TestNilSearchAttributeSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNilSearchAttributeSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-backlog",
+      "name": "TestPartitionScaling_Backlog",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Backlog passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Backlog",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-disable-to-fewer-partitions",
+      "name": "TestPartitionScaling_Disable_ToFewerPartitions",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Disable_ToFewerPartitions passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Disable_ToFewerPartitions",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-disable-to-more-partitions",
+      "name": "TestPartitionScaling_Disable_ToMorePartitions",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Disable_ToMorePartitions passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Disable_ToMorePartitions",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-down",
+      "name": "TestPartitionScaling_Down",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Down passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Down",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-down-and-stop-polling",
+      "name": "TestPartitionScaling_Down_AndStopPolling",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Down_AndStopPolling passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Down_AndStopPolling",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-down-from-dc",
+      "name": "TestPartitionScaling_Down_FromDC",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Down_FromDC passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Down_FromDC",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-up",
+      "name": "TestPartitionScaling_Up",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Up passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Up",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-partition-scaling-up-from-dc",
+      "name": "TestPartitionScaling_Up_FromDC",
+      "tier": 3,
+      "invariant": "TestPartitionScaling_Up_FromDC passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPartitionScaling_Up_FromDC",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-pause-workflow-execution-suite",
+      "name": "TestPauseWorkflowExecutionSuite",
+      "tier": 3,
+      "invariant": "TestPauseWorkflowExecutionSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPauseWorkflowExecutionSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-poller-scaling-functional-suite",
+      "name": "TestPollerScalingFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestPollerScalingFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPollerScalingFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-premature-eos-test-suite",
+      "name": "TestPrematureEosTestSuite",
+      "tier": 3,
+      "invariant": "TestPrematureEosTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPrematureEosTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-priority-suite",
+      "name": "TestPrioritySuite",
+      "tier": 3,
+      "invariant": "TestPrioritySuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPrioritySuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-purge-dlq-tasks-suite",
+      "name": "TestPurgeDLQTasksSuite",
+      "tier": 3,
+      "invariant": "TestPurgeDLQTasksSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestPurgeDLQTasksSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-query-workflow-suite",
+      "name": "TestQueryWorkflowSuite",
+      "tier": 3,
+      "invariant": "TestQueryWorkflowSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestQueryWorkflowSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-raw-history-suite",
+      "name": "TestRawHistorySuite",
+      "tier": 3,
+      "invariant": "TestRawHistorySuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestRawHistorySuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-relay-task-test-suite",
+      "name": "TestRelayTaskTestSuite",
+      "tier": 3,
+      "invariant": "TestRelayTaskTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestRelayTaskTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-reset-workflow-test-suite",
+      "name": "TestResetWorkflowTestSuite",
+      "tier": 3,
+      "invariant": "TestResetWorkflowTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestResetWorkflowTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-chasm",
+      "name": "TestScheduleCHASM",
+      "tier": 3,
+      "invariant": "TestScheduleCHASM passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCHASM",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-chasm-workflow-pause-interaction",
+      "name": "TestScheduleCHASMWorkflowPauseInteraction",
+      "tier": 3,
+      "invariant": "TestScheduleCHASMWorkflowPauseInteraction passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCHASMWorkflowPauseInteraction",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-counts-visibility",
+      "name": "TestScheduleCountsVisibility",
+      "tier": 3,
+      "invariant": "TestScheduleCountsVisibility passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCountsVisibility",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-creation-rollout-percent",
+      "name": "TestScheduleCreationRolloutPercent",
+      "tier": 3,
+      "invariant": "TestScheduleCreationRolloutPercent passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCreationRolloutPercent",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-far-future-action-times",
+      "name": "TestScheduleFarFutureActionTimes",
+      "tier": 3,
+      "invariant": "TestScheduleFarFutureActionTimes passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleFarFutureActionTimes",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-many-calendars",
+      "name": "TestScheduleManyCalendars",
+      "tier": 3,
+      "invariant": "TestScheduleManyCalendars passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleManyCalendars",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-closed-failed-workflow-records-completion",
+      "name": "TestScheduleMigration_ClosedFailedWorkflowRecordsCompletion",
+      "tier": 3,
+      "invariant": "TestScheduleMigration_ClosedFailedWorkflowRecordsCompletion passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigration_ClosedFailedWorkflowRecordsCompletion",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-deferred-with-running-workflow",
+      "name": "TestScheduleMigrationDeferredWithRunningWorkflow",
+      "tier": 3,
+      "invariant": "TestScheduleMigrationDeferredWithRunningWorkflow passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigrationDeferredWithRunningWorkflow",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-no-running-workflows-generator-starts",
+      "name": "TestScheduleMigration_NoRunningWorkflows_GeneratorStarts",
+      "tier": 3,
+      "invariant": "TestScheduleMigration_NoRunningWorkflows_GeneratorStarts passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigration_NoRunningWorkflows_GeneratorStarts",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-stale-running-does-not-skip-pending",
+      "name": "TestScheduleMigration_StaleRunningDoesNotSkipPending",
+      "tier": 3,
+      "invariant": "TestScheduleMigration_StaleRunningDoesNotSkipPending passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigration_StaleRunningDoesNotSkipPending",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-test-suite",
+      "name": "TestScheduleMigrationTestSuite",
+      "tier": 3,
+      "invariant": "TestScheduleMigrationTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigrationTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-v1-to-v2-admin-migrate-preserves-running-workflow-history",
+      "name": "TestScheduleMigrationV1ToV2_AdminMigratePreservesRunningWorkflowHistory",
+      "tier": 3,
+      "invariant": "TestScheduleMigrationV1ToV2_AdminMigratePreservesRunningWorkflowHistory passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigrationV1ToV2_AdminMigratePreservesRunningWorkflowHistory",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-migration-v1-to-v2-no-duplicate-recent-actions",
+      "name": "TestScheduleMigrationV1ToV2NoDuplicateRecentActions",
+      "tier": 3,
+      "invariant": "TestScheduleMigrationV1ToV2NoDuplicateRecentActions passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleMigrationV1ToV2NoDuplicateRecentActions",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-next-action-time-visibility",
+      "name": "TestScheduleNextActionTimeVisibility",
+      "tier": 3,
+      "invariant": "TestScheduleNextActionTimeVisibility passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleNextActionTimeVisibility",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-rejects-invalid-requests",
+      "name": "TestScheduleRejectsInvalidRequests",
+      "tier": 3,
+      "invariant": "TestScheduleRejectsInvalidRequests passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleRejectsInvalidRequests",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-v1",
+      "name": "TestScheduleV1",
+      "tier": 3,
+      "invariant": "TestScheduleV1 passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleV1",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-v1-workflow-pause-interaction",
+      "name": "TestScheduleV1WorkflowPauseInteraction",
+      "tier": 3,
+      "invariant": "TestScheduleV1WorkflowPauseInteraction passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleV1WorkflowPauseInteraction",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-signal-with-start-from-workflow-test-suite",
+      "name": "TestSignalWithStartFromWorkflowTestSuite",
+      "tier": 3,
+      "invariant": "TestSignalWithStartFromWorkflowTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestSignalWithStartFromWorkflowTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-signal-workflow-test-suite-chasm",
+      "name": "TestSignalWorkflowTestSuiteChasm",
+      "tier": 3,
+      "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestSignalWorkflowTestSuiteChasm",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-signal-workflow-test-suite-legacy",
+      "name": "TestSignalWorkflowTestSuiteLegacy",
+      "tier": 3,
+      "invariant": "TestSignalWorkflowTestSuiteLegacy passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestSignalWorkflowTestSuiteLegacy",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-size-limit-functional-suite",
+      "name": "TestSizeLimitFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestSizeLimitFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestSizeLimitFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-standalone-activity-test-suite",
+      "name": "TestStandaloneActivityTestSuite",
+      "tier": 3,
+      "invariant": "TestStandaloneActivityTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestStandaloneActivityTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-sticky-tq-test-suite",
+      "name": "TestStickyTqTestSuite",
+      "tier": 3,
+      "invariant": "TestStickyTqTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestStickyTqTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-task-queue-stats-pri-suite",
+      "name": "TestTaskQueueStats_Pri_Suite",
+      "tier": 3,
+      "invariant": "TestTaskQueueStats_Pri_Suite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTaskQueueStats_Pri_Suite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-task-queue-suite",
+      "name": "TestTaskQueueSuite",
+      "tier": 3,
+      "invariant": "TestTaskQueueSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTaskQueueSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-time-skipping-fast-forward-functional-suite",
+      "name": "TestTimeSkippingFastForwardFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestTimeSkippingFastForwardFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTimeSkippingFastForwardFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-time-skipping-propagation-test-suite",
+      "name": "TestTimeSkippingPropagationTestSuite",
+      "tier": 3,
+      "invariant": "TestTimeSkippingPropagationTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTimeSkippingPropagationTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-time-skipping-test-suite",
+      "name": "TestTimeSkippingTestSuite",
+      "tier": 3,
+      "invariant": "TestTimeSkippingTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTimeSkippingTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-tls-functional-suite",
+      "name": "TestTLSFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestTLSFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTLSFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-transient-task-suite",
+      "name": "TestTransientTaskSuite",
+      "tier": 3,
+      "invariant": "TestTransientTaskSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestTransientTaskSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-update-with-start-suite",
+      "name": "TestUpdateWithStartSuite",
+      "tier": 3,
+      "invariant": "TestUpdateWithStartSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestUpdateWithStartSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-update-workflow-sdk-suite",
+      "name": "TestUpdateWorkflowSdkSuite",
+      "tier": 3,
+      "invariant": "TestUpdateWorkflowSdkSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestUpdateWorkflowSdkSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-user-metadata-suite",
+      "name": "TestUserMetadataSuite",
+      "tier": 3,
+      "invariant": "TestUserMetadataSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestUserMetadataSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-user-timers-test-suite",
+      "name": "TestUserTimersTestSuite",
+      "tier": 3,
+      "invariant": "TestUserTimersTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestUserTimersTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-versioning-functional-suite",
+      "name": "TestVersioningFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestVersioningFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestVersioningFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-versioning3-functional-suite",
+      "name": "TestVersioning3FunctionalSuite",
+      "tier": 3,
+      "invariant": "TestVersioning3FunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestVersioning3FunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-versioning3-one-time-override-functional-suite",
+      "name": "TestVersioning3OneTimeOverrideFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestVersioning3OneTimeOverrideFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestVersioning3OneTimeOverrideFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-versioning3-query-functional-suite",
+      "name": "TestVersioning3QueryFunctionalSuite",
+      "tier": 3,
+      "invariant": "TestVersioning3QueryFunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestVersioning3QueryFunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-wft-failure-reported-problems-test-suite",
+      "name": "TestWFTFailureReportedProblemsTestSuite",
+      "tier": 3,
+      "invariant": "TestWFTFailureReportedProblemsTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWFTFailureReportedProblemsTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-worker-commands-task-suite",
+      "name": "TestWorkerCommandsTaskSuite",
+      "tier": 3,
+      "invariant": "TestWorkerCommandsTaskSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkerCommandsTaskSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-worker-deployment-suite",
+      "name": "TestWorkerDeploymentSuite",
+      "tier": 3,
+      "invariant": "TestWorkerDeploymentSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkerDeploymentSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-worker-registry-test-suite",
+      "name": "TestWorkerRegistryTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkerRegistryTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkerRegistryTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-alias-search-attribute-test-suite",
+      "name": "TestWorkflowAliasSearchAttributeTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAliasSearchAttributeTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAliasSearchAttributeTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-cancel-client-test-suite",
+      "name": "TestWorkflowAPIBatchCancelClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchCancelClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchCancelClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-delete-client-test-suite",
+      "name": "TestWorkflowAPIBatchDeleteClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchDeleteClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchDeleteClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-reset-client-test-suite",
+      "name": "TestWorkflowAPIBatchResetClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchResetClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchResetClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-signal-client-test-suite",
+      "name": "TestWorkflowAPIBatchSignalClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchSignalClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchSignalClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-terminate-client-test-suite",
+      "name": "TestWorkflowAPIBatchTerminateClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchTerminateClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchTerminateClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-update-options-client-test-suite",
+      "name": "TestWorkflowAPIBatchUpdateOptionsClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchUpdateOptionsClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchUpdateOptionsClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-buffered-events-test-suite",
+      "name": "TestWorkflowBufferedEventsTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowBufferedEventsTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowBufferedEventsTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-completion-pagination-test-suite",
+      "name": "TestWorkflowCompletionPaginationTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowCompletionPaginationTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowCompletionPaginationTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-delete-execution-suite",
+      "name": "TestWorkflowDeleteExecutionSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowDeleteExecutionSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowDeleteExecutionSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-failures-test-suite",
+      "name": "TestWorkflowFailuresTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowFailuresTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowFailuresTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-memo-test-suite",
+      "name": "TestWorkflowMemoTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowMemoTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowMemoTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-reset-test-suite",
+      "name": "TestWorkflowResetTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowResetTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowResetTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-reset-with-child-test-suite",
+      "name": "TestWorkflowResetWithChildTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowResetWithChildTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowResetWithChildTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-task-test-suite",
+      "name": "TestWorkflowTaskTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowTaskTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowTaskTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-test-suite",
+      "name": "TestWorkflowTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-timer-test-suite",
+      "name": "TestWorkflowTimerTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowTimerTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowTimerTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-type-encoding-suite",
+      "name": "TestWorkflowTypeEncodingSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowTypeEncodingSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowTypeEncodingSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-update-suite",
+      "name": "TestWorkflowUpdateSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowUpdateSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowUpdateSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "required_probes": [
+        "stdlib.net.interfaces",
+        "stdlib.os.getwd",
+        "stdlib.os.newfile",
+        "stdlib.os.openfile"
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-visibility-test-suite",
+      "name": "TestWorkflowVisibilityTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowVisibilityTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowVisibilityTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "overall_timeout": "20m",
+      "expectation": {
+        "classification": "qualified"
+      }
+    }
+  ]
+}
