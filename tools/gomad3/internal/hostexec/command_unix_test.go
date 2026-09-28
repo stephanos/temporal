@@ -17,6 +17,24 @@ import (
 	"time"
 )
 
+func TestClassifyGroupSignal(t *testing.T) {
+	for name, signal := range map[string]struct {
+		err   error
+		fails bool
+	}{
+		"delivered":  {},
+		"gone":       {err: syscall.ESRCH},
+		"zombies":    {err: syscall.EPERM},
+		"unexpected": {err: syscall.EINVAL, fails: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := classifyGroupSignal(signal.err); (err != nil) != signal.fails {
+				t.Fatalf("classifyGroupSignal(%v) = %v", signal.err, err)
+			}
+		})
+	}
+}
+
 func TestRunCapturesSuccessfulCommand(t *testing.T) {
 	result, err := Run(context.Background(), testRequest("printf 'standard output'; printf 'standard error' >&2"))
 	if err != nil {
