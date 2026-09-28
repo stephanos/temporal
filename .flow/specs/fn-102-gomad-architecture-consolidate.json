@@ -1,0 +1,195 @@
+{
+  "branch_name": "fn-102-gomad-architecture-consolidate",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T23:44:04.379860Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-101-gomad-f7-any-functional-test-and-ci"
+  ],
+  "id": "fn-102-gomad-architecture-consolidate",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T23:53:21.429262Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "660a984c0bbfd07347b64ecfa2cdb21d67d67e75767bb7a29325c1986fed2af4",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cf6525009330cdcd791e76cb71d6739488f98cce",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6",
+      "outcome": "transport_failure",
+      "output_bytes": 725,
+      "output_sha256": "4ea9bfae2d169f896059b92b5efe473b6e99715997d3f2d21f69dad581dd27e0",
+      "reservation_id": "daf528a6d155426bb0249685873224fb",
+      "round_consumed": false,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T23:46:53.098134Z",
+      "tool_calls": 1,
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "660a984c0bbfd07347b64ecfa2cdb21d67d67e75767bb7a29325c1986fed2af4",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bf374093fa2cd6f224b9e374595e5336",
+            "classification": "introduced",
+            "findingId": "finding-bf374093fa2cd6f224b9e374595e5336",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1a2b9378999f8d228ddab01b91ff5303",
+            "classification": "introduced",
+            "findingId": "finding-1a2b9378999f8d228ddab01b91ff5303",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b6744515ff11e0dd382581a173a56fc2",
+            "classification": "introduced",
+            "findingId": "finding-b6744515ff11e0dd382581a173a56fc2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cf6525009330cdcd791e76cb71d6739488f98cce",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 478765,
+      "output_sha256": "2b916d5ea14fe3f0e95627c1044a4a938aa7b0031906e5c2372190bcbcb26559",
+      "reservation_id": "93c72933012f4974aa324a969c29643d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T23:51:12.680953Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7da3949d60a60e51de3f2c7b3d4cb7c25a336afd2ac90890d19a152b70154a8d",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bf374093fa2cd6f224b9e374595e5336",
+            "classification": "introduced",
+            "findingId": "finding-bf374093fa2cd6f224b9e374595e5336",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1a2b9378999f8d228ddab01b91ff5303",
+            "classification": "introduced",
+            "findingId": "finding-1a2b9378999f8d228ddab01b91ff5303",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b6744515ff11e0dd382581a173a56fc2",
+            "classification": "introduced",
+            "findingId": "finding-b6744515ff11e0dd382581a173a56fc2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cf6525009330cdcd791e76cb71d6739488f98cce",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 579,
+      "output_sha256": "ad21f069602a3a1247e1b9f5195b738066a8e24603f48bbb89b953e50cf1c858",
+      "reservation_id": "8ce737a4966b493db442bb3d2e9d80f4",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T23:53:21.425164Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-102-gomad-architecture-consolidate.md",
+  "status": "open",
+  "title": "Gomad architecture: consolidate execution policy and bootstrap ownership",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T23:53:21.430032Z"
+}

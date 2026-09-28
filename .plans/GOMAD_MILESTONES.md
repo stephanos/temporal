@@ -12,6 +12,9 @@ all four tracks. This document orders the subset of that work that the functiona
 depends on, adds the repairs the roadmap does not know about, and states an acceptance
 criterion for each step that a reviewer can check with a command.
 
+F0–F7 deliver the functional-test goal. F8 follows with architecture maintenance that
+consolidates protocol and execution-policy ownership while preserving the qualified behavior.
+
 The ladder is strictly ordered. Each milestone assumes the previous one's acceptance criteria
 hold. A milestone whose criteria fail blocks the next one; it never gets narrowed to pass.
 
@@ -34,6 +37,7 @@ milestone's status here.
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | open |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | open |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
+| F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
@@ -980,10 +984,73 @@ gate run in CI.
 - Each newly added test in `./tests` on a subsequent pull request appears in the report without
   a manifest edit.
 
+## F8: consolidate architecture after functional qualification
+
+**Spec.** [fn-102-gomad-architecture-consolidate](../.flow/specs/fn-102-gomad-architecture-consolidate.md)
+
+**Outcome.** The runtime bootstrap protocol and shared Runner execution policy each have one
+owner, public Runner interfaces expose usable contracts, and architecture checks enforce the
+intended package structure. The existing runtime, Runner, World, Record, and Artifact seams
+remain intact. The [architecture assessment](../.flow/artifacts/fn-102-gomad-architecture-consolidate/architecture-assessment.md)
+records the findings and evidence behind this work.
+
+**Details.**
+
+- Generate the runtime's allocation-free bootstrap header and seed decoder from the existing
+  I/O schema, register its overlay file in the version descriptor, and preserve the current
+  early-read and later full-validation phases.
+- Extract private completed-execution assessment and retention policy shared by seed, choice,
+  and simulation exploration. Keep scheduling, cancellation, counters, seed-ordinal publication,
+  and atomic exploration-round commits with their existing owners.
+- Move `Executor` and `ReplayExecutor` injection behind private dependencies across campaign,
+  replay, resume, shard execution, and minimization. Migrate repository callers and preserve
+  the usable `Preparer` and `ArtifactReplayer` contracts.
+- Discover all host packages in architecture checks, inspect both qualified platform source
+  sets, and test ownership, targeted host-effect restrictions, and public signature visibility
+  with negative fixtures. Exclude runtime overlays and independent fixture modules explicitly.
+- Reconcile platform, determinism, choice-exploration, and simulation documentation with the
+  implementation and current qualification evidence, preserving stable requirement IDs.
+
+**Constraints.**
+
+- F8 depends on F7. Capability closure, observed repeatability/replay defects, and Linux clock
+  auditing stay with F4–F7; this maintenance work cannot narrow their acceptance criteria.
+- Preserve CLI behavior, schemas, failure classifications and precedence, resource bounds,
+  and replay compatibility checks. Canonical bytes remain unchanged for identical supplied
+  inputs and identities; rebuilding the implementation legitimately changes its identity.
+- Removing public executor injection is an explicit Go source API change. Do not expose
+  process or wire internals to make those interfaces implementable.
+- Preserve fresh-process isolation, native timer ownership, independent corpus retention,
+  and existing recovery rules. No generic strategy framework, scheduler redesign,
+  deterministic-GC implementation, or new simulation capability belongs to this milestone.
+
+**Acceptance.** The spec's R1–R6 are authoritative; the milestone summary is:
+
+- The actual runtime bootstrap consumer passes valid, empty, truncated, malformed-header,
+  and seed-boundary cases on both qualified platforms, retaining later checksum/identity
+  rejection and disabled/direct-seed behavior.
+- All three exploration strategies use the shared policy while preserving fixed-identity
+  evidence, error precedence, retention limits, cancellation, and interrupted recovery.
+- Deterministic 10-job and 100-job cases at parallelism 2 preserve execution and retention
+  bounds; data-flow review finds no new total-seed-sized policy state or full-payload copies.
+  This is a resource-bound check, not a throughput or memory benchmark claim.
+- Intended public Runner use compiles outside its subtree, private fake-executor tests remain
+  effective, and architecture fixtures catch ownerless packages, forbidden effects/imports,
+  and inaccessible public signature types.
+- Documentation matches current evidence. Generated-source checks, focused tests, full Gomad
+  gates on `darwin/arm64` and `linux/amd64`, and project lint pass. An unavailable environment
+  is recorded as a blocker, never as passing qualification.
+
+**Status.** Planned on 2026-09-27 with six tasks and an explicit dependency on F7. Flow-Next
+validation passes and plan review returned `SHIP`; implementation has not started. The
+existing architecture test package passed during assessment, which is not full runtime
+qualification.
+
 ## Out of scope
 
-- Fault injection, partitions, crash-restart, and multi-node scenarios through `tools/gomad3sim`.
-  Those are the simulation track and cannot host `testcore`; nothing here depends on them.
+- New fault injection, partition, crash-restart, and multi-node capabilities through
+  `tools/gomad3sim`. Those are the simulation track and cannot host `testcore`; F8 only
+  consolidates shared Runner policy used by the existing exploration strategies.
 - Multi-P scheduling, deterministic GC, DPOR, and preemption bounding. These are BUG-7 research
   items and no milestone above requires them.
 - Revival of gomad1 or gomad2. [GOMAD_CMP.md](GOMAD_CMP.md) records why.
