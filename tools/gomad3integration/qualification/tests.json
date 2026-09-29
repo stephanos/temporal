@@ -980,7 +980,8 @@
       "replay_successes": true,
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
-      "overall_timeout": "20m",
+      "execution_timeout": "8m",
+      "overall_timeout": "30m",
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
