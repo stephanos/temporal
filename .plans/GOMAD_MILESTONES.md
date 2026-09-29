@@ -39,6 +39,7 @@ milestone's status here.
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
 | F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; seeded virtual-clock ticks (default decided by measurement) |
+| F7+ | `fn-104-gomad-run-a-downstream-cell-under-the` | open; depends on F7; downstream-module targets ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
