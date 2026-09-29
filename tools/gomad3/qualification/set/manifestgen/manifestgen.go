@@ -95,6 +95,10 @@ type TestOverride struct {
 	ExecutionTimeout     string                             `json:"execution_timeout,omitempty"`
 	OverallTimeout       string                             `json:"overall_timeout,omitempty"`
 	Reason               string                             `json:"reason,omitempty"`
+	// SkipSubtests excludes named subtests of the test, each with the owner,
+	// date, and reason an exclusion requires, so the rest of the test stays
+	// in the set.
+	SkipSubtests map[string]Exclusion `json:"skip_subtests,omitempty"`
 }
 
 // narrows reports whether the override changes what the test retains or how
@@ -255,20 +259,32 @@ func validateSpec(spec Spec) error {
 		if override.narrows() && strings.TrimSpace(override.Reason) == "" {
 			return fmt.Errorf("override of %s changes its evidence or budget and requires a reason", name)
 		}
+		for subtest, exclusion := range override.SkipSubtests {
+			if err := validateExclusion(name+"/"+subtest, exclusion); err != nil {
+				return err
+			}
+		}
 	}
 	for name, exclusion := range spec.Exclusions {
-		if strings.TrimSpace(exclusion.Owner) == "" {
-			return fmt.Errorf("exclusion of %s requires an owner", name)
-		}
-		if _, err := time.Parse(time.DateOnly, exclusion.Date); err != nil {
-			return fmt.Errorf("exclusion of %s requires a YYYY-MM-DD date: %w", name, err)
-		}
-		if strings.TrimSpace(exclusion.Reason) == "" {
-			return fmt.Errorf("exclusion of %s requires a reason", name)
+		if err := validateExclusion(name, exclusion); err != nil {
+			return err
 		}
 		if _, overridden := spec.Tests[name]; overridden {
 			return fmt.Errorf("%s is both excluded and overridden", name)
 		}
+	}
+	return nil
+}
+
+func validateExclusion(name string, exclusion Exclusion) error {
+	if strings.TrimSpace(exclusion.Owner) == "" {
+		return fmt.Errorf("exclusion of %s requires an owner", name)
+	}
+	if _, err := time.Parse(time.DateOnly, exclusion.Date); err != nil {
+		return fmt.Errorf("exclusion of %s requires a YYYY-MM-DD date: %w", name, err)
+	}
+	if strings.TrimSpace(exclusion.Reason) == "" {
+		return fmt.Errorf("exclusion of %s requires a reason", name)
 	}
 	return nil
 }
@@ -476,6 +492,9 @@ func workload(spec Spec, test, id string) set.Workload {
 		}
 		if override.OverallTimeout != "" {
 			generated.OverallTimeout = override.OverallTimeout
+		}
+		if len(override.SkipSubtests) != 0 {
+			generated.Skip = slices.Sorted(maps.Keys(override.SkipSubtests))
 		}
 	}
 	return generated
