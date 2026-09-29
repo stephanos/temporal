@@ -827,15 +827,19 @@ func gomadMarkWorkerAllowed(pp *p) bool {
 	return !runqempty(pp) || !sched.runq.empty() || !work.assistQueue.q.empty()
 }
 
-// gomadGreyRuntimeStructures greys every m, its g0 and gsignal, and every g
-// while the world is still stopped at mark start. Which M runs a goroutine
-// after a syscall hand-off is host timing, and execute's gp.m = mp write
-// shades that M through the write barrier; an M scanned early also greys its
-// curg and g0 early. With the classic collector the total scan work of these
-// objects is fixed, but the assist that ends the mark phase stops on a work
-// boundary, so greying them at a host-timed moment moved that boundary between
-// same-seed runs. Greying them all here, in allm and allgs order, puts the
-// same work at the same point of every cycle.
+// gomadGreyRuntimeStructures greys every m, its g0, gsignal and self handle,
+// every p's oldm handle, and every g while the world is still stopped at mark
+// start. Which M runs a goroutine after a syscall hand-off is host timing, and
+// execute's gp.m = mp write shades that M through the write barrier; an M
+// scanned early also greys its curg and g0 early. acquirep records the M that
+// took the P in p.oldm, a copy of that M's self handle (an 8-byte heap object),
+// so the scan of the p greyed whichever handle the host-timed hand-off had left
+// there and moved 8 bytes of scan work between drain slices; the assist or
+// worker that ends a slice stops on a work boundary, so the work buffers, the
+// page-heap layout and every %p the target prints followed the hand-off. With
+// the classic collector the total scan work of these objects is fixed, so
+// greying them all here, in allm, allp and allgs order, puts the same work at
+// the same point of every cycle.
 func gomadGreyRuntimeStructures() {
 	for mp := allm; mp != nil; mp = mp.alllink {
 		shade(uintptr(unsafe.Pointer(mp)))
@@ -844,6 +848,14 @@ func gomadGreyRuntimeStructures() {
 		}
 		if mp.gsignal != nil {
 			shade(uintptr(unsafe.Pointer(mp.gsignal)))
+		}
+		if mp.self.m != nil {
+			shade(uintptr(unsafe.Pointer(mp.self.m)))
+		}
+	}
+	for _, pp := range allp {
+		if pp.oldm.m != nil {
+			shade(uintptr(unsafe.Pointer(pp.oldm.m)))
 		}
 	}
 	forEachG(func(gp *g) {

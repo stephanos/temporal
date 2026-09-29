@@ -666,14 +666,19 @@ simulation transport reads are exempt because they block until the simulation
 advances.
 
 At the start of every mark phase, while the world is still stopped, the
-runtime greys every M with its g0 and gsignal and every goroutine, and an idle
-M does not keep the `allp` snapshot that `findRunnable` takes before dropping
-its P. Which M runs a goroutine after a syscall hand-off, and which Ms park
-through `findRunnable`, are host timing; the collector otherwise shaded those
-structures from the write barrier or from the parked M at host-timed points,
-and because the assist that ends a mark phase stops on a work boundary, the
-same-seed run-queue order of a cluster-sized target diverged from its first
-collection on darwin/arm64.
+runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
+handle, and every goroutine, and an idle M does not keep the `allp` snapshot
+that `findRunnable` takes before dropping its P. Which M runs a goroutine after
+a syscall hand-off, and which Ms park through `findRunnable`, are host timing;
+the collector otherwise shaded those structures from the write barrier or from
+the parked M at host-timed points, and because the assist that ends a mark
+phase stops on a work boundary, the same-seed run-queue order of a
+cluster-sized target diverged from its first collection on darwin/arm64. The
+`oldm` handle is the 8-byte weak pointer `acquirep` copies from the M that took
+the P; scanning the P greyed whichever handle the last hand-off had left there,
+which moved 8 bytes of scan work between drain slices, then a work buffer,
+then every later page of the heap, so a same-seed replay of a functional suite
+printed a different `%p` in its logs.
 
 On darwin/arm64 an activated target re-executes itself once with ASLR
 disabled before runtime initialization continues. The darwin/arm64 linker

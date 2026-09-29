@@ -170,7 +170,7 @@
         "TestWorkerOperation": {
           "owner": "stephanos",
           "date": "2026-09-29",
-          "reason": "Seed 11 exports no HTTP spans within the 10s await in both repetitions (\"[]\" should have 2 items, nexus_otel_test.go:529); seed 17 exports them. Schedule-dependent span export; needs investigation of the worker-operation span path."
+          "reason": "Sorts the history client span and the frontend server span by StartTime (nexus_otel_test.go:473) and expects the client span first; under virtual time both spans start in the same instant, so the tie leaves the export order, which follows the schedule: seed 11 exports the server span first (\"Not equal\" at nexus_otel_test.go:530 in both repetitions, 2026-09-29), seed 17 the client span first. The spans themselves are exported on both seeds."
         }
       }
     },
@@ -304,9 +304,9 @@
     "TestVersioningFunctionalSuite": {
       "choice_bytes": 0,
       "replay_successes": false,
-      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Without the tape it runs past the 2m wall budget: both seeds hit the execution watchdog in run 7 on a host at load 25, with no spin found.",
-      "execution_timeout": "10m",
-      "overall_timeout": "40m"
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets.",
+      "execution_timeout": "30m",
+      "overall_timeout": "90m"
     },
     "TestWFTFailureReportedProblemsTestSuite": {
       "skip_subtests": {
@@ -358,16 +358,6 @@
     }
   },
   "exclusions": {
-    "TestCompletionCallbacksSuite": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Gomad runtime nondeterminism, not a test defect: same-seed runs of seed 17 diverge at runnable decision 58931, where the runtime cleanup goroutine (runtime.runCleanups) is runnable in one run and not the other. Traced back to GC cycle 12, whose heap scan work differs by 456 bytes between runs with identical heapMarked and heapLive; the resulting sweep wakes the cleanup queue at a different decision. Replay of one retained success diverges in about one of three attempts. Follow-up: find the host-timed input to GC scan work."
-    },
-    "TestSignalWorkflowTestSuiteChasm": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Gomad runtime nondeterminism of the TestCompletionCallbacksSuite class: seed 17's two repetitions diverge at runnable decision 9330 (27 against 25 runnable goroutines, run 7) although the suite qualified on both seeds in run 6. Follow-up with the callbacks GC scan-work finding."
-    },
     "TestTaskQueueStats_Pri_Suite": {
       "owner": "stephanos",
       "date": "2026-09-29",
