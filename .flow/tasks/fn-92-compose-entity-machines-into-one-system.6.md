@@ -29,6 +29,9 @@ Draft the GOV-02 amendments the spec lists, add the AUTHORING section on the wor
 go test -tags test_dep ./tools/umpire/authoring/... ./tools/umpire/vocabulary/...
 make umpire-check-plan-index
 ```
+### Gate policy (2026-09-28)
+- Tasks .1–.8 ran the builtin lint only on the modules they touched; this closing task runs the whole-model `LEAN_NUM_THREADS=1 make lint-model` once, on a quiet host, for the whole spec.
+
 ## Acceptance
 - [ ] Every listed GOV-02 draft present in the fn-88 marker forms; MOD-15 spec-names test passes with no `(planned: fn-92-…)` tag left on a name that resolves
 - [ ] AUTHORING section added; drift test maps markers to files, block names unique across the walkthrough, and passes
