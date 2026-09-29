@@ -170,8 +170,11 @@ Pick the proof technique by the declaration's assurance boundary:
 
 Audit each changed trust-bearing declaration with `#print axioms Fully.Qualified.name`,
 `Lean.Util.CollectAxioms`, or a project checker documented to compute the equivalent transitive
-inventory; the model workspace's `*Tests` modules pin inventories with `#print axioms`. Take the
-baseline from an explicit trust policy or checker, never from existing use or passing tests. With
+inventory; the model workspace's `*Tests` modules pin inventories with `assert_axioms [decls]
+allowing [axioms]` (`Umpire.Shared.Test`), which fails the build itself when a checked declaration's
+axioms escape the allowed set, rather than printing a message a `#guard_msgs` pin has to happen to
+compare correctly. Take the baseline from an explicit trust policy or checker, never from existing
+use or passing tests. With
 no baseline, compare an existing declaration's inventory before and after the change and reject new
 dependencies unless the specification approves and documents them. A new trust-bearing declaration
 carries no axiom dependency until its assurance boundary is stated. Compiler-trust dependencies

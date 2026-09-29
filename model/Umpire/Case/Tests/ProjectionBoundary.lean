@@ -1,5 +1,6 @@
 import Umpire.Case.Projection
 import Umpire.Evidence
+import Umpire.Shared.Test
 
 /-! Projection seals raw evidence and authority; its kernel path adds no compiler-trust axiom. -/
 
@@ -36,21 +37,7 @@ but is expected to have type
 private def rawPropertyTrace (event : Umpire.Case.Projection.Event) :
     Umpire.ModelTrace Bool Bool Bool Bool := event
 
-/-- info: 'Umpire.Case.Projection.check' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.check
-/-- info: 'Umpire.Case.Projection.Run.admit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.Run.admit
-/-- info: 'Umpire.Case.Projection.Run.close' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.Run.close
-/-- info: 'Umpire.Case.Projection.Step.semantic' does not depend on any axioms -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.Step.semantic
-/-- info: 'Umpire.validateEvidenceBackedTrace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.validateEvidenceBackedTrace
-/-- info: 'Umpire.evaluateProperty' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.evaluateProperty
+-- `evaluateProperty` is checked once, in `Umpire.Property.Tests.Endpoints`.
+assert_axioms [Umpire.Case.Projection.check, Umpire.Case.Projection.Run.admit,
+  Umpire.Case.Projection.Run.close, Umpire.Case.Projection.Step.semantic,
+  Umpire.validateEvidenceBackedTrace] allowing [propext, Classical.choice, Quot.sound]

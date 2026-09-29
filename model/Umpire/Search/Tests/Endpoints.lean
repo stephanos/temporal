@@ -1,5 +1,6 @@
 import Umpire.Search.Tests.Fixtures
 import Umpire.Model.Table
+import Umpire.Shared.Test
 
 /-! Endpoint interpretation and exact candidate-budget boundaries. -/
 
@@ -118,8 +119,9 @@ private def referenceEnding (form : Query.Form) (budget : Nat) : String :=
   ["default", "unsupported-clause:branches", "unsupported-scenario:ordering",
     "unsupported-strategy:seeded", "unsupported-form:verify"]
 
-#print axioms evaluatePropertyEndpoint_closed
-#print axioms PlanningOutcome.constructorClassifiers_exactlyOne
+-- `evaluatePropertyEndpoint_closed` is checked once, in `Umpire.Property.Tests.Endpoints`.
+assert_axioms [PlanningOutcome.constructorClassifiers_exactlyOne]
+  allowing [propext, Classical.choice, Quot.sound]
 
 private def terminalTarget (conditions : List (List ModelValue)) : Option (QueryModel (fun _ => True)) :=
   (checkModel (DraftModel.make { modelSpec 0 with terminalConditions := conditions }

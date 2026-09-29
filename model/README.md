@@ -252,7 +252,8 @@ Lean syntax used by the walkthrough:
 - `Except Error Value` is either `.error error` or `.ok value`; `do` and `←` stop on the first error.
 - `by` starts a proof; `checked`'s proof argument defaults to `by native_decide`, the raw/check/checked
   seam.
-- `#guard_msgs` compiles an expected elaboration failure; `#print axioms` reports transitive trust.
+- `#guard_msgs` compiles an expected elaboration failure; `assert_axioms [decls] allowing [axioms]`
+  fails the build when a checked declaration's transitive trust escapes the allowed set.
 
 `Temporal.Feature.NexusTests` compiles the facade-only path: the caller Model's machines, a
 Property, a Scenario, a Query, a set and a Case, reached through `Temporal.Feature.Nexus` alone.

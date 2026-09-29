@@ -890,20 +890,10 @@ private def ruleParts (rule : ContractRule) :
 
 /-! ### Trust -/
 
-/-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Correlated.Lowered.window_property
-/-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Correlated.Lowered.evidence_validation
-/-- info: 'Umpire.Case.Projection.Correlated.Monitor.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.Correlated.Monitor.admitMany_append
-/-- info: 'Umpire.Case.Projection.lower' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.lower
-/-- info: 'Umpire.Case.Projection.InstancedRule.fold' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.InstancedRule.fold
+-- `Lowered.window_property`, `Lowered.evidence_validation` and
+-- `Projection.Correlated.Monitor.admitMany_append` are each checked once, elsewhere
+-- (`Umpire.Case.CorrelatedTests`, `Umpire.Case.CorrelatedTests`, `Umpire.Property.Tests.Correlated`).
+assert_axioms [Umpire.Case.Projection.lower, Umpire.Case.Projection.InstancedRule.fold]
+  allowing [propext, Quot.sound]
 
 end Umpire.Case.FieldLoweringTests

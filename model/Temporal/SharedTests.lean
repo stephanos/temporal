@@ -1,5 +1,6 @@
 import Temporal.Shared
 import Umpire.Query.Elab
+import Umpire.Shared.Test
 
 /-! Temporal-owned identity and source contracts.
 
@@ -60,6 +61,6 @@ def tenIndependentIdentities : List DefinitionId :=
 example : oneIndependentIdentity.length = 1 ∧ tenIndependentIdentities.length = 10 := by
   native_decide
 
-#print axioms Temporal.Shared.definitionFamily
+assert_axioms [Temporal.Shared.definitionFamily] allowing [propext]
 
 end Temporal.SharedTests

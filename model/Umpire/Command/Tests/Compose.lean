@@ -1,4 +1,5 @@
 import Umpire.Command
+import Umpire.Shared.Test
 
 /-!
 # The `compose` command
@@ -442,9 +443,7 @@ compose pipeline
   starts: [Umpire.pending, agent.running]
   ends: [Umpire.done, Umpire.failed]
 
-/-- info: 'Umpire.Command.Tests.Compose.Shadowing.pipeline.agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms pipeline.agrees
+assert_axioms [pipeline.agrees] allowing [propext, Classical.choice, Quot.sound]
 
 end Shadowing
 

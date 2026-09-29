@@ -1,6 +1,7 @@
 import Umpire.Evidence.Reading.Check
 import Umpire.Evidence.Tests.Fixtures
 import Umpire.Model.Tests.Fixtures
+import Umpire.Shared.Test
 
 /-! Deterministic checked-plan identity and exact structural compilation failures. -/
 
@@ -562,12 +563,9 @@ example : oneIndependentObservationConstruction.length = 1 ∧
     tenIndependentObservationConstructions.length = 10 := by
   native_decide
 
-#print axioms ObservationKindSpec.declaration
-#print axioms ObservationProfileSpec.declaration
-#print axioms ObservationRuleSpec.declaration
-#print axioms Evidence.ReadingSpec.declaration
-#print axioms Evidence.ReadingSpec.check
-#print axioms Evidence.checkedReading
-#print axioms Evidence.ReadingSpec.checked
+assert_axioms [ObservationKindSpec.declaration, ObservationProfileSpec.declaration,
+  ObservationRuleSpec.declaration, Evidence.ReadingSpec.declaration, Evidence.ReadingSpec.check,
+  Evidence.checkedReading, Evidence.ReadingSpec.checked]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.EvidenceTests

@@ -2,6 +2,7 @@ import Umpire.Search.Product
 import Umpire.Search.Tests.Fixtures
 import Umpire.Examples.Switch
 import Umpire.Model.Tests.Parameterized
+import Umpire.Shared.Test
 
 /-!
 # The Scenario progress automaton and the product state space
@@ -314,20 +315,8 @@ end Parameterized
 
 /-! ### Axiom inventories of the product theorems -/
 
-/-- info: 'Umpire.Search.Product.decode_lossless' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.decode_lossless
-
-/-- info: 'Umpire.Search.Product.StateSpace.run_progress' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.StateSpace.run_progress
-
-/-- info: 'Umpire.Search.Product.StateSpace.accepts_iff_admits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.StateSpace.accepts_iff_admits
-
-/-- info: 'Umpire.Search.Product.StateSpace.mem_successors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.StateSpace.mem_successors
+assert_axioms [Umpire.Search.Product.decode_lossless, Umpire.Search.Product.StateSpace.run_progress,
+  Umpire.Search.Product.StateSpace.accepts_iff_admits, Umpire.Search.Product.StateSpace.mem_successors]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.SearchTests.Product

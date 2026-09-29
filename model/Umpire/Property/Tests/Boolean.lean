@@ -342,6 +342,6 @@ def forgedCheckedPredicate : CheckedPropertyPredicate .before := {
   }
 }
 
-#print axioms Umpire.evaluatePropertyPredicate_agrees
+-- `evaluatePropertyPredicate_agrees` is checked once, in `Umpire.Property.Tests.Fields`.
 
 end Umpire.PropertyTests

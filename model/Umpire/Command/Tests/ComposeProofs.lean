@@ -1,4 +1,5 @@
 import Umpire.Command.Tests.Compose
+import Umpire.Shared.Test
 
 /-!
 # What a composed table agrees with
@@ -159,9 +160,9 @@ run_cmd do
   Umpire.Command.elabComposedAgreement .missing "lamped" (Lean.mkIdent `lampedRefused) members
     candidates missingRow 4 2
 
-/-- info: 'Umpire.Command.Tests.ComposeProofs.lampedRefused' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms lampedRefused
+-- `lampedRefused` stays declared carrying `sorryAx` (the comment above), so its own entry is the
+-- one place `allowing` deliberately admits it: the refusal working is what this pins.
+assert_axioms [lampedRefused] allowing [propext, sorryAx, Classical.choice, Quot.sound]
 
 run_cmd do
   let members ← `(term| [Umpire.Command.Tests.ComposeProofs.lamp,
@@ -172,21 +173,13 @@ run_cmd do
   Umpire.Command.elabComposedAgreement .missing "lamped" (Lean.mkIdent `lampedAgrees) members
     candidates literal 4 2
 
-/-- info: 'Umpire.Command.Tests.ComposeProofs.lampedAgrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms lampedAgrees
-
 /-! ### The axioms
 
 The generic theorem, and the agreement theorem `compose` declared for the fixture composition. -/
 
-/-- info: 'Umpire.Command.Compose.ComposedAgreement.ofChecked' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Command.Compose.ComposedAgreement.ofChecked
-
-/-- info: 'Umpire.Command.Tests.Compose.Forward.pipeline.agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Command.Tests.Compose.Forward.pipeline.agrees
+assert_axioms [lampedAgrees, Umpire.Command.Compose.ComposedAgreement.ofChecked,
+  Umpire.Command.Tests.Compose.Forward.pipeline.agrees]
+  allowing [propext, Classical.choice, Quot.sound]
 
 /- The literals the command declared beside the theorem: the readings the kernel decided equal
 the tables' and the composed literal's, and the grouping the check ran on, which flattens to the

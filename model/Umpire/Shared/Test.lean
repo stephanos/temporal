@@ -1,4 +1,5 @@
 import Umpire.Shared
+import Umpire.Shared.Test.AxiomCheck
 
 namespace Umpire.Shared.Test
 

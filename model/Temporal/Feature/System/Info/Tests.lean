@@ -1,4 +1,5 @@
 import Temporal.Feature.System.Info.Model
+import Umpire.Shared.Test
 
 /-!
 # What the system-info Model says
@@ -21,9 +22,7 @@ open temporal.server.api.testpilot.v1 hiding ModelValue SourceLocation
 #guard systemInfo.actionKeys == #["getSystemInfo"]
 #guard systemInfo.stuck == none
 
-/-- info: 'Temporal.Feature.System.Info.systemInfo' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms systemInfo
+assert_axioms [systemInfo] allowing [propext]
 
 /-! ### The Query and the Case -/
 

@@ -1,6 +1,7 @@
 import Umpire.Property.Tests.Correlated.Fixtures
 import Umpire.Property.Elab
 import Umpire.Property.Correlated.Reference
+import Umpire.Shared.Test
 
 /-! Correlated admission, independent deadlines, per-operation ticks, and resource failure boundaries. -/
 
@@ -128,21 +129,13 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
 #guard_msgs in
 #check TraceEnding.terminalModel
 
-/-- info: 'Umpire.Property.Correlated.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Execution.closed_property
-
-/-- info: 'Umpire.Property.Correlated.checked_eventuallyWithin_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.checked_eventuallyWithin_agrees
-/-- info: 'Umpire.Property.Correlated.Monitor.consume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Monitor.consume
-/-- info: 'Umpire.Property.Correlated.Monitor.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Monitor.consumeMany_append
-/-- info: 'Umpire.Case.Projection.Correlated.Monitor.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Projection.Correlated.Monitor.admitMany_append
+-- `Execution.closed_property` and `Case.Projection.Correlated.Monitor.admitMany_append` are each
+-- checked once, here.
+assert_axioms [Umpire.Property.Correlated.Execution.closed_property,
+  Umpire.Property.Correlated.checked_eventuallyWithin_agrees,
+  Umpire.Property.Correlated.Monitor.consume,
+  Umpire.Property.Correlated.Monitor.consumeMany_append,
+  Umpire.Case.Projection.Correlated.Monitor.admitMany_append]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.Property.CorrelatedTests

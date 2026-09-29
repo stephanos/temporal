@@ -2,6 +2,7 @@ import Temporal.Feature.Workflow.Start.Model
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Operation.Parameterized
+import Umpire.Shared.Test
 
 /-!
 # What the workflow-start Model says
@@ -32,9 +33,7 @@ open temporal.server.api.testpilot.v1 hiding ModelValue SourceLocation
 #guard workflowStart.actionKeys == #["startWorkflow"]
 #guard workflowStart.stuck == none
 
-/-- info: 'Temporal.Feature.Workflow.Start.workflowStart' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms workflowStart
+assert_axioms [workflowStart] allowing [propext]
 
 /-! ### The relation the platform resolved
 

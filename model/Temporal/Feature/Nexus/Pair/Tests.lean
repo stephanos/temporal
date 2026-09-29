@@ -2,6 +2,7 @@ import Temporal.Feature.Nexus.Pair.Model
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Search.Tests.Differential
+import Umpire.Shared.Test
 
 /-!
 # What the pair Model says
@@ -31,9 +32,7 @@ open temporal.server.api.testpilot.v1 hiding ModelValue SourceLocation
 #guard pair.actionKeys.size == 8 + 6 + 3
 #guard pair.stuck == none
 
-/-- info: 'Temporal.Feature.Nexus.Pair.pair' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms pair
+assert_axioms [pair] allowing [propext]
 
 /-! ### The relation the platform resolved
 

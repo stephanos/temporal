@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Tests.Commands
+import Umpire.Shared.Test
 
 /-!
 # The design's own machines, written as step functions
@@ -158,9 +159,7 @@ neither a stutter nor anything a product without a timer could take. -/
 Behavior Fingerprint, Search and Contract lowering all read, and `elabCommand` logs a failure rather
 than throwing it -- so a machine too large to prove would otherwise be declared carrying `sorryAx`
 and read as complete. -/
-/-- info: 'Temporal.Feature.Nexus.Tests.Machines.nexusProduct' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms nexusProduct
+assert_axioms [nexusProduct] allowing [propext]
 
 /- Nothing here is stuck. Weak on its own -- `workerStop` steps from every state, so no state of this
 machine could be stuck -- which is why the rejection is pinned below on a machine that can be. -/

@@ -1,4 +1,5 @@
 import Temporal.Feature.Worker.Model
+import Umpire.Shared.Test
 
 /-!
 # What the worker entity says
@@ -37,8 +38,6 @@ Temporal Model's do. -/
    "temporal.worker.action.workerResume", "temporal.worker.action.serve",
    "temporal.worker.target.polling"]
 
-/-- info: 'Temporal.Feature.Worker.polling' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms polling
+assert_axioms [polling] allowing [propext]
 
 end Temporal.Feature.Worker.Tests

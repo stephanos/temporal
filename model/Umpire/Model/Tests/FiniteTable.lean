@@ -1,4 +1,5 @@
 import Umpire.Model
+import Umpire.Shared.Test
 
 /-! Typed finite table admission through the public Target facade. -/
 
@@ -121,7 +122,7 @@ example (checked : CheckedTable Nat Nat Nat Nat Nat)
 example : error? { table with terminalConditions := [[1], [0, 1]] } = none ∧
     error? { table with terminalConditions := [[9]] } = some (.outOfDomain .state) := by decide
 
-#print axioms Umpire.FiniteTable.validate
-#print axioms Umpire.FiniteCatalog.encode?
+assert_axioms [Umpire.FiniteTable.validate, Umpire.FiniteCatalog.encode?]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.ModelTests.FiniteTable

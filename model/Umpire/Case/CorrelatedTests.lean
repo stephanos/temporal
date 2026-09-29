@@ -1,4 +1,5 @@
 import Umpire.Case.Tests.CorrelatedFixtures
+import Umpire.Shared.Test
 
 namespace Umpire.Case.CorrelatedTests
 open CorrelatedFixtures
@@ -58,20 +59,10 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
   let projection ← (plan target).toOption
   pure (projection.behaviorVersion.startsWith "[\"checked-projection/v2\"")) == some true
 
-/-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Correlated.Lowered.window_property
-/-- info: 'Umpire.Case.Correlated.Lowered.observed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Correlated.Lowered.observed_property
-/-- info: 'Umpire.Case.CorrelatedProofs.endpoint_agrees' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms Umpire.Case.CorrelatedProofs.endpoint_agrees
-/-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Case.Correlated.Lowered.evidence_validation
-/-- info: 'Testpilot.Correlated.Monitor.observe' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Testpilot.Correlated.Monitor.observe
+-- `Lowered.window_property` and `Lowered.evidence_validation` are each checked once, here.
+assert_axioms [Umpire.Case.Correlated.Lowered.window_property,
+  Umpire.Case.Correlated.Lowered.observed_property, Umpire.Case.CorrelatedProofs.endpoint_agrees,
+  Umpire.Case.Correlated.Lowered.evidence_validation, Testpilot.Correlated.Monitor.observe]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.Case.CorrelatedTests

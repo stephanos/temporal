@@ -1,4 +1,5 @@
 import Temporal.Feature.Workflow.Outage.Model
+import Umpire.Shared.Test
 
 /-!
 # What the worker-outage Model says
@@ -24,9 +25,7 @@ open temporal.server.api.testpilot.v1 hiding ModelValue SourceLocation
 #guard workflowOutage.actionKeys == #["awaitCompletion", "startWorkflow", "workerResume", "workerStop"]
 #guard workflowOutage.stuck == none
 
-/-- info: 'Temporal.Feature.Workflow.Outage.workflowOutage' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms workflowOutage
+assert_axioms [workflowOutage] allowing [propext]
 
 /-! ### The Query -/
 
@@ -121,15 +120,7 @@ literal is the composition of the two machines' tables, with no axiom beyond the
 #guard (workerOutage.table.transitions.filter (·.key.endsWith "-awaitCompletion")).map (·.key) ==
   ["started_polling-awaitCompletion"]
 
-/-- info: 'Temporal.Feature.Workflow.Outage.workerOutage' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms workerOutage
-
-/--
-info: 'Temporal.Feature.Workflow.Outage.workerOutage.agrees' depends on axioms: [propext, Classical.choice, Quot.sound]
--/
-#guard_msgs in
-#print axioms workerOutage.agrees
+assert_axioms [workerOutage, workerOutage.agrees] allowing [propext, Classical.choice, Quot.sound]
 
 /- The claim fixes the one whole state a completion leaves, and the completed event. -/
 #guard completedByPollingWorker.names.groups.map (fun group => (group.trigger, group.requirements)) ==

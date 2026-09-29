@@ -1,5 +1,6 @@
 import Umpire.Search.Product.MonitorProofs
 import Umpire.Search.Tests.Product
+import Umpire.Shared.Test
 
 /-!
 # Property monitors against the evaluator
@@ -427,32 +428,10 @@ end Parameterized
 
 /-! ### Axiom inventories of the monitor theorems -/
 
-/-- info: 'Umpire.Search.Product.ClauseState.answer_closed_ne_unresolved' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.ClauseState.answer_closed_ne_unresolved
-
-/-- info: 'Umpire.Search.Product.Monitor.start_within' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.start_within
-
-/-- info: 'Umpire.Search.Product.Monitor.advance_within' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.advance_within
-
-/-- info: 'Umpire.Search.Product.Monitor.eventuallyStep_within' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.eventuallyStep_within
-
-/-- info: 'Umpire.Search.Product.Monitor.neverStep_within' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.neverStep_within
-
-/-- info: 'Umpire.Search.Product.Monitor.advance_fired' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.advance_fired
-
-/-- info: 'Umpire.Search.Product.Monitor.never_fires' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Product.Monitor.never_fires
+assert_axioms [Umpire.Search.Product.ClauseState.answer_closed_ne_unresolved,
+  Umpire.Search.Product.Monitor.start_within, Umpire.Search.Product.Monitor.advance_within,
+  Umpire.Search.Product.Monitor.eventuallyStep_within, Umpire.Search.Product.Monitor.neverStep_within,
+  Umpire.Search.Product.Monitor.advance_fired, Umpire.Search.Product.Monitor.never_fires]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.SearchTests.Monitor

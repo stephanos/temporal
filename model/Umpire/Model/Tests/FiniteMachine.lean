@@ -1,4 +1,5 @@
 import Umpire.Model.Tests.Fixtures
+import Umpire.Shared.Test
 
 /-! Contract tests for complete finite-machine Target authoring. -/
 
@@ -471,11 +472,9 @@ def linearAdmission (stateCount : Nat) :=
 example : (linearAdmission 3).isOk = true ∧ (linearAdmission 30).isOk = true := by
   native_decide
 
-#print axioms Umpire.CheckedTable.machine
-#print axioms Umpire.CheckedTable.draftModel
-#print axioms Umpire.FiniteTable.checkTypedModel
-#print axioms Umpire.FiniteMachine.modelSpec
-#print axioms Umpire.FiniteMachine.draftModel
+assert_axioms [Umpire.CheckedTable.machine, Umpire.CheckedTable.draftModel,
+  Umpire.FiniteTable.checkTypedModel, Umpire.FiniteMachine.modelSpec,
+  Umpire.FiniteMachine.draftModel] allowing [propext, Classical.choice, Quot.sound]
 
 end Admission
 

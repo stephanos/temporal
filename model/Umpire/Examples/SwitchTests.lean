@@ -5,6 +5,7 @@ import Umpire.Variations.Tests.Intent
 import Umpire.Variations.Tests.Metadata
 import Umpire.Variations.Tests.Validation
 import Umpire.Json
+import Umpire.Shared.Test
 
 /-!
 # What the switch example says
@@ -45,9 +46,7 @@ private def behaviorErrorOf : Except ScenarioError CheckedScenario → Option Sc
 #guard twoState.table.states.length == 2
 #guard twoState.stuck == none
 
-/-- info: 'Umpire.Examples.Switch.twoState' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms twoState
+assert_axioms [twoState] allowing [propext]
 
 /-! The Definition IDs hang off the `umpire` root through the `switch` family, each member under
 the machine that owns it. -/

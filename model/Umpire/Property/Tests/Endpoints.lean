@@ -1,4 +1,5 @@
 import Umpire.Property.Tests.Fixtures
+import Umpire.Shared.Test
 
 /-! Checked prefix evaluation preserves closed truth and inclusive semantic deadlines. -/
 
@@ -76,8 +77,8 @@ private def guardedLogicalResponse : PropertyClause :=
 #guard endpointAnswer cancelIsUnique
   { initialState := value pendingCount "2", steps := [] } true == some .violated
 
-#print axioms Umpire.evaluateProperty
-#print axioms Umpire.evaluatePropertyEndpoint
-#print axioms Umpire.evaluatePropertyEndpoint_closed
+-- `evaluateProperty` and `evaluatePropertyEndpoint_closed` are each checked once, here.
+assert_axioms [Umpire.evaluateProperty, Umpire.evaluatePropertyEndpoint,
+  Umpire.evaluatePropertyEndpoint_closed] allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.PropertyTests

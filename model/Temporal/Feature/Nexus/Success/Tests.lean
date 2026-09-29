@@ -2,6 +2,7 @@ import Temporal.Feature.Nexus.Success.Model
 import Testpilot.ProtoJSON
 import Umpire.Command.Tests.Authoring
 import Umpire.Command.Tests.Finite
+import Umpire.Shared.Test
 
 /-! Executable checks for the compact Nexus success command surface and checked meaning. -/
 
@@ -1506,10 +1507,9 @@ example : temporal.api.command.v1.ScheduleNexusOperationCommandAttributes :=
   { endpoint := "endpoint", service := "service", operation := "operation"
     schedule_to_close_timeout := "1s" }
 
-#print axioms Umpire.Command.declareModel
-#print axioms Umpire.Command.check
-#print axioms Temporal.Feature.Nexus.Success.lifecycle
-#print axioms Temporal.Feature.Nexus.Success.completion
+assert_axioms [Umpire.Command.declareModel, Umpire.Command.check,
+  Temporal.Feature.Nexus.Success.lifecycle, Temporal.Feature.Nexus.Success.completion]
+  allowing [propext, Classical.choice, Quot.sound]
 
 /-! ### A setup parameter, bound or not
 

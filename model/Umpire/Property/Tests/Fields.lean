@@ -4,6 +4,7 @@ import Umpire.Property.Correlated
 import Umpire.Property.Tests.Fixtures
 import Umpire.Operation.Action
 import Umpire.Value.Field
+import Umpire.Shared.Test
 
 /-! Independent same-step field requirements use the checked Property owner. -/
 namespace Umpire.PropertyFieldsTests
@@ -345,17 +346,10 @@ private def identityComparison : PropertyFieldComparison :=
 #guard identityComparison.canonical != { identityComparison with
   right := .field { priorPath with steps := [.field "M" 2, .establish], type := .bytes } source }.canonical
 
-/-- info: 'Umpire.PropertyFieldOperator.matches_agrees' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms Umpire.PropertyFieldOperator.matches_agrees
-/-- info: 'Umpire.CheckedPropertyPredicateInput.operandValue_denotes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.CheckedPropertyPredicateInput.operandValue_denotes
-/-- info: 'Umpire.evaluatePropertyPredicate_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.evaluatePropertyPredicate_agrees
-/-- info: 'Umpire.evaluateProperty_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.evaluateProperty_agrees
+-- `evaluatePropertyPredicate_agrees` and `evaluateProperty_agrees` are each checked once, here.
+assert_axioms [Umpire.PropertyFieldOperator.matches_agrees,
+  Umpire.CheckedPropertyPredicateInput.operandValue_denotes,
+  Umpire.evaluatePropertyPredicate_agrees, Umpire.evaluateProperty_agrees]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.PropertyFieldsTests

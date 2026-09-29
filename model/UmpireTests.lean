@@ -47,6 +47,7 @@ import Umpire.Case.Tests.ObservedPath
 import Umpire.Command.Tests.Compose
 import Umpire.Command.Tests.ComposeProofs
 import Umpire.Command.Tests.Derived
+import Umpire.Shared.Tests.AxiomCheck
 
 namespace UmpireTests
 

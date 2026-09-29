@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Caller.Model
 import Umpire.Search.Tests.Differential
+import Umpire.Shared.Test
 
 /-!
 # What the Caller Model says
@@ -35,9 +36,7 @@ see, and the one timer. -/
     nexusProduct.transitions).map nexusProduct.stateKeyFor ==
   ["scheduled", "canceled", "failed", "succeeded", "started", "timedOut"]
 
-/-- info: 'Temporal.Feature.Nexus.Caller.nexusProduct' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms nexusProduct
+assert_axioms [nexusProduct] allowing [propext]
 
 #guard nexusProduct.stuck == none
 
@@ -109,9 +108,7 @@ disagree about them exist in the type and no run produces them. The Behavior Fin
 table, so this number is part of the Model's identity. -/
 #guard (Umpire.Command.reachableFrom nexusProtocol.starts nexusProtocol.transitions).length == 158
 
-/-- info: 'Temporal.Feature.Nexus.Caller.nexusProtocol' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms nexusProtocol
+assert_axioms [nexusProtocol] allowing [propext]
 
 /-! ### The refinement
 
@@ -163,11 +160,7 @@ product machine. -/
 #guard nexusProtocol.stateFieldIds.map (·.1) ==
   ["phase", "attempts", "scheduleToClose", "scheduleToStart", "startToClose", "nexusProduct"]
 
-/--
-info: 'Temporal.Feature.Nexus.Caller.nexusProtocol.refines' depends on axioms: [propext, Quot.sound]
--/
-#guard_msgs in
-#print axioms nexusProtocol.refines
+assert_axioms [nexusProtocol.refines] allowing [propext, Quot.sound]
 
 /-! ### The Properties and the Queries -/
 
@@ -462,19 +455,8 @@ literal is the composition of the two machines' tables, with no axiom beyond the
 #guard (nexusCaller.table.transitions.filter fun row =>
     (row.key.splitOn "-handlerReply").length > 1 && (row.key.splitOn "_stopped-").length > 1) == []
 
-/-- info: 'Temporal.Feature.Nexus.Caller.handlerWorker' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms handlerWorker
-
-/-- info: 'Temporal.Feature.Nexus.Caller.nexusCaller' depends on axioms: [propext] -/
-#guard_msgs in
-#print axioms nexusCaller
-
-/--
-info: 'Temporal.Feature.Nexus.Caller.nexusCaller.agrees' depends on axioms: [propext, Classical.choice, Quot.sound]
--/
-#guard_msgs in
-#print axioms nexusCaller.agrees
+assert_axioms [handlerWorker, nexusCaller, nexusCaller.agrees]
+  allowing [propext, Classical.choice, Quot.sound]
 
 /- The bare trigger covers every reply class, and each group fixes the worker's field alone while
 the operation member varies. -/

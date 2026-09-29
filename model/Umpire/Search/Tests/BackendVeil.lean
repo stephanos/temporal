@@ -1,6 +1,7 @@
 import Umpire.Search.Backend.Veil
 import Umpire.Search.Tests.Fixtures
 import Umpire.Model.Tests.Parameterized
+import Umpire.Shared.Test
 
 /-!
 # The `veil` backend
@@ -179,16 +180,9 @@ each clause kind its monitors lower, which only the `veil` backend carries. -/
 
 /-! ### Axiom inventories of the adapter theorems (R7) -/
 
-/-- info: 'Umpire.Search.Backend.Veil.transition_equivalence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Backend.Veil.transition_equivalence
-
-/-- info: 'Umpire.Search.Backend.Veil.initial_equivalence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Backend.Veil.initial_equivalence
-
-/-- info: 'Umpire.Search.Backend.Veil.assumptions_equivalence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Search.Backend.Veil.assumptions_equivalence
+assert_axioms [Umpire.Search.Backend.Veil.transition_equivalence,
+  Umpire.Search.Backend.Veil.initial_equivalence,
+  Umpire.Search.Backend.Veil.assumptions_equivalence]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.SearchTests.BackendVeil

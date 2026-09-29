@@ -1,4 +1,5 @@
 import Umpire.Property.Tests.Fixtures
+import Umpire.Shared.Test
 
 /-! Trigger-frozen guarded bounded Property admission, evaluation, provenance, and agreement. -/
 
@@ -436,8 +437,8 @@ example (property : CheckedProperty) (input : CheckedPropertyEvaluationInput pro
     (evaluateProperty property input).satisfied = true ↔ property.denote input :=
   evaluateProperty_agrees property input
 
-#print axioms Umpire.evaluatePropertyClause_agrees
-#print axioms Umpire.evaluateProperty_agrees
+-- `evaluateProperty_agrees` is checked once, in `Umpire.Property.Tests.Fields`.
+assert_axioms [Umpire.evaluatePropertyClause_agrees] allowing [propext, Classical.choice, Quot.sound]
 
 /-! The optional guard is what makes the extra clause data meaningful: an `unless` without one, or
 a guarded clause with no source path, is rejected rather than silently dropped at admission. -/

@@ -1,5 +1,6 @@
 import Umpire.Scenario.Tests.Canonicalization
 import Umpire.Search.Tests.Fixtures
+import Umpire.Shared.Test
 
 /-! Typed constraint lowering preserves the canonical checker and exact regression forms. -/
 
@@ -147,8 +148,7 @@ private def planningContext : ScenarioCheckContext := {
     (SearchTests.incrementalKernel 0)).toOption.map
       (·.result.metadata.validity.satisfiability)) == some .impossible
 
-#print axioms Scenario.constrained
-#print axioms Scenario.exactly
-#print axioms Scenario.checked
+assert_axioms [Scenario.constrained, Scenario.exactly, Scenario.checked]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.ScenarioTests

@@ -391,14 +391,9 @@ private def reading (unretained : PropertyFieldPath) : PropertyCorrelatedClause 
 #guard errorKind? (reading optionalPath) [] == some .invalidClause
 #guard errorKind? (reading oneofPath) [] == some .invalidClause
 
-/-- info: 'Umpire.Property.Correlated.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Captures.record_extends
-/-- info: 'Umpire.Property.Correlated.Monitor.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Monitor.consumeEvidence_append
-/-- info: 'Umpire.Property.Correlated.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms Umpire.Property.Correlated.Execution.closed_property
+-- `Execution.closed_property` is checked once, in `Umpire.Property.Tests.Correlated`.
+assert_axioms [Umpire.Property.Correlated.Captures.record_extends,
+  Umpire.Property.Correlated.Monitor.consumeEvidence_append]
+  allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.Property.CorrelatedFieldTests
