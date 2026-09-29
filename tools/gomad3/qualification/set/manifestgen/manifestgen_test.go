@@ -235,11 +235,18 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 		t.Fatal(err)
 	}
 	intermittent := set.WorkloadExpectation{Classification: "intermittent", Finding: "GOMAD_MILESTONES.md#f7"}
-	spec.Tests = map[string]TestOverride{"TestAlphaSuite": {
-		RequiredProbes:       []string{"stdlib.os.openfile"},
-		Expectation:          &intermittent,
-		PlatformExpectations: map[string]set.WorkloadExpectation{"darwin/arm64": {Classification: "qualified"}},
-	}}
+	noChoices, noReplay := uint64(0), false
+	spec.Tests = map[string]TestOverride{
+		"TestAlphaSuite": {
+			RequiredProbes:       []string{"stdlib.os.openfile"},
+			Expectation:          &intermittent,
+			PlatformExpectations: map[string]set.WorkloadExpectation{"darwin/arm64": {Classification: "qualified"}},
+		},
+		"TestNDCGamma": {
+			ChoiceBytes: &noChoices, ReplaySuccesses: &noReplay, ExecutionTimeout: "4m", OverallTimeout: "30m",
+			Reason: "its choice tape overflows 64 MiB; seed repeatability without exact replay",
+		},
+	}
 	spec.Exclusions = map[string]Exclusion{"TestBeta_Parts": {Owner: "stephanos", Date: "2026-09-28", Reason: "needs a real network"}}
 	writeSpec(t, root, spec)
 	if err := run(root, true); err == nil || !strings.Contains(err.Error(), "is stale") {
@@ -256,8 +263,8 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 	if _, found := workloadFor(manifest, "TestBeta_Parts"); found {
 		t.Fatal("excluded test is generated")
 	}
-	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" {
-		t.Fatalf("untouched workload = %+v", gamma)
+	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" || gamma.ChoiceBytes != 0 || gamma.ReplaySuccesses || gamma.SuccessArtifactLimit != 0 || gamma.SuccessBytesLimit != 0 || gamma.ExecutionTimeout != "4m" || gamma.OverallTimeout != "30m" {
+		t.Fatalf("narrowed workload = %+v", gamma)
 	}
 }
 
@@ -302,6 +309,19 @@ func TestInvalidSpecsAreRefused(t *testing.T) {
 				spec.Exclusions = map[string]Exclusion{"TestGone": {Owner: "stephanos", Date: "2026-09-28", Reason: "flaky"}}
 			},
 			want: "exclusion names TestGone",
+		},
+		"override narrowing evidence without reason": {
+			mutate: func(spec *Spec) {
+				noReplay := false
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ReplaySuccesses: &noReplay}}
+			},
+			want: "changes its evidence or budget and requires a reason",
+		},
+		"override narrowing budget without reason": {
+			mutate: func(spec *Spec) {
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ExecutionTimeout: "4m"}}
+			},
+			want: "changes its evidence or budget and requires a reason",
 		},
 		"override expectation without finding": {
 			mutate: func(spec *Spec) {

@@ -194,3 +194,19 @@ func runEmbedTarget(t *testing.T, prepared Prepared) string {
 	}
 	return string(output)
 }
+
+// TestMain keeps every preparation the package's tests make out of the
+// developer's prepared-target cache, whose eviction bound they would
+// otherwise churn.
+func TestMain(m *testing.M) {
+	root, err := os.MkdirTemp("", "gomad3-prepared-targets-")
+	if err != nil {
+		panic(err)
+	}
+	preparedTargetCacheRoot = func(string, string) string { return root }
+	status := m.Run()
+	if err := os.RemoveAll(root); err != nil {
+		panic(err)
+	}
+	os.Exit(status)
+}
