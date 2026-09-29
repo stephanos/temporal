@@ -73,11 +73,6 @@
       "replay_successes": false,
       "reason": "Its choice tape overflows the 64 MiB bound on both seeds (choice_trace_overflow, darwin/arm64 2026-09-28); seed repeatability is proven without a retained success replay."
     },
-    "TestCompletionCallbacksSuite": {
-      "execution_timeout": "8m",
-      "overall_timeout": "30m",
-      "reason": "Boots a dedicated cluster for each execution-type and callback-target combination; 95 s of virtual time took more than the 2 m wall budget on darwin/arm64 2026-09-28 with no watchdog spin found (the sampled hot path is the cluster-metadata refresh loop)."
-    },
     "TestContinueAsNewTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",

@@ -628,7 +628,9 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 		result.IOTranscript = collected.transcript
 	}
-	if choiceErr != nil {
+	// A target the watchdog or a cancellation killed never terminated its
+	// trace; that termination is the outcome the caller classifies.
+	if choiceErr != nil && !(errors.Is(choiceErr, ErrChoiceTraceUnterminated) && (result.WatchdogTimeout || result.Cancelled)) {
 		return result, choiceErr
 	}
 	if readOnlyMountBroker != nil {
