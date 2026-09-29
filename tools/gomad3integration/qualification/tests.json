@@ -3094,6 +3094,16 @@
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
+      },
+      "platform_expectations": {
+        "darwin/arm64": {
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        },
+        "linux/amd64": {
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        }
       }
     },
     {
@@ -3549,6 +3559,16 @@
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
+      },
+      "platform_expectations": {
+        "darwin/arm64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        },
+        "linux/amd64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        }
       }
     },
     {
