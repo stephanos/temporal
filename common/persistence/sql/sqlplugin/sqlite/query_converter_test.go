@@ -224,7 +224,7 @@ func TestQueryConverter_BuildSelectStmt(t *testing.T) {
 			name:     "empty",
 			pageSize: 10,
 			stmt: fmt.Sprintf(
-				"SELECT %s FROM executions_visibility ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id LIMIT ?",
+				"SELECT %s FROM executions_visibility ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id DESC LIMIT ?",
 				strings.Join(sqlplugin.DbFields, ", "),
 			),
 			queryArgs: []any{10},
@@ -238,7 +238,7 @@ func TestQueryConverter_BuildSelectStmt(t *testing.T) {
 			},
 			pageSize: 20,
 			stmt: fmt.Sprintf(
-				"SELECT %s FROM executions_visibility WHERE Keyword01 = 'foo' ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id LIMIT ?",
+				"SELECT %s FROM executions_visibility WHERE Keyword01 = 'foo' ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id DESC LIMIT ?",
 				strings.Join(sqlplugin.DbFields, ", "),
 			),
 			queryArgs: []any{20},
@@ -257,7 +257,7 @@ func TestQueryConverter_BuildSelectStmt(t *testing.T) {
 				RunID:     runID,
 			},
 			stmt: fmt.Sprintf(
-				"SELECT %s FROM executions_visibility WHERE Keyword01 = 'foo' AND ((coalesce(close_time, '9999-12-31 23:59:59+00:00') = ? AND start_time = ? AND run_id > ?) OR (coalesce(close_time, '9999-12-31 23:59:59+00:00') = ? AND start_time < ?) OR coalesce(close_time, '9999-12-31 23:59:59+00:00') < ?) ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id LIMIT ?",
+				"SELECT %s FROM executions_visibility WHERE Keyword01 = 'foo' AND ((coalesce(close_time, '9999-12-31 23:59:59+00:00') = ? AND start_time = ? AND run_id < ?) OR (coalesce(close_time, '9999-12-31 23:59:59+00:00') = ? AND start_time < ?) OR coalesce(close_time, '9999-12-31 23:59:59+00:00') < ?) ORDER BY coalesce(close_time, '9999-12-31 23:59:59+00:00') DESC, start_time DESC, run_id DESC LIMIT ?",
 				strings.Join(sqlplugin.DbFields, ", "),
 			),
 			queryArgs: []any{
