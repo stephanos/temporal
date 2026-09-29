@@ -751,6 +751,57 @@ lean_exe «umpire-lint» where
     #[`Shared, `Testpilot, `Testpilot.Tests, `Testpilot.Tests.ProtoJSONMain,
       `Tools.LeanImportGraph, `Tools.LeanImportGraphTests, `ModelLint]
 
+/-- A block-commented declaration (including one nested inside another block comment) is never
+read as an active root, a line-commented `root :=`/`roots :=` before the real one is never picked
+up in its place, and an ordinary line comment on its own line disappears without disturbing the
+declarations around it. Reproduces the three fan-out draws' independent finding against
+`checkUnbuilt` (fn-93.3 round 2): a lakefile scanner that does not strip comments first treats a
+disabled target as still active, which is the false negative the guard exists to prevent. -/
+private def testLakefileCommentsIgnored : IO Unit := do
+  let blockCommented := "
+lean_lib Shared
+
+/-
+@[default_target] lean_lib UmpireTests
+-/
+"
+  requireEqual "a block-commented declaration is not a root"
+    (parseLakefileRoots blockCommented) #[`Shared]
+  let nestedBlockCommented := "
+lean_lib Shared
+
+/- outer /- inner -/ still commented
+@[default_target] lean_lib UmpireTests
+-/
+
+lean_lib Umpire
+"
+  requireEqual "a declaration inside a nested block comment is not a root"
+    (parseLakefileRoots nestedBlockCommented) #[`Shared, `Umpire]
+  let lineCommentedField := "
+lean_exe «umpire-inspect» where
+  -- root := `Temporal.Tool.Old
+  root := `Temporal.Tool.Inspect
+"
+  requireEqual "a line-commented root := is never read; the live one is"
+    (parseLakefileRoots lineCommentedField) #[`Temporal.Tool.Inspect]
+  let lineCommentedRoots := "
+lean_lib TestpilotTests where
+  -- roots := #[`Retired.Root]
+  roots := #[`Testpilot.Tests]
+"
+  requireEqual "a line-commented roots := array is never read; the live one is"
+    (parseLakefileRoots lineCommentedRoots) #[`Testpilot.Tests]
+  let ordinaryLineComment := "
+-- a plain comment between two targets, not attached to either
+lean_lib Shared
+
+-- another one
+lean_lib Umpire
+"
+  requireEqual "an ordinary line comment disappears without merging or dropping declarations"
+    (parseLakefileRoots ordinaryLineComment) #[`Shared, `Umpire]
+
 /-- `checkBuildRootsDrift` reports a policy root the lakefile no longer declares and a lakefile
 root the policy does not list, in either direction, and reports neither when the two agree. -/
 private def testBuildRootsDrift : IO Unit := do
@@ -891,6 +942,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testSearchBackendIsolation
   testUnbuiltModules
   testParseLakefileRoots
+  testLakefileCommentsIgnored
   testBuildRootsDrift
   testRealLakefileRootsAgree
   testFeatureEntityUniqueness

@@ -533,6 +533,41 @@ private def backtickNamesIn (text : String) : Array Lean.Name := Id.run do
       names := names.push (stringToLeanName spelling)
   return names
 
+/-- Strip Lean's `-- ...` line comments and nestable `/- ... -/` block comments from `source`,
+replacing each with nothing (a stripped line comment keeps its terminating newline; a stripped
+block comment keeps any newlines it spans, so line-oriented scanning downstream sees the same
+line structure). A commented-out declaration or field is prose, not configuration, and the
+declaration scanner below must never mistake one for an active target. -/
+private def stripLeanComments (source : String) : String := Id.run do
+  let characters := source.toList.toArray
+  let mut result : Array Char := #[]
+  let mut index := 0
+  let mut blockDepth := 0
+  while index < characters.size do
+    let character := characters[index]!
+    let next := if index + 1 < characters.size then some characters[index + 1]! else none
+    if blockDepth > 0 then
+      if character == '/' && next == some '-' then
+        blockDepth := blockDepth + 1
+        index := index + 2
+      else if character == '-' && next == some '/' then
+        blockDepth := blockDepth - 1
+        index := index + 2
+      else
+        if character == '\n' then
+          result := result.push character
+        index := index + 1
+    else if character == '/' && next == some '-' then
+      blockDepth := 1
+      index := index + 2
+    else if character == '-' && next == some '-' then
+      while index < characters.size && characters[index]! != '\n' do
+        index := index + 1
+    else
+      result := result.push character
+      index := index + 1
+  return String.ofList result.toList
+
 /-- One `lean_lib`/`lean_exe` declaration from `model/lakefile.lean`: its own name, and the raw
 text from the declaration to the next one (or the end of file), which carries its `where` block
 when it has one. -/
@@ -541,14 +576,14 @@ private structure LakefileTarget where
   body : String
 
 /-- Split `model/lakefile.lean`'s text into one `LakefileTarget` per `lean_lib`/`lean_exe`
-declaration. A declaration keyword only ever starts a line here (after an optional
-`@[default_target]` prefix), so a line-oriented scan finds every one without parsing full Lean
-syntax. -/
+declaration, after stripping comments so a commented-out declaration or field is never read as
+live. A declaration keyword only ever starts a line here (after an optional `@[default_target]`
+prefix), so a line-oriented scan finds every one without parsing full Lean syntax. -/
 private def lakefileTargets (source : String) : Array LakefileTarget := Id.run do
   let mut targets : Array LakefileTarget := #[]
   let mut currentName : Option String := none
   let mut currentBody : String := ""
-  for line in source.splitOn "\n" do
+  for line in (stripLeanComments source).splitOn "\n" do
     let trimmed := trimSpaces line
     let afterAttribute :=
       if trimmed.startsWith "@[default_target]" then
