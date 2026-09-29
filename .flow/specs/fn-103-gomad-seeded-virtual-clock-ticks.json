@@ -1,0 +1,33 @@
+{
+  "branch_name": "stephanos/gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-29T19:10:44.793139Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-101-gomad-f7-any-functional-test-and-ci"
+  ],
+  "id": "fn-103-gomad-seeded-virtual-clock-ticks",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-103-gomad-seeded-virtual-clock-ticks.md",
+  "status": "open",
+  "title": "Gomad: seeded virtual-clock ticks",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-29T19:14:11.372946Z"
+}

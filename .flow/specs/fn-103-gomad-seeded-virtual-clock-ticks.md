@@ -1,0 +1,68 @@
+# Gomad: seeded virtual-clock ticks
+
+## Goal & Context
+<!-- scope: business -->
+
+Under Gomad, virtual time advances only when no goroutine is runnable, so every event inside one
+busy stretch carries the same timestamp. Several functional tests implicitly rely on distinct
+wall-clock times and fail under Gomad only because of such ties (equal-start-time SQLite
+visibility listings, OTEL spans sorted by `StartTime`, same-instant describe results), while other
+ties exposed real bugs (the update admission ordering). Making the clock's advance between events a
+seeded choice turns time into an exploration dimension like scheduling: different seeds produce
+ties, near-ties, and spread-out timestamps, and every seed stays exactly reproducible.
+
+## Architecture & Data Models
+<!-- scope: technical -->
+
+A tick policy in the deterministic profile advances the process virtual clock by a drawn amount at
+a configured point (per `time.Now`/monotonic read, or per goroutine wake-up). Policies:
+- `seeded` (proposed default): a mixture — probability p of 0 (a tie), otherwise a bounded draw
+  (e.g. geometric/log-uniform between 1 ns and a small upper bound) — drawn from a dedicated
+  stream derived from the seed and a draw counter, never from the scheduling stream;
+- `fixed=<d>`: a constant quantum;
+- `strict`: today's behavior (no tick).
+Policy, parameters, and application point are recorded in the profile and in Campaign/Artifact
+identity; replay derives the same draws without a tape. A manifest may set the policy per
+workload.
+
+## Edge Cases & Constraints
+<!-- scope: technical -->
+
+- Changing the default changes every identity; the core, representative, and smoke sets are
+  requalified once, and the change carries the COMPAT-5 evidence set (contract, bounds on per-draw
+  and cumulative drift, transcript/tape coverage, exact replay, negative tests).
+- With ticks, timers may come due while work is runnable; the delivery order is documented and
+  deterministic.
+- The tick stream must not share state with scheduling, GC, or host-timed runtime draws (lesson of
+  the F3/F5 channels).
+- A test that relies on distinct timestamps fails on tie-producing seeds; it is fixed upstream,
+  pinned to a tie-free policy per workload with a finding, or excluded with the seeds named.
+
+## Acceptance Criteria
+<!-- scope: both -->
+
+- **R1:** The tick policy (`seeded` with parameters, `fixed`, `strict`) and application point are
+  configurable on explore/qualify/qualify-set and per workload in manifests, and recorded in profile
+  and artifact identity. Errors: invalid parameters or bounds are rejected; replay with a mismatched
+  policy fails closed.
+- **R2:** Under every policy, same-seed repetitions and replay stay exact (runtime fixture and a
+  core workload per policy); `strict` reproduces today's behavior byte-for-byte.
+- **R3:** The default policy is decided from measurement: the tie-excluded suites and the smoke
+  selection are run under `seeded` across several seeds; if the evidence supports it, `seeded`
+  becomes the default, the qualified sets are requalified, and tie exclusions resolve (fixed,
+  pinned, or seed-named); otherwise `strict` stays the default with the evidence recorded.
+- **R4:** README/ARCHITECTURE document the policies, the contract, the chosen default and why.
+
+## Boundaries
+<!-- scope: business -->
+
+- Not a fix for GC-layout or scheduling divergences.
+- No full `./tests` runs (validation is the smoke selection plus affected suites).
+
+## Decision Context
+<!-- scope: both -->
+
+2026-09-29, user: bump virtual time minimally per wake-up, configurable; then: maybe make it the
+default, with a seed-based distribution for more variation. A seeded mixture that still produces
+ties with some probability keeps both bug classes reachable across seeds; strict and fixed remain
+available.

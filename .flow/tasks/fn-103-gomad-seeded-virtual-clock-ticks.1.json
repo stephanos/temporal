@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-29T19:10:46.392853Z",
+  "depends_on": [],
+  "id": "fn-103-gomad-seeded-virtual-clock-ticks.1",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-103-gomad-seeded-virtual-clock-ticks",
+  "spec_path": ".flow/tasks/fn-103-gomad-seeded-virtual-clock-ticks.1.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Implement seeded, fixed, and strict tick policies in the runtime and profile",
+  "updated_at": "2026-09-29T19:14:26.672348Z"
+}
