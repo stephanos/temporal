@@ -705,7 +705,9 @@ func buildGoTarget(
 	} else {
 		arguments = append(arguments, "test", "-c")
 	}
-	arguments = append(arguments, "-trimpath", "-o", targetPath)
+	// VCS stamping would record repository state no prepared-target identity
+	// binds, so a restored binary could carry another commit's build info.
+	arguments = append(arguments, "-trimpath", "-buildvcs=false", "-o", targetPath)
 	if spec.CapabilityMode != CapabilityModeClosure {
 		gcflags := "-gcflags=all=-gomadcap"
 		if spec.CapabilityMode == CapabilityModeGuarded {
@@ -727,10 +729,17 @@ func buildGoTarget(
 	if err != nil {
 		return preparation{}, err
 	}
+	cacheUse, err := targetbuild.UseCache(buildCache)
+	if err != nil {
+		return preparation{}, err
+	}
 	command := exec.CommandContext(ctx, goCommand, arguments...)
 	command.Dir = commandDirectory
 	command.Env = append(targetbuild.Environment(), "GOCACHE="+buildCache)
 	output, err := command.CombinedOutput()
+	if releaseErr := cacheUse.Release(); releaseErr != nil {
+		return preparation{}, fmt.Errorf("release target build cache: %w", releaseErr)
+	}
 	if err != nil {
 		if spec.CapabilityMode != CapabilityModeClosure {
 			return preparation{}, fmt.Errorf("prepare %s target: %w", spec.Kind, linkedCapabilityBuildError(err, output))

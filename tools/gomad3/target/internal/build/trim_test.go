@@ -46,3 +46,33 @@ func TestTrimCacheDropsLeastRecentlyUsedEntriesToTheBound(t *testing.T) {
 		}
 	}
 }
+
+func TestTrimCacheDeletesNothingWhileABuildHoldsTheCache(t *testing.T) {
+	cache := t.TempDir()
+	entry := filepath.Join(cache, "aa", "archive-d")
+	if err := os.MkdirAll(filepath.Dir(entry), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(entry, make([]byte, 300), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	build, err := UseCache(cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := TrimCache(cache, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(entry); err != nil {
+		t.Fatalf("trim under a build removed its entry: %v", err)
+	}
+	if err := build.Release(); err != nil {
+		t.Fatal(err)
+	}
+	if err := TrimCache(cache, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(entry); !os.IsNotExist(err) {
+		t.Fatalf("trim after the build kept its entry: %v", err)
+	}
+}

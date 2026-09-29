@@ -2,12 +2,15 @@ package target
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -17,7 +20,7 @@ import (
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 )
 
-const preparedTargetSchema = "gomad3.prepared-target/v1"
+const preparedTargetSchema = "gomad3.prepared-target/v2"
 
 // maximumEmbeddedFileBytes bounds one embedded file the identity reads.
 const maximumEmbeddedFileBytes = 64 << 20
@@ -53,6 +56,17 @@ type preparedTargetIdentity struct {
 	ModuleFiles    record.SHA256    `json:"module_files_sha256"`
 	Closure        record.SHA256    `json:"closure_sha256"`
 	Embedded       []embeddedSource `json:"embedded"`
+	Modules        []moduleSource   `json:"modules"`
+}
+
+// moduleSource binds a dependency module's language version and, for a
+// module without a version (a local replacement), its go.mod contents; the
+// main module's files are ModuleFiles.
+type moduleSource struct {
+	Path      string        `json:"path"`
+	Version   string        `json:"version,omitempty"`
+	GoVersion string        `json:"go_version,omitempty"`
+	GoMod     record.SHA256 `json:"go_mod_sha256,omitempty"`
 }
 
 type embeddedSource struct {
@@ -146,6 +160,10 @@ func newPreparedTargetIdentity(spec Spec, tags []string, toolchain ToolchainIden
 			identity.Embedded = append(identity.Embedded, embeddedSource{ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Name: filepath.ToSlash(name), SHA256: record.HashBytes(contents)})
 		}
 	}
+	identity.Modules, err = moduleSources(packages)
+	if err != nil {
+		return preparedTargetIdentity{}, err
+	}
 	sort.Slice(identity.Embedded, func(i, j int) bool {
 		left, right := identity.Embedded[i], identity.Embedded[j]
 		if left.ImportPath != right.ImportPath {
@@ -157,6 +175,36 @@ func newPreparedTargetIdentity(spec Spec, tags []string, toolchain ToolchainIden
 		return left.Name < right.Name
 	})
 	return identity, nil
+}
+
+func moduleSources(packages []listedPackage) ([]moduleSource, error) {
+	byPath := map[string]moduleSource{}
+	for _, pkg := range packages {
+		if pkg.Standard || pkg.Module == nil || pkg.Module.Main {
+			continue
+		}
+		effective := pkg.Module
+		if effective.Replace != nil {
+			effective = effective.Replace
+		}
+		source := moduleSource{Path: pkg.Module.Path, Version: effective.Version, GoVersion: cmp.Or(effective.GoVersion, pkg.Module.GoVersion)}
+		if effective.Version == "" {
+			if effective.GoMod == "" {
+				return nil, fmt.Errorf("inspect target module %s: local module has no go.mod", pkg.Module.Path)
+			}
+			digest, err := filesDigest(effective.GoMod)
+			if err != nil {
+				return nil, fmt.Errorf("inspect target module %s: %w", pkg.Module.Path, err)
+			}
+			source.GoMod = digest
+		}
+		byPath[source.Path] = source
+	}
+	sources := make([]moduleSource, 0, len(byPath))
+	for _, path := range slices.Sorted(maps.Keys(byPath)) {
+		sources = append(sources, byPath[path])
+	}
+	return sources, nil
 }
 
 // goEnvironment keeps the Go settings of the build environment, which select

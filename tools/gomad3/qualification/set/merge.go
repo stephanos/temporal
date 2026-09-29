@@ -20,8 +20,8 @@ type MergeSpec struct {
 
 // Merge combines the shard reports one manifest's Shard runs published into
 // the report a whole run would have published. Every shard must come from the
-// same manifest, module, platform, toolchain, I/O profile, seeds, and pruning
-// choice, and together the shards must cover each manifest workload exactly
+// same manifest, module, platform, toolchain, I/O profile, seeds, pruning
+// choice, and reviewed sources, and together the shards must cover each manifest workload exactly
 // once; anything else is invalid input, never a partial aggregate. The merged
 // report is written before an expectation mismatch is reported, as Run does.
 func Merge(ctx context.Context, spec MergeSpec) (Report, error) {
@@ -57,6 +57,22 @@ func Merge(ctx context.Context, spec MergeSpec) (Report, error) {
 			}
 			workloads[workload.ID] = workload
 		}
+	}
+	// The run identity names the module by its go.mod alone; the analyses
+	// name the reviewed sources, so shards run against different revisions
+	// disagree on the closure of one analysis identity.
+	closures := make(map[analysisIdentity]string, 1)
+	for _, suite := range manifest.Suites {
+		workload, found := workloads[suite.ID]
+		if !found || workload.Analysis == nil {
+			continue
+		}
+		identity := workloadAnalysisIdentity(suite)
+		closure := string(workload.Analysis.Closure.SHA256)
+		if previous, seen := closures[identity]; seen && previous != closure {
+			return Report{}, invalidReport(fmt.Errorf("shard reports analyzed different sources of %s: workload %s has closure %s, another workload %s", suite.Package, suite.ID, closure, previous))
+		}
+		closures[identity] = closure
 	}
 	merged.Selected = uint64(len(manifest.Suites))
 	merged.Workloads = make([]WorkloadReport, 0, len(manifest.Suites))

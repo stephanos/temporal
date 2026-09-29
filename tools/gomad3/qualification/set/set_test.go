@@ -920,6 +920,19 @@ func TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	other := runShards(t, otherRoot, otherRoot, writeManifestWithSuiteIDs(t, otherRoot, "unsupported_target", "case-a", "case-b", "case-c", "case-d"), 2, expectedBoundaryExecutor(t), false)
+	revisionRoot := filepath.Join(root, "revision")
+	if err := os.MkdirAll(revisionRoot, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	otherSources := strings.TrimPrefix(string(record.HashBytes([]byte("closure"))), "sha256:")
+	changedSources := strings.TrimPrefix(string(record.HashBytes([]byte("changed sources"))), "sha256:")
+	revision := runShards(t, root, revisionRoot, manifestPath, 2, func(ctx context.Context, command Command) CommandResult {
+		result := expectedBoundaryExecutor(t)(ctx, command)
+		if command.Args[0] == "analyze" {
+			result.Stdout = bytes.ReplaceAll(result.Stdout, []byte(otherSources), []byte(changedSources))
+		}
+		return result
+	}, false)
 	for _, test := range []struct {
 		name      string
 		reports   []string
@@ -929,6 +942,7 @@ func TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce(t *testing.T) {
 		{name: "repeated shard", reports: []string{shards[0], shards[1], shards[0]}, wantError: "repeats workload case-a"},
 		{name: "another manifest", reports: []string{shards[0], other[1]}, wantError: "produced from another manifest"},
 		{name: "another run configuration", reports: []string{shards[0], pruned[1]}, wantError: "another run configuration"},
+		{name: "another source revision", reports: []string{shards[0], revision[1]}, wantError: "analyzed different sources of ./pkg"},
 		{name: "missing report", reports: []string{shards[0], filepath.Join(root, "absent.json")}, wantError: "absent.json"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

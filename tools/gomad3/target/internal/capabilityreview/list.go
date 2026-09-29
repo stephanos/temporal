@@ -45,6 +45,11 @@ type Module struct {
 	Main    bool    `json:"Main"`
 	Dir     string  `json:"Dir"`
 	Replace *Module `json:"Replace"`
+	// GoVersion and GoMod are build inputs the capability closure does not
+	// review: the language version selects the compiler's -lang for the
+	// module's packages.
+	GoVersion string `json:"GoVersion"`
+	GoMod     string `json:"GoMod"`
 }
 
 type Package struct {

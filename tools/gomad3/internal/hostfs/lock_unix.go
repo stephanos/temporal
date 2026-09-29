@@ -12,7 +12,18 @@ type Lock struct {
 	file *os.File
 }
 
+// Try takes an exclusive lock on path without waiting.
 func Try(path string) (*Lock, error) {
+	return lock(path, syscall.LOCK_EX|syscall.LOCK_NB)
+}
+
+// Shared waits for a shared lock on path; shared holders exclude a Try
+// holder but not each other.
+func Shared(path string) (*Lock, error) {
+	return lock(path, syscall.LOCK_SH)
+}
+
+func lock(path string, how int) (*Lock, error) {
 	if info, err := os.Lstat(path); err == nil && info.Mode()&os.ModeSymlink != 0 {
 		return nil, ErrSymbolicLink
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -25,7 +36,11 @@ func Try(path string) (*Lock, error) {
 	if err := file.Chmod(0o600); err != nil {
 		return nil, errors.Join(err, file.Close())
 	}
-	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+	err = syscall.Flock(int(file.Fd()), how)
+	for errors.Is(err, syscall.EINTR) {
+		err = syscall.Flock(int(file.Fd()), how)
+	}
+	if err != nil {
 		if errors.Is(err, syscall.EWOULDBLOCK) || errors.Is(err, syscall.EAGAIN) {
 			err = errors.Join(ErrContended, err)
 		}

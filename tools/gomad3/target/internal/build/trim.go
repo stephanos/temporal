@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 )
 
 // MaximumCacheBytes bounds the target build cache. Every go build stores its
@@ -14,11 +16,34 @@ import (
 // entries unused for days.
 const MaximumCacheBytes = 4 << 30
 
+// cacheLockName is the cache-root file builds share and trimming takes
+// exclusively: the go command looks an archive up before it compiles or links
+// against it, and an archive deleted in between fails that build.
+const cacheLockName = "gomad-cache.lock"
+
+// UseCache holds the target build cache for one build; TrimCache deletes
+// nothing while any build holds it. Release the lock when the build ends.
+func UseCache(cache string) (*hostfs.Lock, error) {
+	lock, err := hostfs.Shared(filepath.Join(cache, cacheLockName))
+	if err != nil {
+		return nil, fmt.Errorf("hold target build cache: %w", err)
+	}
+	return lock, nil
+}
+
 // TrimCache deletes the least recently used entries of the target build cache
-// until it holds at most maximumBytes. The go command touches an entry when
-// it reuses it and tolerates a missing one by rebuilding, so trimming never
-// changes a build's result, only its cost.
-func TrimCache(cache string, maximumBytes uint64) error {
+// until it holds at most maximumBytes. It trims only while no build holds the
+// cache and otherwise leaves the bound to the next build's trim; the go
+// command rebuilds an entry missing when it looks it up.
+func TrimCache(cache string, maximumBytes uint64) (retErr error) {
+	lock, err := hostfs.Try(filepath.Join(cache, cacheLockName))
+	if errors.Is(err, hostfs.ErrContended) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("lock target build cache: %w", err)
+	}
+	defer func() { retErr = errors.Join(retErr, lock.Release()) }()
 	type entry struct {
 		path     string
 		size     uint64
@@ -26,7 +51,11 @@ func TrimCache(cache string, maximumBytes uint64) error {
 	}
 	var entries []entry
 	var total uint64
-	err := filepath.WalkDir(cache, func(path string, item os.DirEntry, walkErr error) error {
+	err = filepath.WalkDir(cache, func(path string, item os.DirEntry, walkErr error) error {
+		// The go command trims its own long-unused entries too.
+		if errors.Is(walkErr, os.ErrNotExist) {
+			return nil
+		}
 		if walkErr != nil {
 			return walkErr
 		}
@@ -38,6 +67,9 @@ func TrimCache(cache string, maximumBytes uint64) error {
 			return nil
 		}
 		info, err := item.Info()
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
 		if err != nil {
 			return err
 		}

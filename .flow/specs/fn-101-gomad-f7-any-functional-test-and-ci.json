@@ -12,6 +12,7 @@
   "id": "fn-101-gomad-f7-any-functional-test-and-ci",
   "impl_review_rounds": {
     "fn-101-gomad-f7-any-functional-test-and-ci.1": 0,
+    "fn-101-gomad-f7-any-functional-test-and-ci.2": 1,
     "fn-101-gomad-f7-any-functional-test-and-ci.5": 0,
     "fn-101-gomad-f7-any-functional-test-and-ci.6": 0
   },
@@ -257,6 +258,82 @@
       "task": "fn-101-gomad-f7-any-functional-test-and-ci.6",
       "timestamp": "2026-09-28T23:19:58.790501Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "691c0cadc70a301fa09bd5db3bd638996f6bbb74ef185e0b5ad0ba72c718557c",
+      "backend": "codex",
+      "base_sha": "efa5732afc912edf1d4af3abed16f5314299ee4a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-500b0fc8f9135b506071ced33c29d5b8",
+            "classification": "introduced",
+            "findingId": "finding-500b0fc8f9135b506071ced33c29d5b8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-72cd276c2354f8042f34e4b65de2b8fb",
+            "classification": "introduced",
+            "findingId": "finding-72cd276c2354f8042f34e4b65de2b8fb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b8f83e325e0cf086aba3146c06154f5e",
+            "classification": "introduced",
+            "findingId": "finding-b8f83e325e0cf086aba3146c06154f5e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bd5df3a218cba12aa405aeda332176fc",
+            "classification": "introduced",
+            "findingId": "finding-bd5df3a218cba12aa405aeda332176fc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-661c38d585a2211b513ac194c8c33a53",
+            "classification": "introduced",
+            "findingId": "finding-661c38d585a2211b513ac194c8c33a53",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "998bef98265b57382184baec6288dbd10a5b7b14",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2727,
+      "output_sha256": "7721bb5514c5e615e5d06fe01b23c0df0ca76a887dc4e373ebcb871101968c0b",
+      "reservation_id": "becd0c8cf13c46b882624c659a7f2021",
+      "round_consumed": true,
+      "scope": "impl:fn-101-gomad-f7-any-functional-test-and-ci.2",
+      "superseded_by": null,
+      "task": "fn-101-gomad-f7-any-functional-test-and-ci.2",
+      "timestamp": "2026-09-29T08:04:28.653830Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -268,6 +345,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.1": 0,
+    "impl:fn-101-gomad-f7-any-functional-test-and-ci.2": 0,
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.5": 0,
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.6": 0
   },
@@ -285,5 +363,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T01:23:49.295591Z"
+  "updated_at": "2026-09-29T08:04:28.657738Z"
 }
