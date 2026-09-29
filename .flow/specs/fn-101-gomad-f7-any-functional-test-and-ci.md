@@ -28,8 +28,11 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
 
 - **R1:** A generator produces the `./tests` qualification manifest from `go test -list`, and a
   check fails when the manifest is stale.
-- **R2:** The Temporal qualification-set report for `./tests` shows `unsupported == 0`,
-  `failed == 0`, `infrastructure_errors == 0` on darwin/arm64.
+- **R2:** The named smoke selection of functional tests (defined in task .4, drawn from the
+  representative set) shows `unsupported == 0`, `failed == 0`, `infrastructure_errors == 0` on
+  darwin/arm64, and every divergence found so far in `./tests` suites is fixed in Gomad or
+  demonstrated to be a test bug with a named, owned exclusion. The full `./tests` set is not run
+  as a gate (2026-09-29 user decision: not scalable).
 - **R3:** A smoke set of selected functional tests passes on linux/amd64 in CI with the same zero counts (`unsupported == 0`, `failed == 0`, `infrastructure_errors == 0`). The full `./tests` set is not run in CI.
 - **R4:** A required CI check runs on pull requests touching `tools/gomad3`, `tests`,
   `tests/testcore`, `go.mod`, and the closure's server packages. It is a smoke test: it
@@ -37,7 +40,7 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
   on both platforms and fits well inside 90 minutes. The full `./tests` set stays an on-demand
   local gate (`make gomad3-tests-qualification`).
 - **R5:** A Linux host-clock escape audit replaces DTrace for linux/amd64.
-- **R6:** A newly added test in `./tests` appears in the report without a manual manifest edit.
+- **R6:** A newly added test in `./tests` appears in the generated manifest (and so has a disposition) without a manual edit; the staleness check fails otherwise.
 
 ## Boundaries
 <!-- scope: business -->
@@ -48,7 +51,10 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
 ## Decision Context
 <!-- scope: both -->
 
+2026-09-29: the full `./tests` set is no longer run for anything — not in CI and not as a local gate; validation is the smoke selection plus the suites a change affects (user decision: not scalable). The generator keeps every test enumerated with a disposition.
+
 2026-09-28: CI runs only a smoke test on selected functional tests (user decision); the full enumeration remains the local proof for R2 and the manifest generator still covers every test.
 
 Generating the manifest makes coverage a property of the check rather than of curation.
+
 

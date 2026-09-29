@@ -1,11 +1,10 @@
 ---
 satisfies: [R2]
 ---
-# fn-101-gomad-f7-any-functional-test-and-ci.2 Shard the full set with plan/execute-shard/merge and qualify ./tests on darwin
+# fn-101-gomad-f7-any-functional-test-and-ci.2 Fix the ./tests divergences and verify on the affected suites
 
 ## Description
-Run the full enumeration on darwin; triage to unsupported 0, failed 0, infrastructure_errors 0.
-
+Fix the divergences found in ./tests suites (signal-chasm, signal-legacy, nexus-otel replay, completion callbacks — the shared GC-scan-order channel; versioning-functional's in-memory FS bound) in Gomad, with regression fixtures, and verify on those suites individually (both seeds, repeat, replay) plus the core set and the representative set. Demonstrated test bugs keep named, owned exclusions. Do NOT run the full ./tests set (2026-09-29 user decision: not scalable); the sharding/merge and caches that exist stay as tooling.
 ## Acceptance
 - darwin report meets counts
 

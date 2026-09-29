@@ -13,6 +13,6 @@
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.2.md",
   "status": "todo",
-  "title": "Shard the full set with plan/execute-shard/merge and qualify ./tests on darwin",
-  "updated_at": "2026-09-28T22:37:36.752596Z"
+  "title": "Fix the ./tests divergences and verify on the affected suites",
+  "updated_at": "2026-09-29T19:13:22.737278Z"
 }

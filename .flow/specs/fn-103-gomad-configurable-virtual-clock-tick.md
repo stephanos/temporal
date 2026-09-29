@@ -40,7 +40,7 @@ qualification manifest can set it per workload.
   are rejected; replay with a mismatched tick fails closed.
 - **R2:** Same-seed repetitions and replay stay exact with the tick on (runtime fixture + core
   workload proving it); with the tick off, every existing gate is unchanged.
-- **R3:** A measurement run of the full `./tests` set with the tick on reports which named
+- **R3:** Running the tie-excluded suites with the tick on shows which named
   exclusions it removes; suites whose ties are demonstrated test bugs switch to the tick in the
   manifest and their exclusions are removed.
 - **R4:** README/ARCHITECTURE document the option, its contract, and why the default stays strict.
