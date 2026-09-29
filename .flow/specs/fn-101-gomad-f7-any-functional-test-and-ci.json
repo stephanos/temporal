@@ -410,11 +410,87 @@
       "task": "fn-101-gomad-f7-any-functional-test-and-ci.2",
       "timestamp": "2026-09-29T08:11:29.183720Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e45cf5fe0d9f953930adb00b30da1477f4f5188a8e50fa2713a467aecda7c66b",
+      "backend": "codex",
+      "base_sha": "efa5732afc912edf1d4af3abed16f5314299ee4a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-500b0fc8f9135b506071ced33c29d5b8",
+            "classification": "introduced",
+            "findingId": "finding-500b0fc8f9135b506071ced33c29d5b8",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-72cd276c2354f8042f34e4b65de2b8fb",
+            "classification": "introduced",
+            "findingId": "finding-72cd276c2354f8042f34e4b65de2b8fb",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b8f83e325e0cf086aba3146c06154f5e",
+            "classification": "introduced",
+            "findingId": "finding-b8f83e325e0cf086aba3146c06154f5e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bd5df3a218cba12aa405aeda332176fc",
+            "classification": "introduced",
+            "findingId": "finding-bd5df3a218cba12aa405aeda332176fc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-661c38d585a2211b513ac194c8c33a53",
+            "classification": "introduced",
+            "findingId": "finding-661c38d585a2211b513ac194c8c33a53",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "f2da5f7619abcca545c5ff719e6aa33ea235b62c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1041,
+      "output_sha256": "f1d57af0bd51d43152b3a55b50d325520b2080927f3df97cea824b9b707c772e",
+      "reservation_id": "e9edf14956254b7a8755b23d7ae9e7b8",
+      "round_consumed": true,
+      "scope": "impl:fn-101-gomad-f7-any-functional-test-and-ci.2",
+      "superseded_by": null,
+      "task": "fn-101-gomad-f7-any-functional-test-and-ci.2",
+      "timestamp": "2026-09-29T09:48:46.449955Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.1": 1,
-    "impl:fn-101-gomad-f7-any-functional-test-and-ci.2": 1,
+    "impl:fn-101-gomad-f7-any-functional-test-and-ci.2": 2,
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.5": 1,
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.6": 1
   },
@@ -440,5 +516,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T08:11:29.188202Z"
+  "updated_at": "2026-09-29T09:48:46.461312Z"
 }
