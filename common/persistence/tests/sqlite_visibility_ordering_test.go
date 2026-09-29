@@ -1,3 +1,5 @@
+//go:build gomad
+
 package tests
 
 import (
@@ -13,10 +15,9 @@ import (
 	"go.temporal.io/server/common/persistence/visibility/manager"
 )
 
-// sqliteVisibilityOrderingSuite pins the SQLite store's order among
-// executions with equal times, which the shared visibility suite leaves
-// unspecified because the MySQL and PostgreSQL stores still order run IDs
-// ascending there.
+// sqliteVisibilityOrderingSuite pins the order the gomad build of the SQLite
+// store gives executions with equal times; the stock build, like the MySQL
+// and PostgreSQL stores, orders run IDs ascending there.
 type sqliteVisibilityOrderingSuite struct {
 	suite.Suite
 	base *VisibilityPersistenceSuite
