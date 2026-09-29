@@ -1109,7 +1109,13 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 		$(LINT_CODE_TARGETS)
 	@go vet -tags $(ALL_TEST_TAGS) -vettool="$(ERRORTYPE)" -style-check=false $(LINT_CODE_TARGETS)
 
-.PHONY: lint-model
+# Builtin linting rebuilds every module with linter options, and those options are part of each
+# module's build trace. Running it in model/ would thrash model/.lake against ordinary builds, so it
+# runs in a mirror of the sources with a build directory of its own that stays warm between runs.
+LINT_MODEL_DIR ?= $(CURDIR)/.build/lint-model
+LINT_MODEL_MODULES ?=
+
+.PHONY: lint-model lint-model-builtin
 lint-model: umpire-check-inventory
 	@printf $(COLOR) "Linting Lean model..."
 	@test -f model/HANDWRITTEN_INVENTORY.md || { echo "model/HANDWRITTEN_INVENTORY.md is an input of lint-model" >&2; exit 1; }
@@ -1144,7 +1150,15 @@ lint-model: umpire-check-inventory
 		expected='[model-entity/feature-entity-uniqueness] duplicate action serve: Temporal.Feature.Planted and Temporal.Feature.Worker.Model'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@cd model && $(LEAN_LAKE) exe umpire-lint
-	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
+	@$(MAKE) --no-print-directory lint-model-builtin
+
+# LINT_MODEL_MODULES narrows the builtin lints to the named modules (and what they import).
+lint-model-builtin:
+	@mkdir -p "$(LINT_MODEL_DIR)/model/.lake" "$(LINT_MODEL_DIR)/proto"
+	@rsync -a --delete --exclude /.lake/ model/ "$(LINT_MODEL_DIR)/model/"
+	@rsync -a --delete proto/ "$(LINT_MODEL_DIR)/proto/"
+	@ln -sfn "$(CURDIR)/model/.lake/packages" "$(LINT_MODEL_DIR)/model/.lake/packages"
+	@cd "$(LINT_MODEL_DIR)/model" && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs $(LINT_MODEL_MODULES)
 
 lint-yaml: $(YAMLFMT)
 	@printf $(COLOR) "Checking YAML formatting..."
