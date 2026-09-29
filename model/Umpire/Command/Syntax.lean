@@ -69,6 +69,11 @@ private def unknownMemberMessage (domain spelling : String) (constructors : List
   else
     s!"unknown Model {domain} '{spelling}'; declared: {spellings constructors}"
 
+private def ambiguousSyncReferenceMessage (spelling : String) (groups : List String) : String :=
+  s!"'{spelling}' names a member action that is a participant of {groups.length} `sync:` groups \
+({", ".intercalate groups}); a member-qualified reference to a synchronized action must name \
+exactly one"
+
 private def unsortedInitialMessage (earlier later : String) : String :=
   "Model start states must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered start-state list; '{later}' precedes '{earlier}'"
@@ -258,17 +263,31 @@ private partial def actionKeyOf (stx : Term) : String :=
   | `($number:num) => toString number.getNat
   | _ => (stx.raw.reprint.getD "").trimAscii.toString
 
-/-- The key a `when:` line or a Scenario action names on a composition: a dotted `field.action` is
-that member's own action, keyed `field_action`, and a bare name is a `sync:` name, with any class
-written after either joined the way `actionKeyOf` joins it. -/
-private partial def composedActionKeyOf (stx : Term) : String :=
+/-- A `when:` line's or a Scenario action's reference, split into its dotted components and any
+class it is written with, each joined the way `actionKeyOf` joins a classed action's inputs. A
+composition's resolver reads the components to consult `sync:` groups before falling back to the
+mechanical key. -/
+private partial def referenceParts (stx : Term) : List String × List String :=
   let components := fun (head : Ident) => head.getId.eraseMacroScopes.components.map (·.toString)
   match stx with
-  | `(($inner)) => composedActionKeyOf inner
-  | `($head:ident $arguments*) => Compose.referenceKey (components head)
-      (arguments.toList.map fun argument => actionKeyOf ⟨argument.raw⟩)
-  | `($head:ident) => Compose.referenceKey (components head) []
-  | _ => actionKeyOf stx
+  | `(($inner)) => referenceParts inner
+  | `($head:ident $arguments*) =>
+      (components head, arguments.toList.map fun argument => actionKeyOf ⟨argument.raw⟩)
+  | `($head:ident) => (components head, [])
+  | _ => ([actionKeyOf stx], [])
+
+/-- The catalog key a member-qualified reference names on a composition, in Property `when:` and
+Scenario `actions:`: `field.action` resolves through the composition's `sync:` groups before the
+mechanical `field_action` key, since synchronization replaces a synchronized member action's own
+key with its group's name; a bare `sync:` name takes the mechanical key unchanged, since it already
+is that key. A reference that is a participant of more than one `sync:` group is a located error
+naming the reference and the groups. -/
+private def resolveComposedActionKey (composed : Registry.CompositionEntry) (ref : Syntax)
+    (components classKeys : List String) : CommandElabM String :=
+  match Compose.resolveReference composed.syncs components classKeys with
+  | .key value => pure value
+  | .ambiguous groups =>
+      throwErrorAt ref (ambiguousSyncReferenceMessage (".".intercalate components) groups)
 
 /-- The arity a predicate's type has over the machine's `Step`, or the reason it has none. -/
 private def predicateArity (predicateRef : Term) (stateDecl outcomeDecl factDecl : Name)
@@ -539,8 +558,13 @@ elab propertyKeyword name:ident
       | some trigger => do
           let `(propertyWhen| when: $actionRef:term) := trigger
             | throwErrorAt trigger "unsupported `when:` line"
-          let composed := (Registry.composition? (← getEnv) declaredModel.declName).isSome
-          let key := if composed then composedActionKeyOf actionRef else actionKeyOf actionRef
+          let composition := Registry.composition? (← getEnv) declaredModel.declName
+          let composed := composition.isSome
+          let key ← match composition with
+            | some entry =>
+                let (components, classKeys) := referenceParts actionRef
+                resolveComposedActionKey entry actionRef components classKeys
+            | none => pure (actionKeyOf actionRef)
           -- On a composition a classed action named bare is every one of its classes.
           let keys := if declaredModel.actions.contains key then [key]
             else if composed then declaredModel.actions.toList.filter fun declared =>
@@ -700,12 +724,13 @@ elab scenarioKeyword name:ident
       let `(scenarioAction| $actionRef:ident $[$arguments?:scenarioArguments]? $[$number?:num]?) :=
           entry
         | throwErrorAt entry "unsupported action"
-      -- On a composition a dotted action is a member's own and a bare one a `sync:` name, both
-      -- keyed the way the composed catalog keys them.
+      -- On a composition a dotted action is a member's own unless a `sync:` line synchronizes it,
+      -- in which case it is that line's name, and a bare one is already a `sync:` name; both
+      -- resolve through `resolveComposedActionKey` to the composed catalog's key.
       let components := actionRef.getId.eraseMacroScopes.components.map (·.toString)
       let spelling ← match arguments?, composition with
-        | none, some _ =>
-            let key := Compose.referenceKey components []
+        | none, some composed =>
+            let key ← resolveComposedActionKey composed actionRef components []
             unless declaredModel.actions.contains key do
               throwErrorAt actionRef (unknownMemberMessage "action" key
                 (declaredModel.actions.toList.map Name.mkSimple))
@@ -716,8 +741,10 @@ elab scenarioKeyword name:ident
             let `(scenarioArguments| ($inputs:term,*)) := arguments
               | throwErrorAt arguments "unsupported action"
             let classKeys := inputs.getElems.toList.map fun input => actionKeyOf ⟨input.raw⟩
-            let key := if composition.isSome then Compose.referenceKey components classKeys
-              else "-".intercalate (actionRef.getId.eraseMacroScopes.getString! :: classKeys)
+            let key ← match composition with
+              | some composed => resolveComposedActionKey composed entry components classKeys
+              | none => pure ("-".intercalate (actionRef.getId.eraseMacroScopes.getString! ::
+                  classKeys))
             unless declaredModel.actions.contains key do
               throwErrorAt entry (unknownMemberMessage "action" key
                 (declaredModel.actions.toList.map Name.mkSimple))

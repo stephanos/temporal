@@ -22,6 +22,20 @@ open Umpire Umpire.Command
 
 model_conventions root "umpire" under Umpire.Command.Tests.Compose
 
+/-! ### Resolving a member-qualified reference against `sync:` groups
+
+`resolveReference` is pure data over a composition's recorded `sync:` groups: the ambiguous case
+needs a pair that is two groups' participant, which no shipped composition writes, so it is pinned
+directly here rather than through a compiled `compose` command. -/
+
+#guard Compose.resolveReference #[("reply", #[("job", "reply"), ("agent", "serve")])]
+    ["job", "reply"] ["ok"] == .key "reply-ok"
+#guard Compose.resolveReference #[("reply", #[("job", "reply"), ("agent", "serve")])]
+    ["job", "poke"] ["ok"] == .key "job_poke-ok"
+#guard Compose.resolveReference
+    #[("first", #[("job", "halt")]), ("second", #[("job", "halt")])] ["job", "halt"] [] ==
+  .ambiguous ["first", "second"]
+
 /-! ### The members -/
 
 namespace Job
@@ -280,6 +294,39 @@ property pokedOrRunning
   machine: pipeline
   when: job.expire
   holds: fun step => step.state.job.poked || step.state.agent.phase == .running
+
+/- The documented dotted spelling for a synchronized action, `job.reply (ok)`, resolves through the
+`reply:` `sync:` line to the same key the bare spelling does, in both a Property `when:` and a
+Scenario `actions:` -- the completion review's finding (fn-92 R3). -/
+property dottedReply
+  machine: pipeline
+  when: job.reply (ok)
+  holds: fun step =>
+    step.state.job.phase == .done && !step.state.job.poked && step.state.agent.phase == .running
+
+#guard dottedReply.names.groups.map (·.trigger) == settled.names.groups.map (·.trigger)
+
+scenario dottedReplied
+  model: pipeline
+  starts: job.pending
+  actions: [job.reply (ok)]
+
+#guard dottedReplied.names.occurrences == replied.names.occurrences
+
+/- No `query` runs `dottedReply` or `dottedReplied`: the R14 differential sweep enumerates every
+declared Query, and its expected block is required to stay byte-identical (Approach, fn-92.9); the
+`.names` pins above are the regression. -/
+
+/- An unknown member-qualified reference is a located error naming the mechanical key it falls back
+to, the same message shape as any other unknown action. -/
+/--
+error: unknown Model action 'job_bogus'; declared: agent_resume, halt, job_expire, «job_poke-error», «job_poke-ok», «reply-error», «reply-ok»
+-/
+#guard_msgs in
+property unknownMemberReference
+  machine: pipeline
+  when: job.bogus
+  holds: fun step => step.outcome == .job .accepted
 
 end Forward
 

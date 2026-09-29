@@ -99,6 +99,33 @@ keys its classed actions. -/
 def referenceKey (components : List String) (classKeys : List String) : String :=
   "-".intercalate ("_".intercalate components :: classKeys)
 
+/-- What a `field.action` reference resolves to against a composition's declared `sync:` groups:
+the group's key when the pair is exactly one group's participant, the mechanical `referenceKey`
+otherwise, or the groups a reference names more than one of. -/
+inductive ReferenceResolution where
+  | key (value : String)
+  | ambiguous (groups : List String)
+  deriving BEq, Repr, Inhabited
+
+/-- The catalog key a member-qualified reference names on a composition, resolved against its
+`sync:` groups: synchronization replaces a synchronized member action's own key,
+`memberKey field action`, with its group's name, so `field.action` names the group's key
+(`referenceKey` with the group's name in place of the dotted components) when the pair is a
+participant of exactly one `sync:` group, and the mechanical `field_action` key otherwise -- a bare
+`sync:` name, with one component, is already that group's key and passes through unaffected. A
+pair that is more than one group's participant is `ambiguous`, naming every group it belongs to; the
+caller locates the error, since only it has the reference's syntax position. -/
+def resolveReference (syncs : Array (String × Array (String × String)))
+    (components classKeys : List String) : ReferenceResolution :=
+  match components with
+  | [field, action] =>
+      match syncs.toList.filterMap fun (name, participants) =>
+          if participants.toList.contains (field, action) then some name else none with
+      | [] => .key (referenceKey components classKeys)
+      | [name] => .key (referenceKey [name] classKeys)
+      | groups => .ambiguous groups
+  | _ => .key (referenceKey components classKeys)
+
 /-- The owner a composition's Definition IDs hang off, under the enclosing namespace's family. A
 machine's own owner is its bare name, so the prefix keeps a composition and a machine of one name
 apart. -/
