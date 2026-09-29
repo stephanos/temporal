@@ -2483,3 +2483,35 @@ func allUnique(values []string) bool {
 	}
 	return true
 }
+
+// A target the watchdog kills never writes its terminal choice frame; the run
+// is the watchdog outcome, retained without a choice profile, not an
+// unterminated-trace runner failure that discards the evidence.
+func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	result := processResult(0, "", "")
+	result.Termination = execution.TerminationSignal
+	result.Signal = "SIGKILL"
+	result.WatchdogTimeout = true
+	result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: limit}
+	config := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = limit
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatalf("Explore() error = %v", err)
+	}
+	if summary.Watchdogs != 1 || len(summary.Artifacts) != 1 {
+		t.Fatalf("Explore() summary = %#v", summary)
+	}
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if opened.Manifest.ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest.Outcome.Reason != "watchdog_timeout" || opened.Manifest.ChoiceProfile != nil {
+		t.Fatalf("watchdog manifest = %#v", opened.Manifest)
+	}
+}

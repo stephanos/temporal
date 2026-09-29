@@ -56,6 +56,10 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	choiceProfile := ""
 	if manifest.ChoiceProfile != nil {
 		choiceProfile = manifest.ChoiceProfile.Name
+	} else if manifest.Limits.ChoiceTraceBytes != 0 {
+		// The killed target ran with the profile its environment names even
+		// though it left no trace to record.
+		choiceProfile = "gomad3-choice-trace/v2"
 	}
 	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name, choiceProfile); err != nil {
 		return err
@@ -238,7 +242,9 @@ func validateMinimizationReductions(minimization Minimization) error {
 func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactKind, outcomeReason string) error {
 	const choiceTraceHeaderBytes = 64
 	if profile == nil {
-		if limit != 0 {
+		// A target the watchdog or a cancellation killed never wrote its
+		// terminal choice frame, so those runs carry no profile.
+		if limit != 0 && artifactKind != ArtifactWatchdogTimeout && outcomeReason != "runner_cancelled" {
 			return errors.New("choice trace limit requires a choice profile")
 		}
 		return nil
