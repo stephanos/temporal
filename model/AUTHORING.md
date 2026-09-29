@@ -30,11 +30,13 @@ Umpire's own tests.
 A Model file imports the platform's command surface and opens one namespace. The namespace is
 what every Definition ID in the file hangs off: `Temporal.Feature.Nexus.Caller` becomes the family
 `temporal.nexus.caller`, and every declaration below is `temporal.nexus.caller.<kind>.<name>`,
-which is how a fixture, a Verdict and a COVERAGE.md row name the same thing.
+which is how a fixture, a Verdict and a COVERAGE.md row name the same thing. The second import is
+the worker entity's module, which the composition in section 12 names.
 
 <!-- authoring: header -->
 ```lean
 import Temporal.Case.Syntax
+import Temporal.Feature.Worker.Model
 
 /-!
 # The Nexus caller-side Model
@@ -869,7 +871,73 @@ The exploratory set's block is the third: it names the functional set's realizat
 emitted value, produces no fixture and registers nothing, and is what `umpire-explore` produces
 each candidate's Case through (see the exploration bridge in [README.md](README.md)).
 
-## 12. From the file to a green live test
+## 12. A composition over the operation and its worker
+
+A `compose` block builds one Model from machines of different entities, for a claim no one of them
+can state. The protocol machine cannot see the handler's worker: its `workerStop` is a stutter row.
+Composed with the worker entity's machine, restricted by `restrict:` to the actions the caller's
+view needs, each `sync:` line makes one step of both members, so a reply is enabled only where the
+worker's `serve` has a row, which is only while it polls. The composed state is an author-written
+structure with one field per member, and a Property reads one member's field while the other
+varies. Scenario and Property names resolve member-qualified actions (`operation.schedule`) and
+`sync:` names (`handlerReply`); no set names a composition, so its Query is a `verify` Query.
+
+<!-- authoring: composition -->
+```lean
+/-! ### The operation and the handler's worker
+
+The protocol machine's worker stop is a stutter row: the operation cannot see its handler's worker,
+so the schedule-to-start Scenario orders the stop before the request by convention. Composed with
+the worker of the handler's task queue, the stop is the worker's own phase change and every reply
+is the worker serving, so a reply has a row only while the worker polls. No set names the
+composition; it is what the cross-entity claim is verified over. -/
+
+/-- The caller's view of the handler's worker: it stops and it serves. It never resumes, because an
+action no `sync:` line names would stay executable on its own and admit a stop, a resume and then a
+reply; the operation's timers settle every state a stop leaves. -/
+machine handlerWorker
+  from: Worker.polling
+  restrict: [workerStop, serve]
+
+structure NexusCallerState where
+  operation : ProtocolState
+  worker : Worker.WorkerState
+  deriving BEq, DecidableEq, Repr
+
+compose nexusCaller
+  for: [operation, Worker.worker]
+  state: NexusCallerState
+  members:
+    operation: nexusProtocol
+    worker: handlerWorker
+  sync:
+    workerStop: operation.workerStop ∥ worker.workerStop
+    handlerReply: operation.handlerReply ∥ worker.serve
+  starts: [operation.unscheduled, worker.polling]
+  ends: [operation.succeeded, operation.failed, operation.canceled, operation.timedOut]
+
+/- Every reply, of any class, leaves the handler's worker polling: no handler replies while its
+worker is stopped. -/
+property repliedByPollingWorker
+  machine: nexusCaller
+  when: handlerReply
+  holds: fun step => step.state.worker.phase == .polling
+
+/- A retryable reply backs the operation off; the handler's worker then stops, so the retried
+attempt is never answered and the schedule-to-start deadline fires. -/
+scenario repliedThenStopped
+  model: nexusCaller
+  starts: operation.unscheduled
+  actions: [operation.schedule (unset, expires, unset), handlerReply (handlerError true),
+    workerStop, operation.scheduleToStart]
+
+query stoppedWorkerRepliesNothing
+  verify: repliedByPollingWorker
+  in: repliedThenStopped
+  limits: four
+```
+
+## 13. From the file to a green live test
 
 ```sh
 cd model && lake build                               # the file compiles, or says where it does not

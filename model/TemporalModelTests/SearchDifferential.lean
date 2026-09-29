@@ -38,6 +38,8 @@ info: Temporal.Feature.Nexus.Caller.scheduleToStartTimeout: veil default, found 
 ---
 info: Temporal.Feature.Nexus.Caller.startToCloseTimeout: veil default, found 4 paths, found 4 states; automaton ok, monitors ok (Query depth 3, clause table depth 1)
 ---
+info: Temporal.Feature.Nexus.Caller.stoppedWorkerRepliesNothing: veil default, verified-within-limits 5 paths, verified-within-limits 5 states; automaton ok, monitors ok (Query depth 4, clause table depth 1)
+---
 info: Temporal.Feature.Nexus.Caller.syncCompletion: veil default, found 3 paths, found 3 states; automaton ok, monitors ok (Query depth 2, clause table depth 1)
 ---
 info: Temporal.Feature.Nexus.Caller.terminalHolds: veil default, verified-within-limits 4 paths, verified-within-limits 4 states; automaton ok, monitors ok (Query depth 3, clause table depth 1)

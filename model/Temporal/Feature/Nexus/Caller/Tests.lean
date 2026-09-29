@@ -432,4 +432,61 @@ case nexusCallerAgain
   realizes nexusCallerTests
   as (Temporal.Case.Realization.asyncNexus "umpire.case.service" "complete")
 
+/-! ### The composition
+
+The handler's worker keeps only its stop and its serve: with no resume, a stop is final and the
+operation's timers settle what it leaves. The composition reaches every reachable protocol state
+under both worker phases, 158 times 2, below the enumeration bound; the kernel decided that the
+literal is the composition of the two machines' tables, with no axiom beyond the machines'. -/
+
+#guard handlerWorker.actionKeys == #["serve", "workerStop"]
+
+#guard nexusCaller.table.states.length == 316
+#guard (nexusCaller.table.states.filter (·.key.endsWith "_stopped")).length == 158
+#guard nexusCaller.table.transitions.length == 1468
+#guard nexusCaller.actionKeys ==
+  #["handlerReply-async", "handlerReply-handlerError-false", "handlerReply-handlerError-true",
+    "handlerReply-operationCanceled", "handlerReply-operationFailed", "handlerReply-syncSuccess",
+    "operation_backoff", "operation_complete-canceled", "operation_complete-failed",
+    "operation_complete-succeeded", "operation_schedule-expires-expires-expires",
+    "operation_schedule-expires-expires-unset", "operation_schedule-expires-unset-expires",
+    "operation_schedule-expires-unset-unset", "operation_schedule-unset-expires-expires",
+    "operation_schedule-unset-expires-unset", "operation_schedule-unset-unset-expires",
+    "operation_schedule-unset-unset-unset", "operation_scheduleToClose",
+    "operation_scheduleToStart", "operation_startToClose", "operation_transportFault",
+    "workerStop"]
+
+/- A reply has a row only where the worker polls. -/
+#guard (nexusCaller.table.transitions.filter fun row =>
+    (row.key.splitOn "-handlerReply").length > 1).length == 144
+#guard (nexusCaller.table.transitions.filter fun row =>
+    (row.key.splitOn "-handlerReply").length > 1 && (row.key.splitOn "_stopped-").length > 1) == []
+
+/-- info: 'Temporal.Feature.Nexus.Caller.handlerWorker' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms handlerWorker
+
+/-- info: 'Temporal.Feature.Nexus.Caller.nexusCaller' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms nexusCaller
+
+/--
+info: 'Temporal.Feature.Nexus.Caller.nexusCaller.agrees' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms nexusCaller.agrees
+
+/- The bare trigger covers every reply class, and each group fixes the worker's field alone while
+the operation member varies. -/
+#guard repliedByPollingWorker.names.groups.map (fun group => (group.trigger, group.requirements)) ==
+  ["async", "handlerError-false", "handlerError-true", "operationCanceled", "operationFailed",
+      "syncSuccess"].map fun reply =>
+    (.action s!"handlerReply-{reply}",
+      [.stateFieldClause s!"handlerReply-{reply}-field-worker-polling" "worker" "polling"])
+
+/- Verified over the path: the one reply comes before the stop. -/
+#guard (match stoppedWorkerRepliesNothing with
+  | .ok checked => checked.run.result.outcome.name
+  | .error _ => "admission failed") == "verified-within-limits"
+
 end Temporal.Feature.Nexus.Caller.Tests
