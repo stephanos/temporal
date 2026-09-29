@@ -71,7 +71,11 @@ type Workload struct {
 	SuccessBytesLimit    uint64                `json:"success_bytes_limit"`
 	ExecutionTimeout     string                `json:"execution_timeout,omitempty"`
 	OverallTimeout       string                `json:"overall_timeout,omitempty"`
-	Expectation          WorkloadExpectation   `json:"expectation"`
+	// Skip names subtests of Test the workload does not run, as -test.skip
+	// patterns anchored under Test; a generated manifest records who excluded
+	// each one, when, and why.
+	Skip        []string            `json:"skip,omitempty"`
+	Expectation WorkloadExpectation `json:"expectation"`
 	// PlatformExpectations replaces Expectation on the named GOOS/GOARCH hosts,
 	// so one manifest can state where a workload's support boundary differs.
 	PlatformExpectations map[string]WorkloadExpectation `json:"platform_expectations,omitempty"`
@@ -314,6 +318,10 @@ var setNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 // testNamePattern admits every name the go command runs as a top-level test,
 // since generated manifests list them all.
 var testNamePattern = regexp.MustCompile(`^Test[\p{L}\p{Nd}_]*$`)
+
+// subtestNamePattern admits a subtest path under a top-level test, as the
+// testing package rewrites it: name elements joined by slashes.
+var subtestNamePattern = regexp.MustCompile(`^[\p{L}\p{Nd}_.-]+(/[\p{L}\p{Nd}_.-]+)*$`)
 var findingPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/#-]*$`)
 
 func LoadManifest(path string) (Manifest, error) {
@@ -636,8 +644,13 @@ func ValidateManifest(manifest Manifest) error {
 			return fmt.Errorf("qualification workload identity is duplicated: %s", workload.ID)
 		}
 		seen[workload.ID] = struct{}{}
-		if !sortedUnique(workload.BuildTags) || !sortedUnique(workload.Environment) || !sortedUnique(workload.RequiredProbes) {
+		if !sortedUnique(workload.BuildTags) || !sortedUnique(workload.Environment) || !sortedUnique(workload.RequiredProbes) || !sortedUnique(workload.Skip) {
 			return fmt.Errorf("qualification workload %s lists must be sorted and unique", workload.ID)
+		}
+		for _, subtest := range workload.Skip {
+			if !subtestNamePattern.MatchString(subtest) {
+				return fmt.Errorf("qualification workload %s skips an invalid subtest name %q", workload.ID, subtest)
+			}
 		}
 		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, workload.RequiredProbes); err != nil {
 			return fmt.Errorf("qualification workload %s: %w", workload.ID, err)
@@ -730,11 +743,31 @@ func workloadCommand(config Spec, manifest Manifest, workload Workload, seed uin
 	for _, value := range workload.RequiredProbes {
 		args = append(args, "--require-probe="+value)
 	}
-	args = append(args, "go-test", workload.Package, "--", "-test.run=^"+regexp.QuoteMeta(workload.Test)+"$")
+	args = append(args, "go-test", workload.Package, "--")
+	args = append(args, testArguments(workload)...)
 	return Command{
 		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir, ArtifactRoot: config.ArtifactRoot,
 		Timeout: overallTimeout + terminateGrace + 10*time.Second, Grace: terminateGrace,
 	}
+}
+
+// testArguments selects the workload's test and skips its excluded subtests;
+// every element of a -test.skip pattern is anchored so a name never matches a
+// longer one.
+func testArguments(workload Workload) []string {
+	arguments := []string{"-test.run=^" + regexp.QuoteMeta(workload.Test) + "$"}
+	if len(workload.Skip) == 0 {
+		return arguments
+	}
+	patterns := make([]string, len(workload.Skip))
+	for index, subtest := range workload.Skip {
+		elements := strings.Split(subtest, "/")
+		for position, element := range elements {
+			elements[position] = "^" + regexp.QuoteMeta(element) + "$"
+		}
+		patterns[index] = "^" + regexp.QuoteMeta(workload.Test) + "$/" + strings.Join(elements, "/")
+	}
+	return append(arguments, "-test.skip="+strings.Join(patterns, "|"))
 }
 
 func executeCommand(ctx context.Context, command Command) CommandResult {

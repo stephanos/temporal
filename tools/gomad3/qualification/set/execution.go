@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"regexp"
 	"sort"
 	"time"
 
@@ -28,7 +27,8 @@ func analysisCommand(config Spec, manifest Manifest, workload Workload) Command 
 	for _, value := range workload.BuildTags {
 		args = append(args, "--build-tag="+value)
 	}
-	args = append(args, "go-test", workload.Package, "--", "-test.run=^"+regexp.QuoteMeta(workload.Test)+"$")
+	args = append(args, "go-test", workload.Package, "--")
+	args = append(args, testArguments(workload)...)
 	return Command{
 		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir,
 		Timeout: overallTimeout + manifestGrace(manifest) + 10*time.Second, Grace: min(runTimeout, manifestGrace(manifest)),

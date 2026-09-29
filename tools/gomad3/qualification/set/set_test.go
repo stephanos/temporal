@@ -1011,3 +1011,68 @@ func writeManifestWithSuiteIDs(t *testing.T, root, classification string, ids ..
 	}
 	return path
 }
+
+func TestTestArgumentsAnchorEverySkippedSubtestElement(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		skip []string
+		want []string
+	}{
+		{name: "no skips", want: []string{"-test.run=^TestScenario$"}},
+		{name: "nested and sibling subtests", skip: []string{"Group/Case.1", "Other"}, want: []string{"-test.run=^TestScenario$", "-test.skip=^TestScenario$/^Group$/^Case\\.1$|^TestScenario$/^Other$"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := testArguments(Workload{Test: "TestScenario", Skip: test.skip})
+			if !slices.Equal(got, test.want) {
+				t.Fatalf("testArguments() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestRunPassesSkippedSubtestsToAnalysisAndQualification(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifest(t, root, "unsupported_target")
+	contents, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	suite := manifest["suites"].([]any)[0].(map[string]any)
+	suite["skip"] = []string{"Flaky"}
+	contents, err = json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var observed [][]string
+	executor := func(ctx context.Context, command Command) CommandResult {
+		observed = append(observed, command.Args)
+		return expectedBoundaryExecutor(t)(ctx, command)
+	}
+	if _, err := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "report.json"), Execute: executor,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if len(observed) != 1 || !slices.Contains(observed[0], "-test.skip=^TestScenario$/^Flaky$") {
+		t.Fatalf("analysis arguments = %q, want a -test.skip", observed)
+	}
+	suite["skip"] = []string{"bad name"}
+	contents, err = json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadManifest(manifestPath); err == nil || !strings.Contains(err.Error(), "skips an invalid subtest name") {
+		t.Fatalf("LoadManifest() error = %v", err)
+	}
+}

@@ -88,10 +88,18 @@ manifest is stale relative to `./tests` or the spec.
 A new test therefore lands expecting `qualified` on both platforms and fails
 the set when it is not. An override changes a test's `expectation`,
 `platform_expectations`, or `required_probes`; a failure expectation names its
-`finding` as elsewhere. A test leaves the set only by an exclusion with an
-`owner`, a `date` (`YYYY-MM-DD`), and a `reason`; an exclusion missing any of
-them, or an override or exclusion naming a test `./tests` no longer declares,
-is refused. `temporal.json` stays the representative corpus.
+`finding` as elsewhere. An override may also narrow what a test retains or
+how long it may run (`choice_bytes`, `replay_successes`, `execution_timeout`,
+`overall_timeout`), and then must carry a `reason`: a test whose choice tape
+overflows the 64 MiB bound runs with `choice_bytes` 0 and `replay_successes`
+false, so it still proves seed repeatability but retains and replays no
+success artifact. A test leaves the set only by an exclusion with an
+`owner`, a `date` (`YYYY-MM-DD`), and a `reason`; a single subtest leaves it
+through the override's `skip_subtests`, which takes the same three fields per
+subtest and runs the test with an anchored `-test.skip` while the rest of the
+test stays qualified. An exclusion or skip missing any of the three fields,
+or an override or exclusion naming a test `./tests` no longer declares, is
+refused. `temporal.json` stays the representative corpus.
 
 ```sh
 make gomad3-tests-qualification

@@ -245,6 +245,10 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 		"TestNDCGamma": {
 			ChoiceBytes: &noChoices, ReplaySuccesses: &noReplay, ExecutionTimeout: "4m", OverallTimeout: "30m",
 			Reason: "its choice tape overflows 64 MiB; seed repeatability without exact replay",
+			SkipSubtests: map[string]Exclusion{
+				"TestSameInstant/Ordering": {Owner: "stephanos", Date: "2026-09-28", Reason: "orders by start times virtual time makes equal"},
+				"TestClock":                {Owner: "stephanos", Date: "2026-09-28", Reason: "asserts a later wall-clock read"},
+			},
 		},
 	}
 	spec.Exclusions = map[string]Exclusion{"TestBeta_Parts": {Owner: "stephanos", Date: "2026-09-28", Reason: "needs a real network"}}
@@ -263,7 +267,7 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 	if _, found := workloadFor(manifest, "TestBeta_Parts"); found {
 		t.Fatal("excluded test is generated")
 	}
-	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" || gamma.ChoiceBytes != 0 || gamma.ReplaySuccesses || gamma.SuccessArtifactLimit != 0 || gamma.SuccessBytesLimit != 0 || gamma.ExecutionTimeout != "4m" || gamma.OverallTimeout != "30m" {
+	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" || gamma.ChoiceBytes != 0 || gamma.ReplaySuccesses || gamma.SuccessArtifactLimit != 0 || gamma.SuccessBytesLimit != 0 || gamma.ExecutionTimeout != "4m" || gamma.OverallTimeout != "30m" || !slices.Equal(gamma.Skip, []string{"TestClock", "TestSameInstant/Ordering"}) {
 		t.Fatalf("narrowed workload = %+v", gamma)
 	}
 }
@@ -322,6 +326,12 @@ func TestInvalidSpecsAreRefused(t *testing.T) {
 				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ExecutionTimeout: "4m"}}
 			},
 			want: "changes its evidence or budget and requires a reason",
+		},
+		"subtest skip without owner": {
+			mutate: func(spec *Spec) {
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {SkipSubtests: map[string]Exclusion{"TestClock": {Date: "2026-09-28", Reason: "same instant"}}}}
+			},
+			want: "exclusion of TestAlphaSuite/TestClock requires an owner",
 		},
 		"override expectation without finding": {
 			mutate: func(spec *Spec) {
