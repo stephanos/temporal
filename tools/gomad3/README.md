@@ -288,7 +288,21 @@ workloads that do not replay successes, keep everything. The set report records 
 `artifacts_pruned` for each pruned seed, so those seeds cannot be replayed
 later; `OpenReport` rejects a pruned seed that is not a replayed, matching,
 qualified one. The checkpoint marks a seed pruned before its Campaigns are
-deleted, and a pruning failure stops the run with status 3.
+deleted, and a pruning failure stops the run with status 3. A run also stops,
+with status 3 and the remaining workloads recorded as infrastructure failures,
+before a seed would start on an artifact volume with less than
+`--min-free-bytes` (2 GiB by default) free, so it never fills a shared disk.
+
+Preparing a go target retains the built binary under
+`.toolchain/builds/<key>/prepared-targets/<identity>`, where the identity binds
+every build input: the toolchain and its Go settings, kind, package, tags,
+capability mode, overlay, module files, the reviewed closure with its source
+digests, module sums, and adapters, and the files packages embed. A later
+preparation with the same identity restores the copy instead of linking again,
+after the same capability review, and discards a copy that no longer hashes
+to its record. The eight most recently used binaries stay. The target build
+cache beside it is trimmed to 4 GiB, least recently used entries first, after
+each build.
 
 Compare two validated reports with `gomad compare-support`. Clean and improved
 comparisons return 0, regressions or review-required changes return 1,

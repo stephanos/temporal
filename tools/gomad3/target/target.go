@@ -742,6 +742,9 @@ func buildGoTarget(
 			return preparation{}, err
 		}
 	}
+	if err := targetbuild.TrimCache(buildCache, targetbuild.MaximumCacheBytes); err != nil {
+		return preparation{}, err
+	}
 	return finishGoTarget(spec, identity, targetPath, review, policy)
 }
 

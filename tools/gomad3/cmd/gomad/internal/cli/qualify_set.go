@@ -35,6 +35,8 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	check := flags.Bool("check", false, "validate the manifest without executing targets")
 	pruneQualified := flags.Bool("prune-qualified-artifacts", false, "delete each qualified seed's retained Campaigns once its evidence is final")
 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT subset of the manifest's workloads, merged later with merge-set")
+	minimumFree := byteSize(qualificationset.DefaultMinimumFreeBytes)
+	flags.Var(&minimumFree, "min-free-bytes", "stop before a seed starts on an artifact volume with less free space")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 {
 		return 2
 	}
@@ -84,7 +86,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	}
 	report, runErr := dependencies.run(context.Background(), qualificationset.Spec{
 		ManifestPath: *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,
-		ArtifactRoot: *artifacts, OutputPath: *output, Shard: shard, PruneQualifiedArtifacts: *pruneQualified,
+		ArtifactRoot: *artifacts, OutputPath: *output, Shard: shard, PruneQualifiedArtifacts: *pruneQualified, MinimumFreeBytes: uint64(minimumFree),
 	})
 	if err := writeQualificationSetResult(stdout, *format, report); err != nil {
 		return writeCommandError(stderr, 3, "write qualification set result: %v\n", err)
@@ -146,6 +148,9 @@ func classifyQualificationSetError(report qualificationset.Report, runErr error)
 		if workload.Classification == "invalid_input" || workload.AnalysisError == "invalid_input" {
 			return 2, "invalid qualification set workload"
 		}
+	}
+	if errors.Is(runErr, qualificationset.ErrLowFreeSpace) {
+		return 3, "qualification set stopped"
 	}
 	if errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded) || report.InfrastructureErrors != 0 {
 		return 3, "qualification set infrastructure failure"
