@@ -1,4 +1,6 @@
 import Tools.LeanSourceInventory
+import Std.Data.HashMap
+import Std.Data.HashSet
 
 /-!
 Pure import-graph policy checking for the Temporal Lean model.
@@ -73,6 +75,13 @@ structure Policy where
   /-- The external checker libraries behind search backends. A library is not first-party: its
   modules are external metadata, not classified, and reach the policy only through this rule. -/
   searchBackends : Array SearchBackendBoundary := #[]
+  /-- Every `lean_lib`/`lean_exe` root declared in `model/lakefile.lean`, by the module its
+  `roots` (or, absent that, its own name) names. Kept in sync with the lakefile by hand, the way
+  `firstPartyRoots` already is. -/
+  buildRoots : Array Lean.Name := #[]
+  /-- First-party modules no lakefile root reaches, admitted anyway because something other than
+  `lake build` loads them: `ModelLint`'s own `buildIfNeeded` loads the lint modules at runtime. -/
+  unreachableAllowlist : Array Lean.Name := #[]
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -168,6 +177,44 @@ def defaultPolicy : Policy := {
     adapter := `Umpire.Search.Backend.Veil
     selector := `Umpire.Search.Selection
   }],
+  buildRoots := #[
+    `Shared,
+    `Testpilot,
+    `Testpilot.Tests,
+    `Testpilot.Tests.ProtoJSONMain,
+    `Temporal,
+    `Umpire,
+    `UmpireTests,
+    `TemporalModelTests,
+    `Tools.LeanImportGraph,
+    `Tools.LeanImportGraphTests,
+    `Tools.LeanSourceInventory,
+    `Tools.LeanSourceInventoryTests,
+    `ModelLint.Entity,
+    `ModelLint.ImportGraph,
+    `ModelLint.PackageModules,
+    `ModelLint.PackageModulesTests,
+    `ModelLint.ModuleIndex,
+    `ModelLint.ModuleIndexTests,
+    `ModelLint.ModuleIndexExporter,
+    `Temporal.Tool.Inspect,
+    `Temporal.Tool.InventoryMain,
+    `Temporal.Tool.InventoryMainTests,
+    `Temporal.Tool.InventoryMakeTestsMain,
+    `Temporal.Tool.Testpilot,
+    `Temporal.Tool.ExplorationBridgeMain,
+    `Temporal.Tool.ExplorationBridgeTests,
+    `Temporal.Tool.ReplayBridgeMain,
+    `Temporal.Tool.ReplayBridgeTests,
+    `Temporal.Tool.Goldens,
+    `Temporal.Tool.EvaluationProfiles,
+    `Umpire.Case.Tests.CorrelatedFixtureMain,
+    `ModelLint,
+    `ModelLint.ImportGraphTests,
+    `ModelLint.ModuleIndexMain,
+    `ModelLint.ModuleIndexMainTests
+  ],
+  unreachableAllowlist := #[`Temporal.Lint, `Umpire.Lint],
   testSupportNamespaces := #[
     `Shared.Test,
     `Temporal.Shared.Test,
@@ -414,6 +461,48 @@ def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
       | some sourceClass, some destinationClass =>
           forbiddenRule? policy source sourceClass destination destinationClass
       | _, _ => none) modules policy.isFirstParty
+
+/-- A first-party module no `lean_lib`/`lean_exe` root's import closure reaches: `lake build`
+never checks it. -/
+structure Unbuilt where
+  module : Lean.Name
+  deriving Repr, BEq
+
+/-- Render one deterministic unbuilt-module diagnostic. -/
+def Unbuilt.render (issue : Unbuilt) : String :=
+  s!"[model-import-graph/unbuilt] {issue.module} is not reachable from any model/lakefile.lean root"
+
+/-- Every first-party module transitively reachable from `roots` by following `modules`' own
+direct-import edges. -/
+private def reachableFrom
+    (modules : Array ModuleRecord) (roots : Array Lean.Name) : Std.HashSet Lean.Name := Id.run do
+  let importsByName := modules.foldl
+    (init := ({} : Std.HashMap Lean.Name (Array Lean.Name)))
+    fun byName record => byName.insert record.name record.imports
+  let mut visited : Std.HashSet Lean.Name := Std.HashSet.ofArray roots
+  let mut frontier := roots
+  while !frontier.isEmpty do
+    let mut next : Array Lean.Name := #[]
+    for name in frontier do
+      if let some imports := importsByName[name]? then
+        for imported in imports do
+          unless visited.contains imported do
+            visited := visited.insert imported
+            next := next.push imported
+    frontier := next
+  return visited
+
+/-- Every first-party module in `modules` that no `policy.buildRoots` root reaches and
+`policy.unreachableAllowlist` does not admit, sorted. A guard against dead test modules: a file
+`lean_lib`/`lean_exe` never names is a file `lake build` never checks. -/
+def checkUnbuilt (policy : Policy) (modules : Array ModuleRecord) : Array Unbuilt :=
+  let reachable := reachableFrom modules policy.buildRoots
+  let unbuilt := modules.filterMap fun record =>
+    if policy.isFirstParty record.name && !reachable.contains record.name &&
+        !policy.unreachableAllowlist.contains record.name then
+      some ({ module := record.name } : Unbuilt)
+    else none
+  unbuilt.qsort fun left right => left.module.toString < right.module.toString
 
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
   isFirstParty := policy.isFirstParty

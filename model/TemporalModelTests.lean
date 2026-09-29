@@ -23,6 +23,7 @@ import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
 import Temporal.TestpilotTests
 import Temporal.Tool.InspectTests
+import Temporal.Tool.InventoryTests
 import TemporalModelTests.Nexus.ImplementationLink
 import TemporalModelTests.SearchDifferential
 import TemporalModelTests.SearchDifferential.CallerCampaign1

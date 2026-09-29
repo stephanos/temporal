@@ -1145,6 +1145,13 @@ lint-model: umpire-check-inventory
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
+		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-unbuilt-violation 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -eq 1; \
+		expected='[model-import-graph/unbuilt] Umpire.Planted is not reachable from any model/lakefile.lean root'; \
+		test "$$(cat "$$diagnostics")" = "$$expected"
+	@diagnostics=$$(mktemp); \
+		trap 'rm -f "$$diagnostics"' EXIT; \
+		status=0; \
 		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-entity-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-entity/feature-entity-uniqueness] duplicate action serve: Temporal.Feature.Planted and Temporal.Feature.Worker.Model'; \

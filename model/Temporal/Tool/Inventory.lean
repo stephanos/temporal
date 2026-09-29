@@ -16,6 +16,9 @@ namespace Temporal.Tool.Inventory
 
 open Umpire
 
+-- The type deliberately shares its name with the owning namespace, so `open Temporal.Tool.Inventory`
+-- callers write `Inventory.outcomeFamilies` rather than a second, redundant qualifier.
+set_option linter.extra.dupNamespace false in
 /-- The typed catalogs required to render one semantic inventory. -/
 structure Inventory where
   outcomeFamilies : List OutcomeFamilyDescriptor

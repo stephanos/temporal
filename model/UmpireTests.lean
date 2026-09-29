@@ -2,7 +2,9 @@ import Umpire.Value.Tests
 import Umpire.Value.FieldTests
 import Umpire.ImportTests
 import Umpire.FingerprintTests
+import Umpire.CoreImportTests
 import Umpire.Model.ImportTests
+import Umpire.Model.CheckImportTests
 import Umpire.CoreTests
 import Umpire.Operation.Tests
 import Umpire.ModelTests
@@ -13,6 +15,10 @@ import Umpire.Scenario.ImportTests
 import Umpire.Query.Tests
 import Umpire.Search.Tests
 import Umpire.Search.VisibilityTests
+import Umpire.Inventory
+import Umpire.Inventory.Tests.KnownGaps
+import Umpire.Inventory.Tests.SemanticStages
+import Umpire.Inventory.Tests.PlanningRuntime
 import Umpire.PromotionTests
 import Umpire.Artifact.Tests.Codecs
 import Umpire.Artifact.Tests.RunRecord

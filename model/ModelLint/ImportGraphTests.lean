@@ -692,6 +692,33 @@ private def testSearchBackendIsolation : IO Unit := do
     #["[model-import-graph/search-backend-isolation] forbidden direct import: \
         Umpire.Search -> Veil.Core.Tools.ModelChecker.Trace"]
 
+/-- `checkUnbuilt` reports a first-party module no root reaches, leaves a module reachable
+through a chain of imports alone, admits the allowlisted lint module even though nothing imports
+it, and never looks at external metadata. -/
+private def testUnbuiltModules : IO Unit := do
+  let policy := { defaultPolicy with
+    buildRoots := #[`UmpireTests],
+    unreachableAllowlist := #[`Temporal.Lint] }
+  let modules := #[
+    moduleRecord `UmpireTests #[`Umpire.CoreTests],
+    moduleRecord `Umpire.CoreTests #[`Umpire.Core],
+    moduleRecord `Umpire.Core,
+    moduleRecord `Umpire.Orphan.Tests,
+    moduleRecord `Temporal.Lint,
+    moduleRecord `Veil.External
+  ]
+  requireEqual "only the orphaned test module is reported"
+    ((checkUnbuilt policy modules).map (·.module)) #[`Umpire.Orphan.Tests]
+  requireEqual "the diagnostic names the module and points at the lakefile"
+    ((checkUnbuilt policy modules).map Unbuilt.render)
+    #["[model-import-graph/unbuilt] Umpire.Orphan.Tests is not reachable from any \
+      model/lakefile.lean root"]
+
+/-- The planted unbuilt-module violation the Makefile asserts byte for byte: a synthetic first-
+party module no real lakefile root reaches. -/
+private def controlledUnbuiltViolations : Array Unbuilt :=
+  checkUnbuilt defaultPolicy #[moduleRecord `Umpire.Planted]
+
 /-- The planted search-backend violation the Makefile asserts byte for byte. -/
 private def controlledSearchBackendViolations : Array Violation :=
   check defaultPolicy #[
@@ -803,6 +830,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testHandwrittenInventory
   testAuthoringPathIsolation
   testSearchBackendIsolation
+  testUnbuiltModules
   testFeatureEntityUniqueness
   testExternalLeaves
   testStableShortestPath
@@ -823,6 +851,10 @@ unsafe def main (args : List String) : IO UInt32 :=
   | ["--controlled-authoring-violation"] => runControlledViolation controlledAuthoringViolations
   | ["--controlled-search-backend-violation"] =>
       runControlledViolation controlledSearchBackendViolations
+  | ["--controlled-unbuilt-violation"] => do
+      for issue in controlledUnbuiltViolations do
+        IO.eprintln issue.render
+      pure <| exitCode controlledUnbuiltViolations.isEmpty true
   | ["--controlled-entity-violation"] => do
       for violation in controlledEntityViolations do
         IO.eprintln violation.render
@@ -830,5 +862,5 @@ unsafe def main (args : List String) : IO UInt32 :=
   | _ => do
       IO.eprintln "usage: umpire-lint-tests [--controlled-violation | \
         --controlled-authoring-violation | --controlled-search-backend-violation | \
-        --controlled-entity-violation]"
+        --controlled-unbuilt-violation | --controlled-entity-violation]"
       pure 2

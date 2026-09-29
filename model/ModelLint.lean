@@ -57,11 +57,14 @@ private unsafe def lintImportGraph : IO (Bool × Array Name) := do
       let violations := check defaultPolicy loaded.modules
       for violation in violations do
         IO.eprintln violation.render
+      let unbuilt := checkUnbuilt defaultPolicy loaded.modules
+      for issue in unbuilt do
+        IO.eprintln issue.render
       -- The records' names may point into the mapped module data, so the regions stay reachable
       -- until every reader above has finished with them.
       let _loadedRegionCount := loaded.regions.size
       let discovered := loaded.sources.map (·.module)
-      if inventoryIssues.isEmpty && violations.isEmpty then
+      if inventoryIssues.isEmpty && violations.isEmpty && unbuilt.isEmpty then
         IO.println "-- Model import-graph linting passed."
         pure (true, discovered)
       else
