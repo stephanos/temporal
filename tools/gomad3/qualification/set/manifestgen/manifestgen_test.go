@@ -94,7 +94,7 @@ func baseSpec() Spec {
 			Tier: 3, CapabilityMode: "closure", Invariant: "passes under virtual time",
 			ReadOnlyMounts: []set.Mount{{Source: "./schema", Target: "/example.com/fixture/schema"}},
 			ChoiceBytes:    64 << 20, ReplaySuccesses: true, SuccessArtifactLimit: 1, SuccessBytesLimit: 1 << 30,
-			OverallTimeout: "20m", Expectation: set.WorkloadExpectation{Classification: "qualified"},
+			OverallTimeout: "20m", TestParallel: 8, Expectation: set.WorkloadExpectation{Classification: "qualified"},
 		},
 	}
 }
@@ -139,7 +139,7 @@ func TestRunGeneratesOneDefaultWorkloadPerListedTest(t *testing.T) {
 		Package: "./pkg", Test: "TestAlphaSuite", BuildTags: []string{"gomad", "test_dep"}, CapabilityMode: "closure",
 		ReadOnlyMounts: []set.Mount{{Source: "./schema", Target: "/example.com/fixture/schema"}},
 		ChoiceBytes:    64 << 20, ReplaySuccesses: true, SuccessArtifactLimit: 1, SuccessBytesLimit: 1 << 30,
-		OverallTimeout: "20m", Expectation: set.WorkloadExpectation{Classification: "qualified"},
+		OverallTimeout: "20m", TestParallel: 8, Expectation: set.WorkloadExpectation{Classification: "qualified"},
 	}
 	gotJSON, _ := json.Marshal(alpha)
 	wantJSON, _ := json.Marshal(want)
@@ -267,7 +267,7 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 	if _, found := workloadFor(manifest, "TestBeta_Parts"); found {
 		t.Fatal("excluded test is generated")
 	}
-	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" || gamma.ChoiceBytes != 0 || gamma.ReplaySuccesses || gamma.SuccessArtifactLimit != 0 || gamma.SuccessBytesLimit != 0 || gamma.ExecutionTimeout != "4m" || gamma.OverallTimeout != "30m" || !slices.Equal(gamma.Skip, []string{"TestClock", "TestSameInstant/Ordering"}) {
+	if gamma, _ := workloadFor(manifest, "TestNDCGamma"); gamma.ID != "fixture-ndc-gamma" || gamma.Expectation.Classification != "qualified" || gamma.ChoiceBytes != 0 || gamma.ReplaySuccesses || gamma.SuccessArtifactLimit != 0 || gamma.SuccessBytesLimit != 0 || gamma.ExecutionTimeout != "4m" || gamma.OverallTimeout != "30m" || gamma.TestParallel != 8 || !slices.Equal(gamma.Skip, []string{"TestClock", "TestSameInstant/Ordering"}) {
 		t.Fatalf("narrowed workload = %+v", gamma)
 	}
 }

@@ -74,8 +74,13 @@ type Workload struct {
 	// Skip names subtests of Test the workload does not run, as -test.skip
 	// patterns anchored under Test; a generated manifest records who excluded
 	// each one, when, and why.
-	Skip        []string            `json:"skip,omitempty"`
-	Expectation WorkloadExpectation `json:"expectation"`
+	Skip []string `json:"skip,omitempty"`
+	// TestParallel is the -test.parallel the test binary runs with. Stock go
+	// test defaults it to GOMAXPROCS; the deterministic runtime pins one P,
+	// which would serialize parallel subtests and expire the test contexts
+	// they created before pausing, so a manifest states the value.
+	TestParallel uint64              `json:"test_parallel,omitempty"`
+	Expectation  WorkloadExpectation `json:"expectation"`
 	// PlatformExpectations replaces Expectation on the named GOOS/GOARCH hosts,
 	// so one manifest can state where a workload's support boundary differs.
 	PlatformExpectations map[string]WorkloadExpectation `json:"platform_expectations,omitempty"`
@@ -797,6 +802,9 @@ func workloadCommand(config Spec, manifest Manifest, workload Workload, seed uin
 // longer one.
 func testArguments(workload Workload) []string {
 	arguments := []string{"-test.run=^" + regexp.QuoteMeta(workload.Test) + "$"}
+	if workload.TestParallel != 0 {
+		arguments = append(arguments, "-test.parallel="+strconv.FormatUint(workload.TestParallel, 10))
+	}
 	if len(workload.Skip) == 0 {
 		return arguments
 	}
