@@ -128,9 +128,13 @@ const (
 	maximumNodes            = 100_000
 	maximumHandles          = 100_000
 	maximumDirectoryEntries = 100_000
-	MaximumFileBytes        = 16 << 20
-	maximumTotalBytes       = 64 << 20
-	maximumMappedBytes      = 64 << 20
+	// A WAL-mode SQLite database of a large functional suite grows past
+	// 16 MiB; a write refused with EFBIG surfaces as SQLITE_IOERR_WRITE and
+	// fails every later transaction, so the file and total bounds leave room
+	// for the largest ./tests suites while still failing closed on a runaway.
+	MaximumFileBytes   = 256 << 20
+	maximumTotalBytes  = 1 << 30
+	maximumMappedBytes = 64 << 20
 )
 
 // TempDirectory is the directory os.TempDir resolves to when TMPDIR is unset.

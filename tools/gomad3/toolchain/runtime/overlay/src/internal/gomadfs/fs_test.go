@@ -26,6 +26,29 @@ func TestFilesystemEnforcesPathAndFileBounds(t *testing.T) {
 	}
 }
 
+// A functional suite's WAL-mode SQLite database grows past 16 MiB, and the
+// files of one target past 64 MiB; the former bounds failed those writes with
+// EFBIG, which SQLite reported as a disk I/O error.
+func TestFilesystemHoldsFilesLargerThanSixteenMebibytes(t *testing.T) {
+	filesystem := New()
+	for name, offset := range map[string]int64{"/database": 16 << 20, "/database-wal": 48 << 20} {
+		file, err := filesystem.Open(name, OpenFlags{Write: true, Create: true}, 0o600)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := file.WriteAt([]byte("page"), offset); err != nil {
+			t.Fatalf("WriteAt(%s, %d) error = %v", name, offset, err)
+		}
+		entry, err := filesystem.Stat(name)
+		if err != nil || int64(len(entry.Data)) != offset+4 {
+			t.Fatalf("Stat(%s) = (%d bytes, %v), want %d bytes", name, len(entry.Data), err, offset+4)
+		}
+	}
+	if used := filesystem.Statistics().UsedBytes; used <= 64<<20 {
+		t.Fatalf("UsedBytes = %d, want more than the former 64 MiB total", used)
+	}
+}
+
 func TestFilesystemStartsWithTempDirectory(t *testing.T) {
 	for name, fs := range map[string]*FS{"process": New(), "simulation": NewSimulation()} {
 		entry, err := fs.Stat(TempDirectory)

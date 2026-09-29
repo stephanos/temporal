@@ -1180,6 +1180,41 @@ gate run in CI.
 - Each newly added test in `./tests` on a subsequent pull request appears in the report without
   a manifest edit.
 
+**Status (darwin/arm64, 2026-09-29).** The full `./tests` set was run eight times on darwin
+while the manifest generator and sharding landed (run 8: 138 supported, 0 unsupported, 0
+infrastructure errors, 3 failed), and then retired as a gate (user decision, 2026-09-29: it is not
+scalable); the sharding, merge and caches stay as tooling. The three failures and the two
+whole-suite divergence exclusions of run 7 shared one channel, found with a buffered
+event log of every span allocation, greying and drain slice from a debug toolchain: Go 1.27
+records in each P the M that took it (`p.oldm`, a copy of the M's 8-byte `self` weak handle,
+written by `acquirep`); which M takes the P after a runner-syscall hand-off is host timing, so
+the scan of the P greyed a different handle per run, 8 bytes of scan work moved between
+drain slices, the assist or worker ending a slice allocated a work buffer or not, and every
+later page of the heap followed: `%p` in the server's membership resolver logs differed
+between a recording and its replay (`nexus-otel` seed 17, 6 of 8 replays), and the callbacks
+and chasm signal suites diverged between fresh repetitions. `gomadGreyRuntimeStructures`
+now shades every M's `self` handle and every P's `oldm` handle at mark start. With the fix,
+on the production toolchain: `TestNexusOTELSuite`, `TestSignalWorkflowTestSuiteLegacy`,
+`TestSignalWorkflowTestSuiteChasm` (seeds 11 and 17, `--repeat 4`, every retained success
+replayed 6 more times) and `TestCompletionCallbacksSuite` (`--repeat 2`, 4 replays each)
+qualify with exact replays, `make -C tools/gomad3 test-runtime` and the core set (7 of 7,
+the mount fixture now also hands the P off on every round and prints its page layout) pass.
+One residual channel remains and is recorded, not fixed: about one chasm seed-11 replay in
+thirty (1 of 28) still differs in stderr, and the instrumented runs place it before any
+collection, at decision 46 of cluster start, where two heap-span refills (size classes 11 and
+50) swap order between same-seed runs; its allocating goroutine was not identified.
+`TestVersioningFunctionalSuite` never diverged: its WAL-mode SQLite database passes 16 MiB
+and the in-memory filesystem refused the write (`SQLITE_IOERR_WRITE`, every later
+transaction failed); the per-file bound is now 256 MiB and the total 1 GiB, and the suite
+runs to the end in about 20 minutes of wall time per repetition with one deterministic
+failure left, `TestDescribeTaskQueueEnhanced_ReportFlags` ("poller info should not be
+reported", versioning_test.go:4203), which is not yet demonstrated as a test bug and stays
+an open finding rather than an exclusion. The `TestWorkerOperation` skip of the OTEL suite
+is now a demonstrated test bug (it sorts the client and server spans by StartTime, equal
+under virtual time). The exclusions that remain in `tests.generator.json` are the four
+I/O-transcript overflows and the named subtests; the callbacks and chasm exclusions are
+removed.
+
 ## F8: consolidate architecture after functional qualification
 
 **Spec.** [fn-102-gomad-architecture-consolidate](../.flow/specs/fn-102-gomad-architecture-consolidate.md)
