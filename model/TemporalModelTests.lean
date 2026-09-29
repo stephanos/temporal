@@ -10,6 +10,7 @@ import Temporal.Feature.Nexus.Caller.Tests
 import Temporal.Feature.Nexus.Control.Tests
 import Temporal.Evaluation.LocalTests
 import Temporal.Evaluation.CanaryTests
+import Temporal.Case.Tests.ProductionImports
 import Temporal.Feature.Nexus.Tests.Commands
 import Temporal.Feature.Nexus.Tests.Machines
 import Temporal.Feature.Nexus.Tests.SecondModel
