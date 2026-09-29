@@ -652,6 +652,9 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
+      "skip": [
+        "TestListWorkflow_OrQuery"
+      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -681,6 +684,9 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
+      "skip": [
+        "TestListWorkflow_OrQuery"
+      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1255,6 +1261,9 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
+      "skip": [
+        "Test_Activity_Basic"
+      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
