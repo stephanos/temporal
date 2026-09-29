@@ -43,7 +43,8 @@
     "overall_timeout": "20m",
     "expectation": {
       "classification": "qualified"
-    }
+    },
+    "test_parallel": 8
   },
   "tests": {
     "TestActivityTestSuite": {

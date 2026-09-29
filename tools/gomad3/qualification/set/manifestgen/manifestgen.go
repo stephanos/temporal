@@ -79,6 +79,7 @@ type WorkloadDefaults struct {
 	SuccessBytesLimit    uint64                  `json:"success_bytes_limit"`
 	ExecutionTimeout     string                  `json:"execution_timeout,omitempty"`
 	OverallTimeout       string                  `json:"overall_timeout,omitempty"`
+	TestParallel         uint64                  `json:"test_parallel,omitempty"`
 	Expectation          set.WorkloadExpectation `json:"expectation"`
 }
 
@@ -466,7 +467,7 @@ func workload(spec Spec, test, id string) set.Workload {
 		ChoiceBytes: defaults.ChoiceBytes, ReplaySuccesses: defaults.ReplaySuccesses,
 		SuccessArtifactLimit: defaults.SuccessArtifactLimit, SuccessBytesLimit: defaults.SuccessBytesLimit,
 		ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
-		Expectation: defaults.Expectation,
+		TestParallel: defaults.TestParallel, Expectation: defaults.Expectation,
 	}
 	if override, found := spec.Tests[test]; found {
 		generated.RequiredProbes = slices.Clone(override.RequiredProbes)

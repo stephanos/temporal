@@ -1014,15 +1014,17 @@ func writeManifestWithSuiteIDs(t *testing.T, root, classification string, ids ..
 
 func TestTestArgumentsAnchorEverySkippedSubtestElement(t *testing.T) {
 	for _, test := range []struct {
-		name string
-		skip []string
-		want []string
+		name     string
+		skip     []string
+		parallel uint64
+		want     []string
 	}{
 		{name: "no skips", want: []string{"-test.run=^TestScenario$"}},
 		{name: "nested and sibling subtests", skip: []string{"Group/Case.1", "Other"}, want: []string{"-test.run=^TestScenario$", "-test.skip=^TestScenario$/^Group$/^Case\\.1$|^TestScenario$/^Other$"}},
+		{name: "parallelism", parallel: 8, want: []string{"-test.run=^TestScenario$", "-test.parallel=8"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := testArguments(Workload{Test: "TestScenario", Skip: test.skip})
+			got := testArguments(Workload{Test: "TestScenario", Skip: test.skip, TestParallel: test.parallel})
 			if !slices.Equal(got, test.want) {
 				t.Fatalf("testArguments() = %q, want %q", got, test.want)
 			}
