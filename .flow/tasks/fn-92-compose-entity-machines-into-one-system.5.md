@@ -42,9 +42,22 @@ make umpire-check-regression
 - [ ] The composition sits under its own AUTHORING marker with its block; the header region re-quoted; the Go authoring drift test passes
 - [ ] `make umpire-check-regression` passes
 ## Done summary
-TBD
+The Caller module now declares `handlerWorker` (derived from `Worker.polling`, restricted to `workerStop` and `serve`) and the `nexusCaller` composition of `nexusProtocol` with it. The composition reaches 316 states (the 158 protocol states under both worker phases; 316 × 23 actions = 7268, below the 16384 bound) and 1468 rows. Every one of its 144 `handlerReply` rows leaves from a polling state. Over `repliedThenStopped`, the query `stoppedWorkerRepliesNothing` verifies `repliedByPollingWorker` (bare `when: handlerReply`, one field requirement `worker = polling` per reply class) within limits. Its differential line reads `veil default, verified-within-limits 5 paths, verified-within-limits 5 states; automaton ok, monitors ok (Query depth 4, clause table depth 1)`. `nexusCaller.agrees` depends only on propext, Classical.choice and Quot.sound.
 
+Measurements come from `lake env lean -Dprofiler=true` with LEAN_NUM_THREADS=1 on the 16 GB host. The comparison run is a profile of the base file.
+- Composition kernel type checking, which covers the agreement decisions and the law proof: 56.5 s (16.1 + 9.75 + 2.43 + 4.97 + 23.2). Tactic execution of the compose proof: 11.3 s more.
+- Reachable-table elaboration of `compose`: 6.5 s. `handlerWorker`: 0.45 s.
+- Predicate enumeration of the Property: 1.8 s. The `verify` Query check: 23.2 s.
+- Whole Model file: 241 s wall at 6.81 GB peak RSS, against 137 s and 3.74 GB for the base file. `lake build` of the module: 245 s at 6.71 GB.
+
+Nothing else changed. The seven Caller Queries, their differential lines, the Caller fixtures, the canary Case, the exploration golden and the replay goldens are byte-identical: `umpire-check-goldens`, `canary-check-case`, `umpire-check-case-runtime-conformance` and the full `umpire-check-regression` are green. AUTHORING.md re-quotes the header region and adds section 12 for the new `-- authoring: composition` region; "From the file to a green live test" is now section 13. The authoring drift test passes.
+
+baseline: green (focused build and gates rc=0 pre-edit; regression via green receipt a111afe3)
+
+stage: impl-review - ran [codex fan-out 6fb22561: correctness, contracts and integration draws all SHIP, 0 findings]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9f2b9ad5fc00e032c65eadd604710c71347ce8d8
+- Tests: cd model && lake build Temporal.Feature.Nexus.Caller.Tests TemporalModelTests.SearchDifferential, make umpire-check-goldens, make canary-check-case, make umpire-check-case-runtime-conformance, go test -tags test_dep ./tools/umpire/authoring/..., LEAN_NUM_THREADS=1 make lint-model-builtin LINT_MODEL_MODULES="Temporal.Feature.Nexus.Caller.Model Temporal.Feature.Nexus.Caller.Tests TemporalModelTests.SearchDifferential", make umpire-check-regression
 - PRs:
