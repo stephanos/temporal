@@ -77,6 +77,15 @@ interpreted; the realization binds them to runtime identifiers. Several instance
 > bound where the count is written, an instance count of zero rejects there, and a Search that
 > cannot finish its interleavings within its Limits reports that the bound stopped it.
 
+> Amended during fn-92, 2026-09-29. An entity may have a module of its own.
+> `Temporal.Feature.Worker.Model` declares `entity worker` keyed by `taskQueue`, its two faults, a
+> classless `serve`, and machine `polling`, and nothing that is realized; the handler's worker and a
+> workflow's worker are two instances of it, each named by the member field of the composition that
+> uses it (section 2.3). An entity or action name is declared once across the production
+> `Temporal.Feature` modules: `make lint-model`'s `feature-entity-uniqueness` fails a second
+> declaration unless its allowlist names it with the follow-up that removes it. The caller keeps its
+> own `workerStop` and `workflow` until that follow-up lets a use case choose its entity key.
+
 ### 2.2 Action
 
 An action is a side effect performed by a **party**. It declares the entity it acts on (or creates),
@@ -186,6 +195,20 @@ A row with no guard (`+ workerStop`) matches in every state. The Run records the
 Testpilot Run Event, but nothing it records names the operation, so the row records nothing the
 operation's Contract can read (the `.11` amendment in section 3).
 
+> Amended during fn-92, 2026-09-29. The guardless `+ workerStop` row stays, and the operation still
+> cannot see its handler's worker. What sees it is the `nexusCaller` composition in the caller
+> Model: `compose` builds one Model from the protocol machine and `handlerWorker`, the worker
+> entity's machine derived by `from: Worker.polling restrict: [workerStop, serve]`. Its `sync:`
+> lines make the stop one step of the operation's stutter row and the worker's phase change, and
+> every handler reply one step of the reply and the worker's `serve`, which has a row only while the
+> worker polls. The Property `repliedByPollingWorker` fixes the worker member's phase field on every
+> reply, so the schedule-to-start Scenario's stop-before-request ordering is a verified fact of the
+> composition rather than a convention. The composed table holds the rows reachable from its starts
+> (316 states), and the kernel decides its agreement with the two members' tables. The negative
+> control is the other new form: `machine nexusControl from: pair extend: handlerReply:
+> controlForgedStep` is the pair machine plus one forged result, with the catalogs, Case fixture and
+> recorded Run the copied machine had.
+
 **Setup parameters** are configuration that changes behavior on purpose, named after the setting
 (`recordCancelCompletion`, `atConcurrencyLimit`). The Profile binds them; a Case that needs a value its
 environment cannot set carries a Known Gap. A rollout switch between two implementations of the same
@@ -273,6 +296,12 @@ Implementation Link: SEM-08 reserves that name for connecting `Temporal.Feature`
 > rows, and a Property on `nexusProduct` is read on `nexusProtocol` through a state field named
 > `nexusProduct` that carries the product state each protocol state reads as. The simulation is
 > `Umpire.ImplementationLink.Refinement`, a forward simulation that may stutter.
+
+> Amended during fn-92, 2026-09-29. Refinement relates two machines of one entity; composition
+> relates machines of different entities, and does not refine. A composition carries no
+> `refines:` and no abstract field, though a member may be a refining machine, as `nexusCaller`'s
+> operation member `nexusProtocol` is. A machine derived with `from:` inherits neither its source's
+> `refines:` nor its abstract field.
 
 ### 2.6 Set
 
@@ -755,6 +784,14 @@ with one named addition.
 
 Appendix B maps each functional test file to these rows.
 
+> Amended during fn-92, 2026-09-29. One need is now met by a named addition: a claim across
+> entities, such as a reply that is never served by a stopped worker, is a `compose` of the
+> entities' machines with `sync:` lines, verified by a `verify` Query (`nexusCaller` in the caller
+> Model, `workerOutage` in the Outage Model). A composition is not a binding target, and no set
+> names one yet, so the "machine as a binding target" row stands. The reset row keeps `system`:
+> `system` is the reserved party, and the command that composes machines is named `compose` so that
+> it never collides with it.
+
 ## 5. What Umpire needs
 
 | # | Need | Before fn-85 | Delivered (fn-85 task) |
@@ -791,6 +828,10 @@ under the section it concerns says how.
 4. **One machine by default; a product machine when needed.** A protocol machine `refines:` a
    product machine through a state `map:` that defaults by name; steps are derived. It is a
    refinement, not an Implementation Link.
+   *Amended during fn-92, 2026-09-29:* machines of different entities compose instead: `compose`
+   pairs their actions with `sync:` lines into one Model for a cross-entity claim, and a machine
+   that differs from another by rows is derived with `from:` plus `restrict:` or `extend:` rather
+   than copied, as the negative control is.
 5. **One Model for HSM and CHASM, run under both.** Deliberate config-controlled differences are
    setup parameters; the rollout switch is a set's `repeat`; storage layout is a white-box Known Gap.
 6. **Words.** `action`, `observation`, `machine`, `refines`, `examples`, `driven`, `observed`.

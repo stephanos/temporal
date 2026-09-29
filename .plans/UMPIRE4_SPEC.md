@@ -222,6 +222,10 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
   MOD-17, as the direct-import rule `search-backend-isolation`, over every direct import a
   first-party module makes, including imports of `Veil.*` modules.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* `make lint-model` MUST also enforce
+  MOD-18. It is a declaration-level rule rather than an import rule: no import edge records what a
+  module declares, so a separate pass imports every production module under `Temporal.Feature` and
+  reads the entities and actions their environment registers.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
@@ -261,6 +265,17 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   direct-import rule, because every module above the selection reaches Veil transitively; `make
   lint-model` enforces it as `search-backend-isolation`, whose diagnostic names the module and the
   import. *(planned: fn-88-veil-concrete-checker-as-the-umpire)*
+- **MOD-18 — Feature entity uniqueness.** *(drafted by fn-92; awaiting GOV-02 approval.)* Across the
+  production modules under `Temporal.Feature`, an `entity` name and an `action` name MUST each be
+  declared once, so that one word has one Definition ID and a composition that synchronizes on a
+  name means one action. A second declaration is a violation unless an allowlist entry names it,
+  every module that may hold it, and the follow-up spec that removes it. The allowlist holds only
+  the duplicates that exist once the worker entity module `Temporal.Feature.Worker.Model` lands:
+  `workflow` in the caller, Start and Outage modules, `startWorkflow` in Start and Outage,
+  `workerStop` in the caller, Outage and worker modules, and `workerResume` in Outage and worker,
+  each removed by the follow-up that lets a use case choose its entity key. Test modules and the
+  success specimen are not production modules. `make lint-model` enforces it as
+  `feature-entity-uniqueness`, whose diagnostic names both declaring modules.
 
 ### Module design
 
@@ -296,6 +311,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   `structure` of finite fields with one step function per action, naming the entity it tracks, the
   phases it starts and ends in, its timers, its setup parameters and the observation confirming
   each Fact; `Umpire.Command.MachineDeclaration` is its record.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* A machine may instead be derived from
+  another: `from:` names the source, `restrict:` keeps the listed actions' rows and drops the rest,
+  and `extend:` adds the author's results to an action's rows, in the step order
+  (`Umpire.Command.Derived`). A derived machine keeps its source's entity, state type, starts, ends
+  and setup, and the evidence of every fact its rows still record; it reaches its rows through the
+  source's own step functions, owns its Action catalog and Definition IDs, and inherits neither
+  `refines:` nor the source's abstract state field.
 - **Entity (`Umpire.Command.Entity`).** Something with identity that a machine keeps state for,
   declared by the `entity` command with the entities it refers to and the key recorded data names
   an instance by. A Scenario runs over a number of `instances:` of it. State belongs to machines,
@@ -304,13 +326,33 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   is reserved for the implementation under test, performs no declared action, and owns the
   timers. A set binds every other party; a fault is an ordinary action of the party that causes
   it.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* The command that builds one Model from
+  several machines is `compose`, not `system`: `system` is this reserved party, and a composition is
+  no party. It declares no action; each of its actions is one or more of its members' actions,
+  performed by their parties.
 - **Refinement (`Umpire.Command.Refinement`).** A machine that `refines:` another through a state
   `map:`: a stuttering forward simulation the `machine` command decides over the two tables, so
   every Property declared on the abstract machine is read on the refining machine's paths. It is
   not an Implementation Link, which SEM-08 reserves for the connection from `Temporal.Feature` to
   `Temporal.System`; both machines of a refinement are product behavior.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* A composition does not refine and
+  carries no `refines:` or abstract field, though a member may itself be a refining machine; a
+  derived machine does not inherit its source's refinement.
+- **Composition (`Umpire.Command.Compose`).** *(drafted by fn-92; awaiting GOV-02 approval.)* One
+  Model built by the `compose` command from machines of different entities, for a claim no one of
+  them can state. The author writes the state as a `structure` with one field per member, names each
+  member machine, and pairs member actions into one step with `sync:` lines; an action no `sync:`
+  line names steps its member alone. The command generates tagged-union Action, Outcome and Fact
+  types, keys a composed state by its members' state keys `_`-joined in field order, a member's own
+  action as `<field>_<key>` and a synchronized action by its `sync:` name, and hangs its Definition
+  IDs off the owner `compose-<name>`. It elaborates to `Umpire.Command.DeclaredModel` as `machine`
+  does; no set names one, so a composition answers `verify` Queries only.
 - **Table (`Umpire.FiniteTable`).** The finite row form of a Machine. `Umpire.CheckedTable` is an
   admitted one and `Umpire.TableModelSpec` is its author record.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* A composition's table holds only the
+  rows reachable from its starts, enumerated at elaboration and emitted as a literal; the kernel
+  decides per composition that the literal agrees with the composition of the members' tables
+  (`Umpire.Command.ComposeProofs`).
 - **Action.** Something an author asks the Model to do, such as closing a Workflow. Requesting an
   Action neither chooses its Model Outcome nor proves that the Action occurred at runtime. The
   `action` command declares one with its party, the entity it creates or acts on, typed inputs
@@ -417,6 +459,16 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   `Umpire.Command`: a concrete API operation is an `action`'s `schema:` line, a field relation is
   a `property`'s `relates:` line, and a Case is the platform's `case … realizes` block over a
   realization. MOD-16 enforces the import boundary.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* The surface also carries `compose`,
+  which builds one Model from declared machines, and the `from:`, `restrict:` and `extend:` keys of
+  `machine`, which derive a machine from a declared one. Neither defines behavior of its own: a
+  composed step is its members' rows (an unsynchronized action steps its member alone; a
+  synchronized one is enabled only where every participant has a row, and its results are the
+  product of theirs), and a derived machine's rows are its source's rows, kept or dropped by
+  `restrict:`, plus the results an author's `extend:` function returns. `compose` elaborates to
+  `Umpire.Command.DeclaredModel`, which `property`, `scenario`, `limits` and `query` accept as they
+  accept a machine; a `set` over a composition is refused, because realizing one is outside this
+  surface.
 - **AUT-08 — Finite Model adapter.** Authors SHOULD use the proof-carrying
   `Umpire.FiniteMachine` adapter when a complete finite Model has enumerators that define its
   authoritative behavior. The adapter derives membership relations, completeness support, and
@@ -450,6 +502,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   declarations the author wrote and admits no spelling the author did not declare; an enumeration
   past `Umpire.Command.elaborationBound` is refused with the numbers that exceeded it, never
   truncated.
+  *Amendment (drafted by fn-92; awaiting GOV-02 approval.)* Author-provided also covers the
+  reachable domain `compose` computes from the declared member tables: the composed state and action
+  catalogs and the literal table a breadth-first walk from the declared starts reaches. The walk
+  admits no state or action the members' tables do not, a walk past
+  `Umpire.Command.enumerationBound` is refused with both counts, and the kernel decides for each
+  composition by `decide +kernel`, not `native_decide`, that the literal is sound and complete with
+  respect to the members' tables over every reachable state.
 
 ## Search, Limits, and Artifacts
 

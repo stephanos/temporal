@@ -22,13 +22,16 @@ kind's trust basis. After a protocol change,
 ### Delivery queue
 
 1. **fn-92 — Compose entity machines into one Model**
-   ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); planned, 6 tasks,
-   now that fn-88 is delivered. A `compose` command builds one Model from entity machines with declared action
-   synchronization over a reachable-state enumeration; `restrict:` and `extend:` derive machines
-   from a source table; `Workflow` and `Worker` entity modules are shared by the Start and Outage
-   use cases; the first cross-entity claims are `verify` Queries. Version one realizes no Case over
-   a composition and leaves the caller module, its fixtures and the canary's pinned Case identity
-   untouched.
+   ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); all 8 tasks done,
+   awaiting completion review. A `compose` command builds one Model from entity machines with
+   declared action synchronization over a reachable-state enumeration; `restrict:` and `extend:`
+   derive machines from a source table, and the negative control is now the pair machine plus one
+   `extend:` result; the first entity module, `Worker`, is composed with the Outage machine
+   (`workerOutage`) and with the caller's protocol machine (`nexusCaller`), and those two
+   cross-entity claims are `verify` Queries. Version one realizes no Case over a composition, adds
+   no shared `workflow` entity module (Start and Outage key a workflow differently), and leaves the
+   caller module, every fixture and the canary's pinned Case identity untouched; a use-case entity
+   key, the operation entity's move and the resulting re-pin are the follow-up.
 2. **fn-93 — Simplify the Lean model**
    ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks (Codex plan
    review SHIP), after fn-88 and fn-92. A simplification campaign over the handwritten Lean in

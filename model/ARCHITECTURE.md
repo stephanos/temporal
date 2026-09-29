@@ -54,7 +54,11 @@ is not imported by the production aggregate. A production module under `Temporal
 `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation`, `Umpire.Case`) only through
 `Umpire.Command`; `Temporal.Case` and the Implementation Link are outside that rule. `make
 lint-model` checks these edges against the full source inventory and compiled module metadata, the
-authoring-path rule as a direct-import rule and the rest as reachability.
+authoring-path rule as a direct-import rule and the rest as reachability. One rule is about
+declarations rather than imports: across the production `Temporal.Feature` modules an `entity` or
+`action` name is declared once, which `make lint-model` checks as `feature-entity-uniqueness` by
+importing every such module and reading what it registers, against an allowlist of the duplicates
+that remain until a use case can choose its entity key.
 
 Search has two backends. `Umpire.Search` holds the frozen `reference` traversal and the
 finalization both backends share, and imports none of the modules below it in the diagram.
@@ -118,7 +122,13 @@ A Model file is written in `Umpire.Command`'s commands -- entities, domains, act
 machines with a step function per action, properties as predicates, scenarios, limits, queries and
 sets -- and a platform-owned `case … realizes <set>` block produces one Case per Query of a
 functional set through a realization in `Temporal.Case`. [AUTHORING.md](AUTHORING.md) walks the
-Nexus caller-side Model through them, quoting its marked regions under a drift test.
+Nexus caller-side Model through them, quoting its marked regions under a drift test, and then the
+worker entity module, the Outage composition and the derived negative control the same way.
+`compose` builds one Model from machines of different entities, over the reachable rows of their
+synchronized product, for a cross-entity `verify` Query; `machine … from:` with `restrict:` or
+`extend:` derives a machine from a declared one. `Temporal.Feature.Worker.Model` is the first entity
+module: one entity and its machine, realized by nothing on its own, composed by the caller and
+Outage Models.
 
 Operation-correlated bounded response authoring lowers through the existing Property checker.
 `correlated_response%` and typed `PropertyCorrelatedClause` values share canonical meaning and fingerprints;

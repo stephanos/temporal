@@ -4,9 +4,10 @@ This is the walk from an empty file to a green live test. It quotes
 [`Temporal/Feature/Nexus/Caller/Model.lean`](Temporal/Feature/Nexus/Caller/Model.lean), the Nexus
 caller-side Model, region by region: each Lean block below is a marked region of that file
 (`-- authoring: <name>`), and `go test ./tools/umpire/authoring/...` fails when a block and its
-region part, so what this page shows is what compiles. The commands themselves are
-`Umpire.Command`'s and are specified by [UMPIRE4_SPEC](../.plans/UMPIRE4_SPEC.md) under AUT-07a;
-the design the Model realizes is [DESIGN.md](Temporal/Feature/Nexus/DESIGN.md).
+region part, so what this page shows is what compiles. Section 13 quotes the worker entity's
+module, the Outage composition and the derived negative control the same way. The commands
+themselves are `Umpire.Command`'s and are specified by [UMPIRE4_SPEC](../.plans/UMPIRE4_SPEC.md)
+under AUT-07a; the design the Model realizes is [DESIGN.md](Temporal/Feature/Nexus/DESIGN.md).
 
 What you end with: one Model file; one fixture per Query under
 `tests/testcore/testpilot/testdata/`, rendered by `umpire-case` and checked in; and one Go test
@@ -937,7 +938,233 @@ query stoppedWorkerRepliesNothing
   limits: four
 ```
 
-## 13. From the file to a green live test
+## 13. The worker entity, a second composition, and a derived machine
+
+Section 12's composition names the worker entity's module. This section quotes that module, the
+Outage Model's composition and the derived negative control, and the drift test checks their marked
+regions as it checks this file's: a region name is unique across every file the walkthrough quotes,
+and each file closes its last quoted region with its own `-- authoring: end`.
+
+**An entity module.** [`Temporal/Feature/Worker/Model.lean`](Temporal/Feature/Worker/Model.lean)
+declares one entity, the worker of a task queue, and no set, Case or Query: nothing in it is
+realized on its own. Its machine is what a composition synchronizes with. The handler's worker and
+the workflow's worker are two instances of it, and the composition that uses one names it by its
+member field.
+
+<!-- authoring: worker -->
+```lean
+/-! ### Entities and domains -/
+
+/-- A worker is named by the task queue it polls: the handler's worker and the workflow's worker are
+two instances of this entity, told apart by their queue. -/
+entity worker
+  key: taskQueue
+
+enum Phase
+  | polling
+  | stopped
+
+structure WorkerState where
+  phase : Phase
+  deriving BEq, DecidableEq, Repr, Finite
+
+enum WorkerOutcome
+  | accepted
+
+/-- A worker records nothing of its own: its stop and resume are faults the Run records against no
+entity, and what it serves is recorded by the work it serves. -/
+inductive WorkerFact
+  deriving BEq, DecidableEq, Repr, Finite
+
+/-! ### The actions
+
+The two faults are the `worker` party's and name no entity, as the outage machine spells them. The
+serve action is the worker's own and takes no input, so a composition may synchronize it with an
+action of any class. -/
+
+action workerStop
+  party: worker
+
+action workerResume
+  party: worker
+
+action serve
+  party: worker
+  on: worker
+```
+
+The machine starts polling and may end in either phase, because a worker has no natural end. A
+polling worker serves; a stopped one has no `serve` row, which is the whole point of composing it.
+
+<!-- authoring: polling -->
+```lean
+/-! ### The machine -/
+
+/-- A polling worker stops; a stopped one has nothing to stop. -/
+def stopStep (state : WorkerState) :
+    List (Step WorkerState WorkerOutcome WorkerFact) :=
+  if state.phase != .polling then [] else
+  [{ outcome := .accepted, state := { phase := .stopped }, facts := [] }]
+
+/-- A stopped worker resumes polling; a polling one has nothing to resume. -/
+def resumeStep (state : WorkerState) :
+    List (Step WorkerState WorkerOutcome WorkerFact) :=
+  if state.phase != .stopped then [] else
+  [{ outcome := .accepted, state := { phase := .polling }, facts := [] }]
+
+/-- A polling worker serves and keeps polling; a stopped one serves nothing. -/
+def serveStep (state : WorkerState) :
+    List (Step WorkerState WorkerOutcome WorkerFact) :=
+  if state.phase != .polling then [] else
+  [{ outcome := .accepted, state, facts := [] }]
+
+/-- A worker has no natural end: it may be left polling or stopped. -/
+machine polling
+  for: worker
+  state: WorkerState
+  starts: [polling]
+  ends: [polling, stopped]
+  steps:
+    workerStop: stopStep
+    workerResume: resumeStep
+    serve: serveStep
+```
+
+An entity or action name is declared once across the production modules under
+`Temporal.Feature`: `make lint-model` fails a second declaration and names both modules
+(`feature-entity-uniqueness`, drafted as MOD-18). Its allowlist, in `model/ModelLint/Entity.lean`,
+holds the duplicates that remain once the worker module exists (`workflow` in the caller, Start and
+Outage modules, `startWorkflow` in Start and Outage, `workerStop` in the caller, Outage and worker
+modules, `workerResume` in Outage and worker), each removed by the follow-up that lets a use case
+choose its entity key and moves the operation entity. Test modules and the success specimen are
+out of scope.
+
+**A second composition.** The Outage Model
+([`Temporal/Feature/Workflow/Outage/Model.lean`](Temporal/Feature/Workflow/Outage/Model.lean))
+composes its unchanged machine with the full `polling` machine. All three worker actions are
+synchronized: the two faults are one step of the workflow's stutter row and the worker's phase
+change, and the wait for completion is the worker serving. The claim fixes the one composed state a
+completion leaves, so it holds as a whole-state requirement; the caller's claim in section 12 fixes
+one member's field while the other varies, which is the field-addressed requirement.
+
+<!-- authoring: outage -->
+```lean
+/-! ### The workflow and its worker
+
+The outage machine composed with the worker of the workflow's task queue. The two faults are one
+step of both: the workflow's stutter row and the worker's phase change. The wait is the worker
+serving the workflow task, so it has a row only while the worker polls, and the workflow completes
+in no state where the worker is stopped. The functional set stays over the machine alone; the
+composition is what the cross-entity claim is verified over. -/
+
+structure WorkerOutageState where
+  workflow : OutageState
+  worker : Worker.WorkerState
+  deriving BEq, DecidableEq, Repr
+
+compose workerOutage
+  for: [workflow, Worker.worker]
+  state: WorkerOutageState
+  members:
+    workflow: workflowOutage
+    worker: Worker.polling
+  sync:
+    workerStop: workflow.workerStop ∥ worker.workerStop
+    workerResume: workflow.workerResume ∥ worker.workerResume
+    awaitCompletion: workflow.awaitCompletion ∥ worker.serve
+  starts: [workflow.pending, worker.polling]
+  ends: [workflow.completed]
+
+/- A completion leaves the one composed state in which the workflow is completed and its worker is
+polling, and records the completed event: no workflow completes while its worker is stopped. -/
+property completedByPollingWorker
+  machine: workerOutage
+  when: awaitCompletion
+  holds: fun step =>
+    step.state.workflow.phase == .completed && step.state.worker.phase == .polling &&
+      step.facts.contains (.workflow .workflowExecutionCompleted)
+
+/- The outage over the composition: the stop and the resume move the worker, and the wait is
+served by the resumed worker. -/
+scenario outageServed
+  model: workerOutage
+  starts: workflow.pending
+  actions: [workerStop, workflow.startWorkflow, workerResume, awaitCompletion]
+
+query stoppedWorkerCompletesNothing
+  verify: completedByPollingWorker
+  in: outageServed
+  limits: four
+```
+
+What `compose` generates, for both compositions:
+
+- `workerOutage.Action`, `.Outcome` and `.Fact`, tagged unions with one constructor per member
+  wrapping that member's type, which is why a predicate writes
+  `step.facts.contains (.workflow .workflowExecutionCompleted)`.
+- Catalog keys a fixture and a Definition ID can carry: a composed state `_`-joins its members'
+  state keys in field order (`completed_polling`), an unsynchronized action is `<field>_<key>`
+  (`workflow_startWorkflow`), and a synchronized action is its `sync:` name. Member timers,
+  unobservable entries and evidence lines are lifted under the same `<field>_<key>` spelling. A
+  member's state fields are lowered as `<field>_<memberField>` (`<field>` for a one-field member),
+  which is what a field-addressed requirement fixes. Definition IDs hang off the owner
+  `compose-<name>` under the file's namespace.
+- The table of reachable rows only: a breadth-first walk from the starts over the members' tables,
+  every catalog and each row's results sorted by the lowered order key, emitted as a literal. The
+  walk refuses a composition whose reachable states times actions exceed the enumeration bound,
+  with both counts. `workerOutage` reaches 6 states; `nexusCaller` reaches 316 and 1468 rows.
+- `<name>.agrees`, a theorem decided by `decide +kernel` that the literal agrees with the
+  composition of the members' tables over every state the starts reach: rows grouped by source
+  state, each member table read once. A literal the kernel refuses is a located error. On
+  `nexusCaller` the decisions take 56.5 s of kernel time and the whole caller Model file 241 s at
+  6.8 GB, which is the cost of composing a 158-state machine.
+
+A step of an unsynchronized action moves its member and leaves the others; a `sync:` step is
+enabled only where every participant has a row, and its results are the ordered product of theirs.
+Two members owning an action of one name that no `sync:` line pairs is a located error, and so is a
+`sync:` line naming a timer. The composition carries no `refines:` and no abstract field. No set
+names it: `set` over a composition is refused, so its Queries are `verify` Queries, and
+`Selection.select` runs both shipped ones on `veil` with reason `default`.
+
+**A derived machine.** A `machine` with `from:` takes its source's entity, state type, starts, ends,
+setup and evidence, and its rows through the source's own step functions; it carries neither
+`refines:` nor the abstract field, and it generates its own Action catalog, so its Definition IDs
+are its own. `restrict: [actions]` keeps the listed actions' rows and drops the rest, every timer
+and unobservable entry, and every evidence line for a fact no kept row records (section 12's
+`handlerWorker`). `extend:` adds an author's results to an action's rows, sorted into the step order
+key; a result where the source has no row, or one the source already returns, is a located error.
+Both may appear on one machine, and `restrict:` applies first. The negative control
+([`Temporal/Feature/Nexus/Control/Model.lean`](Temporal/Feature/Nexus/Control/Model.lean)) is the
+pair machine plus one forged result, so one function is its only step code, and its catalogs, its
+Case fixture and its recorded Run are the ones the copied machine had.
+
+<!-- authoring: derived -->
+```lean
+/-! ### The machine
+
+The pair Model's machine -- the operation without its deadlines and retries -- plus the forged row.
+The machine is derived from it rather than copied: every row is the pair machine's, and the one
+function written here returns the one result the platform never takes. -/
+
+/-- The forged row: the non-retryable error completes the operation and records the completed
+event. The platform's row for that error, which fails the operation and records the failed event,
+is the pair machine's and stays beside it. -/
+def controlForgedStep (state : PairState) (reply : Reply) :
+    List (Step PairState PairOutcome PairFact) :=
+  if state.phase != .scheduled then [] else
+  match reply with
+  | .handlerError false =>
+      [{ outcome := .accepted, state := { phase := .succeeded },
+         facts := [.nexusOperationCompleted] }]
+  | _ => []
+
+machine nexusControl
+  from: pair
+  extend:
+    handlerReply: controlForgedStep
+```
+
+## 14. From the file to a green live test
 
 ```sh
 cd model && lake build                               # the file compiles, or says where it does not

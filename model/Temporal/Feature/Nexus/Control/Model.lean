@@ -32,6 +32,8 @@ open Umpire.Command
 open Temporal.Feature.Nexus.Caller
 open Temporal.Feature.Nexus.Pair
 
+-- authoring: derived
+
 /-! ### The machine
 
 The pair Model's machine -- the operation without its deadlines and retries -- plus the forged row.
@@ -54,6 +56,8 @@ machine nexusControl
   from: pair
   extend:
     handlerReply: controlForgedStep
+
+-- authoring: end
 
 /-! ### The claim the platform contradicts -/
 

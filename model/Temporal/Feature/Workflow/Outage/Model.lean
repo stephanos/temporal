@@ -144,6 +144,8 @@ case workerOutageCases
   realizes workerOutageTests
   as Temporal.Case.Realization.workflowOutage
 
+-- authoring: outage
+
 /-! ### The workflow and its worker
 
 The outage machine composed with the worker of the workflow's task queue. The two faults are one
@@ -190,5 +192,7 @@ query stoppedWorkerCompletesNothing
   verify: completedByPollingWorker
   in: outageServed
   limits: four
+
+-- authoring: end
 
 end Temporal.Feature.Workflow.Outage

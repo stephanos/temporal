@@ -17,6 +17,8 @@ namespace Temporal.Feature.Worker
 open Umpire
 open Umpire.Command
 
+-- authoring: worker
+
 /-! ### Entities and domains -/
 
 /-- A worker is named by the task queue it polls: the handler's worker and the workflow's worker are
@@ -56,6 +58,8 @@ action serve
   party: worker
   on: worker
 
+-- authoring: polling
+
 /-! ### The machine -/
 
 /-- A polling worker stops; a stopped one has nothing to stop. -/
@@ -86,5 +90,7 @@ machine polling
     workerStop: stopStep
     workerResume: resumeStep
     serve: serveStep
+
+-- authoring: end
 
 end Temporal.Feature.Worker

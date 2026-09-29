@@ -43,11 +43,14 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
 | `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the Rule derived from a checked field Property. |
 | `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
-| `Umpire.Command` | The Model command surface: `entity`, `enum`, `action`, `observation`, `machine`, `property`, `scenario`, `limits`, `query`, `set`, and `register_switch` for a realization's switches. |
+| `Umpire.Command` | The Model command surface: `entity`, `enum`, `action`, `observation`, `machine` (with `from:`, `restrict:` and `extend:`), `compose`, `property`, `scenario`, `limits`, `query`, `set`, and `register_switch` for a realization's switches. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
 | `Umpire.Command.Records` | What the declarations say: entities, actions, observations, timers, setup parameters, evidence lines, machines, sets and coverage targets. |
 | `Umpire.Command.Finite` | The finite domains a `structure` of finite fields derives, and the enumeration of a step function into the table. |
 | `Umpire.Command.Refinement` | The stuttering forward simulation a `refines:` machine is checked against. |
+| `Umpire.Command.Derived` | What a `from:` machine's `extend:` must pass and the order its extended rows' results take under the derived machine's own IDs. |
+| `Umpire.Command.Compose` | A composition by keys: the composed Action catalog from `sync:` lines and the breadth-first walk of the reachable composed states. |
+| `Umpire.Command.ComposeProofs` | The decided agreement of a composition's literal table with its members' tables, and the theorem that turns it into soundness and completeness over the reachable states. |
 | `Umpire.Command.Claims` | The abstraction claims a machine's actions make, for the Producer to record per path. |
 | `Umpire.Command.Coverage` | What an exploratory set sets out to reach: rows, results and class members under its budget. |
 | `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
@@ -433,7 +436,15 @@ enumerates a step function over a structure of finite fields into the checked ta
 `refines:` machine against the one it refines, and reads which observation confirms each Fact;
 `property`, `scenario`, `limits` and `query` are the authoring languages AUT-07 names, written
 over that vocabulary; `set` groups Queries by purpose and binds parties; `register_switch` is how a
-realization tells the surface which switches a set may repeat over. Nothing in it names a feature:
+realization tells the surface which switches a set may repeat over. A `machine` with `from:` is
+derived from a declared one, keeping the rows `restrict:` lists and adding the results `extend:`
+returns, and owns its catalogs and IDs. `compose` builds one Model from machines of different
+entities: it generates tagged-union Action, Outcome and Fact types, keys composed states and
+member actions with `_` and synchronized actions by their `sync:` names under the owner
+`compose-<name>`, walks the reachable states into a literal table, and emits the `decide +kernel`
+agreement of that literal with the members' tables. A composition elaborates to a
+`DeclaredModel` that `property`, `scenario`, `limits` and `query` accept, and `set` refuses it, so
+it answers `verify` Queries only. Nothing in it names a feature:
 the semantic family of a declaration is its enclosing namespace with the project's scaffolding
 prefix removed, and its Provenance source is the module being elaborated. A project declares those
 conventions once, with `model_conventions`, and every declaration in it inherits them.

@@ -109,6 +109,12 @@ reachability rule, because every module above the selection reaches Veil transit
 lint-model` enforces it as `search-backend-isolation` beside MOD-16's `authoring-path-isolation`.
 Its complete-mode walk also reads the metadata of the Veil modules the adapter imports.
 
+*Amendment (drafted by fn-92; awaiting GOV-02 approval.)* The import-graph phase is the single
+enforcement mechanism for the import rules only. MOD-18 is a declaration-level rule: no import edge
+records what a module declares, so `make lint-model` enforces it as `feature-entity-uniqueness` in a
+second pass that imports every production module under `Temporal.Feature` and reads the entity and
+action declarations its environment registers. Its pure check is `ModelLint.Entity`.
+
 The current accepted policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
 `Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
 `Temporal.System.*`. In the reverse direction, only the exact reviewed Implementation Link consumer

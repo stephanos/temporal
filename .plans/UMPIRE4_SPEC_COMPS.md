@@ -410,6 +410,13 @@ independent consumers need a narrower import. `Examples` names a teaching respon
 required `Examples/` directory; the ordinary Nexus teaching path lives with the operation modules
 it explains.
 
+*Amendment (drafted by fn-92; awaiting GOV-02 approval.)* A family may also be an entity module: one
+`entity`, its actions and one machine over them, with no set, Case or Query, because nothing in it
+is realized on its own. `Temporal.Feature.Worker.Model` is the first, the worker of one task queue.
+The Models that need the entity import it and compose its machine with their own (`compose`), and
+the cross-entity Properties and `verify` Queries live beside that composition in the importing
+family's `Model`, not in the entity module.
+
 ### 7.3 Nexus decomposition
 
 `Temporal.Feature.Nexus` is the stable ordinary entry facade. Its physical files separate the

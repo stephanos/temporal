@@ -1,17 +1,18 @@
-// Package authoring keeps model/AUTHORING.md and the Model file it walks through in step: every
-// Lean block the walkthrough quotes is a marked region of the Model file, byte for byte, so the
+// Package authoring keeps model/AUTHORING.md and the Model files it walks through in step: every
+// Lean block the walkthrough quotes is a marked region of one of those files, byte for byte, so the
 // walkthrough cannot describe a Model that no longer compiles.
 package authoring
 
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"slices"
 	"strings"
 )
 
-// A region of the Model file starts at a marker line and runs to the next marker or the end of the
+// A region of a Model file starts at a marker line and runs to the next marker or the end of the
 // file; the walkthrough quotes it under an HTML comment carrying the same name, followed by one
 // fenced Lean block.
 var (
@@ -19,8 +20,8 @@ var (
 	blockMarker  = regexp.MustCompile(`^<!-- authoring: ([a-z]+) -->$`)
 )
 
-// terminator is the marker that closes the last quoted region. It holds the Model file's namespace
-// end and is not a region the walkthrough quotes.
+// terminator is the marker that closes a Model file's last quoted region. What follows it, at least
+// the file's namespace end, is not a region the walkthrough quotes; every file has its own.
 const terminator = "end"
 
 // Regions returns the marked regions of a Model file by name, each trimmed of the blank lines that
@@ -81,13 +82,27 @@ func Blocks(markdown string) (map[string]string, error) {
 	return blocks, nil
 }
 
-// Check reports the first way the walkthrough and the Model file disagree: a block naming a marker
-// the Model file lacks, a region the walkthrough does not quote, or a block whose bytes differ from
-// its region. The terminator region is never quoted.
-func Check(markdown, model string) error {
-	regions, err := Regions(model)
-	if err != nil {
-		return err
+// Check reports the first way the walkthrough and the Model files disagree: a block naming a marker
+// no Model file has, a region the walkthrough does not quote, or a block whose bytes differ from its
+// region. Models maps each file's path to its contents. A block is named by its marker alone, so a
+// region name marked in two files is an error; each file's terminator region is never quoted.
+func Check(markdown string, models map[string]string) error {
+	regions := map[string]string{}
+	files := map[string]string{}
+	for _, path := range slices.Sorted(maps.Keys(models)) {
+		fileRegions, err := Regions(models[path])
+		if err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		for name, region := range fileRegions {
+			if name == terminator {
+				continue
+			}
+			if other, seen := files[name]; seen {
+				return fmt.Errorf("marker %q appears in both %s and %s", name, other, path)
+			}
+			regions[name], files[name] = region, path
+		}
 	}
 	blocks, err := Blocks(markdown)
 	if err != nil {
@@ -99,18 +114,15 @@ func Check(markdown, model string) error {
 	for _, name := range sortedKeys(blocks) {
 		region, present := regions[name]
 		if !present {
-			return fmt.Errorf("block %q names a marker the Model file lacks", name)
+			return fmt.Errorf("block %q names a marker no Model file has", name)
 		}
 		if blocks[name] != region {
-			return fmt.Errorf("block %q differs from the Model file's region", name)
+			return fmt.Errorf("block %q differs from its region in %s", name, files[name])
 		}
 	}
 	for _, name := range sortedKeys(regions) {
-		if name == terminator {
-			continue
-		}
 		if _, quoted := blocks[name]; !quoted {
-			return fmt.Errorf("region %q is not quoted by the walkthrough", name)
+			return fmt.Errorf("region %q of %s is not quoted by the walkthrough", name, files[name])
 		}
 	}
 	return nil

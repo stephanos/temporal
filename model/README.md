@@ -114,6 +114,18 @@ MOD-16), and building a `Machine` by hand is no path for a feature Model (AUT-08
 it). The raw records below are what a command elaborates to, and what the Implementation Link and
 Umpire's own tests build directly because they exercise those records.
 
+Two commands build on declared machines. `compose` builds one Model from machines of different
+entities for a cross-entity claim: the author writes the state as a structure with one field per
+member and pairs member actions with `sync:` lines, and the command generates tagged-union Action,
+Outcome and Fact types, keys composed states and member actions with `_`
+(`completed_polling`, `workflow_startWorkflow`; a synchronized action by its `sync:` name), walks
+the reachable states into a literal table, and has the kernel decide that the literal agrees with
+the members' tables. No set names a composition, so it answers `verify` Queries. `machine … from:`
+derives a machine from another, `restrict:` keeping the listed actions' rows and `extend:` adding an
+author's results. The first entity module, `Temporal.Feature.Worker.Model`, declares the worker of
+one task queue and its machine, which the caller Model (`nexusCaller`) and the Outage Model
+(`workerOutage`) compose; [AUTHORING.md](AUTHORING.md) sections 12 and 13 quote both.
+
 Beneath the commands, Property, Scenario, Query, and Evidence inputs are ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error. Property, Scenario, and Query `checked`
 operations take checker-success evidence that defaults to `native_decide`, so a closed valid
@@ -214,8 +226,9 @@ Two authored examples carry this end to end:
   and matches the completion's reference against the retained event's id, concluding in its own
   rule verdict.
 - [`Temporal/Feature/Nexus/Control/Model.lean`](Temporal/Feature/Nexus/Control/Model.lean) (the
-  negative control, fn-22 .3) keeps the caller Model's real reply rows and adds one row the
-  platform never takes, a non-retryable handler error completing the operation as succeeded; its
+  negative control, fn-22 .3) is the pair machine derived with `from: pair extend:` (fn-92): it
+  keeps the real reply rows and adds one result the platform never takes, a non-retryable handler
+  error completing the operation as succeeded; its
   one Query selects that row, so every Run of `nexusCallerControl-forgedCompletion` is violated
   and the replay has a subject to record, admit and rerun. It enters no set of the caller Model
   and no regression view, and nothing reads it as a claim about the platform.
@@ -496,6 +509,10 @@ modules) built in 74 s wall at the fn-88 R22 probe and 58 s with Batteries warm 
 whole model built in about 15 minutes at fn-88.12, before Veil was added.
 
 `make lint-model` runs Lean declaration linting and validates the complete first-party import graph.
+Its declaration-level pass, `feature-entity-uniqueness` (MOD-18, drafted by fn-92), imports every
+production `Temporal.Feature` module and fails an `entity` or `action` name declared in two of them
+unless its allowlist (`model/ModelLint/Entity.lean`) names the duplicate and the follow-up that
+removes it.
 The regression boundary intentionally adds no broad generated-Lean API drift check and no new
 GitHub Actions surface.
 
