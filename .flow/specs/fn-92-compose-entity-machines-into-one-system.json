@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-92-compose-entity-machines-into-one-system",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-29T15:32:58.845563Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-29T16:14:14.403971Z",
   "created_at": "2026-09-27T01:23:20.521223Z",
   "default_impl": null,
   "default_review": null,
@@ -26,7 +26,7 @@
     "fn-92-compose-entity-machines-into-one-system.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-28T02:30:41.929599Z",
   "review_attempts": [
@@ -1345,6 +1345,50 @@
       "task": "fn-92-compose-entity-machines-into-one-system.9",
       "timestamp": "2026-09-29T16:08:44.047816Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8b4aba4bb0ca63be080636e0cd6ba537ad7fd191a7c8cb7f63467cce80cc5e7",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d3631e6a56df306fc63f3b4675e120b2",
+            "classification": "introduced",
+            "findingId": "finding-d3631e6a56df306fc63f3b4675e120b2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a7df458b6a65de88055eb1a96d4e1a3d0193b1c3",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 4366,
+      "output_sha256": "272f0f7a6d749a4332c38bc32b2f9c5b624159eb1598a7b59925f61772da169d",
+      "reservation_id": "61b5b511c43e4d8f9e75d2f921ad9fcb",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-29T16:14:14.398109Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1358,7 +1402,7 @@
     "impl:fn-92-compose-entity-machines-into-one-system.8": 1,
     "impl:fn-92-compose-entity-machines-into-one-system.9": 1,
     "plan": 2,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1376,7 +1420,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-92-compose-entity-machines-into-one-system.md",
-  "status": "open",
+  "status": "done",
   "title": "Compose entity machines into one system Model",
   "tracker": {
     "baseHashFlow": null,
@@ -1389,5 +1433,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T16:08:44.050653Z"
+  "updated_at": "2026-09-29T16:14:41.923025Z"
 }

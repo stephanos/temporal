@@ -7,7 +7,7 @@ this document records delivery order. Architecture and terminology live in the
 ## Current work
 
 Status as of 2026-09-28. Delivered, each with SHIP implementation and completion reviews: fn-83,
-fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89, fn-94 and fn-88. Their task receipts in `.flow/` and the git history carry
+fn-84, fn-87, fn-85, fn-86, fn-46, fn-33, fn-22, fn-26, fn-29, fn-91, fn-90, fn-89, fn-94, fn-88 and fn-92. Their task receipts in `.flow/` and the git history carry
 the details.
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
@@ -16,25 +16,17 @@ leases, recovery, and publication stay outside Testpilot and Umpire. Since fn-88
 runs on Veil's concrete checker (a pure `bfsStep` loop with exact product-state deduplication and
 a kernel replay gate on every witness) on Lean 4.32.0, with the old traversal kept as the frozen
 `reference` backend and differential oracle; planning receipts record each monitored clause
-kind's trust basis. After a protocol change,
+kind's trust basis. Since fn-92, the `compose` command builds one Model from entity machines with
+declared action synchronization, `from:`/`restrict:`/`extend:` derive machines from a source table,
+same-step Properties can fix a single state field, and each composition's table is proved to agree
+with its members by kernel decision (the `nexusCaller` composition, 316 states, in about a minute). After a protocol change,
 `make umpire-rerecord-pinned-runs` refreshes every catalog-pinned recorded Run (fn-89.7).
 
 ### Delivery queue
 
-1. **fn-92 — Compose entity machines into one Model**
-   ([spec](../.flow/specs/fn-92-compose-entity-machines-into-one-system.md)); all 8 tasks done,
-   awaiting completion review. A `compose` command builds one Model from entity machines with
-   declared action synchronization over a reachable-state enumeration; `restrict:` and `extend:`
-   derive machines from a source table, and the negative control is now the pair machine plus one
-   `extend:` result; the first entity module, `Worker`, is composed with the Outage machine
-   (`workerOutage`) and with the caller's protocol machine (`nexusCaller`), and those two
-   cross-entity claims are `verify` Queries. Version one realizes no Case over a composition, adds
-   no shared `workflow` entity module (Start and Outage key a workflow differently), and leaves the
-   caller module, every fixture and the canary's pinned Case identity untouched; a use-case entity
-   key, the operation entity's move and the resulting re-pin are the follow-up.
-2. **fn-93 — Simplify the Lean model**
+1. **fn-93 — Simplify the Lean model**
    ([spec](../.flow/specs/fn-93-simplify-the-lean-model.md)); planned, 43 tasks (Codex plan
-   review SHIP), after fn-88 and fn-92. A simplification campaign over the handwritten Lean in
+   review SHIP), ready now that fn-88 and fn-92 are delivered. A simplification campaign over the handwritten Lean in
    `model/`: fix the defects the investigation found, derive what is written out by hand, delete
    what retired rules left behind (per-task owner decisions), reuse core Lean, and cut `model/`
    Markdown to one README and one ARCHITECTURE. Every golden, Case fixture, Definition ID and

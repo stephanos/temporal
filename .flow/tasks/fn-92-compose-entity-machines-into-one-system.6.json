@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-92-compose-entity-machines-into-one-system",
   "spec_path": ".flow/tasks/fn-92-compose-entity-machines-into-one-system.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Docs, GOV-02 drafts, AUTHORING section with multi-file drift markers",
   "updated_at": "2026-09-28T02:16:53.203643Z"
 }
