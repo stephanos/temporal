@@ -9,9 +9,9 @@ platform whether it resolves; this module is Temporal's answer.
 
 The generated schema carries no global message table: a descriptor closure hangs off each RPC, so a
 message is reachable through a method that carries it. The roots below are the methods whose
-closures cover the messages a Model names -- the workflow task the caller's commands travel on, the
-three Nexus task RPCs the handler's replies travel on, and the one unary call a Model invokes
-directly. A name outside those closures rejects, and
+closures cover the messages a Model names -- the call that starts a workflow, the workflow task the
+caller's commands travel on, the three Nexus task RPCs the handler's replies travel on, and the one
+unary call a Model invokes directly. A name outside those closures rejects, and
 a Model that needs a message from elsewhere adds the root that carries it, which keeps the admitted
 set tied to the generated API rather than to a list maintained here.
 
@@ -29,6 +29,9 @@ A member becomes checkable once an action's payload declares typed fields, which
 namespace Temporal.Case.Schema
 
 open Temporal.API
+
+private def startWorkflow := Temporal.Api.Workflowservice.V1.WorkflowService.startWorkflowExecution
+private def startWorkflowReference : MethodReference startWorkflow := by constructor
 
 private def workflowTask := Temporal.Api.Workflowservice.V1.WorkflowService.respondWorkflowTaskCompleted
 private def workflowTaskReference : MethodReference workflowTask := by constructor
@@ -48,6 +51,7 @@ private def systemInfoReference : MethodReference systemInfo := by constructor
 /-- Every message name reachable from the roots, in descriptor order. -/
 def admitted : List String :=
   let closures := [
+    startWorkflowReference.schema.request, startWorkflowReference.schema.response,
     workflowTaskReference.schema.request, workflowTaskReference.schema.response,
     nexusTaskReference.schema.request, nexusTaskReference.schema.response,
     nexusReplyReference.schema.request, nexusReplyReference.schema.response,
@@ -59,6 +63,7 @@ def admitted : List String :=
 resolve a name; a test reads it to say what a stored descriptor would have cost. -/
 def descriptorSize (fullName : String) : Nat :=
   let closures := [
+    startWorkflowReference.schema.request, startWorkflowReference.schema.response,
     workflowTaskReference.schema.request, workflowTaskReference.schema.response,
     nexusTaskReference.schema.request, nexusTaskReference.schema.response,
     nexusReplyReference.schema.request, nexusReplyReference.schema.response,
