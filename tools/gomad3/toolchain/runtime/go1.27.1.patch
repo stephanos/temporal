@@ -51,7 +51,7 @@ index 9cbc129..b98bc90 100644
  	// Recalculate pe parameters now that we have ctxt.LinkMode set.
  	if ctxt.HeadType == objabi.Hwindows {
 diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
-index 018fe01..f99542c 100644
+index 018fe01..cfaed04 100644
 --- a/src/crypto/rand/rand.go
 +++ b/src/crypto/rand/rand.go
 @@ -10,6 +10,7 @@ import (
@@ -62,13 +62,16 @@ index 018fe01..f99542c 100644
  	"io"
  	_ "unsafe"
  
-@@ -33,6 +34,12 @@ import (
+@@ -33,6 +34,15 @@ import (
  // Deterministric Random Bit Generator (DRBG).
  var Reader io.Reader = rand.Reader
  
 +func init() {
 +	if gomadio.Enabled() {
 +		Reader = gomadio.RandomReader()
++		// Key generation and other internal consumers read the FIPS DRBG,
++		// which ignores Reader and otherwise draws from the host.
++		rand.SetTestingReader(Reader)
 +	}
 +}
 +
