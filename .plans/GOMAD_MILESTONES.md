@@ -14,6 +14,8 @@ criterion for each step that a reviewer can check with a command.
 
 F0–F7 deliver the functional-test goal. F8 follows with architecture maintenance that
 consolidates protocol and execution-policy ownership while preserving the qualified behavior.
+F9 extends the supported target shape from the server's own module to a downstream module that
+embeds the server; it depends on F7, not on F8.
 
 The ladder is strictly ordered. Each milestone assumes the previous one's acceptance criteria
 hold. A milestone whose criteria fail blocks the next one; it never gets narrowed to pass.
@@ -39,7 +41,7 @@ milestone's status here.
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
 | F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; seeded virtual-clock ticks (default decided by measurement) |
-| F7+ | `fn-104-gomad-run-a-downstream-cell-under-the` | open; depends on F7; downstream-module targets ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
+| F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; depends on F7; downstream-module targets ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
@@ -1277,6 +1279,78 @@ records the findings and evidence behind this work.
 validation passes and plan review returned `SHIP`; implementation has not started. The
 existing architecture test package passed during assessment, which is not full runtime
 qualification.
+
+## F9: run a downstream cell under the deterministic contract
+
+**Spec.** [fn-104-gomad-run-a-downstream-cell-under-the](../.flow/specs/fn-104-gomad-run-a-downstream-cell-under-the.md);
+rationale and capability inventory in [GOMAD_CLOUD.md](GOMAD_CLOUD.md).
+
+**Outcome.** A Go module outside this repository that embeds the Temporal server as a library
+and adds its own in-process services (a replicated storage layer on an embedded key-value
+engine, a gossip-membership control plane, a replication sidecar over a blob store) is a
+supported `gomad` target: its in-process cluster smoke test prepares, analyzes as `supported`,
+and either qualifies with exact replay on darwin/arm64 or has every non-qualified outcome
+classified with a finding.
+
+**Details.**
+
+- Runner: `explore`, `qualify`, and `analyze` gain `--working-dir`; adapter selection and the
+  schema read-only mount resolve from the module root and the server's module directory (a
+  local `replace` or the module cache) instead of the process working directory. The forced
+  build environment (`GOWORK=off`, cleared `GOFLAGS`, `GOENV=off`, `-mod=readonly`) is
+  documented with its consequences: no workspace files, no vendoring, private-module settings
+  as exported variables.
+- Compatibility packs: one reviewed downstream pack per platform for the `syscall` and
+  `golang.org/x/sys` facts the downstream closure reaches through libraries no Temporal pack
+  covers, plus re-pins of the two modules already at newer versions downstream. Packs stay
+  embedded; an external pack directory is a recorded consideration, not a requirement.
+- Adapters: two exact, digest-anchored adapters for `remain_unsupported` imports under the
+  membership layer (a metrics library that registers a signal handler, an address library that
+  shells out). One version per module; drift fails closed.
+- Boundary operations that closure analysis cannot see get a recorded disposition — modeled
+  with COMPAT-5 evidence, target-injectable with the injection point named, or denied with the
+  exact finding: datagram sockets, advisory file locks, `statfs`, concrete listener-type
+  assertions, all-interface binds, port probing, process metrics, and long readiness waits
+  under the virtual clock (policy owned by `fn-103`).
+- A downstream-seam guide states the `gomad` tag convention the server already uses
+  (`_gomad.go` / `!gomad` pairing, default build unchanged, linked mode as the measurement of
+  what the linker removes) for the seam classes the assessment found: volume-discovery and
+  repository-root subprocesses, signal handlers in lifecycle and test helpers, a CLI package
+  leaking into the in-process closure, and cloud credential chains behind blob-store and
+  metrics providers.
+
+**Constraints.**
+
+- Every constraint under "Constraints that apply to every milestone" holds. No downstream
+  source change is made from this repository; the guide and the analysis name the sites, the
+  downstream repository owns the seams.
+- Out-of-process services the downstream integration harness normally requires (a wide-column
+  base store, write-ahead-log proxies, a coordination store, an object store) are a boundary.
+  Gomad does not model them. Their pure-Go, loopback-only, in-process substitutes — the same
+  shape as `testcore`'s SQLite and `StaticServiceHosts` — are downstream work and a
+  precondition for running the server-embedding harness, not for running the storage services
+  alone.
+- Every deterministic-I/O adapter version matched downstream on 2026-09-29. That is
+  coincidence, not contract; the milestone does not add multi-version adapters.
+
+**Acceptance.** The spec's R1–R6 are authoritative; the milestone summary is:
+
+- `gomad analyze --capability-mode=closure` over the downstream in-process cluster test package
+  reports `supported` on darwin/arm64 with the new packs and adapters, run from the downstream
+  checkout against this branch's toolchain.
+- `gomad qualify --repeat 2` on two seeds passes with exact replay, or every other outcome is
+  classified (capability blocker, unmodeled operation, watchdog, evidence divergence) with its
+  finding recorded here.
+- README and ARCHITECTURE record downstream-module support as a supported target shape with
+  its limits.
+
+**Status.** Assessed on 2026-09-29 on the `gomad` branch (`8bf340bb9`) against one downstream
+module without building the toolchain. The closure over its in-process cluster test package held
+about two thousand non-standard packages, about forty importers of `os/exec`, `os/signal`, or
+`os/user` (mostly cloud credential chains and CLI helpers that seams or the linker remove, as in
+F4), and about fifty importers of `syscall` or `golang.org/x/sys`. The server-embedding harness
+was judged out of reach because of its external service topology; the storage services alone
+were judged reachable. Spec created; no tasks yet.
 
 ## Out of scope
 
