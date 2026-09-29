@@ -166,6 +166,11 @@
           "owner": "stephanos",
           "date": "2026-09-29",
           "reason": "Needs two dedicated clusters at once (nexus_otel_test.go:142-143); testcore sizes the dedicated pool from GOMAXPROCS, which Gomad pins to 1, so the test waits on its own slot forever. Stock go test hangs the same way with TEMPORAL_TEST_DEDICATED_CLUSTERS=1, and the deterministic profile does not pass target environment to the program."
+        },
+        "TestWorkerOperation": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Seed 11 exports no HTTP spans within the 10s await in both repetitions (\"[]\" should have 2 items, nexus_otel_test.go:529); seed 17 exports them. Schedule-dependent span export; needs investigation of the worker-operation span path."
         }
       }
     },
@@ -306,7 +311,9 @@
     "TestVersioningFunctionalSuite": {
       "choice_bytes": 0,
       "replay_successes": false,
-      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Without the tape it runs past the 2m wall budget: both seeds hit the execution watchdog in run 7 on a host at load 25, with no spin found.",
+      "execution_timeout": "10m",
+      "overall_timeout": "40m"
     },
     "TestWFTFailureReportedProblemsTestSuite": {
       "skip_subtests": {
@@ -362,6 +369,11 @@
       "owner": "stephanos",
       "date": "2026-09-29",
       "reason": "Gomad runtime nondeterminism, not a test defect: same-seed runs of seed 17 diverge at runnable decision 58931, where the runtime cleanup goroutine (runtime.runCleanups) is runnable in one run and not the other. Traced back to GC cycle 12, whose heap scan work differs by 456 bytes between runs with identical heapMarked and heapLive; the resulting sweep wakes the cleanup queue at a different decision. Replay of one retained success diverges in about one of three attempts. Follow-up: find the host-timed input to GC scan work."
+    },
+    "TestSignalWorkflowTestSuiteChasm": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Gomad runtime nondeterminism of the TestCompletionCallbacksSuite class: seed 17's two repetitions diverge at runnable decision 9330 (27 against 25 runnable goroutines, run 7) although the suite qualified on both seeds in run 6. Follow-up with the callbacks GC scan-work finding."
     },
     "TestTaskQueueStats_Pri_Suite": {
       "owner": "stephanos",
