@@ -663,11 +663,15 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, identity Toolchain
 	if err != nil {
 		return preparation{}, err
 	}
-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package)
+	review, packages, err := reviewGoCapabilityPackages(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package)
 	if err != nil {
 		return preparation{}, err
 	}
-	return buildGoTarget(ctx, spec, buildContext.Tags, identity, targetPath, goCommand, buildContext.Directory, buildContext.Package, review, rejectUnsupported)
+	cache, err := openPreparedTargetCache(spec, buildContext.Tags, identity, buildContext.Directory, buildContext.Package, review, packages)
+	if err != nil {
+		return preparation{}, err
+	}
+	return buildGoTarget(ctx, spec, buildContext.Tags, identity, targetPath, goCommand, buildContext.Directory, buildContext.Package, review, rejectUnsupported, cache)
 }
 
 func buildGoTarget(
@@ -681,9 +685,19 @@ func buildGoTarget(
 	packageArgument string,
 	review CapabilityReview,
 	policy unsupportedPolicy,
+	cache *preparedTargetCache,
 ) (preparation, error) {
 	if policy == rejectUnsupported && spec.CapabilityMode == CapabilityModeClosure && len(review.Findings) != 0 {
 		return preparation{}, unsupportedFinding(review.Findings[0])
+	}
+	if cache != nil {
+		reused, err := cache.restore(targetPath)
+		if err != nil {
+			return preparation{}, err
+		}
+		if reused {
+			return finishGoTarget(spec, identity, targetPath, review, policy)
+		}
 	}
 	arguments := []string{}
 	if spec.Kind == KindGoRun {
@@ -723,6 +737,17 @@ func buildGoTarget(
 		}
 		return preparation{}, fmt.Errorf("prepare %s target: %w: %s", spec.Kind, err, output)
 	}
+	if cache != nil {
+		if err := cache.publish(targetPath); err != nil {
+			return preparation{}, err
+		}
+	}
+	return finishGoTarget(spec, identity, targetPath, review, policy)
+}
+
+// finishGoTarget projects the capability evidence of a built or restored go
+// target; a restored binary gets the same linked-mode extraction as a fresh one.
+func finishGoTarget(spec Spec, identity ToolchainIdentity, targetPath string, review CapabilityReview, policy unsupportedPolicy) (preparation, error) {
 	prepared := preparation{compatibility: recordCompatibility(review.Closure.Compatibility), review: review}
 	if spec.CapabilityMode != CapabilityModeClosure {
 		record, err := livecap.Read(targetPath, livecap.Expectation{

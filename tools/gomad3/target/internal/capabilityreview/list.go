@@ -67,10 +67,15 @@ type Package struct {
 	SwigFiles    []string `json:"SwigFiles"`
 	SwigCXXFiles []string `json:"SwigCXXFiles"`
 	SysoFiles    []string `json:"SysoFiles"`
-	Imports      []string `json:"Imports"`
-	TestImports  []string `json:"TestImports"`
-	XTestImports []string `json:"XTestImports"`
-	Module       *Module  `json:"Module"`
+	// The embed lists are build inputs the capability closure does not
+	// review; the prepared-target identity binds them.
+	EmbedFiles      []string `json:"EmbedFiles"`
+	TestEmbedFiles  []string `json:"TestEmbedFiles"`
+	XTestEmbedFiles []string `json:"XTestEmbedFiles"`
+	Imports         []string `json:"Imports"`
+	TestImports     []string `json:"TestImports"`
+	XTestImports    []string `json:"XTestImports"`
+	Module          *Module  `json:"Module"`
 }
 
 func List(ctx context.Context, request Request) ([]Package, error) {
