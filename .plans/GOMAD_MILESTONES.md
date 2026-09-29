@@ -38,6 +38,7 @@ milestone's status here.
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
+| F7+ | `fn-103-gomad-configurable-virtual-clock-tick` | open; depends on F7; configurable virtual-clock tick (opt-in) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
