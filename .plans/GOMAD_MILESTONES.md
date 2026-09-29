@@ -1120,7 +1120,9 @@ gate run in CI.
 - Generate the manifest from `go test -list` output instead of curating it by hand, so a new
   test lands with a default expectation of `qualified` and fails the set if it is not.
 - Split the set into shards with `gomad plan` and `execute-shard` so a full run fits the
-  90-minute CI budget. Merge with `gomad merge`.
+  90-minute CI budget. Merge with `gomad merge`. **Changed 2026-09-28:** CI runs only a smoke
+  test on a named selection of functional tests; the full `./tests` set is an on-demand local gate
+  (`make gomad3-tests-qualification`), sharded to keep a local pass short.
 - ~~Build the `linux/amd64` platform bundle per COMPAT-7 with its own boundary manifest,
   adapters, and publication primitives.~~ Done ahead of order on 2026-09-26: the toolchain,
   compiler, linker, and deterministic I/O profile accept `linux/amd64`, and the `core-linux` CI

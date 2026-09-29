@@ -30,9 +30,12 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
   check fails when the manifest is stale.
 - **R2:** The Temporal qualification-set report for `./tests` shows `unsupported == 0`,
   `failed == 0`, `infrastructure_errors == 0` on darwin/arm64.
-- **R3:** The same set on linux/amd64 shows the same counts (measured by CI).
+- **R3:** A smoke set of selected functional tests passes on linux/amd64 in CI with the same zero counts (`unsupported == 0`, `failed == 0`, `infrastructure_errors == 0`). The full `./tests` set is not run in CI.
 - **R4:** A required CI check runs on pull requests touching `tools/gomad3`, `tests`,
-  `tests/testcore`, `go.mod`, and the closure's server packages, sharded to fit 90 minutes.
+  `tests/testcore`, `go.mod`, and the closure's server packages. It is a smoke test: it
+  qualifies a small, named selection of functional tests (drawn from the representative set)
+  on both platforms and fits well inside 90 minutes. The full `./tests` set stays an on-demand
+  local gate (`make gomad3-tests-qualification`).
 - **R5:** A Linux host-clock escape audit replaces DTrace for linux/amd64.
 - **R6:** A newly added test in `./tests` appears in the report without a manual manifest edit.
 
@@ -45,4 +48,7 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
 ## Decision Context
 <!-- scope: both -->
 
+2026-09-28: CI runs only a smoke test on selected functional tests (user decision); the full enumeration remains the local proof for R2 and the manifest generator still covers every test.
+
 Generating the manifest makes coverage a property of the check rather than of curation.
+
