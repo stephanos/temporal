@@ -631,34 +631,61 @@ private def lakefileTargets (source : String) : Array LakefileTarget := Id.run d
 /-- The roots one target declares: the `roots := #[...]` array when present, the single
 `root := ...` when present, or Lake's own default -- the target's own name -- when neither field
 is set. Matched against whitespace-collapsed text, so a field broken across lines (`roots :=` and
-its `#[` on separate lines, as Lean's formatter is free to write it) is still recognized rather
-than silently falling back to the target's own name. -/
-private def LakefileTarget.roots (target : LakefileTarget) : Array Lean.Name :=
+its `#[` on separate lines, as Lean's formatter is free to write it) is still recognized. Lean
+syntax has no bound on how else a valid `roots`/`root` field can be spelled (extra parens, no
+space around `:=`, a computed expression, ...), so this never guesses at an unrecognized spelling:
+once the collapsed body contains the word `roots` or `root` at all, either the plain spelling
+matches or the target is reported unparseable, never silently defaulted to its own name. -/
+private def LakefileTarget.roots (target : LakefileTarget) : Except String (Array Lean.Name) :=
   let body := collapseWhitespace target.body
+  let unrecognized (field : String) : Except String (Array Lean.Name) :=
+    .error s!"{target.name}: its `{field}` field is not the plain `{field} := ...` spelling this \
+      guard recognizes; update the guard's lakefile scanner (model/ModelLint/ImportGraph.lean) or \
+      reword the field, or `checkUnbuilt` cannot tell whether this target's roots changed"
   match body.splitOn "roots := #[" with
-  | _ :: after :: _ => backtickNamesIn ((after.splitOn "]").headD "")
+  | _ :: after :: _ => .ok (backtickNamesIn ((after.splitOn "]").headD ""))
   | _ =>
-    match body.splitOn "root := " with
-    | _ :: after :: _ =>
-      match (backtickNamesIn after).toList with
-      | root :: _ => #[root]
-      | [] => #[stringToLeanName target.name]
-    | _ => #[stringToLeanName target.name]
+    if (body.splitOn "roots").length > 1 then unrecognized "roots"
+    else
+      match body.splitOn "root := " with
+      | _ :: after :: _ =>
+        match (backtickNamesIn after).toList with
+        | root :: _ => .ok #[root]
+        | [] => unrecognized "root"
+      | _ =>
+        if (body.splitOn "root").length > 1 then unrecognized "root"
+        else .ok #[stringToLeanName target.name]
 
 /-- Every root `model/lakefile.lean`'s `lean_lib`/`lean_exe` targets declare, parsed from the
-file's own text rather than hand-copied. -/
+file's own text rather than hand-copied. A target `LakefileTarget.roots` could not parse
+contributes no root here; see `unparseableLakefileTargets`. -/
 def parseLakefileRoots (source : String) : Array Lean.Name :=
-  (lakefileTargets source).flatMap LakefileTarget.roots
+  (lakefileTargets source).flatMap fun target =>
+    match target.roots with
+    | .ok roots => roots
+    | .error _ => #[]
+
+/-- Every target whose `roots`/`root` field `LakefileTarget.roots` could not confidently parse,
+with the reason -- failing loudly rather than silently assuming Lake's own-name default still
+applies to a field the scanner does not recognize. -/
+def unparseableLakefileTargets (source : String) : Array String :=
+  (lakefileTargets source).filterMap fun target =>
+    match target.roots with
+    | .ok _ => none
+    | .error message => some message
 
 /-- The two-way disagreement between the policy's `buildRoots` and what `model/lakefile.lean`
 itself declares. -/
 structure RootDrift where
   policyOnly : Array Lean.Name
   lakefileOnly : Array Lean.Name
+  /-- A target `LakefileTarget.roots` could not confidently parse: never silently defaulted, so
+  it is neither `policyOnly` nor `lakefileOnly` -- it is its own diagnostic. -/
+  unparseable : Array String := #[]
   deriving Repr, BEq
 
 def RootDrift.isEmpty (drift : RootDrift) : Bool :=
-  drift.policyOnly.isEmpty && drift.lakefileOnly.isEmpty
+  drift.policyOnly.isEmpty && drift.lakefileOnly.isEmpty && drift.unparseable.isEmpty
 
 /-- Compare `policy.buildRoots` against the roots parsed from `lakefileSource`, sorted for a
 deterministic diagnostic. -/
@@ -668,6 +695,7 @@ def checkBuildRootsDrift (policy : Policy) (lakefileSource : String) : RootDrift
   {
     policyOnly := (policy.buildRoots.filter (!lakefileRoots.contains ·)).qsort nameLess
     lakefileOnly := (lakefileRoots.filter (!policy.buildRoots.contains ·)).qsort nameLess
+    unparseable := (unparseableLakefileTargets lakefileSource).qsort (· < ·)
   }
 
 /-- Render every disagreement `checkBuildRootsDrift` found, deterministically ordered. -/
@@ -677,7 +705,8 @@ def RootDrift.render (drift : RootDrift) : Array String :=
       model/lakefile.lean no longer declares it as a root") ++
   drift.lakefileOnly.map (fun name =>
     s!"[model-import-graph/build-roots-drift] {name} is a model/lakefile.lean root the unbuilt \
-      guard's buildRoots does not list")
+      guard's buildRoots does not list") ++
+  drift.unparseable.map (fun message => s!"[model-import-graph/build-roots-drift] {message}")
 
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
   isFirstParty := policy.isFirstParty

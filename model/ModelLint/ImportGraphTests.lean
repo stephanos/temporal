@@ -835,6 +835,43 @@ lean_exe «umpire-inspect» where
   requireEqual "a single root := is recognized when the name starts its own line"
     (parseLakefileRoots multilineRoot) #[`Temporal.Tool.Inspect]
 
+/-- Lean syntax has no bound on how else a valid `roots`/`root` field can be spelled -- no space
+around `:=`, an extra pair of parens, or any other computed expression. `LakefileTarget.roots`
+must never guess at one of those and silently keep the target's own name (the false negative all
+three round-4 fan-out draws independently reproduced): once the collapsed body contains the word
+`roots` or `root` at all, either the plain spelling matches or the target is reported unparseable.
+`parseLakefileRoots` drops an unparseable target's contribution entirely (never a stale guess), and
+`unparseableLakefileTargets` names it so the drift check surfaces it rather than staying silent. -/
+private def testLakefileUnparseableFieldsFailClosed : IO Unit := do
+  let zeroSpaceRoots := "
+lean_lib UmpireTests where
+  roots:=#[`Umpire.CoreTests]
+"
+  requireEqual "a roots field with no space around := contributes no root"
+    (parseLakefileRoots zeroSpaceRoots) #[]
+  requireEqual "...and is reported unparseable rather than silently kept as the old root"
+    (unparseableLakefileTargets zeroSpaceRoots).size 1
+  let parenthesizedRoots := "
+lean_lib UmpireTests where
+  roots := (#[`Umpire.CoreTests])
+"
+  requireEqual "a parenthesized roots expression contributes no root"
+    (parseLakefileRoots parenthesizedRoots) #[]
+  requireEqual "...and is reported unparseable rather than silently kept as the old root"
+    (unparseableLakefileTargets parenthesizedRoots).size 1
+  let zeroSpaceRoot := "
+lean_exe «umpire-inspect» where
+  root:=`Temporal.Tool.Inspect
+"
+  requireEqual "a root field with no space around := contributes no root"
+    (parseLakefileRoots zeroSpaceRoot) #[]
+  requireEqual "...and is reported unparseable rather than silently kept as the old root"
+    (unparseableLakefileTargets zeroSpaceRoot).size 1
+  requireEqual "an unparseable target is named in checkBuildRootsDrift, blocking a clean pass"
+    (checkBuildRootsDrift { defaultPolicy with buildRoots := #[`UmpireTests] }
+        zeroSpaceRoots).isEmpty
+    false
+
 /-- `checkBuildRootsDrift` reports a policy root the lakefile no longer declares and a lakefile
 root the policy does not list, in either direction, and reports neither when the two agree. -/
 private def testBuildRootsDrift : IO Unit := do
@@ -977,6 +1014,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testParseLakefileRoots
   testLakefileCommentsIgnored
   testLakefileMultilineFields
+  testLakefileUnparseableFieldsFailClosed
   testBuildRootsDrift
   testRealLakefileRootsAgree
   testFeatureEntityUniqueness
