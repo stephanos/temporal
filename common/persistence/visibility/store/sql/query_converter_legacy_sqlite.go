@@ -230,11 +230,10 @@ func (c *sqliteQueryConverter) buildSelectStmt(
 		whereClauses = append(
 			whereClauses,
 			fmt.Sprintf(
-				"((%s = ? AND %s = ? AND %s %s ?) OR (%s = ? AND %s < ?) OR %s < ?)",
+				"((%s = ? AND %s = ? AND %s > ?) OR (%s = ? AND %s < ?) OR %s < ?)",
 				sqlparser.String(c.getCoalesceCloseTimeExpr()),
 				sadefs.GetSqlDbColName(sadefs.StartTime),
 				sadefs.GetSqlDbColName(sadefs.RunID),
-				sqliteRunIDPageOperator,
 				sqlparser.String(c.getCoalesceCloseTimeExpr()),
 				sadefs.GetSqlDbColName(sadefs.StartTime),
 				sqlparser.String(c.getCoalesceCloseTimeExpr()),
@@ -257,14 +256,13 @@ func (c *sqliteQueryConverter) buildSelectStmt(
 		`SELECT %s
 		FROM executions_visibility
 		WHERE %s
-		ORDER BY %s DESC, %s DESC, %s%s
+		ORDER BY %s DESC, %s DESC, %s
 		LIMIT ?`,
 		strings.Join(sqlplugin.DbFields, ", "),
 		strings.Join(whereClauses, " AND "),
 		sqlparser.String(c.getCoalesceCloseTimeExpr()),
 		sadefs.GetSqlDbColName(sadefs.StartTime),
 		sadefs.GetSqlDbColName(sadefs.RunID),
-		sqliteRunIDOrder,
 	), queryArgs
 }
 
