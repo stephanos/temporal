@@ -1106,3 +1106,52 @@ func TestRunStopsBeforeASeedWhenFreeSpaceIsUnderTheBound(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestRunAnalyzesEachAnalysisIdentityOnce(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "qualified", "a-base", "b-same-target", "c-build-tag", "d-package", "e-capability-mode")
+	contents, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	suites := manifest["suites"].([]any)
+	suites[1].(map[string]any)["test"] = "TestOther"
+	suites[1].(map[string]any)["skip"] = []string{"Flaky/Case"}
+	suites[2].(map[string]any)["build_tags"] = []string{"extra"}
+	suites[3].(map[string]any)["package"] = "./other"
+	suites[4].(map[string]any)["capability_mode"] = "guarded"
+	contents, err = json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var analyzed []string
+	executor := func(ctx context.Context, command Command) CommandResult {
+		if command.Args[0] == "analyze" {
+			analyzed = append(analyzed, strings.Join(command.Args, " "))
+			return encodedAnalysisResult(t, capabilityanalysis.ClassificationSupported)
+		}
+		return failureExecutor(t, "target_failure")(ctx, command)
+	}
+	report, _ := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "report.json"), Execute: executor,
+	})
+	if len(analyzed) != 4 || slices.ContainsFunc(analyzed, func(args string) bool { return strings.Contains(args, "TestOther") }) {
+		t.Fatalf("analyze calls = %q, want one per analysis identity", analyzed)
+	}
+	reused := report.Workloads[1]
+	want := capabilityanalysis.Report{}.ForArguments([]string{"-test.run=^TestOther$", "-test.skip=^TestOther$/^Flaky$/^Case$"}).Target.Arguments
+	if reused.Analysis == nil || !slices.Equal(reused.Analysis.Target.Arguments, want) || reused.Analysis.Target.Arguments[0] != "-test.run=^TestOther$" {
+		t.Fatalf("reused analysis arguments = %#v, want %q", reused.Analysis, want)
+	}
+	if !slices.Equal(report.Workloads[0].Analysis.Target.Arguments, []string{"-test.run=^TestScenario$"}) {
+		t.Fatalf("first analysis arguments = %q", report.Workloads[0].Analysis.Target.Arguments)
+	}
+}

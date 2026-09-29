@@ -428,6 +428,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 	}
 	failed := make([]string, 0, len(suites))
 	analysisFailed := false
+	analyses := map[analysisIdentity]capabilityanalysis.Report{}
 	for index, workload := range suites {
 		workloadReport := report.Workloads[index]
 		if err := ctx.Err(); err != nil {
@@ -438,9 +439,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 			analysisFailed = true
 			break
 		}
-		command := analysisCommand(config, manifest, workload)
-		result := config.Execute(ctx, command)
-		analysis, classification, analysisErr := retainedAnalysis(result)
+		analysis, classification, analysisErr := analyzeWorkload(ctx, config, manifest, workload, analyses)
 		if analysisErr != nil {
 			workloadReport.AnalysisError = classification
 			workloadReport.Classification = classification
