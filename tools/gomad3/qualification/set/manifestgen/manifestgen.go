@@ -82,11 +82,25 @@ type WorkloadDefaults struct {
 	Expectation          set.WorkloadExpectation `json:"expectation"`
 }
 
-// TestOverride is the per-test deviation from the workload defaults.
+// TestOverride is the per-test deviation from the workload defaults. An
+// override of the evidence a test retains (choice_bytes, replay_successes) or
+// of its budget (execution_timeout, overall_timeout) must carry a reason, so
+// no test narrows its qualification silently.
 type TestOverride struct {
 	RequiredProbes       []string                           `json:"required_probes,omitempty"`
 	Expectation          *set.WorkloadExpectation           `json:"expectation,omitempty"`
 	PlatformExpectations map[string]set.WorkloadExpectation `json:"platform_expectations,omitempty"`
+	ChoiceBytes          *uint64                            `json:"choice_bytes,omitempty"`
+	ReplaySuccesses      *bool                              `json:"replay_successes,omitempty"`
+	ExecutionTimeout     string                             `json:"execution_timeout,omitempty"`
+	OverallTimeout       string                             `json:"overall_timeout,omitempty"`
+	Reason               string                             `json:"reason,omitempty"`
+}
+
+// narrows reports whether the override changes what the test retains or how
+// long it may run.
+func (override TestOverride) narrows() bool {
+	return override.ChoiceBytes != nil || override.ReplaySuccesses != nil || override.ExecutionTimeout != "" || override.OverallTimeout != ""
 }
 
 // Exclusion removes a test from the manifest by name. Owner, date, and reason
@@ -236,6 +250,11 @@ func validateSpec(spec Spec) error {
 	}
 	if strings.TrimSpace(spec.Workload.Invariant) == "" {
 		return errors.New("qualification manifest spec workload invariant is required")
+	}
+	for name, override := range spec.Tests {
+		if override.narrows() && strings.TrimSpace(override.Reason) == "" {
+			return fmt.Errorf("override of %s changes its evidence or budget and requires a reason", name)
+		}
 	}
 	for name, exclusion := range spec.Exclusions {
 		if strings.TrimSpace(exclusion.Owner) == "" {
@@ -440,6 +459,23 @@ func workload(spec Spec, test, id string) set.Workload {
 		}
 		if len(override.PlatformExpectations) != 0 {
 			generated.PlatformExpectations = maps.Clone(override.PlatformExpectations)
+		}
+		if override.ChoiceBytes != nil {
+			generated.ChoiceBytes = *override.ChoiceBytes
+		}
+		if override.ReplaySuccesses != nil {
+			generated.ReplaySuccesses = *override.ReplaySuccesses
+		}
+		// A workload without a choice tape or without success replay cannot
+		// retain replayed successes, which the manifest validation enforces.
+		if !generated.ReplaySuccesses || generated.ChoiceBytes == 0 {
+			generated.ReplaySuccesses, generated.SuccessArtifactLimit, generated.SuccessBytesLimit = false, 0, 0
+		}
+		if override.ExecutionTimeout != "" {
+			generated.ExecutionTimeout = override.ExecutionTimeout
+		}
+		if override.OverallTimeout != "" {
+			generated.OverallTimeout = override.OverallTimeout
 		}
 	}
 	return generated
