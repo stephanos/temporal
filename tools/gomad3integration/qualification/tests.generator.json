@@ -114,12 +114,21 @@
         }
       }
     },
+    "TestFairnessAutoEnableSuite": {
+      "skip_subtests": {
+        "Test_Activity_Basic": {
+          "owner": "stephanos",
+          "date": "2026-09-28",
+          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 40-66 dispatched tasks come from 3-4 of 15 workflows (TestFairnessSuite unfairness 1.03-1.04 on seeds 11 and 17, TestFairnessAutoEnableSuite 1.27 on seed 11, against 0.45 under stock go test; threshold 1.0, priority_fairness_test.go:603)."
+        }
+      }
+    },
     "TestFairnessSuite": {
       "skip_subtests": {
         "Test_Activity_Basic": {
           "owner": "stephanos",
           "date": "2026-09-28",
-          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 66 dispatched tasks come from 4 of 15 workflows (unfairness 1.03-1.04 on seeds 11 and 17 against 0.45 under stock go test, threshold 1.0; priority_fairness_test.go:603)."
+          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 40-66 dispatched tasks come from 3-4 of 15 workflows (TestFairnessSuite unfairness 1.03-1.04 on seeds 11 and 17, TestFairnessAutoEnableSuite 1.27 on seed 11, against 0.45 under stock go test; threshold 1.0, priority_fairness_test.go:603)."
         }
       }
     },
