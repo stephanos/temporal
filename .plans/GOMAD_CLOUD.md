@@ -62,8 +62,11 @@ design consideration, not a requirement of this spec.
 **C3. Adapters for `remain_unsupported` imports the seams cannot reach.** The gossip membership
 layer pulls in a metrics library that registers a signal handler (`os/signal`) and an address
 library that shells out (`os/exec`). Both are `remain_unsupported`, so no pack may admit them,
-and they live in third-party modules a downstream build tag cannot touch. Each becomes an exact,
-digest-anchored adapter in the shape of the fx, SDK, and otel adapters: version pinned in
+and they live in third-party modules a downstream build tag cannot touch. The linker removes the
+metrics library's import (see the baseline measurement), so linked mode needs only the
+address-library adapter; closure mode, which the qualification manifests use today, needs both.
+Each becomes an exact, digest-anchored adapter in the shape of the fx, SDK, and otel adapters:
+version pinned in
 `toolchain/version/version.json`, per-file source and replacement digests, original and
 replacement inventory, per-platform prepared source-set pins. The adapter registry keeps one
 version per module; a downstream module pinning a different version fails closed, and that is
@@ -134,6 +137,59 @@ the race detector. The qualification path is the `gomad` CLI or a manifest, neve
   see Boundaries. Any in-process configuration of the downstream server that avoids those
   services is a downstream architecture decision that this spec neither makes nor waits for.
 
+## Baseline measurement
+<!-- scope: technical -->
+
+Measured on 2026-09-29 on darwin/arm64 with the toolchain built from `gomad` at `3bc1fe643`
+(go1.27.1, toolchain `ab2d4510…`, Runner `59e5be66…`), from the downstream module root, with the
+server replaced by this checkout and the tags `test_dep`, `integration`, `gomad`. The replace
+needed no other `go.mod` change: every shared dependency version was already identical. Both
+analyses ran to completion; the raw reports name downstream packages and are not retained here.
+
+**Closure mode** (23 s): 1,818 packages, `unsupported`, 82 blockers — 29 `remain_unsupported`,
+45 `add_exact_pack`, 8 `model_operation` (the downstream module's own `syscall` and `x/sys`
+imports). Three packs activated (reflect2, the darwin compute pack, the xxhash leaf pack) and
+five adapters (otel/sdk, SDK, fx, x/net, gRPC). The libc and memory adapters did not activate
+because the storage-only closure has no SQLite, and every `x/sys` pack binds its activation to
+the libc adapter — so `x/sys/unix` and `x/sys/cpu` assembly, linknames, and `syscall` imports
+that the server closure never sees as blockers are blockers here. Finding: `x/sys` admission is
+coupled to the libc adapter and needs a standalone pack.
+
+**Linked mode** (83 s, builds the test binary): `unsupported`, 78 live, 37 eliminated by the
+linker. The linker removes the terminal, DNS-library, error-reporting, validator, parser-runtime,
+and metrics-library `syscall` facts, both metrics-library `os/signal` imports, most CLI-only
+`os/exec`, and 7 of the downstream module's 8 own `syscall` findings. What stays live:
+
+- **11 `remain_unsupported`.** Five cloud credential chains (`os/exec`), all reached through the
+  CLI package or the blob-store provider; the membership layer's address library (`os/exec`);
+  and five downstream sites — the volume-discovery subprocess, the harness's subprocess mode,
+  the repository-root subprocess, and two signal handlers (service lifecycle, sidecar server).
+  These are the C5 seams plus one C3 adapter; under linked mode the metrics-library adapter is
+  unnecessary.
+- **34 `model_operation`.** The storage engine's filesystem layer accounts for nine: `chown`,
+  `link`, read/write deadlines, raw descriptor and raw connection, `ReadFrom`/`WriteTo`. Raw
+  descriptors also in a terminal-color library, procfs, and a downstream debug package;
+  `readlink` in procfs and the blob transfer manager; DNS lookups in gRPC's DNS resolver and two
+  cloud metadata clients (reachable, not necessarily called — the server's own closure carries
+  the same resolver and qualifies); interface enumeration in the address library and the
+  server's config package; address resolution in the validator, the address library, the
+  downstream service-instance package, the membership layer (UDP), and a statsd client; one UDP
+  listen; `process.kill` in a certificate proxy and `process.signal` in the harness; and the
+  downstream `statfs`. This confirms C4 and adds the storage engine's `chown`/`link`/deadline
+  surface, which favors injecting an in-memory filesystem over modeling each call.
+- **33 `add_exact_pack`.** Seven arm64 assembly files (the storage engine's compression and
+  prefix helpers, a compression library, `x/sys/unix` and `x/sys/cpu`), nine `syscall` and
+  `x/sys` imports (Prometheus client at the newer version, terminal detection at the newer
+  version, the storage engine's filesystem layer, a structured-error library, procfs, `x/sys`),
+  and seventeen linknames (a JSON library, the storage engine and its hash map, a concurrent map,
+  `x/sys`). One reviewed darwin pack covers all of them.
+
+Two Runner observations: `analyze` accepted a relative package source from the module root and a
+local server replacement without complaint, so C1 is about the working-directory flag and the
+schema mount, not module resolution; and `make gomad3` needs a host Go of at least 1.27.1 whose
+`GOROOT` matches the `go` on `PATH` — a version manager that exports `GOROOT` for an older Go
+fails the toolchain build with a compiler-version mismatch after `GOTOOLCHAIN=local` is forced.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
@@ -146,10 +202,12 @@ the race detector. The qualification path is the `gomad` CLI or a manifest, neve
   and vendoring limits.
 - **R2:** `gomad analyze --capability-mode=closure` over the downstream in-process cluster test
   package reports `supported` on darwin/arm64 with a reviewed downstream pack, the re-pinned
-  Prometheus-client and terminal-detection packs, and two new exact adapters (the signal-handling
-  metrics library and the address library); each adapter carries per-file digests, inventories,
-  per-platform pins, and a negative test that fails the build on an upstream edit.
-  `compatibility-pack-qualification` qualifies the new requests on the host.
+  Prometheus-client and terminal-detection packs, a standalone `x/sys` pack that does not bind
+  the libc adapter, and the new exact adapters the capability mode requires (the address
+  library; the signal-handling metrics library too unless the qualification runs in linked mode);
+  each adapter carries per-file digests, inventories, per-platform pins, and a negative test that
+  fails the build on an upstream edit. `compatibility-pack-qualification` qualifies the new
+  requests on the host.
 - **R3:** Each C4 boundary operation has a disposition recorded in the analysis with evidence:
   modeled (with the COMPAT-5 set), target-injectable (with the injection point named), or denied
   (with the exact finding the target sees). Unspecified bind addresses and concrete listener-type

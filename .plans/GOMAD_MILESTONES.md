@@ -1345,12 +1345,23 @@ classified with a finding.
   its limits.
 
 **Status.** Assessed on 2026-09-29 on the `gomad` branch (`8bf340bb9`) against one downstream
-module without building the toolchain. The closure over its in-process cluster test package held
-about two thousand non-standard packages, about forty importers of `os/exec`, `os/signal`, or
-`os/user` (mostly cloud credential chains and CLI helpers that seams or the linker remove, as in
-F4), and about fifty importers of `syscall` or `golang.org/x/sys`. The server-embedding harness
-was judged out of reach because of its external service topology; the storage services alone
-were judged reachable. Spec created; no tasks yet.
+module by reading; measured the same day with the toolchain built from `3bc1fe643` on
+darwin/arm64, from the downstream module root with the server replaced by this checkout (no
+other `go.mod` change was needed; every shared dependency version already matched). Closure
+mode: 1,818 packages, `unsupported`, 82 blockers (29 `remain_unsupported`, 45 `add_exact_pack`,
+8 `model_operation`). Linked mode: 78 live, 37 eliminated — 11 `remain_unsupported` (five cloud
+credential chains through the CLI package and blob-store provider, the membership layer's
+address library, five downstream subprocess and signal sites), 34 `model_operation` (nine in the
+storage engine's filesystem layer: `chown`, `link`, deadlines, raw descriptors,
+`ReadFrom`/`WriteTo`; DNS, interface, and address resolution; one UDP listen; `statfs`;
+`process.signal`), and 33 `add_exact_pack` (seven arm64 assembly files, nine `syscall`/`x/sys`
+imports, seventeen linknames). Two Gomad findings: the `x/sys` packs bind their activation to
+the libc adapter, which does not activate in a closure without SQLite, so `x/sys` facts the
+server never sees are blockers here; and the linker removes the metrics library's `os/signal`,
+so linked mode needs one new adapter rather than two. The full inventory is in
+[GOMAD_CLOUD.md](GOMAD_CLOUD.md) under "Baseline measurement"; the raw reports name downstream
+packages and are not retained. The server-embedding harness remains out of reach because of its
+external service topology. Spec created; no tasks yet.
 
 ## Out of scope
 
