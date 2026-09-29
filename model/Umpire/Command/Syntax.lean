@@ -661,7 +661,7 @@ elab scenarioKeyword name:ident
     -- the one start state whose first field holds that spelling is the one meant.
     --
     -- A composition's start state is named by its key, or by one member's value,
-    -- `workflow.pending`: the one start state whose member holds it.
+    -- `<field>.<value>`: the one start state whose member holds it.
     let composition := Registry.composition? (← getEnv) declaredModel.declName
     let startKey ← do
       let spelling := setupRef.getId.eraseMacroScopes.toString
