@@ -297,12 +297,14 @@ Preparing a go target retains the built binary under
 `.toolchain/builds/<key>/prepared-targets/<identity>`, where the identity binds
 every build input: the toolchain and its Go settings, kind, package, tags,
 capability mode, overlay, module files, the reviewed closure with its source
-digests, module sums, and adapters, and the files packages embed. A later
-preparation with the same identity restores the copy instead of linking again,
-after the same capability review, and discards a copy that no longer hashes
-to its record. The eight most recently used binaries stay. The target build
-cache beside it is trimmed to 4 GiB, least recently used entries first, after
-each build.
+digests, module sums, and adapters, each dependency module's language version
+and a local module's go.mod, and the files packages embed. Builds do not stamp
+repository state. A later preparation with the same identity restores the copy
+instead of linking again, after the same capability review, and discards a
+copy that no longer hashes to its record. The most recently used binaries stay
+within 2 GiB, and the entry just prepared always stays. The target build cache
+beside it is trimmed to 4 GiB, least recently used entries first, after each
+build, and only while no other build holds it.
 
 Compare two validated reports with `gomad compare-support`. Clean and improved
 comparisons return 0, regressions or review-required changes return 1,

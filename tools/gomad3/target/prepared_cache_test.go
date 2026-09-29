@@ -2,9 +2,11 @@ package target
 
 import (
 	"context"
+	"debug/buildinfo"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -76,6 +78,45 @@ func TestPrepareRebuildsWhenAnyBuildInputChanges(t *testing.T) {
 	}
 	if again := prepareEmbedModule(t, module, nil); again.SHA256 == base.SHA256 {
 		t.Fatal("changed inputs reproduced the original binary")
+	}
+}
+
+func TestPrepareRebuildsWhenADependencyLanguageVersionChanges(t *testing.T) {
+	isolatePreparedTargetCache(t)
+	module := writeModule(t, map[string]string{
+		"go.mod":     "module example.com/target\n\ngo 1.26.4\n\nrequire example.com/dep v0.0.0\n\nreplace example.com/dep => ./dep\n",
+		"main.go":    "package main\n\nimport (\n\t\"fmt\"\n\n\t\"example.com/dep\"\n)\n\nfunc main() { fmt.Println(dep.Values()) }\n",
+		"dep/go.mod": "module example.com/dep\n\ngo 1.21\n",
+		// Before Go 1.22 the closures share one loop variable.
+		"dep/dep.go": "package dep\n\nimport \"fmt\"\n\nfunc Values() string {\n\tvar values []func() int\n\tfor i := 0; i < 3; i++ {\n\t\tvalues = append(values, func() int { return i })\n\t}\n\treturn fmt.Sprint(values[0](), values[1](), values[2]())\n}\n",
+	})
+	if got := runEmbedTarget(t, prepareEmbedModule(t, module, nil)); got != "3 3 3\n" {
+		t.Fatalf("go 1.21 dependency output = %q", got)
+	}
+	writeFile(t, filepath.Join(module, "dep", "go.mod"), "module example.com/dep\n\ngo 1.22\n")
+	if got := runEmbedTarget(t, prepareEmbedModule(t, module, nil)); got != "0 1 2\n" {
+		t.Fatalf("go 1.22 dependency output = %q, want the rebuilt per-iteration loop variable", got)
+	}
+}
+
+func TestPrepareStampsNoRepositoryState(t *testing.T) {
+	isolatePreparedTargetCache(t)
+	module := writeEmbedModule(t, "one")
+	for _, arguments := range [][]string{{"init", "-q"}, {"add", "."}, {"-c", "user.name=gomad", "-c", "user.email=gomad@example.com", "commit", "-q", "-m", "fixture"}} {
+		command := exec.Command("git", arguments...)
+		command.Dir = module
+		if output, err := command.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v: %s", arguments, err, output)
+		}
+	}
+	info, err := buildinfo.ReadFile(prepareEmbedModule(t, module, nil).Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, setting := range info.Settings {
+		if strings.HasPrefix(setting.Key, "vcs") {
+			t.Fatalf("prepared target records repository state %s=%s", setting.Key, setting.Value)
+		}
 	}
 }
 

@@ -51,3 +51,28 @@ func TestTryRejectsSymbolicLink(t *testing.T) {
 		t.Fatalf("Try(symlink) error = %v", err)
 	}
 }
+
+func TestSharedLocksExcludeTryButNotEachOther(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "resource.lock")
+	first, err := Shared(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := Shared(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Try(path); !errors.Is(err, ErrContended) {
+		t.Fatalf("Try() under shared holders error = %v", err)
+	}
+	if err := errors.Join(first.Release(), second.Release()); err != nil {
+		t.Fatal(err)
+	}
+	exclusive, err := Try(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := exclusive.Release(); err != nil {
+		t.Fatal(err)
+	}
+}
