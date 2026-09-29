@@ -162,7 +162,7 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-tests-qualification
+.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-tests-qualification gomad3-tests-qualification-merge
 
 gomad3: gomad3-runner
 
@@ -200,13 +200,24 @@ gomad3-qualification: gomad3-runner
 # Regenerating first puts every test in ./tests in the set, including one added
 # without regenerating the checked-in manifest; `make -C tools/gomad3 validate`
 # still fails on the stale checked-in copy.
+# GOMAD3_QUALIFICATION_SHARD=INDEX/COUNT runs one shard of the set into
+# shard-suffixed artifact and report paths; gomad3-tests-qualification-merge
+# then combines the shard reports into tests-qualification-set.json.
+GOMAD3_TESTS_QUALIFICATION_SUFFIX := $(if $(GOMAD3_QUALIFICATION_SHARD),.shard-$(subst /,-of-,$(GOMAD3_QUALIFICATION_SHARD)))
 gomad3-tests-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 tests-qualification-generate
 	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
+		GOMAD3_QUALIFICATION_SHARD="$(GOMAD3_QUALIFICATION_SHARD)" \
 		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/tests.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/tests-qualification" \
-		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.json"
+		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/tests-qualification$(GOMAD3_TESTS_QUALIFICATION_SUFFIX)" \
+		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set$(GOMAD3_TESTS_QUALIFICATION_SUFFIX).json"
+
+gomad3-tests-qualification-merge: gomad3-runner
+	@$(MAKE) -C tools/gomad3 qualification-set-merge \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/tests.json" \
+		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.json" \
+		GOMAD3_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD3_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.shard-*.json))"
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."

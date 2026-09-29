@@ -198,12 +198,68 @@ type Spec struct {
 	WorkingDir   string
 	ArtifactRoot string
 	OutputPath   string
+	// Shard limits the run to one ordinal-modulo subset of the manifest; the
+	// zero value runs the whole manifest.
+	Shard Shard
 	// PruneQualifiedArtifacts deletes each qualified seed's retained Campaigns
 	// once its evidence is projected into the set report, keeping the seed's
 	// qualification report, so a set's disk use is bounded by one seed rather
 	// than the whole manifest.
 	PruneQualifiedArtifacts bool
 	Execute                 ExecuteFunc
+}
+
+// Shard is the zero-based INDEX/COUNT partition execute-shard uses, applied to
+// manifest ordinals: shard INDEX/COUNT owns the workloads whose position in the
+// manifest, modulo COUNT, is INDEX. Shards of one manifest therefore never
+// overlap and together cover it, which Merge verifies. The zero value selects
+// the whole manifest.
+type Shard struct {
+	Index uint64
+	Count uint64
+}
+
+func (shard Shard) Validate() error {
+	if shard == (Shard{}) {
+		return nil
+	}
+	if shard.Count == 0 || shard.Index >= shard.Count {
+		return fmt.Errorf("qualification set shard %d/%d is invalid: want zero-based INDEX/COUNT", shard.Index, shard.Count)
+	}
+	return nil
+}
+
+// Select returns the manifest workloads this shard owns, in manifest order. A
+// count larger than the manifest would leave a shard with nothing to run, so
+// it is refused rather than reported as an empty success.
+func (shard Shard) Select(manifest Manifest) ([]Workload, error) {
+	if err := shard.Validate(); err != nil {
+		return nil, err
+	}
+	if shard.Count == 0 {
+		return manifest.Suites, nil
+	}
+	if shard.Count > uint64(len(manifest.Suites)) {
+		return nil, fmt.Errorf("qualification set shard count %d exceeds the manifest's %d workloads", shard.Count, len(manifest.Suites))
+	}
+	selected := make([]Workload, 0, (uint64(len(manifest.Suites))+shard.Count-1)/shard.Count)
+	for ordinal, workload := range manifest.Suites {
+		if uint64(ordinal)%shard.Count == shard.Index {
+			selected = append(selected, workload)
+		}
+	}
+	return selected, nil
+}
+
+// manifestDigest binds a report to the whole manifest it was selected from,
+// including the workloads a shard did not run, so shard reports of one
+// manifest share the digest and Merge can tell them from any other set's.
+func manifestDigest(manifest Manifest) (record.SHA256, error) {
+	manifestBytes, err := canonicaljson.CanonicalJSON(manifest)
+	if err != nil {
+		return "", err
+	}
+	return record.HashBytes(manifestBytes), nil
 }
 
 type Command struct {
@@ -311,36 +367,40 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		}
 		config.Execute = executeCommand
 	}
+	suites, err := config.Shard.Select(manifest)
+	if err != nil {
+		return Report{}, err
+	}
 	moduleIdentity, err := identifyModule(config.WorkingDir, manifest.Module)
 	if err != nil {
 		return Report{}, err
 	}
-	manifestBytes, err := canonicaljson.CanonicalJSON(manifest)
+	digest, err := manifestDigest(manifest)
 	if err != nil {
 		return Report{}, err
 	}
 	report := Report{
 		Schema: ReportSchema, Name: manifest.Name, Description: manifest.Description,
-		ManifestSHA256: record.HashBytes(manifestBytes), Module: moduleIdentity,
+		ManifestSHA256: digest, Module: moduleIdentity,
 		Dimensions:               EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
 		QualifiedArtifactsPruned: config.PruneQualifiedArtifacts,
-		Selected:                 uint64(len(manifest.Suites)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
-		Workloads: make([]WorkloadReport, len(manifest.Suites)),
+		Selected:                 uint64(len(suites)), Seeds: make([]record.Uint64String, len(manifest.Seeds)),
+		Workloads: make([]WorkloadReport, len(suites)),
 	}
 	for index, seed := range manifest.Seeds {
 		report.Seeds[index] = record.Uint64String(seed)
 	}
 	hostPlatform := runtime.GOOS + "/" + runtime.GOARCH
-	for index, workload := range manifest.Suites {
+	for index, workload := range suites {
 		report.Workloads[index] = WorkloadReport{
 			ID: workload.ID, Name: workload.Name, Tier: workload.Tier, Invariant: workload.Invariant,
 			Expected: workload.expectationFor(hostPlatform), Seeds: []SeedReport{}, Blockers: []capabilityanalysis.Blocker{},
 			Choice: emptyChoiceCoverage(), CapabilityMode: workload.CapabilityMode,
 		}
 	}
-	failed := make([]string, 0, len(manifest.Suites))
+	failed := make([]string, 0, len(suites))
 	analysisFailed := false
-	for index, workload := range manifest.Suites {
+	for index, workload := range suites {
 		workloadReport := report.Workloads[index]
 		if err := ctx.Err(); err != nil {
 			workloadReport.AnalysisError = contextClassification(err)
@@ -396,7 +456,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		}
 	}
 	if !analysisFailed {
-		for index, workload := range manifest.Suites {
+		for index, workload := range suites {
 			if report.Workloads[index].Analysis == nil || report.Workloads[index].Analysis.Classification == capabilityanalysis.ClassificationUnsupported {
 				continue
 			}

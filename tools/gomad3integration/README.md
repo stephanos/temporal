@@ -101,6 +101,35 @@ regenerates the manifest and runs the set with
 `GOMAD3_QUALIFICATION_PRUNE=1`, writing
 `tools/gomad3/.toolchain/tests-qualification-set.json`.
 
+### Sharding the generated set
+
+The set is sharded at the workload level, not with the Campaign `plan` /
+`execute-shard` / `merge` primitives: those partition the seeds of one Target,
+while this set has 147 Targets that each qualify on two seeds. `qualify-set
+--shard INDEX/COUNT` applies the same zero-based ordinal-modulo partition to
+the manifest's workloads, and `merge-set` combines the shard reports into the
+report a whole run would have published (see `tools/gomad3/README.md`). With
+Make:
+
+```sh
+make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=0/3
+make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=1/3
+make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=2/3
+make gomad3-tests-qualification-merge
+```
+
+Each shard writes `tools/gomad3/.toolchain/tests-qualification-set.shard-INDEX-of-COUNT.json`
+and prunes its qualified Campaigns under
+`tools/gomad3/.toolchain/tests-qualification.shard-INDEX-of-COUNT`; the merge
+reads every `tests-qualification-set.shard-*.json` (or the reports named in
+`GOMAD3_QUALIFICATION_SHARD_REPORTS`) and writes
+`tests-qualification-set.json`. The merge refuses shards of another manifest or
+run configuration and any workload covered twice or not at all, so a CI matrix
+that runs one shard per job and merges in a final job gates on the same counts
+as one run. Shards of one checkout may run concurrently on one machine: each
+analysis and preparation reads the module and writes only under its own
+artifact root.
+
 ## Capability closure of `./tests`
 
 The functional test package itself has a closed capability closure on
