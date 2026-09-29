@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-29T19:10:46.393052Z",
+  "depends_on": [
+    "fn-103-gomad-configurable-virtual-clock-tick.1"
+  ],
+  "id": "fn-103-gomad-configurable-virtual-clock-tick.2",
+  "priority": null,
+  "spec": "fn-103-gomad-configurable-virtual-clock-tick",
+  "spec_path": ".flow/tasks/fn-103-gomad-configurable-virtual-clock-tick.2.md",
+  "status": "todo",
+  "title": "Measure the tick on the full ./tests set and retire tie exclusions",
+  "updated_at": "2026-09-29T19:10:46.393052Z"
+}
