@@ -38,9 +38,28 @@ make umpire-check-plan-index
 - [ ] DESIGN, README, ARCHITECTURE, Feature module docs updated; `make umpire-check-plan-index` passes
 - [ ] ORDER entry reworded to the spec's boundaries and marked delivered; index entry reflects the delivered state
 ## Done summary
-TBD
+The fn-92 docs and GOV-02 drafts now describe what was built. `model/AUTHORING.md` has a new section 13, and the old section 13 is now 14. Section 13 quotes the worker entity module (regions `worker` and `polling`), the `workerOutage` composition (`outage`), and the derived `nexusControl` machine (`derived`). Each region sits under `-- authoring:` markers, and each file has its own `end` terminator. The prose covers the generated unions, the `_`-joined keys, `<field>_<key>` member actions, timers and evidence, the `compose-<name>` owner, the reachable literal table with its `decide +kernel` agreement check, and the `restrict:`/`extend:` semantics.
 
+- `authoring.Check` now takes a map from file path to contents. It rejects a marker name used in two files and skips each file's terminator. Its errors name the file.
+- `drift_test.go` checks the four Model files. The planted-fault tests plant into each file, and a new test covers a cross-file duplicate marker. The drift test failed first on the unquoted `derived` region, then passed.
+- GOV-02 drafts in the fn-88 forms:
+  - `UMPIRE4_SPEC.md`: amendments to MOD-11, AUT-07a, AUT-09 and the glossary entries Machine, Party, Refinement and Table. A new MOD-18 (`feature-entity-uniqueness`) and a new Composition glossary entry.
+  - `UMPIRE4_SPEC_MODEL_ARCH.md`: the import-graph phase is the single mechanism for import rules only.
+  - `UMPIRE4_SPEC_COMPS.md` §7.2: the entity-module shape.
+  - Every new dotted name resolves, so there are no `planned` tags and the MOD-15 test passes.
+- Other doc updates:
+  - DESIGN.md: dated fn-92 amendments under §2.1, §2.3 (the `+ workerStop` row), §2.5, §4 (reset keeps `system`) and §6 decision 4.
+  - `Nexus.lean` docstring items 1 and 3.
+  - `model/README.md`, `model/ARCHITECTURE.md` and `model/Umpire/ARCHITECTURE.md`, which gains module rows for Compose, ComposeProofs and Derived.
+  - ORDER: the fn-92 entry now reads "all 8 tasks done, awaiting completion review". The claim about shared Workflow/Worker modules is replaced by the spec's boundaries. `index.json` needed no change: it already records open/unknown, and `make umpire-check-plan-index` passes.
+
+baseline: green (authoring+vocabulary go test rc=0, umpire-check-plan-index rc=0, pre-edit)
+Gates: go test authoring+vocabulary rc=0; umpire-check-plan-index rc=0; golangci-lint 0 issues; whole-model `LEAN_NUM_THREADS=1 make lint-model` rc=0 in 6850 s on the quiet host. That run covers the spec's one whole-model gate; its builtin step was a cold build in `.build/lint-model`.
+
+stage: impl-review - ran [codex fan-out 96e4b620 (gpt-5.6-sol high, forced full review, no triage): correctness, contracts, integration all SHIP, 0 findings]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4d9ddb44049f28421a648b1873100148ff2ba89d
+- Tests: go test -tags test_dep ./tools/umpire/authoring/... ./tools/umpire/vocabulary/..., make umpire-check-plan-index, golangci-lint run --build-tags test_dep ./tools/umpire/authoring/..., LEAN_NUM_THREADS=1 make lint-model (whole model, rc=0, 6850 s, builtin step cold in .build/lint-model)
 - PRs:
