@@ -248,7 +248,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("create linked capability review workspace: %w", err)
 	}
-	prepared, buildErr := buildGoTarget(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported)
+	prepared, buildErr := buildGoTarget(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported, nil)
 	cleanupErr := os.RemoveAll(workspace)
 	if buildErr != nil || cleanupErr != nil {
 		return CapabilityReview{}, errors.Join(buildErr, cleanupErr)
@@ -257,6 +257,13 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 }
 
 func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, error) {
+	review, _, err := reviewGoCapabilityPackages(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+	return review, err
+}
+
+// reviewGoCapabilityPackages also returns the listing the review projected,
+// which preparation needs for the build inputs the closure does not review.
+func reviewGoCapabilityPackages(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, []listedPackage, error) {
 	packages, err := capabilityreview.List(ctx, capabilityreview.Request{
 		GoCommand: goCommand, Directory: commandDirectory, Package: packageArgument, Tags: tags,
 		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: targetbuild.Environment(), Test: spec.Kind == KindGoTest,
@@ -265,18 +272,22 @@ func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, 
 	if err != nil {
 		var commandError *capabilityreview.CommandError
 		if errors.As(err, &commandError) && commandError.InvalidInput {
-			return CapabilityReview{}, invalidCapabilityReview(err)
+			return CapabilityReview{}, nil, invalidCapabilityReview(err)
 		}
-		return CapabilityReview{}, fmt.Errorf("inspect target capability closure: %w", err)
+		return CapabilityReview{}, nil, fmt.Errorf("inspect target capability closure: %w", err)
 	}
 	overlay, err := loadBuildOverlay(spec.BuildOverlay, commandDirectory)
 	if err != nil {
-		return CapabilityReview{}, err
+		return CapabilityReview{}, nil, err
 	}
 	if err := validateAdapterReplacementInputs(spec); err != nil {
-		return CapabilityReview{}, err
+		return CapabilityReview{}, nil, err
 	}
-	return projectCapabilityReview(packages, overlay, tags, spec.AdapterReplacements)
+	review, err := projectCapabilityReview(packages, overlay, tags, spec.AdapterReplacements)
+	if err != nil {
+		return CapabilityReview{}, nil, err
+	}
+	return review, packages, nil
 }
 
 type listedModule = capabilityreview.Module
