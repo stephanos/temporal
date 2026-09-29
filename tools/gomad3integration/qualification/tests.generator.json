@@ -67,6 +67,11 @@
         "stdlib.os.openfile"
       ]
     },
+    "TestClientMiscTestSuite": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound on both seeds (choice_trace_overflow, darwin/arm64 2026-09-28); seed repeatability is proven without a retained success replay."
+    },
     "TestContinueAsNewTestSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
@@ -80,6 +85,15 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
+    },
+    "TestDescribeTestSuite": {
+      "skip_subtests": {
+        "TestDescribeTaskQueue": {
+          "owner": "stephanos",
+          "date": "2026-09-28",
+          "reason": "Asserts the poller's LastAccessTime is strictly after a time.Now() read before the poll; under virtual time both reads fall in one instant and no server ordering can separate them (describe_test.go:294)."
+        }
+      }
     },
     "TestQueryWorkflowSuite": {
       "required_probes": [

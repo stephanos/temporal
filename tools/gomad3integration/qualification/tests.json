@@ -916,10 +916,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "expectation": {
         "classification": "qualified"
@@ -1071,6 +1071,9 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
+      "skip": [
+        "TestDescribeTaskQueue"
+      ],
       "expectation": {
         "classification": "qualified"
       }
