@@ -132,6 +132,61 @@
         }
       }
     },
+    "TestNexusApiTestSuiteWithLegacyErrorPaths": {
+      "skip_subtests": {
+        "TestNexusStartOperation_Outcomes": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
+        },
+        "TestNexusCancelOperation_Outcomes": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
+        }
+      }
+    },
+    "TestNexusApiTestSuiteWithTemporalFailures": {
+      "skip_subtests": {
+        "TestNexusStartOperation_Outcomes": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
+        },
+        "TestNexusCancelOperation_Outcomes": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
+        }
+      }
+    },
+    "TestNexusOTELSuite": {
+      "skip_subtests": {
+        "TestOperation": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Needs two dedicated clusters at once (nexus_otel_test.go:142-143); testcore sizes the dedicated pool from GOMAXPROCS, which Gomad pins to 1, so the test waits on its own slot forever. Stock go test hangs the same way with TEMPORAL_TEST_DEDICATED_CLUSTERS=1, and the deterministic profile does not pass target environment to the program."
+        }
+      }
+    },
+    "TestNexusStandaloneTestSuite": {
+      "skip_subtests": {
+        "TestListStandaloneNexusOperation/QueryBySupportedSearchAttributes": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Queries StartTime, ExecutionTime, and CloseTime strictly after a time.Now() read taken before the operation starts; under virtual time both fall in one instant (nexus_standalone_test.go:1563)."
+        }
+      }
+    },
+    "TestNexusWorkflowTestSuiteHSM": {
+      "skip_subtests": {
+        "TestNexusOperationSurvivesResetCrossTree": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts the reset run's exact history with the done signal after the post-reset workflow task completes; the test sends the signal without waiting for that task, and under virtual time it lands first and is buffered into it (16 events instead of 19, nexus_workflow_test.go:3693)."
+        }
+      }
+    },
     "TestQueryWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
@@ -139,12 +194,146 @@
         "stdlib.os.openfile"
       ]
     },
+    "TestScheduleMigrationTestSuite": {
+      "skip_subtests": {
+        "TestScheduleMigrationV2ToV1Idempotent": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Expects a second MigrateSchedule to succeed, but Scheduler.MigrateToWorkflow is idempotent only while the migration is pending and returns ErrClosed once its side-effect task closed the CHASM schedule; stock go test passes only while that task has not run yet (chasm/lib/scheduler/scheduler.go:817)."
+        }
+      }
+    },
+    "TestScheduleV1": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
+    },
+    "TestScheduleV1WorkflowPauseInteraction": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
+    },
     "TestSignalWorkflowTestSuiteChasm": {
       "required_probes": [
         "stdlib.net.interfaces",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
+    },
+    "TestStandaloneActivityTestSuite": {
+      "skip_subtests": {
+        "TestComplete/ByIDWithRunID": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestComplete/ByIDWithoutRunID": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestComplete/ByToken": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestFail/ByIDWithRunID": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestFail/ByIDWithoutRunID": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestFail/ByToken": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestFail/InvalidNextRetryDelay": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestFail/WithHeartbeatDetails": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestIDReusePolicy/AllowDuplicateFailedOnly": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestIDReusePolicy/RejectDuplicate": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestRequestCancel/ByToken": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestTerminate/TerminatedSuccessfully": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        }
+      }
+    },
+    "TestTaskQueueSuite": {
+      "skip_subtests": {
+        "TestTaskDispatchLatencyMetric_Nexus": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestTaskDispatchLatencyMetric_Query": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        },
+        "TestTaskDispatchLatencyMetric_WorkflowAndActivity": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        }
+      }
+    },
+    "TestVersioningFunctionalSuite": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
+    },
+    "TestWFTFailureReportedProblemsTestSuite": {
+      "skip_subtests": {
+        "TestWFTFailureReportedProblems_NotClearedBySignals": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "The SDK logs the forced workflow panic with a goroutine traceback, and the traceback prints dead argument slots (values marked ?) that hold host thread-stack addresses, so the log differs between same-seed runs (seed 17). The runtime traceback is outside the patch allowlist; follow-up to mask dead slots under Gomad."
+        }
+      }
+    },
+    "TestWorkerCommandsTaskSuite": {
+      "skip_subtests": {
+        "TestDispatchCancelOnWorkflowTimeout": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Seed 11 never delivers the cancel command to the worker control queue within the 120s wait after the workflow times out (\"Context timeout is too short\" on each poll, worker_commands_task_test.go:467); seed 17 delivers it. Schedule-dependent delivery; needs a server-side investigation of the cancel dispatch after workflow timeout."
+        }
+      }
+    },
+    "TestWorkflowTaskTestSuite": {
+      "skip_subtests": {
+        "TestWorkflowTaskHeartbeatingWithEmptyResult": {
+          "owner": "stephanos",
+          "date": "2026-09-29",
+          "reason": "Counts workflow task timeouts over twelve 1s sleeps and expects two; the second timeout only fires because each RespondWorkflowTaskCompleted round trip adds wall time, and under virtual time the twelve sleeps span exactly 12s and one timeout fires (workflow_task_test.go:110)."
+        }
+      }
     },
     "TestWorkflowTestSuite": {
       "required_probes": [
@@ -166,6 +355,33 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
+    }
+  },
+  "exclusions": {
+    "TestCompletionCallbacksSuite": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Gomad runtime nondeterminism, not a test defect: same-seed runs of seed 17 diverge at runnable decision 58931, where the runtime cleanup goroutine (runtime.runCleanups) is runnable in one run and not the other. Traced back to GC cycle 12, whose heap scan work differs by 456 bytes between runs with identical heapMarked and heapLive; the resulting sweep wakes the cleanup queue at a different decision. Replay of one retained success diverges in about one of three attempts. Follow-up: find the host-timed input to GC scan work."
+    },
+    "TestTaskQueueStats_Pri_Suite": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
+    },
+    "TestVersioning3FunctionalSuite": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
+    },
+    "TestVersioning3QueryFunctionalSuite": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
+    },
+    "TestWorkerDeploymentSuite": {
+      "owner": "stephanos",
+      "date": "2026-09-29",
+      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
     }
   }
 }
