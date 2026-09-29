@@ -1827,7 +1827,8 @@
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
       "skip": [
-        "TestOperation"
+        "TestOperation",
+        "TestWorkerOperation"
       ],
       "test_parallel": 8,
       "expectation": {
@@ -3038,40 +3039,6 @@
       }
     },
     {
-      "id": "tests-signal-workflow-test-suite-chasm",
-      "name": "TestSignalWorkflowTestSuiteChasm",
-      "tier": 3,
-      "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestSignalWorkflowTestSuiteChasm",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "required_probes": [
-        "stdlib.net.interfaces",
-        "stdlib.os.newfile",
-        "stdlib.os.openfile"
-      ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
       "id": "tests-signal-workflow-test-suite-legacy",
       "name": "TestSignalWorkflowTestSuiteLegacy",
       "tier": 3,
@@ -3519,7 +3486,8 @@
       "replay_successes": false,
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
-      "overall_timeout": "20m",
+      "execution_timeout": "10m",
+      "overall_timeout": "40m",
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"

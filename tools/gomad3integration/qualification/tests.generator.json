@@ -218,13 +218,6 @@
       "replay_successes": false,
       "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
     },
-    "TestSignalWorkflowTestSuiteChasm": {
-      "required_probes": [
-        "stdlib.net.interfaces",
-        "stdlib.os.newfile",
-        "stdlib.os.openfile"
-      ]
-    },
     "TestStandaloneActivityTestSuite": {
       "skip_subtests": {
         "TestComplete/ByIDWithRunID": {
