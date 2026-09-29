@@ -22,6 +22,9 @@ LEAN_NUM_THREADS=1 make lint-model
 go run ./tools/planindex
 ```
 
+### Gate policy (2026-09-29)
+- Tasks .1–.42 run scoped gates: the focused Lean build, the byte-identity checks their surface affects (goldens, conformance, canary Case), and a scoped `make lint-model-builtin`; they skip the live tests and the full regression bundle unless they touch Go, Testpilot, Case production or a live-test input. This closing task runs the whole-model `LEAN_NUM_THREADS=1 make lint-model` and the full `make umpire-check-regression` once for the spec, on a quiet host.
+
 ## Acceptance
 - [ ] Receipt reports the measurement split against both baselines with each R12 floor met or explained
 - [ ] Every R13 gate exits 0; inherited `--wfail` warnings on surviving code fixed
