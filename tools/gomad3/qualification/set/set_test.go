@@ -1076,3 +1076,31 @@ func TestRunPassesSkippedSubtestsToAnalysisAndQualification(t *testing.T) {
 		t.Fatalf("LoadManifest() error = %v", err)
 	}
 }
+
+func TestRunStopsBeforeASeedWhenFreeSpaceIsUnderTheBound(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "qualified", "case-a", "case-b")
+	output := filepath.Join(root, "report.json")
+	executions := 0
+	executor := func(ctx context.Context, command Command) CommandResult {
+		if command.Args[0] == "qualify" {
+			executions++
+		}
+		return failureExecutor(t, "target_failure")(ctx, command)
+	}
+	free := uint64(3 << 30)
+	report, err := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: output, Execute: executor,
+		MinimumFreeBytes: 2 << 30, FreeBytes: func(string) (uint64, error) { free -= 1 << 30; return free, nil },
+	})
+	if !errors.Is(err, ErrLowFreeSpace) || !strings.Contains(err.Error(), "1073741824 bytes free, 2147483648 required") {
+		t.Fatalf("Run() error = %v, want low free space", err)
+	}
+	if executions != 1 || report.Completed != 1 || report.Failed != 1 || report.InfrastructureErrors != 1 || report.Workloads[0].Classification != "target_failure" || report.Workloads[1].Classification != "runner_failure" || len(report.Workloads[1].Seeds) != 0 {
+		t.Fatalf("executions = %d, report = %#v", executions, report)
+	}
+	if _, err := OpenReport(output); err != nil {
+		t.Fatal(err)
+	}
+}

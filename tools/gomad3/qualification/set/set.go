@@ -210,7 +210,13 @@ type Spec struct {
 	// qualification report, so a set's disk use is bounded by one seed rather
 	// than the whole manifest.
 	PruneQualifiedArtifacts bool
-	Execute                 ExecuteFunc
+	// MinimumFreeBytes stops the run, as an infrastructure failure of the
+	// remaining workloads, before a seed starts on an artifact volume with
+	// less free space; zero keeps DefaultMinimumFreeBytes.
+	MinimumFreeBytes uint64
+	Execute          ExecuteFunc
+	// FreeBytes reports a path's free space; tests replace it.
+	FreeBytes func(string) (uint64, error)
 }
 
 // Shard is the zero-based INDEX/COUNT partition execute-shard uses, applied to
@@ -375,6 +381,15 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 		}
 		config.Execute = executeCommand
 	}
+	if config.FreeBytes == nil {
+		config.FreeBytes = freeBytes
+	}
+	if config.MinimumFreeBytes == 0 {
+		config.MinimumFreeBytes = DefaultMinimumFreeBytes
+	}
+	if err := os.MkdirAll(config.ArtifactRoot, 0o700); err != nil {
+		return Report{}, fmt.Errorf("create qualification artifact root: %w", err)
+	}
 	suites, err := config.Shard.Select(manifest)
 	if err != nil {
 		return Report{}, err
@@ -463,6 +478,7 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 			failed = append(failed, report.Workloads[index].ID)
 		}
 	}
+	var stopped error
 	if !analysisFailed {
 		for index, workload := range suites {
 			if report.Workloads[index].Analysis == nil || report.Workloads[index].Analysis.Classification == capabilityanalysis.ClassificationUnsupported {
@@ -473,6 +489,15 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 				if err := ctx.Err(); err != nil {
 					classification := contextClassification(err)
 					report.Workloads[index].Classification = classification
+					failed = append(failed, workload.ID)
+					allQualified = false
+					break
+				}
+				if stopped == nil {
+					stopped = checkFreeSpace(config)
+				}
+				if stopped != nil {
+					report.Workloads[index].Classification = "runner_failure"
 					failed = append(failed, workload.ID)
 					allQualified = false
 					break
@@ -538,10 +563,26 @@ func Run(ctx context.Context, config Spec) (Report, error) {
 	if err := removeCheckpoint(config.OutputPath + ".partial"); err != nil {
 		return report, err
 	}
+	if stopped != nil {
+		return report, stopped
+	}
 	if !report.ExpectationsMet {
 		return report, &ExpectationError{Workloads: failed}
 	}
 	return report, nil
+}
+
+// checkFreeSpace returns ErrLowFreeSpace, with the observed and required
+// bytes, when the artifact volume is under the run's bound.
+func checkFreeSpace(config Spec) error {
+	free, err := config.FreeBytes(config.ArtifactRoot)
+	if err != nil {
+		return err
+	}
+	if free < config.MinimumFreeBytes {
+		return fmt.Errorf("%w: %d bytes free, %d required", ErrLowFreeSpace, free, config.MinimumFreeBytes)
+	}
+	return nil
 }
 
 // recordSeed adds a seed's evidence to the report and checkpoints it before

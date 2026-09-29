@@ -1342,7 +1342,7 @@ func TestRunQualifySetPassesShardToTheSet(t *testing.T) {
 		wantOutput string
 		wantError  string
 	}{
-		{name: "runs one shard", arguments: []string{"--shard", "1/3"}, wantShard: qualificationset.Shard{Index: 1, Count: 3}, wantRun: true, wantOutput: "qualification set: name=test-set"},
+		{name: "runs one shard", arguments: []string{"--shard", "1/3", "--min-free-bytes", "3GiB"}, wantShard: qualificationset.Shard{Index: 1, Count: 3}, wantRun: true, wantOutput: "qualification set: name=test-set"},
 		{name: "checks one shard", arguments: []string{"--shard", "1/2", "--check"}, wantOutput: "qualification manifest: name=test-set workloads=1\n"},
 		{name: "rejects index past count", arguments: []string{"--shard", "3/3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
 		{name: "rejects malformed shard", arguments: []string{"--shard", "1-3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
@@ -1361,6 +1361,9 @@ func TestRunQualifySetPassesShardToTheSet(t *testing.T) {
 			}
 			var stdout, stderr bytes.Buffer
 			status := runQualifySetWith(append([]string{"--manifest", "/corpus.json", "--working-dir", "/repo"}, test.arguments...), &stdout, &stderr, dependencies)
+			if ran && observed.MinimumFreeBytes != 3<<30 {
+				t.Fatalf("minimum free bytes = %d, want 3 GiB", observed.MinimumFreeBytes)
+			}
 			if status != test.wantStatus || ran != test.wantRun || observed.Shard != test.wantShard || !strings.Contains(stdout.String(), test.wantOutput) || !strings.Contains(stderr.String(), test.wantError) {
 				t.Fatalf("status=%d ran=%t shard=%#v stdout=%q stderr=%q", status, ran, observed.Shard, stdout.String(), stderr.String())
 			}
