@@ -35,7 +35,11 @@ const maximumManifestBytes = 1 << 20
 // maximumManifestSuites admits one workload per top-level test of a generated
 // package-wide manifest such as ./tests.
 const maximumManifestSuites = 512
-const maximumSetReportBytes = 64 << 20
+
+// maximumSetReportBytes bounds a set report and its checkpoints. The report of
+// the whole ./tests set carries each seed's choice features and measured
+// 143 MiB on darwin/arm64 (2026-09-29, three 47 MiB shards).
+const maximumSetReportBytes = 256 << 20
 
 type Manifest struct {
 	Schema               string     `json:"schema"`
