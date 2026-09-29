@@ -54,6 +54,24 @@
         "stdlib.os.openfile"
       ]
     },
+    "TestAdvancedVisibilitySuite": {
+      "skip_subtests": {
+        "TestListWorkflow_OrQuery": {
+          "owner": "stephanos",
+          "date": "2026-09-28",
+          "reason": "Lists executions whose start times tie and expects the newest run first; the SQLite visibility store breaks equal close/start times by run_id ascending with no deterministic newest-first tie-break, and under virtual time every start in the test shares one instant, so the order follows run_id bits (advanced_visibility_test.go TestListWorkflow_OrQuery). Stock SQLite ordering is kept on purpose."
+        }
+      }
+    },
+    "TestAdvancedVisibilitySuiteLegacy": {
+      "skip_subtests": {
+        "TestListWorkflow_OrQuery": {
+          "owner": "stephanos",
+          "date": "2026-09-28",
+          "reason": "Lists executions whose start times tie and expects the newest run first; the SQLite visibility store breaks equal close/start times by run_id ascending with no deterministic newest-first tie-break, and under virtual time every start in the test shares one instant, so the order follows run_id bits (advanced_visibility_test.go TestListWorkflow_OrQuery). Stock SQLite ordering is kept on purpose."
+        }
+      }
+    },
     "TestCancelWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
@@ -93,6 +111,15 @@
           "owner": "stephanos",
           "date": "2026-09-28",
           "reason": "Asserts the poller's LastAccessTime is strictly after a time.Now() read before the poll; under virtual time both reads fall in one instant and no server ordering can separate them (describe_test.go:294)."
+        }
+      }
+    },
+    "TestFairnessSuite": {
+      "skip_subtests": {
+        "Test_Activity_Basic": {
+          "owner": "stephanos",
+          "date": "2026-09-28",
+          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 66 dispatched tasks come from 4 of 15 workflows (unfairness 1.03-1.04 on seeds 11 and 17 against 0.45 under stock go test, threshold 1.0; priority_fairness_test.go:603)."
         }
       }
     },
