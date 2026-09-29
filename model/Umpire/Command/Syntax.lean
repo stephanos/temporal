@@ -3459,7 +3459,9 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
   -- The state view destructures the composed state, so that each member's position scan is over
   -- the member value's own literal: the kernel's cache then serves every row that holds it.
   let valueBinder := mkIdent `value
-  let fieldBinders := members.map fun member => mkIdent (Name.mkSimple member.field)
+  -- Hygienic binders, one scope each: a field name the author chose could shadow a namespace the
+  -- generated terms name, such as a member field called `Umpire`.
+  let fieldBinders ← members.mapM fun _ => withFreshMacroScope `(component)
   let stateComponents ← (members.zip fieldBinders).mapM fun (member, binder) =>
     positionIn member `states binder
   let memberArms := fun (catalog : Name) (wrap : Term → CommandElabM Term) =>

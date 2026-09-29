@@ -371,6 +371,36 @@ query settles
 
 end Swapped
 
+/-! A member field may spell a namespace the generated terms name: the job held in a field named
+`Umpire` composes, and its agreement theorem is declared, because the view's state binders are the
+command's own rather than the author's field names. -/
+namespace Shadowing
+
+model_conventions root "umpire" under Umpire.Command.Tests.Compose.Shadowing
+
+structure PipelineState where
+  Umpire : Job.JobState
+  agent : Agent.AgentState
+  deriving BEq, DecidableEq, Repr
+
+compose pipeline
+  for: [Job.job, Agent.agent]
+  state: PipelineState
+  members:
+    Umpire: Job.jobMachine
+    agent: Agent.agentMachine
+  sync:
+    halt: Umpire.halt ∥ agent.halt
+    reply: Umpire.reply ∥ agent.serve
+  starts: [Umpire.pending, agent.running]
+  ends: [Umpire.done, Umpire.failed]
+
+/-- info: 'Umpire.Command.Tests.Compose.Shadowing.pipeline.agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms pipeline.agrees
+
+end Shadowing
+
 /-! ### The composed table
 
 Every state is keyed by the job's key and the agent's joined with `_`, and the catalog is sorted by
