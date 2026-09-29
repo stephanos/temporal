@@ -12,6 +12,6 @@
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.4.md",
   "status": "todo",
-  "title": "Make the Temporal qualification a required sharded CI check",
-  "updated_at": "2026-09-27T15:28:25.940055Z"
+  "title": "Make a functional-test smoke check the required CI gate",
+  "updated_at": "2026-09-29T01:24:05.937449Z"
 }
