@@ -1495,7 +1495,10 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
 		}
 		completion.result, completion.err = executor.Run(ctx, request)
-		if completion.err == nil {
+		// A target the watchdog or a cancellation killed never wrote its
+		// terminal choice frame; that termination is the outcome, not the
+		// missing frame, so the run is classified and retained as such.
+		if completion.err == nil && !completion.result.WatchdogTimeout && !completion.result.Cancelled {
 			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, &completion.result.ChoiceTrace)
 		}
 	}
@@ -1631,7 +1634,9 @@ func manifestForRun(config CampaignSpec, prepared target.Prepared, baseEnvironme
 		recordedProfile.ReadOnlyMounts = &mounts
 	}
 	var recordedChoices *record.ChoiceProfile
-	if config.ChoiceTraceLimit != 0 {
+	// A watchdog or cancellation kills the target before it writes its
+	// terminal choice frame, so such a run records no choice profile.
+	if config.ChoiceTraceLimit != 0 && outcome.ArtifactKind != record.ArtifactWatchdogTimeout && outcome.Reason != "runner_cancelled" {
 		implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
 		if err != nil {
 			return record.ExecutionRecord{}, fmt.Errorf("derive choice profile implementation identity: %w", err)
