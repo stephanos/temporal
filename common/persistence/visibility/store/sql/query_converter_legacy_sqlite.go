@@ -230,7 +230,7 @@ func (c *sqliteQueryConverter) buildSelectStmt(
 		whereClauses = append(
 			whereClauses,
 			fmt.Sprintf(
-				"((%s = ? AND %s = ? AND %s > ?) OR (%s = ? AND %s < ?) OR %s < ?)",
+				"((%s = ? AND %s = ? AND %s < ?) OR (%s = ? AND %s < ?) OR %s < ?)",
 				sqlparser.String(c.getCoalesceCloseTimeExpr()),
 				sadefs.GetSqlDbColName(sadefs.StartTime),
 				sadefs.GetSqlDbColName(sadefs.RunID),
@@ -252,11 +252,13 @@ func (c *sqliteQueryConverter) buildSelectStmt(
 
 	queryArgs = append(queryArgs, pageSize)
 
+	// Run IDs are UUIDv7, so among executions with equal times a larger run ID
+	// is the later start; descending keeps newest-first, as Elasticsearch does.
 	return fmt.Sprintf(
 		`SELECT %s
 		FROM executions_visibility
 		WHERE %s
-		ORDER BY %s DESC, %s DESC, %s
+		ORDER BY %s DESC, %s DESC, %s DESC
 		LIMIT ?`,
 		strings.Join(sqlplugin.DbFields, ", "),
 		strings.Join(whereClauses, " AND "),
