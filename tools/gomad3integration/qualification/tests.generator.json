@@ -304,9 +304,19 @@
     "TestVersioningFunctionalSuite": {
       "choice_bytes": 0,
       "replay_successes": false,
-      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets.",
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets. TestDescribeTaskQueueEnhanced_ReportFlags fails deterministically on both seeds under Gomad and is not yet shown to be a test bug; open finding recorded in F7's status (2026-09-29).",
       "execution_timeout": "30m",
-      "overall_timeout": "90m"
+      "overall_timeout": "90m",
+      "platform_expectations": {
+        "darwin/arm64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        },
+        "linux/amd64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        }
+      }
     },
     "TestWFTFailureReportedProblemsTestSuite": {
       "skip_subtests": {
@@ -355,6 +365,19 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
+    },
+    "TestSignalWorkflowTestSuiteChasm": {
+      "platform_expectations": {
+        "darwin/arm64": {
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        },
+        "linux/amd64": {
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        }
+      },
+      "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29)."
     }
   },
   "exclusions": {
