@@ -177,6 +177,14 @@ func Build(input Input) (Report, error) {
 	}, nil
 }
 
+// ForArguments rebinds the report to another argument list for the same
+// target: a go target's arguments reach its process, never its build, so the
+// capability evidence does not depend on them.
+func (report Report) ForArguments(arguments []string) Report {
+	report.Target.Arguments = safeArguments(arguments)
+	return report
+}
+
 func projectAnalysisBlockers(findings []target.CapabilityFinding, paths map[target.CapabilityPackageReference][]target.CapabilityPackageReference) ([]Blocker, error) {
 	blockers := make([]Blocker, len(findings))
 	for index, finding := range findings {

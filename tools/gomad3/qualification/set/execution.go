@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
@@ -14,6 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/qualification"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 // maximumAnalysisTimeout is the largest --timeout gomad analyze accepts.
@@ -33,6 +35,33 @@ func analysisCommand(config Spec, manifest Manifest, workload Workload) Command 
 		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir,
 		Timeout: overallTimeout + manifestGrace(manifest) + 10*time.Second, Grace: min(runTimeout, manifestGrace(manifest)),
 	}
+}
+
+// analysisIdentity names every analysis input a workload controls except its
+// test arguments, which reach the target process and not its build.
+type analysisIdentity struct {
+	Package        string
+	BuildTags      string
+	CapabilityMode target.CapabilityMode
+}
+
+func workloadAnalysisIdentity(workload Workload) analysisIdentity {
+	return analysisIdentity{Package: workload.Package, BuildTags: strings.Join(workload.BuildTags, "\x00"), CapabilityMode: workload.CapabilityMode}
+}
+
+// analyzeWorkload runs the capability analysis once per analysis identity in
+// a set run; workloads that share a target reuse its report rebound to their
+// own test arguments. Failed analyses are not retained.
+func analyzeWorkload(ctx context.Context, config Spec, manifest Manifest, workload Workload, analyses map[analysisIdentity]capabilityanalysis.Report) (capabilityanalysis.Report, string, error) {
+	identity := workloadAnalysisIdentity(workload)
+	if cached, ok := analyses[identity]; ok {
+		return cached.ForArguments(testArguments(workload)), string(cached.Classification), nil
+	}
+	analysis, classification, err := retainedAnalysis(config.Execute(ctx, analysisCommand(config, manifest, workload)))
+	if err == nil {
+		analyses[identity] = analysis
+	}
+	return analysis, classification, err
 }
 
 func retainedAnalysis(result CommandResult) (capabilityanalysis.Report, string, error) {
