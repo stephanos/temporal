@@ -26,6 +26,10 @@ private def replay (transcript : PackageModules.BuildTranscript) : IO Unit :=
 the model root the lint runs in. -/
 private def handwrittenInventoryPath : System.FilePath := "HANDWRITTEN_INVENTORY.md"
 
+/-- The lakefile `checkBuildRootsDrift` reads the declared roots from, relative to the model root
+the lint runs in. -/
+private def lakefilePath : System.FilePath := "lakefile.lean"
+
 /-- The import-graph pass, and the owned source modules it discovered (none when discovery or a
 later phase failed), which the declaration pass reads rather than discovering them again. -/
 private unsafe def lintImportGraph : IO (Bool × Array Name) := do
@@ -60,11 +64,15 @@ private unsafe def lintImportGraph : IO (Bool × Array Name) := do
       let unbuilt := checkUnbuilt defaultPolicy loaded.modules
       for issue in unbuilt do
         IO.eprintln issue.render
+      let lakefileSource ← IO.FS.readFile lakefilePath
+      let rootDrift := checkBuildRootsDrift defaultPolicy lakefileSource
+      for line in rootDrift.render do
+        IO.eprintln line
       -- The records' names may point into the mapped module data, so the regions stay reachable
       -- until every reader above has finished with them.
       let _loadedRegionCount := loaded.regions.size
       let discovered := loaded.sources.map (·.module)
-      if inventoryIssues.isEmpty && violations.isEmpty && unbuilt.isEmpty then
+      if inventoryIssues.isEmpty && violations.isEmpty && unbuilt.isEmpty && rootDrift.isEmpty then
         IO.println "-- Model import-graph linting passed."
         pure (true, discovered)
       else

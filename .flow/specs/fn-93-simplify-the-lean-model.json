@@ -16,7 +16,8 @@
   "id": "fn-93-simplify-the-lean-model",
   "impl_review_rounds": {
     "fn-93-simplify-the-lean-model.1": 0,
-    "fn-93-simplify-the-lean-model.2": 0
+    "fn-93-simplify-the-lean-model.2": 0,
+    "fn-93-simplify-the-lean-model.3": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -336,8 +337,19 @@
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-93-simplify-the-lean-model.3": 1
+  },
+  "review_reservations": {
+    "3f7ab73c51ad431283af8f538e83558f": {
+      "artifact_sha256": "27b383d16390871c16732cce0c2d4c714de90fabc6029645e1dde7768c234a33",
+      "counter_scope": "impl:fn-93-simplify-the-lean-model.3",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-93-simplify-the-lean-model.1": 0,
     "impl:fn-93-simplify-the-lean-model.2": 0,
@@ -357,5 +369,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T20:05:48.782265Z"
+  "updated_at": "2026-09-29T21:51:25.345656Z"
 }

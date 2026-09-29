@@ -719,6 +719,65 @@ party module no real lakefile root reaches. -/
 private def controlledUnbuiltViolations : Array Unbuilt :=
   checkUnbuilt defaultPolicy #[moduleRecord `Umpire.Planted]
 
+/-- `parseLakefileRoots` reads `roots := #[...]` (including a multi-line array), a single
+`root := ...` (even with another `where` field after it), and falls back to a target's own name
+when neither field is set -- including when a different `where` field (`extraDepTargets`) is
+present instead. Guillemet-quoted exe names parse like bare identifiers. -/
+private def testParseLakefileRoots : IO Unit := do
+  let fixture := "
+@[default_target] lean_lib Shared
+
+@[default_target] lean_lib Testpilot where
+  extraDepTargets := #[`testpilotProtocolSchemas]
+
+@[default_target] lean_lib TestpilotTests where
+  roots := #[`Testpilot.Tests]
+
+lean_exe «umpire-protojson-fixture» where
+  root := `Testpilot.Tests.ProtoJSONMain
+
+lean_lib ModelLintSupport where
+  roots := #[
+    `Tools.LeanImportGraph,
+    `Tools.LeanImportGraphTests
+  ]
+
+lean_exe «umpire-lint» where
+  root := `ModelLint
+  supportInterpreter := true
+"
+  requireEqual "every declared root, in declaration order"
+    (parseLakefileRoots fixture)
+    #[`Shared, `Testpilot, `Testpilot.Tests, `Testpilot.Tests.ProtoJSONMain,
+      `Tools.LeanImportGraph, `Tools.LeanImportGraphTests, `ModelLint]
+
+/-- `checkBuildRootsDrift` reports a policy root the lakefile no longer declares and a lakefile
+root the policy does not list, in either direction, and reports neither when the two agree. -/
+private def testBuildRootsDrift : IO Unit := do
+  let fixture := "lean_lib Shared\n\nlean_lib UmpireTests where\n  roots := #[`UmpireTests]\n"
+  let agreeing := { defaultPolicy with buildRoots := #[`Shared, `UmpireTests] }
+  requireEqual "no drift when the policy and the lakefile agree"
+    (checkBuildRootsDrift agreeing fixture) ({ policyOnly := #[], lakefileOnly := #[] } : RootDrift)
+  let stalePolicy := { defaultPolicy with buildRoots := #[`Shared, `Retired] }
+  let drift := checkBuildRootsDrift stalePolicy fixture
+  requireEqual "a root the lakefile dropped is policyOnly" drift.policyOnly #[`Retired]
+  requireEqual "a root the policy never learned is lakefileOnly" drift.lakefileOnly #[`UmpireTests]
+  requireEqual "the diagnostics name both directions"
+    drift.render
+    #["[model-import-graph/build-roots-drift] Retired is in the unbuilt guard's buildRoots but \
+      model/lakefile.lean no longer declares it as a root",
+      "[model-import-graph/build-roots-drift] UmpireTests is a model/lakefile.lean root the \
+      unbuilt guard's buildRoots does not list"]
+
+/-- The parsed roots of the real `model/lakefile.lean` agree with `defaultPolicy.buildRoots` --
+the property `checkBuildRootsDrift` exists to guard, exercised against the file the guard reads at
+runtime rather than a fixture. -/
+private def testRealLakefileRootsAgree : IO Unit := do
+  let source ← IO.FS.readFile "lakefile.lean"
+  let drift := checkBuildRootsDrift defaultPolicy source
+  requireEqual "model/lakefile.lean and the unbuilt guard's buildRoots agree"
+    drift ({ policyOnly := #[], lakefileOnly := #[] } : RootDrift)
+
 /-- The planted search-backend violation the Makefile asserts byte for byte. -/
 private def controlledSearchBackendViolations : Array Violation :=
   check defaultPolicy #[
@@ -831,6 +890,9 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testAuthoringPathIsolation
   testSearchBackendIsolation
   testUnbuiltModules
+  testParseLakefileRoots
+  testBuildRootsDrift
+  testRealLakefileRootsAgree
   testFeatureEntityUniqueness
   testExternalLeaves
   testStableShortestPath

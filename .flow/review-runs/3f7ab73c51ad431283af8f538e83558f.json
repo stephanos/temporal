@@ -1,0 +1,29 @@
+{
+  "backend": "codex",
+  "counter_scope": "impl:fn-93-simplify-the-lean-model.3",
+  "failure_class": "fanout_abandoned",
+  "finalized": {
+    "digest": "not_applicable",
+    "receipt": "not_applicable",
+    "status": "not_applicable"
+  },
+  "metadata": null,
+  "outcome": "transport_failure",
+  "receipt_payload": null,
+  "receipt_target": null,
+  "reservation_id": "3f7ab73c51ad431283af8f538e83558f",
+  "reset_rounds_on_ship": false,
+  "response": "fan-out dispatched; no finalize landed before this refund-intent journal was replayed",
+  "response_sha256": "6ea4de7239adcef700fcf360528c3918564fc4300515f3a62b9a089c94e74f20",
+  "review_kind": "impl",
+  "review_type": "impl",
+  "reviewed_base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+  "reviewed_head_sha": "81f798a88a808785eb9c7a2ac1db2712c0ce9e67",
+  "scope": "impl:fn-93-simplify-the-lean-model.3",
+  "spec_id": "fn-93-simplify-the-lean-model",
+  "status_target": null,
+  "superseded_by": null,
+  "task_id": "fn-93-simplify-the-lean-model.3",
+  "timestamp": "2026-09-29T21:51:25.347423Z",
+  "verdict": null
+}

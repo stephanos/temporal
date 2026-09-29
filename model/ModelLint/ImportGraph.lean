@@ -504,6 +504,127 @@ def checkUnbuilt (policy : Policy) (modules : Array ModuleRecord) : Array Unbuil
     else none
   unbuilt.qsort fun left right => left.module.toString < right.module.toString
 
+/-! ### `buildRoots` drift
+
+`checkUnbuilt` trusts `policy.buildRoots`, a hand-maintained mirror of `model/lakefile.lean`'s
+`lean_lib`/`lean_exe` roots. Nothing else kept the two in agreement: a root quietly removed from
+the lakefile stayed "reachable" in the guard forever, and a root quietly added stayed unlisted, so
+the guard would flag its own target as unbuilt. This section parses the lakefile's own text and
+reports the two lists' disagreement, so an edit to either side that the other does not follow is a
+loud diagnostic rather than a silent exemption. -/
+
+private def trimSpaces (text : String) : String :=
+  String.ofList ((text.toList.dropWhile Char.isWhitespace).reverse.dropWhile Char.isWhitespace
+    |>.reverse)
+
+private def isNameCharacter (character : Char) : Bool :=
+  character.isAlphanum || character == '.' || character == '_'
+
+private def stringToLeanName (spelling : String) : Lean.Name :=
+  (spelling.splitOn ".").foldl (init := Lean.Name.anonymous) Lean.Name.str
+
+/-- Every qualified name spelled as a backtick literal (`` `Foo.Bar ``) in `text`. Lake's own
+syntax never closes the quote, so every segment after the first backtick split starts a name. -/
+private def backtickNamesIn (text : String) : Array Lean.Name := Id.run do
+  let mut names : Array Lean.Name := #[]
+  for segment in (text.splitOn "`").drop 1 do
+    let spelling := String.ofList (segment.toList.takeWhile isNameCharacter)
+    unless spelling.isEmpty do
+      names := names.push (stringToLeanName spelling)
+  return names
+
+/-- One `lean_lib`/`lean_exe` declaration from `model/lakefile.lean`: its own name, and the raw
+text from the declaration to the next one (or the end of file), which carries its `where` block
+when it has one. -/
+private structure LakefileTarget where
+  name : String
+  body : String
+
+/-- Split `model/lakefile.lean`'s text into one `LakefileTarget` per `lean_lib`/`lean_exe`
+declaration. A declaration keyword only ever starts a line here (after an optional
+`@[default_target]` prefix), so a line-oriented scan finds every one without parsing full Lean
+syntax. -/
+private def lakefileTargets (source : String) : Array LakefileTarget := Id.run do
+  let mut targets : Array LakefileTarget := #[]
+  let mut currentName : Option String := none
+  let mut currentBody : String := ""
+  for line in source.splitOn "\n" do
+    let trimmed := trimSpaces line
+    let afterAttribute :=
+      if trimmed.startsWith "@[default_target]" then
+        trimSpaces (String.ofList (trimmed.toList.drop "@[default_target]".length))
+      else trimmed
+    let declarationKeywordLength :=
+      if afterAttribute.startsWith "lean_lib " then some "lean_lib ".length
+      else if afterAttribute.startsWith "lean_exe " then some "lean_exe ".length
+      else none
+    match declarationKeywordLength with
+    | some keywordLength =>
+      if let some name := currentName then
+        targets := targets.push { name, body := currentBody }
+      let rest := trimSpaces (String.ofList (afterAttribute.toList.drop keywordLength))
+      let name :=
+        if rest.startsWith "«" then
+          String.ofList ((rest.toList.drop 1).takeWhile (· != '»'))
+        else
+          trimSpaces ((rest.splitOn " ").headD rest)
+      currentName := some name
+      currentBody := rest
+    | none =>
+      if currentName.isSome then
+        currentBody := currentBody ++ "\n" ++ line
+  if let some name := currentName then
+    targets := targets.push { name, body := currentBody }
+  return targets
+
+/-- The roots one target declares: the `roots := #[...]` array when present, the single
+`root := ...` when present, or Lake's own default -- the target's own name -- when neither field
+is set. -/
+private def LakefileTarget.roots (target : LakefileTarget) : Array Lean.Name :=
+  match target.body.splitOn "roots := #[" with
+  | _ :: after :: _ => backtickNamesIn ((after.splitOn "]").headD "")
+  | _ =>
+    match target.body.splitOn "root := " with
+    | _ :: after :: _ =>
+      match (backtickNamesIn after).toList with
+      | root :: _ => #[root]
+      | [] => #[stringToLeanName target.name]
+    | _ => #[stringToLeanName target.name]
+
+/-- Every root `model/lakefile.lean`'s `lean_lib`/`lean_exe` targets declare, parsed from the
+file's own text rather than hand-copied. -/
+def parseLakefileRoots (source : String) : Array Lean.Name :=
+  (lakefileTargets source).flatMap LakefileTarget.roots
+
+/-- The two-way disagreement between the policy's `buildRoots` and what `model/lakefile.lean`
+itself declares. -/
+structure RootDrift where
+  policyOnly : Array Lean.Name
+  lakefileOnly : Array Lean.Name
+  deriving Repr, BEq
+
+def RootDrift.isEmpty (drift : RootDrift) : Bool :=
+  drift.policyOnly.isEmpty && drift.lakefileOnly.isEmpty
+
+/-- Compare `policy.buildRoots` against the roots parsed from `lakefileSource`, sorted for a
+deterministic diagnostic. -/
+def checkBuildRootsDrift (policy : Policy) (lakefileSource : String) : RootDrift :=
+  let lakefileRoots := parseLakefileRoots lakefileSource
+  let nameLess : Lean.Name → Lean.Name → Bool := fun left right => left.toString < right.toString
+  {
+    policyOnly := (policy.buildRoots.filter (!lakefileRoots.contains ·)).qsort nameLess
+    lakefileOnly := (lakefileRoots.filter (!policy.buildRoots.contains ·)).qsort nameLess
+  }
+
+/-- Render every disagreement `checkBuildRootsDrift` found, deterministically ordered. -/
+def RootDrift.render (drift : RootDrift) : Array String :=
+  drift.policyOnly.map (fun name =>
+    s!"[model-import-graph/build-roots-drift] {name} is in the unbuilt guard's buildRoots but \
+      model/lakefile.lean no longer declares it as a root") ++
+  drift.lakefileOnly.map (fun name =>
+    s!"[model-import-graph/build-roots-drift] {name} is a model/lakefile.lean root the unbuilt \
+      guard's buildRoots does not list")
+
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
   isFirstParty := policy.isFirstParty
   isClassified := fun module => (policy.classify? module).isSome
@@ -543,13 +664,6 @@ grow unlisted. -/
 /-- The module names a hand-written inventory ledger lists: the first cell of each table row,
 written as a backticked qualified name. Rows whose first cell is not a name -- headers, separators,
 paths -- contribute nothing. -/
-private def trimSpaces (text : String) : String :=
-  String.ofList ((text.toList.dropWhile Char.isWhitespace).reverse.dropWhile Char.isWhitespace
-    |>.reverse)
-
-private def isNameCharacter (character : Char) : Bool :=
-  character.isAlphanum || character == '.' || character == '_'
-
 def inventoriedModules (ledger : String) : Array Lean.Name := Id.run do
   let mut names : Array Lean.Name := #[]
   for line in ledger.splitOn "\n" do
