@@ -148,7 +148,7 @@ private def planningContext : ScenarioCheckContext := {
     (SearchTests.incrementalKernel 0)).toOption.map
       (·.result.metadata.validity.satisfiability)) == some .impossible
 
-assert_axioms [Scenario.constrained, Scenario.exactly, Scenario.checked]
-  allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [Scenario.constrained] allowing [propext]
+assert_axioms [Scenario.exactly, Scenario.checked] allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.ScenarioTests

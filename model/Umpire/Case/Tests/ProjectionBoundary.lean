@@ -39,5 +39,6 @@ private def rawPropertyTrace (event : Umpire.Case.Projection.Event) :
 
 -- `evaluateProperty` is checked once, in `Umpire.Property.Tests.Endpoints`.
 assert_axioms [Umpire.Case.Projection.check, Umpire.Case.Projection.Run.admit,
-  Umpire.Case.Projection.Run.close, Umpire.Case.Projection.Step.semantic,
-  Umpire.validateEvidenceBackedTrace] allowing [propext, Classical.choice, Quot.sound]
+  Umpire.Case.Projection.Run.close, Umpire.validateEvidenceBackedTrace]
+  allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [Umpire.Case.Projection.Step.semantic] allowing []

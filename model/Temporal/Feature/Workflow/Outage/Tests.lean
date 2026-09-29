@@ -120,7 +120,8 @@ literal is the composition of the two machines' tables, with no axiom beyond the
 #guard (workerOutage.table.transitions.filter (·.key.endsWith "-awaitCompletion")).map (·.key) ==
   ["started_polling-awaitCompletion"]
 
-assert_axioms [workerOutage, workerOutage.agrees] allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [workerOutage] allowing [propext]
+assert_axioms [workerOutage.agrees] allowing [propext, Classical.choice, Quot.sound]
 
 /- The claim fixes the one whole state a completion leaves, and the completed event. -/
 #guard completedByPollingWorker.names.groups.map (fun group => (group.trigger, group.requirements)) ==

@@ -60,8 +60,9 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
   pure (projection.behaviorVersion.startsWith "[\"checked-projection/v2\"")) == some true
 
 -- `Lowered.window_property` and `Lowered.evidence_validation` are each checked once, here.
+assert_axioms [Umpire.Case.CorrelatedProofs.endpoint_agrees] allowing [propext]
 assert_axioms [Umpire.Case.Correlated.Lowered.window_property,
-  Umpire.Case.Correlated.Lowered.observed_property, Umpire.Case.CorrelatedProofs.endpoint_agrees,
+  Umpire.Case.Correlated.Lowered.observed_property,
   Umpire.Case.Correlated.Lowered.evidence_validation, Testpilot.Correlated.Monitor.observe]
   allowing [propext, Classical.choice, Quot.sound]
 

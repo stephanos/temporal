@@ -160,9 +160,12 @@ run_cmd do
   Umpire.Command.elabComposedAgreement .missing "lamped" (Lean.mkIdent `lampedRefused) members
     candidates missingRow 4 2
 
--- `lampedRefused` stays declared carrying `sorryAx` (the comment above), so its own entry is the
--- one place `allowing` deliberately admits it: the refusal working is what this pins.
-assert_axioms [lampedRefused] allowing [propext, sorryAx, Classical.choice, Quot.sound]
+-- `lampedRefused` stays declared carrying `sorryAx` (the comment above), and `assert_axioms`
+-- rejects `sorryAx` unconditionally, so the checker is expected to reject this declaration --
+-- proving the refusal actually leaves it unproven rather than silently accepting it.
+/-- still contains `sorry` -/
+#guard_msgs (error, substring := true) in
+assert_axioms [lampedRefused] allowing [propext, Classical.choice, Quot.sound]
 
 run_cmd do
   let members ← `(term| [Umpire.Command.Tests.ComposeProofs.lamp,

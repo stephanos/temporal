@@ -315,7 +315,8 @@ end Parameterized
 
 /-! ### Axiom inventories of the product theorems -/
 
-assert_axioms [Umpire.Search.Product.decode_lossless, Umpire.Search.Product.StateSpace.run_progress,
+assert_axioms [Umpire.Search.Product.decode_lossless] allowing [propext, Quot.sound]
+assert_axioms [Umpire.Search.Product.StateSpace.run_progress,
   Umpire.Search.Product.StateSpace.accepts_iff_admits, Umpire.Search.Product.StateSpace.mem_successors]
   allowing [propext, Classical.choice, Quot.sound]
 

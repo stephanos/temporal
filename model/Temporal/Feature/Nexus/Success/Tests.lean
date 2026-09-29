@@ -1507,8 +1507,9 @@ example : temporal.api.command.v1.ScheduleNexusOperationCommandAttributes :=
   { endpoint := "endpoint", service := "service", operation := "operation"
     schedule_to_close_timeout := "1s" }
 
-assert_axioms [Umpire.Command.declareModel, Umpire.Command.check,
-  Temporal.Feature.Nexus.Success.lifecycle, Temporal.Feature.Nexus.Success.completion]
+assert_axioms [Umpire.Command.declareModel, Temporal.Feature.Nexus.Success.lifecycle]
+  allowing [propext]
+assert_axioms [Umpire.Command.check, Temporal.Feature.Nexus.Success.completion]
   allowing [propext, Classical.choice, Quot.sound]
 
 /-! ### A setup parameter, bound or not

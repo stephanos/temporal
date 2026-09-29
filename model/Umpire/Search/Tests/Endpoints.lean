@@ -120,8 +120,7 @@ private def referenceEnding (form : Query.Form) (budget : Nat) : String :=
     "unsupported-strategy:seeded", "unsupported-form:verify"]
 
 -- `evaluatePropertyEndpoint_closed` is checked once, in `Umpire.Property.Tests.Endpoints`.
-assert_axioms [PlanningOutcome.constructorClassifiers_exactlyOne]
-  allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [PlanningOutcome.constructorClassifiers_exactlyOne] allowing []
 
 private def terminalTarget (conditions : List (List ModelValue)) : Option (QueryModel (fun _ => True)) :=
   (checkModel (DraftModel.make { modelSpec 0 with terminalConditions := conditions }

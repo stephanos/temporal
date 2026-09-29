@@ -347,8 +347,8 @@ private def identityComparison : PropertyFieldComparison :=
   right := .field { priorPath with steps := [.field "M" 2, .establish], type := .bytes } source }.canonical
 
 -- `evaluatePropertyPredicate_agrees` and `evaluateProperty_agrees` are each checked once, here.
-assert_axioms [Umpire.PropertyFieldOperator.matches_agrees,
-  Umpire.CheckedPropertyPredicateInput.operandValue_denotes,
+assert_axioms [Umpire.PropertyFieldOperator.matches_agrees] allowing [propext]
+assert_axioms [Umpire.CheckedPropertyPredicateInput.operandValue_denotes,
   Umpire.evaluatePropertyPredicate_agrees, Umpire.evaluateProperty_agrees]
   allowing [propext, Classical.choice, Quot.sound]
 

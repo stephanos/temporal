@@ -429,8 +429,9 @@ end Parameterized
 /-! ### Axiom inventories of the monitor theorems -/
 
 assert_axioms [Umpire.Search.Product.ClauseState.answer_closed_ne_unresolved,
-  Umpire.Search.Product.Monitor.start_within, Umpire.Search.Product.Monitor.advance_within,
-  Umpire.Search.Product.Monitor.eventuallyStep_within, Umpire.Search.Product.Monitor.neverStep_within,
+  Umpire.Search.Product.Monitor.eventuallyStep_within, Umpire.Search.Product.Monitor.neverStep_within]
+  allowing [propext, Quot.sound]
+assert_axioms [Umpire.Search.Product.Monitor.start_within, Umpire.Search.Product.Monitor.advance_within,
   Umpire.Search.Product.Monitor.advance_fired, Umpire.Search.Product.Monitor.never_fires]
   allowing [propext, Classical.choice, Quot.sound]
 

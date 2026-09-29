@@ -455,8 +455,8 @@ literal is the composition of the two machines' tables, with no axiom beyond the
 #guard (nexusCaller.table.transitions.filter fun row =>
     (row.key.splitOn "-handlerReply").length > 1 && (row.key.splitOn "_stopped-").length > 1) == []
 
-assert_axioms [handlerWorker, nexusCaller, nexusCaller.agrees]
-  allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [handlerWorker, nexusCaller] allowing [propext]
+assert_axioms [nexusCaller.agrees] allowing [propext, Classical.choice, Quot.sound]
 
 /- The bare trigger covers every reply class, and each group fixes the worker's field alone while
 the operation member varies. -/

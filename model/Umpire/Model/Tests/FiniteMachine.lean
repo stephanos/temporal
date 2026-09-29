@@ -473,8 +473,8 @@ example : (linearAdmission 3).isOk = true ∧ (linearAdmission 30).isOk = true :
   native_decide
 
 assert_axioms [Umpire.CheckedTable.machine, Umpire.CheckedTable.draftModel,
-  Umpire.FiniteTable.checkTypedModel, Umpire.FiniteMachine.modelSpec,
-  Umpire.FiniteMachine.draftModel] allowing [propext, Classical.choice, Quot.sound]
+  Umpire.FiniteTable.checkTypedModel] allowing [propext, Classical.choice, Quot.sound]
+assert_axioms [Umpire.FiniteMachine.modelSpec, Umpire.FiniteMachine.draftModel] allowing []
 
 end Admission
 

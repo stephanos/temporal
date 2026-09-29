@@ -564,8 +564,8 @@ example : oneIndependentObservationConstruction.length = 1 ∧
   native_decide
 
 assert_axioms [ObservationKindSpec.declaration, ObservationProfileSpec.declaration,
-  ObservationRuleSpec.declaration, Evidence.ReadingSpec.declaration, Evidence.ReadingSpec.check,
-  Evidence.checkedReading, Evidence.ReadingSpec.checked]
+  ObservationRuleSpec.declaration, Evidence.ReadingSpec.declaration] allowing []
+assert_axioms [Evidence.ReadingSpec.check, Evidence.checkedReading, Evidence.ReadingSpec.checked]
   allowing [propext, Classical.choice, Quot.sound]
 
 end Umpire.EvidenceTests
