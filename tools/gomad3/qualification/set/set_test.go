@@ -7,8 +7,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -800,4 +802,212 @@ func TestLoadManifestResolvesPlatformExpectationsForTheHost(t *testing.T) {
 	if _, err := LoadManifest(path); err == nil || !strings.Contains(err.Error(), "requires exact import and capability") {
 		t.Fatalf("LoadManifest() error = %v", err)
 	}
+}
+
+func TestShardSelectsOrdinalModuloWorkloadsOfTheManifest(t *testing.T) {
+	root := t.TempDir()
+	manifest, err := LoadManifest(writeManifestWithSuiteIDs(t, root, "unsupported_target", "case-a", "case-b", "case-c"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name      string
+		shard     Shard
+		want      []string
+		wantError string
+	}{
+		{name: "whole manifest", shard: Shard{}, want: []string{"case-a", "case-b", "case-c"}},
+		{name: "single shard", shard: Shard{Index: 0, Count: 1}, want: []string{"case-a", "case-b", "case-c"}},
+		{name: "first of two", shard: Shard{Index: 0, Count: 2}, want: []string{"case-a", "case-c"}},
+		{name: "second of two", shard: Shard{Index: 1, Count: 2}, want: []string{"case-b"}},
+		{name: "index past count", shard: Shard{Index: 3, Count: 3}, wantError: "want zero-based INDEX/COUNT"},
+		{name: "index without count", shard: Shard{Index: 1}, wantError: "want zero-based INDEX/COUNT"},
+		{name: "count past manifest", shard: Shard{Index: 0, Count: 4}, wantError: "exceeds the manifest's 3 workloads"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			selected, err := test.shard.Select(manifest)
+			if test.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantError) {
+					t.Fatalf("Select() error = %v, want %q", err, test.wantError)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := make([]string, len(selected))
+			for index, workload := range selected {
+				got[index] = workload.ID
+			}
+			if !slices.Equal(got, test.want) {
+				t.Fatalf("Select() = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestRunShardReportsOnlyItsWorkloadsUnderTheWholeManifestDigest(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "unsupported_target", "case-a", "case-b", "case-c")
+	whole, err := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "whole.json"), Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	shard, err := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root, Shard: Shard{Index: 1, Count: 2},
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "shard.json"), Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if shard.Selected != 1 || len(shard.Workloads) != 1 || shard.Workloads[0].ID != "case-b" || shard.Unsupported != 1 || !shard.ExpectationsMet || shard.ManifestSHA256 != whole.ManifestSHA256 {
+		t.Fatalf("shard report = %#v", shard)
+	}
+	if _, err := OpenReport(filepath.Join(root, "shard.json")); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root, Shard: Shard{Index: 0, Count: 4},
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "empty.json"), Execute: expectedBoundaryExecutor(t),
+	})
+	if err == nil || !strings.Contains(err.Error(), "exceeds the manifest's 3 workloads") {
+		t.Fatalf("Run() with an oversized shard count error = %v", err)
+	}
+}
+
+func TestMergeCombinesShardReportsIntoTheWholeManifestReport(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "unsupported_target", "case-a", "case-b", "case-c")
+	whole, err := Run(context.Background(), Spec{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "whole.json"), Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	shards := runShards(t, root, root, manifestPath, 2, expectedBoundaryExecutor(t), false)
+	output := filepath.Join(root, "merged", "report.json")
+	merged, err := Merge(context.Background(), MergeSpec{ManifestPath: manifestPath, ShardReports: []string{shards[1], shards[0]}, OutputPath: output})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(merged, whole) {
+		t.Fatalf("merged report = %#v, want the whole run's %#v", merged, whole)
+	}
+	opened, err := OpenReport(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(opened, whole) {
+		t.Fatalf("opened merged report = %#v, want the whole run's %#v", opened, whole)
+	}
+}
+
+func TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "unsupported_target", "case-a", "case-b", "case-c")
+	shards := runShards(t, root, root, manifestPath, 2, expectedBoundaryExecutor(t), false)
+	prunedRoot := filepath.Join(root, "pruned")
+	if err := os.MkdirAll(prunedRoot, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	pruned := runShards(t, root, prunedRoot, manifestPath, 2, expectedBoundaryExecutor(t), true)
+	otherRoot := filepath.Join(root, "other")
+	if err := os.MkdirAll(otherRoot, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	other := runShards(t, otherRoot, otherRoot, writeManifestWithSuiteIDs(t, otherRoot, "unsupported_target", "case-a", "case-b", "case-c", "case-d"), 2, expectedBoundaryExecutor(t), false)
+	for _, test := range []struct {
+		name      string
+		reports   []string
+		wantError string
+	}{
+		{name: "missing shard", reports: []string{shards[0]}, wantError: "omit 1 manifest workloads: case-b"},
+		{name: "repeated shard", reports: []string{shards[0], shards[1], shards[0]}, wantError: "repeats workload case-a"},
+		{name: "another manifest", reports: []string{shards[0], other[1]}, wantError: "produced from another manifest"},
+		{name: "another run configuration", reports: []string{shards[0], pruned[1]}, wantError: "another run configuration"},
+		{name: "missing report", reports: []string{shards[0], filepath.Join(root, "absent.json")}, wantError: "absent.json"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			output := filepath.Join(root, test.name+".json")
+			_, err := Merge(context.Background(), MergeSpec{ManifestPath: manifestPath, ShardReports: test.reports, OutputPath: output})
+			if err == nil || !IsInvalidReport(err) || !strings.Contains(err.Error(), test.wantError) {
+				t.Fatalf("Merge() error = %v, want invalid input containing %q", err, test.wantError)
+			}
+			if _, statErr := os.Stat(output); !errors.Is(statErr, os.ErrNotExist) {
+				t.Fatalf("Merge() wrote %s despite invalid input: %v", output, statErr)
+			}
+		})
+	}
+}
+
+func TestMergeRetainsShardExpectationMismatches(t *testing.T) {
+	root := t.TempDir()
+	manifestPath := writeManifestWithSuiteIDs(t, root, "qualified", "case-a", "case-b", "case-c")
+	shards := runShards(t, root, root, manifestPath, 3, expectedBoundaryExecutor(t), false)
+	output := filepath.Join(root, "merged.json")
+	merged, err := Merge(context.Background(), MergeSpec{ManifestPath: manifestPath, ShardReports: shards, OutputPath: output})
+	var mismatch *ExpectationError
+	if !errors.As(err, &mismatch) || !slices.Equal(mismatch.Workloads, []string{"case-a", "case-b", "case-c"}) || merged.ExpectationsMet || merged.Completed != 3 || merged.Unsupported != 3 {
+		t.Fatalf("Merge() = %#v, error = %v", merged, err)
+	}
+	if _, err := OpenReport(output); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// runShards runs every shard of the manifest against the target module in
+// workingDir and returns the shard reports, written under outputDir, in shard
+// order; a shard that fails its expectations still publishes.
+func runShards(t *testing.T, workingDir, outputDir, manifestPath string, count uint64, execute ExecuteFunc, prune bool) []string {
+	t.Helper()
+	reports := make([]string, count)
+	for index := range count {
+		reports[index] = filepath.Join(outputDir, "shard-"+strconv.FormatUint(index, 10)+".json")
+		_, err := Run(context.Background(), Spec{
+			ManifestPath: manifestPath, GomadPath: filepath.Join(workingDir, "gomad"), WorkingDir: workingDir, Shard: Shard{Index: index, Count: count},
+			ArtifactRoot: filepath.Join(outputDir, "artifacts"), OutputPath: reports[index], PruneQualifiedArtifacts: prune, Execute: execute,
+		})
+		var mismatch *ExpectationError
+		if err != nil && !errors.As(err, &mismatch) {
+			t.Fatal(err)
+		}
+	}
+	return reports
+}
+
+func writeManifestWithSuiteIDs(t *testing.T, root, classification string, ids ...string) string {
+	t.Helper()
+	path := writeManifest(t, root, classification)
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	template := manifest["suites"].([]any)[0].(map[string]any)
+	suites := make([]any, len(ids))
+	for index, id := range ids {
+		suite := make(map[string]any, len(template))
+		for key, value := range template {
+			suite[key] = value
+		}
+		suite["id"] = id
+		suite["name"] = "Fixture " + id
+		suites[index] = suite
+	}
+	manifest["suites"] = suites
+	contents, err = json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
 }

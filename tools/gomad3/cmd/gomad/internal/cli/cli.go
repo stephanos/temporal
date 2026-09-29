@@ -32,7 +32,8 @@ const usage = `usage:
   gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
   gomad qualify [flags] go-run PACKAGE -- [ARG ...]
   gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
-  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--format=text|json]
+  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--shard INDEX/COUNT] [--format=text|json]
+  gomad merge-set --manifest FILE --output FILE [--format=text|json] SHARD_REPORT...
   gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
   gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
@@ -115,6 +116,8 @@ func Run(arguments []string, stdout, stderr io.Writer) int {
 		return runQualify(arguments[1:], stdout, stderr)
 	case "qualify-set":
 		return runQualifySet(arguments[1:], stdout, stderr)
+	case "merge-set":
+		return runMergeSet(arguments[1:], stdout, stderr)
 	case "compare-support":
 		return runCompareSupport(arguments[1:], stdout, stderr)
 	case "analyze":

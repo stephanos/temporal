@@ -411,7 +411,8 @@ The `gomad` command must expose the following user workflows. Each row is normat
 | `[COMMAND.GOMAD.ANALYZE]` | `analyze` | Review a Go Target's capabilities without launching it and emit human-readable or stable machine-readable evidence. |
 | `[COMMAND.GOMAD.EXPLORE]` | `explore` | Run a bounded seed, choice-exploration, or simulation-exploration Campaign and report progress, result classification, and retained Artifacts. |
 | `[COMMAND.GOMAD.QUALIFY]` | `qualify` | Repeat one Target under the same controls and compare its canonical evidence. |
-| `[COMMAND.GOMAD.QUALIFY.SET]` | `qualify-set` | Validate or execute a declared workload set and publish its aggregate qualification report. |
+| `[COMMAND.GOMAD.QUALIFY.SET]` | `qualify-set` | Validate or execute a declared workload set, whole or as one ordinal-modulo shard of it, and publish its aggregate qualification report. |
+| `[COMMAND.GOMAD.MERGE.SET]` | `merge-set` | Validate that shard reports of one workload set cover it exactly once under one run configuration and publish the whole set's aggregate qualification report. |
 | `[COMMAND.GOMAD.COMPARE.SUPPORT]` | `compare-support` | Compare two qualification-set reports and require exact approval for reviewed-boundary changes. |
 | `[COMMAND.GOMAD.PLAN]` | `plan` | Publish a portable Campaign plan and its verified execution bundle. |
 | `[COMMAND.GOMAD.EXECUTE.SHARD]` | `execute-shard` | Execute one deterministic shard of a portable plan. |

@@ -61,20 +61,30 @@ func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
 }
 
 func parseCampaignShard(value string) (runner.CampaignShard, error) {
-	indexValue, countValue, found := strings.Cut(value, "/")
-	if !found || indexValue == "" || countValue == "" || strings.Contains(countValue, "/") {
-		return runner.CampaignShard{}, fmt.Errorf("invalid shard %q: want zero-based INDEX/COUNT", value)
+	index, count, err := parseShardAssignment(value)
+	if err != nil {
+		return runner.CampaignShard{}, err
 	}
-	index, indexErr := strconv.ParseUint(indexValue, 10, 64)
-	count, countErr := strconv.ParseUint(countValue, 10, 64)
 	shard := runner.CampaignShard{Index: index, Count: count}
-	if indexErr != nil || countErr != nil || strconv.FormatUint(index, 10) != indexValue || strconv.FormatUint(count, 10) != countValue {
-		return runner.CampaignShard{}, fmt.Errorf("invalid shard %q: want zero-based INDEX/COUNT", value)
-	}
 	if err := shard.Validate(); err != nil {
 		return runner.CampaignShard{}, err
 	}
 	return shard, nil
+}
+
+// parseShardAssignment reads the canonical zero-based INDEX/COUNT form that
+// execute-shard and qualify-set share.
+func parseShardAssignment(value string) (index, count uint64, err error) {
+	indexValue, countValue, found := strings.Cut(value, "/")
+	if !found || indexValue == "" || countValue == "" || strings.Contains(countValue, "/") {
+		return 0, 0, fmt.Errorf("invalid shard %q: want zero-based INDEX/COUNT", value)
+	}
+	index, indexErr := strconv.ParseUint(indexValue, 10, 64)
+	count, countErr := strconv.ParseUint(countValue, 10, 64)
+	if indexErr != nil || countErr != nil || strconv.FormatUint(index, 10) != indexValue || strconv.FormatUint(count, 10) != countValue {
+		return 0, 0, fmt.Errorf("invalid shard %q: want zero-based INDEX/COUNT", value)
+	}
+	return index, count, nil
 }
 
 func runMergeCampaigns(arguments []string, stdout, stderr io.Writer) int {

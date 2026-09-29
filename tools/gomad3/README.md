@@ -86,6 +86,8 @@ tools/gomad3/.bin/gomad qualify --seed 7 --repeat 2 --choices --replay-successes
 tools/gomad3/.bin/gomad analyze --format=json go-test ./path/to/package -- -test.run=TestName
 tools/gomad3/.bin/gomad analyze --capability-mode=linked --timeout=5m --format=json go-test ./path/to/package -- -test.run=TestName
 tools/gomad3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
+tools/gomad3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output shard-0.json --shard 0/3
+tools/gomad3/.bin/gomad merge-set --manifest corpus.json --output report.json shard-0.json shard-1.json shard-2.json
 tools/gomad3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomad3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
 tools/gomad3/.bin/gomad explore --strategy=choice-exploration --seeds 7 --max-executions=128 --max-choice-depth=32 --max-exploration-bytes=64MiB go-test ./path/to/package -- -test.run=TestName
@@ -261,6 +263,20 @@ it, and a `qualified` expectation names neither.
 Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
+
+A set that exceeds one machine's budget runs as shards. `--shard INDEX/COUNT`
+applies `execute-shard`'s zero-based ordinal-modulo partition to the manifest's
+workloads: shard INDEX owns every workload whose manifest position modulo COUNT
+is INDEX, so the shards never overlap and together cover the manifest. A shard
+publishes an ordinary set report for its own workloads under the whole
+manifest's digest, and `merge-set --manifest MANIFEST --output REPORT
+SHARD_REPORT...` combines the shard reports into the report a whole run would
+have published. It requires every shard to come from the same manifest, module,
+platform, toolchain, I/O profile, seeds, and pruning choice, and the shards to
+cover each manifest workload exactly once; a repeated, missing, or foreign
+workload is invalid input, never a partial aggregate. A count larger than the
+manifest is refused rather than run as an empty shard. `merge-set` returns the
+same statuses as `qualify-set`.
 
 By default every Campaign a set run produces stays under `--artifacts`, which
 for the 28-workload Temporal manifest is about 11 GiB. `--prune-qualified-artifacts`

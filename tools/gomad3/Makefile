@@ -1,4 +1,4 @@
-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
+.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -15,6 +15,9 @@ GOMAD3_QUALIFICATION_OUTPUT ?= .toolchain/qualification-set.json
 # GOMAD3_QUALIFICATION_PRUNE=1 deletes each qualified seed's retained Campaigns
 # once its evidence is in the set report, keeping its qualification report.
 GOMAD3_QUALIFICATION_PRUNE ?= 0
+# GOMAD3_QUALIFICATION_SHARD=INDEX/COUNT runs one ordinal-modulo shard of the
+# manifest; qualification-set-merge combines the shard reports afterwards.
+GOMAD3_QUALIFICATION_SHARD ?=
 # The ./tests qualification manifest is generated from the package's test list
 # and the spec's defaults, overrides, and exclusions; never edit it by hand.
 TESTS_QUALIFICATION_GENERATE := qualification-manifest-generate --root=$(CURDIR)/../.. \
@@ -84,7 +87,15 @@ qualification-set: runner
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED .bin/gomad qualify-set \
 		--manifest="$(GOMAD3_QUALIFICATION_MANIFEST)" --working-dir="$(GOMAD3_QUALIFICATION_WORKDIR)" \
 		--artifacts="$(GOMAD3_QUALIFICATION_ARTIFACTS)" --output="$(GOMAD3_QUALIFICATION_OUTPUT)" \
-		$(if $(filter 1,$(GOMAD3_QUALIFICATION_PRUNE)),--prune-qualified-artifacts)
+		$(if $(filter 1,$(GOMAD3_QUALIFICATION_PRUNE)),--prune-qualified-artifacts) \
+		$(if $(GOMAD3_QUALIFICATION_SHARD),--shard="$(GOMAD3_QUALIFICATION_SHARD)")
+
+qualification-set-merge: runner
+	@test -n "$(GOMAD3_QUALIFICATION_MANIFEST)" || { echo "GOMAD3_QUALIFICATION_MANIFEST is required" >&2; exit 2; }
+	@test -n "$(GOMAD3_QUALIFICATION_SHARD_REPORTS)" || { echo "GOMAD3_QUALIFICATION_SHARD_REPORTS is required" >&2; exit 2; }
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED .bin/gomad merge-set \
+		--manifest="$(GOMAD3_QUALIFICATION_MANIFEST)" --output="$(GOMAD3_QUALIFICATION_OUTPUT)" \
+		$(GOMAD3_QUALIFICATION_SHARD_REPORTS)
 
 # Packs are scoped to one platform, so each host qualifies only the requests
 # that name it.

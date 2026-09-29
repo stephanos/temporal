@@ -1328,3 +1328,82 @@ func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T)
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
+
+func TestRunQualifySetPassesShardToTheSet(t *testing.T) {
+	threeSuites := func(string) (qualificationset.Manifest, error) {
+		return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Workload{{ID: "a"}, {ID: "b"}, {ID: "c"}}}, nil
+	}
+	for _, test := range []struct {
+		name       string
+		arguments  []string
+		wantStatus int
+		wantShard  qualificationset.Shard
+		wantRun    bool
+		wantOutput string
+		wantError  string
+	}{
+		{name: "runs one shard", arguments: []string{"--shard", "1/3"}, wantShard: qualificationset.Shard{Index: 1, Count: 3}, wantRun: true, wantOutput: "qualification set: name=test-set"},
+		{name: "checks one shard", arguments: []string{"--shard", "1/2", "--check"}, wantOutput: "qualification manifest: name=test-set workloads=1\n"},
+		{name: "rejects index past count", arguments: []string{"--shard", "3/3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
+		{name: "rejects malformed shard", arguments: []string{"--shard", "1-3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
+		{name: "rejects count past manifest", arguments: []string{"--shard", "0/4"}, wantStatus: 2, wantError: "exceeds the manifest's 3 workloads"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			ran := false
+			var observed qualificationset.Spec
+			dependencies := qualifySetDependencies{
+				executable: func() (string, error) { return "/bin/gomad", nil },
+				load:       threeSuites,
+				run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
+					ran, observed = true, config
+					return publicSetReport(), nil
+				},
+			}
+			var stdout, stderr bytes.Buffer
+			status := runQualifySetWith(append([]string{"--manifest", "/corpus.json", "--working-dir", "/repo"}, test.arguments...), &stdout, &stderr, dependencies)
+			if status != test.wantStatus || ran != test.wantRun || observed.Shard != test.wantShard || !strings.Contains(stdout.String(), test.wantOutput) || !strings.Contains(stderr.String(), test.wantError) {
+				t.Fatalf("status=%d ran=%t shard=%#v stdout=%q stderr=%q", status, ran, observed.Shard, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func TestRunMergeSetMapsStatuses(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		arguments  []string
+		mergeErr   error
+		wantStatus int
+		wantMerge  bool
+		wantOutput string
+		wantError  string
+	}{
+		{name: "merged", arguments: []string{"--manifest", "/corpus.json", "--output", "/merged.json", "/a.json", "/b.json"}, wantMerge: true, wantOutput: "qualification set: name=test-set expectations-met=true"},
+		{name: "merged as json", arguments: []string{"--manifest", "/corpus.json", "--format", "json", "/a.json"}, wantMerge: true, wantOutput: `"schema":"gomad3.qualification-set-report/v1"`},
+		{name: "retained mismatch", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: &qualificationset.ExpectationError{Workloads: []string{"a"}}, wantStatus: 1, wantMerge: true, wantOutput: "qualification set: name=test-set"},
+		{name: "invalid shards", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: &qualificationset.InvalidReportError{Err: errors.New("shard reports omit 1 manifest workloads: b")}, wantStatus: 2, wantMerge: true, wantError: "merge qualification set shards: shard reports omit 1 manifest workloads: b"},
+		{name: "output failure", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: errors.New("write failed"), wantStatus: 3, wantMerge: true, wantOutput: "qualification set: name=test-set", wantError: "merge qualification set shards: write failed"},
+		{name: "requires manifest", arguments: []string{"/a.json"}, wantStatus: 2, wantError: "merge-set requires --manifest"},
+		{name: "requires shard reports", arguments: []string{"--manifest", "/corpus.json"}, wantStatus: 2, wantError: "merge-set requires --manifest"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var observed qualificationset.MergeSpec
+			merged := false
+			dependencies := mergeSetDependencies{merge: func(_ context.Context, spec qualificationset.MergeSpec) (qualificationset.Report, error) {
+				merged, observed = true, spec
+				if qualificationset.IsInvalidReport(test.mergeErr) {
+					return qualificationset.Report{}, test.mergeErr
+				}
+				return publicSetReport(), test.mergeErr
+			}}
+			var stdout, stderr bytes.Buffer
+			status := runMergeSetWith(test.arguments, &stdout, &stderr, dependencies)
+			if status != test.wantStatus || merged != test.wantMerge || !strings.Contains(stdout.String(), test.wantOutput) || !strings.Contains(stderr.String(), test.wantError) || test.wantOutput == "" && stdout.Len() != 0 {
+				t.Fatalf("status=%d merged=%t spec=%#v stdout=%q stderr=%q", status, merged, observed, stdout.String(), stderr.String())
+			}
+			if merged && (observed.ManifestPath != "/corpus.json" || len(observed.ShardReports) == 0 || observed.OutputPath == "") {
+				t.Fatalf("merge spec = %#v", observed)
+			}
+		})
+	}
+}

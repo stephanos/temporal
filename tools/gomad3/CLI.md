@@ -16,7 +16,7 @@ doctor -> analyze -> explore -> inspect -> replay -> minimize
                          +-> recover/resume <-+
                          |
                          v
-               qualify -> qualify-set -> compare-support
+               qualify -> qualify-set -> merge-set -> compare-support
                          |
                          v
                  plan -> execute-shard -> merge
@@ -280,6 +280,25 @@ tools/gomad3/.bin/gomad qualify-set \
 
 `qualify-set` analyzes every workload before executing any supported Target, checkpoints completed phases, retains unsupported analyses, and compares results with declared expectations.
 
+A set too large for one machine's budget runs as shards. `--shard INDEX/COUNT` is the same zero-based ordinal-modulo partition `execute-shard` uses, applied to the manifest's workloads, so shards never overlap and together cover the manifest. Each shard publishes an ordinary set report that carries the whole manifest's digest; `merge-set` then combines them into the report one run would have published:
+
+```sh
+for shard in 0/3 1/3 2/3; do
+  tools/gomad3/.bin/gomad qualify-set \
+    --manifest="$PWD/qualification-set.json" \
+    --working-dir="$PWD/path/to/target" \
+    --artifacts=.gomad/qualification-${shard%/*} \
+    --output=.gomad/qualification-shard-${shard%/*}.json \
+    --shard="$shard"
+done
+tools/gomad3/.bin/gomad merge-set \
+  --manifest="$PWD/qualification-set.json" \
+  --output=.gomad/qualification-report.json \
+  .gomad/qualification-shard-*.json
+```
+
+`merge-set` refuses shards of another manifest or run configuration, a repeated or missing workload, and a shard count larger than the manifest; it publishes no partial aggregate. Its statuses match `qualify-set`: 0 when every expectation matched, 1 when the merged report retains a mismatch, 2 for invalid shards, and 3 when the report cannot be written.
+
 On the next release or branch, compare the new report with the baseline:
 
 ```sh
@@ -369,7 +388,7 @@ Commands expose machine-readable output where it is part of their contract:
 
 - `explore`, `execute-shard`, and `resume` use newline-delimited progress, result, Artifact, and error events with `--json`.
 - `doctor`, `inspect`, `recover`, `minimize`, and `merge` emit one stable JSON result with `--json`.
-- `analyze`, `qualify-set`, and `compare-support` select text or JSON with `--format`.
+- `analyze`, `qualify-set`, `merge-set`, and `compare-support` select text or JSON with `--format`.
 - `qualify` emits newline-delimited qualification events with `--json`.
 
 Across user workflows, exit statuses preserve the same broad meaning:
@@ -545,7 +564,8 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `replay` | Verify or reproduce a retained Artifact. |
 | `minimize` | Reduce an eligible combined-simulation failure while preserving replay. |
 | `qualify` | Compare independent repetitions of one Target and seed. |
-| `qualify-set` | Validate or run a manifest of qualification workloads. |
+| `qualify-set` | Validate or run a manifest of qualification workloads, whole or as one shard. |
+| `merge-set` | Combine the shard reports of one manifest into its whole set report. |
 | `compare-support` | Compare candidate support evidence with a baseline. |
 | `plan` | Freeze a supported seed Campaign into a portable bundle. |
 | `execute-shard` | Execute one deterministic shard of a portable plan. |
