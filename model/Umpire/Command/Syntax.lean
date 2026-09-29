@@ -2972,19 +2972,71 @@ composition of its members over the states its starts reach, so the kernel refus
 theorem; the walk emitted a row the members do not authorize, missed one they do, or kept a state \
 no start reaches"
 
+private unsafe def evalIndexedUnsafe (α : Type) (type : Expr) (term : Term) :
+    Elab.Term.TermElabM α := do
+  let value ← Elab.Term.elabTermEnsuringType term type
+  Elab.Term.synthesizeSyntheticMVarsNoPostponing
+  Meta.evalExpr α type (← instantiateMVars value)
+
+/-- A term's value of `type`, computed by the compiler. What a reader or the check computes is read
+off its compiled code once; the kernel then decides that its own reading is that value. -/
+@[implemented_by evalIndexedUnsafe]
+private opaque evalIndexed (α : Type) (type : Expr) (term : Term) : Elab.Term.TermElabM α
+
+/-- Declare `name` as the literal `value` of `type`, added as the expression `toExpr` built rather
+than elaborated from syntax: a table-sized literal is written once, where elaborating it again
+would be a second walk over every row. -/
+private def declareLiteral (name : Name) (type value : Expr) : CommandElabM Unit :=
+  liftCoreM (addAndCompile (.defnDecl {
+    name, levelParams := [], type, value, hints := .abbrev, safety := .safe }))
+
 /-- Declare a composition's agreement theorem, `Umpire.Command.Compose.ComposedAgreement` over the
 members' tables, the candidate actions and the literal by position, decided by the kernel over the
 rows rather than written by the author, and refuse the composition at `anchor` when the kernel does
 not decide it.
+
+The three readings are computed once and declared as the literals `<theorem>.members`,
+`<theorem>.candidates` and `<theorem>.literal`, with the literal grouped by state as
+`<theorem>.grouped`; the theorem is `ComposedAgreement.ofLiterals` over five kernel decisions, that
+each reading is its literal, that the grouping flattens to the literal, and that the check holds of
+the grouping. A reading is a catalog scan per value, so decided apart from the check it is paid once
+per value rather than once per row the check visits, and the check indexes the grouping where it
+would scan the literal.
 `elabCommand` logs a failed decision rather than throwing it, so the theorem is read back for
 `sorryAx` the way the machine command reads its table's law. -/
 def elabComposedAgreement (anchor : Syntax) (spelling : String) (theoremName : Ident)
     (members candidates literal : Term) (states actions : Nat) : CommandElabM Unit := do
+  let declared := (← getCurrNamespace) ++ theoremName.getId
+  let membersType := mkApp (mkConst ``List [.zero]) (mkConst ``Umpire.Command.Compose.IndexedMember)
+  let candidatesType := mkApp (mkConst ``List [.zero]) (mkApp (mkConst ``List [.zero])
+    (mkApp2 (mkConst ``Prod [.zero, .zero]) (mkConst ``Nat) (mkConst ``Nat)))
+  let literalType := mkConst ``Umpire.Command.Compose.IndexedLiteral
+  let groupedType := mkConst ``Umpire.Command.Compose.GroupedLiteral
+  let membersValue ← liftTermElabM
+    (evalIndexed (List Umpire.Command.Compose.IndexedMember) membersType members)
+  let candidatesValue ← liftTermElabM
+    (evalIndexed (List (List (Nat × Nat))) candidatesType candidates)
+  let literalValue ← liftTermElabM
+    (evalIndexed Umpire.Command.Compose.IndexedLiteral literalType literal)
+  let membersLiteral := declared ++ `members
+  let candidatesLiteral := declared ++ `candidates
+  let literalLiteral := declared ++ `literal
+  let groupedLiteral := declared ++ `grouped
+  declareLiteral membersLiteral membersType (toExpr membersValue)
+  declareLiteral candidatesLiteral candidatesType (toExpr candidatesValue)
+  declareLiteral literalLiteral literalType (toExpr literalValue)
+  declareLiteral groupedLiteral groupedType
+    (toExpr (Umpire.Command.Compose.GroupedLiteral.ofFlat literalValue))
   elabGenerated (← `(command|
     theorem $theoremName :
         Umpire.Command.Compose.ComposedAgreement $members $candidates $literal :=
-      Umpire.Command.Compose.ComposedAgreement.ofChecked (by decide +kernel)))
-  let declared := (← getCurrNamespace) ++ theoremName.getId
+      Umpire.Command.Compose.ComposedAgreement.ofLiterals
+        (membersLiteral := $(mkIdent membersLiteral))
+        (candidatesLiteral := $(mkIdent candidatesLiteral))
+        (literalLiteral := $(mkIdent literalLiteral))
+        (grouped := $(mkIdent groupedLiteral))
+        (by decide +kernel) (by decide +kernel) (by decide +kernel) (by decide +kernel)
+        (by decide +kernel)))
   let decided ← if (← getEnv).contains declared then
       pure !(← liftCoreM (Lean.collectAxioms declared)).contains ``sorryAx
     else pure false
@@ -3404,10 +3456,12 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
   let memberModel := fun (member : ComposedMember) => mkIdent member.machine.declName
   let positionIn := fun (member : ComposedMember) (catalog : Name) (value : Term) =>
     `(term| Umpire.Command.Compose.position ($(memberModel member)).table.$(mkIdent catalog) $value)
-  let stateBinder := mkIdent `state
+  -- The state view destructures the composed state, so that each member's position scan is over
+  -- the member value's own literal: the kernel's cache then serves every row that holds it.
   let valueBinder := mkIdent `value
-  let stateComponents ← members.mapM fun member =>
-    positionIn member `states (mkIdent (`state ++ Name.mkSimple member.field))
+  let fieldBinders := members.map fun member => mkIdent (Name.mkSimple member.field)
+  let stateComponents ← (members.zip fieldBinders).mapM fun (member, binder) =>
+    positionIn member `states binder
   let memberArms := fun (catalog : Name) (wrap : Term → CommandElabM Term) =>
     members.toList.zipIdx.toArray.mapM fun (member, slot) => do
       let position ← positionIn member catalog valueBinder
@@ -3434,7 +3488,7 @@ elab doc?:(docComment)? composeKeyword name:ident keys:composeKey+ : command => 
   elabGenerated (← `(command|
     def $viewName : Umpire.Command.Compose.IndexedView $stateType $actionType $outcomeType
         $factType := {
-      state := fun $stateBinder:ident => [$stateComponents,*]
+      state := fun ⟨$fieldBinders,*⟩ => [$stateComponents,*]
       action := fun action => match action with $(ownArms ++ syncArms):matchAlt*
       outcome := fun outcome => match outcome with $outcomeArms:matchAlt*
       fact := fun fact => match fact with $factArms:matchAlt* }))

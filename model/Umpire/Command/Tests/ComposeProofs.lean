@@ -5,13 +5,16 @@ import Umpire.Command.Tests.Compose
 
 The agreement check over tables by position, on tables small enough to read: two members, a lamp
 that lights and a switch that flips, composed so that the lamp lights only when the switch flips.
-The literal the walk would emit passes the check; a literal with a row the members do not
-authorize, one missing a row they do, one missing an enabled action with its rows and the states
-only it reaches, one whose catalog holds an action that is no candidate, one keeping a state no
-start reaches, one whose row steps to a state outside its catalog, and one starting where a member
-does not fail it, each on the clause the failure is about. The command's refusal is pinned through `elabComposedAgreement` over one of
+The literal the walk would emit, grouped by state as the check reads it, passes the check; a
+literal with a row the members do not authorize, one missing a row they do, one missing an enabled
+action with its rows and the states only it reaches, one whose catalog holds an action that is no
+candidate, one keeping a state no start reaches, one whose row steps to a state outside its
+catalog, and one starting where a member does not fail it, each on the clause the failure is
+about. The grouping is pinned to flatten back to the literal it was read from, which is what the
+command decides of it. The command's refusal is pinned through `elabComposedAgreement` over one of
 those literals, since the walk itself emits nothing the check refuses, and the axioms of the
-generic theorem and of a fixture composition's own agreement theorem are pinned.
+generic theorem and of a fixture composition's own agreement theorem are pinned, with the literals
+the command declared beside it.
 -/
 
 namespace Umpire.Command.Tests.ComposeProofs
@@ -46,7 +49,8 @@ no member's own action, since each is named by one of them. -/
 #guard candidatesOf [[(0, 0)], [(0, 1)], [(1, 0)], [(1, 1)], flip, light] == [flip, light]
 
 /-- From `[dark, off]`: a flip reaches `[dark, on]`, a light there reaches `[lit, on]`, and flips
-move the switch under the lamp; `light` has no row while the switch is off. -/
+move the switch under the lamp; `light` has no row while the switch is off. The rows are in state
+catalog order, as the walk emits them. -/
 private def literal : IndexedLiteral := {
   starts := [[0, 0]]
   states := [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -55,10 +59,31 @@ private def literal : IndexedLiteral := {
     { source := [0, 0], participants := flip, results := [{ outcome := (0, 0), state := [0, 1], facts := [] }] },
     { source := [0, 1], participants := flip, results := [{ outcome := (0, 0), state := [0, 0], facts := [] }] },
     { source := [0, 1], participants := light, results := [{ outcome := (0, 0), state := [1, 1], facts := [(0, 0)] }] },
-    { source := [1, 1], participants := flip, results := [{ outcome := (0, 0), state := [1, 0], facts := [] }] },
-    { source := [1, 0], participants := flip, results := [{ outcome := (0, 0), state := [1, 1], facts := [] }] }] }
+    { source := [1, 0], participants := flip, results := [{ outcome := (0, 0), state := [1, 1], facts := [] }] },
+    { source := [1, 1], participants := flip, results := [{ outcome := (0, 0), state := [1, 0], facts := [] }] }] }
 
-#guard composedTableAgrees [lamp, switch] [flip, light] literal
+/-- The literal grouped by state: the start at position 0, and each state's rows under its
+position, every result's state a position. -/
+private def grouped : GroupedLiteral := {
+  starts := [0]
+  states := literal.states
+  actions := literal.actions
+  rows := [
+    [{ participants := flip, results := [{ outcome := (0, 0), state := 1, facts := [] }] }],
+    [{ participants := flip, results := [{ outcome := (0, 0), state := 0, facts := [] }] },
+     { participants := light, results := [{ outcome := (0, 0), state := 3, facts := [(0, 0)] }] }],
+    [{ participants := flip, results := [{ outcome := (0, 0), state := 3, facts := [] }] }],
+    [{ participants := flip, results := [{ outcome := (0, 0), state := 2, facts := [] }] }]] }
+
+#guard GroupedLiteral.ofFlat literal == grouped
+#guard grouped.flatten == literal
+
+/- A literal whose rows are not in state order does not flatten back to itself, so the command's
+decision that the grouping flattens to the literal refuses it. -/
+#guard (GroupedLiteral.ofFlat { literal with rows := literal.rows.reverse }).flatten !=
+  { literal with rows := literal.rows.reverse }
+
+#guard composedTableAgrees [lamp, switch] [flip, light] grouped
 
 /- The composition function at the start: a flip moves the switch, and a light has no row. -/
 #guard stepsFrom [lamp, switch] [0, 0] flip ==
@@ -68,50 +93,50 @@ private def literal : IndexedLiteral := {
 /- The order the rows list results in is not the check's: a row holds the same results either
 way. -/
 #guard composedTableAgrees [lamp, switch] [flip, light]
-  { literal with rows := literal.rows.map fun row => { row with results := row.results.reverse } }
+  (.ofFlat { literal with rows := literal.rows.map fun row => { row with results := row.results.reverse } })
 
 /-! ### What the check refuses -/
 
 /- A row the members do not authorize: a light while the switch is off. -/
-#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with rows := literal.rows ++
+#guard !composedTableAgrees [lamp, switch] [flip, light] (.ofFlat { literal with rows := literal.rows ++
   [{ source := [0, 0], participants := light,
-     results := [{ outcome := (0, 0), state := [1, 0], facts := [(0, 0)] }] }] }
+     results := [{ outcome := (0, 0), state := [1, 0], facts := [(0, 0)] }] }] })
 
 /- A row with the wrong result: the light's fact left out. -/
-#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with rows := literal.rows.map fun row =>
+#guard !composedTableAgrees [lamp, switch] [flip, light] (.ofFlat { literal with rows := literal.rows.map fun row =>
   if row.participants == light then { row with results := [{ outcome := (0, 0), state := [1, 1], facts := [] }] }
-  else row }
+  else row })
 
 /- A row the members authorize, missing: the flip from `[lit, on]`. -/
 #guard !composedTableAgrees [lamp, switch] [flip, light]
-  { literal with rows := literal.rows.filter (·.source != [1, 1]) }
+  (.ofFlat { literal with rows := literal.rows.filter (·.source != [1, 1]) })
 
 /- An enabled action dropped whole: `light` out of the catalog with its row and the two lit states
 only it reaches. What remains agrees with itself, and the candidates are what say it is short. -/
-#guard !composedTableAgrees [lamp, switch] [flip, light]
+#guard !composedTableAgrees [lamp, switch] [flip, light] (.ofFlat
   { starts := [[0, 0]], states := [[0, 0], [0, 1]], actions := [flip],
-    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 }
-#guard composedTableAgrees [lamp, switch] [flip]
+    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 })
+#guard composedTableAgrees [lamp, switch] [flip] (.ofFlat
   { starts := [[0, 0]], states := [[0, 0], [0, 1]], actions := [flip],
-    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 }
+    rows := literal.rows.filter fun row => row.participants == flip && row.source[0]? == some 0 })
 
 /- A catalog action that is no candidate. -/
-#guard !composedTableAgrees [lamp, switch] [flip] literal
+#guard !composedTableAgrees [lamp, switch] [flip] grouped
 
 /- A state no start reaches, kept in the catalog: one beyond both members' catalogs, which no row
 leaves or enters, so every row still agrees. -/
 #guard !composedTableAgrees [lamp, switch] [flip, light]
-  { literal with states := literal.states ++ [[2, 2]] }
+  (.ofFlat { literal with states := literal.states ++ [[2, 2]] })
 
 /- A row stepping outside the catalog: `[lit, off]` dropped from the states. -/
 #guard !composedTableAgrees [lamp, switch] [flip, light]
-  { literal with states := literal.states.filter (· != [1, 0]) }
+  (.ofFlat { literal with states := literal.states.filter (· != [1, 0]) })
 
 /- A start no member starts in: the switch on. -/
-#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with starts := [[0, 1]] }
+#guard !composedTableAgrees [lamp, switch] [flip, light] (.ofFlat { literal with starts := [[0, 1]] })
 
 /- A start of the wrong width. -/
-#guard !composedTableAgrees [lamp, switch] [flip, light] { literal with starts := [[0]] }
+#guard !composedTableAgrees [lamp, switch] [flip, light] (.ofFlat { literal with starts := [[0]] })
 
 /-! ### What the command does with it
 
@@ -162,6 +187,23 @@ The generic theorem, and the agreement theorem `compose` declared for the fixtur
 /-- info: 'Umpire.Command.Tests.Compose.Forward.pipeline.agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Command.Tests.Compose.Forward.pipeline.agrees
+
+/- The literals the command declared beside the theorem: the readings the kernel decided equal
+the tables' and the composed literal's, and the grouping the check ran on, which flattens to the
+literal. -/
+#guard Compose.Forward.pipeline.agrees.members ==
+  [IndexedMember.ofModel Compose.Job.jobMachine, IndexedMember.ofModel Compose.Agent.agentMachine]
+#guard Compose.Forward.pipeline.agrees.literal ==
+  IndexedLiteral.ofModel Compose.Forward.pipeline Compose.Forward.pipeline.view
+#guard Compose.Forward.pipeline.agrees.grouped.flatten == Compose.Forward.pipeline.agrees.literal
+
+/- A member's table by position groups its rows under their source: the agent, running (0) or
+halted (1), halts (0) and serves (2) while running and resumes (1) while halted. -/
+#guard IndexedMember.ofModel Compose.Agent.agentMachine == {
+  starts := [0]
+  rows := [
+    [(0, [{ outcome := 0, state := 1, facts := [] }]), (2, [{ outcome := 0, state := 0, facts := [] }])],
+    [(1, [{ outcome := 0, state := 0, facts := [] }])]] }
 
 /- The fixture composition's literal, read through the view the command generated, is what the
 check saw: 12 states, 7 actions, and its rows by position. Its candidates, read off the Action
