@@ -356,6 +356,33 @@
       "task": "fn-93-simplify-the-lean-model.3",
       "timestamp": "2026-09-29T22:02:06.670345Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "0b22a62d88175954449645196c31c6548b3f8302d2ef4cbb4a9793fdd2679003",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1aff273752a7f7afa4b1d73e7ecafc2c1fe38b2c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "b25e9d1a973c37022e0ed0811459d22784496471f3b09a91d95ba78578917173",
+      "reservation_id": "b616b06d49074987bc41879e5ab19561",
+      "round_consumed": false,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:08:52.221649Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -368,8 +395,8 @@
     "impl:fn-93-simplify-the-lean-model.3": 1
   },
   "review_reservations": {
-    "b616b06d49074987bc41879e5ab19561": {
-      "artifact_sha256": "0b22a62d88175954449645196c31c6548b3f8302d2ef4cbb4a9793fdd2679003",
+    "b6a92831c167400f87ec76c2fe9b5e0f": {
+      "artifact_sha256": "5dd7cd051a7d32c40ee4d6040f19d34e8ea6ec33774f9b82fc7e1ebe4531be7e",
       "counter_scope": "impl:fn-93-simplify-the-lean-model.3",
       "epoch": 0,
       "exclusive": true,
@@ -380,7 +407,7 @@
   "review_transport_failures": {
     "impl:fn-93-simplify-the-lean-model.1": 0,
     "impl:fn-93-simplify-the-lean-model.2": 0,
-    "impl:fn-93-simplify-the-lean-model.3": 1,
+    "impl:fn-93-simplify-the-lean-model.3": 2,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-93-simplify-the-lean-model.md",
@@ -397,5 +424,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T22:02:17.840541Z"
+  "updated_at": "2026-09-29T22:09:00.591924Z"
 }

@@ -802,6 +802,39 @@ lean_lib Umpire
   requireEqual "an ordinary line comment disappears without merging or dropping declarations"
     (parseLakefileRoots ordinaryLineComment) #[`Shared, `Umpire]
 
+/-- A `roots := ` or `root := ` field is recognized even when Lean's formatter breaks it across
+lines -- the `#[` (or the backtick name) on its own line after the keyword and `:=`. Reproduces
+the correctness and contracts draws' independent finding (fn-93.3 round 3): a scanner that only
+matches the single-line spelling silently falls back to the target's own name on a genuine root
+change, which is exactly the drift the guard exists to catch. -/
+private def testLakefileMultilineFields : IO Unit := do
+  let multilineRootsArray := "
+lean_lib UmpireTests where
+  roots :=
+    #[`Umpire.CoreTests]
+"
+  requireEqual "a roots := array is recognized when #[ starts its own line"
+    (parseLakefileRoots multilineRootsArray) #[`Umpire.CoreTests]
+  let multilineRootsArraySpanningEntries := "
+lean_lib ModelLintSupport where
+  roots :=
+    #[
+      `Tools.LeanImportGraph,
+      `Tools.LeanImportGraphTests
+    ]
+"
+  requireEqual "a roots := array is recognized with both the opening bracket and its entries \
+      each on their own line"
+    (parseLakefileRoots multilineRootsArraySpanningEntries)
+    #[`Tools.LeanImportGraph, `Tools.LeanImportGraphTests]
+  let multilineRoot := "
+lean_exe «umpire-inspect» where
+  root :=
+    `Temporal.Tool.Inspect
+"
+  requireEqual "a single root := is recognized when the name starts its own line"
+    (parseLakefileRoots multilineRoot) #[`Temporal.Tool.Inspect]
+
 /-- `checkBuildRootsDrift` reports a policy root the lakefile no longer declares and a lakefile
 root the policy does not list, in either direction, and reports neither when the two agree. -/
 private def testBuildRootsDrift : IO Unit := do
@@ -943,6 +976,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testUnbuiltModules
   testParseLakefileRoots
   testLakefileCommentsIgnored
+  testLakefileMultilineFields
   testBuildRootsDrift
   testRealLakefileRootsAgree
   testFeatureEntityUniqueness

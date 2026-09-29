@@ -533,6 +533,22 @@ private def backtickNamesIn (text : String) : Array Lean.Name := Id.run do
       names := names.push (stringToLeanName spelling)
   return names
 
+/-- Collapse every run of whitespace (including a line break) to a single space, so a field
+assignment's keyword, `:=` and value can be matched textually even when Lean's formatter split
+them across lines. -/
+private def collapseWhitespace (text : String) : String := Id.run do
+  let mut result : Array Char := #[]
+  let mut previousWasSpace := false
+  for character in text.toList do
+    if character.isWhitespace then
+      unless previousWasSpace do
+        result := result.push ' '
+      previousWasSpace := true
+    else
+      result := result.push character
+      previousWasSpace := false
+  return String.ofList result.toList
+
 /-- Strip Lean's `-- ...` line comments and nestable `/- ... -/` block comments from `source`,
 replacing each with nothing (a stripped line comment keeps its terminating newline; a stripped
 block comment keeps any newlines it spans, so line-oriented scanning downstream sees the same
@@ -614,12 +630,15 @@ private def lakefileTargets (source : String) : Array LakefileTarget := Id.run d
 
 /-- The roots one target declares: the `roots := #[...]` array when present, the single
 `root := ...` when present, or Lake's own default -- the target's own name -- when neither field
-is set. -/
+is set. Matched against whitespace-collapsed text, so a field broken across lines (`roots :=` and
+its `#[` on separate lines, as Lean's formatter is free to write it) is still recognized rather
+than silently falling back to the target's own name. -/
 private def LakefileTarget.roots (target : LakefileTarget) : Array Lean.Name :=
-  match target.body.splitOn "roots := #[" with
+  let body := collapseWhitespace target.body
+  match body.splitOn "roots := #[" with
   | _ :: after :: _ => backtickNamesIn ((after.splitOn "]").headD "")
   | _ =>
-    match target.body.splitOn "root := " with
+    match body.splitOn "root := " with
     | _ :: after :: _ =>
       match (backtickNamesIn after).toList with
       | root :: _ => #[root]
