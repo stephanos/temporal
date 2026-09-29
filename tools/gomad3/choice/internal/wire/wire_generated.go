@@ -27,7 +27,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'ã', 'P', '\u0082', '\u0089', '×', 'î', 'ë', 'r', 'L', 'Õ', 'ò', 'v', '±', 'I', 'l', '*', '¾', '½', '8', '\u008c', '·', ',', 'r', 'ê', '\u0087', 'W', '\\', '\x0e', '¼', '\x0f', '\u0089', '/'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'s', '¼', 'C', 'Y', '\x11', '\x10', '«', 'x', 'ê', 'É', ',', 'Â', 'Ã', 'î', '\u008f', '\x12', '9', 'Þ', 'ü', '\x1e', '\u0093', 'p', 'Å', '\u00ad', '.', '\u008f', 'è', '\x01', 'Ï', '´', '8', 'Æ'}
 )
 
 type Kind uint8
