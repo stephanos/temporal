@@ -19,6 +19,9 @@ a configured point (per `time.Now`/monotonic read, or per goroutine wake-up). Po
 - `seeded` (proposed default): a mixture — probability p of 0 (a tie), otherwise a bounded draw
   (e.g. geometric/log-uniform between 1 ns and a small upper bound) — drawn from a dedicated
   stream derived from the seed and a draw counter, never from the scheduling stream;
+- `forward`: every draw is at least 1 ns (a bounded seeded draw, never 0), so the clock is
+  strictly increasing at the tick point and ties arise only where real systems produce them —
+  in layers that truncate timestamps (storage precision, encoders, log formats);
 - `fixed=<d>`: a constant quantum;
 - `strict`: today's behavior (no tick).
 Policy, parameters, and application point are recorded in the profile and in Campaign/Artifact
@@ -41,15 +44,16 @@ workload.
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The tick policy (`seeded` with parameters, `fixed`, `strict`) and application point are
+- **R1:** The tick policy (`seeded` with parameters including p(0), `forward`, `fixed`, `strict`) and application point are
   configurable on explore/qualify/qualify-set and per workload in manifests, and recorded in profile
   and artifact identity. Errors: invalid parameters or bounds are rejected; replay with a mismatched
   policy fails closed.
 - **R2:** Under every policy, same-seed repetitions and replay stay exact (runtime fixture and a
   core workload per policy); `strict` reproduces today's behavior byte-for-byte.
 - **R3:** The default policy is decided from measurement: the tie-excluded suites and the smoke
-  selection are run under `seeded` across several seeds; if the evidence supports it, `seeded`
-  becomes the default, the qualified sets are requalified, and tie exclusions resolve (fixed,
+  selection are run under `seeded` and `forward` across several seeds; if the evidence supports
+  it, one of them becomes the default (preferring `forward` when it removes the tie failures
+  without hiding the known real tie bugs, since real clocks move forward), the qualified sets are requalified, and tie exclusions resolve (fixed,
   pinned, or seed-named); otherwise `strict` stays the default with the evidence recorded.
 - **R4:** README/ARCHITECTURE document the policies, the contract, the chosen default and why.
 
@@ -65,4 +69,7 @@ workload.
 2026-09-29, user: bump virtual time minimally per wake-up, configurable; then: maybe make it the
 default, with a seed-based distribution for more variation. A seeded mixture that still produces
 ties with some probability keeps both bug classes reachable across seeds; strict and fixed remain
-available.
+available. User follow-up: real time moves forward — added `forward` (minimum 1 ns), where ties come
+only from truncating layers, as a first-class candidate for the default. A wall-clock-steps-backwards
+policy is a possible later addition, not in scope here.
+
