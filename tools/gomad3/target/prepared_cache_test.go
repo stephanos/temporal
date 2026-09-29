@@ -103,12 +103,14 @@ func TestPrepareDiscardsCachedTargetThatDoesNotHashToItsRecord(t *testing.T) {
 	}
 }
 
-func TestPreparedTargetCacheEvictsLeastRecentlyUsedEntries(t *testing.T) {
+func TestPreparedTargetCacheEvictsLeastRecentlyUsedEntriesPastTheByteBound(t *testing.T) {
 	cacheRoot := isolatePreparedTargetCache(t)
-	previous := maximumPreparedTargets
-	maximumPreparedTargets = 2
-	t.Cleanup(func() { maximumPreparedTargets = previous })
 	module := writeEmbedModule(t, "one")
+	first := prepareEmbedModule(t, module, nil)
+	previous := maximumPreparedTargetBytes
+	// Two binaries fit; a third pushes the least recently used one out.
+	maximumPreparedTargetBytes = 2*first.Size + first.Size/2
+	t.Cleanup(func() { maximumPreparedTargetBytes = previous })
 	for index, value := range []string{"one", "two", "three"} {
 		writeFile(t, filepath.Join(module, "data.txt"), value)
 		prepareEmbedModule(t, module, nil)

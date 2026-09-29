@@ -22,10 +22,11 @@ const preparedTargetSchema = "gomad3.prepared-target/v1"
 // maximumEmbeddedFileBytes bounds one embedded file the identity reads.
 const maximumEmbeddedFileBytes = 64 << 20
 
-// maximumPreparedTargets bounds the binaries one toolchain build retains; the
-// least recently restored entries leave first. A ./tests binary is about
-// 150 MiB, so the bound keeps a busy working copy under about 1.5 GiB.
-var maximumPreparedTargets = 8
+// maximumPreparedTargetBytes bounds the binaries one toolchain build retains;
+// the least recently restored entries leave first. A ./tests binary is about
+// 150 MiB, so the bound holds a handful of large closures while the small
+// fixture binaries of a test run cannot push one out.
+var maximumPreparedTargetBytes = uint64(2 << 30)
 
 // preparedTargetIdentity is every input of a go target build: a binary built
 // from one identity is byte-identical to any other, so repetitions and
@@ -310,7 +311,7 @@ func (cache *preparedTargetCache) publish(targetPath string) (retErr error) {
 }
 
 // evict keeps the most recently restored or published entries within
-// maximumPreparedTargets, never the entry this cache addresses.
+// maximumPreparedTargetBytes, never the entry this cache addresses.
 func (cache *preparedTargetCache) evict() error {
 	entries, err := os.ReadDir(cache.root)
 	if err != nil {
@@ -318,25 +319,37 @@ func (cache *preparedTargetCache) evict() error {
 	}
 	type retained struct {
 		name     string
+		size     uint64
 		modified time.Time
 	}
+	var total uint64
 	candidates := make([]retained, 0, len(entries))
 	for _, entry := range entries {
-		if !entry.IsDir() || entry.Name() == cache.digest || strings.HasPrefix(entry.Name(), ".") {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
 		info, err := os.Stat(filepath.Join(cache.root, entry.Name(), "record.json"))
 		if err != nil {
 			continue
 		}
-		candidates = append(candidates, retained{name: entry.Name(), modified: info.ModTime()})
+		target, err := os.Stat(filepath.Join(cache.root, entry.Name(), "target"))
+		if err != nil || target.Size() < 0 {
+			continue
+		}
+		total += uint64(target.Size())
+		if entry.Name() != cache.digest {
+			candidates = append(candidates, retained{name: entry.Name(), size: uint64(target.Size()), modified: info.ModTime()})
+		}
 	}
 	sort.Slice(candidates, func(i, j int) bool { return candidates[i].modified.Before(candidates[j].modified) })
-	for len(candidates) >= maximumPreparedTargets && len(candidates) > 0 {
-		if err := os.RemoveAll(filepath.Join(cache.root, candidates[0].name)); err != nil {
+	for _, candidate := range candidates {
+		if total <= maximumPreparedTargetBytes {
+			break
+		}
+		if err := os.RemoveAll(filepath.Join(cache.root, candidate.name)); err != nil {
 			return fmt.Errorf("evict prepared target: %w", err)
 		}
-		candidates = candidates[1:]
+		total -= candidate.size
 	}
 	return nil
 }
