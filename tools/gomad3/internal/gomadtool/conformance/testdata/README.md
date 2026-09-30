@@ -10,7 +10,8 @@ runner's `runner/internal/execution/io_*_toolchain_test.go` and
 `runner/replay_io_integration_test.go` instead: `io_filesystem` and `io_net` must reach every
 modeled and every refused `os` and `net` entry in the boundary manifest, since
 `TestBoundaryManifestSemanticCanaries` requires a positive probe for each one, and `io_signal`
-and `io_user` build in guarded capability mode because their packages are forbidden imports.
+and `io_user` build in guarded capability mode because their packages are forbidden imports. `net_bind` is specified by `runner/internal/execution/io_net_bind_toolchain_test.go`: it checks the
+in-memory network's bind contract under the deterministic profile.
 
 The fixtures only use the standard library. Programs that print scheduling or
 map-iteration order must not print addresses, because the driver compares their
