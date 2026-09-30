@@ -30,8 +30,12 @@ if [[ ! -f gen/testpilot-proto.jar || "$(cat gen/testpilot-proto.stamp 2>/dev/nu
   ./gen-proto.sh
 fi
 
+# The framework must build without the Temporal Models, so nothing in umpire/ reaches into them.
+echo "== compile the framework alone"
+scala_cli compile project.scala umpire
+
 echo "== compile and test"
-scala_cli test src
+scala_cli test project.scala umpire temporal
 
 if $prove; then
   echo "== prove the kernel lemmas"
@@ -39,7 +43,7 @@ if $prove; then
   out="$(mktemp)"
   # Stainless writes a stack trace file into the working directory when it crashes; keep it out of
   # the tree.
-  (cd "$(mktemp -d)" && "$stainless" "$here"/src/kernel/*.scala "$here"/proofs/*.scala) > "$out" 2>&1 || true
+  (cd "$(mktemp -d)" && "$stainless" "$here"/temporal/nexuscaller/kernel/*.scala "$here"/proofs/umpire/*.scala "$here"/proofs/temporal/*.scala) > "$out" 2>&1 || true
   sed 's/\x1b\[[0-9;]*m//g' "$out" | grep -E 'total:' || { cat "$out"; echo "run.sh: Stainless did not finish" >&2; exit 1; }
   if ! sed 's/\x1b\[[0-9;]*m//g' "$out" | grep -qE 'invalid: 0 +unknown: 0'; then
     sed 's/\x1b\[[0-9;]*m//g' "$out" | grep -E 'invalid|unknown|Counterexample|  [a-z]+: ' | head -40
@@ -52,7 +56,7 @@ fi
 if $views; then
   echo "== render the views"
   scratch="$(mktemp -d)"
-  scala_cli run src --main-class views.renderViews -- "$scratch" >/dev/null
+  scala_cli run project.scala umpire temporal --main-class temporal.views.renderViews -- "$scratch" >/dev/null
   diff -r "$here/goldens/views" "$scratch"
   rm -rf "$scratch"
 fi

@@ -45,11 +45,11 @@ def scala_stages():
     here = os.path.join(ROOT, "model", "scala")
     cli = f"cd {here} && ./scala.sh"
     tools = os.environ.get("UMPIRE_SCALA_TOOLS", "/tmp/umpire-scala-tools")
-    prove = (f"cd $(mktemp -d) && {tools}/stainless/stainless {here}/src/kernel/*.scala {here}/proofs/*.scala "
+    prove = (f"cd $(mktemp -d) && {tools}/stainless/stainless {here}/temporal/nexuscaller/kernel/*.scala {here}/proofs/umpire/*.scala {here}/proofs/temporal/*.scala "
              "2>&1 | sed 's/\\x1b\\[[0-9;]*m//g' | tee /dev/stderr | grep -qE 'invalid: 0 +unknown: 0'")
     return [
-        ("compile", f"{cli} compile src"),
-        ("test", f"{cli} test src"),
+        ("compile", f"{cli} compile project.scala umpire temporal"),
+        ("test", f"{cli} test project.scala umpire temporal"),
         ("prove", prove),
     ]
 

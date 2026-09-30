@@ -121,21 +121,21 @@ scala)
   cd "$root/model/scala"
   scala_cli() { "$root/model/scala/scala.sh" "$@"; }
   stainless="$(./tools.sh)"
-  prove() { (cd "$(mktemp -d)" && "$stainless" "$root"/model/scala/src/kernel/*.scala "$root"/model/scala/proofs/*.scala); }
+  prove() { (cd "$(mktemp -d)" && "$stainless" "$root"/model/scala/temporal/nexuscaller/kernel/*.scala "$root"/model/scala/proofs/umpire/*.scala "$root"/model/scala/proofs/temporal/*.scala); }
   # Cold: scala-cli's build directory removed, so every source compiles; the JVM and the Bloop
   # server may still be warm, which the report says.
-  mise exec scala-cli -- scala-cli clean src >/dev/null
-  cold=$(seconds scala_cli test src)
-  warm=$(seconds scala_cli test src)
-  model=$(edit_loop model/scala/src/kernel/Nexus.scala '\n// measure.sh edit %s\n' scala_cli test src)
+  mise exec scala-cli -- scala-cli clean project.scala umpire temporal >/dev/null
+  cold=$(seconds scala_cli test project.scala umpire temporal)
+  warm=$(seconds scala_cli test project.scala umpire temporal)
+  model=$(edit_loop model/scala/temporal/nexuscaller/kernel/Nexus.scala '\n// measure.sh edit %s\n' scala_cli test project.scala umpire temporal)
   proof=$(seconds prove)
-  proofEdit=$(edit_loop model/scala/src/kernel/Nexus.scala '\n// measure.sh edit %s\n' prove)
-  framework=$(lines model/scala/src/umpire model/scala/src/caseproducer model/scala/src/views -name '*.scala')
-  models=$(lines model/scala/src/worker model/scala/src/kernel model/scala/src/prelude model/scala/src/nexuscaller model/scala/src/standaloneactivity -name '*.scala')
+  proofEdit=$(edit_loop model/scala/temporal/nexuscaller/kernel/Nexus.scala '\n// measure.sh edit %s\n' prove)
+  framework=$(lines model/scala/umpire -name '*.scala')
+  models=$(lines model/scala/temporal -name '*.scala' -not -path '*/test/*' -not -path '*/views/*')
   proofs=$(lines model/scala/proofs -name '*.scala')
-  tests=$(lines model/scala/src/test -name '*.scala')
-  nexus=$(cd "$root/model/scala/src" && cat kernel/Nexus.scala nexuscaller/Model.scala nexuscaller/Claims.scala worker/Worker.scala | wc -l | tr -d ' ')
-  realization=$(wc -l < "$root/model/scala/src/nexuscaller/Realization.scala" | tr -d ' ')
+  tests=$(lines model/scala/temporal/test -name '*.scala')
+  nexus=$(cd "$root/model/scala/temporal" && cat nexuscaller/kernel/Nexus.scala nexuscaller/Model.scala nexuscaller/Claims.scala worker/Worker.scala | wc -l | tr -d ' ')
+  realization=$(wc -l < "$root/model/scala/temporal/nexuscaller/Realization.scala" | tr -d ' ')
   cat > "$out" <<JSON
 {
   "side": "scala",

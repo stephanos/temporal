@@ -37,7 +37,7 @@ product states where Veil visits 171, because Lean keeps a fired bit per lowered
 
 ## What Stainless proves
 
-`proofs/NexusLemmas.scala` states five lemmas over the kernel in `src/kernel/`, each for every state
+`proofs/temporal/NexusLemmas.scala` states five lemmas over the kernel in `temporal/nexuscaller/kernel/`, each for every state
 and every action class. The machines enumerate the same file, and a runtime test checks that the
 dispatch the lemmas quantify over gives every table row.
 
@@ -143,7 +143,7 @@ What changed from the sample:
   that differ from Go: the product machine names evidence for a fact no step records, and lines come
   in catalog order.
 - **The Stainless kernel sits beside the Model.** The Nexus domains and step functions live in
-  `src/kernel/` without type classes, so their `Finite` instances are derived in the Model file.
+  `temporal/nexuscaller/kernel/` without type classes, so their `Finite` instances are derived in the Model file.
 
 Friction worth knowing:
 

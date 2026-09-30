@@ -18,31 +18,38 @@ The tools are `scala-cli` (installed by mise), JDK 21, `protoc` (mise), and Stai
 
 ## Layout
 
+The framework and the Temporal Models are separate trees. `umpire/` knows nothing of Temporal's
+features and builds on its own; `run.sh` compiles it alone first, so a dependency from the framework
+on a Model fails the gate.
+
 | Path | What it holds |
 | --- | --- |
-| `src/project.scala` | Build directives: Scala version, `-Werror`, dependencies |
-| `src/umpire/` | The framework: finite domains, actions, machines, tables, refinement, composition, claims, search, coverage, sets, canonical JSON, fingerprints, lowering |
-| `src/kernel/` | The Nexus domains and step functions, in the Scala subset Stainless reads |
-| `src/prelude/` | The runtime half of the kernel prelude: `Steps` is `scala.List` |
-| `proofs/` | The Stainless half of the prelude and the lemmas |
-| `src/worker/`, `src/nexuscaller/`, `src/standaloneactivity/` | The three Models, and the Nexus realization |
-| `src/caseproducer/` | The Case producer, over the generated Testpilot Java classes |
-| `src/views/` | Table, diagram, summary and diff views |
-| `src/test/` | Pins, parity against the Lean dumps, Case bytes, kernel agreement, views |
+| `project.scala` | Build directives: Scala version, `-Werror`, dependencies |
+| `umpire/` | The framework, package `umpire`: finite domains, actions, machines, tables, refinement, composition, claims, search, coverage, sets, canonical JSON, fingerprints, lowering |
+| `umpire/prelude/` | The runtime half of the kernel prelude: `Steps` is `scala.List` |
+| `umpire/caseproducer/` | The Case producer, over the generated Testpilot Java classes |
+| `umpire/views/` | Table, diagram, summary and diff views of any Model |
+| `temporal/worker/`, `temporal/nexuscaller/`, `temporal/standaloneactivity/` | The three Models, package `temporal.*`, and the Nexus realization |
+| `temporal/nexuscaller/kernel/` | The Nexus domains and step functions, in the Scala subset Stainless reads |
+| `temporal/views/` | Which views of the Temporal Models are rendered |
+| `temporal/test/` | Pins, parity against the Lean dumps, Case bytes, kernel agreement, views |
+| `proofs/umpire/` | The Stainless half of the prelude |
+| `proofs/temporal/` | The Nexus lemmas |
 | `goldens/views/` | The rendered views |
+| `scala.sh` | `scala-cli` with an exit code that reflects `-Werror` failures |
 | `gen-proto.sh` | `protoc` to Java to `gen/testpilot-proto.jar` (gitignored) |
 
 ## The kernel and Stainless
 
 Stainless verifies a subset of Scala and rejects `scala.List`, and its own library is compiled with
 a nightly Scala, so it cannot be linked into the normal build. The kernel is written against a
-prelude that each side supplies: `src/prelude/Prelude.scala` makes `Steps` a `scala.List` of the
-framework's `Step`, `proofs/Prelude.scala` makes it Stainless's list. The same file,
-`src/kernel/Nexus.scala`, is what the machines enumerate, what the Cases are produced from, and what
-the lemmas in `proofs/NexusLemmas.scala` are proved about.
+prelude that each side supplies: `umpire/prelude/Prelude.scala` makes `Steps` a `scala.List` of the
+framework's `Step`, `proofs/umpire/Prelude.scala` makes it Stainless's list. The same file,
+`temporal/nexuscaller/kernel/Nexus.scala`, is what the machines enumerate, what the Cases are produced from, and what
+the lemmas in `proofs/temporal/NexusLemmas.scala` are proved about.
 
-`src/kernel/NexusActions.scala` gathers every action into one dispatch, which the lemmas quantify
-over; `src/test/NexusKernel.test.scala` checks that the dispatch gives every table row.
+`temporal/nexuscaller/kernel/NexusActions.scala` gathers every action into one dispatch, which the lemmas quantify
+over; `temporal/test/NexusKernel.test.scala` checks that the dispatch gives every table row.
 
 ## Oracle
 

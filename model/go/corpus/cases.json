@@ -18,7 +18,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Model.scala",
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
         "old": "      backoff ~> Protocol.backoffStep,",
         "new": "      backof ~> Protocol.backoffStep,"
       }
@@ -43,7 +43,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Model.scala",
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
         "old": "      handlerReply ~> Protocol.handlerReplyStep,",
         "new": "      handlerReply ~> Protocol.completeStep,"
       }
@@ -68,7 +68,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "file": "model/scala/temporal/nexuscaller/Claims.scala",
         "old": ".actions(schedule(unset, unset, unset), handlerReply(Reply.syncSuccess))",
         "new": ".actions(schedule(unset, unset, unset), handlerReply(Resolution.succeeded))"
       }
@@ -93,7 +93,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/kernel/Nexus.scala",
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
         "old": "    case Phase.timedOut                                         => ProductState(ProductPhase.timedOut)\n",
         "new": ""
       }
@@ -123,7 +123,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/kernel/Nexus.scala",
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
         "old": "if a < attemptBound then a + 1 else a",
         "new": "a + 1"
       }
@@ -148,7 +148,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Model.scala",
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
         "old": "      case ProtocolFact.pendingAttempts           => pendingAttempts.name\n",
         "new": ""
       }
@@ -173,7 +173,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/kernel/Nexus.scala",
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
         "old": "case Resolution.succeeded => moves(s, Phase.succeeded, startedFirst ++ facts1(ProtocolFact.nexusOperationCompleted))",
         "new": "case Resolution.succeeded => moves(s, Phase.failed, startedFirst ++ facts1(ProtocolFact.nexusOperationCompleted))"
       }
@@ -198,7 +198,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Model.scala",
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
         "old": "given Reads[ProtocolState, ProductState] = Reads.through(nexusProtocol, nexusProduct)\n",
         "new": ""
       }
@@ -223,7 +223,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "file": "model/scala/temporal/nexuscaller/Claims.scala",
         "old": "ProtocolState(Phase.succeeded, 1, Timeout.unset",
         "new": "ProtocolState(Phase.succeeded, 2, Timeout.unset"
       }
@@ -258,12 +258,12 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/kernel/Nexus.scala",
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
         "old": "    if productTerminal(s) then one(step(Outcome.notFound, s, facts0))",
         "new": "    if productTerminal(s) then none"
       },
       {
-        "file": "model/scala/src/nexuscaller/Model.scala",
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
         "old": "    ends(Product.productTerminal)",
         "new": "    ends(s => Product.productTerminal(s) && s.phase != ProductPhase.timedOut)"
       }
@@ -288,7 +288,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "file": "model/scala/temporal/nexuscaller/Claims.scala",
         "old": "queries = Vector(syncCompletion, asyncCompletion))",
         "new": "queries = Vector(syncCompletion, asyncCompletion, retry))"
       }
@@ -313,7 +313,7 @@
     ],
     "scala": [
       {
-        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "file": "model/scala/temporal/nexuscaller/Claims.scala",
         "old": "nexusProtocol.property(\"asyncStarts\")",
         "new": "nexusProtocol.property(\"syncSucceeds\")"
       }

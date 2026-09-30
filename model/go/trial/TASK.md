@@ -25,12 +25,12 @@ Add a heartbeat timeout to the standalone activity Model.
 | Side | Files | Check command |
 | --- | --- | --- |
 | Go | `model/go/standaloneactivity/`, `model/go/views/testdata/` | `model/go/run.sh` |
-| Scala | `model/scala/src/standaloneactivity/`, `model/scala/src/test/StandaloneActivity*.test.scala`, `model/scala/goldens/views/`, `model/scala/src/test/CheckedViews.test.scala` | `model/scala/run.sh --no-prove` |
+| Scala | `model/scala/temporal/standaloneactivity/`, `model/scala/temporal/test/StandaloneActivity*.test.scala`, `model/scala/goldens/views/`, `model/scala/temporal/test/CheckedViews.test.scala` | `model/scala/run.sh --no-prove` |
 | Lean | `.plans/cmp/lean/StandaloneActivity.lean`, `.plans/cmp/lean/ActivityPins.lean` | none: see below |
 
 The new rows change the activity's generated views, which each side checks against goldens. Go
 regenerates them with `go run ./model/go/views/cmd/render -out model/go/views/testdata`; Scala with
-`cd model/scala && ./scala.sh run src --main-class views.renderViews -- goldens/views`. Scala also
+`cd model/scala && ./scala.sh run project.scala umpire temporal --main-class temporal.views.renderViews -- goldens/views`. Scala also
 compares its views with the Go views line by line; a line the new rows make differ is added to that
 test's expected differences with its reason.
 

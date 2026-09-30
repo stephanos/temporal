@@ -63,14 +63,16 @@ model/scala/
   run.sh                generate protos if stale, compile with -Werror, test, prove, views
   tools.sh              fetch Stainless
   gen-proto.sh          protoc -> Java -> gen/testpilot-proto.jar
-  src/project.scala     scala-cli directives: Scala version, dependencies, options
-  src/umpire/           the library
-  src/kernel/           step functions shared by the Models and Stainless (section 5)
-  src/prelude/          the runtime half of the kernel prelude
-  src/worker/ src/nexuscaller/ src/standaloneactivity/
-  src/caseproducer/ src/views/
-  src/test/             munit pins, parity, Case bytes, kernel agreement, views
-  proofs/               the Stainless half of the prelude, and the lemmas
+  project.scala         scala-cli directives: Scala version, dependencies, options
+  umpire/               the framework (package umpire), built alone first
+  umpire/prelude/       the runtime half of the kernel prelude
+  umpire/caseproducer/ umpire/views/
+  temporal/             the Temporal Models (package temporal.*)
+  temporal/nexuscaller/kernel/  step functions shared with Stainless (section 5)
+  temporal/views/       which views are rendered
+  temporal/test/        munit pins, parity, Case bytes, kernel agreement, views
+  proofs/umpire/        the Stainless half of the prelude
+  proofs/temporal/      the lemmas
   goldens/views/        rendered views
 ```
 
@@ -102,11 +104,11 @@ with a nightly Scala 3.10, so it cannot be linked into the normal build.
 
 The kernel design keeps one source for both:
 
-- `kernel/` holds the Nexus protocol's domains, state, and step functions in the subset. Each step
+- `temporal/nexuscaller/kernel/` holds the Nexus protocol's domains, state, and step functions in the subset. Each step
   function returns `Steps[ProtocolState]`, a type the kernel imports from `kernel.prelude`.
-- `prelude/Prelude.scala` defines `Steps` as `scala.List` for the normal build.
-- `stainless/Prelude.scala` defines `Steps` as `stainless.collection.List` for Stainless.
-- The Nexus Model in `nexuscaller/` wraps the kernel step functions into the framework's `Step`
+- `umpire/prelude/Prelude.scala` defines `Steps` as `scala.List` for the normal build.
+- `proofs/umpire/Prelude.scala` defines `Steps` as `stainless.collection.List` for Stainless.
+- The Nexus Model in `temporal/nexuscaller/` wraps the kernel step functions into the framework's `Step`
   rows; the table, the pins and the Case bytes run on the same code Stainless proves.
 
 Lemmas, each stated for every state rather than the 192 a table enumerates:
