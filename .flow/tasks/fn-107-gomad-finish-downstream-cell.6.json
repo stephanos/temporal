@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T20:32:41.035321Z",
+  "depends_on": [
+    "fn-107-gomad-finish-downstream-cell.1"
+  ],
+  "id": "fn-107-gomad-finish-downstream-cell.6",
+  "priority": null,
+  "spec": "fn-107-gomad-finish-downstream-cell",
+  "spec_path": ".flow/tasks/fn-107-gomad-finish-downstream-cell.6.md",
+  "status": "todo",
+  "title": "Implement bounded CDS auxiliary stores and in-process WAL",
+  "updated_at": "2026-09-30T20:32:41.035321Z"
+}

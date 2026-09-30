@@ -9,6 +9,6 @@
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.7.md",
   "status": "todo",
-  "title": "D7: macOS job for the functional-test smoke gate",
-  "updated_at": "2026-09-30T03:01:44.902371Z"
+  "title": "D7: add required macOS functional smoke CI",
+  "updated_at": "2026-09-30T21:31:36.943916Z"
 }

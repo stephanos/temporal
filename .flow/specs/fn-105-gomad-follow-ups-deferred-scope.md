@@ -8,6 +8,18 @@ open or close as won't-do.
 
 ## Required work
 
+- **R7:** Add required macOS functional smoke CI
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.7.md)). Decision on
+  2026-09-30: activate D7. Use a standard GitHub-hosted macOS runner qualified
+  as darwin/arm64 and run the same selected functional tests as the Linux smoke
+  job, under the same relevant workflow triggers. Validate the qualification
+  manifest, retain platform-specific reports and uniquely named artifacts, and
+  require zero unsupported, failed, and infrastructure-error outcomes. Keep this
+  representative replay gate explicitly traced under R13 and require exact
+  choice-tape replay. Verify the Darwin job in GitHub Actions and preserve Linux
+  coverage. Any affected replay divergence remains required work under D12/D14;
+  adding the job alone cannot close its acceptance.
+
 - **R12:** Fix the linux/amd64 replay-divergence channel in D12
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.12.md)). Decision on
   2026-09-30: this must be fixed; host availability is an execution prerequisite,
@@ -51,6 +63,41 @@ open or close as won't-do.
   seeds 11 and 17, then remove the four corresponding skips and regenerate the
   qualification manifest. Production endpoint uniqueness behavior stays unchanged;
   diagnosis or a still-skipped test cannot close this fix.
+
+- **R23:** Correct the schedule-migration idempotency test while preserving the
+  current contract ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.23.md)).
+  Decision on 2026-09-30: preserve production behavior and require the test
+  correction. Explicitly establish pending migration before checking that a
+  repeated request succeeds without duplicate work. Verify the existing
+  closed-state response separately after completion. Replace incidental
+  side-effect timing with explicit state preconditions using existing controls
+  or an isolated contract test. Verify native Go and Gomad on seeds 11 and 17,
+  then remove the skip and regenerate the qualification manifest. A broader
+  completed-migration retry contract is outside this task.
+
+- **R24:** Correct reset/signal ordering in the Nexus reset-cross-tree test
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.24.md)). Required test
+  fix approved on 2026-09-30. Establish an explicit observable completion
+  predicate for the first post-reset workflow task before sending the done
+  signal. Preserve reset-run identity, pending-operation survival, all four
+  HSM/CHASM creation-policy cases, and the intended history ordering. Use bounded
+  existing test/history observation patterns; preserve production behavior.
+  Verify native Go and Gomad on seeds 11 and 17, then remove the skip and
+  regenerate the qualification manifest. A relaxed history assertion or a
+  still-skipped test cannot close this correction.
+
+- **R25:** Fix enhanced `DescribeTaskQueue` report-flag caching in production
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.25.md)). Required
+  production fix approved on 2026-09-30. Ensure cached information and response
+  construction honor requested poller/stat fields without leaking unrequested
+  information or omitting subsequently requested fields. Retain regressions for
+  both request orders, cache hits, and flag combinations; preserve shared cached
+  data, valid reuse/expiry, and build-ID/task-queue-type isolation. Keep the
+  existing functional assertions, verify focused/native/Gomad behavior, and obtain
+  a dedicated production correctness review. Update this bug's qualification
+  finding and expected target-failure dispositions only after verification;
+  unrelated findings remain intact. This is an explicitly approved production
+  behavior correction; a Gomad-only workaround cannot close it.
 
 ## Approved investigations
 
@@ -121,10 +168,19 @@ receipt does not claim the underlying issue is fixed.
 
 | Issue | Work to decide |
 | --- | --- |
-| Schedule migration idempotency test | Reconcile the expected second migration result with the contract after the schedule is closed |
-| Nexus reset-cross-tree history test | Synchronize the post-reset workflow task and signal ordering while preserving reset/operation-survival coverage |
-| Enhanced DescribeTaskQueue response cache | Fix the production cache's handling of request report flags, with separate production review and regression evidence |
-| Optional capabilities | Decide whether D6 clock policies, D7 macOS smoke CI, D11 dynamic Linux clock auditing, and deferred D15 larger traces should be activated or remain deferred |
+| Optional capabilities | Decide whether D11 dynamic Linux clock auditing should be activated or remain deferred; D6 clock policies and D15 larger traces are explicitly deferred, and D7 macOS smoke CI is required |
+
+## Deferred clock policies
+
+- **R6:** Keep the `seeded` and `fixed=<d>` virtual-clock policies deferred
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.6.md)). Decision on
+  2026-09-30: the extra timing scenarios are optional exploration features with
+  no demonstrated workload that needs them. Revive when a specific bug class
+  requires deliberate timestamp ties or constant increments. Record that evidence
+  before implementation. On revival, implement the policies and manifest settings,
+  qualify a runtime fixture and core workload for each policy, and retain the
+  execution-identity and COMPAT-5 evidence required by fn-103. Preserve the existing
+  `strict` and `forward` behavior. This decision requires no clock implementation.
 
 ## Deferred trace-capacity extension
 
@@ -178,8 +234,7 @@ claiming completion or changing task status.
 
 | Item | Scope and origin | Why deferred | Revival trigger |
 | --- | --- | --- | --- |
-| D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | `forward` addresses known ties; the extra policies are exploration features | A bug class needs deliberate ties or constant quanta |
-| D7 | macOS functional smoke job (`fn-101.4`) | Linux supplies the smoke gate and macOS already runs Temporal integration | A darwin-only regression escapes to main |
+| D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | Explicitly deferred 2026-09-30 under R6; `forward` addresses known ties and the extra policies are exploration features | A specific bug class needs deliberate ties or constant quanta |
 | D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Linked mode removes the import | A downstream module needs closure-mode preparation or manifests |
 | D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
 | D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |

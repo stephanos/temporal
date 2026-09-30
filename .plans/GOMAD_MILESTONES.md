@@ -81,8 +81,12 @@ excluded. What still keeps the package short of "every functional test replays e
     from parallel subtests. This is an approved required fix in
     [D22](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.22.md).
     `TestScheduleMigrationV2ToV1Idempotent` expects idempotency after the
-    migration closed; `TestNexusOperationSurvivesResetCrossTree` signals before the post-reset
-    workflow task completes.
+    migration closed. [D23](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.23.md)
+    requires correcting the test with explicit pending/closed state checks while
+    preserving production behavior. `TestNexusOperationSurvivesResetCrossTree`
+    signals before the post-reset workflow task completes.
+    [D24](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.24.md) requires
+    correcting this ordering with an explicit completion predicate before signalling.
 - **Intermittent suites.** `TestSignalWorkflowTestSuiteChasm` on darwin (F10 D14) and the F5/F6
   suites on linux (F10 D12).
 
@@ -114,8 +118,11 @@ excluded. What still keeps the package short of "every functional test replays e
   response cache in `service/matching/matching_engine.go` is keyed by build ID and task-queue type
   only (`dtq_enhanced:<buildId>.<type>`), so a reachability-only request inside the cache TTL is
   served the previous response's pollers. Virtual time puts the second call in the same instant
-  as the first, so the hit is certain. Fixing it changes production behavior and needs its own
-  review outside this plan; the suite's `target_failure` expectation cites this finding.
+  as the first, so the hit is certain. The user approved a required production
+  correction in [D25](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.25.md)
+  on 2026-09-30, with regression evidence and a dedicated production review.
+  The suite's `target_failure` expectation cites this finding until verification
+  supports updating the disposition.
 - **DTrace clock audit** on darwin needs a root run; CI supplies it on the macOS runner.
 - **Downstream cell.** Gomad-side work for a module that embeds the server is complete; its
   in-process cluster test classifies as a capability blocker until the downstream cuts its own
@@ -143,7 +150,8 @@ excluded. What still keeps the package short of "every functional test replays e
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters
-  runtime behavior for production builds needs its own review outside this plan.
+  runtime behavior for production builds requires dedicated production review and
+  regression evidence; D25 is explicitly approved as such work.
 - **Validation scope.** The full `./tests` set is not run as a gate; a change is validated on the
   smoke selection plus the suites it affects, with `make gomad3-tests-qualification` as the
   on-demand local run.
@@ -158,19 +166,21 @@ acceptance criteria. Other items retain their original deferral reasons and revi
 triggers from the 2026-09-29 scope cut. A trigger must be recorded here before a
 deferred item is implemented; deferred items may remain open or close as won't-do.
 
-**Status.** Twenty-two items after splitting D13's policy and capacity obligations
+**Status.** Twenty-five items after splitting D13's policy and capacity obligations
 and adding the approved investigations. The 2026-09-30 blanket approval covers
 all remaining investigations, including D18-D21.
-D12, D14, and D22 are required fixes; D13 requires opt-in tracing for routine
+D12, D14, and D22-D25 are required fixes; D13 requires opt-in tracing for routine
 qualification. Larger-trace support is deferred as D15; D16-D21 require
-investigation before corrections are selected. Known test defects, the production
-cache defect, and optional capabilities retain their pending decisions in fn-105.
+investigation before corrections are selected. D25 includes dedicated production
+review. D7 macOS smoke CI is required. D6 clock policies remain explicitly
+deferred, and D11 dynamic Linux clock auditing retains its pending decision in fn-105.
 Implementation has not started.
 
 ### Required work
 
 | Item | Scope and origin | Decision |
 | --- | --- | --- |
+| D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Required CI addition approved 2026-09-30. R7 in fn-105 requires a standard macOS runner, preserved Linux coverage, platform-specific reports/artifacts, zero unsupported/failed/infrastructure errors, explicitly traced exact replay, and passing GitHub Actions evidence. |
 | D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
 | D13 | Make runtime choice tracing opt-in for routine full-suite qualification (`fn-106.3`) | Decided 2026-09-30. R13 in fn-105 requires untraced full-suite defaults, explicit tracing in representative replay/conformance gates and choice-based exploration, and separate reporting of seed repeatability and verified choice-tape replay. D12/D14 verification remains traced. Larger-trace support moves to deferred D15. |
 | D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Required fix, decided 2026-09-30. R14 in fn-105 requires identifying and fixing the cause, a regression reproducer, and repeated Darwin exact replay on both seeds under load. A shared D12 fix requires separate Darwin verification before restoring the suite to qualified. |
@@ -181,6 +191,9 @@ Implementation has not started.
 | D20 | Investigate heartbeat timeout counting under virtual time | Blanket investigation approval 2026-09-30. R20 establishes timeout/reset semantics and proposes a correction preserving timeout/recovery coverage. |
 | D21 | Investigate host-clock reporting exposure and policy-compatible remedies | Blanket investigation approval 2026-09-30. R21 assesses remedies under existing collector/assembly prohibitions; any changed policy or accepted limitation needs a subsequent decision. |
 | D22 | Fix parallel Nexus start/cancel outcome subtests that reuse endpoint names | Required fix approved 2026-09-30. R22 requires independent endpoint identities, preserved parallel/API coverage, native and Gomad verification, and removal of the four skips after verification. |
+| D23 | Correct schedule-migration idempotency coverage with explicit pending and closed states | Required test correction approved 2026-09-30. R23 preserves current production semantics, verifies pending-state retry and closed-state behavior separately, and removes the skip after native/Gomad verification. |
+| D24 | Correct the Nexus reset-cross-tree test's signal ordering | Required test fix approved 2026-09-30. R24 requires an explicit post-reset task-completion predicate, preserved operation-survival/HSM/CHASM/history assertions, native/Gomad verification, and skip removal after verification. |
+| D25 | Fix enhanced DescribeTaskQueue report-flag caching in production | Required production fix approved 2026-09-30. R25 requires request-shape correctness across cache hits/orderings, preserved assertions, focused/native/Gomad verification, dedicated production review, and disposition updates after verification. |
 
 ### Architecture consolidation
 
@@ -212,8 +225,7 @@ no implementation.
 
 | Item | Scope and origin | Why deferred | Revival trigger |
 | --- | --- | --- | --- |
-| D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | `forward` addresses known ties; the extra policies are exploration features | A bug class needs deliberate ties or constant quanta |
-| D7 | macOS functional smoke job (`fn-101.4`) | Linux supplies the smoke gate and macOS already runs Temporal integration | A darwin-only regression escapes to main |
+| D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | Explicitly deferred 2026-09-30 under fn-105 R6; `forward` addresses known ties and the extra policies are exploration features | A specific bug class needs deliberate ties or constant quanta |
 | D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Linked mode removes the import | A downstream module needs closure-mode preparation or manifests |
 | D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
 | D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |

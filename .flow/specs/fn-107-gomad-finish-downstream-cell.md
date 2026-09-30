@@ -78,8 +78,11 @@ Walker prevents workflow persistence; a SQL-only workflow cannot qualify.
 
 ### Task ownership
 
-Tasks fn-107.1 through fn-107.4 implement storage, profile/membership, CDS
-composition and the dedicated workflow smoke in dependency order. Existing
+Tasks fn-107.1 and fn-107.2 implement storage and profile/membership.
+The user authorized isolated worktrees for parallel execution: fn-107.6 supplies
+stateful bounded CDS auxiliary stores/WAL and fn-107.7 supplies the injectable
+factory and host source seams, independently of fn-107.2. fn-107.3 integrates
+these three surfaces, then fn-107.4 supplies the dedicated workflow smoke. Existing
 fn-105.8 (D8), fn-105.9 (D9) and fn-105.10 (D10) supply closure preparation,
 Linux pack/qualification and generic seam guidance. fn-107.5 consumes their
 evidence and performs final requirement reconciliation. Flow dependencies are
@@ -281,7 +284,8 @@ remain visible failures and cannot satisfy a `qualified` expectation.
   are reused. A new Gomad modeled operation requires its own contract, resource
   bound, transcript coverage, exact replay, and negative evidence under COMPAT-5.
 - Implementation and verification are authorized. The user retains commit
-  ownership; this work creates no commits, pushes, worktrees, or deployments.
+  ownership; this work creates no commits, pushes, or deployments. The user
+  subsequently authorized isolated worktrees for parallel implementation.
 
 ## Decision Context
 
