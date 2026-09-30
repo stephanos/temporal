@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-104-gomad-run-a-downstream-cell-under-the",
   "spec_path": ".flow/tasks/fn-104-gomad-run-a-downstream-cell-under-the.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Accept reviewed compatibility packs from an external, digest-bound directory",
   "updated_at": "2026-09-30T04:22:40.719165Z"
 }

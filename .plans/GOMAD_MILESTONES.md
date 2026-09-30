@@ -42,7 +42,7 @@ milestone's status here.
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | done (linux seed-17 replay divergence open as a finding) |
 | F8 | `fn-102-gomad-architecture-consolidate` | done (cut to R1, the generated bootstrap decoder; R2–R6 moved to F10) |
 | F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; cut to `forward` and `strict` (default decided by measurement), `seeded`/`fixed` moved to F10 |
-| F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; no dependency; linked mode on darwin/arm64 ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
+| F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | done (downstream target classified: 44 downstream-owned blockers; [GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
 | F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; scope cut from F7–F9 on 2026-09-29, each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
@@ -1412,7 +1412,7 @@ disposition recorded, and the measurement. Linked analysis of the downstream in-
 test fell from 78 to 44 live blockers, all downstream-owned (10 `remain_unsupported` subprocess,
 signal, and credential-chain sites; 34 `model_operation` with named injection points), and
 `gomad qualify` classifies both seeds as `unsupported_target`, a capability blocker, at the first of
-them. The details are in [GOMAD_CLOUD.md](GOMAD_CLOUD.md) under "Measurement".
+them. The details are in [GOMAD_CLOUD.md](GOMAD_CLOUD.md) under "Measurement". CI confirmed the linux side in fork run 36677813390 (host tier, linux pack qualification, core corpus, closure, darwin upgrade dossier, and smoke gate), and F9 is closed.
 
 ## F10: follow-ups (deferred scope)
 

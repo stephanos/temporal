@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-104-gomad-run-a-downstream-cell-under-the",
   "spec_path": ".flow/tasks/fn-104-gomad-run-a-downstream-cell-under-the.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record a disposition for every run-time boundary operation the downstream services perform",
   "updated_at": "2026-09-30T04:22:43.201215Z"
 }
