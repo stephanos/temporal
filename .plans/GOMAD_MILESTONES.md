@@ -1134,8 +1134,16 @@ gate run in CI.
   job builds the toolchain and runs the conformance tiers and the core corpus on Linux.
   Artifacts replay only on the platform that produced them, so the Linux run is a second
   qualification, never a replay of the Mac one. The modernc libc adapter and its pack landed
-  for Linux on 2026-09-27. Still open for Linux: a host-clock escape audit to replace DTrace,
-  and the `./tests` closure.
+  for Linux on 2026-09-27. Still open for Linux then: a host-clock escape audit to replace DTrace,
+  and the `./tests` closure. The audit was replaced on 2026-09-29 by a static inventory (R5
+  amended): on linux/amd64 the clock is read through the vDSO, invisible to seccomp and ptrace,
+  and the interception is platform-neutral Go, so `toolchain/clock_inventory_test.go` pins every
+  standard-library host-clock reference per platform. Its first run found three unguarded reads
+  recorded as escapes: `gcMarkTermination` writes host wall time to `MemStats.LastGC` (and
+  `debug.GCStats`, and the Prometheus `go_memstats_last_gc_time_seconds` gauge), the FIPS
+  entropy source's `monoTime` (FIPS mode only), and the execution tracer's clock snapshot
+  (tracing is outside the contract); on Linux also `syscall.Gettimeofday` behind the `syscall`
+  pack gate. `LastGC` is the one reachable in ordinary targets.
 - Linux re-measurement, 2026-09-28 (fork run 36493869196, linux/amd64, both seeds, exact
   replay): all 18 supported workloads qualify, 10 stay at the amd64 xxhash boundary, 0 failed,
   0 infrastructure errors, 36 replays with none diverged, 40 s of reported execution time

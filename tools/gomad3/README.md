@@ -847,7 +847,14 @@ tests; audits map key families across seeds; and repeats prebuilt map and
 scheduler fixtures under distinct allocation layouts and bounded unrelated CPU
 load. Supported-host CI additionally runs `make clock-audit`: a privileged,
 positive-controlled DTrace gate that rejects seeded calls to `clock_gettime` or
-`mach_absolute_time` after Gomad activation. Set `GOMAD3_STOCK_GO` when the
+`mach_absolute_time` after Gomad activation. On both platforms the toolchain
+tier pins every standard-library reference to the host clock (`nanotime1`,
+`walltime`, `time_now`, and the linux vDSO clock symbols) against a reviewed,
+classified inventory and checks that `nanotime` and `time_runtimeNow` return
+on activation before reaching it; linux/amd64 reads the clock through the vDSO,
+which a syscall tracer cannot observe, so this static check is its escape gate.
+The inventory records the known escapes, such as `MemStats.LastGC`, which the
+collector still stamps with host wall time. Set `GOMAD3_STOCK_GO` when the
 stock Go executable cannot be resolved
 from the module-selected toolchain in `PATH`; the test never downloads one.
 
