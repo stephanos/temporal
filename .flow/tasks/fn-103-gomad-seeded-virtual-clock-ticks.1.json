@@ -12,6 +12,6 @@
   "spec_path": ".flow/tasks/fn-103-gomad-seeded-virtual-clock-ticks.1.md",
   "status": "todo",
   "sync": null,
-  "title": "Implement seeded, fixed, and strict tick policies in the runtime and profile",
-  "updated_at": "2026-09-29T19:14:26.672348Z"
+  "title": "Implement forward and strict tick policies in the runtime and profile",
+  "updated_at": "2026-09-30T03:02:44.059992Z"
 }

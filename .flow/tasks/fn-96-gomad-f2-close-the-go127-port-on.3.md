@@ -37,6 +37,8 @@ Three defects blocked the darwin result, and all are fixed in commit a8777f5d73:
 - The retained artifacts were deleted.
 
 stage: impl-review - ran [codex fan-out rid 9f8763a51d20461886dd2150ec1a711e, 3/3 draws SHIP] SHIP
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: a8777f5d7333e6ff09829441adc6c2ecae1a0f82
 - Tests: baseline: none (spec defines no Quick commands), make gomad3-qualification (darwin/arm64): expectations-met=true supported=5 unsupported=11 failed=2 infrastructure-errors=0 completed=18/18, make -C tools/gomad3 validate, go test -count=1 ./internal/compatibilitypack/... ./qualification/... ./cmd/gomadtool/... (tools/gomad3), go test -count=1 ./qualification/... ./cmd/gomad/... ./runner (tools/gomad3), make gomad3-integration-test, jq -e <darwin temporal-integration CI predicate> temporal-qualification-set.json

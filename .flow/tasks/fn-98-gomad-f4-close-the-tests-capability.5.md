@@ -18,6 +18,8 @@ The darwin v041, v047, and v047-isatty-v021 packs were rediscovered, reviewed, a
 Memory auto-capture was skipped because `.flow/memory` is not initialized.
 
 stage: impl-review - ran [2026-09-27] codex fan-out NEEDS_WORK (1 P2: denied-only forbidden facts invalidated requests) -> fixed -> SHIP
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ec3053f1223aa664b88ff09b43136818992f583a, 2449051e200aaf629df033c0bd17a8d395cc7d09
 - Tests: baseline: green (make -C tools/gomad3 validate, pre-edit; spec defines no Quick commands), make -C tools/gomad3 validate (pass, after fix commit), make -C tools/gomad3 compatibility-pack-qualification (pass, 8/8 darwin requests, rerun after fix commit), make -C tools/gomad3 test-host (pass, 44 packages, rerun after fix commit), go test -tags test_dep ./internal/compatibilitypack/... ./deterministicio/ ./cmd/gomadtool/ (pass; new tests confirmed red before fix), make -C tools/gomad3 core-qualification-set (expectations-met=true, supported=5 unsupported=0 failed=0, 5/5), gomad analyze --capability-mode=closure --format=json --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep go-test ./tests (classification=supported, 0 blockers, 0 guarded, 0 eliminated), make qualification-set with tools/gomad3integration/qualification/temporal.json (gomad3-qualification set half; expectations-met=true supported=16 unsupported=0 failed=2 intermittent tier3 infrastructure-errors=0 completed=18/18), linux/amd64: modernc-libc-xsys-v047-linux-amd64 evidence and linux prepared source-set pin derived on darwin, not observed; needs a linux/amd64 compatibility-pack-qualification run

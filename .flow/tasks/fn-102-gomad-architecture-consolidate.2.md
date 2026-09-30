@@ -23,8 +23,9 @@ R2. Baseline duplication: seed World/coverage handling runner.go:844 onward, cho
 - [ ] Tests exercise the private interface directly and preserve strategy-level coverage.
 
 ## Done summary
-TBD
+NOT IMPLEMENTED. Moved to fn-105-gomad-follow-ups-deferred-scope.1 (D1) on 2026-09-29 as a scope cut; the task text above remains the implementation brief.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

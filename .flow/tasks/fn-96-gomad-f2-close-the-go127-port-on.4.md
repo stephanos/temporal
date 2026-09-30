@@ -15,6 +15,8 @@ Recorded the F2 darwin/arm64 outcome in `.plans/GOMAD_MILESTONES.md`. F2's Statu
 F4's status no longer says the darwin packs and adapter pins are unverified. It now records that the darwin `./tests` closure is closed at a8777f5d73. The tracking table marks F2 done, noting that the clock audit needs a root run. `.plans/GOMAD3_NEXT.md` has no statement this makes false, so it is unchanged.
 
 stage: impl-review - ran [2026-09-27] triage_skip SHIP (docs-only .plans/GOMAD_MILESTONES.md)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 80b7bc4736d44e104af5729ada23b3f3cbe6b9e3
 - Tests: baseline: none (spec defines no Quick commands), flowctl gate classify: docs-only tier-B (.plans/GOMAD_MILESTONES.md)

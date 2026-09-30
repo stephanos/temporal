@@ -23,8 +23,9 @@ R3. Reuse task 2 assessment. Share only matching eligibility, novelty, bounded c
 - [ ] Fixed-identity canonical manifests/journal projections match baseline; 10/100-job bound tests preserve Parallel=2 and capacity failures; review confirms no new full-payload copies or state proportional to total selected seeds.
 
 ## Done summary
-TBD
+NOT IMPLEMENTED. Moved to fn-105-gomad-follow-ups-deferred-scope.2 (D2) on 2026-09-29 as a scope cut; the task text above remains the implementation brief.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

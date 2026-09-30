@@ -43,6 +43,8 @@ Together with task .1, the slice qualifies 20 of 20 seed runs on darwin, and the
 Linux/amd64 is not re-measured here. That the platform-neutral fixes also close the linux divergences is an inference until the slice is requalified on linux.
 
 stage: impl-review - skipped(empty: measurement-only task, no commits in BASE_COMMIT..HEAD to review; no divergence observed, so code changes were forbidden by the task prompt)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: none (spec defines no Quick commands), for S in TestSignalWorkflowTestSuiteChasm TestWorkflowUpdateSuite TestChildWorkflowSuite TestCronTestSuite TestWorkflowTimerTestSuite TestCancelWorkflowSuite; seed 11,17: tools/gomad3/.bin/gomad qualify --json --seed SEED --repeat 4 --choices --choice-bytes=64MiB --replay-successes --success-limit=1 --success-bytes=1GiB --capability-mode closure --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep --io-ro-mount ./schema=/go.temporal.io/server/schema --execution-timeout 6m --overall-timeout 9m go-test ./tests -- -test.run=^S$ (12/12 rc=0 qualified)

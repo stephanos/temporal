@@ -15,6 +15,8 @@ Observed on darwin/arm64 at a861e0dbb3 that closure analysis of `go-test ./tests
 baseline: green (make -C tools/gomad3 validate compatibility-pack-qualification)
 
 stage: impl-review - ran [codex fan-out, 3 draws SHIP .. finalize SHIP]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 98f47614c239feeaeee0a51b69cda81f93b6ce2f
 - Tests: make -C tools/gomad3 validate compatibility-pack-qualification, tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep go-test ./tests (supported, 0 blockers, 0 unsupported_target, 1043 packages), jq darwin closure assertion from .github/workflows/gomad3.yml core job

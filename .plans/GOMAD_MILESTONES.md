@@ -15,7 +15,8 @@ criterion for each step that a reviewer can check with a command.
 F0–F7 deliver the functional-test goal. F8 follows with architecture maintenance that
 consolidates protocol and execution-policy ownership while preserving the qualified behavior.
 F9 extends the supported target shape from the server's own module to a downstream module that
-embeds the server; it depends on F7, not on F8.
+embeds the server; it depends on neither F7 nor F8. F10 holds the scope cut from F7–F9 on
+2026-09-29: backlog items that each name the trigger that would revive them.
 
 The ladder is strictly ordered. Each milestone assumes the previous one's acceptance criteria
 hold. A milestone whose criteria fail blocks the next one; it never gets narrowed to pass.
@@ -38,10 +39,11 @@ milestone's status here.
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | done on darwin/arm64 (activity batch cancel is tier-3 `intermittent`) |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | done on darwin/arm64 (linux/amd64 not re-measured) |
-| F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open |
-| F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; plan reviewed |
-| F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; seeded virtual-clock ticks (default decided by measurement) |
-| F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; depends on F7; downstream-module targets ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
+| F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open; `.3` awaits a linux CI run, `.4` (linux smoke gate) not started |
+| F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; cut to R1 (generated bootstrap decoder), R2–R6 moved to F10 |
+| F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; cut to `forward` and `strict` (default decided by measurement), `seeded`/`fixed` moved to F10 |
+| F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; no dependency; linked mode on darwin/arm64 ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
+| F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; scope cut from F7–F9 on 2026-09-29, each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
@@ -1284,7 +1286,9 @@ records the findings and evidence behind this work.
   is recorded as a blocker, never as passing qualification.
 
 **Status.** Planned on 2026-09-27 with six tasks and an explicit dependency on F7. Flow-Next
-validation passes and plan review returned `SHIP`; implementation has not started. The
+validation passes and plan review returned `SHIP`; implementation has not started. Cut on
+2026-09-29 to R1 (task `.1`, which now also carries the full-gate qualification); R2–R6 moved to
+F10 as D1–D5, because they change no behavior and no consumer is waiting on them. The
 existing architecture test package passed during assessment, which is not full runtime
 qualification.
 
@@ -1369,7 +1373,33 @@ server never sees are blockers here; and the linker removes the metrics library'
 so linked mode needs one new adapter rather than two. The full inventory is in
 [GOMAD_CLOUD.md](GOMAD_CLOUD.md) under "Baseline measurement"; the raw reports name downstream
 packages and are not retained. The server-embedding harness remains out of reach because of its
-external service topology. Spec created; no tasks yet.
+external service topology. Spec created; no tasks yet. Cut on 2026-09-29 to linked mode on
+darwin/arm64 with no dependency on F7; closure-mode support, linux/amd64 packs, and the seam
+guide moved to F10 as D8–D10.
+
+## F10: follow-ups (deferred scope)
+
+**Spec.** [fn-105-gomad-follow-ups-deferred-scope](../.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md);
+items and revival triggers in [GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md).
+
+**Outcome.** None required. F10 is a backlog, not a milestone to finish: it keeps the scope cut on
+2026-09-29 from the open milestones in one place, each item with its origin, why it was deferred,
+and the observation that would revive it.
+
+| Item | Origin | Revive when |
+| --- | --- | --- |
+| D1–D5 architecture consolidation | F8 R2–R6 | a second consumer or exploration strategy hits the duplication |
+| D6 `seeded` and `fixed` tick policies | `fn-103` | a bug class needs deliberate ties or constant quanta |
+| D7 macOS smoke job | F7 `.4` | a darwin-only regression escapes to main |
+| D8 closure-mode downstream support | F9 C3/R2 | a downstream module needs closure-mode preparation |
+| D9 linux/amd64 downstream packs | F9 | a downstream gate must run in linux CI |
+| D10 downstream-seam guide | F9 R4 | a second downstream module adopts Gomad |
+| D11 dynamic linux clock audit | F7 R5 (pre-amendment) | a linux-only clock escape is observed |
+
+**Constraints.** An item is worked only after its trigger is recorded here; its acceptance is the
+origin spec's requirement text. Items may be closed as won't-do.
+
+**Status.** Created on 2026-09-29 with eleven tasks; nothing started.
 
 ## Out of scope
 

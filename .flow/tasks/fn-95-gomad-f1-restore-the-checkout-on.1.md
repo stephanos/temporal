@@ -16,6 +16,8 @@ Run `make gomad3` with GOROOT on a stock go1.27.1; confirm `tools/gomad3/.bin/go
 stage: impl-review - ran (triage_skip SHIP: empty task diff)
 
 Note: commit 1bc1d4affa (Merge CLAUDE.md into AGENTS.md) landed concurrently from outside this task and is not part of it.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: none (spec defines no Quick commands), make gomad3 (GOROOT=stock go1.27.1, darwin/arm64) rc=0; toolchain key 85c444f98ab905a782983191f7d47dd4ce9687a606051d1c87f9ffdf71a39f16, tools/gomad3/.bin/gomad doctor rc=0: available=true; host, toolchain, runner, 7 adapters, artifacts all ok

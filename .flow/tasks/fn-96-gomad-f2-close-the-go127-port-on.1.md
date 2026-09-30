@@ -36,6 +36,8 @@ Ran the darwin/arm64 upgrade dossier against the go1.26.4 baseline 75f4d101c5, r
 - Dossier JSON copies are in the scratchpad: `upgrade-dossier-darwin-arm64-go1.27.1.json` (approved) and `upgrade-dossier-run1-unapproved.json`. The core-qualification artifacts (121 MB) were deleted.
 
 stage: impl-review - ran [codex fan-out rid 0863b36c157b43709729b6c70178da1a, 3/3 draws SHIP] SHIP
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 68d36aadfe6481eec0532d722991c52e13228c3d
 - Tests: baseline: none (spec defines no Quick commands), make -C tools/gomad3 validate-toolchain (rc=0), tools/gomad3/.toolchain/bin/go version -> go1.27.1 darwin/arm64, make -C tools/gomad3 upgrade-dossier GOMAD3_BASELINE_REF=75f4d101c5 (dossier published; boundary diff sha256:86f18fc8cda31fe234d345f70384e8d5ae94e9cbb883beb5f8399e73f6d4798f unapproved; host-clock-escape failed: testdata/clock_audit missing), make -C tools/gomad3 clock-audit after fix (rc=2: 'gomad3 clock audit requires root DTrace privileges'), make -C tools/gomad3 upgrade-dossier GOMAD3_BASELINE_REF=75f4d101c5 GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=sha256:86f18fc8cda31fe234d345f70384e8d5ae94e9cbb883beb5f8399e73f6d4798f (boundary_changes_approved=true; 6/6 non-root gates passed; host-clock-escape failed on root only; gomad3-core 5/5 supported, replay exact; qualified=false)
