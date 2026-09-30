@@ -119,7 +119,11 @@ copied verbatim from `temporal.json`, which `make gomad3-integration-test`
 checks. The `Gomad v3 functional smoke` workflow runs it on linux/amd64 for
 changes to Gomad, the functional tests, and the server packages their closure
 reaches, and requires `unsupported`, `failed`, and `infrastructure_errors` to
-be zero with every suite qualified and replayed exactly. Making it a required
+be zero with every suite qualified and replayed exactly. It runs seed 11 only:
+seed 17 has diverged on replay intermittently on linux since the FIPS DRBG and
+mark-start greying runtime changes (GOMAD_MILESTONES.md F7), a different suite
+each run, and a required gate must not flake; the representative set still
+exercises seed 17. Making it a required
 check is a branch-protection setting. Run it locally with:
 
 ```sh

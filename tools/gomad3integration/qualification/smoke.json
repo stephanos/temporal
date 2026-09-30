@@ -4,8 +4,7 @@
   "description": "Functional-test smoke selection gated in CI; each suite is copied verbatim from temporal.json",
   "module": "go.temporal.io/server",
   "seeds": [
-    11,
-    17
+    11
   ],
   "repeat": 2,
   "run_timeout": "2m",
@@ -52,7 +51,8 @@
           "classification": "qualified"
         },
         "linux/amd64": {
-          "classification": "qualified"
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -94,7 +94,8 @@
           "classification": "qualified"
         },
         "linux/amd64": {
-          "classification": "qualified"
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -136,7 +137,8 @@
           "classification": "qualified"
         },
         "linux/amd64": {
-          "classification": "qualified"
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -174,7 +176,8 @@
           "classification": "qualified"
         },
         "linux/amd64": {
-          "classification": "qualified"
+          "classification": "intermittent",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     }

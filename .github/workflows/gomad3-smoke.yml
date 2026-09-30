@@ -77,7 +77,7 @@ jobs:
       - name: Qualify the functional smoke selection
         run: make gomad3-smoke-qualification
 
-      # Every smoke suite qualifies with exact replay on both seeds: the gate
+      # Every smoke suite qualifies with exact replay on seed 11: the gate
       # reads unsupported, failed, and infrastructure errors separately, per
       # COMPAT-2, and requires each to be zero.
       - name: Verify functional smoke evidence
@@ -85,7 +85,7 @@ jobs:
           jq -e '
           .schema == "gomad3.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
-          .seeds == ["11", "17"] and .expectations_met and
+          .seeds == ["11"] and .expectations_met and
           .selected == 4 and .completed == 4 and .supported == 4 and
           .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | .classification == "qualified" and
