@@ -16,7 +16,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-103-gomad-seeded-virtual-clock-ticks.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: seeded virtual-clock ticks",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T19:17:44.829518Z"
+  "updated_at": "2026-09-30T15:36:06.199301Z"
 }

@@ -12,7 +12,7 @@
   "review": null,
   "spec": "fn-103-gomad-seeded-virtual-clock-ticks",
   "spec_path": ".flow/tasks/fn-103-gomad-seeded-virtual-clock-ticks.2.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Measure forward on the tie-excluded suites and decide the default",
   "updated_at": "2026-09-30T03:02:44.993046Z"
