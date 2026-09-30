@@ -1,0 +1,24 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r . -r 'TestWALFenceUnwrittenStream|T…
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
+[testrunner] 2026/09/30 15:02:10 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-a3d99e76-07c8-4f00-95e8-236690821099-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run TestWALFenceUnwrittenStream|TestWALInitialFenceCapacity -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/fn107-task3-wal-red_0.cover.out ./cds/stream/memory
+✖  cds/stream/memory (1.058s) (coverage: 35.3% of statements)
+
+=== Failed
+=== FAIL: cds/stream/memory TestWALFenceUnwrittenStream (0.00s)
+    initial_fence_test.go:33: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cds/stream/memory/initial_fence_test.go:33
+        	Error:      	Received unexpected error:
+        	            	memory WAL read stream not found
+        	Test:       	TestWALFenceUnwrittenStream
+
+DONE 1 tests, 1 failure in 1.058s
+[testrunner] 2026/09/30 15:02:19 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/fn107-task3-wal-red.junit.xml
+[testrunner] 2026/09/30 15:02:19 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/fn107-task3-wal-red.junit.xml
+[testrunner] 2026/09/30 15:02:19 exiting with failure after running 1 attempt(s)
+exit status 1
+2026/09/30 15:02:19 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/fn107-task3-wal-red.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run TestWALFenceUnwrittenStream|TestWALInitialFenceCapacity -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/fn107-task3-wal-red.cover.out ./cds/stream/memory]
+2026/09/30 15:02:19 test failed: test failed: exit status 1
+exit status 1
+[test] ERROR task failed

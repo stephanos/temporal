@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2]
+satisfies: [R8]
 ---
 # fn-105-gomad-follow-ups-deferred-scope.8 D8: closure-mode support for downstream targets
 

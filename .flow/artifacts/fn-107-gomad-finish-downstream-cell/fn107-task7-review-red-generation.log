@@ -1,0 +1,23 @@
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
+[testrunner] 2026/09/30 14:40:36 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-7f87469b-fa1e-4a30-a425-87d68f1f32c9-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryHEWALGenerationBoundary$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/export/cds
+✖  cds/export/cds (2.596s) (coverage: 2.6% of statements)
+
+=== Failed
+=== FAIL: cds/export/cds TestInjectedWalkerFactoryHEWALGenerationBoundary/overflow (0.00s)
+    injected_factory_test.go:165: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cds/export/cds/injected_factory_test.go:165
+        	Error:      	An error is expected but got nil.
+        	            	expected: *serviceerror.InvalidArgument
+        	Test:       	TestInjectedWalkerFactoryHEWALGenerationBoundary/overflow
+
+=== FAIL: cds/export/cds TestInjectedWalkerFactoryHEWALGenerationBoundary (0.00s)
+
+DONE 2 tests, 2 failures in 2.596s
+[testrunner] 2026/09/30 14:40:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:40:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:40:47 exiting with failure after running 1 attempt(s)
+exit status 1
+2026/09/30 14:40:47 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryHEWALGenerationBoundary$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./cds/export/cds]
+2026/09/30 14:40:47 test failed: test failed: exit status 1
+exit status 1

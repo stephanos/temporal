@@ -1,0 +1,83 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r '^TestGomadReplicationEventsPreserv…
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker...
+[testrunner] 2026/09/30 14:43:20 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-17c9ab29-7ffa-4b64-938e-0511899e6429-junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run ^TestGomadReplicationEventsPreserveNestedWatermarks$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./wevents
+✖  wevents
+
+=== Failed
+=== FAIL: wevents  (0.00s)
+FAIL	github.com/temporalio/saas-temporal/walker/wevents [build failed]
+
+=== Errors
+wevents/replica.go:30:22: cannot use ReplicaEvent{} (value of struct type ReplicaEvent) as events.Event value in variable declaration: ReplicaEvent does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/replication.go:39:22: cannot use ShardIUEvent{} (value of struct type ShardIUEvent) as events.Event value in variable declaration: ShardIUEvent does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/replication.go:58:22: cannot use ShardCheckpointEvent{} (value of struct type ShardCheckpointEvent) as events.Event value in variable declaration: ShardCheckpointEvent does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/replication.go:126:81: cannot use evt (variable of struct type ShardIUEvent) as events.Event value in argument to p.eventProducer.Offer: ShardIUEvent does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/replication.go:185:81: cannot use evt (variable of struct type ShardCheckpointEvent) as events.Event value in argument to p.eventProducer.Offer: ShardCheckpointEvent does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/roperation.go:28:22: cannot use RoperationStarted{} (value of struct type RoperationStarted) as events.Event value in variable declaration: RoperationStarted does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/roperation.go:63:22: cannot use RoperationCompleted{} (value of struct type RoperationCompleted) as events.Event value in variable declaration: RoperationCompleted does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/shardspace.go:30:22: cannot use ZoneSnapshot{} (value of struct type ZoneSnapshot) as events.Event value in variable declaration: ZoneSnapshot does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/shardspace.go:70:22: cannot use DatanodeSnapshot{} (value of struct type DatanodeSnapshot) as events.Event value in variable declaration: DatanodeSnapshot does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/shardspace.go:105:22: cannot use ReplicaSnapshot{} (value of struct type ReplicaSnapshot) as events.Event value in variable declaration: ReplicaSnapshot does not implement events.Event (wrong type for method Encode)
+
+		have Encode(*chronicle.PayloadEncoder)
+
+		want Encode(*events.PayloadEncoder)
+
+wevents/replication.go:185:81: too many errors
+
+
+DONE 0 tests, 1 failure, 11 errors in 0.000s
+[testrunner] 2026/09/30 14:43:21 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:43:21 tests failed but no failures have been detected, not rerunning tests
+exit status 1
+2026/09/30 14:43:21 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run ^TestGomadReplicationEventsPreserveNestedWatermarks$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./wevents]
+2026/09/30 14:43:21 test failed: test failed: exit status 1
+exit status 1
+[test] ERROR task failed

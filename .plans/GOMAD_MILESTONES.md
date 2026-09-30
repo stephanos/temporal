@@ -173,7 +173,8 @@ D12, D14, and D22-D25 are required fixes; D13 requires opt-in tracing for routin
 qualification. Larger-trace support is deferred as D15; D16-D21 require
 investigation before corrections are selected. D25 includes dedicated production
 review. D7 macOS smoke CI is required. D6 clock policies remain explicitly
-deferred, and D11 dynamic Linux clock auditing retains its pending decision in fn-105.
+deferred. D11 dynamic Linux clock auditing depends on D21 and remains conditional
+on its findings establishing audit need and feasible scope.
 Implementation has not started.
 
 ### Required work
@@ -226,10 +227,10 @@ no implementation.
 | Item | Scope and origin | Why deferred | Revival trigger |
 | --- | --- | --- | --- |
 | D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | Explicitly deferred 2026-09-30 under fn-105 R6; `forward` addresses known ties and the extra policies are exploration features | A specific bug class needs deliberate ties or constant quanta |
-| D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Linked mode removes the import | A downstream module needs closure-mode preparation or manifests |
-| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
-| D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |
-| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Static inventories cover both platforms; darwin DTrace exercises interception | A linux-only host-clock escape is observed |
+| D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Revived by fn-107 R7/R9 under fn-105 R8 | Final downstream target and closure evidence as specified by fn-107 |
+| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | Revived by fn-107 R8/R10 under fn-105 R9 | D8 and the final downstream target; qualify both actual hosts |
+| D10 | Downstream seam guide (`fn-104` R4) | Revived by fn-107 R12 under fn-105 R10 | D9's retained qualification and pack evidence |
+| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Conditional on D21, decided 2026-09-30 under fn-105 R11 | Complete D21 and retain findings establishing audit need and feasible scope |
 | D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
 
 The [constraints](#constraints) apply throughout.

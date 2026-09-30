@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2]
+satisfies: [R9]
 ---
 # fn-105-gomad-follow-ups-deferred-scope.9 D9: linux/amd64 downstream packs and qualification
 

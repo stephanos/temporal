@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2]
+satisfies: [R10]
 ---
 # fn-105-gomad-follow-ups-deferred-scope.10 D10: downstream-seam guide
 

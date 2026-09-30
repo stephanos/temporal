@@ -11,9 +11,12 @@ Stateful auxiliary stores and WAL preserve ownership/CAS, cloned records, real s
 
 
 ## Done summary
-TBD
+Integrated bounded CDS metadata, shard and historical watermark stores with real CAS, cloning, cancellation and capacity failures. Added an in-process WAL dialer exercised through the existing GRPCStreamProvider with records, paging, fencing, delete/reopen and resource lifetime semantics. Review fixes make send errors terminal and account for stored records plus queued read payloads and write acknowledgments in one byte budget. Existing native fixtures and providers remain unchanged.
 
+Native and Gomad-tag native checks each passed 20 tests; focused lint reported zero issues. The independent three-axis review and resumed primary review concluded SHIP, receipt task6-review.json. Source identities are recorded in task6-source-identities.json. Full Temporal workflow smoke and actual Gomad execution/replay remain with dependent tasks. No commits or staging.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: GOFLAGS=-p=2 mise run test -t 3m ./cds/storage/memory ./cds/stream/memory, GOFLAGS=-p=2 mise run test --tags test_dep,gomad -t 3m ./cds/storage/memory ./cds/stream/memory, mise exec -- golangci-lint run --timeout 2m --build-tags test_dep ./cds/storage/memory ./cds/stream/memory, flowctl codex impl-review-fanout/finalize then resumed impl-review: task6-review.json SHIP, Verified all nine current source hashes match the green-check inventory and git diff --check is clean
 - PRs:

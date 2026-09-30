@@ -1,0 +1,11 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r . -t 3m ./cds/storage/memory ./cds/…
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
+[testrunner] 2026/09/30 14:32:16 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-8f373fac-aff2-41cf-8d6c-a854710a372a-junit.xml -- -tags test_dep -race -cover -run . -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/storage/memory ./cds/stream/memory
+✓  cds/storage/memory (2.115s) (coverage: 96.1% of statements)
+✓  cds/stream/memory (2.903s) (coverage: 90.2% of statements)
+
+DONE 20 tests in 2.919s
+[testrunner] 2026/09/30 14:32:22 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:32:22 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml

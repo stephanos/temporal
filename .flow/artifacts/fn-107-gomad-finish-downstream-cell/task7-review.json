@@ -3,50 +3,26 @@
   "id": "branch",
   "mode": "codex",
   "base": "HEAD",
-  "verdict": "NEEDS_WORK",
+  "verdict": "SHIP",
   "session_id": "01a0f436-8ff6-7f71-a554-9f7af03527b9",
   "model": "gpt-6.1-sol",
   "effort": "high",
   "spec": "codex:gpt-6.1-sol:high",
-  "timestamp": "2026-09-30T21:33:17.728076Z",
-  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Matching shardspaces can still be invalid\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Matching shardspaces can still be invalid. Setting both `p.Shardspace` and the configured specification to `wkeys.Shardspace(99)` passes validation and starts the factory. Every subsequent Walker acquisition fails because `NewReliableShardClientWithContext` calls `ShardKey.Validate`, which rejects that value. The existing negative test changes only one side, so it misses this case.\n- **Suggestion**: Validate the shardspace enum before constructing resources; test matching invalid shardspaces.\n- **File:Line**: cds/export/cds/injected_factory.go:158\n- **R-IDs**: R1, R11\n\n## Issue 2\n- **Severity**: P2\n- **Title**: The positive-generation check accepts `2147483648` on both target platforms\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The positive-generation check accepts `2147483648` on both target platforms. `NewHistoryBranchHelper` converts that value to `int32`, producing a negative generation. HEWAL read/write decisions then disable HEWAL and select legacy persistence, which this factory explicitly rejects. Construction succeeds with a configuration that cannot persist workflow history.\n- **Suggestion**: Require the generation to fit a positive `int32`; add an overflow boundary test.\n- **File:Line**: cds/export/cds/injected_factory.go:151\n- **R-IDs**: R1, R11\n\n## Issue 3\n- **Severity**: P2\n- **Title**: Successful owned-registry initialization has no cleanup guard covering subsequent construction\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Successful owned-registry initialization has no cleanup guard covering subsequent construction. For example, otherwise valid parameters with `Config.ElementLockModeConfig = nil` pass validation, start the owned registry, then panic in `NewHistoryAppController`. The registry\u2019s refresh goroutine and SQL metadata handle remain open. The existing panic-cleanup test covers only failures inside registry initialization.\n- **Suggestion**: Defer owned-resource cleanup until ownership transfers to the returned factory, preserving unexpected panics. Add a regression test for a failure after registry startup.\n- **File:Line**: cds/export/cds/injected_factory.go:89\n- **R-IDs**: R11, R6\n\n```json\n{\"classification_counts\": {\"introduced\": 3, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
-  "focus": "Review fn107 task7 ONLY: actual working-tree diff HEAD and all untracked files in exact63source inventory /private/tmp/fn107-task7-inventory.json. User retains commit ownership, so HEAD..HEAD intentionally empty; do NOT conclude emptyreview. Read task acceptance /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tasks/fn-107-gomad-finish-downstream-cell.7.md and overall requirements .flow/specs/fn-107-gomad-finish-downstream-cell.md. Review injectablefactory real MultiWalkerStoreProvider and WedgeShardController/HistoryAppController/ExecutionStoreWrapper pairing, validated resource/config identity, injected WAL dialers, borrowed SQL factory and borrowed optional namespace registry versus owned metadata+registry lifecycle; constructor/startfailure cleanup and idempotent close. Profile requires Walker/HEWAL, rejects metering/legacyhist visibly. Check paired source seams retain native API/defaults/comments in CDS export, stream, metering, blobstore, root roleassumer, cloudmetricshandler/events and Chronicle config/recorder, pendingbranch sentinel/context identity. Generic os/signal grants prohibited. Actual main integration gates:69 native tests test_dep,hashicorpmetrics;28 Gomad-tag native tests test_dep,gomad,hashicorpmetrics; focusedGomadlint0. Logs /private/tmp/fn107-task7-integrated-native.log /private/tmp/fn107-task7-integrated-gomad-tag.log /private/tmp/fn107-task7-integrated-lint-gomad.log; worker63hashmatchedafterintegration. These are native compiler checks, NOT fullGomadqualification. Ignore task1/task2/task6 pending changes outside63inventory; otherworkers fix2/6 only, source7 frozen. Readunchangedcallsitesascontext; reportconcreteintroduceddefects only. Real combined Walker acquisition/recovery task3 and Temporalworkflow task4 are pending separateowners, do not misreport missingendtoendsmoke asintroducedtask7defect. Read-only review.",
-  "introduced_count": 3,
+  "timestamp": "2026-09-30T21:52:31.350763Z",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\n\nVerified invalid shardspace rejection, the positive int32 generation bound with successful MaxInt32 routing, and deferred constructor cleanup that preserves unexpected panics.\n\nThe Walker encoder migration preserves native APIs through the Chronicle alias and retains nested watermark logging under Gomad. No new blocking findings.\n\nAll 69 source hashes match. Recorded gates passed: 31 native tests, 32 Gomad-tag tests, and four lint gates. Full Gomad qualification remains separately owned.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Task7 factory pairing implemented; tasks3/4 own acquisition and workflow smoke. |\n| R2 | deferred | Task7 source seams implemented; final closure verification remains pending. |\n| R3 | deferred | Task1 owns filesystem requirements. |\n| R4 | deferred | Tasks1/2 own capacity configuration. |\n| R5 | deferred | Task2 owns membership requirements. |\n| R6 | deferred | Metrics retained; complete profile qualification remains pending. |\n| R7 | deferred | D8 owns adapter qualification. |\n| R8 | deferred | D9 owns platform packs. |\n| R9 | deferred | Final target analysis awaits integration. |\n| R10 | deferred | Dual-platform execution and replay remain pending. |\n| R11 | met | Task7 compatibility and regression gates passed, including meaningful red/green evidence. |\n| R12 | deferred | D10 and final reconciliation own documentation. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review task7 ONLY: all three merged findings are fixed, plus a concrete combined-source event encoder mismatch found by Walker Gomad lint. CURRENT authoritative 69-file inventory /private/tmp/fn107-task7-review-fixes-inventory.json includes six new scoped Walker wevents files beyond prior63, plus existing producer_gomad.go nested WriteObject. Inspect actual working-tree/untracked files; user owns commits and HEAD..HEAD intentionally empty. All69 source hashes verified after green gates. Validation now uses real ShardKey.Validate to reject matching invalid shardspace, requires positive int32-compatible HE generation with MaxInt32 branch routing positive test, constructor cleanup defers owned controller/registry/SQL metadata until ownership transfer and preserves unexpected panics. Narrow wevents signature migration uses events.PayloadEncoder native Chronicle alias, native test assertions preserved through !gomad selection; real Gomad event logging preserves nested watermark data. Read all current new tests and affected callsites for regressions. Final checks:31 native compatibility tests,32 Gomad-tag native compatibility tests /private/tmp/fn107-task7-review-final-native.log and final-gomad.log;4 focused native/Gomad lint gates0 and meaningful reds/greens recorded /private/tmp/fn107-task7-review-fixes-evidence.json. Combined actual Walker profile now passed44 Gomad-tag tests, nativeQuick559/3existing skips /private/tmp/fn107-task2-gomad-tag.log and task2-native-quick.log. No actual Gomad qualification claim yet: task3 integration and task4 workflow remain pending owners. Source7 frozen; ignore source2/6 outside69inventory. Read-only resumed primary review.",
+  "introduced_count": 0,
   "pre_existing_count": 0,
   "unaddressed": [],
-  "draws": [
-    {
-      "axis": "correctness",
-      "model": "gpt-6.1-sol",
-      "session_id": "01a0f436-8ff6-7f71-a554-9f7af03527b9",
-      "verdict": "SHIP",
-      "failed": false
-    },
-    {
-      "axis": "contracts",
-      "model": "gpt-6.1-sol",
-      "session_id": "01a0f436-8fb7-7523-b373-e0ccbc8b7ae5",
-      "verdict": "NEEDS_WORK",
-      "failed": false
-    },
-    {
-      "axis": "integration",
-      "model": "gpt-6.1-sol",
-      "session_id": "01a0f436-8fb8-7cb1-ad5e-72301e70d88c",
-      "verdict": "SHIP",
-      "failed": false
-    }
-  ],
-  "rid": "9a609b40ff72e1db794861004fb2889c",
-  "reviewed_head_sha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
   "findings": {
     "schemaVersion": 1,
-    "sourceReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617",
+    "sourceReceiptId": "review-13e49df572c5124a8f8f1eaeccf5270f76208882462cd1577f039dd17ff52f21",
     "reviewKind": "implementation",
     "backend": "codex",
-    "round": 1,
+    "round": 2,
     "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
     "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "supersedesReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617",
     "items": [
       {
         "id": "finding-f8bdfd571e1b03fdfc95c5aa7880901d",
@@ -54,7 +30,7 @@
         "severity": "P2",
         "confidence": 100,
         "classification": "introduced",
-        "status": "open",
+        "status": "fixed",
         "title": "Matching shardspaces can still be invalid",
         "body": "Matching shardspaces can still be invalid. Setting both `p.Shardspace` and the configured specification to `wkeys.Shardspace(99)` passes validation and starts the factory. Every subsequent Walker acquisition fails because `NewReliableShardClientWithContext` calls `ShardKey.Validate`, which rejects that value. The existing negative test changes only one side, so it misses this case.",
         "rIds": [
@@ -70,7 +46,7 @@
         },
         "suggestion": "Validate the shardspace enum before constructing resources; test matching invalid shardspaces.",
         "firstSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617",
-        "lastSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617"
+        "lastSeenReceiptId": "review-13e49df572c5124a8f8f1eaeccf5270f76208882462cd1577f039dd17ff52f21"
       },
       {
         "id": "finding-82df7a390c3f23b5c91388481819e700",
@@ -78,7 +54,7 @@
         "severity": "P2",
         "confidence": 100,
         "classification": "introduced",
-        "status": "open",
+        "status": "fixed",
         "title": "The positive-generation check accepts `2147483648` on both target platforms",
         "body": "The positive-generation check accepts `2147483648` on both target platforms. `NewHistoryBranchHelper` converts that value to `int32`, producing a negative generation. HEWAL read/write decisions then disable HEWAL and select legacy persistence, which this factory explicitly rejects. Construction succeeds with a configuration that cannot persist workflow history.",
         "rIds": [
@@ -94,7 +70,7 @@
         },
         "suggestion": "Require the generation to fit a positive `int32`; add an overflow boundary test.",
         "firstSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617",
-        "lastSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617"
+        "lastSeenReceiptId": "review-13e49df572c5124a8f8f1eaeccf5270f76208882462cd1577f039dd17ff52f21"
       },
       {
         "id": "finding-e1584cd5a4286657f38dcf15373f945e",
@@ -102,7 +78,7 @@
         "severity": "P2",
         "confidence": 100,
         "classification": "introduced",
-        "status": "open",
+        "status": "fixed",
         "title": "Successful owned-registry initialization has no cleanup guard covering subsequent construction",
         "body": "Successful owned-registry initialization has no cleanup guard covering subsequent construction. For example, otherwise valid parameters with `Config.ElementLockModeConfig = nil` pass validation, start the owned registry, then panic in `NewHistoryAppController`. The registry\u2019s refresh goroutine and SQL metadata handle remain open. The existing panic-cleanup test covers only failures inside registry initialization.",
         "rIds": [
@@ -118,7 +94,7 @@
         },
         "suggestion": "Defer owned-resource cleanup until ownership transfers to the returned factory, preserving unexpected panics. Add a regression test for a failure after registry startup.",
         "firstSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617",
-        "lastSeenReceiptId": "review-2bdaa92fa51e96d53786467135ae2362c6cd117d52dbebda84707fabc5115617"
+        "lastSeenReceiptId": "review-13e49df572c5124a8f8f1eaeccf5270f76208882462cd1577f039dd17ff52f21"
       }
     ]
   }

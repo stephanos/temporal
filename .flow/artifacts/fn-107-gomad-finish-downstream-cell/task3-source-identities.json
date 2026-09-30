@@ -1,0 +1,5 @@
+{
+  "cds/export/cds/integration/injected_factory_test.go": "8ebbc1b225a8eaee0c3b07564821e11c11311432d391d4468e1153918226baaf",
+  "cds/stream/memory/initial_fence_test.go": "794eec5e9a46b7637ba276a848648a2a502f1da8a8af497d07ba145c1e2a166a",
+  "cds/stream/memory/read.go": "12173c65b97b355d2a82cd29d793225e760a9bd20f4d108317fef5faa13bc760"
+}

@@ -1,0 +1,11 @@
+{
+  "cds/storage/memory/bounds_test.go": "08b5a09acfc0e45b64921a619d41fb53b6f116110e99df10a0f7aa343effe9f6",
+  "cds/storage/memory/stores.go": "3ac6f86943bc3f4ddaf32851a40d088a60dbafa85060aa975ea6a9a1176075fd",
+  "cds/storage/memory/stores_test.go": "61878955bc2a9c1d08dae0dc7fff28a3753fa378608a7ba6f326c3b7157f18f8",
+  "cds/stream/memory/bounds_test.go": "6e4644b8a0a9485af25987d124f2d475f8dab320f171d2a77426192dfc97325f",
+  "cds/stream/memory/dialer.go": "19d73b9597fd51ef8e785e3f842b716518b7f1c267bc8e33296d959209b94395",
+  "cds/stream/memory/dialer_test.go": "8f5fa7db9fdeab075d2e4ce030c63a1f2eda6ac3f8c59521c0fd2593e6fe92b5",
+  "cds/stream/memory/read.go": "b80ae761d9dcb236cc1d9952ee23aab84f1577e8ba238134a5b16e99772bc270",
+  "cds/stream/memory/review_test.go": "a03d73dbbf9767258f63169d4cc6f462d79492c0cc373463362625dfa4f10ffd",
+  "cds/stream/memory/rpc.go": "74b41772a5880c29c9b03df1b3a8a46a9ebdc850685e2272409975fd542c646b"
+}

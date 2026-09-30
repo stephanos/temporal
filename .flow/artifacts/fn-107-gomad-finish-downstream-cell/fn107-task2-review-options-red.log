@@ -1,0 +1,23 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r . -t3m --tags test_dep,hashicorpmet…
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker...
+[testrunner] 2026/09/30 14:24:05 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-0f2495ca-c4fe-4205-bef6-46a1f7679877-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInProcessProfile_ComponentOptionsOwnEngineDefaults$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./localcluster
+✖  localcluster (1.539s) (coverage: 0.1% of statements)
+
+=== Failed
+=== FAIL: localcluster TestInProcessProfile_ComponentOptionsOwnEngineDefaults (0.00s)
+    in_process_lifecycle_regression_test.go:95: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker/localcluster/in_process_lifecycle_regression_test.go:95
+        	Error:      	Expected nil, but got: quartz.realClock{}
+        	Test:       	TestInProcessProfile_ComponentOptionsOwnEngineDefaults
+
+DONE 1 tests, 1 failure in 1.539s
+[testrunner] 2026/09/30 14:24:23 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:24:23 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:24:23 exiting with failure after running 1 attempt(s)
+exit status 1
+2026/09/30 14:24:23 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInProcessProfile_ComponentOptionsOwnEngineDefaults$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./localcluster]
+2026/09/30 14:24:23 test failed: test failed: exit status 1
+exit status 1
+[test] ERROR task failed

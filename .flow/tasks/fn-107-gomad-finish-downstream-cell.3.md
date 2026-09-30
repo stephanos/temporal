@@ -9,9 +9,10 @@ Integrate and verify the completed fn-107.2 profile, fn-107.6 bounded auxiliary 
 A tested injectable CDS factory constructs real Walker backing without Cassandra, BOSS or etcd; auxiliary stores/WAL preserve state and CAS/record/recovery semantics. Existing production constructor defaults behave identically. Forbidden downstream source imports are eliminated at build time; invalid provider configuration and lifecycle errors propagate.
 
 ## Done summary
-TBD
+Integrated the reviewed Walker profile, bounded CDS stores/WAL and injectable factory through a real three-phase persistence test. It proves WAL-only history before flush, ownership close/reacquire and recovery, direct persisted Walker execution/history after flush, and another factory reopen; the seeded borrowed SQLite database remains usable. Initial recovery exposed the absent-stream fencing contract: fencing reads now atomically create and seal an unwritten ledger, while ordinary reads retain NotFound and stale deleted handles/capacity failures cannot recreate state. The isolated regression failed before the correction. Native and gomad-tag native affected suites each passed all 18 tests; focused lint reported zero issues. All three independent review axes returned SHIP, merged receipt task3-review.json. Source/test identities and four logs are retained beside this summary. Activated Gomad runtime qualification belongs to later tasks. The user retains commit ownership; no commits or staging.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics -t 3m ./cds/stream/memory ./cds/export/cds/integration, cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics,gomad -t 3m ./cds/stream/memory ./cds/export/cds/integration, cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,hashicorpmetrics ./cds/stream/memory/... ./cds/export/cds/integration/..., flowctl codex impl-review-fanout --base HEAD (standalone working-tree focus); fanout-finalize cff307f440c90574a2a667be3f86b4cf: SHIP, SHA-256 source and retained-log verification: all matched
 - PRs:
