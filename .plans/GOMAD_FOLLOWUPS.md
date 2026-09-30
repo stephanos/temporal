@@ -30,6 +30,7 @@ classification and precedence, and replay compatibility when reviving them.
 | D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
 | D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |
 | D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Static inventories cover both platforms; darwin DTrace exercises interception | A linux-only host-clock escape is observed |
+| D12 | Identify the linux/amd64 host-timing channel behind the intermittent replay divergence (`fn-106.1`) | About one tier-3 seed-run in 26 diverges on either seed; reverting the FIPS DRBG draw or the mark-start greying did not remove it, and a Rosetta container reproduces it only under load, so each fork iteration costs an hour | A linux/amd64 host is available for buffered per-event runtime logging, or the rate rises |
 
 The constraints in [GOMAD_MILESTONES.md](GOMAD_MILESTONES.md) apply throughout.
 New tick policies carry execution identity and the

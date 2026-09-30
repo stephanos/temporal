@@ -11,9 +11,10 @@ Under the gomad tag, give the dedicated pool enough slots for tests that need tw
 
 
 ## Done summary
-TBD
+testcore already honors TEMPORAL_TEST_DEDICATED_CLUSTERS, and the ./tests generator gained a per-test environment override. With two dedicated clusters TestNexusOTELSuite/TestOperation runs instead of waiting on itself, but the suite is then not deterministic (seed 17 nondeterministic; a seed 11 replay differed in stderr and wrote no terminal frame). Classified: TestOperation stays skipped with that finding, which keeps the rest of the suite qualified. Along the way the Runner no longer reports a watchdog-killed or cancelled target as a choice-coverage runner failure.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: gomad qualify-set TestNexusOTELSuite with TEMPORAL_TEST_DEDICATED_CLUSTERS=2: seed 17 nondeterministic, seed 11 runner failure, go test ./runner -run ChoiceTraceObserved
 - PRs:
