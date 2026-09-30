@@ -1113,7 +1113,15 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 # module's build trace. Running it in model/ would thrash model/.lake against ordinary builds, so it
 # runs in a mirror of the sources with a build directory of its own that stays warm between runs.
 LINT_MODEL_DIR ?= $(CURDIR)/.build/lint-model
-LINT_MODEL_MODULES ?=
+# The default roots cover production and tool declarations without re-elaborating the test
+# aggregators; an empty command-line override retains Lake's exhaustive default-target lint.
+LINT_MODEL_MODULES ?= \
+	Shared \
+	Testpilot \
+	Temporal \
+	Umpire \
+	Temporal.Tool.Inspect \
+	Temporal.Tool.Testpilot
 
 .PHONY: lint-model lint-model-builtin
 lint-model: umpire-check-inventory

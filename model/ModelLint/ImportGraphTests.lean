@@ -1,5 +1,6 @@
 import ModelLint.Entity
 import ModelLint.ImportGraph
+import ModelLint.MakeTests
 import ModelLint.ModuleIndexTests
 import ModelLint.PackageModulesTests
 import Tools.LeanImportGraphTests
@@ -988,6 +989,7 @@ private def controlledEntityViolations : Array ModelLint.Entity.Violation :=
     declaration .action "serve" `Temporal.Feature.Planted]
 
 private unsafe def runSyntheticSuite : IO UInt32 := do
+  ModelLint.MakeTests.runIO
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   ModelLint.PackageModulesTests.run
