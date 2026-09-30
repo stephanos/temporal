@@ -98,6 +98,24 @@ each terminates the process at run time or produces unrepeatable evidence.
   runnable; `fn-103` (seeded virtual-clock ticks) governs the policy, and this spec records the
   observed behavior per wait rather than changing the clock.
 
+**C4 dispositions (2026-09-30).** Each operation above, with the evidence behind its disposition.
+`TestProfileNetworkBindContract` (`runner/internal/execution`) runs the `net_bind` fixture under
+the deterministic profile for two seeds.
+
+| Operation | Disposition | Evidence and injection point |
+| --- | --- | --- |
+| All-interface binds (`":port"`, `0.0.0.0`) | modeled | The in-memory network binds the loopback listener at `127.0.0.1`; no host interface is reached. `net_bind` asserts it. |
+| Concrete listener types (`*net.TCPListener`, `*net.TCPAddr`) | modeled | `net.Listen` returns a real `*net.TCPListener` over an in-memory descriptor and `Addr()` a `*net.TCPAddr`; `net_bind` asserts both. |
+| Port probing (listen, close, re-bind) | modeled | Port 0 allocates sequentially, a closed port can be bound again, a second bind fails; the transcript is seed-independent in `net_bind`. |
+| Datagram sockets (UDP listen, UDP address resolution) | denied (`network.udp-listen`, `network.resolve-udp-address`) | Target-injectable: the membership layer accepts a transport, so the target supplies a TCP-only one. Loopback UDP is not modeled. |
+| Advisory file locks, `chown`, `link`, deadlines, raw descriptors, `ReadFrom`/`WriteTo` | denied (unmodeled, and `filesystem.*` findings in linked mode) | Target-injectable: the storage engine takes its filesystem through an interface, so the target injects an in-memory filesystem, which removes all nine filesystem findings at once. |
+| `statfs` | denied (the target package's own `x/sys/unix` import) | Target seam: a `gomad`-tagged file answers capacity from configuration. |
+| Interface enumeration, non-literal address resolution | denied (`network.interface-addresses-*`, `network.resolve-*`) | Target-injectable: bind and advertise addresses are configured as IP literals, so the address library never enumerates interfaces. |
+| DNS lookups | modeled for `localhost`, otherwise denied | Reachable through gRPC's DNS resolver and cloud metadata clients but not called when targets dial IP literals or use the passthrough resolver; the server's own qualified closure carries the same resolver. |
+| Process metrics | linux: admitted (`procfs` in `temporal-functional-tests-linux-amd64`); darwin: denied at run time | Target seam: the process collector is not registered under the `gomad` tag; the collector's `x/sys` imports at the downstream version belong in the downstream's external pack. |
+| `process.kill`, `process.signal` | denied | Target seam: the harness's subprocess mode and the certificate proxy stay out of the in-process closure under the `gomad` tag. |
+| Long readiness waits | modeled (virtual clock) | A polling wait advances virtual time directly when nothing is runnable, so it completes as soon as the system is ready or reaches its deadline logically; `--clock-tick=forward` separates timestamps but does not shorten waits. |
+
 **C5. Guidance for downstream source seams.** The server closed its own closure with `gomad`
 build-tag seams (`temporal/interrupt_gomad.go`, `common/config/persistence_password_gomad.go`,
 `common/archiver/provider/provider_cloud_gomad.go`, `tests/testcore/flag_sql_gomad.go`, …). The
