@@ -119,6 +119,8 @@ type searcher struct {
 	found          int
 	exercised      bool
 	monRead        []bool
+	// exceeded is set when a new state would take the search past its limit.
+	exceeded bool
 }
 
 func (s *searcher) free() bool { return s.q.Scenario.free }
@@ -147,8 +149,13 @@ func (s *searcher) run() (Answer, error) {
 	s.visited = map[productKey]bool{s.keyOf(s.nodes[0]): true}
 	s.counterexample, s.found = -1, -1
 	frontier := []int{0}
-	for len(frontier) > 0 {
-		if len(s.visited) > s.q.Limits.Search {
+	for len(frontier) > 0 || s.exceeded {
+		if len(s.visited) > s.q.Limits.Search || s.exceeded {
+			if s.counterexample >= 0 {
+				// A violation found within the limit stands: `Umpire.Search` gives a verify's
+				// counterexample precedence over the traversal's termination.
+				return s.conclude(), nil
+			}
 			return Answer{Outcome: LimitReached, Explored: len(s.visited),
 				Explanation: fmt.Sprintf("the limits %s allow %d product states", s.q.Limits.Name, s.q.Limits.Search)}, nil
 		}
@@ -160,6 +167,9 @@ func (s *searcher) run() (Answer, error) {
 			}
 			if s.found >= 0 {
 				return s.answer(Found, s.found, ""), nil
+			}
+			if s.exceeded {
+				break
 			}
 			next = append(next, added...)
 		}
@@ -187,6 +197,12 @@ func (s *searcher) expand(i int) ([]int, error) {
 			key := s.keyOf(next)
 			if s.visited[key] {
 				continue
+			}
+			if len(s.visited) >= s.q.Limits.Search {
+				// The limit bounds the states the search visits, so a state past it is neither
+				// visited nor read: no answer rests on work the limit does not allow.
+				s.exceeded = true
+				return added, nil
 			}
 			s.visited[key] = true
 			s.nodes = append(s.nodes, next)

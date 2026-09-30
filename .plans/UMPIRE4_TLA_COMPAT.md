@@ -22,6 +22,117 @@ Compatibility means preserving the answers to the same Umpire questions. Similar
 state diagram, or two successful tool invocations do not establish that. The principles below are
 the constraints on the design; the backend route and encoding remain proposals.
 
+## Learn from Quint before designing another semantic layer
+
+Quint is directly relevant precedent: its stated design combines familiar programming-language
+syntax, early feedback, explicit modes, inspectable intermediate data, and close correspondence
+with TLA+. That is much of the problem this proposal is trying to solve. Umpire should study and
+reuse that work before inventing another general modeling language.
+[Quint design principles](https://quint.sh/docs/design-principles).
+
+The useful question is which responsibilities Quint can discharge and which Umpire-specific
+semantics still need a translation. Keeping Scala authoring does not preclude generating Quint or
+learning from its static checks. Conversely, adopting Quint does not automatically encode Umpire's
+Query semantics, Evidence mappings, or Case production.
+
+### Make semantic categories explicit in the checked representation
+
+Quint separates stateless expressions, state expressions, nondeterministic choices, actions, runs,
+and temporal formulas. This helps prevent category mistakes that a familiar surface syntax can
+otherwise conceal. [Quint modes](https://quint.sh/docs/lang#modes).
+
+For Umpire, a pure function `(state, inputs) -> List[Step]` computes alternatives; it does not itself
+perform a state update. Lowering those alternatives into a backend action is a separate operation.
+A Property predicate is not an action, and a bounded Query is not a temporal formula. Preserve those
+distinctions in admission and lowering even when the front end gives them similar-looking syntax.
+The explicit old state supplied to a step function also makes dependencies inspectable without
+implicit reads of global mutable model state.
+
+### Treat types and effects as separate checks
+
+Quint's effect-system design tracks reads, updates, and temporal effects separately from types,
+including through operator parameters. It checks mode compatibility and aims to ensure each state
+variable is updated exactly once in the next-state action. A type-correct Boolean expression is
+therefore not automatically a valid action. [Quint effect-system ADR](https://quint.sh/docs/development-docs/architecture-decision-records/adr004-effect-system).
+
+Apply that lesson at the Umpire boundary: a generated action must assign every exported variable
+exactly as intended, including unchanged members, result-occurrence state, and monitors. Composition
+must not create conflicting writes or omit an untouched member. These checks concern the generated
+relational action; Umpire's pure record-copy syntax already retains unnamed fields and need not
+force authors to write redundant assignments.
+
+Scala types help authors, but another Producer can construct IR directly. IR admission must verify
+the same type and dependency contracts without trusting Scala compilation. Quint's type-system ADR
+similarly puts checking on parsed IR and uses inferred types to provide early editor feedback.
+[Quint type-system ADR](https://quint.sh/docs/development-docs/architecture-decision-records/adr005-type-system).
+
+### Keep compiler stages inspectable and errors attached to source
+
+Quint's transpiler architecture separates parsing, name resolution, type checking, module flattening,
+and translation, with explicit inputs and outputs for passes. Its design supports different
+consumers of those stages. This is useful architectural precedent, rather than a requirement to
+copy its preliminary task scheduler.
+[Quint transpiler ADR](https://quint.sh/docs/development-docs/architecture-decision-records/adr001-transpiler-architecture).
+
+Umpire should likewise expose where failure occurred: front-end lifting, IR admission, backend
+subset admission, lowering, external checking, or witness decoding. Each stage must retain source
+mapping and Definition bindings. Generated helper names should lead back to the author-owned
+declaration, including after flattening Composition members and instantiated input classes.
+Quint's error design uses structured error codes and source locations; Umpire can learn from that
+without making Quint diagnostic IDs into model identities.
+[Quint error ADR](https://quint.sh/docs/development-docs/architecture-decision-records/adr002-errors).
+
+### Reuse tooling while keeping the strength of each result explicit
+
+Quint's simulator samples executions and checks invariants; a clean simulation is not verification.
+That distinction is useful precedent for Umpire's developer feedback and exploration results.
+[Quint simulator](https://quint.sh/docs/simulator).
+
+Current Quint documentation describes two verification backends: Apalache performs symbolic checking
+to a specified execution bound, while TLC enumerates reachable states and supports temporal checking.
+`quint verify --backend=tlc` selects the latter. Umpire should investigate both through Quint before
+assuming it must integrate each checker itself. Preserve the difference between complete checking
+of a bounded question and complete exploration of a finite transition system; record backend and
+bound in the answer. [Quint model checkers](https://quint.sh/docs/model-checkers).
+
+Prefer evaluating the Quint-mediated route first, since it offers existing checking and compilation
+machinery to investigate. Compare it with a minimal direct export on the same IR fixtures before
+committing to a backend. Verify the pinned toolchain's support for the exact constructs used;
+language-level temporal syntax does not establish support in every simulator or checker.
+
+| Responsibility | What to learn or reuse from Quint | What Umpire still owns |
+| --- | --- | --- |
+| Authoring | Familiar syntax, short feedback loops, explicit semantic categories | Domain vocabulary, finite Action classes, checked Model declarations |
+| Static checking | Type/effect separation and generated-action validation | Language-neutral IR admission, finite catalogs, unsupported-construct diagnostics |
+| Backend translation | Existing Quint-to-TLA+ route and inspectable intermediate artifacts | Exact lowering of Steps, Facts, monitors, refinement, Query scope and bounded progress |
+| Exploration | Simulation, model checking, readable traces | Honest bounded answers, deterministic Case selection, provenance and Query-aware replay |
+| Implementation checking | Trace interchange as a possible input to adapters | Realization, Observations, causal correlation, Profiles, authorized Drivers and Contracts |
+
+### Learn from the repository's Quint prototype without inheriting its shortcuts
+
+The [Quint framework](../model/quint/umpire.qnt) and feature Models are useful local experiments.
+They already encode pure step functions, explicit `last` results, triggered claims, and model-checker
+entrypoints. The current [Nexus](../model/quint/nexus_caller.qnt) and
+[activity](../model/quint/standalone_activity.qnt) `fire` actions select a result with
+`oneOf(rows.toSet())` and toggle an `occurrence` bit on each real Step. Learn from these existing
+solutions for nondeterminism and repeated-event identity rather than reinventing them.
+
+Other prototype choices are narrower than the current IR contract:
+
+- Its Step helpers construct singleton result lists and its framework comment describes that
+  specimen assumption. The current `fire` actions already handle alternatives; conformance fixtures
+  should exercise several distinct results, not rely on the singleton examples.
+- Its `refinementRow` checks mapped states, while the current Umpire rule also checks outcomes,
+  carrying Facts, and declared visibility. Reuse the idea, not the weaker check.
+- Its Limits are declared metadata, and attempt counters use an explicit saturating successor.
+  Neither automatically implements Query Limits or the IR evaluator's arithmetic.
+- Its action catalogs retain party, entity, and schema data that Quint does not interpret. Those
+  declarations still need Umpire admission and realization semantics.
+
+These are prototype assumptions, not defects in Quint as a language. Replaying the existing
+specimens is a starting point; new agreement controls must expose where their encodings would
+misrepresent the more general IR.
+
 ## Core principles Umpire must preserve
 
 ### One authored behavior, several consumers
@@ -258,9 +369,11 @@ because their product phase happens to be equal.
 | Composition | Preserve member interleaving and synchronized atomic steps, including their result combinations. |
 | Channel | Preserve capacity, ordering, multiplicity, loss, and duplicate-delivery limits. |
 | Property | Preserve its predicate, trigger, evaluation point, and relevant history. |
+| Refinement | Preserve the declared state map, carried results, visible projection, and allowed stutters. |
 | Assumption | Preserve its meaning and exact action scope; never invent fairness. |
 | Values | Preserve structural equality, constructor identity, arithmetic, and collection semantics. |
 | Query scope | Preserve the Scenario, initial selection, action restrictions, ending condition, and semantic bounds. |
+| Result | Preserve activation, unread verdicts, incomplete checks, and decisive violations separately. |
 
 The exporter should report this contract as an explicit support profile. A Model that compiles in
 Scala may still contain semantics a particular backend cannot check.
@@ -281,6 +394,13 @@ If step results are encoded as auxiliary state, distinguish repeated occurrences
 Keeping only the last event's value can make two identical consecutive emissions indistinguishable
 from no new emission. Specify the occurrence encoding and its projection back to Umpire Steps.
 
+The current Quint feature Models provide a candidate: a finite occurrence bit toggled by every real
+Step, alongside the encoded last result. Preserve it on artificial stutters. This distinguishes
+adjacent equal emissions without an unbounded event counter. Generalizing that encoding to the IR
+still requires checks of initialization, enabledness, fairness, monitor updates, and decoding,
+including real Steps that emit no Facts. The bit is backend machinery, not a Model Definition or
+an input to its Behavior Fingerprint.
+
 Check deadlock against the enabled real transition relation and the declared ending conditions.
 Allowing stuttering everywhere must not hide a nonterminal state with no permitted real successor.
 Likewise, valid termination must not become an accidental liveness failure because the backend
@@ -298,11 +418,21 @@ Define which real steps advance each obligation and which transition starts or d
 Preserve the distinctions among deadlock, a fair non-progress cycle, deadline violation, and an
 unfinished search. A finite open prefix cannot become evidence of unlimited non-progress.
 
+Pin boundary cases against Go progress: `from` and `to` true at the same state discharge immediately;
+reaching `to` on the last allowed Step is on time; staying in `from` must not keep resetting the
+oldest outstanding bound. Correlated obligations, when declared, need independent keys and bounds.
+Runtime Contract deadlines have their own reset and expiry-before-transition rules; importing
+those rules into Model progress would change its semantics.
+
 Fairness granularity must match the IR. Our assumptions refer to action classes. Fairness for each
 class is different from fairness for a disjunction of all classes, which can permit one class to
 starve while another keeps running. Preserve the declared class-level obligations and enabledness.
 Quint exposes distinct weak and strong fairness operators mapped to TLA+.
 [Quint fairness](https://quint.sh/docs/lang#fairness).
+
+A finite delay can still have a fair continuation. Keep deadline checking and fair-cycle checking
+distinct, as the current Go progress result does. Not taking a fair action during a finite prefix
+alone cannot disqualify a deadline witness.
 
 Any future support for unbounded temporal claims needs its own specification decision, including
 compatibility with Umpire's bounded-progress rules. Export must not silently introduce that support.
@@ -318,6 +448,24 @@ Preserve short-circuit behavior where it affects whether a hole or invalid expre
 Logical equivalence on total Boolean values is insufficient when one operand can be undefined.
 Guarded evaluation or explicit definedness state must retain that distinction.
 
+For example, `false and hole(h)` is false and does not reach the hole. Computing both operands
+first changes the result. Similarly, `(x, y) := (y, x)` reads both old fields; updating `x` first
+and then reading its new value for `y` does not implement the same record copy.
+
+### Property activation and Query quantifiers
+
+A same-step Property scoped to an action or class is read only where its trigger applies. A
+transition Property reads the old state and complete Step result. Preserve activation and
+accumulated pass/fail state as well as the predicate. A completed `find` witness must actually
+exercise its Property and satisfy it; a path that never fires its trigger is not such a witness.
+For `verify`, report whether the Property was exercised separately from absence of a violation.
+See [Query realization and failure checks](../model/go/umpire/search.go).
+
+A watched monitor does not prune a `find` witness; its verdict is reported alongside it. In a
+`verify`, a monitor violated at its evaluation point is a counterexample. Exporting every monitor
+as a mandatory witness constraint would change `find` semantics. A backend witness also needs the
+Scenario's schedule, completion conditions, and Limits; predicate satisfaction alone is insufficient.
+
 ### Holes, errors, and bounds
 
 Our IR distinguishes a disabled action, a reachable semantic hole, and malformed input. A hole
@@ -328,6 +476,12 @@ encoding that prevents an unqualified verification result.
 State-domain violations must also preserve their meaning. For example, a send that overfills a
 channel currently produces an out-of-domain result. Silently disabling it would change the Model.
 Either reject such a Model during admission or represent the corresponding fault explicitly.
+
+Rejecting all Models containing holes is a conservative initial support policy, not the full IR
+semantics: a hole outside the explored Query scope does not make that Query incomplete. A later
+hole-aware backend must identify affected exploration without deleting the unknown branch, and
+retain violations established elsewhere. Failed preconditions and out-of-catalog successors remain
+errors; they cannot be relabeled as declared holes.
 
 Keep semantic bounds separate from exploration resource limits. A modeled deadline affects behavior;
 a search-work limit affects whether the checker completed. Backend truncation cannot establish
@@ -342,10 +496,46 @@ encoding of machine arithmetic. Prefer mathematical integer semantics with bound
 as a design direction, but specify the interpreter change before relying on it.
 See [the evaluator](../model/scalav2/goir/eval.go).
 
+A no-overflow check must cover intermediate expressions, not just stored states. Overflow can
+alter a guard or cancel out before the final value returns to the catalog. Include arithmetic
+inside Properties and monitor functions. The prototype's saturating successor is an authored
+behavior choice, not a general solution to integer compatibility.
+
 Keep ordered lists distinct from sets. An unordered channel can contain several equal deliveries;
 represent it as a multiset or an equivalent canonical sequence, preserving multiplicity and retry
 counts. A set of messages would lose duplicate deliveries. Define tagged constructors so values
 from different enum cases cannot collide in the exported encoding.
+
+Channel fault timing is part of the contract. Delivery removes the selected entry, evaluates the
+receiver on those contents, and may restore that delivery with its incremented redelivery count
+in each receiver result. The duplicate alternative belongs to that same atomic Step; an independent
+“duplicate anything” action changes the fault space. If the receiver returns no Steps, it does not
+consume the message. See [channel derivation](../model/scalav2/goir/channels.go).
+
+## A concrete question to guide the design
+
+Consider an activity delivery in flight when a pause commits: can that stale delivery admit an
+attempt after the activity became ineligible? This is an illustrative question from the
+[activity specimen](../model/scalav2/specimens/activity.md), not a claim that all the required
+observations and declarations already exist.
+
+The product Property declares which admission is forbidden and at what commitment point. A
+detailed Machine exposes enqueue, delivery, eligibility recheck, admission, and acknowledgment loss.
+Its refinement declares which Facts and outcomes the product sees.
+
+| Execution fragment | Required preservation |
+| --- | --- |
+| Enqueue; pause commits; old delivery arrives | Retain the interleaving and the eligibility check at admission. |
+| Reject delivery without changing product phase | Retain the real Step, result, Facts, monitor effects, and counted bound. |
+| Admit attempt; acknowledgment is lost | Retain receiver effects and the possible delivery restored with its redelivery count. |
+| Equal message arrives again | Retain multiplicity and a second occurrence. |
+| Reach the same phase with different pending obligations | Retain distinct checking states and the correct bound on each path. |
+| Unchanged mapped state emits visible admission | Find a carrying product Step or report refinement failure. |
+| Runtime request returns before durable admission is observed | Do not treat the response as commitment Evidence without a declaration establishing that meaning. |
+| Work limit cuts exploration before delayed delivery is decided | Preserve incompleteness and any already-established violation. |
+
+This question exercises semantic preservation, explicit abstraction, and the Evidence boundary
+together. A state diagram or a successful compile alone cannot answer it.
 
 ## Proposed export subset and workflow
 
@@ -375,6 +565,11 @@ Keep the public export interface small. It consumes admitted IR, a selected Quer
 backend profile; it produces the specification, checker configuration, provenance, and a decoder
 mapping. Internal encodings and backend-specific normalization stay inside that module.
 
+Backend admission inspects the selected Query's dependencies: helpers, watched monitors, `through`
+refinement, assumptions, Composition members and replacements, and Property and ending functions.
+Every relevant behavior-affecting construct must be implemented or rejected at its source position.
+Silently retaining a parsed clause without evaluating it is not subset support.
+
 ## Agreement checks
 
 For small finite Models, require equality under the declared value encoding of:
@@ -396,6 +591,16 @@ updates, repeated equal events, an output-producing product stutter, distinct mo
 duplicate deliveries, overflow, a reachable hole, terminal stuttering, and class-level fairness.
 Each control should expose the specific mistranslation it protects against.
 
+Also cover an unexercised Property, an unread monitor, a prior monitor violation followed by
+recovery, a `find` witness with a violated passive monitor, an Unsatisfiable Scenario, and identical
+machine states at different pinned-schedule positions. These expose differences that reachable-state
+comparison alone misses.
+
+`Table.Replay` checks row/result membership. `Query.Replay` additionally checks the Scenario start,
+schedule, and claimed answer. Use the latter where applicable, and validate progress lassos, loop
+fairness, and deadline counts separately. A non-replayable external counterexample is a translation
+or toolchain failure, not an established Model violation.
+
 These checks establish agreement on the declared finite scope. They do not prove arbitrary compiler
 correctness or conformance of the production Temporal implementation.
 
@@ -405,6 +610,11 @@ Keep export admission, checker completion, semantic findings, and reporting seve
 Record Model fingerprints, selected module variants, assumptions, semantic bounds, backend/toolchain
 versions, and unsupported constructs with every result.
 
+Keep Definition IDs, Behavior Fingerprints, and Artifact Checksums distinct. A compiler upgrade can
+change exported bytes without changing the Model's behavior. Generated symbols and helper state
+belong in decoder metadata; reuse the [canonical identity rules](../model/go/umpire/canonical.go)
+rather than using a hash of generated TLA+ as a Behavior Fingerprint.
+
 The [Known Bug lifecycle](../model/scalav2/specs/KNOWN_BUG.md) applies after semantic evaluation.
 An acknowledged violation must still violate the exported Property and retain its counterexample.
 The reporting layer can classify it as an active-known-bug warning; marking it fixed makes recurrence
@@ -412,7 +622,24 @@ an error. Export must not remove the transition or weaken the Property to make a
 
 ## Decisions still needed
 
-Settle the numeric semantics, observable occurrence encoding, counted-step definition, and initial
-hole policy before claiming export compatibility. Then choose one activity or Nexus slice with
-finite parameters and negative controls, derive it through both Go and the export path, and measure
-agreement and diagnostic quality. Broaden the subset only when a concrete Temporal question needs it.
+Resolve these decisions before claiming compatibility. They concern implementation and support;
+none permits weakening the principles above.
+
+| Decision | Proposed direction | Acceptance evidence |
+| --- | --- | --- |
+| Numeric meaning | Begin with a checked domain agreeing with current `int64` evaluation; consider mathematical-integer IR semantics separately. | Intermediate arithmetic and boundary errors agree. |
+| Step occurrence | Generalize the Quint prototype's occurrence bit plus last result. | Equal emissions remain two Steps; artificial stutters change no Umpire bookkeeping. |
+| Counted steps | Preserve the declaration's unit and atomic Step count; specify future progress-through-refinement separately. | Boundary discharge, real self-loops, syncs, and hidden steps are counted as declared. |
+| Initial holes | Conservatively reject unsupported holes, then add Query-scoped handling. | Holes never become disabled actions or passing answers. |
+| Backend route | Evaluate Quint-mediated export first and compare a minimal direct TLA+ export. | Same Query answers, useful source diagnostics, and replayable witnesses on the same IR. |
+
+First pin tiny IR fixtures for the finite semantic baseline, including nondeterministic alternatives,
+Property activation, completion, and incomplete checking. Next compare the export and Go evaluation
+independently; a table exporter bootstraps the comparison but shares table derivation in its trust
+basis. Then choose the activity question above or one Nexus correlation question with explicit
+finite parameters, and add only the constructs that slice requires.
+
+For each supported construct, retain its IR meaning, backend encoding, located rejection cases,
+agreement controls, and decoded witness example. This makes the lessons from Quint concrete while
+keeping Umpire's promises testable. Broaden the subset only when a concrete Temporal question needs
+it; successful generation alone is not a compatibility milestone.

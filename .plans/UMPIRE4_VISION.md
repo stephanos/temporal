@@ -36,6 +36,6 @@ And even within a feature - like "Workflow" - there are sub-team ownership rules
 This means the model needs to be very composable/extensible. Maybe one team owns the basics and another builds a separate feature on top.
 And when finding a bug, this needs to be retracable to the owning team.
 
-### Known bugs  
+### Known bug
 
 TBD

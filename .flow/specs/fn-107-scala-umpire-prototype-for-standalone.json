@@ -10,7 +10,7 @@
   "id": "fn-107-scala-umpire-prototype-for-standalone",
   "impl_review_rounds": {
     "fn-107-scala-umpire-prototype-for-standalone.1": 0,
-    "fn-107-scala-umpire-prototype-for-standalone.14": 1,
+    "fn-107-scala-umpire-prototype-for-standalone.14": 0,
     "fn-107-scala-umpire-prototype-for-standalone.15": 1,
     "fn-107-scala-umpire-prototype-for-standalone.2": 0
   },
@@ -645,10 +645,95 @@
       "task": "fn-107-scala-umpire-prototype-for-standalone.15",
       "timestamp": "2026-09-30T22:14:33.686966Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4edf0363b87ca301a54b897bffb59984bd846a081732c17f6d482287d9d2ed04",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "classification": "introduced",
+            "findingId": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "classification": "introduced",
+            "findingId": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "classification": "introduced",
+            "findingId": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "classification": "introduced",
+            "findingId": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "classification": "introduced",
+            "findingId": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "classification": "introduced",
+            "findingId": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "24ed60e66720b9f2d8023ff28d5bfcc8e863f7ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 889,
+      "output_sha256": "71ecc34e527318b83dac65cab5f31312819c76f115dc662f0bec46a23e0e7793",
+      "reservation_id": "83b7ebbd661a4dca8343ecaf88071acc",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.14",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.14",
+      "timestamp": "2026-09-30T22:42:06.630678Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-107-scala-umpire-prototype-for-standalone.1": 1,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.14": 1,
     "impl:fn-107-scala-umpire-prototype-for-standalone.2": 1,
     "plan": 1,
     "plan#completion": 0
@@ -676,5 +761,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T22:14:33.693040Z"
+  "updated_at": "2026-09-30T22:42:06.638161Z"
 }

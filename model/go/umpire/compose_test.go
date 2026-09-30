@@ -181,3 +181,26 @@ func TestAReplacementIsDeclaredAgainstARefinementOfAMember(t *testing.T) {
 		Member("door", newDoor("door")).Replaces("key", opaque).Table()
 	require.EqualError(t, err, "compose-house: the composition replaces opaqueKey at key, and has no member key")
 }
+
+// Member states whose keys hold the "_" a composed key joins them with.
+
+type head string
+
+func (head) Values() []head { return []head{"a", "a_b"} }
+
+type tail string
+
+func (tail) Values() []tail { return []tail{"c", "b_c"} }
+
+type joined struct {
+	Head head `umpire:"head"`
+	Tail tail `umpire:"tail"`
+}
+
+func TestComposedKeysThatCollideAreRejected(t *testing.T) {
+	heads := umpire.NewMachine[head, doorOutcome, keyFact]("test.join", "heads").Starts("a_b", "a")
+	tails := umpire.NewMachine[tail, doorOutcome, keyFact]("test.join", "tails").Starts("c", "b_c")
+	_, err := umpire.Compose[joined]("test.join", "joint").Member("head", heads).Member("tail", tails).Table()
+	require.EqualError(t, err, "compose-joint: the member states [a_b c] and [a b_c] are both keyed 'a_b_c', "+
+		"so the composed key does not tell them apart")
+}

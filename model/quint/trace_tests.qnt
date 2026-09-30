@@ -1,6 +1,6 @@
 module trace_tests {
   import umpire.* from "./umpire"
-  import nexusProtocol as operation from "./nexus_caller"
+  import nexusProtocol as operation from "./nexus_protocol"
 
   run repeatedFactsHaveDistinctOccurrencesTest =
     operation::init.expect(not(operation::occurrence))

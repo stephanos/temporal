@@ -134,13 +134,21 @@ func (m monitorState) verdict() Verdict {
 	}
 }
 
-// identity spells the Monitors' part of a product state.
+// identity spells the Monitors' part of a product state. Each key is prefixed with its length, so no
+// spelling of one Monitor's state reads as part of another's.
 func identity(mons []monitorState) string {
-	parts := make([]string, len(mons))
-	for i, m := range mons {
-		parts[i] = fmt.Sprintf("%s/%t/%t", m.key, m.read, m.violated)
+	var b strings.Builder
+	for _, m := range mons {
+		fmt.Fprintf(&b, "%d:%s%s%s", len(m.key), m.key, bit(m.read), bit(m.violated))
 	}
-	return strings.Join(parts, "\x00")
+	return b.String()
+}
+
+func bit(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
 }
 
 // Watch adds Monitors to the Query. In a verify, a Monitor violated where it is read is a
@@ -153,6 +161,9 @@ func (q *Query) Watch(monitors ...*Monitor) *Query {
 func (q *Query) checkMonitors() error {
 	seen := map[string]bool{}
 	for _, m := range q.monitors {
+		if m.Name == "" {
+			return errorf(q.decl(), "a monitor has no name")
+		}
 		if seen[m.Name] {
 			return errorf(q.decl(), "two monitors are named %s", m.Name)
 		}

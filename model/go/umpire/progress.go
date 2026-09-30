@@ -196,13 +196,12 @@ func newProgressChecker(t *Table, p *Progress, limits Limits) (*progressChecker,
 	return c, nil
 }
 
-// assumptions is the table's assumptions followed by the claim's, each name once.
+// assumptions is the table's assumptions followed by the claim's, each name once, fair for the
+// classes every declaration of that name makes fair.
 func (c *progressChecker) assumptions() []Assumption {
 	var out []Assumption
 	for _, a := range append(slices.Clone(c.t.Assumptions), c.p.Assumptions...) {
-		if !slices.ContainsFunc(out, func(b Assumption) bool { return b.Name == a.Name }) {
-			out = append(out, a)
-		}
+		out = mergeAssumption(out, a)
 	}
 	return out
 }

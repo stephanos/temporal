@@ -274,3 +274,23 @@ func TestAMachinesAssumptionsJoinEveryProgressCheck(t *testing.T) {
 	restricted := m.Restrict("test.door", "pushOnly", push.ActionDecl)
 	require.Equal(t, []umpire.Assumption{pushIsFair}, tableOf(t, restricted).Assumptions)
 }
+
+func TestSameNamedAssumptionsJoinTheirFairness(t *testing.T) {
+	spec := umpire.TableSpec{Machine: "polls", Family: "test.progress", Outcomes: []string{"ok"},
+		States: []string{"waiting", "done"}, Actions: []string{"finish", "poll"}, Starts: []string{"waiting"},
+		Assumptions: []umpire.Assumption{{Name: "finishIsFair"}},
+		Rows: []umpire.Row{
+			{Key: "waiting-finish", Source: "waiting", Action: "finish",
+				Results: []umpire.Result{{Outcome: "ok", State: "done", Facts: []string{}}}},
+			{Key: "waiting-poll", Source: "waiting", Action: "poll",
+				Results: []umpire.Result{{Outcome: "ok", State: "waiting", Facts: []string{}}}},
+		}}
+	tb := umpire.NewTable(spec)
+	p := umpire.KeyProgress("finishes", is("waiting"), is("done"), 2,
+		umpire.Assumption{Name: "finishIsFair", Fair: []string{"finish"}})
+	a, err := umpire.CheckProgress(tb, p, wide)
+	require.NoError(t, err)
+	require.Equal(t, []string{"finishIsFair"}, a.Assumptions)
+	requireVerdict(t, umpire.VerifiedWithinLimits, a.Cycle)
+	require.Equal(t, []umpire.Assumption{{Name: "finishIsFair"}}, tb.Assumptions, "the table's own declaration is unchanged")
+}

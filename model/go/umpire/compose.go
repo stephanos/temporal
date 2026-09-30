@@ -145,6 +145,7 @@ type composer[S any] struct {
 	fieldIndex []int
 	actions    []composedAction
 	split      map[string][]string
+	collision  error
 }
 
 func (c *Composition[S]) build() (*Table, error) {
@@ -163,6 +164,9 @@ func (c *Composition[S]) build() (*Table, error) {
 	}
 	starts := b.starts()
 	reached := b.explore(starts)
+	if b.collision != nil {
+		return nil, b.collision
+	}
 	return b.assemble(starts, reached)
 }
 
@@ -245,7 +249,7 @@ func dischargedBy(m compositionMember) (map[string]bool, error) {
 func mergeAssumption(out []Assumption, a Assumption) []Assumption {
 	k := slices.IndexFunc(out, func(x Assumption) bool { return x.Name == a.Name })
 	if k < 0 {
-		return append(out, a)
+		return append(out, Assumption{Name: a.Name, Fair: slices.Clone(a.Fair)})
 	}
 	for _, f := range a.Fair {
 		if !slices.Contains(out[k].Fair, f) {
@@ -391,10 +395,25 @@ func (b *composer[S]) stepFrom(parts []string, a composedAction) []Result {
 	out := make([]Result, len(partial))
 	for i, p := range partial {
 		key := strings.Join(p.parts, "_")
-		b.split[key] = p.parts
+		b.remember(key, p.parts)
 		out[i] = Result{Outcome: p.outcome, State: key, Facts: p.facts}
 	}
 	return out
+}
+
+// remember notes the member states a composed key stands for. The key joins member keys that may
+// hold "_" themselves, so two different member states can share it; the first such pair is the
+// collision build reports, since exploring one would silently stand for both.
+func (b *composer[S]) remember(key string, parts []string) {
+	prev, ok := b.split[key]
+	if !ok {
+		b.split[key] = parts
+		return
+	}
+	if !slices.Equal(prev, parts) && b.collision == nil {
+		b.collision = errorf(b.owner, "the member states %v and %v are both keyed '%s', "+
+			"so the composed key does not tell them apart", prev, parts, key)
+	}
 }
 
 func rowOf(t *Table, state, action string) (Row, bool) {
@@ -412,7 +431,7 @@ func (b *composer[S]) explore(starts [][]string) map[string]bool {
 	var queue [][]string
 	for _, start := range starts {
 		key := strings.Join(start, "_")
-		b.split[key] = start
+		b.remember(key, start)
 		if !seen[key] {
 			seen[key] = true
 			queue = append(queue, start)

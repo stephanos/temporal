@@ -1,6 +1,9 @@
 package umpire
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
 
 // edge is one step of a path through a table: the row taken and the result it produced.
 type edge struct {
@@ -70,6 +73,7 @@ func (t *Table) pathTo(target string) (string, []edge, bool) {
 
 // Replay checks that a witness is a path of this table: it starts in one of its states and each
 // step is a result of the row its action takes from the state before it.
+// Every value's Definition ID must be the one this table gives it.
 func (t *Table) Replay(w *Trace) error {
 	_, err := t.replay(w)
 	return err
@@ -84,8 +88,14 @@ func (t *Table) replay(w *Trace) ([]edge, error) {
 	if _, ok := t.StateValue(state); !ok {
 		return nil, errorf(t.Machine, "the witness starts at '%s', which is not a state", state)
 	}
+	if err := t.binds("the start", "state", w.Initial); err != nil {
+		return nil, err
+	}
 	var path []edge
 	for i, step := range w.Steps {
+		if err := t.bindsStep(i+1, step); err != nil {
+			return nil, err
+		}
 		row, ok := rowOf(t, state, step.Action.Value)
 		if !ok {
 			return nil, errorf(t.Machine, "step %d takes %s, which is not enabled at '%s'", i+1, step.Action.Value, state)
@@ -99,6 +109,33 @@ func (t *Table) replay(w *Trace) ([]edge, error) {
 		state = step.State.Value
 	}
 	return path, nil
+}
+
+// binds checks that a witness value carries the Definition ID this table gives it, so a witness of
+// another family, owner or kind of definition is not read as one of this table's.
+func (t *Table) binds(what, kind string, a Atom) error {
+	if want := t.Family.ID(kind, t.owner(), a.Value); a.ID != want {
+		return errorf(t.Machine, "%s '%s' is identified as %s, which is not the Definition ID %s", what, a.Value, a.ID, want)
+	}
+	return nil
+}
+
+func (t *Table) bindsStep(i int, step TraceStep) error {
+	if err := t.binds(fmt.Sprintf("step %d's action", i), "action", step.Action); err != nil {
+		return err
+	}
+	if err := t.binds(fmt.Sprintf("step %d's outcome", i), "outcome", step.Outcome); err != nil {
+		return err
+	}
+	if err := t.binds(fmt.Sprintf("step %d's state", i), "state", step.State); err != nil {
+		return err
+	}
+	for _, f := range step.Facts {
+		if err := t.binds(fmt.Sprintf("step %d's fact", i), "fact", f); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s TraceStep) matches(r Result) bool {

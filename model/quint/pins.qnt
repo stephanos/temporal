@@ -19,10 +19,10 @@
 
 module nexusPins {
   import umpire.* from "./umpire"
-  import nexusCallerVocabulary.* from "./nexus_caller"
-  import nexusProductTable as product from "./nexus_caller"
-  import nexusProtocolTable.* from "./nexus_caller"
-  import nexusProtocol as nexus from "./nexus_caller"
+  import nexusCallerVocabulary.* from "./nexus_caller_vocabulary"
+  import nexusProductTable as product from "./nexus_product_table"
+  import nexusProtocolTable.* from "./nexus_protocol_table"
+  import nexusProtocol as nexus from "./nexus_protocol"
 
   /// A state written the way a reader names one: the phase, and whichever fields are not at
   /// the value the operation begins with.
@@ -155,10 +155,10 @@ module nexusPins {
 
 module activityPins {
   import umpire.* from "./umpire"
-  import activityVocabulary.* from "./standalone_activity"
-  import activityProductTable as product from "./standalone_activity"
-  import activityProtocolTable.* from "./standalone_activity"
-  import activityProtocol as act from "./standalone_activity"
+  import activityVocabulary.* from "./activity_vocabulary"
+  import activityProductTable as product from "./activity_product_table"
+  import activityProtocolTable.* from "./activity_protocol_table"
+  import activityProtocol as act from "./activity_protocol"
 
   pure def at(phase: Phase, attempts: int): ProtocolState =
     { ...unstarted, phase: phase, attempts: attempts }
