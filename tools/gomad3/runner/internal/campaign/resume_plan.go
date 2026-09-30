@@ -60,26 +60,29 @@ type CampaignPlan struct {
 	ChoiceExplorationImplementationSHA256     record.SHA256                    `json:"choice_exploration_implementation_sha256,omitempty"`
 	SimulationExplorationImplementationSHA256 record.SHA256                    `json:"simulation_exploration_implementation_sha256,omitempty"`
 	ExecutionTimeoutNanos                     record.Uint64String              `json:"execution_timeout_nanos"`
-	OverallTimeoutNanos                       record.Uint64String              `json:"overall_timeout_nanos"`
-	TerminateGraceNanos                       record.Uint64String              `json:"terminate_grace_nanos"`
-	OnFailure                                 string                           `json:"on_failure"`
-	FailureBudget                             record.Uint64String              `json:"failure_budget"`
-	OutputBytes                               record.Uint64String              `json:"output_bytes"`
-	WorldTransitionBytes                      record.Uint64String              `json:"world_transition_bytes"`
-	RunnerBuild                               string                           `json:"runner_build"`
-	Toolchain                                 record.Toolchain                 `json:"toolchain"`
-	Prepared                                  PreparedTargetPlan               `json:"prepared"`
-	IOProfile                                 deterministicio.Contract         `json:"io_profile"`
-	ChoiceProfile                             *ChoiceProfilePlan               `json:"choice_profile,omitempty"`
-	Environment                               []record.Environment             `json:"environment"`
-	IOROMounts                                []string                         `json:"io_ro_mounts"`
-	IOROMountLimits                           record.ReadOnlyMountLimits       `json:"io_ro_mount_limits"`
-	Coverage                                  string                           `json:"coverage"`
-	RequiredSemanticProbes                    []string                         `json:"required_semantic_probes"`
-	KeepSuccesses                             string                           `json:"keep_successes"`
-	SuccessArtifactLimit                      record.Uint64String              `json:"success_artifact_limit"`
-	SuccessBytesLimit                         record.Uint64String              `json:"success_bytes_limit"`
-	Guidance                                  *GuidancePlan                    `json:"guidance,omitempty"`
+	// IOTranscriptBytes is absent for the default transcript bound, so plans
+	// that never raised it keep their bytes.
+	IOTranscriptBytes      record.Uint64String        `json:"io_transcript_bytes,omitempty"`
+	OverallTimeoutNanos    record.Uint64String        `json:"overall_timeout_nanos"`
+	TerminateGraceNanos    record.Uint64String        `json:"terminate_grace_nanos"`
+	OnFailure              string                     `json:"on_failure"`
+	FailureBudget          record.Uint64String        `json:"failure_budget"`
+	OutputBytes            record.Uint64String        `json:"output_bytes"`
+	WorldTransitionBytes   record.Uint64String        `json:"world_transition_bytes"`
+	RunnerBuild            string                     `json:"runner_build"`
+	Toolchain              record.Toolchain           `json:"toolchain"`
+	Prepared               PreparedTargetPlan         `json:"prepared"`
+	IOProfile              deterministicio.Contract   `json:"io_profile"`
+	ChoiceProfile          *ChoiceProfilePlan         `json:"choice_profile,omitempty"`
+	Environment            []record.Environment       `json:"environment"`
+	IOROMounts             []string                   `json:"io_ro_mounts"`
+	IOROMountLimits        record.ReadOnlyMountLimits `json:"io_ro_mount_limits"`
+	Coverage               string                     `json:"coverage"`
+	RequiredSemanticProbes []string                   `json:"required_semantic_probes"`
+	KeepSuccesses          string                     `json:"keep_successes"`
+	SuccessArtifactLimit   record.Uint64String        `json:"success_artifact_limit"`
+	SuccessBytesLimit      record.Uint64String        `json:"success_bytes_limit"`
+	Guidance               *GuidancePlan              `json:"guidance,omitempty"`
 }
 
 func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
@@ -201,6 +204,9 @@ func validateCampaignPlan(plan CampaignPlan) error {
 	}
 	if plan.Journal == nil || validateExecutionJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
 		return fmt.Errorf("campaign plan journal limits are invalid")
+	}
+	if plan.IOTranscriptBytes != 0 && (uint64(plan.IOTranscriptBytes) == deterministicio.DefaultTranscriptBytes || deterministicio.ValidateTranscriptLimit(uint64(plan.IOTranscriptBytes)) != nil) {
+		return fmt.Errorf("campaign plan I/O transcript limit is invalid")
 	}
 	artifacts, err := DeriveArtifactCapacityPlan(plan)
 	if err != nil || artifacts != *plan.Artifacts {

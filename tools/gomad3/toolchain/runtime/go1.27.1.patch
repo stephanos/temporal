@@ -739,7 +739,7 @@ index aa84a6f..bcc234f 100644
  					e[0] = pcvalueCacheEnt{
  						targetpc: targetpc,
 diff --git a/src/runtime/time.go b/src/runtime/time.go
-index 6c569b5..570e531 100644
+index 6c569b5..61915da 100644
 --- a/src/runtime/time.go
 +++ b/src/runtime/time.go
 @@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
@@ -839,6 +839,28 @@ index 130ff12..ac39381 100644
  	return nanotime1()
  }
  
+diff --git a/src/runtime/traceback.go b/src/runtime/traceback.go
+index 58161de..c4f1bb0 100644
+--- a/src/runtime/traceback.go
++++ b/src/runtime/traceback.go
+@@ -694,8 +694,16 @@ func printArgs(f funcInfo, argp unsafe.Pointer, pc uintptr) {
+ 				x = x << shift >> shift
+ 			}
+ 		}
++		live := isLive(off, slotIdx)
++		if !live && gomadEnabled {
++			// A possibly-dead slot holds whatever an earlier frame left there,
++			// which can be a host thread-stack address; print only the marker so
++			// same-seed tracebacks match.
++			print("?")
++			return
++		}
+ 		print(hex(x))
+-		if !isLive(off, slotIdx) {
++		if !live {
+ 			print("?")
+ 		}
+ 	}
 diff --git a/src/syscall/env_unix.go b/src/syscall/env_unix.go
 index e1d7e21..47f7864 100644
 --- a/src/syscall/env_unix.go

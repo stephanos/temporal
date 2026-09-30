@@ -343,7 +343,9 @@ func processExplorationCompletion(
 	}
 	runChoiceFeatures := []string{}
 	var runChoiceProjection *choice.FeatureProjection
-	if coverageHasChoice(config.Coverage) {
+	// A target the watchdog or a cancellation killed wrote no choice trace to
+	// project; the termination is its outcome.
+	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
 		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
 		if err != nil {
 			return explorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}

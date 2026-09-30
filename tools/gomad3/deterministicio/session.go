@@ -10,7 +10,24 @@ import (
 	iowire "go.temporal.io/server/tools/gomad3/deterministicio/internal/wire"
 )
 
-const MaximumTranscriptBytes = 64 << 20
+const (
+	// DefaultTranscriptBytes is the I/O transcript a campaign gets unless it
+	// asks for more; a cluster-sized target can exceed it.
+	DefaultTranscriptBytes = 64 << 20
+	// MaximumTranscriptBytes bounds any requested transcript; the runtime
+	// refuses a larger backing.
+	MaximumTranscriptBytes = 1 << 30
+	// TranscriptBytesGranularity keeps requested limits on whole mebibytes.
+	TranscriptBytesGranularity = 1 << 20
+)
+
+// ValidateTranscriptLimit checks a campaign's requested I/O transcript bound.
+func ValidateTranscriptLimit(limit uint64) error {
+	if limit < DefaultTranscriptBytes || limit > MaximumTranscriptBytes || limit%TranscriptBytesGranularity != 0 {
+		return fmt.Errorf("I/O transcript limit %d must be a whole number of MiB between %d and %d", limit, uint64(DefaultTranscriptBytes), uint64(MaximumTranscriptBytes))
+	}
+	return nil
+}
 
 type SessionSpec struct {
 	Limit    uint64

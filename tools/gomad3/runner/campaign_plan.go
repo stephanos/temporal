@@ -64,6 +64,9 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJourn
 	if normalizedStrategy(config.Strategy) == StrategySimulationExploration {
 		plan.SimulationExplorationImplementationSHA256 = simulationengine.ImplementationSHA256()
 	}
+	if limit := ioTranscriptLimit(config); limit != deterministicio.DefaultTranscriptBytes {
+		plan.IOTranscriptBytes = record.Uint64String(limit)
+	}
 	if config.ChoiceTraceLimit != 0 {
 		implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
 		if err != nil {

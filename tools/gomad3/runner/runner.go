@@ -138,6 +138,9 @@ type CampaignSpec struct {
 	OutputLimit          uint64
 	WorldTransitionLimit uint64
 	ChoiceTraceLimit     uint64
+	// IOTranscriptLimit bounds the I/O transcript; zero means
+	// deterministicio.DefaultTranscriptBytes.
+	IOTranscriptLimit uint64
 	// ClockTick is the virtual-clock tick policy; empty means record.ClockTickStrict.
 	ClockTick                 string
 	MaxExecutions             uint64
@@ -888,7 +891,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		}
 		runChoiceFeatures := []string{}
 		var runChoiceProjection *choice.FeatureProjection
-		if coverageHasChoice(config.Coverage) {
+		// A target the watchdog or a cancellation killed wrote no choice trace
+		// to project; the termination is its outcome.
+		if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
 			projected, features, choiceErr := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
 			if choiceErr != nil {
 				if partialErr := preservePartial(completion.journal); partialErr != nil {
@@ -1381,6 +1386,9 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		return SeedSelection{}, nil, err
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: deterministicio.Deterministic})
+	if err := deterministicio.ValidateTranscriptLimit(ioTranscriptLimit(config)); err != nil {
+		return SeedSelection{}, nil, err
+	}
 	switch config.ClockTick {
 	case "", record.ClockTickStrict:
 	case record.ClockTickForward:
@@ -1491,7 +1499,7 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 			World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: config.WorldTransitionLimit, Seed: job.seed},
 			IO: &execution.IOCapability{
 				Config:     append([]byte(nil), ioConfig...),
-				Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
+				Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit(config)},
 				ReadOnlyMount: &execution.ReadOnlyMountCapability{
 					Mappings: append([]readonlymount.Mapping(nil), readOnlyMounts...), Limits: config.IOROMountLimits,
 				},
@@ -1697,7 +1705,7 @@ func manifestForRun(config CampaignSpec, prepared target.Prepared, baseEnvironme
 			ExecutionTimeoutNanos: record.Uint64String(config.ExecutionTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout),
 			TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
 			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
-			IOTranscriptBytes:    64 << 20,
+			IOTranscriptBytes:    record.Uint64String(ioTranscriptLimit(config)),
 			ChoiceTraceBytes:     record.Uint64String(config.ChoiceTraceLimit),
 		},
 		World:   recordedWorld,
@@ -1945,4 +1953,13 @@ func newRunID() (string, error) {
 		return "", err
 	}
 	return "campaign-" + time.Now().UTC().Format("20060102T150405.000000000Z") + "-" + hex.EncodeToString(random), nil
+}
+
+// ioTranscriptLimit is the campaign's I/O transcript bound, defaulting to
+// deterministicio.DefaultTranscriptBytes.
+func ioTranscriptLimit(config CampaignSpec) uint64 {
+	if config.IOTranscriptLimit == 0 {
+		return deterministicio.DefaultTranscriptBytes
+	}
+	return config.IOTranscriptLimit
 }

@@ -94,10 +94,14 @@ type TestOverride struct {
 	PlatformExpectations map[string]set.WorkloadExpectation `json:"platform_expectations,omitempty"`
 	ChoiceBytes          *uint64                            `json:"choice_bytes,omitempty"`
 	ClockTick            string                             `json:"clock_tick,omitempty"`
-	ReplaySuccesses      *bool                              `json:"replay_successes,omitempty"`
-	ExecutionTimeout     string                             `json:"execution_timeout,omitempty"`
-	OverallTimeout       string                             `json:"overall_timeout,omitempty"`
-	Reason               string                             `json:"reason,omitempty"`
+	IOTranscriptBytes    uint64                             `json:"io_transcript_bytes,omitempty"`
+	// Environment sets target variables for the test, such as a pool size the
+	// test harness reads.
+	Environment      []string `json:"environment,omitempty"`
+	ReplaySuccesses  *bool    `json:"replay_successes,omitempty"`
+	ExecutionTimeout string   `json:"execution_timeout,omitempty"`
+	OverallTimeout   string   `json:"overall_timeout,omitempty"`
+	Reason           string   `json:"reason,omitempty"`
 	// SkipSubtests excludes named subtests of the test, each with the owner,
 	// date, and reason an exclusion requires, so the rest of the test stays
 	// in the set.
@@ -485,6 +489,8 @@ func workload(spec Spec, test, id string) set.Workload {
 		if override.ClockTick != "" {
 			generated.ClockTick = override.ClockTick
 		}
+		generated.IOTranscriptBytes = override.IOTranscriptBytes
+		generated.Environment = slices.Clone(override.Environment)
 		if override.ReplaySuccesses != nil {
 			generated.ReplaySuccesses = *override.ReplaySuccesses
 		}

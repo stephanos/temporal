@@ -70,6 +70,7 @@
     "src/runtime/symtab.go",
     "src/runtime/time.go",
     "src/runtime/time_nofake.go",
+    "src/runtime/traceback.go",
     "src/syscall/env_unix.go",
     "src/syscall/rlimit.go",
     "src/syscall/syscall_unix.go",

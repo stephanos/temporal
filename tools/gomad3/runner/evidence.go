@@ -104,7 +104,7 @@ func executionEvidence(
 		Environment: append([]record.Environment(nil), environmentForSeed(baseEnvironment, completion.job.seed)...),
 		Limits: ExecutionLimitsEvidence{
 			ExecutionTimeoutNanos: record.Uint64String(config.ExecutionTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
-			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit), IOTranscriptBytes: 64 << 20,
+			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit), IOTranscriptBytes: record.Uint64String(ioTranscriptLimit(config)),
 			ChoiceTraceBytes: record.Uint64String(config.ChoiceTraceLimit),
 		},
 		Outcome: OutcomeEvidence{
