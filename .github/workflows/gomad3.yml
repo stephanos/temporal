@@ -221,6 +221,9 @@ jobs:
           ([.packs[].id] | index("temporal-functional-tests-darwin-arm64") != null)
           ' tools/gomad3/.toolchain/tests-closure.json
 
+  functional-smoke:
+    uses: ./.github/workflows/gomad3-smoke.yml
+
   temporal-integration:
     needs: core
     runs-on: macos-15

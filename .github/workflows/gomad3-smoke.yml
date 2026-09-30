@@ -41,12 +41,17 @@ on:
       - "service/**"
       - "temporal/**"
   workflow_dispatch:
+  # gomad3.yml calls this workflow so a dispatch of the main Gomad workflow runs
+  # the smoke gate too.
+  workflow_call:
 
 permissions:
   contents: read
 
 concurrency:
-  group: gomad3-smoke-${{ github.head_ref || github.run_id }}
+  # github.workflow names the caller when gomad3.yml calls this workflow, so the
+  # direct and the called run of one pull request do not cancel each other.
+  group: gomad3-smoke-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
