@@ -12,9 +12,12 @@ Scope cut 2026-09-29: seeded and fixed moved to fn-105-gomad-follow-ups-deferred
 - tick on: fixture and core workload repeat and replay exactly
 
 ## Done summary
-TBD
+Implemented the forward and strict tick policies (seeded and fixed moved to fn-105 D6). `--clock-tick=forward` on explore and qualify, `clock_tick` on qualify-set workloads and the ./tests generator, and `GOMAD3_CLOCK_TICK=forward` in direct mode advance what time.Now reports by 1 to 1024 ns per read, drawn from a splitmix stream derived from the seed and separate from scheduling. The advance lives in an offset only time.Now observes: the first version advanced faketime and broke the process-simulation time transport (runner failures in functional suites), fixed in the follow-up commit. The policy is a recorded environment entry, so it is part of Campaign, Artifact, plan, and evidence identity and replay, resume, and shards restore it; strict is its absence, so existing identities are unchanged; record validation, plan environments, the coordinator wire, and the runtime reject other values.
 
+Evidence: runtime tier (strict reads tie; forward reads advance 1-1024 ns, repeat per seed, differ across seeds; invalid value exits 2) passed with the final implementation; the core corpus qualifies 7/7 under forward with exact replay; unit tests for config, manifest command, and record validation pass.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e22b3bce6, 1fdc06069
+- Tests: make validate test-toolchain test-runtime (darwin/arm64), gomad qualify-set core.json with clock_tick=forward: 7/7 qualified, go test ./runner ./qualification/set -run ClockTick
 - PRs:
