@@ -295,13 +295,15 @@
       "execution_timeout": "30m",
       "overall_timeout": "90m",
       "reason": "Its cluster outgrows the 64 MiB I/O transcript and the 64 MiB choice-trace maximum; with a 512 MiB transcript and no choice trace it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30), proving same-seed repeatability without a retained exact-replay artifact."
+    },
+    "TestVersioning3FunctionalSuite": {
+      "io_transcript_bytes": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "reason": "Its cluster outgrows a 512 MiB I/O transcript and the 64 MiB choice-trace maximum; with the 1 GiB transcript maximum and no choice trace it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30), proving same-seed repeatability without a retained exact-replay artifact."
     }
   },
-  "exclusions": {
-    "TestVersioning3FunctionalSuite": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
-    }
-  }
+  "exclusions": {}
 }

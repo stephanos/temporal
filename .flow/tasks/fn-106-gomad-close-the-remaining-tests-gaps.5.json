@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-106-gomad-close-the-remaining-tests-gaps",
   "spec_path": ".flow/tasks/fn-106-gomad-close-the-remaining-tests-gaps.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Resolve the traceback address leak and the worker-commands seed-11 hang",
   "updated_at": "2026-09-30T15:02:46.945414Z"
 }
