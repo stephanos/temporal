@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T17:53:45.794452Z",
+  "depends_on": [],
+  "id": "fn-105-gomad-follow-ups-deferred-scope.13",
+  "priority": null,
+  "spec": "fn-105-gomad-follow-ups-deferred-scope",
+  "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.13.md",
+  "status": "todo",
+  "title": "D13: choice-trace capacity for the transcript-heavy suites",
+  "updated_at": "2026-09-30T17:53:45.794452Z"
+}
