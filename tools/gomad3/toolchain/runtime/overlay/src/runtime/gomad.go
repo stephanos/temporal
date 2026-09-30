@@ -120,13 +120,17 @@ func gomadInit() {
 	randomizeScheduler = true
 }
 
-// gomadClockForward advances the virtual clock at every time.Now so that two
+// gomadClockForward advances what time.Now reports at every read so that two
 // reads never share an instant, the way a real clock moves between them. The
-// draw comes from its own stream derived from the seed, so it neither consumes
-// nor perturbs the scheduling choices, and replay derives the same draws.
+// advance accumulates in its own offset rather than in faketime: timers, the
+// scheduler, and the simulation time transport keep the idle-driven clock, and
+// only time.Now runs ahead of it. The draw comes from its own stream derived
+// from the seed, so it neither consumes nor perturbs the scheduling choices,
+// and replay derives the same draws.
 var (
-	gomadClockForward   bool
-	gomadClockTickState uint64
+	gomadClockForward    bool
+	gomadClockTickState  uint64
+	gomadClockTickOffset int64
 )
 
 // gomadClockTickMask bounds each forward draw to 1 through 1024 nanoseconds:
@@ -155,14 +159,14 @@ func gomadClockTickDraw() int64 {
 	return int64(1 + value&gomadClockTickMask)
 }
 
-// gomadTimeNow serves time.Now while Gomad is enabled. Advancing faketime here
-// can make a timer due while work is runnable; the scheduler then delivers it at
-// its next timer check, in the same deterministic order as any due timer.
+// gomadTimeNow serves time.Now while Gomad is enabled.
 func gomadTimeNow() (sec int64, nsec int32, mono int64) {
+	now := faketime
 	if gomadClockForward {
-		faketime += gomadClockTickDraw()
+		gomadClockTickOffset += gomadClockTickDraw()
+		now += gomadClockTickOffset
 	}
-	return faketime / 1e9, int32(faketime % 1e9), faketime
+	return now / 1e9, int32(now % 1e9), now
 }
 
 //go:linkname gomadCapabilityGuard
