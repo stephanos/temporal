@@ -19,12 +19,8 @@ R1. Current runtime gomadIOConfigFrame/gomadReadConfig/gomadConfigSeed repeat th
 `make test-runtime` (includes activation and disabled-mode conformance)
 
 ## Acceptance
-- [ ] R1 valid/empty/truncated/wrong header/seed boundary vectors cover actual runtime consumer.
-- [ ] Later checksum/identity rejection and disabled/direct-seed activation are unchanged.
-- [ ] New overlay files are registered in version.json overlay_allowlist and descriptor outputs regenerated.
-- [ ] Generation/check is deterministic; no runtime allocations or forbidden imports are introduced.
-- [ ] Wire bytes unchanged for fixed inputs; implementation identities regenerate normally, with all new inputs bound.
-
+- The runtime bootstrap consumer passes valid, empty, truncated, malformed-header, and seed-boundary cases on both qualified platforms; later checksum/identity rejection and disabled/direct-seed behavior unchanged.
+- Generated-source checks, focused tests, the full Gomad gates on darwin/arm64 and linux/amd64 (CI), and project lint pass (moved here from fn-102.6 on 2026-09-29).
 ## Done summary
 TBD
 

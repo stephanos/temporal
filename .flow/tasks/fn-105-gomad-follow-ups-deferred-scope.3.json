@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:01:42.919580Z",
+  "depends_on": [],
+  "id": "fn-105-gomad-follow-ups-deferred-scope.3",
+  "priority": null,
+  "spec": "fn-105-gomad-follow-ups-deferred-scope",
+  "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md",
+  "status": "todo",
+  "title": "D3: move public executor injection behind private dependencies",
+  "updated_at": "2026-09-30T03:01:42.919580Z"
+}

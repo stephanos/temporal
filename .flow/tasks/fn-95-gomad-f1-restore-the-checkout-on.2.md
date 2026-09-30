@@ -20,6 +20,8 @@ Run the full gate tier by tier (test-harness, test-toolchain, intercept-test, te
 Host note (not a Gomad defect): cgo on this Mac resolves `clang` to mise's lean4 clang, which cannot find `stddef.h`. With that clang, the runtime tier's `clock-cgo-build` fixture fails. The runtime and upstream tiers and the final full run used `PATH=$GOROOT/bin:/usr/bin:$PATH`, which puts Xcode clang first. No code was changed for this.
 
 stage: impl-review - ran (codex 3-draw fan-out, all SHIP, no findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 45e6788d97c429f1ab1e94abf54c12085ee32927
 - Tests: make -C tools/gomad3 test (darwin/arm64, all ten tiers, suite_rc=0), baseline: red (make -C tools/gomad3 test-host failed pre-edit: runner fake-preparer go1.26.4 pin + timeout, stale darwin adapter source-set pins, exec provenance GOEXPERIMENT version suffix, stale boundary test os fingerprint)

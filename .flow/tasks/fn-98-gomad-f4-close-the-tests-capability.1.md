@@ -15,6 +15,8 @@ Observed on darwin/arm64 that every compatibility pack is current against the pr
 baseline: green (make -C tools/gomad3 validate compatibility-pack-qualification)
 
 stage: impl-review - ran [codex fan-out NEEDS_WORK (unrecorded observation) .. re-review SHIP]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 4e2c5659e69562834eb8b545db1d08234482ce78, cc18bba34cc2dcf0c9bb5021e8642cdd419e143c
 - Tests: make -C tools/gomad3 validate compatibility-pack-qualification (baseline green, verify green; darwin/arm64), go test -tags test_dep -count=1 -run TestRewrittenModule ./deterministicio (darwin/arm64, pass), mutation probe: each darwin pin zeroed in turn -> TestRewrittenModulePreparedPackageSourceSetIdentity reported fx d8b6580641c5..., sdk/internal 45cd84114a3b..., otel/sdk/resource 796855abd6e0..., equal to committed pins; files restored, gomad doctor: fx, temporal sdk, otel sdk adapters ok

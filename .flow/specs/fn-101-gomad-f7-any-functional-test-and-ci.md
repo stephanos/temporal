@@ -40,7 +40,8 @@ exercises, so what differs per platform is who reaches the host clock without pa
 - **R4:** A required CI check runs on pull requests touching `tools/gomad3`, `tests`,
   `tests/testcore`, `go.mod`, and the closure's server packages. It is a smoke test: it
   qualifies a small, named selection of functional tests (drawn from the representative set)
-  on both platforms and fits well inside 90 minutes. The full `./tests` set stays an on-demand
+  on linux/amd64 and fits well inside 90 minutes (a macOS job moved to `fn-105` D7 on
+  2026-09-29). The full `./tests` set stays an on-demand
   local gate (`make gomad3-tests-qualification`).
 - **R5:** A static host-clock inventory in the toolchain tier pins every standard-library reference
   to `nanotime1`, `walltime`, `time_now`, and the vDSO clock symbols on each qualified platform,

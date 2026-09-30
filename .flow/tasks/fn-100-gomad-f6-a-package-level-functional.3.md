@@ -40,6 +40,8 @@ Follow-up for task .4: a single uninterrupted 28-workload run at the current man
 Tests: `TestLoadManifestRejectsUnknownRequiredProbes` and `TestLoadManifestRequiresFindingOnFailureExpectations` (tools/gomad3/qualification/set/set_test.go). Both were confirmed red without their fix.
 
 stage: impl-review - ran [2026-09-28T08:14..2026-09-28T08:25] (codex fan-out: round 1 NEEDS_WORK on R1 finding identity, refunded after the fix commit moved HEAD; re-dispatched fan-out SHIP x3)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 2097ed05c289bb76bc9cb8c491f6901084472680, 9b87c3c6d1f120e1e3915bcb29c52dc70891d6b6
 - Tests: cd tools/gomad3 && go test ./qualification/... ./upgrade/, make -C tools/gomad3 validate, make gomad3-integration-test, tools/gomad3/.bin/gomad qualify-set --check --manifest=tools/gomad3integration/qualification/temporal.json (28 workloads), make gomad3-qualification @2097ed05c2 manifest sha256:e664c61f: 28/28 supported, failed=0, infrastructure_errors=0, darwin CI jq assertion true, make gomad3-qualification @9b87c3c6d1 manifest sha256:e10842d4: INCONCLUSIVE full run, stopped by disk guard at 22/28 completed (all 22 qualified, failed=0, infrastructure_errors=0), qualify-set subset manifest (the 6 unrun workloads) @9b87c3c6d1: 6/6 supported, failed=0, infrastructure_errors=0

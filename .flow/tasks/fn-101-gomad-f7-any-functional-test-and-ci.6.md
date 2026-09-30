@@ -23,6 +23,8 @@ Changes:
 Determinism findings for the conductor: no linux divergence remains in these runs. The only open item is the historic frontend seed-17 nondeterminism from run 36466396209, which the frontend's F3 expectation still covers.
 
 stage: impl-review - ran [codex fan-out, 3 draws, all SHIP -> merged SHIP]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: cfba28756a8ef008cf9e5c7875ef9a2e74dbfb0d, adb0b1b13676e6af7c20b01a49e5eb3ed13e3aec
 - Tests: baseline: none (spec defines no Quick commands), make -C tools/gomad3 validate, go test -count=1 -tags test_dep ./upgrade ./toolchain/version ./qualification/set/... (tools/gomad3), MAKEFLAGS=w go test -run TestGenerateRendersDescriptorConsumers ./toolchain/version (red before fix, green after), make gomad3-integration-test, fork run 36493869196 at cfba28756a: all four jobs success (linux report basis for tightening), fork run 36497204705 at adb0b1b136: all four jobs success with tightened linux expectations

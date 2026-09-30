@@ -27,8 +27,9 @@ Run the same Gomad gates on darwin/arm64 and linux/amd64; use existing CI for th
 - [ ] Task 3's 10/100-job control-bound evidence and integrated data-flow review verify unchanged hard bounds; no unmeasured performance claims appear in docs.
 
 ## Done summary
-TBD
+NOT IMPLEMENTED. Moved to fn-105-gomad-follow-ups-deferred-scope.5 (D5) on 2026-09-29 as a scope cut; the task text above remains the implementation brief.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

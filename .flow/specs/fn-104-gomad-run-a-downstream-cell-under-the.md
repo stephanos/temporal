@@ -190,6 +190,14 @@ schema mount, not module resolution; and `make gomad3` needs a host Go of at lea
 `GOROOT` matches the `go` on `PATH` — a version manager that exports `GOROOT` for an older Go
 fails the toolchain build with a compiler-version mismatch after `GOTOOLCHAIN=local` is forced.
 
+## Scope cut (2026-09-29)
+<!-- scope: both -->
+
+F9 qualifies downstream targets in linked mode on darwin/arm64 only. Closure-mode support (D8),
+linux/amd64 packs (D9), and the seam guide (D10) moved to
+`fn-105-gomad-follow-ups-deferred-scope`. The spec no longer depends on F7: nothing here needs the
+CI gate. C5 below stays as analysis context; its guide is not a deliverable.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
@@ -200,19 +208,18 @@ fails the toolchain build with a compiler-version mismatch after `GOTOOLCHAIN=lo
   directory that is not a module root, and a schema source that cannot be resolved are invalid
   input with a named reason. README documents the forced build environment and the private-module
   and vendoring limits.
-- **R2:** `gomad analyze --capability-mode=closure` over the downstream in-process cluster test
+- **R2:** `gomad analyze --capability-mode=linked` over the downstream in-process cluster test
   package reports `supported` on darwin/arm64 with a reviewed downstream pack, the re-pinned
   Prometheus-client and terminal-detection packs, a standalone `x/sys` pack that does not bind
-  the libc adapter, and the new exact adapters the capability mode requires (the address
-  library; the signal-handling metrics library too unless the qualification runs in linked mode);
-  each adapter carries per-file digests, inventories, per-platform pins, and a negative test that
+  the libc adapter, and the address library's exact adapter (closure mode and its second adapter
+  moved to `fn-105` D8); the adapter carries per-file digests, inventories, per-platform pins, and a negative test that
   fails the build on an upstream edit. `compatibility-pack-qualification` qualifies the new
   requests on the host.
 - **R3:** Each C4 boundary operation has a disposition recorded in the analysis with evidence:
   modeled (with the COMPAT-5 set), target-injectable (with the injection point named), or denied
   (with the exact finding the target sees). Unspecified bind addresses and concrete listener-type
   assertions have documented, deterministic behavior. No C4 item is left as "unknown".
-- **R4:** A downstream-seam guide (README section or `docs/`) states the tag convention, the
+- **R4:** *Moved to `fn-105` D10 on 2026-09-29.* A downstream-seam guide (README section or `docs/`) states the tag convention, the
   pairing rule, the default-build invariant, and how to measure closure-versus-linked
   elimination; it lists the seam classes from C5 without naming a downstream repository.
 - **R5:** The downstream in-process cluster smoke test passes `gomad qualify --repeat 2` on two

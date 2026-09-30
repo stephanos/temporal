@@ -24,6 +24,8 @@ Transcript bytes are records × 128, the same accounting task .1 used. Evidence 
 Copies of the report are at scratchpad/temporal-qualification-set-run1.json and scratchpad/f3t2/. The retained artifacts in tools/gomad3/.toolchain/temporal-qualification were deleted afterward.
 
 stage: impl-review - ran (codex three-draw fan-out, all SHIP, finalized SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 403b1d36ecd69f4fc806676332e9e7fda91bdd11
 - Tests: baseline: none (spec lists no Quick commands), make gomad3 (toolchain key b59e8d7a5b0e9693b8c7ef97c7977979972983093a2c44e2cd94280b6b25498c), make gomad3-qualification (darwin/arm64, with the committed temporal.json): expectations-met=true supported=6 unsupported=11 failed=1 infrastructure-errors=0 completed=18/18, updated darwin CI jq predicate evaluated against that report: true, make gomad3-integration-test: ok

@@ -41,17 +41,25 @@ workload.
 - A test that relies on distinct timestamps fails on tie-producing seeds; it is fixed upstream,
   pinned to a tie-free policy per workload with a finding, or excluded with the seeds named.
 
+## Scope cut (2026-09-29)
+<!-- scope: both -->
+
+Only `forward` (every draw at least 1 ns) and `strict` (today) are implemented here; `forward` alone
+removes the known tie failures. `seeded` and `fixed` moved to `fn-105-gomad-follow-ups-deferred-scope`
+as D6. The Architecture section still describes all four so D6 has its design.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The tick policy (`seeded` with parameters including p(0), `forward`, `fixed`, `strict`) and application point are
+- **R1:** The tick policy (`forward` and `strict`; `seeded` and `fixed` moved to `fn-105` D6 on
+  2026-09-29) and application point are
   configurable on explore/qualify/qualify-set and per workload in manifests, and recorded in profile
   and artifact identity. Errors: invalid parameters or bounds are rejected; replay with a mismatched
   policy fails closed.
 - **R2:** Under every policy, same-seed repetitions and replay stay exact (runtime fixture and a
   core workload per policy); `strict` reproduces today's behavior byte-for-byte.
 - **R3:** The default policy is decided from measurement: the tie-excluded suites and the smoke
-  selection are run under `seeded` and `forward` across several seeds; if the evidence supports
+  selection are run under `forward` across several seeds; if the evidence supports
   it, one of them becomes the default (preferring `forward` when it removes the tie failures
   without hiding the known real tie bugs, since real clocks move forward), the qualified sets are requalified, and tie exclusions resolve (fixed,
   pinned, or seed-named); otherwise `strict` stays the default with the evidence recorded.

@@ -59,6 +59,8 @@ Compared with the earlier linux/amd64 picture:
 - The transcript holds 17 records here, against 15 on linux.
 
 stage: impl-review - skipped(empty: measurement-only task, no commits in BASE_COMMIT..HEAD to review; code changes forbidden by the task prompt)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: tools/gomad3/.bin/gomad qualify --json --seed {11,17} --repeat 2 --choices --choice-bytes=64MiB --replay-successes --success-limit=1 --success-bytes=1GiB --capability-mode closure --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep --io-ro-mount ./schema=/go.temporal.io/server/schema --execution-timeout 6m --overall-timeout 9m go-test ./tests -- -test.run=^<Suite>$ (x10 suites), baseline: none (spec defines no Quick commands)

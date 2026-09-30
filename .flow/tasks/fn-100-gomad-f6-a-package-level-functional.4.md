@@ -48,6 +48,8 @@ Each test was confirmed red with its guard disabled.
 **Not done:** memory capture failed because memory is not initialized (`flowctl memory init`). Follow-up: F7 and CI macOS runners could use `GOMAD3_QUALIFICATION_PRUNE=1` when disk is short. The CI workflow is unchanged.
 
 stage: impl-review - ran [2026-09-28T16:33..2026-09-28T16:47] (codex fan-out: round 1 three NEEDS_WORK draws with 2 findings, no-replay abort and prune-before-checkpoint, both fixed in c66a2762e8; that round was refunded as head_moved because the fixes were committed before finalize; the re-dispatched fan-out on c66a2762e8 returned SHIP x3, finalized SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 47269f7a12d684f247624e37108badd65be6a728, 12a22658f82bf3a4fac3d09b1cc4b3f40fffe32d, c66a2762e8cc206d4f99ca5540a9933c7c6d783c
 - Tests: baseline: none (spec defines no Quick commands); focused pre-edit baseline green: go test ./qualification/set/ ./cmd/gomad/internal/cli/ (tools/gomad3), go test -count=1 . ./qualification/... ./cmd/gomad/... (tools/gomad3, at c66a2762e8), make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1 (darwin/arm64, at 47269f7a12, manifest sha256:e10842d4): rc=0, 28/28 supported, failed 0, infrastructure_errors 0, expectations_met, darwin CI jq assertion true

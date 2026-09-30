@@ -24,8 +24,9 @@ R4. Executor and ReplayExecutor expose runner/internal/execution.Spec and Result
 - [ ] Default supervisor/coordinator behavior is unchanged; no mutable package-global injection.
 
 ## Done summary
-TBD
+NOT IMPLEMENTED. Moved to fn-105-gomad-follow-ups-deferred-scope.3 (D3) on 2026-09-29 as a scope cut; the task text above remains the implementation brief.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

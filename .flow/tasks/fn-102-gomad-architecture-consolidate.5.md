@@ -23,8 +23,9 @@ R5. listHostPackages currently enumerates only chosen roots, so ownerless new ro
 - [ ] Visibility checker traverses intended public method/field signatures and allows legal internal-package access.
 
 ## Done summary
-TBD
+NOT IMPLEMENTED. Moved to fn-105-gomad-follow-ups-deferred-scope.4 (D4) on 2026-09-29 as a scope cut; the task text above remains the implementation brief.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

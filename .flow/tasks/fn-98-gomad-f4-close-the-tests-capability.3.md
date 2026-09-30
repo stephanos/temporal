@@ -28,6 +28,8 @@ Darwin outcome per case (latest full `make gomad3-qualification`: expectations-m
 On linux/amd64, `platform_expectations` now expects the ten leaf cases to stop at `foreign:assembly:xxhash_amd64.s`, which the darwin-scoped packs do not admit. It is not a forbidden import.
 
 stage: impl-review - ran [2026-09-27] codex fan-out (3 draws SHIP, 0 findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5285983bb97903d53e3ddcd863d5fc939afc37ca, cf6525009330cdcd791e76cb71d6739488f98cce
 - Tests: baseline: green (re-verified post-restart; spec defines no Quick commands), CGO_ENABLED=0 go build ./..., CGO_ENABLED=0 go build -tags gomad,test_dep,disable_grpc_modules ./..., go vet -tags test_dep ./common/persistence/tests/, go vet -tags gomad,test_dep ./common/persistence/tests/, make -C tools/gomad3 validate, go test -count=1 ./qualification/set ./internal/compatibilitypack (tools/gomad3), make gomad3-qualification (darwin/arm64): expectations-met=true supported=16 unsupported=0 failed=2 infrastructure-errors=0 completed=18/18, darwin CI jq assertion from .github/workflows/gomad3.yml against the report: true

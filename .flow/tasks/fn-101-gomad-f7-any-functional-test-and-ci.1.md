@@ -19,6 +19,8 @@ Follow-ups for .2/.4: `gomad3.yml` does not trigger on `tests/**` yet (task .4 o
 baseline: green (make validate; focused qualification/set, cmd/gomadtool, cli tests)
 
 stage: impl-review - ran (codex fan-out: NEEDS_WORK on feature ToolTags -> fixed; re-dispatch NEEDS_WORK on test-name validation -> fixed; re-review SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: cfeef43f03cb8b0ed1d0efcf077878234497c3ad, b9fb2e51d84e4ed0a3d1659d77d0bc02670e1178, d6bb940da05ec3f6bcae18efd2848cde74ce537a, febb32c5e29bd3498dcf53a646b574c0ad85a3fe
 - Tests: make -C tools/gomad3 validate, tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep . ./qualification/... ./cmd/... (in tools/gomad3), tools/gomad3/.bin/gomad qualify-set --check --manifest=tools/gomad3integration/qualification/tests.json --working-dir=., go test -tags disable_grpc_modules,gomad,test_dep -list '.*' ./tests (147 names, identical to generated manifest)
