@@ -1,14 +1,14 @@
 {
-  "branch_name": "fn-105-gomad-follow-ups-deferred-scope",
-  "created_at": "2026-09-30T03:01:17.853013Z",
+  "branch_name": "fn-110-gomad-minimize-the-runtime-patch",
+  "created_at": "2026-09-30T19:20:38.559425Z",
   "depends_on_epics": [],
-  "id": "fn-105-gomad-follow-ups-deferred-scope",
+  "id": "fn-110-gomad-minimize-the-runtime-patch",
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-105-gomad-follow-ups-deferred-scope.md",
+  "spec_path": ".flow/specs/fn-110-gomad-minimize-the-runtime-patch.md",
   "status": "open",
-  "title": "Gomad follow-ups: deferred scope",
+  "title": "Gomad: minimize the runtime patch without losing functionality",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T19:18:27.468460Z"
+  "updated_at": "2026-09-30T19:20:38.563177Z"
 }

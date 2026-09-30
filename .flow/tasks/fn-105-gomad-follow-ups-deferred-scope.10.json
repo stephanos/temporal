@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-09-30T03:01:46.409526Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-105-gomad-follow-ups-deferred-scope.9"
+  ],
   "id": "fn-105-gomad-follow-ups-deferred-scope.10",
   "priority": null,
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md",
   "status": "todo",
   "title": "D10: downstream-seam guide",
-  "updated_at": "2026-09-30T03:01:46.409526Z"
+  "updated_at": "2026-09-30T19:22:06.921432Z"
 }

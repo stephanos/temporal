@@ -8,6 +8,10 @@ The Gomad-side work in
 The consumer still needs its own source seams and injected filesystem/membership
 transport. Classified blockers are not a claim that the cluster qualifies.
 
+[fn-107](../.flow/specs/fn-107-gomad-finish-downstream-cell.md) owns the remaining
+downstream implementation and successful qualification on both platforms,
+including the closure-mode, Linux, and seam-guide follow-ups D8/D9/D10.
+
 Current downstream-module behavior, `--working-dir`, forced build environment,
 exact adapters, and external packs are documented in the
 [README](../tools/gomad3/README.md) and
@@ -80,5 +84,6 @@ module simulation linkname allowance does not apply to a downstream target.
 The [milestone constraints](GOMAD_MILESTONES.md) govern every extension.
 
 Closure-mode support, Linux downstream packs, and the seam guide remain D8, D9,
-and D10 in [GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md). The completed capability design
-and September 29 closure-analysis baseline remain in fn-104 and Git history.
+and D10 in [deferred follow-ups](GOMAD_MILESTONES.md#f10-follow-ups-deferred-scope).
+The completed capability design and September 29 closure-analysis baseline remain
+in fn-104 and Git history.

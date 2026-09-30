@@ -63,7 +63,7 @@ needs deterministic CPU execution plus deterministic devices, or a recorder
 such as `rr` that also controls scheduling and CPU events. QEMU TCG is the more
 language- and guest-wide bounded substrate.
 
-This research extends [platform compatibility](../../../.plans/GOMAD3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles)
+This research extends [platform compatibility](../../../.plans/GOMAD_NEXT.md#compat-7-platform-bundles)
 and the [simulation architecture](../../../tools/gomad3/ARCHITECTURE.md#in-process-cluster-simulation).
 The process-backed Go tier is implemented; Linux/arm64 and a heterogeneous machine
 backend remain separate proposals. The

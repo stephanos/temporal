@@ -108,8 +108,9 @@ handy for low-level experiments. The CLI is the normal user path because it also
 provides target review, deterministic I/O, process containment, artifacts, and
 replay.
 
-The complete Runner contract is currently qualified on `darwin/arm64`. `doctor`
-checks that contract before you spend time on a campaign:
+The Gomad Toolchain and Runner support `darwin/arm64` and `linux/amd64`.
+Artifacts replay on their recorded platform. `doctor` checks installation
+availability before you spend time on a Campaign:
 
 ```sh
 tools/gomad3/.bin/gomad doctor
@@ -122,8 +123,8 @@ not a target test.
 ## Before running, Gomad asks whether the target fits
 
 Determinism is only honest if Gomad knows which sources of nondeterminism it
-controls. The `analyze` command performs that review without compiling or
-executing the target:
+controls. In its default closure mode, `analyze` performs that review without
+compiling or executing the target:
 
 ```sh
 tools/gomad3/.bin/gomad analyze \
@@ -134,7 +135,10 @@ tools/gomad3/.bin/gomad analyze \
 Gomad asks the pinned `go` command for the complete package closure, including
 test-only packages. It records package and module identities, source hashes,
 foreign source files, build tags, `linkname` directives, and the generated test
-main. It then applies a fail-closed policy to that evidence.
+main in the default closure mode. It then applies a fail-closed policy to that
+evidence. The optional `--capability-mode=linked` reviews compiler and linker
+reachability to remove unreachable blockers; it does not broaden the supported
+I/O boundary.
 
 "Fail closed" means an unknown escape hatch is a rejection, not a best effort.
 A target with an unapproved native dependency, forbidden import, foreign source,
@@ -162,7 +166,8 @@ Once built, the target is made read-only, hashed, and recorded with its argument
 build information, selected compatibility packs, adapters, toolchain build key,
 Go version, operating system, and architecture.
 
-Every seed in the campaign uses that same prepared binary. This matters more
+This immutable executable and its bound inputs are the **Prepared Target**.
+Every Seed in the Campaign uses that same Prepared Target. This matters more
 than it may seem: rebuilding per seed could introduce a second source of
 difference that has nothing to do with concurrency.
 
@@ -190,8 +195,9 @@ nondeterminism such as:
 
 Different seeds may produce different executions, but they do not have to. If a
 test reaches no meaningful branch in the controlled choices, many seeds can
-look identical. Committed Gomad v3 explores by sampling seeds; it does not claim
-to enumerate every possible schedule.
+look identical. The default Campaign samples Seeds. Bounded Choice Exploration
+can also follow alternative runtime decisions; neither strategy claims to
+enumerate every possible schedule.
 
 ## Each seed gets a clean process
 
@@ -247,6 +253,14 @@ time.Sleep(24 * time.Hour)
 
 can finish almost immediately in wall time when nothing else is runnable. The
 logical day still passed from the program's point of view.
+
+This is the default `--clock-tick=strict` policy: `time.Now` returns the same
+instant throughout a busy stretch. If a test needs successive reads to differ,
+`--clock-tick=forward` on `explore` or `qualify` adds a seeded 1 to 1024
+nanoseconds per read. The offset leaves the native timer clock, scheduler, and
+simulation time unchanged, but application durations or deadlines derived from
+`time.Now` can observe it. The policy is part of the recorded execution identity,
+and replay restores it.
 
 Virtual time does not bulldoze runnable work. A busy loop or a goroutine
 repeatedly polling a `select` remains runnable, so the clock cannot advance.
@@ -319,12 +333,27 @@ semantically equivalent.
 World does not inspect goroutines, own application state, or perform host I/O.
 It owns event identity, ordering, snapshots, transitions, terminal states, and
 replay validation. Each adapter owns its own domain semantics. The initial
-mailbox adapter is a small example of that split.
+mailbox adapter is a small example of that split. World logical time advances
+through explicit `Quiesce` calls independently of the native Go timer clock;
+calling `Quiesce` does not itself advance the process clock.
 
 This distinction keeps the simple path simple: opening an in-memory file does
 not need an event scheduler. An adapter reaches for World only when readiness,
 competition, cancellation, or logical-time coordination is actually part of
 the behavior being tested.
+
+For a distributed test, the optional `tools/gomad3sim` harness models Nodes,
+Incarnations, network links, durable Volumes, Scenarios, Fault Plans, and Oracles.
+Its **Backend** describes how Nodes execute: in-process logical Nodes or separate
+Node processes. **Fidelity** describes the guarantee you can claim. Both Backends
+support **Model Fidelity**, which compares detached modeled transitions and
+Outcomes. Only the process Backend supplies **Hard Isolation** with fresh package
+state and process-level crash and reap. In-process execution shares arbitrary
+package globals and may leave revoked goroutines behind.
+
+You do not need World or Simulation for the ordinary Go test in this tutorial.
+These are explicit application harnesses for tests that declare modeled events
+or distributed state.
 
 ## What `--choices` adds
 
@@ -340,30 +369,39 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestSomethingConcurrent$'
 ```
 
-The runtime writes a bounded v2 choice trace containing stable logical
+The runtime writes a bounded v2 **Choice Trace** containing stable logical
 decisions and observations. The important decision records are runnable
 goroutine selection and `select` polling; the trace also observes the final
 `select` result. Alternatives use logical identities rather than physical queue
 positions, pointers, or goroutine IDs.
 
-When replay opens an artifact with a complete v2 trace, it projects the decision
-records into a read-only choice tape. Before applying each recorded decision,
-the runtime checks the decision kind, call site, available alternatives,
+When Replay opens an Artifact with a complete v2 Choice Trace, it projects the
+branching decision records into an identity-bound **Decision Tape**. Observations
+such as the final `select` result remain trace evidence rather than forced
+decisions. Before applying each recorded decision, the runtime checks the
+decision kind, call site, available alternatives,
 alternative identities, and selected value. A mismatch stops the target at the
 first divergent ordinal. An unconsumed or exhausted tape is a divergence too.
+
+The **Choice Replay Plan** is the broader replay-control concept: Exact Replay
+uses a complete Decision Tape, while Choice Exploration can force a finite
+prefix and then let the Seed select later Choices.
 
 The tape is bound to the exact target hash, toolchain build key, platform, and
 choice-controller implementation. It is meant to reproduce this execution, not
 to be portable across source changes.
 
-Trace storage is explicitly bounded. If the trace overflows, Gomad reports a
-Runner failure; it does not pretend that partial choice evidence supports exact
-choice replay.
+Trace storage defaults to 8 MiB and is limited to 64 MiB. If the Choice Trace
+overflows, Gomad reports a Runner failure; partial evidence cannot support Exact
+Replay. An Artifact recorded without Choices can still repeat the Seed and
+validate modeled transcripts and terminal evidence, but it cannot claim exact
+runtime Choice replay.
 
 ## Results become durable evidence
 
-As each seed finishes, the Runner classifies the outcome. The major categories
-stay deliberately separate:
+As each Execution finishes, the Runner classifies its **Outcome** and produces a
+canonical **Record** binding the identities, inputs, limits, and evidence. The
+major categories stay deliberately separate:
 
 - a target failure, such as a test assertion, exit, signal, runtime fatal, or
   logical test timeout;
@@ -399,8 +437,9 @@ look like a valid replay artifact.
 
 Successful Executions are discarded by default. You can retain all successes, or only
 ones that add semantic or choice coverage, but you must provide explicit count
-and byte limits. That prevents an exploratory campaign from quietly turning
-into unbounded artifact storage.
+and byte limits. Exhausting either bound fails visibly rather than silently
+discarding a success selected for retention. That prevents an exploratory
+Campaign from quietly turning into unbounded Artifact storage.
 
 ## Inspection answers “what did I actually get?”
 
@@ -508,6 +547,40 @@ tools/gomad3/.bin/gomad explore \
 Guidance still runs realized seeds and transcripts. It prioritizes known-useful
 areas of the search; it does not turn seed sampling into exhaustive exploration.
 
+## Follow concrete alternatives within explicit bounds
+
+Instead of sampling more Seeds, **Choice Exploration** can follow runtime
+alternatives observed from one base Seed:
+
+```sh
+tools/gomad3/.bin/gomad explore \
+  --strategy=choice-exploration \
+  --seeds=7 \
+  --max-executions=128 \
+  --max-choice-depth=32 \
+  --max-exploration-bytes=64MiB \
+  --build-tag test_dep \
+  go-test ./path/to/package -- '-test.run=^TestSomethingConcurrent$'
+```
+
+This strategy implies Choice recording and explores forced prefixes in
+breadth-first rounds. **Combined Exploration**, selected with
+`--strategy=simulation-exploration`, also follows declared Scenario, network,
+storage, fault, and crash-state alternatives for a Simulation target. It requires
+explicit positive bounds for all six dimensions; see the [CLI guide](CLI.md).
+
+Both strategies retain the **Frontier** of remaining candidate work. Completion
+means completion within the declared bounds; depth, execution, dimension, or
+capacity limits can leave alternatives unexplored. Equal observed Outcomes do
+not make different forced prefixes interchangeable.
+
+For a supported combined-simulation failure with exact runtime and Simulation
+replay, `gomad minimize --attempt-budget=64 ARTIFACT_DIR` tries reductions in
+fresh processes and accepts only candidates that reproduce the normalized
+failure under exact replay. It preserves the original Artifact and records the
+parent and accepted reductions. Minimization currently supports only these
+combined-simulation failures.
+
 ## Qualification checks the checker
 
 Finding a failure is only useful if the deterministic boundary itself is
@@ -556,18 +629,19 @@ schedule has been searched, or an artifact survives arbitrary source and
 toolchain changes. It also does not model data races or weak-memory outcomes;
 race detection remains a separate test profile.
 
-The current supported target is an internally linked, pure-Go binary on the
-qualified `darwin/arm64` platform. Cgo, external linking, multiple Ps, signals,
-finalizers, subprocesses, non-loopback networking, DNS, plugins, and
+The supported target is an internally linked, pure-Go binary on `darwin/arm64`
+or `linux/amd64`. Platform support does not establish Qualification for every
+Target; Qualification evidence belongs to a specific workload and platform.
+Cgo, external linking, multiple Ps, signals, finalizers, subprocesses,
+non-loopback networking, DNS, plugins, and
 unrecognized host I/O are outside the committed deterministic contract.
 
-The main feature gaps are similarly straightforward: bounded choice-exploration
-exploration currently has neutral benchmark efficiency, combined
-schedule-plus-fault exploration and failure minimization are not yet complete,
-and there is no qualified Linux Runner bundle. Multi-node distributed-system
-simulation is available through explicit in-process and process-backed fidelity
-tiers. Those limits are roadmap items, not hidden assumptions in current
-results.
+Qualification still has explicit limitations. Allocation-heavy Targets can
+expose unresolved repeatability or replay divergence, and some Temporal suites
+qualify without Choices because their traces exceed the current capacity. Such
+evidence proves repeated observations, not Exact Replay. Read the current
+[delivery milestones](../../.plans/GOMAD_MILESTONES.md) and retained qualification
+reports before applying a broader support claim.
 
 ## A practical way to start
 
@@ -586,7 +660,9 @@ code is correct. It turns controlled executions into named, bounded, inspectable
 evidence—and turns the rare bad one from “it failed once” into something another
 developer can run again.
 
-For exact command behavior and limits, see the [Gomad v3 README](README.md).
-For the ownership boundaries and design rationale, see the
-[architecture document](ARCHITECTURE.md). The brief status of
-planned work lives in [.plans/GOMAD3_NEXT.md](../../.plans/GOMAD3_NEXT.md).
+For command behavior and limits, see the [CLI guide](CLI.md); for installation
+and development, see the [Gomad v3 README](README.md). The [product
+specification](SPEC.md#productvocabulary-ubiquitous-language) defines the canonical
+vocabulary and requirements. For ownership boundaries and design rationale, see
+the [architecture document](ARCHITECTURE.md). The brief status of
+planned work lives in [.plans/GOMAD_NEXT.md](../../.plans/GOMAD_NEXT.md).

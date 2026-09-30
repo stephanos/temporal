@@ -5,7 +5,7 @@ Gomad v3 has two command-line products:
 - `gomad` is the user workflow. It reviews a target, explores executions, retains evidence, replays observations, and qualifies support.
 - `gomadtool` is the maintainer workflow. It builds and validates the toolchain, governs generated contracts and compatibility packs, runs conformance campaigns, and produces upgrade evidence.
 
-This guide follows one target through both worlds. It is intentionally a journey rather than a flag catalog. The [product specification](tools/gomad3/SPEC.md) defines the corresponding requirements.
+This guide follows one target through both workflows. The [product specification](SPEC.md) defines the requirements and owns the [canonical vocabulary](SPEC.md#productvocabulary-ubiquitous-language).
 
 ```text
 maintain toolchain
@@ -55,6 +55,10 @@ tools/gomad3/.bin/gomad explore exec --provenance ./target.provenance.json -- ./
 
 `--` ends Gomad's target description and begins the target's arguments. The `exec` form is for a trusted prebuilt binary with exact Gomad provenance; it is not an escape hatch for an arbitrary executable. `analyze` accepts only `go-run` and `go-test`, because its job is to derive and review the Go dependency boundary.
 
+Place Gomad flags before the target kind. `go-test` accepts one package and passes the arguments after `--` to the compiled test binary; use `-test.run`, not the `go test` driver's `-run`. Repeat `--build-tag=TAG` for each required build tag. Public `go-test` commands add no implicit `test_dep` tag; Temporal's root wrapper selects it explicitly.
+
+The qualified hosts are `darwin/arm64` and `linux/amd64`. Targets compile with `CGO_ENABLED=0` and execute with `TZ=UTC`; toolchain, platform, reviewed boundary, and inputs are part of the recorded identity.
+
 ## Step 1: make sure the road exists with `doctor`
 
 Your first target is a test that occasionally fails under concurrency. Before spending time exploring it, ask whether this installation can make a trustworthy claim at all:
@@ -94,7 +98,9 @@ tools/gomad3/.bin/gomad analyze \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-Guarded review is the third mode. It preserves explicitly guarded findings as evidence while separating them from active blockers according to the current compatibility policy.
+`--capability-mode=guarded` is the third mode. Like linked review, it inspects the linked target. It retains findings protected by reviewed runtime guards separately from active blockers; reaching a denied guarded operation still fails closed during execution.
+
+Analysis defaults to a 30-second wall limit in closure mode and two minutes in linked or guarded mode. `--timeout` can raise the bound to at most 30 minutes. Select the same capability mode when exploring the reviewed target; a standalone analysis does not change later command defaults.
 
 Analysis answers a narrower question than execution: “Can this exact target be prepared under the reviewed boundary?” Status 0 means supported, 1 means unsupported, 2 means invalid input or package configuration, and 3 means analysis infrastructure failed. Fix or explicitly govern a blocker before exploring; do not treat unsupported analysis as a flaky test result.
 
@@ -113,6 +119,8 @@ tools/gomad3/.bin/gomad explore \
 
 `explore` prepares the target once, then executes the selected seeds under bounded concurrency. `--count=100` is shorthand for seeds 0 through 99 and cannot be combined with `--seeds`. Parallel completion timing does not change selection order or durable publication order.
 
+Without an explicit selection, `explore` uses seed 1. Default concurrency is the smaller of the host CPU count and 8; the wall limits are 30 seconds per execution and 10 minutes overall. The test binary's `-test.timeout` measures virtual time, so it does not replace the wall watchdog.
+
 The default failure policy stops after the first retained failure. Use `--on-failure=budget --failure-budget=N` to stop after N distinct failure signatures, or `--on-failure=all` to finish the complete selection.
 
 Human-readable progress goes to stderr. The final classification, Campaign path, retained Artifact paths, and copy-paste replay commands go to stdout. The final classification distinguishes a target failure, watchdog observation, replay divergence, mixed failure, and success.
@@ -130,9 +138,11 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-Repeat `--require-probe=NAME` when a known semantic boundary must be observed. Missing a required probe becomes a visible Campaign failure rather than an optimistic coverage report.
+`--choices` retains a Choice Trace, from which exact runtime Replay derives an identity-bound Decision Tape. Coverage is a separate summary of observed semantic events or runtime choices. Repeat `--require-probe=NAME` with `--coverage=semantic` or `--coverage=semantic+choice` when a known semantic boundary must be observed. Missing a required probe becomes a visible Campaign failure.
 
-Virtual time stands still within a busy stretch, so every `time.Now` there returns the same instant. A test that orders records by timestamp can fail only because of that tie. Add `--clock-tick=forward` to `explore` or `qualify` to advance the clock by a seeded 1 to 1024 nanoseconds at every `time.Now`; the policy is part of the Campaign and Artifact identity and replay restores it. `--clock-tick=strict` is the default.
+Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; overflow fails visibly. Output retention defaults to 8 MiB per stream, adjustable with `--output-limit`. Deterministic I/O transcript capacity defaults to 64 MiB and accepts `--io-transcript-bytes` from 64 MiB through 1 GiB in whole MiB increments. A larger transcript does not increase choice capacity.
+
+With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to add a cumulative seeded offset of 1 to 1024 nanoseconds per `time.Now` read. The native timer clock still advances when work cannot proceed. The policy is part of the Campaign and Artifact identity, and replay restores it.
 
 To run a module that lives elsewhere, such as one that depends on the server through a local `replace`, pass `--working-dir=/absolute/module/root` instead of changing directories.
 
@@ -165,9 +175,9 @@ tools/gomad3/.bin/gomad explore \
 
 Guidance selects from one immutable corpus snapshot while reserving part of the Campaign for the originally requested seeds. The corpus advances only after a retained case replays exactly. Guidance reuses observed seeds and transcripts; it does not claim to mutate scenarios or enumerate schedules.
 
-### Move from sampling to bounded explorations
+### Move from sampling to Choice Exploration
 
-Seed exploration samples schedules. When one execution exposes concrete runnable or `select` alternatives, choice-exploration exploration follows those alternatives in deterministic breadth-first rounds:
+Seed exploration samples schedules. When one execution exposes concrete runnable or `select` alternatives, Choice Exploration follows those alternatives in deterministic breadth-first rounds:
 
 ```sh
 tools/gomad3/.bin/gomad explore \
@@ -181,7 +191,7 @@ tools/gomad3/.bin/gomad explore \
 
 The strategy requires one base seed and explicit positive bounds. It implies choice recording and does not combine with `--count` or guided exploration.
 
-For a Gomad simulation target, simulation-exploration exploration can coordinate runtime, scenario, network, storage, fault, and crash-state alternatives. Every dimension is explicit so “complete” always means complete within a declared envelope:
+For a Gomad simulation target, Combined Exploration coordinates runtime, scenario, network, storage, fault, and crash-state alternatives through `--strategy=simulation-exploration`. Every dimension is explicit so “complete” always means complete within the declared bounds:
 
 ```sh
 tools/gomad3/.bin/gomad explore \
@@ -199,6 +209,8 @@ tools/gomad3/.bin/gomad explore \
   --max-exploration-result-bytes=16MiB \
   go-test ./path/to/simulation -- '-test.run=^TestScenario$'
 ```
+
+Both strategies retain the Frontier of remaining alternatives. Their reports identify alternatives omitted by the applicable execution, depth, dimension, or capacity bounds. Inspect that evidence before interpreting a completion claim.
 
 ## Step 4: follow the evidence with `inspect`, `replay`, and `minimize`
 
@@ -235,6 +247,8 @@ tools/gomad3/.bin/gomad replay \
 
 Replay never rebuilds from today's source tree and never substitutes live input. Reproducing a retained failure returns status 1 because the target-level failure still occurred; a matching retained success returns 0. Status 2 means the input or compatibility contract was invalid, while status 3 means replay infrastructure failed.
 
+Read `choice-replay` in the result to distinguish recorded runtime Choice replay from seed-based repetition. An Artifact without a supported recorded Choice Trace cannot claim exact runtime Choice replay. A watchdog observation uses diagnostic replay and returns status 1 even when the observation matches; matching a wall-time termination does not prove exact replay.
+
 If the failure came from combined simulation and exact runtime and simulation replay are available, reduce it:
 
 ```sh
@@ -261,6 +275,8 @@ tools/gomad3/.bin/gomad qualify \
 ```
 
 Qualification prepares and executes independently for each repetition, compares canonical evidence, and retains its own report. Optional successful replay proves that a passing observation is reproducible, not merely equal by summary.
+
+The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `--replay-successes` requires explicit count and byte bounds per repetition.
 
 A product claim usually contains more than one workload. First validate the qualification manifest without running targets:
 
@@ -333,7 +349,9 @@ tools/gomad3/.bin/gomad plan \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-`plan` packages the verified prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The current portable format accepts unguided seed Campaigns and fixes the failure policy to complete all planned work.
+`plan` packages the verified Prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The current portable format accepts unguided seed Campaigns and fixes the failure policy to complete all planned work.
+
+Workers must match the plan's platform and recorded toolchain, Runner, boundary, adapter, and compatibility-pack identities. Portability distributes work among compatible workers; it does not make a target binary portable across architectures or operating systems.
 
 Run deterministic ordinal-modulo shards, potentially on different compatible workers:
 
@@ -506,6 +524,8 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack check --root=.
 
 Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs; it does not approve a new request.
 
+For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, and `generation.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
+
 ### Run bounded conformance commands
 
 `test` executes one selected conformance campaign against an explicit toolchain:
@@ -588,6 +608,7 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `patch-regenerate` | Recreate the patch from a reviewed candidate tree. |
 | `version-generate` | Generate or check release-descriptor consumers. |
 | `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
+| `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
 | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
 | `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |

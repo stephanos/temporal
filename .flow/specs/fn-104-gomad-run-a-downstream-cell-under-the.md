@@ -282,7 +282,7 @@ works, as the store requires non-symlinked roots.
   object stores). A downstream harness that requires them is unsupported under Gomad until the
   downstream module offers an in-process configuration; that configuration is not this spec's
   work.
-- No multi-node simulation claims; `tools/gomad3sim` and `GOMAD3_NEXT_SIM.md` remain separate.
+- No multi-node simulation claims; `tools/gomad3sim` and [the simulation roadmap](../../.plans/GOMAD_NEXT.md#simulation) remain separate.
 - No multi-version adapters, no generic `syscall`/`x/sys`/`os/exec`/`os/signal` grants, no
   external pack loading unless a later decision adds it with its own review.
 - No change to the virtual-clock policy; that is `fn-103`.

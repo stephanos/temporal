@@ -1,19 +1,21 @@
 # Gomad v3: Milestones to a Deterministic Temporal Functional Test
 
-**Plan date:** 2026-09-08 · **Trimmed:** 2026-09-30
+**Plan date:** 2026-09-08 · **Consolidated:** 2026-09-30
 
 ## Purpose
 
 This document is the delivery ladder for running Temporal's functional tests (`./tests`, built on
 the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Gomad v3 so that the
 same seed produces the same run and a retained artifact replays byte-exactly.
-[GOMAD3_NEXT.md](GOMAD3_NEXT.md) remains the capability roadmap across all four tracks.
+[GOMAD_NEXT.md](GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
-All delivery work is complete: milestones F0–F9 (removed on 2026-09-30; see revision `3e4303807`
+Initial functional-test delivery is complete: milestones F0–F9 (removed on 2026-09-30; see revision `3e4303807`
 of this file, which manifest findings citing `GOMAD_MILESTONES.md#f3-…` through `#f7-…` refer to),
 the clock-tick spec `fn-103`, and the gap spec `fn-106` (see revision `3a7deb99d` for their
-outcomes). What remains is the F10 backlog, the open findings, the remaining test dispositions,
-and the rules that still apply.
+outcomes). What remains is the F10 backlog, the downstream implementation and qualification
+in fn-107, feature-preserving code-size reduction in fn-108, deep modules and tool
+interfaces in fn-109, runtime patch minimization in fn-110, the open findings, the
+remaining test dispositions, and the rules that still apply.
 
 ## Work tracking
 
@@ -23,9 +25,27 @@ changes, change the spec and summarize the change here.
 
 | Milestone | Spec | State |
 | --- | --- | --- |
-| F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
+| F10 | `fn-105-gomad-follow-ups-deferred-scope` | required D12/D14 fixes, D13 opt-in tracing policy, and deferred follow-ups ([decisions and scope](#f10-follow-ups-deferred-scope)) |
+| Downstream cell | [fn-107](../.flow/specs/fn-107-gomad-finish-downstream-cell.md) | open; consumer implementation and exact replay on both platforms, including D8/D9/D10 |
+| Code-size cleanup | [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | open; local cleanup, then D1/D2 consolidation and equivalence checks ([delivery order](#code-size-cleanup-fn-108)) |
+| Deep modules and tool interfaces | [fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; all sixteen architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
+| Runtime patch minimization | [fn-110](../.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; overlay extraction and canonical one-context-line regeneration, with both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
+
+## Completed functional-test gap work
+
+[fn-106](../.flow/specs/fn-106-gomad-close-the-remaining-tests-gaps.md) owns the completed
+tasks and acceptance criteria for Linux seed-17 replay divergence, configurable I/O
+transcript capacity, the single-P dedicated-cluster pool, traceback address leakage,
+and the worker-command seed-11 hang. Use `flowctl brief` for current task state.
+The remaining limitations and findings are recorded below; qualification manifests
+own dispositions. Tests that rely on wall-clock latency and owned test bugs retain
+their skips until their tests are fixed.
+
+The [LastGC task](../.flow/tasks/fn-106-gomad-close-the-remaining-tests-gaps.2.md)
+classifies the host-clock escape without changing the collector patch prohibition.
+Classification is not a claim that the escape is fixed.
 
 ## Remaining `./tests` dispositions
 
@@ -100,7 +120,7 @@ excluded. What still keeps the package short of "every functional test replays e
 - **Fail-closed stays.** An unmodeled boundary operation terminates the process. Work that needs
   a new modeled operation adds it with a semantic contract, a resource bound, transcript
   coverage, exact replay, and a negative test, per COMPAT-5 in
-  [GOMAD3_NEXT_COMPATIBILITY.md](GOMAD3_NEXT_COMPATIBILITY.md).
+  [the compatibility roadmap](GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 - **Evidence over narration.** Work is done when its command produces the stated report on a
   clean checkout. A passing local run that depends on untracked state does not count.
 - **Platform.** The boundary manifest qualifies `darwin/arm64` and `linux/amd64`. Each platform
@@ -117,30 +137,185 @@ excluded. What still keeps the package short of "every functional test replays e
 
 ## F10: follow-ups (deferred scope)
 
-**Spec.** [fn-105-gomad-follow-ups-deferred-scope](../.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md);
-items and revival triggers in [GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md).
+**Spec.** [fn-105-gomad-follow-ups-deferred-scope](../.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md)
+owns tasks and acceptance criteria.
 
-**Outcome.** None required. F10 is a backlog, not a milestone to finish: it keeps the scope cut on
-2026-09-29 in one place, each item with its origin, why it was deferred, and the observation that
-would revive it.
+**Outcome.** Fix work explicitly selected during the issue walkthrough must meet its
+acceptance criteria. Other items retain their original deferral reasons and revival
+triggers from the 2026-09-29 scope cut. A trigger must be recorded here before a
+deferred item is implemented; deferred items may remain open or close as won't-do.
 
-| Item | Origin | Revive when |
+**Status.** Fifteen items after splitting D13's policy and capacity obligations.
+D12 and D14 are required fixes; D13 requires opt-in tracing for routine
+qualification. Larger-trace support is deferred as D15. Implementation has not started.
+
+### Required work
+
+| Item | Scope and origin | Decision |
 | --- | --- | --- |
-| D1–D5 architecture consolidation | F8 R2–R6 | a second consumer or exploration strategy hits the duplication |
-| D6 `seeded` and `fixed` tick policies | `fn-103` | a bug class needs deliberate ties or constant quanta |
-| D7 macOS smoke job | F7 `.4` | a darwin-only regression escapes to main |
-| D8 closure-mode downstream support | F9 C3/R2 | a downstream module needs closure-mode preparation |
-| D9 linux/amd64 downstream packs | F9 | a downstream gate must run in linux CI |
-| D10 downstream-seam guide | F9 R4 | a second downstream module adopts Gomad |
-| D11 dynamic linux clock audit | F7 R5 (pre-amendment) | a linux-only clock escape is observed |
-| D12 linux replay-divergence channel | fn-106 `.1` | a linux/amd64 host is available for runtime instrumentation, or the rate rises |
-| D13 choice-trace capacity for the transcript-heavy suites | fn-106 `.3` | a failure in one of them needs an exact replay |
-| D14 darwin chasm replay residual | F7 | with D12, or the rate rises |
+| D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
+| D13 | Make runtime choice tracing opt-in for routine full-suite qualification (`fn-106.3`) | Decided 2026-09-30. R13 in fn-105 requires untraced full-suite defaults, explicit tracing in representative replay/conformance gates and choice-based exploration, and separate reporting of seed repeatability and verified choice-tape replay. D12/D14 verification remains traced. Larger-trace support moves to deferred D15. |
+| D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Required fix, decided 2026-09-30. R14 in fn-105 requires identifying and fixing the cause, a regression reproducer, and repeated Darwin exact replay on both seeds under load. A shared D12 fix requires separate Darwin verification before restoring the suite to qualified. |
 
-**Constraints.** An item is worked only after its trigger is recorded here; its acceptance is the
-origin spec's requirement text. Items may be closed as won't-do.
+### Architecture consolidation
 
-**Status.** Fourteen items; nothing started.
+| Item | Scope and origin | Revival trigger |
+| --- | --- | --- |
+| D1 | Shared completed-execution assessment across seed, choice, and simulation (`fn-102` R2) | Revived by the 2026-09-30 cleanup request; fn-108 R6 owns delivery |
+| D2 | Shared retention and artifact-input composition, with separate strategy transactions (`fn-102` R3) | Revived by the 2026-09-30 cleanup request; fn-108 R7 owns delivery |
+| D3 | Private executor injection instead of public `Executor`/`ReplayExecutor` (`fn-102` R4); a Go API change | Revived by the 2026-09-30 architecture request; fn-109 R5 owns delivery |
+| D4 | Architecture fitness checks for ownership, host effects, and public signatures, with negative fixtures (`fn-102` R5) | Revived by the 2026-09-30 architecture request; fn-109 R8 owns delivery |
+| D5 | Architecture/platform/determinism documentation reconciliation (`fn-102` R6) | Revived by the 2026-09-30 architecture request; fn-109 R9 owns delivery |
+
+These were deferred as maintenance without a waiting consumer or behavior change.
+The [architecture assessment](../.flow/artifacts/fn-102-gomad-architecture-consolidate/architecture-assessment.md)
+retains the evidence. Preserve CLI behavior, schemas, canonical bytes, failure
+classification and precedence, and replay compatibility when reviving them.
+
+The 2026-09-30 request for feature-preserving code-size reduction revives D1/D2
+under [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md).
+Reuse or transfer the existing obligations during task breakdown. The subsequent
+request to address every architecture finding creates
+[fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md),
+which reuses fn-108 for D1/D2 and revives D3/D4/D5 through R5/R8/R9. The current
+coordinator option loss and reviewed interface/ownership gaps supply the revival
+evidence. Public migrations remain outside fn-108 and follow its shared policy
+extraction where they overlap. Authoring these specs starts no tasks and claims
+no implementation.
+
+### Capability and CI follow-ups
+
+| Item | Scope and origin | Why deferred | Revival trigger |
+| --- | --- | --- | --- |
+| D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | `forward` addresses known ties; the extra policies are exploration features | A bug class needs deliberate ties or constant quanta |
+| D7 | macOS functional smoke job (`fn-101.4`) | Linux supplies the smoke gate and macOS already runs Temporal integration | A darwin-only regression escapes to main |
+| D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Linked mode removes the import | A downstream module needs closure-mode preparation or manifests |
+| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
+| D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |
+| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Static inventories cover both platforms; darwin DTrace exercises interception | A linux-only host-clock escape is observed |
+| D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
+
+The [constraints](#constraints) apply throughout.
+New tick policies carry execution identity and the
+[COMPAT-5 evidence set](GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
+Downstream packs/adapters bind exact versions; dependency drift reopens their
+qualification. On revival, use the origin spec's requirement text as acceptance.
+
+## Code-size cleanup (fn-108)
+
+**Spec.** [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md)
+owns requirements and acceptance criteria for reducing maintained production code while
+preserving every shipped feature. Task breakdown must reuse or transfer fn-105 D1/D2
+obligations; their original contracts remain in fn-102 R2/R3. D3's public executor
+migration remains outside fn-108 and belongs to fn-109.
+
+**Outcome.** A measured net reduction in authored production code, including new helpers,
+types, and wrappers, with equivalent public behavior and fixed-input evidence. The roughly
+200-line local-cleanup estimate is guidance, not a quota. Moving code between directories,
+compressing formatting, or deleting comments does not satisfy the reduction.
+
+### Delivery order
+
+Record the implementation baseline and comparable production, test, generated, and
+protocol/template counts before editing. Then deliver the following stages:
+
+| Stage | Scope | Acceptance in fn-108 |
+| --- | --- | --- |
+| 1. Local cleanup | Recheck and remove unused internal helpers, decimal/decoder code, and test-only minimizer serialization; remove repeated canonical validation; reuse the existing memory-adapter rewrite and dossier-publication owners | R2–R5; retain independent validation, exact adapter bytes/pins, and dossier publication/error behavior |
+| 2. Execution assessment | Give common World, coverage, choice-feature, and outcome interpretation one private owner across seed, choice, and simulation completion paths | R6; preserve detached evidence, validation order, failure precedence, and strategy-specific handling |
+| 3. Retention and composition | Share novelty predicates, capacity calculations, and artifact inputs while retaining seed ordinal commits, atomic exploration rounds, and replay-verified corpus admission | R7; failed or interrupted publication cannot advance committed policy state |
+| 4. Equivalence and size evidence | Compare final code counts and fixed-input canonical projections; run focused tests, generated/architecture checks, both-platform Gomad gates, Temporal integration/smoke, and affected qualification suites | R1, R8, R9; preserve current dispositions and report missing validation as incomplete acceptance |
+
+**Preservation contract.** Keep World, both simulation backends, exploration/minimization,
+guidance/corpus, portable campaign distribution, qualification-set sharding, prebuilt target
+provenance, caches, and both `gomad3integration` and `gomad3sim`. Keep public Go interfaces,
+CLI commands/flags/defaults, compatibility packs and versions, legacy choice inspection,
+schemas, replay identities, resource bounds, behavioral assertions, and existing comments.
+Runtime/overlay redesign and unrelated defect fixes remain outside fn-108.
+
+D12/D14 replay fixes retain their separate owners and acceptance requirements. Cleanup
+cannot weaken their expectations or treat existing divergence as new qualification evidence.
+
+**Status.** Open spec; task breakdown and implementation have not started.
+
+## Deep modules and tool interfaces (fn-109)
+
+**Spec.** [fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md)
+owns all eleven ranked findings and five secondary opportunities from the
+[architecture assessment](../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/architecture-assessment.md).
+Its twenty acceptance criteria cover campaign options, common execution policy,
+complete preparation, public construction, protocols, simulation progress,
+backend handles, Artifact lifetime, installation knowledge, controller completion
+and capability ownership.
+
+**Outcome.** Smaller, testable interfaces hide sequencing, validation and resource
+lifetime from callers while preserving shipped capabilities and replay contracts.
+The selected simulation and handle changes require implementation and conformance
+evidence; design notes or renewed deferral alone cannot close them. Re-anchor
+findings and reuse verified work that lands after the assessment.
+
+### Delivery order
+
+| Stage | Scope | Acceptance in fn-109 |
+| --- | --- | --- |
+| 1. Coordinator parity | Correct lost simulation bounds and characterize local/isolated options, defaults and failure behavior | R1; exercise every strategy through the actual coordinator seam |
+| 2. Common policy | Reuse fn-108's assessment and retention extraction; give the pure seed controller one completion transition | R2, R3, R16; reuse or transfer D1/D2 obligations once, with fn-108 R6/R7 evidence |
+| 3. Operation and preparation ownership | Narrow request/private construction, complete preparation, target commands, installation descriptions and capability evaluation | R4–R6, R10, R15, R17; overlapping public migrations follow verified fn-108 extraction |
+| 4. Resources and protocols | Separate Artifact references/opened handles, generate simulation-time consumers and hide model-wire slots behind typed commands | R7, R13, R14; preserve ownership, bytes, validation and domain errors |
+| 5. Simulation interfaces | Compare progress interfaces, implement the lifecycle owner and select backend-specific network/filesystem handles at creation | R11, R12; preserve concurrent blocking work, stale-incarnation rejection and backend fidelity |
+| 6. Architecture and qualification | Enforce ownership/effect/signature checks, reconcile guidance and retain complete finding/evidence coverage | R8, R9, R18–R20; negative fixtures, fixed-identity equivalence and both-platform gates |
+
+D3/D4/D5 are revived through R5/R8/R9. Task breakdown must reuse or transfer
+their existing obligations rather than create duplicate owners. Coordinate
+shared runtime-overlay and source-inventory edits with fn-110; patch minimization
+retains its own scope and qualification requirements.
+
+**Preservation contract.** Keep CLI grammar/defaults, recorded formats, canonical
+bytes for fixed identities, error precedence, existing comments, fresh processes,
+native timer ownership and separate seed/round/corpus transactions. Inventory
+and migrate the intended executor-injection and Artifact-handle Go interface
+changes. D12/D14 retain separate ownership; unavailable hosts or unexplained
+regressions leave affected acceptance incomplete.
+
+**Status.** Open spec; task breakdown and implementation have not started.
+
+## Runtime patch minimization (fn-110)
+
+**Spec.** [fn-110](../.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md)
+owns both approaches from the
+[patch-size investigation](../docs/research/gomad/GOMAD_PATCH_SIZE.md).
+Move existing Gomad-only implementation into additive overlays and emit the canonical
+Go 1.27.1 patch with one context line. This work reduces the upstream patch; fn-108
+separately owns net production-code reduction.
+
+**Outcome.** A smaller upstream source diff and a smaller canonical patch, with every
+supported behavior, existing comment, boundary guard, and qualification assertion
+preserved. The measured combined prototype was 20,352 bytes and 581 lines versus the
+32,275-byte, 998-line baseline, a 36.9% byte reduction. This is guidance, not a quota
+or completed qualification; moved overlay code remains part of the reported cost.
+
+### Delivery order
+
+| Stage | Scope | Acceptance in fn-110 |
+| --- | --- | --- |
+| 1. Baseline | Record pinned inputs, source sets, patch and overlay counts, and current workload dispositions | R1; comparable measurements and qualified inputs |
+| 2. Overlay extraction | Move the three scheduler/quiescence implementations, crypto initialization, and syscall linkname declarations; retain upstream hooks and lifecycle points | R2, R3, R6; preserve lock state, ordering, entropy overrides, activation, and negative behavior |
+| 3. Canonical regeneration | Emit `-U1`, update exact descriptor source sets and generated consumers, and make the pinned regeneration check follow the descriptor | R4, R5; repeated byte-identical regeneration and zero-fuzz source equivalence between final `-U3` and `-U1` patches on both hosts |
+| 4. Qualification and final evidence | Run full Gomad gates on both platforms, affected entropy/process-simulation tests, Temporal integration/smoke and affected qualification; publish final counts and build identities | R7, R8; fresh repeatability and exact replay under existing contracts, with no weakened dispositions |
+
+**Preservation contract.** Keep GC stabilization, host/target random streams, arrival
+ordering, timer-presence detection, synctest, caller-site and goroutine identities,
+traceback normalization, panic/testing completion, disabled behavior, and resource
+bounds. Existing artifacts retain their original toolchain identity; the final candidate
+records fresh artifacts under its new identity. Missing native-host evidence leaves
+acceptance incomplete.
+
+Goroutine-state embedding, compiler/linker hook consolidation, early environment
+initialization, and interception redesign remain outside this spec. D12/D14 fixes
+retain their separate owners; patch minimization cannot change their dispositions
+to obtain a passing gate.
+
+**Status.** Open spec; task breakdown and implementation have not started.
 
 ## Out of scope
 

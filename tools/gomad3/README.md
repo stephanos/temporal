@@ -828,7 +828,7 @@ described below, including process evidence for fresh arbitrary package globals
 and hard isolation.
 
 The root `tools/gomad3sim` package defines the no-dependency application
-harness. Its v6 schemas provide bounded specs, stable node and incarnation
+harness. Its versioned schemas provide bounded specs, stable node and incarnation
 identities, boot registration, detached results, lifecycle and topology
 control, typed scenario composition, stable histories and oracles, inspect,
 and exact replay. The in-process backend supplies deterministic
@@ -870,7 +870,8 @@ semantic bundle and fails closed if it is missing or divergent.
 
 ## Design
 
-- [Glossary](GLOSSARY.md) defines the ubiquitous language in one page.
+- [Product specification](SPEC.md#productvocabulary-ubiquitous-language) defines
+  the canonical vocabulary and current product requirements.
 - [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
   artifact, replay, and deterministic-I/O decisions.
 
