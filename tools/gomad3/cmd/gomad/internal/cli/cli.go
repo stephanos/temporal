@@ -455,6 +455,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
 	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
+	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -588,8 +589,16 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	workingDirectory, err := os.Getwd()
+	workingDirectory, err := resolveWorkingDirectory(*workingDir, os.Getwd)
 	if err != nil {
+		var invalid invalidWorkingDirectoryError
+		if errors.As(err, &invalid) {
+			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+				fmt.Fprintln(stderr, writeErr)
+				return 3
+			}
+			return 2
+		}
 		if writeErr := reporter.Error("runner_failure", fmt.Errorf("resolve working directory: %w", err)); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 		}

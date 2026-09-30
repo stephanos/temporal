@@ -59,6 +59,21 @@ then an adjacent `.toolchain` directory. CLI and environment roots must be
 absolute, clean, non-root paths. The source builder uses
 `GOMAD3_TOOLCHAIN_DIR` too.
 
+`explore`, `plan`, `qualify`, and `analyze` build the target from the current
+directory unless `--working-dir` names another module root, which must be an
+absolute, clean path to a directory holding a `go.mod`; `qualify-set` has the
+same flag. Build adapters are selected from the `go.mod` of the module that
+owns the target, so a module outside this repository can depend on the server
+through a local `replace` and still be prepared. A read-only mount source may
+be an absolute path, such as the server's `schema` directory in that
+replacement or in the module cache. Every target is built with
+`CGO_ENABLED=0 GOENV=off GOFLAGS= GOTOOLCHAIN=local GOWORK=off TZ=UTC
+GOEXPERIMENT=nogreenteagc` and listed with `-mod=readonly`: a workspace file
+is not honored, so its replacements must be `replace` lines in `go.mod`;
+vendored modules are unsupported; settings made with `go env -w` are ignored,
+so `GOPROXY`, `GOPRIVATE`, `GONOSUMDB`, and `GOSUMDB` must be exported
+variables.
+
 A standalone bundle can place this manifest beside `bin/gomad`'s parent:
 
 ```json

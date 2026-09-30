@@ -32,6 +32,7 @@ type analyzeDependencies struct {
 type analyzeArguments struct {
 	format         string
 	toolchainRoot  string
+	workingDir     string
 	buildTags      []string
 	capabilityMode target.CapabilityMode
 	timeout        time.Duration
@@ -106,6 +107,7 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	timeout := flags.Duration("timeout", 0, "analysis wall-time bound")
 	var buildTags stringList
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
+	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
 	if err := flags.Parse(arguments); err != nil {
 		return analyzeArguments{}, 2
 	}
@@ -127,12 +129,16 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	if parsed.kind == target.KindExec {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "gomad analyze requires a go-run or go-test target\n")
 	}
-	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, capabilityMode: mode, timeout: resolvedTimeout, target: parsed}, 0
+	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, workingDir: *workingDir, buildTags: buildTags, capabilityMode: mode, timeout: resolvedTimeout, target: parsed}, 0
 }
 
 func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencies analyzeDependencies) (target.Spec, target.ToolchainIdentity, int) {
-	workingDirectory, err := dependencies.workingDirectory()
+	workingDirectory, err := resolveWorkingDirectory(parsed.workingDir, dependencies.workingDirectory)
 	if err != nil {
+		var invalid invalidWorkingDirectoryError
+		if errors.As(err, &invalid) {
+			return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 2, "%v\n", err)
+		}
 		return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 3, "resolve working directory: %v\n", err)
 	}
 	resolvedRoot, err := dependencies.toolchain(parsed.toolchainRoot)

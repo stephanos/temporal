@@ -192,9 +192,9 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if len(registry.definitions) == 0 {
 		return spec, []BuildAdapter{}, nil
 	}
-	workingDirectory, err := filepath.Abs(spec.WorkingDir)
+	workingDirectory, err := target.ModuleDirectory(spec)
 	if err != nil {
-		return target.Spec{}, nil, fmt.Errorf("resolve target working directory: %w", err)
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
 	}
 	selected, moduleFile, err := registry.selected(workingDirectory)
 	if err != nil {
@@ -276,9 +276,9 @@ func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.
 	if err != nil {
 		return target.Spec{}, nil, err
 	}
-	workingDirectory, err := filepath.Abs(spec.WorkingDir)
+	workingDirectory, err := target.ModuleDirectory(spec)
 	if err != nil {
-		return target.Spec{}, nil, fmt.Errorf("resolve target working directory: %w", err)
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
 	}
 	selected, _, err := definition.adapters.selected(workingDirectory)
 	if err != nil {

@@ -70,6 +70,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
 	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe")
+	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newQualifyReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -117,8 +118,12 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if err != nil {
 		return reportQualifyInputError(reporter, stderr, err)
 	}
-	workingDirectory, err := dependencies.workingDirectory()
+	workingDirectory, err := resolveWorkingDirectory(*workingDir, dependencies.workingDirectory)
 	if err != nil {
+		var invalid invalidWorkingDirectoryError
+		if errors.As(err, &invalid) {
+			return reportQualifyInputError(reporter, stderr, err)
+		}
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", fmt.Errorf("resolve working directory: %w", err), 3)
 	}
 	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
