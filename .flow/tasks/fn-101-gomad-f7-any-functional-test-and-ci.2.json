@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fix the ./tests divergences and verify on the affected suites",
   "updated_at": "2026-09-29T19:13:22.737278Z"
 }

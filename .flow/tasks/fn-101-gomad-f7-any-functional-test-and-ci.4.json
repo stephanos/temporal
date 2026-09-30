@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make a functional-test smoke check the required CI gate",
   "updated_at": "2026-09-30T03:02:45.446626Z"
 }
