@@ -31,3 +31,14 @@ func TestCompatibilityPackPathsHonorAnExternalRoot(t *testing.T) {
 		}
 	}
 }
+
+func TestCompatibilityPathBaseKeepsDefaultPathsRootRelative(t *testing.T) {
+	root := t.TempDir()
+	external := t.TempDir()
+	if base := compatibilityPathBase(root, filepath.Join(root, "internal", "compatibilitypack"), ""); base != root {
+		t.Fatalf("default base = %q, want %q", base, root)
+	}
+	if base := compatibilityPathBase(root, external, external); base != external {
+		t.Fatalf("external base = %q, want %q", base, external)
+	}
+}

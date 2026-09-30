@@ -3,6 +3,23 @@
 package compatibility
 
 var generatedPackMutationInventory = []generatedPackMutation{
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "approval"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "arbitrary_local_replacement"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "availability"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "directive"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "foreign_source"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "go_source"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "justification"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "module_sum"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "module_version"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "owner"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "pack_digest"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "platform"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "positive"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "request_identity"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "review_time"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "source_set"},
+	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "workload"},
 	{PackID: "modernc-libc-xsys-v041", Mutation: "adapter_identity"},
 	{PackID: "modernc-libc-xsys-v041", Mutation: "approval"},
 	{PackID: "modernc-libc-xsys-v041", Mutation: "arbitrary_local_replacement"},

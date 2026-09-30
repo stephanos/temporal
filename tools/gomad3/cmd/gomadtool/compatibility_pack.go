@@ -107,7 +107,7 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	resolvedOutput, err := resolveBelow(compatibilityRoot, *outputPath)
+	resolvedOutput, err := resolveBelow(compatibilityPathBase(*root, compatibilityRoot, *compatibilityRootOverride), *outputPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedOutput) {
 		fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack")
 		return 2
@@ -247,15 +247,21 @@ func resolveCompatibilityPackPaths(root, override, request string) (string, stri
 	if err != nil {
 		return "", "", "", err
 	}
-	base := resolvedRoot
-	if override != "" {
-		base = compatibilityRoot
-	}
-	requestPath, err := resolveBelow(base, request)
+	requestPath, err := resolveBelow(compatibilityPathBase(resolvedRoot, compatibilityRoot, override), request)
 	if err != nil {
 		return "", "", "", err
 	}
 	return resolvedRoot, compatibilityRoot, requestPath, nil
+}
+
+// compatibilityPathBase is the directory relative request and report paths are
+// resolved from: the Gomad v3 root by default, where they are spelled
+// internal/compatibilitypack/..., or the external authoring root itself.
+func compatibilityPathBase(root, compatibilityRoot, override string) string {
+	if override != "" {
+		return compatibilityRoot
+	}
+	return root
 }
 
 // compatibilityRootFor returns the pack authoring root: this module's
