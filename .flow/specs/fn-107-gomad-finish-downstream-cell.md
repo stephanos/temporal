@@ -67,7 +67,12 @@ stores. CDS supplies OSS shard ownership and execution/history stores so
 acquisition activates and recovers Walker-backed shards. The SQL backing must
 be the same one seeded by testcore before its additional server options are
 applied. The profile owns these resources and closes them with the cluster.
-Cassandra, etcd/SMS, BOSS WAL proxies and cloud object stores are excluded from
+The injected per-history factory borrows testcore's SQL factory. It owns its
+CDS controller and real namespace registry backed by a distinct SQL metadata
+store handle, and closes those idempotently without closing the borrowed SQL
+factory. Testcore retains that base factory's lifecycle. Profile cleanup is a
+backstop for owned resources, including constructor failures. Cassandra,
+etcd/SMS, BOSS WAL proxies and cloud object stores are excluded from
 this support profile. A negative workload must show that denying or stopping
 Walker prevents workflow persistence; a SQL-only workflow cannot qualify.
 
@@ -104,11 +109,23 @@ remains limited to `localhost`; configured IP literals avoid other lookups.
 
 ### Dependency preparation and qualification
 
-Prepare the downstream target through `--working-dir` with an explicit local
-`go.temporal.io/server` replacement for the Gomad branch and coherent
-replacements between the root and nested Walker modules. A workspace file is
-not a replacement for these `go.mod` settings because the Runner uses
-`GOWORK=off`. Keep configuration/schema inputs in recorded read-only mounts or
+The dedicated smoke package owns an opt-in `localcell/gomad/go.mod`. Its main
+module replacements link the consuming root and Walker modules to these
+checkouts and link the server to the sibling Gomad checkout. Mirror required
+fork/pin replacements from the consuming root because replacements in dependency
+modules do not propagate. This keeps the published dependency defaults in the
+root and Walker modules intact. The native repository test driver already
+discovers arbitrary nested modules; invoke it from the repository root. The
+Gomad CLI uses the smoke module as its working directory with `GOWORK=off`.
+The smoke uses the existing Walker `hashicorpmetrics` build tag in both native
+and Gomad runs. Record it with `test_dep`, `integration` and, for Gomad,
+`gomad`; do not combine it with `armonmetrics`. Fresh closure evidence determines
+which metrics library needs an exact signal-refusal adapter.
+
+Prepare the dedicated smoke module through `--working-dir`. Its checked main
+`go.mod` owns the effective local replacements for the Gomad server checkout
+and the consuming root and Walker modules. A workspace file is not a replacement
+for that graph because the Runner uses `GOWORK=off`. Keep configuration/schema inputs in recorded read-only mounts or
 deterministically initialized model state. Export required private-module
 settings for host-side preparation.
 

@@ -42,6 +42,90 @@ open or close as won't-do.
   its own Darwin evidence. Diagnosis, classification, or an unverified shared-cause
   hypothesis cannot close D14.
 
+- **R22:** Fix parallel Nexus outcome endpoint collisions
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.22.md)). Required fix
+  approved on 2026-09-30. Give each independent start/cancel outcome subtest its
+  own endpoint identity across both dispatch paths and error-handling variants,
+  keeping endpoint assertions consistent with the registered identity. Preserve
+  parallel execution and API/outcome coverage. Verify native Go and Gomad on
+  seeds 11 and 17, then remove the four corresponding skips and regenerate the
+  qualification manifest. Production endpoint uniqueness behavior stays unchanged;
+  diagnosis or a still-skipped test cannot close this fix.
+
+## Approved investigations
+
+Decision on 2026-09-30: the user approves all remaining investigations, including
+the worker-command investigation and R19-R21 below. These tasks must establish
+causes and propose owned corrections or explicit limitations. Any needed fix
+remains tracked as open work for the subsequent decision; an investigation
+receipt does not claim the underlying issue is fixed.
+
+- **R16:** Investigate the standalone-activity forward-clock poll deadline
+  mismatch in D16 ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.16.md)).
+  Decision on 2026-09-30: investigation is approved; the correction remains to
+  be selected from its evidence. Reproduce the seed-11 client timeout and compare
+  native Go with Gomad on seeds 11 and 17. Identify the causal clock/deadline and
+  cancellation/response ordering, then establish whether the correction belongs
+  in Gomad, deadline propagation, or the test's timeout expectation. Retain a
+  minimal reproducer, commands, identities, and outcomes. Record the owner and
+  proposed correction or accepted limitation for a subsequent decision. Any
+  needed fix remains explicit open work in fn-105. Keep the skip until evidence
+  supports removal and preserve the activity-delay assertion and forward-clock
+  timestamp improvements. Classification alone does not resolve the skipped test.
+
+- **R17:** Investigate `TestNexusOTELSuite/TestOperation` with two dedicated
+  clusters in D17 ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.17.md)).
+  Decision on 2026-09-30: investigation is approved. The two-slot pool setting
+  already resolves the initial wait; identify the cause of the remaining
+  same-seed divergence and the seed-11 replay's missing terminal frame. Retain
+  reproductions on seeds 11 and 17, native/Gomad comparisons, suitable
+  single-cluster/two-cluster controls, and diagnostic choice evidence where useful.
+  Preserve the Nexus operation's application-tracing assertions. A connection
+  with D12/D14 requires evidence. Record the correction owner and proposed next
+  action for a subsequent decision, retaining any needed fix as explicit open
+  work in fn-105. Keep the skip until verification supports its removal;
+  classification alone does not resolve the operation.
+
+- **R18:** Investigate the worker cancellation delivery delay and inconsistent
+  timeout budgets ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.18.md)).
+  Reproduce seeds 11 and 17, compare native/Gomad behavior, and trace workflow
+  timeout through command generation, transfer, and control-queue polling.
+  Account for the 90-second context, five-second child polls, two-second server
+  minimum, and 120-second await budget. Record the cause, correction owner, and
+  next action. Preserve cancellation assertions and keep the skip until verified.
+
+- **R19:** Investigate activity fairness backlog readiness in both fairness
+  suites ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.19.md)). Establish
+  whether all intended activity tasks are eligible before dispatch measurement,
+  compare native/Gomad runs and unfairness evidence, and distinguish setup bias
+  from a product fairness defect. Propose an owned correction that preserves the
+  workload distribution and fairness assertion. Keep the skips until verified.
+
+- **R20:** Investigate heartbeat timeout counting under virtual time
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.20.md)). Compare native
+  and Gomad histories, elapsed time, and timeout/reset semantics. Establish
+  whether the second expected timeout depends on incidental RPC latency, then
+  propose an explicit semantic event/deadline condition or a product correction.
+  Preserve heartbeat timeout/recovery coverage and keep the skip until verified.
+
+- **R21:** Investigate target exposure and remedies for host-clock reporting
+  escapes ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.21.md)), including
+  `MemStats.LastGC` and the inventory's other paths. Distinguish target evidence
+  from runtime control flow and test suspected links to D12/D14. Assess remedies
+  within the current collector/assembly patch prohibitions; record any option
+  that needs a separate policy decision. Propose an owned fix or explicit
+  limitation for a subsequent decision. D11 remains the separate deferred Linux
+  audit; classification alone does not resolve D12/D14.
+
+## Decisions still needed
+
+| Issue | Work to decide |
+| --- | --- |
+| Schedule migration idempotency test | Reconcile the expected second migration result with the contract after the schedule is closed |
+| Nexus reset-cross-tree history test | Synchronize the post-reset workflow task and signal ordering while preserving reset/operation-survival coverage |
+| Enhanced DescribeTaskQueue response cache | Fix the production cache's handling of request report flags, with separate production review and regression evidence |
+| Optional capabilities | Decide whether D6 clock policies, D7 macOS smoke CI, D11 dynamic Linux clock auditing, and deferred D15 larger traces should be activated or remain deferred |
+
 ## Deferred trace-capacity extension
 
 - **R15:** Larger choice traces, split from the original D13 capacity proposal

@@ -1,0 +1,50 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a0f3d8-f59c-7e50-b8f8-25f7bf35b4ee",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-09-30T20:01:30.925200Z",
+  "review": "Prior finding #1: fixed\n\n`capacityFS.Unwrap()` now returns its wrapped filesystem at `walker/storage/filesystem.go:39`, preserving `vfs.Root()` traversal. `TestCapacityFS_Root` covers native and memory filesystems. Reviewed logs show the regression test failing before the fix and passing afterward, followed by successful storage and replication suites and zero lint issues.\n\nNo surviving findings or new blocking issues. Tests were not rerun during this read-only review.\n\n## Requirements coverage\n\nCoverage is scoped to fn-107.1; consumer propagation remains owned by .2.\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Later smoke-harness work. |\n| R2 | deferred | Discovery seam exists; remaining host seams are later work. |\n| R3 | met | Injected storage/checkpoint paths and lifecycle/error tests; wrapper traversal corrected. |\n| R4 | met | Validated configured capacity and insufficient-capacity restore checks. |\n| R5 | deferred | Later membership integration. |\n| R6 | deferred | Later profile lifecycle/metrics work. |\n| R7 | deferred | Later closure preparation. |\n| R8 | deferred | Later dependency-pack qualification. |\n| R9 | deferred | Later smoke-target analysis. |\n| R10 | deferred | Later dual-platform qualification/replay. |\n| R11 | met | Reviewed regression red/green evidence, native suites, focused gomad-tag evidence, and lint logs. |\n| R12 | deferred | Later documentation/reconciliation. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Review the actual uncommitted working-tree changes for fn-107.1, including ALL untracked Go files. The committed HEAD..HEAD range is intentionally empty because the user retains commit ownership: inspect git diff HEAD and git ls-files --others --exclude-standard, and read each listed source/test file. Review only walker/storage and walker/replication/checkpoint* current changes. The task acceptance lives at .flow/tasks/fn-107-gomad-finish-downstream-cell.1.md; read it as context. Verify injected filesystem ownership of volume/engine/quarantine/checkpoint/archive/download, memory reopen/lock/error behavior, validated deterministic capacity and unchanged native defaults/comments. Task .2 owns propagating these interfaces through bimmer/localcluster/IU-store callsites; do not report unfinished later integration as a .1 defect. Native 292 tests passed with 2 existing skips, 11 gomad-tag focused tests passed, focused lint zero issues; logs /private/tmp/fn107-storage-replication-native.log, /private/tmp/fn107-storage-replication-gomad-tag.log, /private/tmp/fn107-storage-replication-lint-final.log. Datanode broad baseline timeout is retained separately, not this focused Quick gate. No edits/staging/commits permitted. Return independent evidence-based findings and verdict.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-30e989f6c42e00532a761df2e85a765ab3b93cb7435c2f7aca1e24cb91a36565",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "supersedesReceiptId": "review-d9ced90cf52a8f7ad088c230a3835181b2956ca806661101c8f1e68c7b2cd590",
+    "items": [
+      {
+        "id": "finding-7289b7adddfed0aac2b304f075455262",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "`capacityFS` embeds `vfs",
+        "body": "`capacityFS` embeds `vfs.FS` without implementing `Unwrap()`. It therefore forwards the underlying filesystem\u2019s `Unwrap()` instead of returning that filesystem, violating the VFS wrapper contract. For `NewCapacityFS(vfs.Default, validUsage)`, the inherited method returns nil, so `vfs.Root` incorrectly returns the capacity wrapper. The existing blob provider consequently sets `reportsFileMetadata=false` (`blobstore/provider_fs.go:114,518`) and rejects supported modification-time writes with `ErrModTimeNotSupported` (`:180`). This changes behavior beyond capacity reporting.",
+        "rIds": [],
+        "anchor": {
+          "path": "walker/storage/filesystem.go",
+          "side": "head",
+          "startLine": 11,
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6"
+        },
+        "suggestion": "Implement `func (f *capacityFS) Unwrap() vfs.FS { return f.FS }`. Test that `vfs.Root` preserves the original filesystem for both native and memory backing.",
+        "firstSeenReceiptId": "review-d9ced90cf52a8f7ad088c230a3835181b2956ca806661101c8f1e68c7b2cd590",
+        "lastSeenReceiptId": "review-30e989f6c42e00532a761df2e85a765ab3b93cb7435c2f7aca1e24cb91a36565"
+      }
+    ]
+  }
+}
