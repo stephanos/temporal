@@ -9,10 +9,11 @@ the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Go
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD3_NEXT.md](GOMAD3_NEXT.md) remains the capability roadmap across all four tracks.
 
-Milestones F0–F9 are complete and were removed from this document on 2026-09-30. Their outcomes,
-details, and status history are in revision `3e4303807` of this file; manifests and exclusions
-that cite a finding as `GOMAD_MILESTONES.md#f3-…` through `#f7-…` refer to the sections of that
-revision. What remains here is the open work, the open findings, and the rules that still apply.
+All delivery work is complete: milestones F0–F9 (removed on 2026-09-30; see revision `3e4303807`
+of this file, which manifest findings citing `GOMAD_MILESTONES.md#f3-…` through `#f7-…` refer to),
+the clock-tick spec `fn-103`, and the gap spec `fn-106` (see revision `3a7deb99d` for their
+outcomes). What remains is the F10 backlog, the open findings, the remaining test dispositions,
+and the rules that still apply.
 
 ## Work tracking
 
@@ -23,56 +24,42 @@ changes, change the spec and summarize the change here.
 | Milestone | Spec | State |
 | --- | --- | --- |
 | F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
-| Gaps | `fn-106-gomad-close-the-remaining-tests-gaps` | done 2026-09-30: no exclusions left, the traceback leak fixed, the remaining gaps classified ([GOMAD_GAPS.md](GOMAD_GAPS.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
-## Remaining `./tests` gaps
+## Remaining `./tests` dispositions
 
-The generated manifest (`tools/gomad3integration/qualification/tests.json`, from
-`tests.generator.json`) gives every `./tests` test a disposition. What still keeps the package
-short of "any functional test runs deterministically":
+Every `./tests` test has a disposition in the generated manifest
+(`tools/gomad3integration/qualification/tests.json`, from `tests.generator.json`); none is
+excluded. What still keeps the package short of "every functional test replays exactly":
 
-- **Transcript-heavy suites (fn-106 `.3`).** The I/O transcript bound is configurable
-  (`--io-transcript-bytes`, `io_transcript_bytes`, up to 1 GiB), and no `./tests` test is excluded
-  any more. `TestTaskQueueStats_Pri_Suite`, `TestVersioning3QueryFunctionalSuite`, and
-  `TestWorkerDeploymentSuite` qualify on seeds 11 and 17 with a 512 MiB transcript,
-  `TestVersioning3FunctionalSuite` with the 1 GiB maximum. All four also exceed the 64 MiB
-  choice-trace maximum, so they run without a choice trace: that proves same-seed repeatability but
-  retains no exact-replay artifact. Restoring replay for them is F10 D13.
-- **One forward-tick skip.** The seven suites that had timestamp-tie skips run under
-  `clock_tick: forward` (fn-103, closed 2026-09-30) and qualify on both seeds with those eighteen
-  skips removed. `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`
-  is skipped instead: under `forward` a propagated gRPC deadline lands microseconds later on the
-  server than on the client, so its 3 s long poll hits the client deadline first on seed 11. The
-  default tick policy stays `strict`.
-- **Classified skips (fn-106 `.4`, `.5`).**
-  - `TestNexusOTELSuite/TestOperation` runs with `TEMPORAL_TEST_DEDICATED_CLUSTERS=2` instead of
-    waiting on itself, but two dedicated clusters in one process are not yet deterministic (seed 17
-    nondeterministic, a seed 11 replay differed in stderr), so it stays skipped with that finding.
+- **No exact replay for four suites.** `TestTaskQueueStats_Pri_Suite`,
+  `TestVersioning3FunctionalSuite`, `TestVersioning3QueryFunctionalSuite`, and
+  `TestWorkerDeploymentSuite` run with a raised I/O transcript and no choice trace; repeatability
+  is proven, exact replay is not (F10 D13).
+- **Skips with an identified cause.**
+  - `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`:
+    under `clock_tick: forward` a propagated gRPC deadline lands later on the server than on the
+    client (seed 11).
+  - `TestNexusOTELSuite/TestOperation`: two dedicated clusters in one process are not yet
+    deterministic.
   - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: on seed 11 the cancel
-    command does not arrive before the test's 90 s default context runs below the 2 s long-poll
-    minimum, after which every poll is refused; its 120 s wait exceeds its own context.
-  - The SDK panic-traceback address leak is fixed (the runtime prints a possibly-dead argument slot
-    as `?` while Gomad is enabled) and `TestWFTFailureReportedProblemsTestSuite` runs in full.
-- **Tests that assume wall time passes during server work.**
-  `TestFairness{,AutoEnable}Suite/Test_Activity_Basic` (backlog written before polling) and
-  `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult` (timeouts driven by RPC
-  latency). Under virtual time server work takes no time; `forward` does not change timers, so
-  these stay skipped unless the tests stop relying on wall-clock latency.
-- **Test bugs, kept as owned skips.** The Nexus API `…Operation_Outcomes` subtests register one
-  endpoint name from parallel subtests (four skips); `TestScheduleMigrationV2ToV1Idempotent`
-  expects idempotency after the migration closed; `TestNexusOperationSurvivesResetCrossTree`
-  signals before the post-reset workflow task completes.
-- **Intermittent suite.** `TestSignalWorkflowTestSuiteChasm` is `intermittent` on darwin for a
-  residual replay difference (about 1 in 28 seed-11 replays, two heap-span refills swapping order
-  at cluster start); its allocating goroutine is not identified (F10 D14).
+    command arrives after the test's 90 s context has run below the long-poll minimum.
+  - `TestFairness{,AutoEnable}Suite/Test_Activity_Basic` and
+    `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult` assume wall time passes
+    during server work.
+  - Test bugs: the Nexus API `…Operation_Outcomes` subtests (four skips) register one endpoint name
+    from parallel subtests; `TestScheduleMigrationV2ToV1Idempotent` expects idempotency after the
+    migration closed; `TestNexusOperationSurvivesResetCrossTree` signals before the post-reset
+    workflow task completes.
+- **Intermittent suites.** `TestSignalWorkflowTestSuiteChasm` on darwin (F10 D14) and the F5/F6
+  suites on linux (F10 D12).
 
 ## Open findings
 
 - **Linux replay divergence (F10 D12).** About one tier-3 seed-run in 26 on linux/amd64 is
   nondeterministic or diverges on replay, on either seed and a different suite each run, at choice
-  ordinals from 8 to ~85k. A fork bisect (fn-106 `.1`) showed it is not caused by the FIPS DRBG
+  ordinals from 8 to ~85k. A fork bisect showed it is not caused by the FIPS DRBG
   draw (`6bc11ef7d`) or the mark-start greying (`440552d2c`): runs with either reverted still
   diverged. A Rosetta linux/amd64 container reproduced it once in 32 seed-runs and never in 100
   sequential replays of the same artifact, so it depends on host timing under load. The F5 and F6
@@ -85,7 +72,7 @@ short of "any functional test runs deterministically":
   `debug.GCStats` and the Prometheus `go_memstats_last_gc_time_seconds` gauge), the FIPS entropy
   source's `monoTime`, and the execution tracer's clock snapshot; on linux also
   `syscall.Gettimeofday` behind the `syscall` pack gate. `LastGC` is the one ordinary targets
-  reach. Classified, not fixed (fn-106 `.2`): the patch policy keeps every `mgc*` and `mstats*`
+  reach. Classified, not fixed: the patch policy keeps every `mgc*` and `mstats*`
   runtime file out of the patch, `time_now` is platform assembly on linux/amd64, and the field is
   written but never read by runtime control flow, so it reaches evidence only if a target prints
   it.
@@ -153,7 +140,7 @@ would revive it.
 **Constraints.** An item is worked only after its trigger is recorded here; its acceptance is the
 origin spec's requirement text. Items may be closed as won't-do.
 
-**Status.** Created on 2026-09-29 with eleven tasks; nothing started.
+**Status.** Fourteen items; nothing started.
 
 ## Out of scope
 
@@ -166,7 +153,7 @@ origin spec's requirement text. Items may be closed as won't-do.
 ## Open risks
 
 - **GC timing** is not controlled and shares the seeded runtime stream. Allocation-heavy suites
-  may diverge between repetitions; the open linux seed-17 finding may be one.
+  may diverge between repetitions; the open linux and darwin replay findings may be such cases.
 - **Spin loops** anywhere in the cluster stall virtual time. Pollers with backoff are fine, but a
   single `for {}` with a non-blocking select is fatal under this runtime.
 - **Upstream Go releases** invalidate the patch and the boundary manifest each time; every Go bump
