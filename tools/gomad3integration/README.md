@@ -107,7 +107,24 @@ make gomad3-tests-qualification
 
 regenerates the manifest and runs the set with
 `GOMAD3_QUALIFICATION_PRUNE=1`, writing
-`tools/gomad3/.toolchain/tests-qualification-set.json`.
+`tools/gomad3/.toolchain/tests-qualification-set.json`. The full set is a local,
+on-demand gate; CI does not run it.
+
+### Functional smoke gate
+
+`qualification/smoke.json` names four `./tests` suites chosen for coverage per
+minute: user timers and the task poller, activities, updates, and child
+workflows (about 8 seconds of execution per seed on linux/amd64). Each suite is
+copied verbatim from `temporal.json`, which `make gomad3-integration-test`
+checks. The `Gomad v3 functional smoke` workflow runs it on linux/amd64 for
+changes to Gomad, the functional tests, and the server packages their closure
+reaches, and requires `unsupported`, `failed`, and `infrastructure_errors` to
+be zero with every suite qualified and replayed exactly. Making it a required
+check is a branch-protection setting. Run it locally with:
+
+```sh
+make gomad3-smoke-qualification
+```
 
 ### Sharding the generated set
 

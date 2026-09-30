@@ -162,7 +162,7 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-tests-qualification gomad3-tests-qualification-merge
+.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-smoke-qualification gomad3-tests-qualification gomad3-tests-qualification-merge
 
 gomad3: gomad3-runner
 
@@ -196,6 +196,15 @@ gomad3-qualification: gomad3-runner
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification-set.json"
+
+# The smoke selection is the required CI gate for functional tests; its suites
+# are copied verbatim from temporal.json, which gomad3-integration-test checks.
+gomad3-smoke-qualification: gomad3-runner
+	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/smoke.json" \
+		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification" \
+		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification-set.json"
 
 # Regenerating first puts every test in ./tests in the set, including one added
 # without regenerating the checked-in manifest; `make -C tools/gomad3 validate`

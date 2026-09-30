@@ -25,6 +25,7 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 	}{
 		{path: filepath.Join("..", "gomad3", "qualification", "core.json"), module: "gomad3.core.corpus", seeds: []uint64{17}, workloads: 7},
 		{path: filepath.Join("qualification", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 28},
+		{path: filepath.Join("qualification", "smoke.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 4},
 	} {
 		contents, err := os.ReadFile(test.path)
 		if err != nil {
@@ -53,6 +54,52 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 			}
 		}
 	}
+}
+
+// The smoke selection is the required CI gate; copying its suites verbatim
+// keeps its expectations, bounds, and mounts from drifting away from the
+// representative set that states them.
+func TestSmokeSuitesMatchRepresentativeSuites(t *testing.T) {
+	representative := manifestSuites(t, filepath.Join("qualification", "temporal.json"))
+	smoke := manifestSuites(t, filepath.Join("qualification", "smoke.json"))
+	for id, suite := range smoke {
+		source, found := representative[id]
+		if !found {
+			t.Fatalf("smoke suite %q is absent from temporal.json", id)
+		}
+		if !bytes.Equal(suite, source) {
+			t.Fatalf("smoke suite %q differs from temporal.json:\nsmoke: %s\nrepresentative: %s", id, suite, source)
+		}
+	}
+}
+
+func manifestSuites(t *testing.T, path string) map[string][]byte {
+	t.Helper()
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest struct {
+		Suites []json.RawMessage `json:"suites"`
+	}
+	if err := json.Unmarshal(contents, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	suites := map[string][]byte{}
+	for _, raw := range manifest.Suites {
+		var suite struct {
+			ID string `json:"id"`
+		}
+		if err := json.Unmarshal(raw, &suite); err != nil {
+			t.Fatal(err)
+		}
+		var canonical bytes.Buffer
+		if err := json.Compact(&canonical, raw); err != nil {
+			t.Fatal(err)
+		}
+		suites[suite.ID] = canonical.Bytes()
+	}
+	return suites
 }
 
 func TestPublicWrappers(t *testing.T) {
