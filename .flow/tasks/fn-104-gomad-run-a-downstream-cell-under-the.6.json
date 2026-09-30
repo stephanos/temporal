@@ -14,7 +14,7 @@
   "priority": null,
   "spec": "fn-104-gomad-run-a-downstream-cell-under-the",
   "spec_path": ".flow/tasks/fn-104-gomad-run-a-downstream-cell-under-the.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure the downstream smoke test and record the result",
   "updated_at": "2026-09-30T04:23:00.423838Z"
 }
