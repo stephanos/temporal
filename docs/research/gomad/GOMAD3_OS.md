@@ -1,5 +1,9 @@
 # Gomad v3 and system-level determinism
 
+> Dated research snapshot. Local capability and support statements describe the
+> assessment below. Use the [current README](../../../tools/gomad3/README.md) and
+> [active milestones](../../../.plans/GOMAD_MILESTONES.md) for present behavior and delivery order.
+
 Research date: 2026-08-15
 
 This report compares Gomad v3 with Hermit and Antithesis, evaluates Apple's
@@ -59,11 +63,10 @@ needs deterministic CPU execution plus deterministic devices, or a recorder
 such as `rr` that also controls scheduling and CPU events. QEMU TCG is the more
 language- and guest-wide bounded substrate.
 
-This fits the existing roadmap rather than replacing it: COMPAT-7 already
-proposes a Linux/arm64 platform bundle, and SIM-5 already proposes a
-process-backed fidelity tier
-([compatibility](GOMAD3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles),
-[simulation](GOMAD3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier--complete)). The
+This research extends [platform compatibility](../../../.plans/GOMAD3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles)
+and the [simulation architecture](../../../tools/gomad3/ARCHITECTURE.md#in-process-cluster-simulation).
+The process-backed Go tier is implemented; Linux/arm64 and a heterogeneous machine
+backend remain separate proposals. The
 syscall layer belongs beneath the Go execution backends as defense in depth;
 it does not replace Gomad's semantic network, storage, World, or fault models.
 The heterogeneous backend is a separate machine-level seam that may reuse
@@ -103,18 +106,18 @@ standard-library boundaries**.
 Gomad promises repeatability of runtime-controlled choices for an unchanged
 toolchain, target, architecture, deterministic inputs, and seed; it does not
 claim deterministic arbitrary host I/O
-([architecture](../tools/gomad3/ARCHITECTURE.md#system-boundary)). Activation
+([architecture](../../../tools/gomad3/ARCHITECTURE.md#system-boundary)). Activation
 forces one P, disables asynchronous preemption and the system monitor, seeds
 runtime choices, and starts a virtual clock
-([activation](../tools/gomad3/ARCHITECTURE.md#activation)). The runtime patch
+([activation](../../../tools/gomad3/ARCHITECTURE.md#activation)). The runtime patch
 implements seeded run-queue and `select` choices, deterministic runtime
 randomness, and `faketime`
-([patch](../tools/gomad3/toolchain/runtime/go1.27.1.patch)).
+([patch](../../../tools/gomad3/toolchain/runtime/go1.27.1.patch)).
 
 Time advances to the earliest native timer only when no goroutine is runnable.
 A busy loop or unsupported blocking host I/O prevents logical advancement and
 is bounded by Runner's wall watchdog
-([quiescence](../tools/gomad3/ARCHITECTURE.md#quiescence-and-native-timers)).
+([quiescence](../../../tools/gomad3/ARCHITECTURE.md#quiescence-and-native-timers)).
 This gives Gomad direct knowledge of goroutines, channels, `select`, and Go
 timers that a syscall tracer has to infer indirectly.
 
@@ -122,27 +125,27 @@ The compiler inserts typed prologues into reviewed `os` and `net` definitions.
 The current manifest inventories 129 entries: 62 modeled, 64 denied, and three
 delegated. Entries bind source declarations, operations, probes,
 hooks/dispositions, adapters, and fixtures
-([manifest](../tools/gomad3/deterministicio/boundary/manifest.json)). Modeled
+([manifest](../../../tools/gomad3/deterministicio/boundary/manifest.json)). Modeled
 implementations provide process-local filesystem, loopback TCP, hostname, and
 entropy behavior; a pinned `modernc.org/libc` adapter maps selected calls into
 the same boundary
-([deterministic I/O](../tools/gomad3/README.md#deterministic-io)).
+([deterministic I/O](../../../tools/gomad3/README.md#deterministic-io)).
 
 The limit is explicit: this is not an OS sandbox. Raw syscalls can bypass it,
 and DNS, non-loopback sockets, subprocesses, cgo, plugins, external linking,
 and unrecognized native I/O are unsupported
-([deterministic I/O](../tools/gomad3/README.md#deterministic-io)).
+([deterministic I/O](../../../tools/gomad3/README.md#deterministic-io)).
 
 Runner already provides the control plane a lower backend needs: fresh process
 and directory per seed, an empty environment, process-group termination,
 bounded output, immutable identity, atomic artifacts, replay validation, World,
 and ordered campaign commits
-([Runner](../tools/gomad3/ARCHITECTURE.md#runner-and-process-containment)).
+([Runner](../../../tools/gomad3/ARCHITECTURE.md#runner-and-process-containment)).
 
 The current descriptor and I/O manifest support only `darwin/arm64`
-([descriptor](../tools/gomad3/toolchain/version/version.json)). Replay requires
+([descriptor](../../../tools/gomad3/toolchain/version/version.json)). Replay requires
 the artifact host and target platform to match the current process
-([replay check](../tools/gomad3/runner/replay_operation.go)). Linux support is
+([replay check](../../../tools/gomad3/runner/replay_operation.go)). Linux support is
 therefore a new qualified platform bundle and artifact identity, not
 cross-platform replay of existing Darwin artifacts.
 
@@ -826,7 +829,7 @@ Keep the patched-Go runtime path as the fast, semantically rich DST tier. Fund
 its Linux/firewall spike only if closing Go raw-syscall escapes is independently
 valuable; it is not the route to arbitrary software.
 
-For the heterogeneous requirement, fund **SYS-0 next** on an Apple-silicon Mac
+For a heterogeneous consumer, evaluate **SYS-0** on an Apple-silicon Mac
 running macOS 26. M3+ is preferred for campaign throughput, not required. Put a
 small Go + JVM + native distributed workload inside one AArch64 QEMU guest, run
 single-vCPU TCG record/replay inside a pinned Apple container VM, and require

@@ -1,26 +1,28 @@
 # What Gomad can learn from Loom and deterministic simulation testing
 
+> Dated research snapshot. Local capability and support statements describe the
+> assessment below. Use the [current README](../../../tools/gomad3/README.md) and
+> [active milestones](../../../.plans/GOMAD_MILESTONES.md) for present behavior and delivery order.
+
 Assessment date: 2026-09-27. Local basis: working tree at `5285983bb9`, including
 in-progress changes. This is a source-based assessment, not a new qualification
 run or a replacement work queue. External facts link to primary sources;
 proposed changes and experiments are recommendations.
 
-Yes. Loom offers lessons about controlling and reducing concurrency choices;
+Loom offers lessons about controlling and reducing concurrency choices;
 TigerBeetle offers stronger lessons about which failures to generate and how to
 recognize incorrect behavior. Gomad already implements much of the execution
 machinery. Its next gains should come from better semantic oracles, recovery
 tests, workload distributions, and measured search policies.
 
-Keep the delivery order in [GOMAD_MILESTONES.md](GOMAD_MILESTONES.md): close the
-remaining F4–F7 qualification work before expanding the simulator. Investigating
+Follow [GOMAD_MILESTONES.md](../../../.plans/GOMAD_MILESTONES.md) for current delivery order. Investigating
 these ideas must not turn an unsupported or divergent functional test into a
 passing expectation. The Flow-Next specs remain authoritative.
 
 ## The baseline has moved
 
-The August [Loom comparison](GOMAD3_CMPR.md) is useful architectural background,
-but its statements that replay is observational and no frontier exists are now
-historical. Recommending those features again would miss the current gaps.
+The August comparison predates exact choice replay and the schedule frontier.
+Its snapshot remains in Git history; the research below assumes those mechanisms.
 
 | Area | Present in this checkout | Remaining opportunity |
 | --- | --- | --- |
@@ -31,12 +33,12 @@ historical. Recommending those features again would miss the current gaps.
 | Guidance | Semantic/choice features and replay-verified seed corpus | Generating new semantic inputs and fault configurations, beyond reusing seeds |
 | Reduction | Forced schedule suffix/range and fault-entry reduction | Typed scenario shrinking and durable minimizer resume |
 
-Sources: [runtime and Runner contract](../tools/gomad3/README.md),
-[choice frontier](../tools/gomad3/runner/internal/exploration/choice/engine.go),
-[combined frontier](../tools/gomad3/runner/internal/exploration/simulation/frontier.go),
-[fault vocabulary](../tools/gomad3sim/fault.go),
-[oracles](../tools/gomad3sim/oracle.go), and
-[minimizer](../tools/gomad3/runner/internal/minimizer/minimizer.go).
+Sources: [runtime and Runner contract](../../../tools/gomad3/README.md),
+[choice frontier](../../../tools/gomad3/runner/internal/exploration/choice/engine.go),
+[combined frontier](../../../tools/gomad3/runner/internal/exploration/simulation/frontier.go),
+[fault vocabulary](../../../tools/gomad3sim/fault.go),
+[oracles](../../../tools/gomad3sim/oracle.go), and
+[minimizer](../../../tools/gomad3/runner/internal/minimizer/minimizer.go).
 Implemented mechanisms do not establish that every target or platform qualifies;
 the milestone reports retain the observed limitations.
 
@@ -67,7 +69,7 @@ model verifier. [Loom limitations](https://docs.rs/loom/0.7.2/loom/#limitations-
 Gomad disables asynchronous preemption. Replaying every available runnable or
 `select` choice therefore does not explore interleavings at every atomic or
 uncontended synchronization operation. Its
-[preemption fixture](../tools/gomad3/internal/gomadtool/conformance/testdata/preemption/main.go)
+[preemption fixture](../../../tools/gomad3/internal/gomadtool/conformance/testdata/preemption/main.go)
 explicitly exercises a spin loop that cannot finish under this contract.
 
 The useful Loom lesson is semantic visibility. Before adding a new scheduler,
@@ -88,7 +90,7 @@ the first requirement. This still does not make single-P execution complete:
 the offered scheduling points remain a restriction. Run the stock Go race
 detector separately; Gomad currently excludes it.
 [Go memory model](https://go.dev/ref/mem),
-[Gomad execution contract](../tools/gomad3/README.md#contract)
+[Gomad execution contract](../../../tools/gomad3/README.md#contract)
 
 ### Try preemption bounds before general dependency reduction
 
@@ -146,7 +148,7 @@ monitor should own those obligations, including a nonempty set of work to
 complete. Distinguish unmet recovery preconditions, a bounded liveness failure,
 and a wall-watchdog termination. A finite deadline is a tested recovery bound,
 not a proof of eventual progress under all fair schedules.
-[Current oracle implementation](../tools/gomad3sim/oracle.go)
+[Current oracle implementation](../../../tools/gomad3sim/oracle.go)
 
 ### Check both public behavior and internal protocol invariants
 
@@ -171,7 +173,7 @@ operations may admit several legal orders, and a timeout can leave an operation'
 effect unknown. Model those cases explicitly and bound any history search.
 
 The existing
-[matching duplicate-delivery scenario](../tools/gomad3sim/temporal_scenario_toolchain_test.go)
+[matching duplicate-delivery scenario](../../../tools/gomad3sim/temporal_scenario_toolchain_test.go)
 is a TCP harness using `collection.SyncMap`, not a running Temporal matching
 service. It proves a failure can be recorded and replayed. It does not establish
 a production matching bug or an exactly-once transport guarantee. Place any
@@ -189,7 +191,7 @@ Gomad should treat scenario generation as a search dimension distinct from
 scheduling. Its guided corpus currently reuses realized seeds and transcripts;
 it does not mutate scenario inputs or fault plans. More schedule seeds cannot
 find a bug whose necessary input never appears.
-[Guidance contract](../tools/gomad3/README.md)
+[Guidance contract](../../../tools/gomad3/README.md)
 
 Use versioned campaign configurations to vary operation mix, concurrency, key
 skew, retries, payload sizes, cancellation timing, resource capacities, and fault
@@ -270,7 +272,7 @@ declared outcomes of a small fixture in sixteen executions. That is a neutral
 result, not justification for general DPOR. Compare multiple representative
 bugs and record both executions and CPU/wall cost, including preparation,
 replay, reduction, and artifact storage.
-[Current benchmark assessment](GOMAD3_NEXT.md#current-baseline)
+[Search evidence](../../../.plans/GOMAD3_NEXT_BUG_FINDING.md#search-evidence)
 
 ### Gosim: test the simulator against the system it replaces
 
@@ -316,9 +318,9 @@ The effort estimates are relative judgments, not measured implementation costs.
 
 For the first extension, choose a component with a small public operation model
 and an existing reliable test harness. The update registry is a candidate: the
-[F6 report](GOMAD_MILESTONES.md#f6-a-package-level-functional-slice) records a
+[F6 task evidence](../../../.flow/tasks/fn-100-gomad-f6-a-package-level-functional.2.md) records a
 same-timestamp admission-order bug, and
-[the implementation](../service/history/workflow/update/registry.go) now uses an
+[the implementation](../../../service/history/workflow/update/registry.go) now uses an
 admission sequence to break ties. Retaining that known failure as a benchmark is
 more informative than adding another synthetic two-outcome `select` test.
 
