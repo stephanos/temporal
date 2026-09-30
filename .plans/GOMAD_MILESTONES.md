@@ -33,25 +33,27 @@ The generated manifest (`tools/gomad3integration/qualification/tests.json`, from
 `tests.generator.json`) gives every `./tests` test a disposition. What still keeps the package
 short of "any functional test runs deterministically":
 
-- **Four excluded suites (fn-106 `.3`).** `TestTaskQueueStats_Pri_Suite`,
-  `TestVersioning3FunctionalSuite`, `TestVersioning3QueryFunctionalSuite`, and
-  `TestWorkerDeploymentSuite` overflow the 64 MiB I/O transcript (`deterministicio.MaximumTranscriptBytes`,
-  a fixed runtime mapping). Raising or streaming the bound, with a runner flag and an
-  artifact-identity field, is the work.
+- **Transcript-heavy suites (fn-106 `.3`).** The I/O transcript bound is configurable
+  (`--io-transcript-bytes`, `io_transcript_bytes`, up to 1 GiB). `TestTaskQueueStats_Pri_Suite`,
+  `TestVersioning3QueryFunctionalSuite`, and `TestWorkerDeploymentSuite` left the exclusions: with
+  a 512 MiB transcript and no choice trace (they also exceed the 64 MiB choice maximum) they
+  qualify on seeds 11 and 17, which proves same-seed repeatability without an exact-replay
+  artifact. `TestVersioning3FunctionalSuite` still overflows 512 MiB.
 - **One forward-tick skip.** The seven suites that had timestamp-tie skips run under
   `clock_tick: forward` (fn-103, closed 2026-09-30) and qualify on both seeds with those eighteen
   skips removed. `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`
   is skipped instead: under `forward` a propagated gRPC deadline lands microseconds later on the
   server than on the client, so its 3 s long poll hits the client deadline first on seed 11. The
   default tick policy stays `strict`.
-- **Gomad-side limits (fn-106 `.4`, `.5`).**
-  - `TestNexusOTELSuite/TestOperation` needs two dedicated clusters, and `testcore` sizes its
-    dedicated pool from `GOMAXPROCS`, which Gomad pins to 1, so the test waits on itself.
-  - `TestWFTFailureReportedProblemsTestSuite/…_NotClearedBySignals`: the SDK's panic traceback
-    prints dead argument slots holding host thread-stack addresses, so output differs between
-    same-seed runs.
-  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: seed 11 never delivers the
-    cancel command within the 120 s wait; not yet explained.
+- **Classified skips (fn-106 `.4`, `.5`).**
+  - `TestNexusOTELSuite/TestOperation` runs with `TEMPORAL_TEST_DEDICATED_CLUSTERS=2` instead of
+    waiting on itself, but two dedicated clusters in one process are not yet deterministic (seed 17
+    nondeterministic, a seed 11 replay differed in stderr), so it stays skipped with that finding.
+  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: on seed 11 the cancel
+    command does not arrive before the test's 90 s default context runs below the 2 s long-poll
+    minimum, after which every poll is refused; its 120 s wait exceeds its own context.
+  - The SDK panic-traceback address leak is fixed (the runtime prints a possibly-dead argument slot
+    as `?` while Gomad is enabled) and `TestWFTFailureReportedProblemsTestSuite` runs in full.
 - **Tests that assume wall time passes during server work.**
   `TestFairness{,AutoEnable}Suite/Test_Activity_Basic` (backlog written before polling) and
   `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult` (timeouts driven by RPC
@@ -67,15 +69,16 @@ short of "any functional test runs deterministically":
 
 ## Open findings
 
-- **Linux seed-17 replay divergence.** Since the FIPS DRBG draw (`6bc11ef7d`) and the mark-start
-  greying fix (`440552d2c`) landed, seed 17 of one tier-3 suite per linux run has diverged on
-  replay near choice ordinal 9100–9400, a different suite each time (`functional-activity` in fork
-  run 36668156879, `functional-query` in 36669836359). The F5 and F6 suites are `intermittent` on
-  linux under this finding, the dispatch-only linux gate accepts `nondeterministic` for them, and
-  the required smoke gate runs seed 11 only. The darwin representative set stayed fully qualified
-  on the same commits. (fn-106) Bisecting the two runtime changes on linux/amd64 is the
-  next step; a linux/amd64 container under Rosetta on a Mac, or one fork branch per reverted
-  commit, can run it.
+- **Linux replay divergence (F10 D12).** About one tier-3 seed-run in 26 on linux/amd64 is
+  nondeterministic or diverges on replay, on either seed and a different suite each run, at choice
+  ordinals from 8 to ~85k. A fork bisect (fn-106 `.1`) showed it is not caused by the FIPS DRBG
+  draw (`6bc11ef7d`) or the mark-start greying (`440552d2c`): runs with either reverted still
+  diverged. A Rosetta linux/amd64 container reproduced it once in 32 seed-runs and never in 100
+  sequential replays of the same artifact, so it depends on host timing under load. The F5 and F6
+  suites are `intermittent` on linux, and both the dispatch-only linux gate and the required smoke
+  gate accept `nondeterministic` and `replay_divergence` for them while failing on target
+  failures, unsupported targets, and infrastructure errors. The darwin representative set stays
+  fully qualified.
 - **Host-clock escapes** recorded by the static inventory (`toolchain/clock_inventory_test.go`):
   `gcMarkTermination` stamps `MemStats.LastGC` with host wall time (also visible through
   `debug.GCStats` and the Prometheus `go_memstats_last_gc_time_seconds` gauge), the FIPS entropy
