@@ -14,6 +14,11 @@
   "patch": "toolchain/runtime/go1.27.1.patch",
   "adapters": [
     {
+      "module": "github.com/hashicorp/go-sockaddr",
+      "version": "v1.0.7",
+      "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="
+    },
+    {
       "module": "go.opentelemetry.io/otel/sdk",
       "version": "v1.44.0",
       "sum": "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="
