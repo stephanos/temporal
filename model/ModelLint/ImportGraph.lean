@@ -192,6 +192,7 @@ def defaultPolicy : Policy := {
     `Tools.LeanSourceInventoryTests,
     `ModelLint.Entity,
     `ModelLint.ImportGraph,
+    `ModelLint.MakeTests,
     `ModelLint.PackageModules,
     `ModelLint.PackageModulesTests,
     `ModelLint.ModuleIndex,
