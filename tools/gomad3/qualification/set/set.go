@@ -58,23 +58,26 @@ type Manifest struct {
 }
 
 type Workload struct {
-	ID                   string                `json:"id"`
-	Name                 string                `json:"name"`
-	Tier                 uint64                `json:"tier"`
-	Invariant            string                `json:"invariant"`
-	Package              string                `json:"package"`
-	Test                 string                `json:"test"`
-	BuildTags            []string              `json:"build_tags,omitempty"`
-	CapabilityMode       target.CapabilityMode `json:"capability_mode"`
-	Environment          []string              `json:"environment,omitempty"`
-	ReadOnlyMounts       []Mount               `json:"read_only_mounts,omitempty"`
-	RequiredProbes       []string              `json:"required_probes,omitempty"`
-	ChoiceBytes          uint64                `json:"choice_bytes"`
-	ReplaySuccesses      bool                  `json:"replay_successes"`
-	SuccessArtifactLimit uint64                `json:"success_artifact_limit"`
-	SuccessBytesLimit    uint64                `json:"success_bytes_limit"`
-	ExecutionTimeout     string                `json:"execution_timeout,omitempty"`
-	OverallTimeout       string                `json:"overall_timeout,omitempty"`
+	ID             string                `json:"id"`
+	Name           string                `json:"name"`
+	Tier           uint64                `json:"tier"`
+	Invariant      string                `json:"invariant"`
+	Package        string                `json:"package"`
+	Test           string                `json:"test"`
+	BuildTags      []string              `json:"build_tags,omitempty"`
+	CapabilityMode target.CapabilityMode `json:"capability_mode"`
+	Environment    []string              `json:"environment,omitempty"`
+	ReadOnlyMounts []Mount               `json:"read_only_mounts,omitempty"`
+	RequiredProbes []string              `json:"required_probes,omitempty"`
+	ChoiceBytes    uint64                `json:"choice_bytes"`
+	// ClockTick selects a non-default virtual-clock tick policy; only
+	// "forward" is valid, and the strict default is the field's absence.
+	ClockTick            string `json:"clock_tick,omitempty"`
+	ReplaySuccesses      bool   `json:"replay_successes"`
+	SuccessArtifactLimit uint64 `json:"success_artifact_limit"`
+	SuccessBytesLimit    uint64 `json:"success_bytes_limit"`
+	ExecutionTimeout     string `json:"execution_timeout,omitempty"`
+	OverallTimeout       string `json:"overall_timeout,omitempty"`
 	// Skip names subtests of Test the workload does not run, as -test.skip
 	// patterns anchored under Test; a generated manifest records who excluded
 	// each one, when, and why.
@@ -707,6 +710,9 @@ func ValidateManifest(manifest Manifest) error {
 		if workload.CapabilityMode != target.CapabilityModeClosure && workload.CapabilityMode != target.CapabilityModeLinked && workload.CapabilityMode != target.CapabilityModeGuarded {
 			return fmt.Errorf("qualification workload %s capability mode is invalid", workload.ID)
 		}
+		if workload.ClockTick != "" && workload.ClockTick != record.ClockTickForward {
+			return fmt.Errorf("qualification workload %s clock tick policy %q must be absent or forward", workload.ID, workload.ClockTick)
+		}
 		for _, mount := range workload.ReadOnlyMounts {
 			if mount.Source == "" || mount.Target == "" || strings.ContainsAny(mount.Source+mount.Target, "\x00\n") {
 				return fmt.Errorf("qualification workload %s has an invalid read-only mount", workload.ID)
@@ -776,6 +782,9 @@ func workloadCommand(config Spec, manifest Manifest, workload Workload, seed uin
 	}
 	if workload.ChoiceBytes != 0 {
 		args = append(args, "--choices", "--choice-bytes="+strconv.FormatUint(workload.ChoiceBytes, 10))
+	}
+	if workload.ClockTick != "" {
+		args = append(args, "--clock-tick="+workload.ClockTick)
 	}
 	if workload.ReplaySuccesses {
 		args = append(args, "--replay-successes", "--success-limit="+strconv.FormatUint(workload.SuccessArtifactLimit, 10), "--success-bytes="+strconv.FormatUint(workload.SuccessBytesLimit, 10))

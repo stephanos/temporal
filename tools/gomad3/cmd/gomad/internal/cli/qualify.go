@@ -12,6 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/qualification"
 	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -71,6 +72,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
+	clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newQualifyReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -134,8 +136,8 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	config := runner.CampaignSpec{
 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit,
-		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts,
+		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick,
+		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{

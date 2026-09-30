@@ -124,20 +124,22 @@ type ArtifactReplayer interface {
 }
 
 type CampaignSpec struct {
-	ResumeCampaign            string
-	PlanSHA256                record.SHA256
-	Shard                     CampaignShard
-	Strategy                  Strategy
-	Seeds                     string
-	Parallel                  int
-	ExecutionTimeout          time.Duration
-	OverallTimeout            time.Duration
-	TerminateGrace            time.Duration
-	OnFailure                 FailurePolicy
-	FailureBudget             uint64
-	OutputLimit               uint64
-	WorldTransitionLimit      uint64
-	ChoiceTraceLimit          uint64
+	ResumeCampaign       string
+	PlanSHA256           record.SHA256
+	Shard                CampaignShard
+	Strategy             Strategy
+	Seeds                string
+	Parallel             int
+	ExecutionTimeout     time.Duration
+	OverallTimeout       time.Duration
+	TerminateGrace       time.Duration
+	OnFailure            FailurePolicy
+	FailureBudget        uint64
+	OutputLimit          uint64
+	WorldTransitionLimit uint64
+	ChoiceTraceLimit     uint64
+	// ClockTick is the virtual-clock tick policy; empty means record.ClockTickStrict.
+	ClockTick                 string
 	MaxExecutions             uint64
 	MaxChoiceDepth            uint64
 	MaxForcedDecisions        uint64
@@ -1379,6 +1381,13 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		return SeedSelection{}, nil, err
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: deterministicio.Deterministic})
+	switch config.ClockTick {
+	case "", record.ClockTickStrict:
+	case record.ClockTickForward:
+		environment = append(environment, record.Environment{Name: record.ClockTickEnvironment, Value: record.ClockTickForward})
+	default:
+		return SeedSelection{}, nil, fmt.Errorf("clock tick policy %q must be strict or forward", config.ClockTick)
+	}
 	if config.ChoiceTraceLimit != 0 {
 		environment = append(environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
 	}
@@ -1407,7 +1416,7 @@ func validateSimulationDimensionLimits(limits SimulationDimensionLimits) error {
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))

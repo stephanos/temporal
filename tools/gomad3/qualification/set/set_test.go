@@ -543,6 +543,18 @@ func TestAnalysisCommandBoundsAnalysisByWorkloadBudget(t *testing.T) {
 	}
 }
 
+func TestWorkloadCommandCarriesTheClockTick(t *testing.T) {
+	manifest := Manifest{RunTimeout: "2m", OverallTimeout: "5m", TerminateGrace: "1s", Repeat: 2}
+	strict := workloadCommand(Spec{}, manifest, Workload{CapabilityMode: target.CapabilityModeClosure, Package: "./p", Test: "TestP"}, 7)
+	if slices.ContainsFunc(strict.Args, func(argument string) bool { return strings.HasPrefix(argument, "--clock-tick") }) {
+		t.Fatalf("strict workload arguments = %v", strict.Args)
+	}
+	forward := workloadCommand(Spec{}, manifest, Workload{CapabilityMode: target.CapabilityModeClosure, Package: "./p", Test: "TestP", ClockTick: "forward"}, 7)
+	if !slices.Contains(forward.Args, "--clock-tick=forward") {
+		t.Fatalf("forward workload arguments = %v", forward.Args)
+	}
+}
+
 func TestRunClassifiesEveryWorkloadWhenAnalysisFails(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/target\n\ngo 1.26.4\n"), 0o600); err != nil {

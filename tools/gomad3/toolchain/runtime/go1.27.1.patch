@@ -747,7 +747,7 @@ index 6c569b5..570e531 100644
  		return sec, nsec, 0
  	}
 +	if gomadEnabled {
-+		return faketime / 1e9, int32(faketime % 1e9), faketime
++		return gomadTimeNow()
 +	}
  	return time_now()
  }
