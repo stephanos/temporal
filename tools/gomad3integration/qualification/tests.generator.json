@@ -55,22 +55,10 @@
       ]
     },
     "TestAdvancedVisibilitySuite": {
-      "skip_subtests": {
-        "TestListWorkflow_OrQuery": {
-          "owner": "stephanos",
-          "date": "2026-09-28",
-          "reason": "Lists executions whose start times tie and expects the newest run first; the SQLite visibility store breaks equal close/start times by run_id ascending with no deterministic newest-first tie-break, and under virtual time every start in the test shares one instant, so the order follows run_id bits (advanced_visibility_test.go TestListWorkflow_OrQuery). Stock SQLite ordering is kept on purpose."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestAdvancedVisibilitySuiteLegacy": {
-      "skip_subtests": {
-        "TestListWorkflow_OrQuery": {
-          "owner": "stephanos",
-          "date": "2026-09-28",
-          "reason": "Lists executions whose start times tie and expects the newest run first; the SQLite visibility store breaks equal close/start times by run_id ascending with no deterministic newest-first tie-break, and under virtual time every start in the test shares one instant, so the order follows run_id bits (advanced_visibility_test.go TestListWorkflow_OrQuery). Stock SQLite ordering is kept on purpose."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestCancelWorkflowSuite": {
       "required_probes": [
@@ -106,13 +94,7 @@
       ]
     },
     "TestDescribeTestSuite": {
-      "skip_subtests": {
-        "TestDescribeTaskQueue": {
-          "owner": "stephanos",
-          "date": "2026-09-28",
-          "reason": "Asserts the poller's LastAccessTime is strictly after a time.Now() read before the poll; under virtual time both reads fall in one instant and no server ordering can separate them (describe_test.go:294)."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestFairnessAutoEnableSuite": {
       "skip_subtests": {
@@ -166,22 +148,12 @@
           "owner": "stephanos",
           "date": "2026-09-29",
           "reason": "Needs two dedicated clusters at once (nexus_otel_test.go:142-143); testcore sizes the dedicated pool from GOMAXPROCS, which Gomad pins to 1, so the test waits on its own slot forever. Stock go test hangs the same way with TEMPORAL_TEST_DEDICATED_CLUSTERS=1, and the deterministic profile does not pass target environment to the program."
-        },
-        "TestWorkerOperation": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Sorts the history client span and the frontend server span by StartTime (nexus_otel_test.go:473) and expects the client span first; under virtual time both spans start in the same instant, so the tie leaves the export order, which follows the schedule: seed 11 exports the server span first (\"Not equal\" at nexus_otel_test.go:530 in both repetitions, 2026-09-29), seed 17 the client span first. The spans themselves are exported on both seeds."
         }
-      }
+      },
+      "clock_tick": "forward"
     },
     "TestNexusStandaloneTestSuite": {
-      "skip_subtests": {
-        "TestListStandaloneNexusOperation/QueryBySupportedSearchAttributes": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Queries StartTime, ExecutionTime, and CloseTime strictly after a time.Now() read taken before the operation starts; under virtual time both fall in one instant (nexus_standalone_test.go:1563)."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestNexusWorkflowTestSuiteHSM": {
       "skip_subtests": {
@@ -219,87 +191,17 @@
       "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
     },
     "TestStandaloneActivityTestSuite": {
+      "clock_tick": "forward",
       "skip_subtests": {
-        "TestComplete/ByIDWithRunID": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestComplete/ByIDWithoutRunID": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestComplete/ByToken": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestFail/ByIDWithRunID": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestFail/ByIDWithoutRunID": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestFail/ByToken": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestFail/InvalidNextRetryDelay": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestFail/WithHeartbeatDetails": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestIDReusePolicy/AllowDuplicateFailedOnly": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestIDReusePolicy/RejectDuplicate": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestRequestCancel/ByToken": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestTerminate/TerminatedSuccessfully": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
+        "TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch": {
+          "owner": "gomad3",
+          "date": "2026-09-30",
+          "reason": "Under the forward clock tick a deadline propagated over gRPC lands a few microseconds later on the server than on the client, because time.Now runs ahead of the timer clock by the accumulated draws; the 3s long poll then hits the client's context deadline before the server returns its empty response (seed 11; seed 17 passes). The suite runs under forward because that removes eleven timestamp-tie skips."
         }
       }
     },
     "TestTaskQueueSuite": {
-      "skip_subtests": {
-        "TestTaskDispatchLatencyMetric_Nexus": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestTaskDispatchLatencyMetric_Query": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        },
-        "TestTaskDispatchLatencyMetric_WorkflowAndActivity": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts a strictly positive duration between two server timestamps (ExecutionDuration or dispatch latency); under virtual time server work takes no time, so both timestamps fall in one instant and the duration is 0s."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestVersioningFunctionalSuite": {
       "choice_bytes": 0,
