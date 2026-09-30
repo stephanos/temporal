@@ -271,25 +271,34 @@
         }
       },
       "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29)."
+    },
+    "TestTaskQueueStats_Pri_Suite": {
+      "io_transcript_bytes": 536870912,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "reason": "Its cluster outgrows the 64 MiB I/O transcript and the 64 MiB choice-trace maximum; with a 512 MiB transcript and no choice trace it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30), proving same-seed repeatability without a retained exact-replay artifact."
+    },
+    "TestVersioning3QueryFunctionalSuite": {
+      "io_transcript_bytes": 536870912,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "reason": "Its cluster outgrows the 64 MiB I/O transcript and the 64 MiB choice-trace maximum; with a 512 MiB transcript and no choice trace it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30), proving same-seed repeatability without a retained exact-replay artifact."
+    },
+    "TestWorkerDeploymentSuite": {
+      "io_transcript_bytes": 536870912,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "reason": "Its cluster outgrows the 64 MiB I/O transcript and the 64 MiB choice-trace maximum; with a 512 MiB transcript and no choice trace it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30), proving same-seed repeatability without a retained exact-replay artifact."
     }
   },
   "exclusions": {
-    "TestTaskQueueStats_Pri_Suite": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
-    },
     "TestVersioning3FunctionalSuite": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
-    },
-    "TestVersioning3QueryFunctionalSuite": {
-      "owner": "stephanos",
-      "date": "2026-09-29",
-      "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
-    },
-    "TestWorkerDeploymentSuite": {
       "owner": "stephanos",
       "date": "2026-09-29",
       "reason": "Its I/O transcript overflows the 64 MiB bound (terminal state overflow, reported as \"I/O transcript did not complete\", darwin/arm64 2026-09-29, both seeds). The bound is fixed in deterministicio.MaximumTranscriptBytes and the runtime rejects a larger mapping (invalid terminal frame at 256 MiB), so qualifying it needs a coordinated runner and runtime capacity change (follow-up)."
