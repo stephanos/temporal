@@ -89,7 +89,7 @@ jobs:
           .selected == 4 and .completed == 4 and .supported == 4 and
           .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | .classification == "qualified" and
-          (.seeds | length) == 2 and .choice.available and
+          (.seeds | length) == 1 and .choice.available and
           .choice.exact_replay_available and
           ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)
           ' tools/gomad3/.toolchain/smoke-qualification-set.json

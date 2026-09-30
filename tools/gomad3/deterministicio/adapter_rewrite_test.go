@@ -3,6 +3,7 @@ package deterministicio
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -60,6 +61,9 @@ var rewrittenModuleAdapters = []struct {
 func TestRewrittenModuleInventoriesMatchPinnedModules(t *testing.T) {
 	moduleCache := pinnedModuleCache(t)
 	for _, adapter := range rewrittenModuleAdapters {
+		if adapter.outsideServerGraph {
+			downloadPinnedModule(t, adapter.module, adapter.version)
+		}
 		prepared, err := adapter.prepare(moduleCache, t.TempDir(), gomadversion.AdapterIdentity{Module: adapter.module, Version: adapter.version, Sum: adapter.sum})
 		if err != nil {
 			t.Fatalf("%s: %v", adapter.name, err)
@@ -100,6 +104,9 @@ func TestRewrittenModuleInventoriesMatchPinnedModules(t *testing.T) {
 func TestRewrittenModulesRejectChangedIdentity(t *testing.T) {
 	moduleCache := pinnedModuleCache(t)
 	for _, adapter := range rewrittenModuleAdapters {
+		if adapter.outsideServerGraph {
+			downloadPinnedModule(t, adapter.module, adapter.version)
+		}
 		identity := gomadversion.AdapterIdentity{Module: adapter.module, Version: adapter.version, Sum: "h1:changed"}
 		if _, err := adapter.prepare(moduleCache, t.TempDir(), identity); err == nil {
 			t.Fatalf("%s accepted a changed identity", adapter.name)
@@ -205,10 +212,12 @@ func TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec, adapters, err := Default().PrepareBuildAdapters(target.Spec{
+	// PrepareTargetBuildAdapters downloads the pinned module, which the
+	// server's own module cache does not hold.
+	spec, adapters, err := Default().PrepareTargetBuildAdapters(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
-	}, pinnedModuleCache(t))
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,5 +226,22 @@ func TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity(t *testing.T
 	}
 	if _, err := target.ReviewCapabilities(context.Background(), spec); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// downloadPinnedModule fetches an adapter module the server does not depend on
+// into the pinned toolchain's module cache, from outside every module so no
+// go.sum is rewritten.
+func downloadPinnedModule(t *testing.T, module, version string) {
+	t.Helper()
+	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "mod", "download", module+"@"+version)
+	command.Dir = t.TempDir()
+	command.Env = append(os.Environ(), "GOWORK=off", "GOFLAGS=")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("download %s@%s: %v\n%s", module, version, err, output)
 	}
 }
