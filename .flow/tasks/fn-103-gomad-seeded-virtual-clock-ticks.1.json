@@ -10,7 +10,7 @@
   "review": null,
   "spec": "fn-103-gomad-seeded-virtual-clock-ticks",
   "spec_path": ".flow/tasks/fn-103-gomad-seeded-virtual-clock-ticks.1.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Implement forward and strict tick policies in the runtime and profile",
   "updated_at": "2026-09-30T03:02:44.059992Z"

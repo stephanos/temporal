@@ -11,9 +11,12 @@ Run the tie-excluded suites and the smoke selection under forward across several
 - report lists exclusions removed; manifest updated; validate green
 
 ## Done summary
-TBD
+Measured on darwin/arm64 (2026-09-30): the seven ./tests suites carrying timestamp-tie skips (TestAdvancedVisibilitySuite and its legacy variant, TestDescribeTestSuite, TestNexusOTELSuite, TestNexusStandaloneTestSuite, TestStandaloneActivityTestSuite, TestTaskQueueSuite) ran under --clock-tick=forward with those 18 skips removed on seeds 11 and 17. Six qualified with exact replay on both seeds; TestStandaloneActivityTestSuite failed on seed 11 in TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch because, with time.Now ahead of the timer clock, a gRPC deadline lands microseconds later on the server than on the client and the 3s long poll hits the client deadline first. With that one subtest skipped (finding recorded), the suite qualifies on both seeds.
 
+Decision (R3): the default stays strict. Switching globally changes every identity and would expose further deadline races of this kind across ./tests; instead the seven suites carry clock_tick forward per workload in the generated manifest, which resolves the tie exclusions as the spec allows ("pinned per workload with a finding").
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2f9d55f90
+- Tests: gomad qualify-set /tmp/tie-forward.json: 6/7 qualified, StandaloneActivity seed 11 target_failure, gomad qualify-set StandaloneActivity forward with one skip: qualified seeds 11 and 17, make validate-qualification
 - PRs:
