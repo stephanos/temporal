@@ -141,7 +141,7 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.Contains(t, normalizedDryRun, retiredVocabularyTarget)
 	// The Veil pin check and its planted-mismatch self-test run in the gate, listed rather than run
 	// by the dry run.
-	require.Contains(t, normalizedDryRun, "check_veil_manifest model/lake-manifest.json")
+	require.Contains(t, normalizedDryRun, "check_veil_manifest model/lean/lake-manifest.json")
 	require.Contains(t, normalizedDryRun, `check_veil_manifest "$planted"`)
 
 	// The gate selects by prefix and compares the whole failure identity set
@@ -179,7 +179,7 @@ func setup() []ciWorkflowStep {
 			With: map[string]any{
 				"version":           "2026.8.16",
 				"sha256":            "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35",
-				"working_directory": "model",
+				"working_directory": "model/lean",
 				"cache":             false,
 			},
 		},

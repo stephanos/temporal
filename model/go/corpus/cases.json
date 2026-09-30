@@ -1,0 +1,322 @@
+[
+  {
+    "id": "01-undeclared-action",
+    "mistake": "A step names an undeclared action",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "    backoff: backoffStep\n",
+        "new": "    backof: backoffStep\n"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "Step0(backoff, backoffStep).",
+        "new": "Step0(backof, backoffStep)."
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Model.scala",
+        "old": "      backoff ~> Protocol.backoffStep,",
+        "new": "      backof ~> Protocol.backoffStep,"
+      }
+    ]
+  },
+  {
+    "id": "02-step-input-type",
+    "mistake": "A step's input type disagrees with the action's input",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "    handlerReply: protocolHandlerReplyStep\n",
+        "new": "    handlerReply: protocolCompleteStep\n"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "Step1(handlerReply, protocolHandlerReplyStep).",
+        "new": "Step1(handlerReply, protocolCompleteStep)."
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Model.scala",
+        "old": "      handlerReply ~> Protocol.handlerReplyStep,",
+        "new": "      handlerReply ~> Protocol.completeStep,"
+      }
+    ]
+  },
+  {
+    "id": "03-scenario-input-type",
+    "mistake": "A Scenario passes an input of the wrong type",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "actions: [schedule (unset, unset, unset), handlerReply (syncSuccess)]",
+        "new": "actions: [schedule (unset, unset, unset), handlerReply (succeeded)]"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/claims.go",
+        "old": "Actions(schedule.With(Unset, Unset, Unset), handlerReply.With(SyncSuccess{}))",
+        "new": "Actions(schedule.With(Unset, Unset, Unset), handlerReply.With(ResolvedSucceeded))"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "old": ".actions(schedule(unset, unset, unset), handlerReply(Reply.syncSuccess))",
+        "new": ".actions(schedule(unset, unset, unset), handlerReply(Resolution.succeeded))"
+      }
+    ]
+  },
+  {
+    "id": "04-missing-case",
+    "mistake": "A match or switch misses a case",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "    | .timedOut => .timedOut }",
+        "new": "  }"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "\tcase TimedOut:\n\t\treturn ProductState{ProductTimedOut}\n",
+        "new": ""
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/kernel/Nexus.scala",
+        "old": "    case Phase.timedOut                                         => ProductState(ProductPhase.timedOut)\n",
+        "new": ""
+      }
+    ]
+  },
+  {
+    "id": "05-outside-domain",
+    "mistake": "A step moves the attempt count past its bound",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "\n         state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }",
+        "new": "\n         state := { state with phase := .backingOff, attempts := state.attempts + 1 }"
+      },
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "\n     state := { state with phase := .backingOff, attempts := saturatingSucc state.attempts }",
+        "new": "\n     state := { state with phase := .backingOff, attempts := state.attempts + 1 }"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "return min(a+1, AttemptBound)",
+        "new": "return a + 1"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/kernel/Nexus.scala",
+        "old": "if a < attemptBound then a + 1 else a",
+        "new": "a + 1"
+      }
+    ]
+  },
+  {
+    "id": "06-fact-without-evidence",
+    "mistake": "A recorded fact has no evidence line",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "    pendingAttempts: pendingAttempts\n",
+        "new": ""
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "\tEvidence(\"pendingAttempts\", \"pendingAttempts\").\n",
+        "new": ""
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Model.scala",
+        "old": "      case ProtocolFact.pendingAttempts           => pendingAttempts.name\n",
+        "new": ""
+      }
+    ]
+  },
+  {
+    "id": "07-row-without-product-step",
+    "mistake": "A protocol row has no product counterpart under the map",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "| .succeeded => moves state .succeeded (startedFirst ++ [.nexusOperationCompleted])",
+        "new": "| .succeeded => moves state .failed (startedFirst ++ [.nexusOperationCompleted])"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "return moves(s, Succeeded, append(startedFirst, NexusOperationCompleted{})...)",
+        "new": "return moves(s, Failed, append(startedFirst, NexusOperationCompleted{})...)"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/kernel/Nexus.scala",
+        "old": "case Resolution.succeeded => moves(s, Phase.succeeded, startedFirst ++ facts1(ProtocolFact.nexusOperationCompleted))",
+        "new": "case Resolution.succeeded => moves(s, Phase.failed, startedFirst ++ facts1(ProtocolFact.nexusOperationCompleted))"
+      }
+    ]
+  },
+  {
+    "id": "08-verify-without-refinement",
+    "mistake": "A verify Query pairs a product claim with a protocol path and no refinement",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "  refines: nexusProduct\n  map: productOf\n",
+        "new": ""
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/claims.go",
+        "old": "TerminalHolds = AsyncThenSucceeded.VerifyRefined(\"terminalHolds\", TerminalIsFinal,\n\t\tNexusProtocol.Via(NexusProduct), Three)",
+        "new": "TerminalHolds = AsyncThenSucceeded.Verify(\"terminalHolds\", TerminalIsFinal, Three)"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Model.scala",
+        "old": "given Reads[ProtocolState, ProductState] = Reads.through(nexusProtocol, nexusProduct)\n",
+        "new": ""
+      }
+    ]
+  },
+  {
+    "id": "09-claim-unreachable",
+    "mistake": "A Query's claim is unreachable on its path",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "{ phase := .succeeded, attempts := 1, scheduleToClose := .unset",
+        "new": "{ phase := .succeeded, attempts := 2, scheduleToClose := .unset"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/claims.go",
+        "old": "ProtocolState{Phase: Succeeded, Attempts: 1, ScheduleToClose: Unset",
+        "new": "ProtocolState{Phase: Succeeded, Attempts: 2, ScheduleToClose: Unset"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "old": "ProtocolState(Phase.succeeded, 1, Timeout.unset",
+        "new": "ProtocolState(Phase.succeeded, 2, Timeout.unset"
+      }
+    ]
+  },
+  {
+    "id": "10-stuck-state",
+    "mistake": "A machine has a stuck state",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "  if productTerminal state then\n    [{ outcome := .notFound, state, facts := [] }]",
+        "new": "  if productTerminal state then\n    []"
+      },
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "  starts: [scheduled]\n  ends: [succeeded, failed, canceled, timedOut]",
+        "new": "  starts: [scheduled]\n  ends: [succeeded, failed, canceled]"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "\tif ProductTerminal(s) {\n\t\treturn []ProductStep{{Outcome: CompletionMissing, State: s}}\n\t}",
+        "new": "\tif ProductTerminal(s) {\n\t\treturn nil\n\t}"
+      },
+      {
+        "file": "model/go/nexuscaller/model.go",
+        "old": "\tEnds(ProductTerminal).",
+        "new": "\tEnds(func(s ProductState) bool { return ProductTerminal(s) && s.Phase != ProductTimedOut })."
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/kernel/Nexus.scala",
+        "old": "    if productTerminal(s) then one(step(Outcome.notFound, s, facts0))",
+        "new": "    if productTerminal(s) then none"
+      },
+      {
+        "file": "model/scala/src/nexuscaller/Model.scala",
+        "old": "    ends(Product.productTerminal)",
+        "new": "    ends(s => Product.productTerminal(s) && s.phase != ProductPhase.timedOut)"
+      }
+    ]
+  },
+  {
+    "id": "11-canary-silent-step",
+    "mistake": "A canary set names a path with a silent step",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "  queries: [syncCompletion, asyncCompletion]",
+        "new": "  queries: [syncCompletion, asyncCompletion, retry]"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/claims.go",
+        "old": "Queries: []*umpire.Query{SyncCompletion, AsyncCompletion}}",
+        "new": "Queries: []*umpire.Query{SyncCompletion, AsyncCompletion, Retry}}"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "old": "queries = Vector(syncCompletion, asyncCompletion))",
+        "new": "queries = Vector(syncCompletion, asyncCompletion, retry))"
+      }
+    ]
+  },
+  {
+    "id": "12-name-collision",
+    "mistake": "Two declarations share a model name",
+    "lean": [
+      {
+        "file": "model/lean/Temporal/Feature/Nexus/Caller/Model.lean",
+        "old": "property asyncStarts\n",
+        "new": "property syncSucceeds\n"
+      }
+    ],
+    "go": [
+      {
+        "file": "model/go/nexuscaller/claims.go",
+        "old": "var AsyncStarts = NexusProtocol.Property(\"asyncStarts\")",
+        "new": "var AsyncStarts = NexusProtocol.Property(\"syncSucceeds\")"
+      }
+    ],
+    "scala": [
+      {
+        "file": "model/scala/src/nexuscaller/Claims.scala",
+        "old": "nexusProtocol.property(\"asyncStarts\")",
+        "new": "nexusProtocol.property(\"syncSucceeds\")"
+      }
+    ]
+  }
+]

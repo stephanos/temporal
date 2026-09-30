@@ -216,7 +216,7 @@ func newGeneratedViewRepository(t *testing.T) (string, Reference, fixtureEnvelop
 	t.Helper()
 	repositoryRoot := t.TempDir()
 	source := "Umpire/Examples/Switch.lean"
-	writeFile(t, filepath.Join(repositoryRoot, "model", filepath.FromSlash(source)), []byte("-- canonical source\n"))
+	writeFile(t, filepath.Join(repositoryRoot, "model", "lean", filepath.FromSlash(source)), []byte("-- canonical source\n"))
 	realRoot := filepath.Clean(filepath.Join("..", "..", ".."))
 	encoded, err := os.ReadFile(filepath.Join(realRoot, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)

@@ -1,0 +1,12 @@
+{
+  "side": "lean",
+  "commit": "d08d20140",
+  "warmNoChangeSeconds": 1.389,
+  "editLoopModelSeconds": 191.107,
+  "editLoopModelAndPinsSeconds": 190.468,
+  "authoredLines": 98189,
+  "authoredTestLines": 41101,
+  "authoredProductionLines": 57088,
+  "generatedLines": 40733,
+  "nexusCallerAndWorkerModelLines": 873
+}

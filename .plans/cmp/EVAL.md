@@ -4,7 +4,7 @@ Independent reviewers, none of whom wrote a sample, scored each directory agains
 (`.eval-rubric.md`): spec fidelity, language plausibility, authoring readability, accuracy of the
 compile-time versus test-time story, framework realism, and README honesty with two or more
 library claims re-checked against GitHub. Their full reports are in `.eval/<lang>.md`. This file
-is the synthesis. Scores are 1 to 5, 5 best. Reviewers compiled nothing; "plausibility" means a
+is the synthesis, followed by a ranking for the chosen architecture. Scores are 1 to 5, 5 best. Reviewers compiled nothing; "plausibility" means a
 fluent reader's judgement, and several reviewers found code that could not compile in principle.
 Two samples were compiled afterwards; see "Compile trials" below.
 
@@ -22,6 +22,10 @@ Two samples were compiled afterwards; see "Compile trials" below.
 > are in git history.
 
 ## Scores
+
+These score each sample as its reviewer found it, not each language for the chosen
+architecture; that is the ranking near the end.
+
 
 | Sample | Fidelity | Plausibility | Readability | Check story | Framework | README | Mean |
 |---|---|---|---|---|---|---|---|
@@ -285,27 +289,6 @@ Each is the reviewer's one-paragraph verdict, compressed to its claim and its re
   implementations of pattern matching, one the BEAM's and one the evaluator's, which a Go team
   would own. The rebinding gap already shows where they can drift.
 
-## What the exercise says about the decision
-
-Three things stand out once the reports are read together.
-
-1. **Readability is not where the languages differ most.** Nearly every sample produces a
-   declarative block a reader would accept as configuration. The one that does not, Go, is the
-   most familiar to the team. The choice is between a familiar language
-   with visible ceremony and an unfamiliar one with less.
-2. **Static semantic checking is mostly a promise.** Outside Lean, the samples that claim
-   compile-time semantics (Scala, Racket, Rust, Kotlin) each have the claim undercut by their
-   own code. That is not evidence the languages cannot do it. It is evidence that doing it is
-   framework work that needs a specialist, which is the same staffing problem Lean has in a
-   milder form. Go makes no such claim and is honest about running everything in tests. Elixir
-   is the one counterexample: its compile-time checks were demonstrated by planted mistakes
-   (below). It shows the tier is buildable outside Lean, and also what it costs: the checks live
-   in a framework the team writes and maintains.
-3. **The refinement check earned its place.** It found a real spec bug through four writers, and
-   then a second, subtler one through the Lean reviewer reading the real checker. Whatever language
-   is chosen, the feature-to-integration layering the vision describes should be checked by this
-   mechanism, run as a test if not at compile time, and pinned by row as the Lean tests do.
-
 ## Compile trials
 
 After review, two samples were compiled in scratch copies under `/tmp`, with toolchains installed
@@ -358,6 +341,74 @@ and builds as-is. The review's rebinding finding and the IR export crash are the
 The Elixir edit costs five seconds because the macros build the table and check coverage and
 refinement at compile time; Scala's second costs no such work, since its search and table build
 are sketched. For comparison, a one-line edit to the Lean caller Model re-elaborates in 3 min 23 s.
+
+## What the exercise says about the decision
+
+Five things stand out once the reviews, the compile trials and the architecture discussion are read
+together.
+
+1. **Readability is not where the languages differ most.** Nearly every sample produces a
+   declarative block a reader would accept as configuration. The one that does not, Go, is the most
+   familiar to the team.
+2. **Compile-time semantic checking outside Lean is buildable, but it is framework work.** Scala,
+   Racket, Rust and Kotlin each claimed checks their own code did not deliver. Elixir delivered
+   them, and planted mistakes proved it. The checks live in a hand-written framework the team would
+   own, so the question is who maintains it, not whether the language allows it.
+3. **The front end must hand guards and updates to the IR as syntax.** The chosen architecture is
+   a slim DSL front end, a proto IR where guards and updates are data (guarded commands), and a Go
+   checker that builds tables, checks refinement, finds holes, derives faults, searches, and
+   exports to TLA+, Quint or SMT. That rules out front ends whose conditions are closures (Kotlin,
+   Go, TypeScript, Zig), and it favours front ends whose macros see the author's code as a tree.
+   Macros that see *typed* trees (Scala 3, Lean) need to re-check less than macros that see tokens
+   or untyped syntax (Rust, Elixir, Racket).
+4. **Pattern matching over tuples is the shape of every step.** Each step matches on the phase and
+   an input together, with or-patterns and guards. Lean, Scala, Rust, Elixir and Racket express
+   that directly; Quint's one-constructor `match` does not. Over finite domains, exhaustiveness is
+   cheap to check by enumeration in any language, so the compiler's own exhaustiveness check
+   matters less than the pattern syntax.
+5. **Checks that find mistakes earn their place.** Three spec bugs were found by close reading:
+   the first Model 2 refinement, the stricter real Lean refinement rule, and a verify query that
+   passed without its claim ever firing. The refinement check and a vacuity check (a verify query
+   whose claim never fires is an error) belong in the design whatever language is chosen.
+
+## Ranking for the chosen architecture
+
+This ranks the language for the front end only; Go is the implementation language in every case.
+Criteria, in order: guards and updates reach the IR as syntax; tuple pattern matching; feedback in
+seconds at the author's line; a framework the team can maintain; evidence that it works. It
+weighs what was demonstrated above what was claimed.
+
+| Rank | Front end | Why | Main risk |
+|---|---|---|---|
+| 1 | **Elixir** | The only non-Lean sample shown to work end to end: it compiled on the first attempt, all 21 pins pass, its compile-time checks were demonstrated with planted mistakes, and it exports its IR. Ideal patterns for step functions; spec names kept verbatim as atoms. | A second runtime in CI; a 2,800-line macro framework with two pattern matchers to keep in step; a five-second edit loop, likely fixable; unfamiliar to the team. |
+| 1 | **Own DSL, parsed in Go** | Full control of syntax, one toolchain, and the parser's output is the IR. Exhaustiveness over finite domains is a few dozen lines. | No sample exists, so it is unproven. The team owns the parser, formatter and language server. |
+| 3 | **Scala 3** | Macros receive typed trees, so lifting guards into IR is safer and shorter than anywhere but Lean. Model edits compile in about a second on a warm server. | A fragile type-level framework (41 errors from one derivation trick), an experimental feature in the design, the JVM, and a specialist maintainer. |
+| 4 | **Lean, slimmed down** | The best introspection; the command syntax already exists. | The loop without in-compiler search and the generated API is unmeasured; staffing. |
+| 5 | **Rust** | Span-accurate macro errors; a healthy ecosystem. | Macros see untyped tokens and must re-check everything; a second language in a Go repository. |
+| 6 | **Quint** | Typed guarded commands, a JSON IR, and export to TLA+. | One-constructor `match` and fixed syntax; better as an export target than as the front end. |
+| 7 | **Kotlin, Go** | Familiar, fast loop. | Closures are opaque, so guards cannot reach the IR without a builder-expression DSL. |
+| 8 | **Racket, Julia** | Excellent syntax-aware macros. | A Lisp, and dynamic typing respectively; poor team fit. |
+
+The two rank-1 options tie for opposite reasons: Elixir on evidence, an own DSL on control.
+
+Set aside after discussion:
+- **Nim and TypeScript.** Dropped from the comparison.
+- **CUE with CEL.** Declined.
+- **Zig.** Comptime can evaluate a step function but not see its body.
+- **P.** Its machines, events and queues are the abstraction to borrow for the system layer, not a
+  front end.
+- **Haskell quasi-quoters.** A spike candidate only if a custom surface syntax with a full type
+  checker behind it becomes a requirement.
+- **F\*.** Relevant to the checker side, where refinement and invariant checks could go to an SMT
+  solver once finite tables grow too large to enumerate.
+
+Scala's shared JVM with TLA+'s tools and Apalache is a minor bonus at most, because exports come
+from the Go checker through files or Apalache's server mode, not from the front end.
+
+**Next step.** Write the matching slice from `UMPIRE_OUTSIDE_THE_BOX.md` section 12 as a proto IR,
+build the Go checker against it, then author the slice in an own DSL and in Elixir, and in Scala 3
+if typed lifting matters. Judge them on how the slice reads, error quality for planted mistakes,
+edit-to-feedback time, and how much framework code each needed.
 
 ## Methodology and limits
 

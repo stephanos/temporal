@@ -1,0 +1,167 @@
+[
+  {
+    "id": "01-undeclared-action",
+    "mistake": "A step names an undeclared action",
+    "caught": "compile",
+    "seconds": 0.348,
+    "message": "model/go/nexuscaller/model.go:572:8: undefined: backof",
+    "atAuthorsLine": true,
+    "editLine": 572,
+    "failingTests": []
+  },
+  {
+    "id": "02-step-input-type",
+    "mistake": "A step's input type disagrees with the action's input",
+    "caught": "compile",
+    "seconds": 0.411,
+    "message": "model/go/nexuscaller/model.go:568:22: in call to umpire.NewMachine[ProtocolState, Outcome, ProtocolFact](Family, \"nexusProtocol\").For(Operation).Refines(NexusProduct, productOf).Starts(ProtocolState{\u2026}).Ends(func(s ProtocolState) bool {\u2026}).Unobservable(backoff).Evidence(\"nexusOperationScheduled\", \"nexusOperationScheduled\").Evidence(\"nexusOperationStarted\", \"nexusOperationStarted\").Evidence(\"nexusO",
+    "atAuthorsLine": true,
+    "editLine": 568,
+    "failingTests": []
+  },
+  {
+    "id": "03-scenario-input-type",
+    "mistake": "A Scenario passes an input of the wrong type",
+    "caught": "compile",
+    "seconds": 0.328,
+    "message": "model/go/nexuscaller/claims.go:107:66: cannot use ResolvedSucceeded (constant \"succeeded\" of string type Resolution) as Reply value in argument to handlerReply.With: Resolution does not implement Reply (missing method isReply)",
+    "atAuthorsLine": true,
+    "editLine": 107,
+    "failingTests": []
+  },
+  {
+    "id": "04-missing-case",
+    "mistake": "A match or switch misses a case",
+    "caught": "lint",
+    "seconds": 3.352,
+    "message": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/go/nexuscaller/model.go:527:2: missing cases in switch of type nexuscaller.Phase: nexuscaller.TimedOut",
+    "atAuthorsLine": false,
+    "editLine": 538,
+    "failingTests": []
+  },
+  {
+    "id": "05-outside-domain",
+    "mistake": "A step moves the attempt count past its bound",
+    "caught": "test",
+    "seconds": 8.237,
+    "message": "--- FAIL: TestCasesAreByteIdenticalToTheFixtures (0.00s) Received unexpected error: nexusProtocol: row scheduled-2-unset-unset-unset-handlerReply-handlerError-true lands in backingOff-3-unset-unset-unset, which is outside the state domain",
+    "atAuthorsLine": false,
+    "editLine": 344,
+    "failingTests": [
+      "TestCasesAreByteIdenticalToTheFixtures",
+      "TestComposition",
+      "TestDeclarationsCheck",
+      "TestExplorationTargets",
+      "TestProducedCasesPrepareUnderTheirDerivedProfile",
+      "TestProductPropertyOnMissingAction",
+      "TestProtocolMachine",
+      "TestQueries",
+      "TestRefinement",
+      "TestScenarioPropertyAndQueryFingerprints",
+      "TestSets",
+      "TestTables",
+      "TestTargetFingerprint",
+      "TestTerminalHoldsEverywhere"
+    ]
+  },
+  {
+    "id": "06-fact-without-evidence",
+    "mistake": "A recorded fact has no evidence line",
+    "caught": "test",
+    "seconds": 7.525,
+    "message": "--- FAIL: TestCasesAreByteIdenticalToTheFixtures (0.10s) Received unexpected error: invalid composite Temporal Driver input",
+    "atAuthorsLine": false,
+    "editLine": 566,
+    "failingTests": [
+      "TestCasesAreByteIdenticalToTheFixtures",
+      "TestDeclarationsCheck",
+      "TestProducedCasesPrepareUnderTheirDerivedProfile"
+    ]
+  },
+  {
+    "id": "07-row-without-product-step",
+    "mistake": "A protocol row has no product counterpart under the map",
+    "caught": "test",
+    "seconds": 7.326,
+    "message": "--- FAIL: TestCasesAreByteIdenticalToTheFixtures (0.10s) Received unexpected error: nexusProtocol refines nexusProduct: the row 'scheduled-0-unset-unset-unset-complete-succeeded' steps from 'scheduled-0-unset-unset-unset' to 'failed-0-unset-unset-unset', which read as 'scheduled' and 'failed' in nexusProduct; nexusProduct has no step from 'scheduled' reaching 'failed' with outcome 'accepted' and t",
+    "atAuthorsLine": false,
+    "editLine": 476,
+    "failingTests": [
+      "TestCasesAreByteIdenticalToTheFixtures",
+      "TestDeclarationsCheck",
+      "TestProductPropertyOnMissingAction",
+      "TestQueries",
+      "TestRefinement",
+      "TestScenarioPropertyAndQueryFingerprints",
+      "TestTables",
+      "TestTargetFingerprint",
+      "TestTerminalHoldsEverywhere"
+    ]
+  },
+  {
+    "id": "08-verify-without-refinement",
+    "mistake": "A verify Query pairs a product claim with a protocol path and no refinement",
+    "caught": "compile",
+    "seconds": 0.309,
+    "message": "model/go/nexuscaller/claims.go:166:61: cannot use TerminalIsFinal (variable of type *umpire.Property[ProductState]) as *umpire.Property[ProtocolState] value in argument to AsyncThenSucceeded.Verify",
+    "atAuthorsLine": true,
+    "editLine": 166,
+    "failingTests": []
+  },
+  {
+    "id": "09-claim-unreachable",
+    "mistake": "A Query's claim is unreachable on its path",
+    "caught": "test",
+    "seconds": 7.305,
+    "message": "--- FAIL: TestCasesAreByteIdenticalToTheFixtures (0.09s) Received unexpected error: temporal.nexus.caller.query.retry: witness.absent",
+    "atAuthorsLine": false,
+    "editLine": 59,
+    "failingTests": [
+      "TestCasesAreByteIdenticalToTheFixtures",
+      "TestProducedCasesPrepareUnderTheirDerivedProfile",
+      "TestQueries",
+      "TestScenarioPropertyAndQueryFingerprints",
+      "TestSets"
+    ]
+  },
+  {
+    "id": "10-stuck-state",
+    "mistake": "A machine has a stuck state",
+    "caught": "test",
+    "seconds": 6.222,
+    "message": "--- FAIL: TestProductMachine (0.00s) \"[succeeded failed canceled]\" should have 4 item(s), but has 3",
+    "atAuthorsLine": false,
+    "editLine": 272,
+    "failingTests": [
+      "TestDeclarationsCheck",
+      "TestProductMachine",
+      "TestRefinement",
+      "TestTables"
+    ]
+  },
+  {
+    "id": "11-canary-silent-step",
+    "mistake": "A canary set names a path with a silent step",
+    "caught": "test",
+    "seconds": 7.08,
+    "message": "--- FAIL: TestSets (0.00s) Received unexpected error: set nexusCallerCanary: retry takes the silent step backoff, a gap no deployment closes",
+    "atAuthorsLine": false,
+    "editLine": 195,
+    "failingTests": [
+      "TestDeclarationsCheck",
+      "TestSets"
+    ]
+  },
+  {
+    "id": "12-name-collision",
+    "mistake": "Two declarations share a model name",
+    "caught": "test",
+    "seconds": 6.313,
+    "message": "--- FAIL: TestDeclarationsCheck (0.00s) Received unexpected error: machine nexusProtocol: property syncSucceeds is declared twice, and both declarations would share one Definition ID; rename one",
+    "atAuthorsLine": false,
+    "editLine": 31,
+    "failingTests": [
+      "TestDeclarationsCheck"
+    ]
+  }
+]

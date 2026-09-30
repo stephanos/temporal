@@ -48,7 +48,7 @@ func (s *Set) Targets() ([]CoverageTarget, error) {
 
 // Check runs every semantic check the Lean elaborator runs over these declarations and returns
 // every failure, each naming its declaration: machine tables (domain membership, stuck states,
-// evidence for every recorded fact), refinements, compositions, Query answers, and set rules.
+// evidence for every recorded fact, Property and Scenario names declared once), refinements, compositions, Query answers, and set rules.
 func Check(decls ...any) error {
 	var errs []error
 	for _, d := range decls {
@@ -100,6 +100,9 @@ func checkModel(m Model) []error {
 		return []error{err}
 	}
 	var errs []error
+	if n, ok := m.(claimNamer); ok {
+		errs = append(errs, n.claimNames().duplicates(t.Machine)...)
+	}
 	if t.Stuck != "" {
 		errs = append(errs, errorf("machine "+t.Machine,
 			"the machine reaches '%s', does not end there, and can take no step from it; either a "+

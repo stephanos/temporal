@@ -193,6 +193,16 @@ func TestCheckReportsAStuckStateAndAFactWithNoEvidence(t *testing.T) {
 	require.ErrorContains(t, err, "row closed-false-turn-right-true records creaked-true, and no Evidence line names what confirms it")
 }
 
+func TestCheckRejectsAPropertyNameDeclaredTwice(t *testing.T) {
+	m := newDoor("named")
+	m.Property("opens").Holds(func(umpire.Step[door, doorOutcome, doorFact]) bool { return true })
+	m.Scenario("opens").Starts(door{Phase: closed}).Free()
+	require.NoError(t, umpire.Check(m), "a Property and a Scenario have separate Definition IDs")
+	m.Property("opens").Holds(func(umpire.Step[door, doorOutcome, doorFact]) bool { return false })
+	require.ErrorContains(t, umpire.Check(m),
+		"machine named: property opens is declared twice, and both declarations would share one Definition ID")
+}
+
 // A two-phase abstraction of the door: shut or open.
 
 type abstractPhase string

@@ -1,0 +1,18 @@
+{
+  "04-missing-case": [
+    "[  Info  ] \u2551 /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/kernel/Nexus.scala:244:51:         productOf                           body assertion: match exhaustiveness                      invalid           U:smt-z3  0.0 \u2551",
+    "[  Info  ] \u2551 /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/proofs/NexusLemmas.scala:47:7:         refines                             postcondition                                             invalid           U:smt-z3  0.6 \u2551",
+    "[  Info  ] \u2551 total: 79   valid: 77   (2 from cache, 58 trivial) invalid: 2    unknown: 0    time:    2.20                                                                                                                                         \u2551"
+  ],
+  "05-outside-domain": [
+    "[  Info  ] \u2551 /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/kernel/Nexus.scala:150:7:          saturatingSucc                      postcondition                                             invalid           U:smt-z3  0.0 \u2551",
+    "[  Info  ] \u2551 total: 78   valid: 77   (2 from cache, 58 trivial) invalid: 1    unknown: 0    time:    3.12                                                                                                                                         \u2551"
+  ],
+  "07-row-without-product-step": [
+    "[  Info  ] \u2551 /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/proofs/NexusLemmas.scala:47:7:         refines                             postcondition                                             invalid           U:smt-z3  0.6 \u2551",
+    "[  Info  ] \u2551 total: 79   valid: 78   (2 from cache, 58 trivial) invalid: 1    unknown: 0    time:    2.02                                                                                                                                         \u2551"
+  ],
+  "10-stuck-state": [
+    "[  Info  ] \u2551 total: 79   valid: 79   (2 from cache, 58 trivial) invalid: 0    unknown: 0    time:    2.71                                                                                                                                         \u2551"
+  ]
+}

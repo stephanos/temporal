@@ -35,12 +35,14 @@ type PropertyBuilder[S, O, F any] struct {
 
 // Property starts a Property declaration on m.
 func (m *Machine[S, O, F]) Property(name string) *PropertyBuilder[S, O, F] {
+	m.names.declare("property", name)
 	return &PropertyBuilder[S, O, F]{&PropertyDecl{Name: name, Machine: m}}
 }
 
 // Property starts a Property declaration on a composition. A composed step's outcome and facts
 // are their composed keys.
 func (c *Composition[S]) Property(name string) *PropertyBuilder[S, string, string] {
+	c.names.declare("property", name)
 	return &PropertyBuilder[S, string, string]{&PropertyDecl{Name: name, Machine: c}}
 }
 
@@ -96,11 +98,13 @@ type ScenarioBuilder[S any] struct {
 
 // Scenario starts a Scenario declaration on m.
 func (m *Machine[S, O, F]) Scenario(name string) *ScenarioBuilder[S] {
+	m.names.declare("scenario", name)
 	return &ScenarioBuilder[S]{&ScenarioDecl{Name: name, Machine: m}, KeyOf[S]}
 }
 
 // Scenario starts a Scenario declaration on a composition.
 func (c *Composition[S]) Scenario(name string) *ScenarioBuilder[S] {
+	c.names.declare("scenario", name)
 	return &ScenarioBuilder[S]{&ScenarioDecl{Name: name, Machine: c}, c.stateKey}
 }
 

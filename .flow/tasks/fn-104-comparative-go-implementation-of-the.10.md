@@ -7,9 +7,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+Views (table, diagram, summary, diff) for both Go Models with 11 goldens; run.sh --views renders twice and diffs against the goldens.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: model/go/run.sh --views
 - PRs:

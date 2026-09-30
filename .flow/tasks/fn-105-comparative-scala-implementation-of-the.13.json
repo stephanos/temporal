@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T06:22:38.233006Z",
+  "depends_on": [
+    "fn-105-comparative-scala-implementation-of-the.10",
+    "fn-105-comparative-scala-implementation-of-the.11",
+    "fn-105-comparative-scala-implementation-of-the.12"
+  ],
+  "id": "fn-105-comparative-scala-implementation-of-the.13",
+  "priority": null,
+  "spec": "fn-105-comparative-scala-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-105-comparative-scala-implementation-of-the.13.md",
+  "status": "todo",
+  "title": "S12 RESULTS.md comparing Scala, Go and Lean",
+  "updated_at": "2026-09-30T06:22:38.233006Z"
+}

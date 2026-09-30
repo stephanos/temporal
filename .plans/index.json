@@ -427,6 +427,16 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/UMPIRE_SCALA.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
       "path": ".plans/UMPIRE_OUTSIDE_THE_BOX.md",
       "lifecycle": "reference",
       "authority": "descriptive",
@@ -496,6 +506,16 @@
     },
     {
       "id": "fn-104-comparative-go-implementation-of-the",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-105-comparative-scala-implementation-of-the",
       "scope": "umpire-support",
       "disposition": "retained",
       "phase": "support",

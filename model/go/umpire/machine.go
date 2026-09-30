@@ -40,6 +40,7 @@ type Machine[S, O, F any] struct {
 	evidence     [][2]string
 	unobservable map[string]bool
 	refinement   *refinementDecl[S]
+	names        claimNames
 
 	once  sync.Once
 	table *Table

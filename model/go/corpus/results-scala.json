@@ -1,0 +1,175 @@
+[
+  {
+    "id": "01-undeclared-action",
+    "mistake": "A step names an undeclared action",
+    "caught": "compile",
+    "seconds": 0.581,
+    "message": "./src/nexuscaller/Model.scala:150:7 Not found: backof - did you mean backoff?",
+    "atAuthorsLine": true,
+    "editLine": 150,
+    "failingTests": []
+  },
+  {
+    "id": "02-step-input-type",
+    "mistake": "A step's input type disagrees with the action's input",
+    "caught": "compile",
+    "seconds": 0.626,
+    "message": "./src/nexuscaller/Model.scala:146:23 Found:    (resolution : kernel.nexus.Reply)",
+    "atAuthorsLine": true,
+    "editLine": 146,
+    "failingTests": []
+  },
+  {
+    "id": "03-scenario-input-type",
+    "mistake": "A Scenario passes an input of the wrong type",
+    "caught": "compile",
+    "seconds": 0.673,
+    "message": "./src/nexuscaller/Claims.scala:83:56 Found:    (nexuscaller.Resolution.succeeded : kernel.nexus.Resolution)",
+    "atAuthorsLine": true,
+    "editLine": 83,
+    "failingTests": []
+  },
+  {
+    "id": "04-missing-case",
+    "mistake": "A match or switch misses a case",
+    "caught": "compile",
+    "seconds": 0.777,
+    "message": "./src/kernel/Nexus.scala:244:51 match may not be exhaustive.",
+    "atAuthorsLine": false,
+    "editLine": 250,
+    "failingTests": []
+  },
+  {
+    "id": "05-outside-domain",
+    "mistake": "A step moves the attempt count past its bound",
+    "caught": "test",
+    "seconds": 2.98,
+    "message": "==> X nexuscaller.NexusKernel.the dispatch gives every protocol row, and nothing where the table has none  0.033s java.lang.AssertionError: assertion failed at scala.Predef$.assert(Predef.scala:264)",
+    "atAuthorsLine": false,
+    "editLine": 152,
+    "failingTests": [
+      "nexuscaller.CaseBytes.asyncCompletion",
+      "nexuscaller.CaseBytes.asyncFailure",
+      "nexuscaller.CaseBytes.handlerError",
+      "nexuscaller.CaseBytes.retry",
+      "nexuscaller.CaseBytes.scheduleToStartTimeout",
+      "nexuscaller.CaseBytes.startToCloseTimeout",
+      "nexuscaller.CaseBytes.syncCompletion",
+      "nexuscaller.NexusCallerPins.a",
+      "nexuscaller.NexusCallerPins.every",
+      "nexuscaller.NexusCallerPins.the",
+      "nexuscaller.NexusKernel.the",
+      "parity.CanonicalParity.initializationError",
+      "parity.Parity.exploration",
+      "parity.Parity.query",
+      "parity.Parity.refinement",
+      "parity.Parity.table",
+      "views.CheckedViews.initializationError"
+    ]
+  },
+  {
+    "id": "06-fact-without-evidence",
+    "mistake": "A recorded fact has no evidence line",
+    "caught": "compile",
+    "seconds": 0.871,
+    "message": "./src/nexuscaller/Model.scala:136:7 match may not be exhaustive.",
+    "atAuthorsLine": false,
+    "editLine": 142,
+    "failingTests": []
+  },
+  {
+    "id": "07-row-without-product-step",
+    "mistake": "A protocol row has no product counterpart under the map",
+    "caught": "test",
+    "seconds": 3.855,
+    "message": "==> X nexuscaller.CaseBytes.syncCompletion is byte-identical to its fixture  0.181s munit.FailException: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/test/CaseBytes.test.scala:35 first difference: $.contract.correlated.projectionFingerprint: lean \"sha256:0d33315d2d31fce7c894366d90357e5d97792e394334d9465e94c22e969a5054\", scala \"sha256:c174b7f62603b7158d38493877622b100916ca3f0",
+    "atAuthorsLine": false,
+    "editLine": 211,
+    "failingTests": [
+      "nexuscaller.CaseBytes.asyncCompletion",
+      "nexuscaller.CaseBytes.asyncFailure",
+      "nexuscaller.CaseBytes.handlerError",
+      "nexuscaller.CaseBytes.retry",
+      "nexuscaller.CaseBytes.scheduleToStartTimeout",
+      "nexuscaller.CaseBytes.startToCloseTimeout",
+      "nexuscaller.CaseBytes.syncCompletion",
+      "nexuscaller.NexusCallerPins.a",
+      "nexuscaller.NexusCallerPins.every",
+      "nexuscaller.NexusCallerPins.the",
+      "parity.CanonicalParity.scenario,",
+      "parity.CanonicalParity.target",
+      "parity.Parity.query",
+      "parity.Parity.refinement",
+      "parity.Parity.table",
+      "views.CheckedViews.initializationError"
+    ]
+  },
+  {
+    "id": "08-verify-without-refinement",
+    "mistake": "A verify Query pairs a product claim with a protocol path and no refinement",
+    "caught": "compile",
+    "seconds": 0.923,
+    "message": "./src/nexuscaller/Claims.scala:138:95 No given instance of type umpire.Reads[kernel.nexus.ProtocolState, kernel.nexus.ProductState] was found for parameter via of method in in class QueryOn.",
+    "atAuthorsLine": false,
+    "editLine": 158,
+    "failingTests": []
+  },
+  {
+    "id": "09-claim-unreachable",
+    "mistake": "A Query's claim is unreachable on its path",
+    "caught": "test",
+    "seconds": 3.729,
+    "message": "==> X nexuscaller.CaseBytes.retry is byte-identical to its fixture  0.004s munit.FailException: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/test/CaseBytes.test.scala:30 temporal.nexus.caller.query.retry: witness.absent 29:      val produced = produce(q, Identity.forQuery(\"temporal.case\", \"nexusCallerTests\", q.name), realization, NexusRealization.modelSource)",
+    "atAuthorsLine": false,
+    "editLine": 51,
+    "failingTests": [
+      "nexuscaller.CaseBytes.retry",
+      "nexuscaller.NexusCallerPins.the",
+      "parity.CanonicalParity.scenario,",
+      "parity.Parity.query",
+      "views.CheckedViews.the"
+    ]
+  },
+  {
+    "id": "10-stuck-state",
+    "mistake": "A machine has a stuck state",
+    "caught": "test",
+    "seconds": 3.694,
+    "message": "==> X nexuscaller.NexusCallerPins.the product machine  0.008s munit.ComparisonFailException: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/test/NexusCallerPins.test.scala:22 21:    // Six phases, and the four the design ends on. (Tests.lean:23-24)",
+    "atAuthorsLine": false,
+    "editLine": 100,
+    "failingTests": [
+      "nexuscaller.NexusCallerPins.every",
+      "nexuscaller.NexusCallerPins.the",
+      "parity.Parity.refinement",
+      "parity.Parity.table",
+      "views.CheckedViews.the"
+    ]
+  },
+  {
+    "id": "11-canary-silent-step",
+    "mistake": "A canary set names a path with a silent step",
+    "caught": "test",
+    "seconds": 3.704,
+    "message": "==> X nexuscaller.NexusCallerPins.the sets  0.01s munit.ComparisonFailException: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/test/NexusCallerPins.test.scala:139 138:      network -> Binding.observed, worker.party -> Binding.driven))",
+    "atAuthorsLine": false,
+    "editLine": 160,
+    "failingTests": [
+      "nexuscaller.NexusCallerPins.every",
+      "nexuscaller.NexusCallerPins.the",
+      "views.CheckedViews.the"
+    ]
+  },
+  {
+    "id": "12-name-collision",
+    "mistake": "Two declarations share a model name",
+    "caught": "test",
+    "seconds": 3.368,
+    "message": "==> X nexuscaller.NexusCallerPins.every declaration passes the checks the Lean elaborator runs  0.012s munit.ComparisonFailException: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scala/src/test/NexusCallerPins.test.scala:184 183:    assertEquals(check(nexusProduct, nexusProtocol, handlerWorker, nexusCaller, nexusCallerTests, nexusCallerCanary,",
+    "atAuthorsLine": false,
+    "editLine": 27,
+    "failingTests": [
+      "nexuscaller.NexusCallerPins.every"
+    ]
+  }
+]

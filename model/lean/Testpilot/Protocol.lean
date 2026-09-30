@@ -37,8 +37,8 @@ run_cmd do
     discard <| IO.Process.run {
       cmd := protoc
       args := #[
-        "--proto_path=../proto/internal",
-        "--descriptor_set_in=../proto/api.binpb",
+        "--proto_path=../../proto/internal",
+        "--descriptor_set_in=../../proto/api.binpb",
         "--include_imports",
         "--retain_options",
         s!"--descriptor_set_out={descriptorSet}",

@@ -24,6 +24,7 @@ type Composition[S any] struct {
 	syncs   []compositionSync
 	ends    func(S) bool
 	err     error
+	names   claimNames
 
 	once  sync.Once
 	table *Table

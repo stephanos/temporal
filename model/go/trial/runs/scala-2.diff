@@ -1,0 +1,695 @@
+diff -ruN /tmp/trial/base/scala-activity/Claims.scala model/scala/src/standaloneactivity/Claims.scala
+--- /tmp/trial/base/scala-activity/Claims.scala	2026-09-30 00:57:09
++++ model/scala/src/standaloneactivity/Claims.scala	2026-09-30 01:06:47
+@@ -35,7 +35,8 @@
+   }
+ 
+ /** Completed on the second attempt of an activity with no deadline set. */
+-val completedOnRetry: ProtocolState = ProtocolState(Phase.completed, 2, Timeout.unset, Timeout.unset, Timeout.unset)
++val completedOnRetry: ProtocolState = ProtocolState(Phase.completed, 2, Timeout.unset, Timeout.unset, Timeout.unset,
++  Timeout.unset)
+ 
+ /** The retried attempt's completion settles the activity on its second attempt. */
+ val retryCompletes: Property[ProtocolState] =
+@@ -74,6 +75,12 @@
+     s.state.phase == Phase.timedOut && s.facts.contains(ProtocolFact.statusTimedOut(TimeoutType.startToClose))
+   }
+ 
++/** The heartbeat deadline times a held attempt out and the status records the heartbeat timeout. */
++val heartbeatFires: Property[ProtocolState] =
++  activityProtocol.property("heartbeatFires") when heartbeatTimeout holds { s =>
++    s.state.phase == Phase.timedOut && s.facts.contains(ProtocolFact.statusTimedOut(TimeoutType.heartbeat))
++  }
++
+ // ### The paths the Queries run
+ 
+ import Timeout.{expires, unset}
+@@ -82,32 +89,36 @@
+   activityProtocol.scenario(name).starts(unstarted).actions(classes*)
+ 
+ val completed: Scenario[ProtocolState] =
+-  path("completed", start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.completed))
++  path("completed", start(unset, unset, unset, unset), attemptStart, attemptResult(AttemptResult.completed))
+ 
+ val nonRetryable: Scenario[ProtocolState] =
+-  path("nonRetryable", start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(false)))
++  path("nonRetryable", start(unset, unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(false)))
+ 
+ val retriedThenCompleted: Scenario[ProtocolState] = path("retriedThenCompleted",
+-  start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(true)), backoff, attemptStart,
++  start(unset, unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(true)), backoff, attemptStart,
+   attemptResult(AttemptResult.completed))
+ 
+ val cancelRequestedThenCanceled: Scenario[ProtocolState] = path("cancelRequestedThenCanceled",
+-  start(unset, unset, unset), attemptStart, control(Control.requestCancel), attemptResult(AttemptResult.canceled))
++  start(unset, unset, unset, unset), attemptStart, control(Control.requestCancel), attemptResult(AttemptResult.canceled))
+ 
+ /** The worker stops before the start, so no attempt is in flight when the caller terminates. */
+ val terminatedWhileScheduled: Scenario[ProtocolState] =
+-  path("terminatedWhileScheduled", start(unset, unset, unset), workerStop, control(Control.terminate))
++  path("terminatedWhileScheduled", start(unset, unset, unset, unset), workerStop, control(Control.terminate))
+ 
+ val pausedThenCompleted: Scenario[ProtocolState] = path("pausedThenCompleted",
+-  start(unset, unset, unset), control(Control.pause), control(Control.unpause), attemptStart,
++  start(unset, unset, unset, unset), control(Control.pause), control(Control.unpause), attemptStart,
+   attemptResult(AttemptResult.completed))
+ 
+ val scheduleToStartExpires: Scenario[ProtocolState] =
+-  path("scheduleToStartExpires", start(unset, expires, unset), workerStop, scheduleToStart)
++  path("scheduleToStartExpires", start(unset, expires, unset, unset), workerStop, scheduleToStart)
+ 
+ val startToCloseExpires: Scenario[ProtocolState] =
+-  path("startToCloseExpires", start(unset, unset, expires), attemptStart, startToClose)
++  path("startToCloseExpires", start(unset, unset, expires, unset), attemptStart, startToClose)
+ 
++/** The worker heartbeats once and then goes quiet, so the heartbeat deadline fires. */
++val heartbeatExpires: Scenario[ProtocolState] =
++  path("heartbeatExpires", start(unset, unset, unset, expires), attemptStart, heartbeat, heartbeatTimeout)
++
+ val three: Limits = Limits("three", steps = 3, actions = 3, search = 4096)
+ val four: Limits = Limits("four", steps = 4, actions = 4, search = 32768)
+ val six: Limits = Limits("six", steps = 6, actions = 6, search = 262144)
+@@ -126,13 +137,14 @@
+ val scheduleToStartTimeout: Query =
+   query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three
+ val startToCloseTimeout: Query = query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three
++val heartbeatDeadline: Query = query("heartbeatDeadline") find heartbeatFires in heartbeatExpires limits four
+ 
+ val terminalHolds: Query = query("terminalHolds") verify terminalIsFinal in completed limits three
+ val pauseHolds: Query = query("pauseHolds") verify pausedIsNotDispatched in pausedThenCompleted limits six
+ 
+ /** The functional set's Queries in declaration order. */
+ val functionalQueries: Vector[Query] = Vector(completion, nonRetryableFailure, retry, cancel, terminate, pauseResume,
+-  scheduleToStartTimeout, startToCloseTimeout)
++  scheduleToStartTimeout, startToCloseTimeout, heartbeatDeadline)
+ 
+ // ### The sets
+ //
+@@ -168,7 +180,7 @@
+ val stoppedBeforeRetry: Scenario[StandaloneActivityState] = standaloneActivity.scenario("stoppedBeforeRetry")
+   .starts(StandaloneActivityState(unstarted, WorkerState(WorkerPhase.polling)))
+   .actionKeys(
+-    standaloneActivity.own("activity", start(unset, expires, unset)),
++    standaloneActivity.own("activity", start(unset, expires, unset, unset)),
+     "attemptStart",
+     standaloneActivity.own("activity", attemptResult(AttemptResult.failed(true))),
+     standaloneActivity.own("activity", backoff),
+diff -ruN /tmp/trial/base/scala-activity/Model.scala model/scala/src/standaloneactivity/Model.scala
+--- /tmp/trial/base/scala-activity/Model.scala	2026-09-30 00:57:09
++++ model/scala/src/standaloneactivity/Model.scala	2026-09-30 01:07:59
+@@ -3,7 +3,7 @@
+  * DescribeActivityExecution reports it, the protocol machine says how the server gets there and
+  * refines it, and the functional set runs one Query per side effect that settles the activity.
+  * Grounded in chasm/lib/activity/statemachine.go; reset is deferred, like cancellation in the Nexus
+- * caller Model, and the heartbeat timeout is not modeled.
++ * caller Model.
+  *
+  * A standalone activity writes no history event. Every fact below is a status read through
+  * DescribeActivityExecution, or a result read through PollActivityExecution, so the evidence lines
+@@ -56,9 +56,22 @@
+   case pause, unpause, requestCancel, terminate
+ 
+ // ### Actions
++//
++// The framework declares class and step-function extensions up to three inputs; the start request
++// sets four deadlines, so the fourth arity is declared here. It is a given rather than a top-level
++// extension so that it adds to the framework's extensions instead of shadowing them.
+ 
++given fourInputs: AnyRef with
++  extension [A, B, C, D](a: Action[(A, B, C, D)])
++    def apply(x: A, y: B, z: C, w: D): Class = Class(a.decl, List(x, y, z, w))
++    infix def ~>[S, O, F](f: (S, A, B, C, D) => List[Step[S, O, F]]): StepBinding[S, O, F] =
++      StepBinding(a.decl, (s, c) =>
++        f(s, c.values(0).asInstanceOf[A], c.values(1).asInstanceOf[B], c.values(2).asInstanceOf[C],
++          c.values(3).asInstanceOf[D]))
++
+ val start = action("start", caller)
+   .input[Timeout]("scheduleToClose").input[Timeout]("scheduleToStart").input[Timeout]("startToClose")
++  .input[Timeout]("heartbeat")
+   .creates(activity)
+   .schema("temporal.api.workflowservice.v1.StartActivityExecutionRequest")
+ 
+@@ -66,6 +79,10 @@
+ val attemptStart = action("attemptStart", worker.party).on(activity)
+   .schema("temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")
+ 
++/** The worker reports that it still holds the attempt. */
++val heartbeat = action("heartbeat", worker.party).on(activity)
++  .schema("temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest")
++
+ val attemptResult = action("attemptResult", worker.party).on(activity).input[AttemptResult]("result")
+   .schema("temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest",
+     "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest",
+@@ -206,7 +223,7 @@
+ // ### The protocol machine
+ //
+ // How the server gets there: the retry the product machine cannot see, the pause a running attempt
+-// turns into a pause request, the three timers the start request sets, and the attempt count. The
++// turns into a pause request, the four timers the start request sets, and the attempt count. The
+ // machine begins before the activity exists, so unstarted is a phase and the start request is what
+ // sets the deadlines.
+ 
+@@ -216,19 +233,20 @@
+ 
+ /** Which deadline fired. */
+ enum TimeoutType derives Finite:
+-  case scheduleToClose, scheduleToStart, startToClose
++  case scheduleToClose, scheduleToStart, startToClose, heartbeat
+ 
+ /** Bounds the attempt count. */
+ val attemptBound: Int = 2
+ 
+-/** The protocol machine's state: 12 phases, 3 attempt counts (`0..attemptBound`) and 3 deadline flags,
+-  * 288 states, which is past the Lean elaborator's bound of 256. */
++/** The protocol machine's state: 12 phases, 3 attempt counts (`0..attemptBound`) and 4 deadline flags,
++  * 576 states, which is past the Lean elaborator's bound of 256. */
+ final case class ProtocolState(
+     phase: Phase,
+     attempts: Int,
+     scheduleToClose: Timeout,
+     scheduleToStart: Timeout,
+     startToClose: Timeout,
++    heartbeat: Timeout,
+ )
+ 
+ given Finite[ProtocolState] =
+@@ -253,8 +271,8 @@
+   p == Phase.scheduled || p == Phase.backingOff || p == Phase.started || p == Phase.paused ||
+     p == Phase.pauseRequested || p == Phase.cancelRequested
+ 
+-/** Where a worker holds the attempt: the phases a start-to-close deadline covers and a worker's answer
+-  * settles. */
++/** Where a worker holds the attempt: the phases a start-to-close or heartbeat deadline covers, a
++  * heartbeat is sent in, and a worker's answer settles. */
+ def attemptHeld(p: Phase): Boolean = p == Phase.started || p == Phase.pauseRequested || p == Phase.cancelRequested
+ 
+ private def saturatingSucc(a: Int): Int = (a + 1).min(attemptBound)
+@@ -262,9 +280,11 @@
+ private def moves(s: ProtocolState, phase: Phase, recorded: ProtocolFact*): List[ProtocolStep] =
+   List(Step(Outcome.accepted, s.copy(phase = phase), recorded.toList))
+ 
+-def startStep(s: ProtocolState, scheduleToClose: Timeout, scheduleToStart: Timeout, startToClose: Timeout): List[ProtocolStep] =
++def startStep(s: ProtocolState, scheduleToClose: Timeout, scheduleToStart: Timeout, startToClose: Timeout,
++    heartbeat: Timeout): List[ProtocolStep] =
+   if s.phase != Phase.unstarted then Nil
+-  else List(Step(Outcome.accepted, ProtocolState(Phase.scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
++  else List(Step(Outcome.accepted,
++    ProtocolState(Phase.scheduled, 0, scheduleToClose, scheduleToStart, startToClose, heartbeat),
+     List(ProtocolFact.statusScheduled)))
+ 
+ /** The worker's poll takes the attempt and raises the count the caller reads back. */
+@@ -273,6 +293,10 @@
+   else moves(s.copy(attempts = saturatingSucc(s.attempts)), Phase.started, ProtocolFact.statusStarted,
+     ProtocolFact.attemptCount)
+ 
++/** A heartbeat keeps the attempt where it is and records nothing: the caller reads no new status. */
++def protocolHeartbeatStep(s: ProtocolState): List[ProtocolStep] =
++  if !attemptHeld(s.phase) then Nil else moves(s, s.phase)
++
+ /** The worker's answer, by the phase it lands in. A retryable failure backs a started attempt off,
+   * which the caller reads as scheduled again with a higher attempt count, settles a cancel-requested
+   * one as canceled, and lands a pause-requested one in paused
+@@ -335,6 +359,12 @@
+     moves(s, Phase.timedOut, ProtocolFact.statusTimedOut(TimeoutType.startToClose))
+   else Nil
+ 
++/** The heartbeat deadline: a held attempt whose worker stops heartbeating times out. */
++def heartbeatTimeoutStep(s: ProtocolState): List[ProtocolStep] =
++  if attemptHeld(s.phase) && s.heartbeat == Timeout.expires then
++    moves(s, Phase.timedOut, ProtocolFact.statusTimedOut(TimeoutType.heartbeat))
++  else Nil
++
+ /** How a protocol state reads as a product state: not yet started and backing off read as scheduled;
+   * a pause request reads as started, because the worker still holds the attempt and every answer it
+   * can give is a row the product has from started, while the request itself is a stutter; every other
+@@ -354,9 +384,11 @@
+ val scheduleToClose = timer("scheduleToClose")
+ val scheduleToStart = timer("scheduleToStart")
+ val startToClose = timer("startToClose")
++val heartbeatTimeout = timer("heartbeatTimeout")
+ 
+ /** Where every path begins: before the activity exists, with every deadline at its first value. */
+-val unstarted: ProtocolState = ProtocolState(Phase.unstarted, 0, Timeout.unset, Timeout.unset, Timeout.unset)
++val unstarted: ProtocolState =
++  ProtocolState(Phase.unstarted, 0, Timeout.unset, Timeout.unset, Timeout.unset, Timeout.unset)
+ 
+ /** The protocol machine. */
+ val activityProtocol: Machine[ProtocolState, Outcome, ProtocolFact] =
+@@ -381,6 +413,7 @@
+     steps(
+       start ~> startStep,
+       attemptStart ~> protocolAttemptStartStep,
++      heartbeat ~> protocolHeartbeatStep,
+       attemptResult ~> protocolAttemptResultStep,
+       control ~> protocolControlStep,
+       workerStop ~> protocolWorkerStopStep,
+@@ -388,6 +421,7 @@
+       scheduleToClose ~> scheduleToCloseStep,
+       scheduleToStart ~> scheduleToStartStep,
+       startToClose ~> startToCloseStep,
++      heartbeatTimeout ~> heartbeatTimeoutStep,
+     )
+   }
+ 
+--- /tmp/trial/base/scala-test/StandaloneActivityPins.test.scala	2026-09-30 00:57:09
++++ model/scala/src/test/StandaloneActivityPins.test.scala	2026-09-30 01:07:06
+@@ -14,8 +14,9 @@
+ 
+   /** A state written the way a reader names one: the phase, the attempt count, and whichever
+     * deadlines are not at the value the activity begins with. */
+-  def at(phase: Phase, attempts: Int, sts: Timeout = Timeout.unset, stc: Timeout = Timeout.unset): ProtocolState =
+-    ProtocolState(phase, attempts, Timeout.unset, sts, stc)
++  def at(phase: Phase, attempts: Int, sts: Timeout = Timeout.unset, stc: Timeout = Timeout.unset,
++      hb: Timeout = Timeout.unset): ProtocolState =
++    ProtocolState(phase, attempts, Timeout.unset, sts, stc, hb)
+ 
+   def phases(steps: List[ProtocolStep]): List[Phase] = steps.map(_.state.phase)
+ 
+@@ -41,12 +42,12 @@
+   test("the protocol machine") {
+     val t = table(activityProtocol)
+     val n = attemptBound + 1
+-    // Twelve phases, three attempt counts and three deadlines: 288 states, past Lean's bound of 256.
+-    // (:51-52)
+-    assertEquals((t.states.size, t.ends.size), (12 * n * 8, 5 * n * 8))
+-    // Eight start requests, one attempt start, four answers, four controls, the fault and four
+-    // timers. (:55)
+-    assertEquals(t.actions.size, 8 + 1 + 4 + 4 + 1 + 4)
++    // Twelve phases, three attempt counts and four deadlines: 576 states, past Lean's bound of 256.
++    // (:51-52, before the heartbeat deadline doubled it)
++    assertEquals((t.states.size, t.ends.size), (12 * n * 16, 5 * n * 16))
++    // Sixteen start requests, one attempt start, one heartbeat, four answers, four controls, the
++    // fault and five timers. (:55, before the heartbeat)
++    assertEquals(t.actions.size, 16 + 1 + 1 + 4 + 4 + 1 + 5)
+     assertEquals(t.starts, Vector(Keys.of(at(Phase.unstarted, 0)))) // (:57)
+     // A retryable failure backs the attempt off and is read as scheduled again with the count
+     // raised. (:60-61)
+@@ -70,6 +71,17 @@
+     assertEquals(phases(startToCloseStep(at(Phase.pauseRequested, 1, stc = Timeout.expires))), List(Phase.timedOut))
+     assertEquals(scheduleToStartStep(at(Phase.backingOff, 1, sts = Timeout.expires)).map(_.facts),
+       List(List(ProtocolFact.statusTimedOut(TimeoutType.scheduleToStart))))
++    // A heartbeat keeps a held attempt where it is and records nothing; with no attempt held there is
++    // no row. The heartbeat deadline times a held attempt out, and only when the start set it. (No
++    // Lean pin: the Lean sample does not model the heartbeat.)
++    assertEquals(protocolHeartbeatStep(at(Phase.started, 1)), List(Step(Outcome.accepted, at(Phase.started, 1))))
++    assertEquals(phases(protocolHeartbeatStep(at(Phase.pauseRequested, 1))), List(Phase.pauseRequested))
++    assertEquals(protocolHeartbeatStep(at(Phase.scheduled, 0)), Nil)
++    assertEquals(heartbeatTimeoutStep(at(Phase.started, 1, hb = Timeout.expires)),
++      List(Step(Outcome.accepted, at(Phase.timedOut, 1, hb = Timeout.expires),
++        List(ProtocolFact.statusTimedOut(TimeoutType.heartbeat)))))
++    assertEquals(heartbeatTimeoutStep(at(Phase.started, 1)), Nil)
++    assertEquals(heartbeatTimeoutStep(at(Phase.backingOff, 1, hb = Timeout.expires)), Nil)
+     // (:87)
+     assertEquals(t.stuck, None)
+   }
+@@ -80,11 +92,14 @@
+     val lookup = ref.rows.map(r => r.key -> r.product).toMap
+     // The visible retry is the product's retryable-failure row; the pause request is a stutter; the
+     // unpause of a requested pause is a stutter too. (:101-105)
+-    assertEquals(lookup("started-1-unset-unset-unset-attemptResult-failed-true"), Some("attemptResult-failed-true"))
+-    assertEquals(lookup("started-1-unset-unset-unset-control-pause"), None)
+-    assertEquals(lookup("pauseRequested-1-unset-unset-unset-control-unpause"), None)
++    assertEquals(lookup("started-1-unset-unset-unset-unset-attemptResult-failed-true"), Some("attemptResult-failed-true"))
++    assertEquals(lookup("started-1-unset-unset-unset-unset-control-pause"), None)
++    assertEquals(lookup("pauseRequested-1-unset-unset-unset-unset-control-unpause"), None)
+     // A retryable failure under a pause request is the product's pause. (:108-109)
+-    assertEquals(lookup("pauseRequested-1-unset-unset-unset-attemptResult-failed-true"), Some("control-pause"))
++    assertEquals(lookup("pauseRequested-1-unset-unset-unset-unset-attemptResult-failed-true"), Some("control-pause"))
++    // A heartbeat is a stutter, and the heartbeat deadline is the product's timeout. (No Lean pin.)
++    assertEquals(lookup("started-1-unset-unset-unset-unset-heartbeat"), None)
++    assertEquals(lookup("started-1-unset-unset-unset-expires-heartbeatTimeout"), Some("timeout"))
+   }
+ 
+   test("the Queries") {
+--- /tmp/trial/base/scala-test/CheckedViews.test.scala	2026-09-30 00:57:09
++++ model/scala/src/test/CheckedViews.test.scala	2026-09-30 01:08:36
+@@ -30,10 +30,28 @@
+     "standaloneActivity-summary.md" -> Set(
+       "- evidence: attemptCount, statusScheduled, statusStarted, statusPaused, statusCancelRequested, statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut" ->
+         "- evidence: statusScheduled, statusStarted, statusPaused, statusCancelRequested, statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut, attemptCount"),
++    // The Scala Model times a held attempt out on its heartbeat deadline too, which the Go Model does
++    // not model.
++    "activityProtocol-diagram.md" -> Set(
++      "    started --> timedOut: startToClose, scheduleToClose" ->
++        "    started --> timedOut: heartbeatTimeout, startToClose, scheduleToClose",
++      "    pauseRequested --> timedOut: startToClose, scheduleToClose" ->
++        "    pauseRequested --> timedOut: heartbeatTimeout, startToClose, scheduleToClose",
++      "    cancelRequested --> timedOut: startToClose, scheduleToClose" ->
++        "    cancelRequested --> timedOut: heartbeatTimeout, startToClose, scheduleToClose"),
+   )
+ 
++  /** Views with no line-by-line counterpart in Go, by file, with the reason. */
++  val notCompared: Map[String, String] = Map(
++    // The heartbeat deadline is a fourth start input and a fourth deadline flag the Go Model does not
++    // have: it doubles the protocol states, adds the heartbeat rows and a Query, and changes the
++    // number of lines, so no line lines up with its Go counterpart.
++    "activityProtocol-table.md" -> "the Scala protocol machine models the heartbeat timeout; Go's does not",
++    "standaloneActivity-summary.md" -> "the Scala protocol machine models the heartbeat timeout; Go's does not",
++  )
++
+   test("the views equal the Go views except the listed lines") {
+-    for (name, content) <- rendered do
++    for (name, content) <- rendered if !notCompared.contains(name) do
+       val goLines = Files.readString(Lean.root.resolve(s"model/go/views/testdata/$name")).linesIterator.toVector
+       val scalaLines = content.linesIterator.toVector
+       assertEquals(scalaLines.size, goLines.size, name)
+diff -ruN /tmp/trial/base/scala-views/activityProtocol-diagram.md model/scala/goldens/views/activityProtocol-diagram.md
+--- /tmp/trial/base/scala-views/activityProtocol-diagram.md	2026-09-30 00:57:09
++++ model/scala/goldens/views/activityProtocol-diagram.md	2026-09-30 01:08:01
+@@ -22,7 +22,7 @@
+     started --> pauseRequested: control
+     started --> cancelRequested: control
+     started --> terminated: control
+-    started --> timedOut: startToClose, scheduleToClose
++    started --> timedOut: heartbeatTimeout, startToClose, scheduleToClose
+     paused --> cancelRequested: control
+     paused --> terminated: control
+     paused --> scheduled: control
+@@ -33,12 +33,12 @@
+     pauseRequested --> cancelRequested: control
+     pauseRequested --> terminated: control
+     pauseRequested --> started: control
+-    pauseRequested --> timedOut: startToClose, scheduleToClose
++    pauseRequested --> timedOut: heartbeatTimeout, startToClose, scheduleToClose
+     cancelRequested --> canceled: attemptResult
+     cancelRequested --> completed: attemptResult
+     cancelRequested --> failed: attemptResult
+     cancelRequested --> terminated: control
+-    cancelRequested --> timedOut: startToClose, scheduleToClose
++    cancelRequested --> timedOut: heartbeatTimeout, startToClose, scheduleToClose
+     completed --> [*]
+     failed --> [*]
+     canceled --> [*]
+diff -ruN /tmp/trial/base/scala-views/activityProtocol-table.md model/scala/goldens/views/activityProtocol-table.md
+--- /tmp/trial/base/scala-views/activityProtocol-table.md	2026-09-30 00:57:09
++++ model/scala/goldens/views/activityProtocol-table.md	2026-09-30 01:08:01
+@@ -1,6 +1,6 @@
+ # activityProtocol: transitions
+ 
+-238 reachable states, 22 action classes, 1788 rows. Generated; do not edit.
++478 reachable states, 32 action classes, 4176 rows. Generated; do not edit.
+ 
+ "Fields" says whether the step keeps every field but the phase; "States" is how many
+ reachable states the line stands for.
+@@ -9,139 +9,153 @@
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `start-expires-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-expires-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-expires-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-expires-unset-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-unset-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-unset-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-unset-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
+-| `start-unset-unset-unset` | accepted | scheduled | statusScheduled | kept | 1 |  |
++| `start-expires-expires-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-expires-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-expires-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-expires-unset-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-unset-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-unset-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-unset-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-expires-unset-unset-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-expires-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-expires-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-expires-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-expires-unset-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-unset-expires-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-unset-expires-unset` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-unset-unset-expires` | accepted | scheduled | statusScheduled | change | 1 |  |
++| `start-unset-unset-unset-unset` | accepted | scheduled | statusScheduled | kept | 1 |  |
+ | `workerStop` | accepted | unstarted | none | kept | 1 |  |
+ 
+ ## From scheduled
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `attemptStart` | accepted | started | statusStarted, attemptCount | change | 16 |  |
+-| `control-pause` | accepted | paused | statusPaused | kept | 24 |  |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 24 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 24 |  |
+-| `workerStop` | accepted | scheduled | none | kept | 24 |  |
+-| `scheduleToStart` | accepted | timedOut | statusTimedOut-scheduleToStart | kept | 12 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 12 |  |
+-| `attemptStart` | accepted | started | statusStarted, attemptCount | kept | 8 |  |
++| `attemptStart` | accepted | started | statusStarted, attemptCount | change | 32 |  |
++| `control-pause` | accepted | paused | statusPaused | kept | 48 |  |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 48 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 48 |  |
++| `workerStop` | accepted | scheduled | none | kept | 48 |  |
++| `scheduleToStart` | accepted | timedOut | statusTimedOut-scheduleToStart | kept | 24 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 24 |  |
++| `attemptStart` | accepted | started | statusStarted, attemptCount | kept | 16 |  |
+ 
+ ## From backingOff
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `backoff` | accepted | scheduled | none | kept | 16 |  |
+-| `control-pause` | accepted | paused | statusPaused | kept | 16 |  |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 16 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 16 |  |
+-| `workerStop` | accepted | backingOff | none | kept | 16 |  |
+-| `scheduleToStart` | accepted | timedOut | statusTimedOut-scheduleToStart | kept | 8 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 8 |  |
++| `backoff` | accepted | scheduled | none | kept | 32 |  |
++| `control-pause` | accepted | paused | statusPaused | kept | 32 |  |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 32 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 32 |  |
++| `workerStop` | accepted | backingOff | none | kept | 32 |  |
++| `scheduleToStart` | accepted | timedOut | statusTimedOut-scheduleToStart | kept | 16 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 16 |  |
+ 
+ ## From started
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 16 |  |
+-| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 16 |  |
+-| `attemptResult-failed-true` | accepted | backingOff | statusScheduled, attemptCount | kept | 16 | a retryable failure backs off; the caller reads scheduled again |
+-| `control-pause` | accepted | pauseRequested | statusPaused | kept | 16 | the worker learns of the pause on its next heartbeat |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 16 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 16 |  |
+-| `workerStop` | accepted | started | none | kept | 16 |  |
+-| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 8 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 8 |  |
++| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 32 |  |
++| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 32 |  |
++| `attemptResult-failed-true` | accepted | backingOff | statusScheduled, attemptCount | kept | 32 | a retryable failure backs off; the caller reads scheduled again |
++| `control-pause` | accepted | pauseRequested | statusPaused | kept | 32 | the worker learns of the pause on its next heartbeat |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 32 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 32 |  |
++| `heartbeat` | accepted | started | none | kept | 32 |  |
++| `workerStop` | accepted | started | none | kept | 32 |  |
++| `heartbeatTimeout` | accepted | timedOut | statusTimedOut-heartbeat | kept | 16 |  |
++| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 16 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 16 |  |
+ 
+ ## From paused
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 24 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 24 |  |
+-| `control-unpause` | accepted | scheduled | statusScheduled | kept | 24 |  |
+-| `workerStop` | accepted | paused | none | kept | 24 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 12 |  |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 48 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 48 |  |
++| `control-unpause` | accepted | scheduled | statusScheduled | kept | 48 |  |
++| `workerStop` | accepted | paused | none | kept | 48 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 24 |  |
+ 
+ ## From pauseRequested
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 16 |  |
+-| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 16 |  |
+-| `attemptResult-failed-true` | accepted | paused | statusPaused | kept | 16 |  |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 16 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 16 |  |
+-| `control-unpause` | accepted | started | statusStarted | kept | 16 |  |
+-| `workerStop` | accepted | pauseRequested | none | kept | 16 |  |
+-| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 8 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 8 |  |
++| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 32 |  |
++| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 32 |  |
++| `attemptResult-failed-true` | accepted | paused | statusPaused | kept | 32 |  |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 32 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 32 |  |
++| `control-unpause` | accepted | started | statusStarted | kept | 32 |  |
++| `heartbeat` | accepted | pauseRequested | none | kept | 32 |  |
++| `workerStop` | accepted | pauseRequested | none | kept | 32 |  |
++| `heartbeatTimeout` | accepted | timedOut | statusTimedOut-heartbeat | kept | 16 |  |
++| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 16 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 16 |  |
+ 
+ ## From cancelRequested
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `attemptResult-canceled` | accepted | canceled | statusCanceled | kept | 24 |  |
+-| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 24 |  |
+-| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 24 |  |
+-| `attemptResult-failed-true` | accepted | canceled | statusCanceled | kept | 24 |  |
+-| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 24 |  |
+-| `control-terminate` | accepted | terminated | statusTerminated | kept | 24 |  |
+-| `workerStop` | accepted | cancelRequested | none | kept | 24 |  |
+-| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 12 |  |
+-| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 12 |  |
++| `attemptResult-canceled` | accepted | canceled | statusCanceled | kept | 48 |  |
++| `attemptResult-completed` | accepted | completed | statusCompleted | kept | 48 |  |
++| `attemptResult-failed-false` | accepted | failed | statusFailed | kept | 48 |  |
++| `attemptResult-failed-true` | accepted | canceled | statusCanceled | kept | 48 |  |
++| `control-requestCancel` | accepted | cancelRequested | statusCancelRequested | kept | 48 |  |
++| `control-terminate` | accepted | terminated | statusTerminated | kept | 48 |  |
++| `heartbeat` | accepted | cancelRequested | none | kept | 48 |  |
++| `workerStop` | accepted | cancelRequested | none | kept | 48 |  |
++| `heartbeatTimeout` | accepted | timedOut | statusTimedOut-heartbeat | kept | 24 |  |
++| `startToClose` | accepted | timedOut | statusTimedOut-startToClose | kept | 24 |  |
++| `scheduleToClose` | accepted | timedOut | statusTimedOut-scheduleToClose | kept | 24 |  |
+ 
+ ## From completed
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-pause` | notFound | completed | none | kept | 24 |  |
+-| `control-requestCancel` | notFound | completed | none | kept | 24 |  |
+-| `control-terminate` | notFound | completed | none | kept | 24 |  |
+-| `control-unpause` | notFound | completed | none | kept | 24 |  |
+-| `workerStop` | accepted | completed | none | kept | 24 |  |
++| `control-pause` | notFound | completed | none | kept | 48 |  |
++| `control-requestCancel` | notFound | completed | none | kept | 48 |  |
++| `control-terminate` | notFound | completed | none | kept | 48 |  |
++| `control-unpause` | notFound | completed | none | kept | 48 |  |
++| `workerStop` | accepted | completed | none | kept | 48 |  |
+ 
+ ## From failed
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-pause` | notFound | failed | none | kept | 24 |  |
+-| `control-requestCancel` | notFound | failed | none | kept | 24 |  |
+-| `control-terminate` | notFound | failed | none | kept | 24 |  |
+-| `control-unpause` | notFound | failed | none | kept | 24 |  |
+-| `workerStop` | accepted | failed | none | kept | 24 |  |
++| `control-pause` | notFound | failed | none | kept | 48 |  |
++| `control-requestCancel` | notFound | failed | none | kept | 48 |  |
++| `control-terminate` | notFound | failed | none | kept | 48 |  |
++| `control-unpause` | notFound | failed | none | kept | 48 |  |
++| `workerStop` | accepted | failed | none | kept | 48 |  |
+ 
+ ## From canceled
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-pause` | notFound | canceled | none | kept | 24 |  |
+-| `control-requestCancel` | notFound | canceled | none | kept | 24 |  |
+-| `control-terminate` | notFound | canceled | none | kept | 24 |  |
+-| `control-unpause` | notFound | canceled | none | kept | 24 |  |
+-| `workerStop` | accepted | canceled | none | kept | 24 |  |
++| `control-pause` | notFound | canceled | none | kept | 48 |  |
++| `control-requestCancel` | notFound | canceled | none | kept | 48 |  |
++| `control-terminate` | notFound | canceled | none | kept | 48 |  |
++| `control-unpause` | notFound | canceled | none | kept | 48 |  |
++| `workerStop` | accepted | canceled | none | kept | 48 |  |
+ 
+ ## From terminated
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-pause` | notFound | terminated | none | kept | 24 |  |
+-| `control-requestCancel` | notFound | terminated | none | kept | 24 |  |
+-| `control-terminate` | notFound | terminated | none | kept | 24 |  |
+-| `control-unpause` | notFound | terminated | none | kept | 24 |  |
+-| `workerStop` | accepted | terminated | none | kept | 24 |  |
++| `control-pause` | notFound | terminated | none | kept | 48 |  |
++| `control-requestCancel` | notFound | terminated | none | kept | 48 |  |
++| `control-terminate` | notFound | terminated | none | kept | 48 |  |
++| `control-unpause` | notFound | terminated | none | kept | 48 |  |
++| `workerStop` | accepted | terminated | none | kept | 48 |  |
+ 
+ ## From timedOut
+ 
+ | Action | Outcome | To | Facts | Fields | States | Because |
+ | --- | --- | --- | --- | --- | --- | --- |
+-| `control-pause` | notFound | timedOut | none | kept | 21 |  |
+-| `control-requestCancel` | notFound | timedOut | none | kept | 21 |  |
+-| `control-terminate` | notFound | timedOut | none | kept | 21 |  |
+-| `control-unpause` | notFound | timedOut | none | kept | 21 |  |
+-| `workerStop` | accepted | timedOut | none | kept | 21 |  |
++| `control-pause` | notFound | timedOut | none | kept | 45 |  |
++| `control-requestCancel` | notFound | timedOut | none | kept | 45 |  |
++| `control-terminate` | notFound | timedOut | none | kept | 45 |  |
++| `control-unpause` | notFound | timedOut | none | kept | 45 |  |
++| `workerStop` | accepted | timedOut | none | kept | 45 |  |
+diff -ruN /tmp/trial/base/scala-views/standaloneActivity-summary.md model/scala/goldens/views/standaloneActivity-summary.md
+--- /tmp/trial/base/scala-views/standaloneActivity-summary.md	2026-09-30 00:57:09
++++ model/scala/goldens/views/standaloneActivity-summary.md	2026-09-30 01:08:01
+@@ -14,39 +14,40 @@
+ ## machine activityProtocol
+ 
+ - for: activity
+-- starts: unstarted-0-unset-unset-unset
++- starts: unstarted-0-unset-unset-unset-unset
+ - ends in: completed, failed, canceled, terminated, timedOut
+-- reaches: unstarted, scheduled, started, paused, cancelRequested, terminated, timedOut, completed, failed, backingOff, pauseRequested, canceled (238 of 288 states)
+-- actions: attemptResult (4 classes), attemptStart, backoff, control (4 classes), scheduleToClose, scheduleToStart, start (8 classes), startToClose, workerStop
++- reaches: unstarted, scheduled, started, paused, cancelRequested, terminated, timedOut, completed, failed, backingOff, pauseRequested, canceled (478 of 576 states)
++- actions: attemptResult (4 classes), attemptStart, backoff, control (4 classes), heartbeat, heartbeatTimeout, scheduleToClose, scheduleToStart, start (16 classes), startToClose, workerStop
+ - evidence: statusScheduled, statusStarted, statusPaused, statusCancelRequested, statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut, attemptCount
+ 
+ ## machine standaloneActivity
+ 
+-- starts: unstarted-0-unset-unset-unset_polling
++- starts: unstarted-0-unset-unset-unset-unset_polling
+ - ends in: canceled / polling, canceled / stopped, completed / polling, completed / stopped, failed / polling, failed / stopped, terminated / polling, terminated / stopped, timedOut / polling, timedOut / stopped
+-- reaches: unstarted / polling, scheduled / polling, unstarted / stopped, scheduled / stopped, paused / polling, cancelRequested / polling, terminated / polling, timedOut / polling, started / polling, paused / stopped, cancelRequested / stopped, terminated / stopped, timedOut / stopped, completed / polling, failed / polling, backingOff / polling, pauseRequested / polling, started / stopped, completed / stopped, failed / stopped, backingOff / stopped, pauseRequested / stopped, canceled / polling, canceled / stopped (476 of 476 states)
+-- actions: activity_attemptResult (4 classes), activity_backoff, activity_control (4 classes), activity_scheduleToClose, activity_scheduleToStart, activity_start (8 classes), activity_startToClose, attemptStart, workerStop
++- reaches: unstarted / polling, scheduled / polling, unstarted / stopped, scheduled / stopped, paused / polling, cancelRequested / polling, terminated / polling, timedOut / polling, started / polling, paused / stopped, cancelRequested / stopped, terminated / stopped, timedOut / stopped, completed / polling, failed / polling, backingOff / polling, pauseRequested / polling, started / stopped, completed / stopped, failed / stopped, backingOff / stopped, pauseRequested / stopped, canceled / polling, canceled / stopped (956 of 956 states)
++- actions: activity_attemptResult (4 classes), activity_backoff, activity_control (4 classes), activity_heartbeat, activity_heartbeatTimeout, activity_scheduleToClose, activity_scheduleToStart, activity_start (16 classes), activity_startToClose, attemptStart, workerStop
+ 
+ ## Queries
+ 
+ | Query | Asks | Property | On path | Limits | Answer |
+ | --- | --- | --- | --- | --- | --- |
+-| completion | find | completes | start-unset-unset-unset → attemptStart → attemptResult-completed | three | found |
+-| nonRetryableFailure | find | nonRetryableFails | start-unset-unset-unset → attemptStart → attemptResult-failed-false | three | found |
+-| retry | find | retryCompletes | start-unset-unset-unset → attemptStart → attemptResult-failed-true → backoff → attemptStart → attemptResult-completed | six | found |
+-| cancel | find | canceledByWorker | start-unset-unset-unset → attemptStart → control-requestCancel → attemptResult-canceled | four | found |
+-| terminate | find | terminated | start-unset-unset-unset → workerStop → control-terminate | three | found |
+-| pauseResume | find | completes | start-unset-unset-unset → control-pause → control-unpause → attemptStart → attemptResult-completed | six | found |
+-| scheduleToStartTimeout | find | scheduleToStartFires | start-unset-expires-unset → workerStop → scheduleToStart | three | found |
+-| startToCloseTimeout | find | startToCloseFires | start-unset-unset-expires → attemptStart → startToClose | three | found |
+-| terminalHolds | verify | terminalIsFinal | start-unset-unset-unset → attemptStart → attemptResult-completed | three | verified-within-limits |
+-| pauseHolds | verify | pausedIsNotDispatched | start-unset-unset-unset → control-pause → control-unpause → attemptStart → attemptResult-completed | six | verified-within-limits |
+-| stoppedWorkerStartsNothing | verify | startedByPollingWorker | activity_start-unset-expires-unset → attemptStart → activity_attemptResult-failed-true → activity_backoff → workerStop → activity_scheduleToStart | six | verified-within-limits |
++| completion | find | completes | start-unset-unset-unset-unset → attemptStart → attemptResult-completed | three | found |
++| nonRetryableFailure | find | nonRetryableFails | start-unset-unset-unset-unset → attemptStart → attemptResult-failed-false | three | found |
++| retry | find | retryCompletes | start-unset-unset-unset-unset → attemptStart → attemptResult-failed-true → backoff → attemptStart → attemptResult-completed | six | found |
++| cancel | find | canceledByWorker | start-unset-unset-unset-unset → attemptStart → control-requestCancel → attemptResult-canceled | four | found |
++| terminate | find | terminated | start-unset-unset-unset-unset → workerStop → control-terminate | three | found |
++| pauseResume | find | completes | start-unset-unset-unset-unset → control-pause → control-unpause → attemptStart → attemptResult-completed | six | found |
++| scheduleToStartTimeout | find | scheduleToStartFires | start-unset-expires-unset-unset → workerStop → scheduleToStart | three | found |
++| startToCloseTimeout | find | startToCloseFires | start-unset-unset-expires-unset → attemptStart → startToClose | three | found |
++| heartbeatDeadline | find | heartbeatFires | start-unset-unset-unset-expires → attemptStart → heartbeat → heartbeatTimeout | four | found |
++| terminalHolds | verify | terminalIsFinal | start-unset-unset-unset-unset → attemptStart → attemptResult-completed | three | verified-within-limits |
++| pauseHolds | verify | pausedIsNotDispatched | start-unset-unset-unset-unset → control-pause → control-unpause → attemptStart → attemptResult-completed | six | verified-within-limits |
++| stoppedWorkerStartsNothing | verify | startedByPollingWorker | activity_start-unset-expires-unset-unset → attemptStart → activity_attemptResult-failed-true → activity_backoff → workerStop → activity_scheduleToStart | six | verified-within-limits |
+ 
+ ## set standaloneActivityTests (functional)
+ 
+ - binds: caller driven, worker driven
+-- queries: completion, nonRetryableFailure, retry, cancel, terminate, pauseResume, scheduleToStartTimeout, startToCloseTimeout
++- queries: completion, nonRetryableFailure, retry, cancel, terminate, pauseResume, scheduleToStartTimeout, startToCloseTimeout, heartbeatDeadline
+ 
+ ## set standaloneActivityCanary (canary)
+ 
+@@ -56,4 +57,4 @@
+ ## set standaloneActivityExploration (exploratory)
+ 
+ - binds: caller driven, worker driven
+-- covers activityProtocol with 1341 targets under four
++- covers activityProtocol with 2865 targets under four

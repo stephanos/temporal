@@ -1,0 +1,13 @@
+{
+  "side": "go",
+  "commit": "d08d20140",
+  "coldTestAllSeconds": 22.441,
+  "warmNoChangeSeconds": 3.415,
+  "editLoopModelSeconds": 2.748,
+  "editLoopFullGateSeconds": 10.553,
+  "frameworkProductionLines": 4935,
+  "modelProductionLines": 2194,
+  "testLines": 1411,
+  "nexusCallerAndWorkerModelLines": 940,
+  "nexusRealizationLines": 385
+}

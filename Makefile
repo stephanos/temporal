@@ -543,9 +543,9 @@ umpire-check-regression-views:
 		diff -u tools/umpire/regression/switch_generated_view_test.go \
 			"$$temporary/tools/umpire/regression/switch_generated_view_test.go"; \
 		diff -u model/lean/Umpire/Examples/Generated/Switch.md \
-			"$$temporary/model/Umpire/Examples/Generated/Switch.md"; \
+			"$$temporary/model/lean/Umpire/Examples/Generated/Switch.md"; \
 		test ! -e model/lean/Temporal/Tool/Generated/Regressions.md; \
-		test ! -e "$$temporary/model/Temporal/Tool/Generated/Regressions.md"
+		test ! -e "$$temporary/model/lean/Temporal/Tool/Generated/Regressions.md"
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression

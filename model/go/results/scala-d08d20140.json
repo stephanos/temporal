@@ -1,0 +1,15 @@
+{
+  "side": "scala",
+  "commit": "d08d20140",
+  "coldTestAllSeconds": 8.079,
+  "warmNoChangeSeconds": 2.453,
+  "editLoopModelSeconds": 2.88,
+  "proveSeconds": 9.94,
+  "editLoopProveSeconds": 9.217,
+  "frameworkProductionLines": 2434,
+  "modelProductionLines": 1665,
+  "proofLines": 89,
+  "testLines": 653,
+  "nexusCallerAndWorkerModelLines": 694,
+  "nexusRealizationLines": 290
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "01-undeclared-action",
+    "mistake": "A step names an undeclared action",
+    "caught": "compile",
+    "seconds": 7.569,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:430:4: 'backof' is not an action declared by an `action` command; a `steps:` line names the action its function steps on",
+    "atAuthorsLine": true,
+    "editLine": 430,
+    "failingTests": []
+  },
+  {
+    "id": "02-step-input-type",
+    "mistake": "A step's input type disagrees with the action's input",
+    "caught": "compile",
+    "seconds": 4.695,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:426:18: 'Temporal.Feature.Nexus.Caller.protocolCompleteStep' takes Resolution where this action's input 1 is 'Temporal.Feature.Nexus.Caller.Reply'; a step function's arguments after the state are the action's own input domains, in order",
+    "atAuthorsLine": true,
+    "editLine": 426,
+    "failingTests": []
+  },
+  {
+    "id": "03-scenario-input-type",
+    "mistake": "A Scenario passes an input of the wrong type",
+    "caught": "compile",
+    "seconds": 174.024,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:527:44: unknown Model action 'handlerReply-succeeded'; declared: backoff, \u00abcomplete-canceled\u00bb, \u00abcomplete-failed\u00bb, \u00abcomplete-succeeded\u00bb, \u00abhandlerReply-async\u00bb, \u00abhandlerReply-handlerError-false\u00bb, \u00abhandlerReply-handlerError-true\u00bb, \u00abhandlerReply-operationCanceled\u00bb, \u00abhandlerReply-operationFailed\u00bb, \u00abhandlerReply-syncSuccess\u00bb, \u00abschedule-expires-expires-expir",
+    "atAuthorsLine": true,
+    "editLine": 527,
+    "failingTests": []
+  },
+  {
+    "id": "04-missing-case",
+    "mistake": "A match or switch misses a case",
+    "caught": "compile",
+    "seconds": 29.958,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:399:13: Missing cases:",
+    "atAuthorsLine": false,
+    "editLine": 405,
+    "failingTests": []
+  },
+  {
+    "id": "05-outside-domain",
+    "mistake": "A step moves the attempt count past its bound",
+    "caught": "pins",
+    "seconds": 596.213,
+    "message": "error: Temporal/Feature/Nexus/Caller/Tests.lean:74:0: Expression",
+    "atAuthorsLine": false,
+    "editLine": 337,
+    "failingTests": []
+  },
+  {
+    "id": "06-fact-without-evidence",
+    "mistake": "A recorded fact has no evidence line",
+    "caught": "pins",
+    "seconds": 580.602,
+    "message": "error: Temporal/Feature/Nexus/Caller/Tests.lean:362:0: Expression",
+    "atAuthorsLine": false,
+    "editLine": 423,
+    "failingTests": []
+  },
+  {
+    "id": "07-row-without-product-step",
+    "mistake": "A protocol row has no product counterpart under the map",
+    "caught": "compile",
+    "seconds": 29.158,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:411:7: the row 'scheduled-0-unset-unset-unset-complete-succeeded' steps from 'scheduled-0-unset-unset-unset' to 'failed-0-unset-unset-unset', which read as 'scheduled' and 'failed' in nexusProduct; nexusProduct has no step from 'scheduled' reaching 'failed' with outcome 'accepted' and the facts [nexusOperationStarted, nexusOperationCompleted], and th",
+    "atAuthorsLine": false,
+    "editLine": 360,
+    "failingTests": []
+  },
+  {
+    "id": "08-verify-without-refinement",
+    "mistake": "A verify Query pairs a product claim with a protocol path and no refinement",
+    "caught": "compile",
+    "seconds": 179.813,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:632:6: the Property runs on Model 'Temporal.Feature.Nexus.Caller.nexusProduct' and the Scenario on 'Temporal.Feature.Nexus.Caller.nexusProtocol'; a Query asks one question of one Model",
+    "atAuthorsLine": false,
+    "editLine": 410,
+    "failingTests": []
+  },
+  {
+    "id": "09-claim-unreachable",
+    "mistake": "A Query's claim is unreachable on its path",
+    "caught": "compile",
+    "seconds": 188.032,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:618:2: no trace the Scenario admits satisfies the Property; the search explored 5 traces within the declared limits and no bound stopped it",
+    "atAuthorsLine": false,
+    "editLine": 487,
+    "failingTests": []
+  },
+  {
+    "id": "10-stuck-state",
+    "mistake": "A machine has a stuck state",
+    "caught": "compile",
+    "seconds": 4.524,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:226:4: the machine reaches 'timedOut', does not end there, and can take no step from it; either a step is missing or 'timedOut' belongs under `ends:`",
+    "atAuthorsLine": false,
+    "editLine": 216,
+    "failingTests": []
+  },
+  {
+    "id": "11-canary-silent-step",
+    "mistake": "A canary set names a path with a silent step",
+    "caught": "compile",
+    "seconds": 201.951,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:711:11: Query 'Temporal.Feature.Nexus.Caller.retry' cannot be a canary: its Case carries the white-box Known Gap 'temporal.nexus.caller.action.nexusProtocol.backoff.unobserved' (capability), a step of its path that no observation confirms; a canary runs against a deployment the Case does not drive, so leave the Query out or give the step evidence",
+    "atAuthorsLine": false,
+    "editLine": 671,
+    "failingTests": []
+  },
+  {
+    "id": "12-name-collision",
+    "mistake": "Two declarations share a model name",
+    "caught": "compile",
+    "seconds": 199.792,
+    "message": "error: Temporal/Feature/Nexus/Caller/Model.lean:459:9: `Temporal.Feature.Nexus.Caller.syncSucceeds.enumerated` has already been declared",
+    "atAuthorsLine": true,
+    "editLine": 459,
+    "failingTests": []
+  }
+]
