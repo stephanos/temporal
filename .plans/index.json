@@ -525,6 +525,16 @@
       "specDependencies": []
     },
     {
+      "id": "fn-106-scala-front-end-for-a-go-interpreted",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
       "id": "fn-11-basic-nexus-umpire-dsl-showcases",
       "scope": "umpire-roadmap",
       "disposition": "completed-prerequisite",

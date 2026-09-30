@@ -238,3 +238,39 @@ func errorf(decl, format string, args ...any) error {
 func rowKey(state, action string) string { return state + "-" + action }
 
 func joinKeys(parts []string, sep string) string { return strings.Join(parts, sep) }
+
+// TableSpec is a machine's table computed outside this package, such as by an interpreter of the
+// Umpire IR (model/scalav2/goir). It carries only what a table's keys say; a table built from it has
+// no typed values, so it serves identities, reachability and fingerprints, not Properties.
+type TableSpec struct {
+	Machine     string
+	Owner       string
+	Family      Family
+	States      []string
+	Actions     []string
+	Outcomes    []string
+	Facts       []string
+	Starts      []string
+	Ends        []string
+	Rows        []Row
+	StateFields []string
+	Entity      string
+	Evidence    [][2]string
+}
+
+// NewTable builds a table from keys, indexing its rows and computing reachability and the stuck
+// state as a declared machine's table does.
+func NewTable(spec TableSpec) *Table {
+	t := &Table{Machine: spec.Machine, Owner: spec.Owner, Family: spec.Family, States: spec.States,
+		Actions: spec.Actions, Outcomes: spec.Outcomes, Facts: spec.Facts, Starts: spec.Starts, Ends: spec.Ends,
+		Rows: spec.Rows, StateFields: spec.StateFields, Entity: spec.Entity, Evidence: spec.Evidence,
+		stateValue: map[string]any{}, classes: map[string]Class{}, decls: map[string]*ActionDecl{}}
+	if t.Facts == nil {
+		t.Facts = []string{}
+	}
+	for _, s := range t.States {
+		t.stateValue[s] = s
+	}
+	t.finish()
+	return t
+}

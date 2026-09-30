@@ -13,7 +13,7 @@ model/scala/run.sh --views    # also render the views and diff them against gold
 model/scala/run.sh --no-prove # skip Stainless for a quick loop
 ```
 
-The tools are `scala-cli` (installed by mise), JDK 21, `protoc` (mise), and Stainless, which
+The tools are `scala-cli` (installed by mise), JDK 27 (mise), `protoc` (mise), and Stainless, which
 `tools.sh` downloads into `UMPIRE_SCALA_TOOLS` (default `/tmp/umpire-scala-tools`).
 
 ## Layout

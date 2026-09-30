@@ -1179,6 +1179,51 @@ lint-yaml: $(YAMLFMT)
 	@printf $(COLOR) "Checking YAML formatting..."
 	@$(YAMLFMT) -conf .github/.yamlfmt -lint .
 
+# Scala model tooling, run through scala-cli: scalafmt formats the whole tree (.scalafmt.conf) and
+# scalafix lints each scala-cli project, i.e. every directory with a project.scala (.scalafix.conf).
+# Scalafix compiles each project, so the IR jar it links against is generated first. Not part of
+# `fmt`/`lint` yet: those run in CI, which has no JVM.
+.PHONY: fmt-scala lint-scala fix-scala umpire-check-scala umpire-gen-scala
+SCALA_ROOT := model/scalav2
+SCALA_CLI := mise exec -- scala-cli
+SCALA_PROJECTS = $(patsubst %/project.scala,%,$(wildcard $(SCALA_ROOT)/*/project.scala))
+SCALAFIX = $(SCALA_CLI) --power fix --enable-built-in=false \
+	--scalafix-conf "$(CURDIR)/$(SCALA_ROOT)/.scalafix.conf" \
+	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
+
+$(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto $(SCALA_ROOT)/gen.sh
+	@printf $(COLOR) "Package Scala model IR classes..."
+	@$(SCALA_ROOT)/gen.sh
+
+fmt-scala:
+	@printf $(COLOR) "Formatting Scala files..."
+	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt .
+
+lint-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+	@printf $(COLOR) "Checking Scala formatting..."
+	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt --check .
+	@printf $(COLOR) "Linting Scala files..."
+	@for project in $(SCALA_PROJECTS); do \
+		(cd "$$project" && $(SCALAFIX) --check .) || exit 1; \
+	done
+
+# Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
+fix-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+	@printf $(COLOR) "Applying Scala lint fixes..."
+	@for project in $(SCALA_PROJECTS); do \
+		(cd "$$project" && $(SCALAFIX) .) || exit 1; \
+	done
+
+# The model/scalav2 gate (see run.sh): lift the Scala Models to the IR, require ir/nexus-caller.json
+# to be current, and check the IR against the Lean Model in Go. umpire-gen-scala rewrites the IR.
+umpire-check-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+	@printf $(COLOR) "Check Scala model IR..."
+	@$(SCALA_ROOT)/run.sh
+
+umpire-gen-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+	@printf $(COLOR) "Generate Scala model IR..."
+	@$(SCALA_ROOT)/run.sh --update
+
 # Nil-safety analysis. Override NILAWAY_SCOPE to widen coverage as more packages
 # are made nil-clean; every path below is derived from it. -include-pkgs restricts
 # the expensive inference to our own packages; without it nilaway analyzes the

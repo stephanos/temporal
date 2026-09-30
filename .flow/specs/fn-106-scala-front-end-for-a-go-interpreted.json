@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-106-scala-front-end-for-a-go-interpreted",
+  "created_at": "2026-09-30T15:23:35.194225Z",
+  "depends_on_epics": [],
+  "id": "fn-106-scala-front-end-for-a-go-interpreted",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-106-scala-front-end-for-a-go-interpreted.md",
+  "status": "open",
+  "title": "Scala front end for a Go-interpreted Umpire IR",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-30T15:23:35.198221Z"
+}

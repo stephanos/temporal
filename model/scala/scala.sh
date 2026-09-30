@@ -6,7 +6,7 @@
 set -uo pipefail
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
-mise exec scala-cli -- scala-cli "$@" --suppress-outdated-dependency-warning 2>&1 | tee "$out" | grep -v '^\S*\[.*hint'
+mise exec -- scala-cli "$@" --suppress-outdated-dependency-warning 2>&1 | tee "$out" | grep -v '^\S*\[.*hint'
 status=${PIPESTATUS[0]}
 if [[ $status -ne 0 ]] || sed 's/\x1b\[[0-9;]*m//g' "$out" | grep -q '^\[error\]'; then
   exit 1

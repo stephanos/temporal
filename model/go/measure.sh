@@ -124,7 +124,7 @@ scala)
   prove() { (cd "$(mktemp -d)" && "$stainless" "$root"/model/scala/temporal/nexuscaller/kernel/*.scala "$root"/model/scala/proofs/umpire/*.scala "$root"/model/scala/proofs/temporal/*.scala); }
   # Cold: scala-cli's build directory removed, so every source compiles; the JVM and the Bloop
   # server may still be warm, which the report says.
-  mise exec scala-cli -- scala-cli clean project.scala umpire temporal >/dev/null
+  mise exec -- scala-cli clean project.scala umpire temporal >/dev/null
   cold=$(seconds scala_cli test project.scala umpire temporal)
   warm=$(seconds scala_cli test project.scala umpire temporal)
   model=$(edit_loop model/scala/temporal/nexuscaller/kernel/Nexus.scala '\n// measure.sh edit %s\n' scala_cli test project.scala umpire temporal)

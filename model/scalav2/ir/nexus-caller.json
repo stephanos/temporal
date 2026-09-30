@@ -1,0 +1,5298 @@
+{
+  "source": "model/scala: --suppress-outdated-dependency-warning, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.worker.Worker$package$.polling",
+  "types": [{
+    "name": "temporal.nexuscaller.kernel.Outcome",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 37
+    },
+    "enum": {
+      "cases": [{
+        "name": "accepted"
+      }, {
+        "name": "notFound"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Phase",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 118
+    },
+    "enum": {
+      "cases": [{
+        "name": "unscheduled"
+      }, {
+        "name": "scheduled"
+      }, {
+        "name": "backingOff"
+      }, {
+        "name": "started"
+      }, {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      }, {
+        "name": "timedOut"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.ProductFact",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 50
+    },
+    "enum": {
+      "cases": [{
+        "name": "nexusOperationScheduled"
+      }, {
+        "name": "nexusOperationStarted"
+      }, {
+        "name": "nexusOperationCompleted"
+      }, {
+        "name": "nexusOperationFailed"
+      }, {
+        "name": "nexusOperationCanceled"
+      }, {
+        "name": "nexusOperationTimedOut"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.ProductPhase",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 45
+    },
+    "enum": {
+      "cases": [{
+        "name": "scheduled"
+      }, {
+        "name": "started"
+      }, {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      }, {
+        "name": "timedOut"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.ProductState",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 48
+    },
+    "record": {
+      "fields": [{
+        "name": "phase",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.ProductPhase"
+        }
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.ProtocolFact",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 135
+    },
+    "enum": {
+      "cases": [{
+        "name": "nexusOperationScheduled"
+      }, {
+        "name": "nexusOperationStarted"
+      }, {
+        "name": "nexusOperationCompleted"
+      }, {
+        "name": "nexusOperationFailed"
+      }, {
+        "name": "nexusOperationCanceled"
+      }, {
+        "name": "nexusOperationTimedOut",
+        "fields": [{
+          "name": "timeoutType",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.TimeoutType"
+          }
+        }]
+      }, {
+        "name": "pendingAttempts"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.ProtocolState",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 127
+    },
+    "record": {
+      "fields": [{
+        "name": "phase",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.Phase"
+        }
+      }, {
+        "name": "attempts",
+        "type": {
+          "intRange": {
+            "high": "2"
+          }
+        }
+      }, {
+        "name": "scheduleToClose",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.Timeout"
+        }
+      }, {
+        "name": "scheduleToStart",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.Timeout"
+        }
+      }, {
+        "name": "startToClose",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.Timeout"
+        }
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Reply",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 27
+    },
+    "enum": {
+      "cases": [{
+        "name": "syncSuccess"
+      }, {
+        "name": "async"
+      }, {
+        "name": "operationFailed"
+      }, {
+        "name": "operationCanceled"
+      }, {
+        "name": "handlerError",
+        "fields": [{
+          "name": "retryable",
+          "type": {
+            "bool": {
+            }
+          }
+        }]
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Resolution",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 32
+    },
+    "enum": {
+      "cases": [{
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Timeout",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 23
+    },
+    "enum": {
+      "cases": [{
+        "name": "unset"
+      }, {
+        "name": "expires"
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.TimeoutType",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 123
+    },
+    "enum": {
+      "cases": [{
+        "name": "scheduleToClose"
+      }, {
+        "name": "scheduleToStart"
+      }, {
+        "name": "startToClose"
+      }]
+    }
+  }, {
+    "name": "temporal.worker.Outcome",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 33
+    },
+    "enum": {
+      "cases": [{
+        "name": "accepted"
+      }]
+    }
+  }, {
+    "name": "temporal.worker.Phase",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 28
+    },
+    "enum": {
+      "cases": [{
+        "name": "polling"
+      }, {
+        "name": "stopped"
+      }]
+    }
+  }, {
+    "name": "temporal.worker.State",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 31
+    },
+    "record": {
+      "fields": [{
+        "name": "phase",
+        "type": {
+          "named": "temporal.worker.Phase"
+        }
+      }]
+    }
+  }],
+  "functions": [{
+    "name": "nexusProduct.evidence",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 102
+    },
+    "params": [{
+      "name": "x$1",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 103
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 103
+          },
+          "var": "x$1"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationScheduled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 103
+            },
+            "literal": {
+              "text": "nexusOperationScheduled"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationStarted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 104
+            },
+            "literal": {
+              "text": "nexusOperationStarted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationCompleted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 105
+            },
+            "literal": {
+              "text": "nexusOperationCompleted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationFailed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 106
+            },
+            "literal": {
+              "text": "nexusOperationFailed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationCanceled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 107
+            },
+            "literal": {
+              "text": "nexusOperationCanceled"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProductFact",
+                "case": "nexusOperationTimedOut"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 108
+            },
+            "literal": {
+              "text": "nexusOperationTimedOut"
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "nexusProtocol.evidence",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 136
+    },
+    "params": [{
+      "name": "x$1",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 137
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 137
+          },
+          "var": "x$1"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "nexusOperationScheduled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 137
+            },
+            "literal": {
+              "text": "nexusOperationScheduled"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "nexusOperationStarted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 138
+            },
+            "literal": {
+              "text": "nexusOperationStarted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "nexusOperationCompleted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 139
+            },
+            "literal": {
+              "text": "nexusOperationCompleted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "nexusOperationFailed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 140
+            },
+            "literal": {
+              "text": "nexusOperationFailed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "nexusOperationCanceled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 141
+            },
+            "literal": {
+              "text": "nexusOperationCanceled"
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "temporal.nexuscaller.kernel.ProtocolFact",
+              "case": "nexusOperationTimedOut",
+              "fields": [{
+                "wildcard": {
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 142
+            },
+            "literal": {
+              "text": "nexusOperationTimedOut"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                "case": "pendingAttempts"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/Model.scala",
+              "line": 143
+            },
+            "literal": {
+              "text": "pendingAttempts"
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.completeStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 81
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 82
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 82
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Product$.productTerminal",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 82
+              },
+              "var": "s"
+            }]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 82
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 82
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 82
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Outcome",
+                      "case": "notFound"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 82
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 82
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 82
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 83
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 83
+              },
+              "var": "resolution"
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Resolution",
+                    "case": "succeeded"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 84
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 84
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "succeeded"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 84
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationCompleted"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Resolution",
+                    "case": "failed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 85
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 85
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "failed"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 85
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationFailed"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Resolution",
+                    "case": "canceled"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 86
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 86
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "canceled"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 86
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationCanceled"
+                      }
+                    }
+                  }]
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 62
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }, {
+      "name": "reply",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Reply"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 63
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 63
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 63
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 63
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 63
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.ProductPhase",
+                  "case": "scheduled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 63
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 64
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 64
+              },
+              "var": "reply"
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "syncSuccess"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 65
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 65
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "succeeded"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 65
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationCompleted"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "async"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 66
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 66
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "started"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 66
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationStarted"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "operationFailed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 67
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 67
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "failed"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 67
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationFailed"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "operationCanceled"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 68
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 68
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductPhase",
+                        "case": "canceled"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 68
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.ProductFact",
+                        "case": "nexusOperationCanceled"
+                      }
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "case": {
+                  "type": "temporal.nexuscaller.kernel.Reply",
+                  "case": "handlerError",
+                  "fields": [{
+                    "bind": {
+                      "name": "retryable",
+                      "pattern": {
+                        "wildcard": {
+                        }
+                      }
+                    }
+                  }]
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 72
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 72
+                    },
+                    "var": "retryable"
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 72
+                    },
+                    "list": {
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 72
+                    },
+                    "call": {
+                      "function": "temporal.nexuscaller.kernel.Product$.productStep",
+                      "args": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 72
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProductPhase",
+                            "case": "failed"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 72
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProductFact",
+                            "case": "nexusOperationFailed"
+                          }
+                        }
+                      }]
+                    }
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.productStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 57
+    },
+    "params": [{
+      "name": "phase",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductPhase"
+      }
+    }, {
+      "name": "recorded",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 58
+      },
+      "list": {
+        "items": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 58
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 58
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 58
+              },
+              "construct": {
+                "type": "temporal.nexuscaller.kernel.ProductState",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 58
+                  },
+                  "var": "phase"
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 58
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 58
+                  },
+                  "var": "recorded"
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 58
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.productTerminal",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 75
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 76
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 76
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 76
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 76
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 76
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 76
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.ProductPhase",
+                          "case": "succeeded"
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 76
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 76
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 76
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 76
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.ProductPhase",
+                          "case": "failed"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 76
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 76
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 76
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.ProductPhase",
+                      "case": "canceled"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 77
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 77
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 77
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 77
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.ProductPhase",
+                  "case": "timedOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.timeoutStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 100
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 101
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 101
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 101
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 101
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 101
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 101
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.ProductPhase",
+                      "case": "scheduled"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 101
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 101
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 101
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 101
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.ProductPhase",
+                      "case": "started"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 102
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Product$.productStep",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 102
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.ProductPhase",
+                  "case": "timedOut"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 102
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.ProductFact",
+                  "case": "nexusOperationTimedOut"
+                }
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 103
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 90
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 90
+      },
+      "list": {
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Product$.workerStopStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 96
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 96
+      },
+      "list": {
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 219
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 220
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 220
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 220
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 220
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 220
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "backingOff"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 220
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 220
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 220
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 220
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 220
+              },
+              "list": {
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.completeStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 206
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 207
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 207
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 207
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 207
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            }]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 207
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 207
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 207
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Outcome",
+                      "case": "notFound"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 207
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 207
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 207
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 208
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 208
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 208
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 208
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 208
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Phase",
+                      "case": "unscheduled"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 208
+              },
+              "list": {
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 210
+              },
+              "let": {
+                "name": "startedFirst",
+                "value": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 211
+                  },
+                  "if": {
+                    "condition": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
+                      },
+                      "binary": {
+                        "op": "OP_NE",
+                        "left": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 211
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                "line": 211
+                              },
+                              "var": "s"
+                            },
+                            "field": "phase"
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 211
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.nexuscaller.kernel.Phase",
+                              "case": "started"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "then": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
+                      },
+                      "list": {
+                        "items": [{
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 211
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                              "case": "nexusOperationStarted"
+                            }
+                          }
+                        }]
+                      }
+                    },
+                    "else": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
+                      },
+                      "list": {
+                      }
+                    }
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 212
+                  },
+                  "match": {
+                    "scrutinee": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 212
+                      },
+                      "var": "resolution"
+                    },
+                    "cases": [{
+                      "pattern": {
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.Resolution",
+                            "case": "succeeded"
+                          }
+                        }
+                      },
+                      "body": {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 213
+                        },
+                        "call": {
+                          "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                          "args": [{
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 213
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 213
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.nexuscaller.kernel.Phase",
+                                "case": "succeeded"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 213
+                            },
+                            "binary": {
+                              "op": "OP_CONCAT",
+                              "left": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 213
+                                },
+                                "var": "startedFirst"
+                              },
+                              "right": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 213
+                                },
+                                "list": {
+                                  "items": [{
+                                    "position": {
+                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 213
+                                    },
+                                    "literal": {
+                                      "enum": {
+                                        "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                                        "case": "nexusOperationCompleted"
+                                      }
+                                    }
+                                  }]
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }, {
+                      "pattern": {
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.Resolution",
+                            "case": "failed"
+                          }
+                        }
+                      },
+                      "body": {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 214
+                        },
+                        "call": {
+                          "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                          "args": [{
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 214
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 214
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.nexuscaller.kernel.Phase",
+                                "case": "failed"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 214
+                            },
+                            "binary": {
+                              "op": "OP_CONCAT",
+                              "left": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 214
+                                },
+                                "var": "startedFirst"
+                              },
+                              "right": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 214
+                                },
+                                "list": {
+                                  "items": [{
+                                    "position": {
+                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 214
+                                    },
+                                    "literal": {
+                                      "enum": {
+                                        "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                                        "case": "nexusOperationFailed"
+                                      }
+                                    }
+                                  }]
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }, {
+                      "pattern": {
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.Resolution",
+                            "case": "canceled"
+                          }
+                        }
+                      },
+                      "body": {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 215
+                        },
+                        "call": {
+                          "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                          "args": [{
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 215
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 215
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.nexuscaller.kernel.Phase",
+                                "case": "canceled"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 215
+                            },
+                            "binary": {
+                              "op": "OP_CONCAT",
+                              "left": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 215
+                                },
+                                "var": "startedFirst"
+                              },
+                              "right": {
+                                "position": {
+                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 215
+                                },
+                                "list": {
+                                  "items": [{
+                                    "position": {
+                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 215
+                                    },
+                                    "literal": {
+                                      "enum": {
+                                        "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                                        "case": "nexusOperationCanceled"
+                                      }
+                                    }
+                                  }]
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 178
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }, {
+      "name": "reply",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Reply"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 180
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 180
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 180
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 180
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 180
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "scheduled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 180
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 181
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 181
+              },
+              "var": "reply"
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "syncSuccess"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 182
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 182
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 182
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.Phase",
+                        "case": "succeeded"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 182
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 182
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                            "case": "nexusOperationCompleted"
+                          }
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "async"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 183
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 183
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 183
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.Phase",
+                        "case": "started"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 183
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 183
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                            "case": "nexusOperationStarted"
+                          }
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "operationFailed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 184
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 184
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 184
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.Phase",
+                        "case": "failed"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 184
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 184
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                            "case": "nexusOperationFailed"
+                          }
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Reply",
+                    "case": "operationCanceled"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 185
+                },
+                "call": {
+                  "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                  "args": [{
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 185
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 185
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.kernel.Phase",
+                        "case": "canceled"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 185
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 185
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                            "case": "nexusOperationCanceled"
+                          }
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "case": {
+                  "type": "temporal.nexuscaller.kernel.Reply",
+                  "case": "handlerError",
+                  "fields": [{
+                    "bind": {
+                      "name": "retryable",
+                      "pattern": {
+                        "wildcard": {
+                        }
+                      }
+                    }
+                  }]
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 187
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 187
+                    },
+                    "unary": {
+                      "op": "OP_NOT",
+                      "operand": {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 187
+                        },
+                        "var": "retryable"
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 187
+                    },
+                    "call": {
+                      "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                      "args": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 187
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 187
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.Phase",
+                            "case": "failed"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 187
+                        },
+                        "list": {
+                          "items": [{
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 187
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                                "case": "nexusOperationFailed"
+                              }
+                            }
+                          }]
+                        }
+                      }]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 188
+                    },
+                    "call": {
+                      "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+                      "args": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 188
+                        },
+                        "copy": {
+                          "base": {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 188
+                            },
+                            "var": "s"
+                          },
+                          "updates": [{
+                            "name": "attempts",
+                            "value": {
+                              "position": {
+                                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                "line": 188
+                              },
+                              "call": {
+                                "function": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
+                                "args": [{
+                                  "position": {
+                                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                    "line": 188
+                                  },
+                                  "field": {
+                                    "base": {
+                                      "position": {
+                                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                        "line": 188
+                                      },
+                                      "var": "s"
+                                    },
+                                    "field": "attempts"
+                                  }
+                                }]
+                              }
+                            }
+                          }]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 188
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.kernel.Phase",
+                            "case": "backingOff"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 188
+                        },
+                        "list": {
+                          "items": [{
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 188
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                                "case": "pendingAttempts"
+                              }
+                            }
+                          }]
+                        }
+                      }]
+                    }
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    },
+    "requires": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 179
+      },
+      "call": {
+        "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 179
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 179
+              },
+              "var": "s"
+            },
+            "field": "attempts"
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.moves",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 164
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }, {
+      "name": "phase",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Phase"
+      }
+    }, {
+      "name": "recorded",
+      "type": {
+        "list": {
+          "named": "temporal.nexuscaller.kernel.ProtocolFact"
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 165
+      },
+      "list": {
+        "items": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 165
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 165
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 165
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 165
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 165
+                    },
+                    "var": "phase"
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 165
+              },
+              "var": "recorded"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 165
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.productOf",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 246
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 246
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 246
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 246
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "alternatives": {
+              "patterns": [{
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Phase",
+                    "case": "unscheduled"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Phase",
+                    "case": "scheduled"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.Phase",
+                    "case": "backingOff"
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 247
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 247
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "scheduled"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Phase",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 248
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 248
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "started"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Phase",
+                "case": "succeeded"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 249
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 249
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "succeeded"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Phase",
+                "case": "failed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 250
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 250
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "failed"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Phase",
+                "case": "canceled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 251
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 251
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "canceled"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Phase",
+                "case": "timedOut"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 252
+            },
+            "construct": {
+              "type": "temporal.nexuscaller.kernel.ProductState",
+              "args": [{
+                "position": {
+                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 252
+                },
+                "literal": {
+                  "enum": {
+                    "type": "temporal.nexuscaller.kernel.ProductPhase",
+                    "case": "timedOut"
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.running",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 162
+    },
+    "params": [{
+      "name": "p",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Phase"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 162
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 162
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 162
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 162
+                  },
+                  "var": "p"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 162
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Phase",
+                      "case": "scheduled"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 162
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 162
+                  },
+                  "var": "p"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 162
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Phase",
+                      "case": "backingOff"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 162
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 162
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 162
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "started"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 152
+    },
+    "params": [{
+      "name": "a",
+      "type": {
+        "int": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 154
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 154
+          },
+          "binary": {
+            "op": "OP_LT",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 154
+              },
+              "var": "a"
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 147
+              },
+              "literal": {
+                "int": "2"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 154
+          },
+          "binary": {
+            "op": "OP_ADD",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 154
+              },
+              "var": "a"
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 154
+              },
+              "literal": {
+                "int": "1"
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 154
+          },
+          "var": "a"
+        }
+      }
+    },
+    "requires": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 153
+      },
+      "call": {
+        "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 153
+          },
+          "var": "a"
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 170
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }, {
+      "name": "scheduleToClose",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }, {
+      "name": "scheduleToStart",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }, {
+      "name": "startToClose",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 171
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 171
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 171
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 171
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 171
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "unscheduled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 171
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 172
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 172
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 172
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 172
+                  },
+                  "construct": {
+                    "type": "temporal.nexuscaller.kernel.ProtocolState",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 172
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Phase",
+                          "case": "scheduled"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 172
+                      },
+                      "literal": {
+                        "int": "0"
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 172
+                      },
+                      "var": "scheduleToClose"
+                    }, {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 172
+                      },
+                      "var": "scheduleToStart"
+                    }, {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 172
+                      },
+                      "var": "startToClose"
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 173
+                  },
+                  "list": {
+                    "items": [{
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 173
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                          "case": "nexusOperationScheduled"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 172
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 224
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 225
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 225
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 225
+              },
+              "call": {
+                "function": "temporal.nexuscaller.kernel.Protocol$.running",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 225
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 225
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                }]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 225
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 225
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 225
+                      },
+                      "var": "s"
+                    },
+                    "field": "scheduleToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 225
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 226
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 226
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 226
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "timedOut"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 226
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 226
+                  },
+                  "construct": {
+                    "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                    "case": "nexusOperationTimedOut",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 226
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.TimeoutType",
+                          "case": "scheduleToClose"
+                        }
+                      }
+                    }]
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 227
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 231
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 232
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 232
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 232
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 232
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 232
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 232
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 232
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Phase",
+                          "case": "scheduled"
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 232
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 232
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 232
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 232
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Phase",
+                          "case": "backingOff"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 232
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 232
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 232
+                      },
+                      "var": "s"
+                    },
+                    "field": "scheduleToStart"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 232
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 233
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 233
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 233
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "timedOut"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 233
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 233
+                  },
+                  "construct": {
+                    "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                    "case": "nexusOperationTimedOut",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 233
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.TimeoutType",
+                          "case": "scheduleToStart"
+                        }
+                      }
+                    }]
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 234
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 237
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 238
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 238
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 238
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 238
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 238
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 238
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Phase",
+                      "case": "started"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 238
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 238
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 238
+                      },
+                      "var": "s"
+                    },
+                    "field": "startToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 238
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 239
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 239
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 239
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "timedOut"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 239
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 239
+                  },
+                  "construct": {
+                    "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                    "case": "nexusOperationTimedOut",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 239
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.TimeoutType",
+                          "case": "startToClose"
+                        }
+                      }
+                    }]
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 240
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 158
+    },
+    "params": [{
+      "name": "p",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Phase"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 159
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 159
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 159
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 159
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 159
+                      },
+                      "var": "p"
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 159
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Phase",
+                          "case": "succeeded"
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 159
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 159
+                      },
+                      "var": "p"
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 159
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Phase",
+                          "case": "failed"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 159
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 159
+                  },
+                  "var": "p"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 159
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.Phase",
+                      "case": "canceled"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 159
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 159
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 159
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "timedOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 192
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 194
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 194
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 194
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 194
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 194
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "scheduled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 194
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 195
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.moves",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 195
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 195
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "attempts",
+                  "value": {
+                    "position": {
+                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 195
+                    },
+                    "call": {
+                      "function": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
+                      "args": [{
+                        "position": {
+                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 195
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 195
+                            },
+                            "var": "s"
+                          },
+                          "field": "attempts"
+                        }
+                      }]
+                    }
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 195
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "backingOff"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 195
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 195
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.kernel.ProtocolFact",
+                      "case": "pendingAttempts"
+                    }
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    },
+    "requires": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 193
+      },
+      "call": {
+        "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 193
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 193
+              },
+              "var": "s"
+            },
+            "field": "attempts"
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 149
+    },
+    "params": [{
+      "name": "a",
+      "type": {
+        "int": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 149
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 149
+          },
+          "binary": {
+            "op": "OP_LE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 149
+              },
+              "literal": {
+                "int": "0"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 149
+              },
+              "var": "a"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 149
+          },
+          "binary": {
+            "op": "OP_LE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 149
+              },
+              "var": "a"
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 147
+              },
+              "literal": {
+                "int": "2"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 201
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProtocolState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 201
+      },
+      "list": {
+        "items": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 201
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 201
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 201
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 201
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 201
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "temporal.worker.Worker$package$.resumeStep",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 59
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 60
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 60
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 60
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 60
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 60
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Phase",
+                  "case": "stopped"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 60
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 60
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 60
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 60
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 60
+                  },
+                  "construct": {
+                    "type": "temporal.worker.State",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/worker/Worker.scala",
+                        "line": 60
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.worker.Phase",
+                          "case": "polling"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 60
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 60
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.worker.Worker$package$.serveStep",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 63
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 64
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 64
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 64
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 64
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 64
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Phase",
+                  "case": "polling"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 64
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 64
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 64
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 64
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 64
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 64
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 64
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.worker.Worker$package$.stopStep",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 55
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 56
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 56
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 56
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Phase",
+                  "case": "polling"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 56
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 56
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scala/temporal/worker/Worker.scala",
+                "line": 56
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 56
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 56
+                  },
+                  "construct": {
+                    "type": "temporal.worker.State",
+                    "args": [{
+                      "position": {
+                        "file": "model/scala/temporal/worker/Worker.scala",
+                        "line": 56
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.worker.Phase",
+                          "case": "stopped"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 56
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scala/temporal/worker/Worker.scala",
+                    "line": 56
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }],
+  "actions": [{
+    "id": "temporal.nexuscaller.Model$package$.backoff",
+    "name": "backoff",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 121
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.complete",
+    "name": "complete",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 76
+    },
+    "party": "handler",
+    "inputs": [{
+      "name": "resolution",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "on": "operation",
+    "results": "Delivery"
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.handlerReply",
+    "name": "handlerReply",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 69
+    },
+    "party": "handler",
+    "inputs": [{
+      "name": "reply",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Reply"
+      }
+    }],
+    "on": "operation",
+    "schemas": ["temporal.api.nexus.v1.StartOperationResponse", "temporal.api.nexus.v1.HandlerError"],
+    "examples": [{
+      "value": {
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Reply",
+          "case": "handlerError",
+          "fields": [{
+            "bool": false
+          }]
+        }
+      },
+      "example": "BadRequest"
+    }, {
+      "value": {
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Reply",
+          "case": "handlerError",
+          "fields": [{
+            "bool": true
+          }]
+        }
+      },
+      "example": "Internal"
+    }]
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.schedule",
+    "name": "schedule",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 64
+    },
+    "party": "caller",
+    "inputs": [{
+      "name": "scheduleToClose",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }, {
+      "name": "scheduleToStart",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }, {
+      "name": "startToClose",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Timeout"
+      }
+    }],
+    "creates": "operation",
+    "schemas": ["temporal.api.command.v1.ScheduleNexusOperationCommandAttributes"]
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.scheduleToClose",
+    "name": "scheduleToClose",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 122
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.scheduleToStart",
+    "name": "scheduleToStart",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 123
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.startToClose",
+    "name": "startToClose",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 124
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.timeout",
+    "name": "timeout",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 95
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.transportFault",
+    "name": "transportFault",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 78
+    },
+    "party": "network",
+    "on": "operation"
+  }, {
+    "id": "temporal.worker.Worker$package$.serve",
+    "name": "serve",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 50
+    },
+    "party": "worker",
+    "on": "worker"
+  }, {
+    "id": "temporal.worker.Worker$package$.workerResume",
+    "name": "workerResume",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 49
+    },
+    "party": "worker"
+  }, {
+    "id": "temporal.worker.Worker$package$.workerStop",
+    "name": "workerStop",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 48
+    },
+    "party": "worker"
+  }],
+  "machines": [{
+    "family": "temporal.nexus.caller",
+    "name": "handlerWorker",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 165
+    },
+    "entity": "worker",
+    "stateType": "temporal.worker.State",
+    "outcomeType": "temporal.worker.Outcome",
+    "starts": [{
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 69
+      },
+      "construct": {
+        "type": "temporal.worker.State",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 69
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.worker.Phase",
+              "case": "polling"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 70
+      },
+      "lambda": {
+        "params": [{
+          "name": "_$1",
+          "type": {
+            "named": "temporal.worker.State"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 70
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "temporal.worker.Worker$package$.workerStop",
+      "function": "temporal.worker.Worker$package$.stopStep",
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 71
+      }
+    }, {
+      "action": "temporal.worker.Worker$package$.serve",
+      "function": "temporal.worker.Worker$package$.serveStep",
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 71
+      }
+    }]
+  }, {
+    "family": "temporal.nexus.caller",
+    "name": "nexusProduct",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 98
+    },
+    "entity": "operation",
+    "stateType": "temporal.nexuscaller.kernel.ProductState",
+    "outcomeType": "temporal.nexuscaller.kernel.Outcome",
+    "factType": "temporal.nexuscaller.kernel.ProductFact",
+    "starts": [{
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 100
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.kernel.ProductState",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 100
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.kernel.ProductPhase",
+              "case": "scheduled"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 101
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.ProductState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 101
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Product$.productTerminal",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/Model.scala",
+                "line": 101
+              },
+              "var": "s"
+            }]
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "temporal.nexuscaller.Model$package$.handlerReply",
+      "function": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 111
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "temporal.nexuscaller.kernel.Product$.completeStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 112
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.transportFault",
+      "function": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 113
+      }
+    }, {
+      "action": "temporal.worker.Worker$package$.workerStop",
+      "function": "temporal.nexuscaller.kernel.Product$.workerStopStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 114
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.timeout",
+      "function": "temporal.nexuscaller.kernel.Product$.timeoutStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 115
+      }
+    }],
+    "evidence": "nexusProduct.evidence"
+  }, {
+    "family": "temporal.nexus.caller",
+    "name": "nexusProtocol",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 130
+    },
+    "entity": "operation",
+    "stateType": "temporal.nexuscaller.kernel.ProtocolState",
+    "outcomeType": "temporal.nexuscaller.kernel.Outcome",
+    "factType": "temporal.nexuscaller.kernel.ProtocolFact",
+    "starts": [{
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.kernel.ProtocolState",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.kernel.Phase",
+              "case": "unscheduled"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 127
+          },
+          "literal": {
+            "int": "0"
+          }
+        }, {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.kernel.Timeout",
+              "case": "unset"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.kernel.Timeout",
+              "case": "unset"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.kernel.Timeout",
+              "case": "unset"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 134
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.ProtocolState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scala/temporal/nexuscaller/Model.scala",
+            "line": 134
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
+            "args": [{
+              "position": {
+                "file": "model/scala/temporal/nexuscaller/Model.scala",
+                "line": 134
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scala/temporal/nexuscaller/Model.scala",
+                    "line": 134
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            }]
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "temporal.nexuscaller.Model$package$.schedule",
+      "function": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 146
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.handlerReply",
+      "function": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 147
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "temporal.nexuscaller.kernel.Protocol$.completeStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 148
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.transportFault",
+      "function": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 149
+      }
+    }, {
+      "action": "temporal.worker.Worker$package$.workerStop",
+      "function": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 150
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.backoff",
+      "function": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 151
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
+      "function": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 152
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.scheduleToStart",
+      "function": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 153
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.startToClose",
+      "function": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
+      "position": {
+        "file": "model/scala/temporal/nexuscaller/Model.scala",
+        "line": 154
+      }
+    }],
+    "evidence": "nexusProtocol.evidence",
+    "unobservable": ["temporal.nexuscaller.Model$package$.backoff"],
+    "refines": {
+      "product": "nexusProduct",
+      "map": "temporal.nexuscaller.kernel.Protocol$.productOf"
+    }
+  }, {
+    "family": "temporal.worker",
+    "name": "polling",
+    "position": {
+      "file": "model/scala/temporal/worker/Worker.scala",
+      "line": 67
+    },
+    "entity": "worker",
+    "stateType": "temporal.worker.State",
+    "outcomeType": "temporal.worker.Outcome",
+    "starts": [{
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 69
+      },
+      "construct": {
+        "type": "temporal.worker.State",
+        "args": [{
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 69
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.worker.Phase",
+              "case": "polling"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 70
+      },
+      "lambda": {
+        "params": [{
+          "name": "_$1",
+          "type": {
+            "named": "temporal.worker.State"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scala/temporal/worker/Worker.scala",
+            "line": 70
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "temporal.worker.Worker$package$.workerStop",
+      "function": "temporal.worker.Worker$package$.stopStep",
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 71
+      }
+    }, {
+      "action": "temporal.worker.Worker$package$.workerResume",
+      "function": "temporal.worker.Worker$package$.resumeStep",
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 71
+      }
+    }, {
+      "action": "temporal.worker.Worker$package$.serve",
+      "function": "temporal.worker.Worker$package$.serveStep",
+      "position": {
+        "file": "model/scala/temporal/worker/Worker.scala",
+        "line": 71
+      }
+    }]
+  }]
+}

@@ -51,7 +51,7 @@ the Go plan's T11).
 
 ## 3. Toolchain and layout
 
-- Scala 3.7 LTS-track through `scala-cli` 1.17 (installed by mise), JDK 21, munit for tests.
+- Scala 3.7 LTS-track through `scala-cli` 1.17 and the JDK pinned in `mise.toml` (temurin-27), munit for tests.
 - protobuf-java 4.x and protobuf-java-util for `JsonFormat`; `protoc` from mise generates the Java
   classes for the Testpilot proto closure into a gitignored jar.
 - Stainless 0.10.2, the `stainless-dotty-standalone` release, downloaded to

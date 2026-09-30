@@ -1,0 +1,25 @@
+// A Model the lifter must refuse: its step function loops over a mutable variable, which the IR has no
+// form for. run.sh lifts it and expects the refusal at the loop's line.
+package temporal.fixture
+
+import umpire.*
+
+enum Phase derives Finite:
+  case idle, done
+
+final case class State(phase: Phase) derives Finite
+
+enum Outcome derives Finite:
+  case accepted
+
+val go = action("go", Party("fixture"))
+
+def goStep(s: State): List[Step[State, Outcome, Nothing]] =
+  var out = List.empty[Step[State, Outcome, Nothing]]
+  while out.isEmpty do out = List(Step(Outcome.accepted, State(Phase.done)))
+  out
+
+val unsupported: Machine[State, Outcome, Nothing] = machine[State, Outcome, Nothing](Family("temporal.fixture"), "unsupported") {
+  starts(State(Phase.idle))
+  steps(go ~> goStep)
+}

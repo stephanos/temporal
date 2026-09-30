@@ -22,8 +22,8 @@ mkdir -p "$scratch/java"
 protoc --descriptor_set_in="$scratch/set.binpb" --java_out="$scratch/java" $files
 
 mkdir -p "$gen"
-mise exec scala-cli -- scala-cli --power package --library "$scratch/java" \
-  --dep com.google.protobuf:protobuf-java:4.29.5 --jvm 21 -f -o "$gen/testpilot-proto.jar" >/dev/null
+mise exec -- scala-cli --power package --library "$scratch/java" \
+  --dep com.google.protobuf:protobuf-java:4.29.5 --jvm 27 -f -o "$gen/testpilot-proto.jar" >/dev/null
 # The stamp lets run.sh regenerate only when a proto or the descriptor set changed.
 cat "$root"/proto/internal/temporal/server/api/testpilot/v1/*.proto "$root/proto/api.binpb" \
   | shasum -a 256 | cut -d' ' -f1 > "$gen/testpilot-proto.stamp"
