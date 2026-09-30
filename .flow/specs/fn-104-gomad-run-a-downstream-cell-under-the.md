@@ -216,6 +216,33 @@ linux/amd64 packs (D9), and the seam guide (D10) moved to
 `fn-105-gomad-follow-ups-deferred-scope`. The spec no longer depends on F7: nothing here needs the
 CI gate. C5 below stays as analysis context; its guide is not a deliverable.
 
+## Measurement (2026-09-30)
+<!-- scope: technical -->
+
+Run from the downstream checkout against the `gomad` branch on darwin/arm64, with the server
+replaced by this checkout, in linked mode, the tags `test_dep`, `integration`, and `gomad`, and no
+downstream source change. The raw reports name downstream packages and are not retained here.
+
+| Step | Live blockers | Change |
+| --- | --- | --- |
+| Baseline (2026-09-29) | 78 | 11 `remain_unsupported`, 34 `model_operation`, 33 `add_exact_pack` |
+| Address-library adapter and standalone `x/sys` pack | 67 | the address library's `os/exec` and 10 `x/sys` facts admitted |
+| Downstream-owned external pack (23 facts, 17 packages) | 44 | every `add_exact_pack` fact admitted from a directory outside this repository |
+
+The 44 that remain are all downstream-owned: 10 `remain_unsupported` (five of the downstream's own
+subprocess and signal sites; five cloud credential chains reached through its CLI package and blob
+store provider) and 34 `model_operation`, each with the disposition and injection point recorded
+under C4. `gomad qualify --repeat 2 --capability-mode=linked` on the in-process cluster smoke test
+classifies seeds 11 and 17 as `unsupported_target` at the first live boundary, a credential chain's
+`os/exec` import: a capability blocker. Qualification is the next step once the downstream cuts its
+seams (C5) and injects the filesystem and membership transport (C4); nothing on the Gomad side
+remains for that.
+
+The external pack went through `discover`, `review`, `generate --approve-review`, and `check`
+against `--compatibility-root`, which exercised the whole external flow. One Gomad-side note from
+the run: an artifact root under macOS's `/tmp` symlink is refused as not a directory; `/private/tmp`
+works, as the store requires non-symlinked roots.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 

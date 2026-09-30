@@ -209,6 +209,21 @@ child record continues to become the canonical `none` World record. This keeps
 the descriptor refactor compatible rather than silently disconnecting an
 existing World-aware target.
 
+### Targets outside this repository
+
+A target may live in any module, including one that depends on the server
+through a local `replace`. `--working-dir` names its module root; build
+adapters are selected from the go.mod of the module that owns the target, and
+the build environment is the same forced one (no workspaces, no vendoring).
+Packs for that module's own dependencies stay in its tree: an external pack
+root is authored with `--compatibility-root` and loaded with
+`GOMAD3_COMPATIBILITY_PACKS` under the same validation as embedded packs, and
+each selected pack's identity binds the target, so replay without it fails
+closed. Adapters stay embedded and exact, one version per module. What a
+downstream module must still supply itself are source seams for its own
+subprocess, signal, and host-filesystem calls and in-process substitutes for
+services that run outside the process; Gomad does not model them.
+
 ## Records, artifacts, and replay
 
 Record defines the outer versioned envelope and canonical identities. It treats
