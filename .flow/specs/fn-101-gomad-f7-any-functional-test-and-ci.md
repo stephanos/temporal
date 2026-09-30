@@ -12,7 +12,10 @@ and linux/amd64, and the Temporal qualification becomes a required CI check.
 
 The manifest is generated from `go test -list` output so a new test lands with a default
 expectation of `qualified`. The set is split with `gomad plan` / `execute-shard` / `gomad merge`
-to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to replace DTrace.
+to fit a 90-minute CI budget. Linux host-clock escapes are pinned statically instead of traced:
+on linux/amd64 the runtime reads the clock through the vDSO, which seccomp and ptrace cannot
+observe, and the interception is platform-neutral Go that the darwin DTrace audit already
+exercises, so what differs per platform is who reaches the host clock without passing through it.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -39,7 +42,13 @@ to fit a 90-minute CI budget. Linux still needs a host-clock escape audit to rep
   qualifies a small, named selection of functional tests (drawn from the representative set)
   on both platforms and fits well inside 90 minutes. The full `./tests` set stays an on-demand
   local gate (`make gomad3-tests-qualification`).
-- **R5:** A Linux host-clock escape audit replaces DTrace for linux/amd64.
+- **R5:** A static host-clock inventory in the toolchain tier pins every standard-library reference
+  to `nanotime1`, `walltime`, `time_now`, and the vDSO clock symbols on each qualified platform,
+  each classified (implementation, guarded, host-by-design, escape with a finding, unrelated), and
+  asserts that `nanotime` and `time_runtimeNow` return on `gomadEnabled` before the host call. Any
+  new, removed, or recounted reference fails `make test-toolchain` on either host. The darwin DTrace
+  audit stays. A dynamic Linux audit (seccomp with the vDSO disabled in the fixture) is recorded as
+  a follow-up if a Linux-only escape is ever observed.
 - **R6:** A newly added test in `./tests` appears in the generated manifest (and so has a disposition) without a manual edit; the staleness check fails otherwise.
 
 ## Boundaries
