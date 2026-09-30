@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -42,12 +43,18 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared.Adapters = recordAdapters(adapters)
-	wantPack := "modernc-libc-xsys-v047"
+	// On darwin the standalone x/sys pack also activates, because the closure
+	// reaches x/sys; the libc pack still admits the SQLite facts.
+	wantPacks := []string{"golang-x-sys-v047-darwin-arm64", "modernc-libc-xsys-v047"}
 	if runtime.GOOS == "linux" {
-		wantPack += "-" + runtime.GOOS + "-" + runtime.GOARCH
+		wantPacks = []string{"modernc-libc-xsys-v047-" + runtime.GOOS + "-" + runtime.GOARCH}
 	}
-	if len(prepared.Compatibility) != 1 || prepared.Compatibility[0].ID != wantPack {
-		t.Fatalf("compatibility packs = %#v, want %s", prepared.Compatibility, wantPack)
+	gotPacks := make([]string, 0, len(prepared.Compatibility))
+	for _, pack := range prepared.Compatibility {
+		gotPacks = append(gotPacks, pack.ID)
+	}
+	if !slices.Equal(gotPacks, wantPacks) {
+		t.Fatalf("compatibility packs = %#v, want %v", prepared.Compatibility, wantPacks)
 	}
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
