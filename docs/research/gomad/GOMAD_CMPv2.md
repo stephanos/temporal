@@ -272,7 +272,7 @@ declared outcomes of a small fixture in sixteen executions. That is a neutral
 result, not justification for general DPOR. Compare multiple representative
 bugs and record both executions and CPU/wall cost, including preparation,
 replay, reduction, and artifact storage.
-[Search evidence](../../../.plans/GOMAD3_NEXT_BUG_FINDING.md#search-evidence)
+[Search evidence](../../../.plans/GOMAD_NEXT.md#search-evidence)
 
 ### Gosim: test the simulator against the system it replaces
 

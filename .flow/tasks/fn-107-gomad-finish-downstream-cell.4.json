@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T19:13:10.905753Z",
+  "depends_on": [
+    "fn-107-gomad-finish-downstream-cell.3"
+  ],
+  "id": "fn-107-gomad-finish-downstream-cell.4",
+  "priority": null,
+  "spec": "fn-107-gomad-finish-downstream-cell",
+  "spec_path": ".flow/tasks/fn-107-gomad-finish-downstream-cell.4.md",
+  "status": "todo",
+  "title": "Run a real Walker-backed workflow through the dedicated downstream smoke harness",
+  "updated_at": "2026-09-30T19:13:10.905753Z"
+}

@@ -1,14 +1,14 @@
 {
-  "branch_name": "fn-105-gomad-follow-ups-deferred-scope",
-  "created_at": "2026-09-30T03:01:17.853013Z",
+  "branch_name": "fn-107-gomad-finish-downstream-cell",
+  "created_at": "2026-09-30T18:56:59.069356Z",
   "depends_on_epics": [],
-  "id": "fn-105-gomad-follow-ups-deferred-scope",
+  "id": "fn-107-gomad-finish-downstream-cell",
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-105-gomad-follow-ups-deferred-scope.md",
+  "spec_path": ".flow/specs/fn-107-gomad-finish-downstream-cell.md",
   "status": "open",
-  "title": "Gomad follow-ups: deferred scope",
+  "title": "Gomad: finish downstream cell integration and qualification",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T19:18:27.468460Z"
+  "updated_at": "2026-09-30T19:22:04.138780Z"
 }

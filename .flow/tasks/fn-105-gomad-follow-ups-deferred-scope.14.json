@@ -9,6 +9,6 @@
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.14.md",
   "status": "todo",
-  "title": "D14: darwin chasm replay residual",
-  "updated_at": "2026-09-30T17:53:46.278774Z"
+  "title": "D14: fix Darwin Chasm replay divergence and restore qualification",
+  "updated_at": "2026-09-30T19:07:04.213687Z"
 }

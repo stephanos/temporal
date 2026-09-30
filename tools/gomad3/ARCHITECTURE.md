@@ -1,9 +1,11 @@
 # Gomad v3 architecture
 
 This document records the design decisions that are not obvious from the code.
-The [README](README.md) is authoritative for supported commands and current
-behavior. Public types, wire schemas, defaults, and limits are authoritative in
-the implementation and its tests.
+The [SPEC](SPEC.md) owns product requirements and the
+[canonical vocabulary](SPEC.md#productvocabulary-ubiquitous-language).
+The [README](README.md) describes supported commands and current behavior.
+Public types, wire schemas, defaults, and limits are authoritative in the
+implementation and its tests.
 
 ## System boundary
 
@@ -12,10 +14,18 @@ architecture, deterministic inputs, and seed are unchanged. It does not claim
 schedule stability across source or toolchain changes, exhaustive exploration,
 or deterministic execution of arbitrary host I/O.
 
-The system has four ownership boundaries:
+The complete Runner and deterministic-I/O contract is qualified on
+`darwin/arm64` and `linux/amd64`; artifacts replay only on their recorded
+platform. Qualification applies to declared workloads, rather than proving
+arbitrary Go programs deterministic. The
+[milestones](../../.plans/GOMAD_MILESTONES.md#open-findings) record remaining
+functional-suite replay divergences and known host-clock escapes, including
+`MemStats.LastGC`. Garbage-collector timing is not fully controlled.
+
+The system separates these ownership boundaries:
 
 ```text
-Runner ---- prepares and supervises one target process per seed
+Runner ---- prepares a Target and supervises each isolated Execution
   |
   +---- Guide ---- bounded semantic corpus and seed selection
   |
@@ -51,7 +61,7 @@ The mode is for trusted tests. The process boundary and fail-closed shims reduce
 accidental host dependence; they are not an operating-system sandbox against a
 target deliberately issuing raw syscalls.
 
-## In-process cluster simulation
+## Cluster simulation
 
 `tools/gomad3sim` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
@@ -85,9 +95,12 @@ occurrence counting, target selection, application bounds, and fail-before-
 mutation replay. Typed scenarios and semantic oracles consume those modules
 through the Cluster seam without taking ownership of their state machines.
 
-### Incarnation and backend fidelity
+### Incarnation, backend, and fidelity
 
-A cluster selects one backend for its lifetime. Node IDs are stable and
+A cluster selects one backend and declares its fidelity for its lifetime.
+Backend specifies the execution mechanism; Fidelity specifies the guarantee
+being claimed. The in-process backend supports Model Fidelity; the process
+backend supports Model Fidelity or Hard Isolation. Node IDs are stable and
 incarnations increase monotonically. Restart retains configured addresses, boot
 identity, and declared durable volumes while revoking old handles, mappings,
 connections, and model access. Stale work fails before consuming fault/replay
@@ -162,12 +175,17 @@ preemption and the system monitor, initializes the seeded runtime choice state,
 and starts the process clock at midnight UTC on 2000-01-01. Disabled execution
 retains the upstream runtime paths.
 
-The supported CI host also runs a privileged DTrace escape audit. A marker in
+Darwin CI also runs a privileged DTrace escape audit. A marker in
 an unsigned probe binary activates observation only after runtime startup; an
 unseeded positive control must reach both `clock_gettime` and
 `mach_absolute_time`, while the seeded execution must reach neither. Missing
 privileges, missing probes, or an unobserved marker fail the gate rather than
 silently skipping it.
+
+Both qualified platforms also pin standard-library host-clock references to a
+reviewed static inventory. On Linux the vDSO clock path is not observable by a
+syscall tracer, so static inventory is the current escape gate. The inventory
+classifies known escapes; it does not claim they have all been removed.
 
 ### Why process faketime
 
@@ -187,6 +205,16 @@ The rejected alternatives have materially larger or weaker boundaries:
 
 Explicit `testing/synctest` bubbles keep their private clocks and take precedence
 over the process clock.
+
+The default `strict` clock-tick policy leaves `time.Now` unchanged while work is
+runnable. The optional `forward` policy adds a cumulative 1–1024 nanosecond
+increment at each `time.Now` read, using a separate seed-derived stream. Only
+`time.Now` observes that offset; the native timer clock, scheduler clock reads,
+and simulation time retain the idle-driven clock. Application calculations
+that derive deadlines or durations from `time.Now` can still observe the
+offset. The recorded environment binds the policy into Campaign, Artifact,
+and portable-plan identity, and replay restores it. Separating the offset
+keeps timestamp ticking out of native timer-clock advancement.
 
 ### Quiescence and native timers
 
@@ -211,13 +239,42 @@ the earliest native and World events at the existing quiescence point, advance
 one logical instant, and make every event at that instant eligible without
 moving external payload or adapter policy into the runtime.
 
+### Choice traces, decision tapes, and exploration
+
+When choice recording is enabled, the runtime records a bounded Choice Trace
+containing logical decisions and observations. Exact runtime replay projects a
+complete v2 trace into a Decision Tape containing only branching decisions;
+observations and single-alternative decisions remain trace evidence. The tape
+binds the Prepared Target, toolchain build key, platform, and choice
+implementation. Stable logical alternative
+identities and canonical alternative sets avoid treating physical run-queue
+order as replay identity. Replay validates a decision before applying it,
+requires complete tape consumption, and still compares the final Record.
+
+Choice Exploration uses forced prefixes from one base Seed. Its pure controller
+orders candidates by prefix length and identity in bounded breadth-first
+rounds. Runner executes candidates in fresh processes and commits completed
+results in candidate order; host completion order cannot alter the frontier.
+Each completed round is an immutable, hash-linked transaction. Resume archives
+an interrupted round and reruns it in full, keeping recovery attempts separate
+from completed logical work. Outcome deduplication affects retained evidence
+without pruning distinct prefixes.
+
+Combined Exploration keeps runtime, scenario, network, storage, fault, and
+crash decisions in separate dimensions with explicit global and per-dimension
+bounds. A detached model digest cannot establish native-state
+equivalence or justify pruning an unexplored runtime prefix. Bound exhaustion
+reports the incomplete search envelope; completion is a claim only about the
+declared envelope.
+
 ## Runner and process containment
 
-Runner prepares one immutable target and launches every seed in a fresh process
-and working directory. Building once makes target identity independent of seed;
-fresh processes prevent globals, goroutines, descriptors, allocator state, and
-runtime randomness from leaking between seeds. Parallelism is across processes,
-not through multiple Ps inside one target.
+Runner prepares a Target once and launches each Execution of that Prepared
+Target in a fresh process and working directory. Building once makes target
+identity independent of seed; fresh processes prevent globals, goroutines,
+descriptors, allocator state, and runtime randomness from leaking between
+seeds. Parallelism is across processes, not through multiple Ps inside one
+target.
 
 The Go build driver runs outside deterministic mode. `go-run` and `go-test`
 produce a target first. `exec` requires canonical v3 provenance containing the
@@ -287,7 +344,8 @@ services that run outside the process; Gomad does not model them.
 
 ## Records, artifacts, and replay
 
-Record defines the outer versioned envelope and canonical identities. It treats
+Record (`record.ExecutionRecord` in the implementation) defines the outer
+versioned envelope and canonical identities. It treats
 World snapshots, transitions, adapter data, and I/O transcripts as validated
 payloads owned by their respective modules rather than reimplementing their
 semantics. `record.go` owns the public hashing and manifest finalization entry
@@ -385,10 +443,11 @@ rewards smaller reproductions. Code-edge coverage remains a separate,
 lower-priority input for a future independent producer rather than changing the
 versioned semantic-probe contract.
 
-The first guidance stage deliberately reuses realized seeds and captured
-transcripts. World scenario, fault, and input generation is gated on evidence
-that seed guidance improves exploration, and forced runtime choices require a
-minimized failure that retained seeds and transcripts cannot reproduce.
+Guidance reuses realized seeds and captured transcripts; it does not synthesize
+World scenarios, faults, or inputs and never forces runtime choices. Choice
+Exploration and Combined Exploration have separate bounded controllers
+and journals rather than extending the corpus selector. This keeps corpus
+admission and seed ranking independent from forced-decision frontier ownership.
 
 ## World
 
@@ -598,16 +657,18 @@ scripts are owned by `internal/gomadtool/conformance/scripts`: `exec.sh` and
 `compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
 Darwin DTrace invocation. A Go-owned content check rejects new script owners,
 Bash outside the explicit platform adapter, and Perl policy. Platform-neutral
-host-tool tests run on Linux, while runtime qualification remains exclusively
-the complete `darwin/arm64` gate.
+host-tool tests and the complete runtime qualification gate run on both
+`darwin/arm64` and `linux/amd64`. The macOS sandbox test and privileged DTrace
+audit remain Darwin-specific.
 
 ## Maintenance gates
 
-`version.json` is the canonical release descriptor. It owns the Go archive and
-digest, supported platforms, patch name, boundary-manifest version, adapter
-versions, and exact patch/overlay source sets. Generation produces its Make,
-Go, and human-guide consumers; validation requires the allowlists to equal
-the actual patch and overlay tree rather than merely containing them.
+`toolchain/version/version.json` is the canonical release descriptor. It owns
+the Go archive and digest, supported platforms, patch name, boundary-manifest
+version, adapter versions, and exact patch/overlay source sets. Generation
+produces its Make, Go, and human-guide consumers; validation requires the
+allowlists to equal the actual patch and overlay tree rather than merely
+containing them.
 
 The runtime patch and transparent I/O overlays are pinned implementation costs.
 Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the
@@ -615,15 +676,16 @@ complete upstream patch, semantic boundary diff, interception evidence,
 archive-based overlay collision audit, disabled-mode upstream compatibility,
 mandatory probes, optional retained-corpus evidence, and platform qualification
 in one JSON dossier. The supported-host gate must also rerun the
-positive-controlled host-clock trace because dynamic imports and probe names are
-platform implementation details. The dossier is published on failure and
-uploaded by CI, so a rejected upgrade retains its first failing gate and bounded
-output. Boundary comparison canonicalizes complete manifest metadata, intercepts,
-and hook policies so a field unknown to an older comparator cannot disappear
+platform's host-clock inventory and, on Darwin, the positive-controlled clock
+trace because dynamic imports and probe names are platform implementation
+details. The dossier is published on failure and uploaded by CI, so a rejected
+upgrade retains its first failing gate and bounded output. Boundary comparison
+canonicalizes complete manifest metadata, intercepts, and hook policies so a
+field unknown to an older comparator cannot disappear
 from upgrade evidence.
 
 Broader runtime or compiler changes require a minimized real workload showing
-that Runner, World, adapters, and records cannot satisfy the contract. Runtime
-choice tracing, deterministic GC control, compiler checkpoints, and multi-P
-execution remain separate research projects rather than incremental extensions
-of the current design.
+that Runner, World, adapters, and records cannot satisfy the contract.
+Deterministic GC control, compiler checkpoints, multi-P execution, DPOR, and
+preemption bounding remain separate research projects rather than guarantees
+of bounded choice tracing and exploration.

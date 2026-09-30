@@ -23,7 +23,9 @@ This specification covers implemented behavior, not roadmap proposals. It specif
 
 ## [PRODUCT.VOCABULARY] Ubiquitous Language
 
-The capitalized terms below are the canonical product language. They describe product concepts rather than commands, packages, or stored formats. Use the specific term instead of the ambiguous **run**, **result**, or **batch**.
+The capitalized terms below are the canonical product language. They describe product concepts rather than commands, packages, or stored formats. Use the specific term instead of the ambiguous **run**, **result**, or **batch**. Alternative names are identified explicitly where existing documentation or interfaces use them.
+
+The Runner reviews and prepares a Target once for a Campaign, then launches isolated Executions with selected Seeds and control decisions. Each Execution uses the Gomad Toolchain and Deterministic I/O Contract, and may also use World or Simulation. Validated observations form a Record; retained evidence is published as an Artifact. Replay checks retained behavior, a Corpus can guide later Campaigns, and Qualification measures support for a specific toolchain and platform.
 
 ### [PRODUCT.VOCABULARY.EXECUTION] Execution and Exploration
 
@@ -31,7 +33,7 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Prepared Target**: The immutable executable and bound execution inputs produced by reviewing and preparing a Target for a Campaign.
 
-**Runner**: The product boundary that starts, controls, observes, and terminates each isolated Execution of a Prepared Target.
+**Runner**: The host orchestrator that prepares Targets, starts, controls, observes, and terminates isolated Executions, enforces wall-time limits, and publishes Evidence.
 
 **Execution**: One isolated attempt to execute a Prepared Target with fixed inputs and control decisions. An Execution is not a Campaign.
 
@@ -39,13 +41,19 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Choice**: One Gomad-controlled selection among logically eligible runtime alternatives, such as runnable goroutines or ready selection cases.
 
-**Decision Tape**: The ordered logical Choices retained from an Execution and used to force and validate exact runtime replay.
+**Choice Trace**: The bounded, validated runtime records observed during an Execution when choice recording is enabled. It includes logical Choices and observations such as selection outcomes; it is not itself a replay control plan.
+
+**Decision Tape**: The ordered branching logical Choices derived from a complete Choice Trace, bound to execution identities, and used to force and validate exact runtime replay. Each decision identifies the eligible alternatives and the selected alternative.
+
+**Choice Replay Plan**: Identity-bound runtime replay controls. Exact replay uses a complete Decision Tape; exploration may force a finite prefix and then continue selecting Choices from the Seed.
 
 **Campaign**: One bounded exploration effort over a Prepared Target, comprising selected Executions, a failure policy, limits, and retained evidence.
 
-**Choice Exploration**: The bounded set of runtime Choice prefixes that remain to be explored from one base Seed.
+**Choice Exploration**: Bounded exploration of alternative runtime Choice prefixes from one base Seed.
 
-**Combined ChoiceExploration**: The bounded set of alternatives across runtime Choices and modeled simulation dimensions that remain to be explored from one base Seed.
+**Combined Exploration**: Bounded exploration of alternatives across runtime Choices and modeled scenario, network, storage, fault, and crash-state dimensions from one base Seed.
+
+**Frontier**: The remaining candidate work in a Choice Exploration or Combined Exploration. Equal observed Outcomes do not make distinct forced prefixes interchangeable.
 
 **Corpus**: A private bounded collection of replay-verified, semantically novel Artifacts that may guide later Campaigns.
 
@@ -55,7 +63,7 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Outcome**: The semantic classification of an Execution, distinct from command status and infrastructure health.
 
-**Record**: The canonical semantic description of one completed Execution and its Outcome, identities, limits, and retained evidence.
+**Record** (also called **Execution Record**): The canonical, versioned semantic description of one completed Execution and its Outcome, identities, inputs, limits, and retained Evidence.
 
 **Artifact**: An immutable, validated, content-addressed package containing a Record and the inputs required to inspect or replay it.
 
@@ -73,7 +81,7 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Replay**: Validation of an Artifact followed, unless verification-only, by re-execution of its retained Prepared Target and comparison with its Record.
 
-**Exact Replay**: Replay that forces every retained runtime and modeled-environment decision and validates that all recorded decisions are consumed.
+**Exact Replay**: Replay that forces the retained branching runtime Choices and applicable modeled-environment decisions, validates complete consumption of the replay controls, and compares the recorded Outcome and terminal evidence. An Artifact replays on its recorded platform and, when applicable, its recorded Backend.
 
 **Replay Divergence**: The first point at which replayed behavior, identity, or decision consumption differs from the retained evidence. It is not a Target failure.
 
@@ -81,17 +89,31 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Interaction Boundary**: The explicit reviewed contract through which a Target accesses supported host capabilities and modeled external input.
 
+**Deterministic I/O Contract**: The versioned identity, supported operations, Adapters, limits, and Transcript rules for transparent deterministic input/output through the Interaction Boundary.
+
 **Adapter**: A versioned deterministic replacement that brings a specific dependency's external operations inside the Interaction Boundary.
 
-**World**: The deterministic in-memory event model for application-declared external requests, readiness, cancellation, logical time, and delivery. World owns neither host input/output nor application state.
+**Captured Read-Only Input**: Host file or directory entries imported on demand through declared read-only mounts, retained in an Artifact, and reused by Replay without reopening the original host path.
+
+**World** (also called **World Model**): The deterministic in-memory event model for application-declared external requests, readiness, cancellation, logical time, delivery, snapshots, and replay. World owns neither host input/output nor application state.
 
 **Simulation**: A bounded execution model for application-declared nodes, networks, durable storage, scenarios, faults, observations, and correctness checks.
 
-**Backend**: The selected Simulation execution fidelity, such as in-process modeling or process-backed isolation.
+**Cluster**: The application-facing Simulation contract for Node lifecycle, topology, faults, Observations, histories, Oracle evidence, and bounded crash-state enumeration.
 
-**Node**: A named simulated participant with a stable identity and restartable lifecycle.
+**Backend** (also called **Simulation Backend**): The selected Simulation execution mechanism: in-process execution of logical Node incarnations or process execution with separate Node processes.
 
-**Incarnation**: One monotonically identified lifetime of a Node between boot and crash or termination.
+**Fidelity**: The guarantee claimed by a Simulation independently from the selected Backend.
+
+**Model Fidelity** (also called **Simulation Model Fidelity**): A claim that detached modeled transitions and Outcomes satisfy the Simulation contract. It does not claim fresh arbitrary package globals or hard cleanup of crashed work.
+
+**Hard Isolation** (also called **Hard Isolation Fidelity**): A process-Backend guarantee that each Node Incarnation has fresh runtime and package state and can be terminated and reaped at process level.
+
+**Node**: A named simulated participant with a stable identity, configured address, Boot Identity, volume attachments, and restartable lifecycle.
+
+**Incarnation**: One monotonically identified lifetime of a Node between boot and crash or termination. Restart retains the Node identity and creates a new Incarnation so stale handles and model access can be rejected.
+
+**Boot Identity**: A stable identifier registered to an application boot function. Simulation inputs bind the identifier rather than a process-local function pointer.
 
 **Scenario**: A bounded composition of application and environment actions to be realized during a Simulation.
 
@@ -112,6 +134,8 @@ The capitalized terms below are the canonical product language. They describe pr
 **Recovery**: Repair a recognized interrupted publication state without executing unfinished Target work. Recovery is not Resume.
 
 ### [PRODUCT.VOCABULARY.SUPPORT] Support and Maintenance
+
+**Gomad Toolchain**: The pinned Go toolchain whose deterministic runtime changes and source overlays make supported runtime Choices, time, and host input/output repeatable.
 
 **Capability Review**: A non-executing assessment of whether a Target's reachable external requirements fit a selected platform and compatibility policy.
 
@@ -149,7 +173,7 @@ The capitalized terms below are the canonical product language. They describe pr
 
 ### [PLATFORM.SUPPORT] Supported Platform
 
-The complete Runner and deterministic-interaction contract must be available only on explicitly qualified platform bundles; the current qualified bundle is `darwin/arm64`. An unsupported host must be rejected before Gomad claims deterministic execution or begins a platform-specific toolchain build.
+The complete Runner and deterministic-interaction contract must be available only on explicitly qualified platform bundles; the current qualified bundles are `darwin/arm64` and `linux/amd64`. An unsupported host must be rejected before Gomad claims deterministic execution or begins a platform-specific toolchain build.
 
 ### [PLATFORM.TOOLCHAIN] Pinned Toolchain
 
@@ -173,7 +197,7 @@ Gomad must accept Go package execution, Go package tests, and prepared executabl
 
 ### [TARGET.PREPARATION] Preparation
 
-Gomad must resolve, review, build, and validate a Target before its Campaign begins. A Campaign must execute one immutable prepared Target rather than rebuilding independently for each Execution.
+Gomad must resolve, review, build, and validate a Target before its Campaign begins. A Campaign must execute one immutable Prepared Target rather than rebuilding independently for each Execution.
 
 ### [TARGET.CAPABILITY] Capability Review
 
@@ -201,7 +225,7 @@ Enabled Targets must observe a process virtual clock with a fixed versioned epoc
 
 ### [RUNTIME.CHOICES] Choice Evidence
 
-Gomad must optionally record bounded logical scheduling and selection choices. Exact replay must force the recorded logical alternatives, validate each decision, consume the complete decision tape, and reject a tape whose Target or controller identity differs.
+Gomad must optionally retain a bounded Choice Trace of logical scheduling and selection records. Exact runtime replay must derive a Decision Tape from complete trace evidence, force the recorded branching alternatives, validate each decision before applying it, consume the complete tape, and reject a tape whose Prepared Target, toolchain, platform, or controller identity differs.
 
 ### [RUNTIME.ISOLATION] Execution Isolation
 
@@ -265,9 +289,9 @@ World must support bounded canonical snapshots, validated restoration, semantic 
 
 Gomad must provide a bounded application-facing harness for named nodes, stable node identities, monotonically increasing incarnations, registered boot functions, topology, scenarios, observations, and oracles.
 
-### [SIMULATION.BACKENDS] Backend Fidelity
+### [SIMULATION.BACKENDS] Backend and Fidelity
 
-The simulation contract must distinguish in-process model fidelity from process-backed hard isolation. The process backend must add fresh package initialization, hard crash and reap behavior, and host-owned shared models without attributing those guarantees to the in-process backend.
+The Simulation contract must distinguish the selected Backend from its Fidelity claim. Both Backends must support Model Fidelity; only the process Backend may claim Hard Isolation. The process Backend must add fresh package initialization, hard crash and reap behavior, and host-owned shared models without attributing those guarantees to the in-process Backend.
 
 ### [SIMULATION.NETWORK] Network Model
 
@@ -293,7 +317,7 @@ Scenario, fault, network, storage, runtime-choice, and crash-state decisions mus
 
 ### [CAMPAIGN.SELECTION] Selection
 
-A Campaign must select a finite ordered set of seeds or one bounded exploration exploration before or during execution. Seed ranges and counts must have stable ordinals, and resuming a Campaign must not reselect already planned work.
+A Campaign must select a finite ordered set of Seeds or bounded work from a Choice Exploration or Combined Exploration before or during execution. Seed ranges and counts must have stable ordinals, and resuming a Campaign must not reselect already planned work.
 
 ### [CAMPAIGN.EXECUTION] Execution
 
@@ -317,11 +341,11 @@ Gomad may guide seed selection from a private bounded corpus of replay-verified,
 
 ### [CAMPAIGN.CHOICE.FRONTIER] Choice Exploration
 
-Choice-exploration exploration must expand observed alternative runtime choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when outcomes deduplicate to the same evidence.
+Choice Exploration must expand observed alternative runtime Choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when Outcomes deduplicate to the same Evidence.
 
-### [CAMPAIGN.COMBINED.FRONTIER] Combined ChoiceExploration
+### [CAMPAIGN.COMBINED.FRONTIER] Combined Exploration
 
-Combined-exploration exploration must coordinate bounded alternatives across runtime, scenario, network, storage, fault, and crash-state dimensions from one base seed. It must preserve deterministic candidate order, separate logical from recovery executions, and retain enough evidence to resume or minimize a failure.
+Combined Exploration must coordinate bounded alternatives across runtime, scenario, network, storage, fault, and crash-state dimensions from one base Seed. It must preserve deterministic Frontier order, separate logical from recovery Executions, and retain enough Evidence to resume or minimize a failure.
 
 ## [EVIDENCE] Records, Artifacts, and Replay
 
@@ -339,7 +363,7 @@ Inspection must validate a plan, Campaign, merged Campaign, or Artifact before r
 
 ### [EVIDENCE.REPLAY] Replay
 
-Replay must validate every identity and required payload before starting the stored Target. It must execute the retained binary rather than rebuild from current source, compare the new semantic outcome with the Record, and distinguish exact reproduction from divergence. Verification-only replay must perform validation without executing the Target.
+Replay must validate every identity and required payload before starting the retained Prepared Target. It must execute the retained binary on its recorded platform and, when applicable, Backend rather than rebuild from current source, compare the new semantic Outcome with the Record, and distinguish exact reproduction from divergence. Verification-only replay must perform validation without executing the Target.
 
 ### [EVIDENCE.MINIMIZATION] Failure Minimization
 

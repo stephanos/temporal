@@ -9,6 +9,6 @@
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md",
   "status": "todo",
-  "title": "D12: identify the linux replay-divergence channel",
-  "updated_at": "2026-09-30T16:48:11.062571Z"
+  "title": "D12: fix Linux replay divergence and restore strict CI qualification",
+  "updated_at": "2026-09-30T19:02:05.375184Z"
 }
