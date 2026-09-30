@@ -178,7 +178,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-102-gomad-architecture-consolidate.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad architecture: consolidate execution policy and bootstrap ownership",
   "tracker": {
     "baseHashFlow": null,
@@ -191,5 +191,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T23:53:21.430032Z"
+  "updated_at": "2026-09-30T05:36:31.819306Z"
 }

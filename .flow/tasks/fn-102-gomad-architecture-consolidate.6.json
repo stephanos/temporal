@@ -14,7 +14,7 @@
   "priority": null,
   "spec": "fn-102-gomad-architecture-consolidate",
   "spec_path": ".flow/tasks/fn-102-gomad-architecture-consolidate.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile architecture documentation and qualify the integrated refactor",
   "updated_at": "2026-09-27T23:52:48.456429Z"
 }
