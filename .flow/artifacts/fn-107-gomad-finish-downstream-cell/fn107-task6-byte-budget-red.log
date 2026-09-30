@@ -1,0 +1,25 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r . -r TestWALPendingReadBudget -t 3m…
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
+[testrunner] 2026/09/30 14:23:34 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-a1a7e693-c92c-4f85-a532-1d86f588eb37-junit.xml -- -tags test_dep -race -cover -run TestWALPendingReadBudget -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/stream/memory
+✖  cds/stream/memory (1.069s) (coverage: 55.4% of statements)
+
+=== Failed
+=== FAIL: cds/stream/memory TestWALPendingReadBudget (0.00s)
+    review_test.go:70: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cds/stream/memory/review_test.go:70
+        	Error:      	Not equal: 
+        	            	expected: 0x8
+        	            	actual  : 0x0
+        	Test:       	TestWALPendingReadBudget
+
+DONE 1 tests, 1 failure in 1.069s
+[testrunner] 2026/09/30 14:23:52 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:23:52 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:23:52 exiting with failure after running 1 attempt(s)
+exit status 1
+2026/09/30 14:23:52 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep -race -cover -run TestWALPendingReadBudget -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./cds/stream/memory]
+2026/09/30 14:23:52 test failed: test failed: exit status 1
+exit status 1
+[test] ERROR task failed

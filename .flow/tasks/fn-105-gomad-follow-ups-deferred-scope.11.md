@@ -1,13 +1,16 @@
 ---
-satisfies: [R1, R2]
+satisfies: [R11]
 ---
 # fn-105-gomad-follow-ups-deferred-scope.11 D11: dynamic linux/amd64 host-clock audit
 
 ## Description
-Origin: fn-101.3 (F7 R5, before its 2026-09-29 amendment). Deferred: the static inventory pins every host-clock reference on both platforms and darwin DTrace exercises the platform-neutral interception. Revive if a linux-only clock escape is ever observed. Design: the fixture zeroes the runtime vDSO clock symbols, a seccomp filter kills the process on clock_gettime/gettimeofday/time after the activation marker; unseeded positive control must die, seeded run must pass.
+Origin: fn-101.3 (F7 R5, before its 2026-09-29 amendment). Decision on 2026-09-30: depend on D21's host-clock investigation and keep implementation deferred until its findings establish audit need and feasible scope. Static inventories already cover both platforms, and Darwin DTrace exercises interception. The proposed fixture disables its runtime vDSO clock symbols and uses seccomp to detect clock_gettime/gettimeofday/time after activation. D21 must establish how this bounded check accounts for intentionally retained host-clock paths and the current patch restrictions before implementation.
 
 ## Acceptance
-Revival trigger recorded; the audit runs in core-linux with a positive control.
+- D21 completes first and records the recommendation, exposure evidence, feasible audit scope, and next action in fn-105. Retain the formal dependency on fn-105 D21.
+- If the findings require the audit, retain a bounded fixture, activation boundary, an unseeded positive control that fails for the expected forbidden clock read, and a seeded run that passes in core-linux. Retain commands, platform/toolchain identity, and CI evidence.
+- Account for known host-by-design paths without widening generic syscall access or overriding collector/assembly patch policy. A policy change needs its own recorded decision.
+- D21 completion does not claim an implemented audit. Keep a required audit open until verified; if it remains deferred, record why and what evidence would revive it.
 
 ## Done summary
 TBD

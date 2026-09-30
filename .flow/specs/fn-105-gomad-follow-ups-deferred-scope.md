@@ -1,12 +1,15 @@
-# Gomad deferred follow-ups
+# Gomad remaining work and decisions
 
 [fn-105](fn-105-gomad-follow-ups-deferred-scope.md) owns the tasks and
-acceptance criteria. Required fixes stay open until their acceptance criteria are
-met. Deferred items record why they are deferred and what would revive them;
+acceptance criteria for all 25 remaining items. Required fixes stay open until
+their acceptance criteria are met. Deferred items record why they are deferred
+and what would revive them;
 a trigger must be recorded before their implementation. Deferred items may remain
 open or close as won't-do.
 
-## Required work
+## Acceptance Criteria
+
+### Required work
 
 - **R7:** Add required macOS functional smoke CI
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.7.md)). Decision on
@@ -99,7 +102,7 @@ open or close as won't-do.
   unrelated findings remain intact. This is an explicitly approved production
   behavior correction; a Gomad-only workaround cannot close it.
 
-## Approved investigations
+### Approved investigations
 
 Decision on 2026-09-30: the user approves all remaining investigations, including
 the worker-command investigation and R19-R21 below. These tasks must establish
@@ -161,16 +164,25 @@ receipt does not claim the underlying issue is fixed.
   from runtime control flow and test suspected links to D12/D14. Assess remedies
   within the current collector/assembly patch prohibitions; record any option
   that needs a separate policy decision. Propose an owned fix or explicit
-  limitation for a subsequent decision. D11 remains the separate deferred Linux
-  audit; classification alone does not resolve D12/D14.
+  limitation for a subsequent decision. D21 is the prerequisite for D11 and must
+  record whether its evidence requires a dynamic Linux audit and the audit's
+  feasible scope. Classification alone does not resolve D12/D14.
 
-## Decisions still needed
+### Conditional Linux clock audit
 
-| Issue | Work to decide |
-| --- | --- |
-| Optional capabilities | Decide whether D11 dynamic Linux clock auditing should be activated or remain deferred; D6 clock policies and D15 larger traces are explicitly deferred, and D7 macOS smoke CI is required |
+- **R11:** Make the dynamic linux/amd64 clock audit conditional on D21
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.11.md)). Decision on
+  2026-09-30: D11 depends on completion of D21's host-clock investigation.
+  Keep implementation deferred until those findings establish the need and
+  feasible scope of this audit. D21 must record the recommendation, evidence,
+  and next action. If needed, implement a bounded fixture that disables its vDSO
+  clock path and detects forbidden host-clock syscalls after activation, with an
+  unseeded positive control and a passing seeded run in Linux CI. Account for
+  intentionally retained host-clock paths and existing patch restrictions.
+  Completion of D21 alone does not claim the audit is implemented; any required
+  audit stays open until verified, while a continued deferral retains its reason.
 
-## Deferred clock policies
+### Deferred clock policies
 
 - **R6:** Keep the `seeded` and `fixed=<d>` virtual-clock policies deferred
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.6.md)). Decision on
@@ -182,7 +194,7 @@ receipt does not claim the underlying issue is fixed.
   execution-identity and COMPAT-5 evidence required by fn-103. Preserve the existing
   `strict` and `forward` behavior. This decision requires no clock implementation.
 
-## Deferred trace-capacity extension
+### Deferred trace-capacity extension
 
 - **R15:** Larger choice traces, split from the original D13 capacity proposal
   on 2026-09-30, remain deferred
@@ -195,15 +207,57 @@ receipt does not claim the underlying issue is fixed.
   replay; measure trace/storage cost and test limits, interruption, and malformed
   input. Finishing the opt-in policy does not claim this extension is implemented.
 
+### Work coordinated with other specs
+
+- **R1:** Complete shared execution assessment through D1
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.1.md)) under
+  [fn-108](fn-108-gomad-reduce-code-size-without-removing.md) R6. Preserve
+  equivalent captured-evidence projections, classifications, canonical inputs,
+  and failure precedence across seed, choice, and simulation strategies.
+- **R2:** Complete shared retention policy and artifact-input composition through
+  D2 ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.2.md)) under fn-108 R7.
+  Preserve separate strategy transactions, bounded retention, failure visibility,
+  recovery, and replay evidence.
+- **R3:** Complete private execution injection through D3
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.3.md)) under
+  [fn-109](fn-109-gomad-deepen-modules-and-tool-interfaces.md) R5. Migrate
+  repository consumers, preserve usable public preparation/replay seams, and
+  verify private failure-injection coverage and external compilation.
+- **R4:** Complete architecture fitness checks through D4
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.4.md)) under fn-109 R8.
+  Discover both qualified platform source sets and retain negative fixtures for
+  ownership, host effects, and public-signature visibility.
+- **R5:** Complete architecture/platform/determinism documentation reconciliation
+  through D5 ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.5.md)) under
+  fn-109 R9. Document implemented capabilities, current residual findings, and
+  intentional interface changes with bounded support and replay claims.
+- **R8:** Complete downstream closure-mode support through D8
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.8.md)) as reused by
+  [fn-107](fn-107-gomad-finish-downstream-cell.md) R7/R9. Retain supported final-target
+  closure analysis on both platforms, with exact reachable adapters and identity
+  drift rejection or fresh evidence that the dependency was eliminated.
+- **R9:** Complete downstream dual-platform packs and qualification through D9
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.9.md)) as reused by
+  fn-107 R8/R10. Retain reproducible identities, supported closure/linked analysis,
+  seeds 11 and 17 repeated twice on each qualified host, and exact retained replay.
+- **R10:** Complete the reusable downstream-seam guide through D10
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.10.md)) as reused by
+  fn-107 R12. Keep generic guidance independent of consumer names and concrete
+  consumer commands consistent with retained successful dual-platform evidence.
+
+Reuse or transfer each coordinated obligation exactly once during task breakdown.
+The named specs supply their full delivery and qualification criteria. Registration,
+cross-references, and this decision record do not claim implementation.
+
 ## Architecture consolidation
 
 | Item | Scope and origin | Revival trigger |
 | --- | --- | --- |
-| D1 | Shared completed-execution assessment across seed, choice, and simulation (`fn-102` R2) | A second consumer or strategy hits the duplication |
-| D2 | Shared retention and artifact-input composition, with separate strategy transactions (`fn-102` R3) | A second consumer or strategy hits the duplication |
-| D3 | Private executor injection instead of public `Executor`/`ReplayExecutor` (`fn-102` R4); a Go API change | A second consumer or strategy needs the seam |
-| D4 | Architecture fitness checks for ownership, host effects, and public signatures, with negative fixtures (`fn-102` R5) | A second consumer or strategy exposes the boundary problem |
-| D5 | Architecture/platform/determinism documentation reconciliation (`fn-102` R6) | A second consumer or strategy requires the evidence |
+| D1 | Shared completed-execution assessment across seed, choice, and simulation (`fn-102` R2) | Revived 2026-09-30; fn-108 R6 coordinates delivery under R1 |
+| D2 | Shared retention and artifact-input composition, with separate strategy transactions (`fn-102` R3) | Revived 2026-09-30; fn-108 R7 coordinates delivery under R2 |
+| D3 | Private executor injection instead of public `Executor`/`ReplayExecutor` (`fn-102` R4); a Go API change | Revived 2026-09-30; fn-109 R5 coordinates delivery under R3 |
+| D4 | Architecture fitness checks for ownership, host effects, and public signatures, with negative fixtures (`fn-102` R5) | Revived 2026-09-30; fn-109 R8 coordinates delivery under R4 |
+| D5 | Architecture/platform/determinism documentation reconciliation (`fn-102` R6) | Revived 2026-09-30; fn-109 R9 coordinates delivery under R5 |
 
 These were deferred as maintenance without a waiting consumer or behavior change.
 The [architecture assessment](../artifacts/fn-102-gomad-architecture-consolidate/architecture-assessment.md)
@@ -232,13 +286,13 @@ implementation and qualification requirements; task breakdown must reuse or
 transfer the existing obligations. This records requested scope without
 claiming completion or changing task status.
 
-| Item | Scope and origin | Why deferred | Revival trigger |
+| Item | Scope and origin | Decision | Prerequisite or revival trigger |
 | --- | --- | --- | --- |
 | D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | Explicitly deferred 2026-09-30 under R6; `forward` addresses known ties and the extra policies are exploration features | A specific bug class needs deliberate ties or constant quanta |
-| D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Linked mode removes the import | A downstream module needs closure-mode preparation or manifests |
-| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | The downstream measurement is darwin/arm64 | A downstream gate must run in Linux CI |
-| D10 | Downstream seam guide (`fn-104` R4) | Analyzer findings already name the sites | A second downstream module adopts Gomad |
-| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Static inventories cover both platforms; darwin DTrace exercises interception | A linux-only host-clock escape is observed |
+| D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Revived by fn-107 R7/R9 under R8 | Final downstream target and closure evidence as specified by fn-107 |
+| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | Revived by fn-107 R8/R10 under R9 | D8 and the final downstream target; qualify both actual hosts |
+| D10 | Downstream seam guide (`fn-104` R4) | Revived by fn-107 R12 under R10 | D9's retained qualification and pack evidence |
+| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Conditional on D21, decided 2026-09-30 under R11 | Complete D21 and retain findings establishing audit need and feasible scope |
 | D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
 
 The constraints in [GOMAD_MILESTONES.md](../../.plans/GOMAD_MILESTONES.md#constraints) apply throughout.

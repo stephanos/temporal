@@ -1,0 +1,8 @@
+Adding "walker"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
+[testrunner] 2026/09/30 14:42:40 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-0710fd1f-b0d0-46da-9a2d-2db5b56f8d8c-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/export/cds
+✓  cds/export/cds (3.646s) (coverage: 3.5% of statements)
+
+DONE 3 tests in 3.646s
+[testrunner] 2026/09/30 14:42:58 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:42:58 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml

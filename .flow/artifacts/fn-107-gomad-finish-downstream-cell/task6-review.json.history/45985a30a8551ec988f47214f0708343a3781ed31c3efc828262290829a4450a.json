@@ -1,0 +1,104 @@
+{
+  "base": "HEAD",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-e0be-7a71-b556-25bf3830a0bc",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-e023-7ac0-a33f-9be80cac8f27",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-e046-7331-aa2c-bb20b93ea109",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "path": "cds/stream/memory/rpc.go",
+          "side": "head",
+          "startLine": 89
+        },
+        "body": "Failed sends leave the RPC live:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f1c11f695e599364942d0219d8a6e65b16a0f4d20dc863fb39d6330d9dad42d2",
+        "id": "finding-a6a0ce6e0497033a83f12930b8f9fcc6",
+        "lastSeenReceiptId": "review-f1c11f695e599364942d0219d8a6e65b16a0f4d20dc863fb39d6330d9dad42d2",
+        "ordinal": 1,
+        "rIds": [
+          "R1",
+          "R11"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Record terminal failures, wake receivers, return the failure through `Recv`, and release the handle. Test this through `GRPCStreamProvider`, including writer closure after a rejected write.",
+        "title": "Failed sends leave the RPC live:"
+      },
+      {
+        "anchor": {
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "path": "cds/stream/memory/read.go",
+          "side": "head",
+          "startLine": 33
+        },
+        "body": "Queued read payloads bypass byte accounting. Read RPCs supply a size function returning zero, then clone payloads into queued responses at line 65. With `MaxBytes=10`, endpoint `\"one\"`, stream `\"s\"/\"1\"`, and a five-byte record, stored data already consumes all ten bytes; reading still succeeds and retains another five bytes internally. Multiple pending readers multiply this excess. Write response request IDs likewise use a separate per-handle budget without contributing to `dialer.bytes`.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-f1c11f695e599364942d0219d8a6e65b16a0f4d20dc863fb39d6330d9dad42d2",
+        "id": "finding-eabb70e56fe6fd9df1a9a1271366c837",
+        "lastSeenReceiptId": "review-f1c11f695e599364942d0219d8a6e65b16a0f4d20dc863fb39d6330d9dad42d2",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R11"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Account for retained response data in a shared byte budget, reserving capacity before cloning or changing fencing/write state. Release reservations on receive, cancellation, and close. Add combined storage-and-queue capacity tests.",
+        "title": "Queued read payloads bypass byte accounting"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-f1c11f695e599364942d0219d8a6e65b16a0f4d20dc863fb39d6330d9dad42d2"
+  },
+  "focus": "Review fn107 task6 ONLY. User owns commits, so HEAD..HEAD is intentionally empty. Inspect actual UNTRACKED source files in cds/storage/memory and cds/stream/memory: all eight files listed with hashes in /private/tmp/fn107-task6-source-identities.json. Read task acceptance /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tasks/fn-107-gomad-finish-downstream-cell.6.md and existing storage/stream interfaces and GRPCStreamProvider for context. Stateful bounded auxiliary stores must preserve CAS/version/cloning/context, watermark history ordering/boundaries, stream fences/records/paging/delete/reopen/close/cancellation/resource limits and typed errors. Assess native semantics and caller compatibility. This is actual working-tree implementation review, not committed-range review. Native test_dep and native Gomad-tag tests both passed14; lint0, logs /private/tmp/fn107-task6-integrated-native.log and /private/tmp/fn107-task6-integrated-gomad-tag.log. Ignore other task1/task2 pending diffs and unrelated source. Read-only review.",
+  "id": "branch",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Failed sends leave the RPC live:\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Failed sends leave the RPC live:\n- **Suggestion**: Record terminal failures, wake receivers, return the failure through `Recv`, and release the handle. Test this through `GRPCStreamProvider`, including writer closure after a rejected write.\n- **File:Line**: cds/stream/memory/rpc.go:89\n- **R-IDs**: R1, R11\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Queued read payloads bypass byte accounting\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Queued read payloads bypass byte accounting. Read RPCs supply a size function returning zero, then clone payloads into queued responses at line 65. With `MaxBytes=10`, endpoint `\"one\"`, stream `\"s\"/\"1\"`, and a five-byte record, stored data already consumes all ten bytes; reading still succeeds and retains another five bytes internally. Multiple pending readers multiply this excess. Write response request IDs likewise use a separate per-handle budget without contributing to `dialer.bytes`.\n- **Suggestion**: Account for retained response data in a shared byte budget, reserving capacity before cloning or changing fencing/write state. Release reservations on receive, cancellation, and close. Add combined storage-and-queue capacity tests.\n- **File:Line**: cds/stream/memory/read.go:33\n- **R-IDs**: R1, R11\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R1\", \"R11\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "reviewed_head_sha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+  "rid": "4b61c62ae22a03e3fbcecafe8be99b44",
+  "session_id": "01a0f42c-e0be-7a71-b556-25bf3830a0bc",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-09-30T21:21:27.943386Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R1",
+    "R11"
+  ],
+  "verdict": "NEEDS_WORK"
+}

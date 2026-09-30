@@ -1,0 +1,11 @@
+{
+  "commits": [],
+  "tests": [
+    "GOFLAGS=-p=2 mise run test -t3m --tags test_dep,hashicorpmetrics ./walker/localcluster ./walker/testutil ./walker/bimmer/server ./walker/bimmer/operations ./walker/replication ./walker/storage ./walker/serviceinstance",
+    "GOFLAGS=-p=2 mise run test -t3m --tags test_dep,gomad,hashicorpmetrics --run TestInProcess\\|TestCluster_InjectedProfile\\|TestTCPTransport\\|TestGomad\\|TestIUBuffer_InjectedFilesystem\\|TestVolumeRegistry_InjectedInventory\\|TestCheckpointDirSize_InjectedFilesystem\\|TestReplicaRestorer_InjectedStagingCleanup\\|TestServiceInstance_ ./walker/localcluster ./walker/testutil ./walker/replication ./walker/storage ./walker/bimmer/operations ./walker/serviceinstance",
+    "Five focused real-service regressions: fn107-task2-review-focused-green.log",
+    "Native and Gomad focused lint: five retained logs report 0 issues",
+    "Independent fan-out/finalize and resumed primary review: task2-review.json SHIP; 59 source hashes verified after review"
+  ],
+  "prs": []
+}

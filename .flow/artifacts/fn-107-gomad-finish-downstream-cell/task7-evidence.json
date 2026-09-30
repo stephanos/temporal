@@ -1,0 +1,19 @@
+{
+  "commits": [],
+  "tests": [
+    "GOFLAGS=-p=2 mise run test --run 'TestInjectedWalkerFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./walker/wevents",
+    "GOFLAGS=-p=2 mise run test --run 'TestInjectedWalkerFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./walker/wevents",
+    "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m ./cds/export/cds ./cloudmetricshandler/events",
+    "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,gomad ./cds/export/cds ./cloudmetricshandler/events",
+    "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m ./wevents",
+    "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,gomad ./wevents",
+    "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace$' ./cds/export/cds",
+    "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryHEWALGenerationBoundary$' ./cds/export/cds",
+    "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$' ./cds/export/cds",
+    "GOFLAGS=-p=2 mise run test --run '^TestGomadReplicationEventsPreserveNestedWatermarks$' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./walker/wevents",
+    "Initial integrated native compatibility/WAL: 69 tests; Gomad-tag native: 28 tests",
+    "Combined Walker profile: 44 Gomad-tag native tests",
+    "Independent fan-out/finalize then resumed primary: task7-review.json SHIP; all 69 source hashes verified"
+  ],
+  "prs": []
+}

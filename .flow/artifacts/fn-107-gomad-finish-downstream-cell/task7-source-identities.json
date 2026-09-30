@@ -1,0 +1,363 @@
+{
+  "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal",
+  "base": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+  "previous_inventory": "/private/tmp/fn107-task7-inventory.json",
+  "changed_this_revision": [
+    "cds/export/cds/injected_factory.go",
+    "cds/export/cds/injected_factory_test.go",
+    "cloudmetricshandler/events/producer_gomad.go",
+    "walker/wevents/replica.go",
+    "walker/wevents/replication.go",
+    "walker/wevents/roperation.go",
+    "walker/wevents/shardspace.go",
+    "walker/wevents/replication_test.go",
+    "walker/wevents/replication_gomad_test.go"
+  ],
+  "files": [
+    {
+      "path": "blobstore/config.go",
+      "sha256": "461d7b0c21a36d9604cfd67ce4d2e7573677e5ae8d413a1de6e7eeb04cf15e9c",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/config_gomad_test.go",
+      "sha256": "c83f200ef0ac637c8a582036511515f531a36d8ead60f1a9c7896f56c67d4350",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/config_s3_gomad.go",
+      "sha256": "4dd736b4956a97f4e6f0b6dad463121b434dd4f33939939d7d45b8b8a2f5b016",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/config_s3_native.go",
+      "sha256": "5d1cd4eb71ef490ad44eba19785d2d1a00b740e6dec6290e855b3c0d66f3ad10",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/config_test.go",
+      "sha256": "51b2361f5c94dda283ab7042f94825319eb7bfbfa94002b6f351f4c057bf0c37",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/provider_s3.go",
+      "sha256": "3f1d56a6a11d09527e02c93ddcb5efbdae38d7e91dbb06c82f9bee2e77e7cd33",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/provider_s3_test.go",
+      "sha256": "af96d261194bc7651a99256d001db4bd40413b7fe27552e7936c71e79b81c753",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/provider_test.go",
+      "sha256": "28b902f9ae5db5ddf8398019667a2c3a237a9dd8134ab13a143fc9ef3f86885f",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/testutil/s3_gomad.go",
+      "sha256": "7b5ca648036b4b1d6bab3cc281406a97b92dd200cb6df55d1e8b056a2d78c122",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/testutil/s3_native.go",
+      "sha256": "440b550ee6cf8d177c81f5b09d37049d02e389129d5ab42fc99ece9d702f94f0",
+      "mode": "0o644"
+    },
+    {
+      "path": "blobstore/testutil/testutil.go",
+      "sha256": "3016a563fa3cbbd3ca19496c2d0daade9036db4e9698f7f88bc6a817d352e1d1",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/config/metering_config.go",
+      "sha256": "08586b305e82df2c5c5ff6bd992d2bcbd401292899cd74231a52a9c093df9ecd",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/config/metering_provider_gomad.go",
+      "sha256": "cb2d878f8b928645fd626e3ce56a1681f9e1ac731b86314547bccd747e470642",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/config/metering_provider_native.go",
+      "sha256": "39715fd4bad0593e13dfaec93a0d82edb8709cdaeaa2e3fe1244ad6abb641b21",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/execution_metering_gomad.go",
+      "sha256": "90fd5352e1c84fe6cf93cdb7f012674fd7be38836c897760ac60c3b4e79721ab",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/execution_metering_native.go",
+      "sha256": "d715f8eefbfdf5edd6488634ae2156e20605a272445f222871d683c1dfff5832",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/execution_store.go",
+      "sha256": "24f14227add0b8ca2f5a7b5ef097297243d4e7330d837066afa604b8b6f99948",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/factory.go",
+      "sha256": "43120ae1a2c8d5360093a8a36dbe7424f3ec6a1261304938c41c89088c2e7934",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/factory_history.go",
+      "sha256": "915530c5a69be698078734f2f428a6e55ff94fe8b546902ad314ac7bcd6d96a6",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/factory_shared.go",
+      "sha256": "3b814efe9192574d481746ff059c658e46d7bee896a7a370b2fe7e3f90c9431a",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/fx.go",
+      "sha256": "c09e80532718db15d2a9fe87d8a9853ee93570fd1fc840c3ca6b7faf7dd6a560",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/history_range_query.go",
+      "sha256": "186b79e2d6a884ae162b167013787222a233bd533b1597d27f7f19b673a0ac2f",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/history_store_test.go",
+      "sha256": "5952b3e006d2e625789e9691e9b29f974c233a5c407433e40eb5793aed4bdfb8",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/injected_branch_store.go",
+      "sha256": "f6a2ad2422bbafd278d619f12a8e6d66f23dc359b79ebae7d3b5e8e420b460b8",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/injected_factory.go",
+      "sha256": "fc8947ef3e65f922a2168287d50933e3d5404fd2faa5d4a3310d63985f26e3ba",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/injected_factory_test.go",
+      "sha256": "05bd98e6029e4be6942023df6b18c959f24210c2045306a1c9127bb7c09d2858",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/server.go",
+      "sha256": "c3a42d32b349c0151d5b4eb3f97d3e58128c5a56f936ee32833f963f7f979760",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/server_gomad.go",
+      "sha256": "48512357549692d2bcf2a5040ab3ae464ba2f01afe39748d1a1ebf6da1e2f293",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/export/cds/worker_chasm_registration_test.go",
+      "sha256": "913fee370675998ff010b2855bcded26dee61247f0203c659fb97f7465955ef6",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/persistence/pending_branch_delete.go",
+      "sha256": "d8a6e245638b93bab6d5592067994e6d773f46c1d077ca47e4c2f0023847a49a",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/persistence/pending_branch_delete_test.go",
+      "sha256": "9355d59fc0430159036f250221a8e64707785a6bc95d588b69bee49ff66c2ec1",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/persistence/pendingbranch/pending_branch_delete.go",
+      "sha256": "bf96caf3e44133883703695a893f05e6b7b2f2ce1bd29d4a85772d744ee4f736",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/shard/wedge_wals.go",
+      "sha256": "9ea32b0ad5d1f4fde2bad8d39f424c50b966136e979b4f2c67a5008da6c6faa1",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/shard/wedge_wals_injection_test.go",
+      "sha256": "ce3e656f2d168e41b80df8cea76b3cd06bd7ee22dc7abb0fe1d15c683595168a",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/stream/grpc.go",
+      "sha256": "c39eb15bce951278b9ed0fd81103bcd770ae109c4574b489484e2a5f99219091",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/stream/grpc_dial.go",
+      "sha256": "e42161fa9d23cf728e732f93312ddc60186873d4ee65a60953d1c676cc02218b",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/stream/grpc_dialer_gomad.go",
+      "sha256": "f5fa92b6289c30b4968de806411c14db4e8435379215431bb42ad613dbe9fe6c",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/stream/grpc_dialer_gomad_test.go",
+      "sha256": "d3bd8f7cd26cb2877a0fe232b7bdb9ca97be183e0ac55742901e70b861c81a86",
+      "mode": "0o644"
+    },
+    {
+      "path": "cds/stream/grpc_dialer_native.go",
+      "sha256": "4b1cce07a83fc3008aabf9d5a98328484d3405ed9534f576acaac6b52b5d98c2",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_config_gomad.go",
+      "sha256": "fdff127c501561ec5beeddf4f76e5b7d31e0e34c15a656bf732c943de5db7d94",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_config_native.go",
+      "sha256": "8d9b7111beafa71d9ad5865a490a0c0df33ebc9ef13c94bc73ebfda1964119f5",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_interfaces.go",
+      "sha256": "44b2df993eeecc0ba342d6ca2793edc2c30d82c2f852b4dec9fb0809ec44949b",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_recorder.go",
+      "sha256": "e4de0b963d964dcb693a798e688a935f177f9d58be9c84e19a562c0b05272739",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_recorder_gomad.go",
+      "sha256": "6f12246f95a497a4dda6d10aaa2e62c933beaa7322211b0a6ed07df22cf0c100",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_recorder_gomad_test.go",
+      "sha256": "ece9ea00f7f339baa7d23ee0e32932f267d59c78cb2a859211b0374276124ea1",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_recorder_mock.go",
+      "sha256": "fd9e0ddaa7915bd51e93f374c320a87c2a915dccaab8afa250e8b37e04e7d211",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/chronicle_recorder_test.go",
+      "sha256": "399d42cef7032a9ed89c5865118b1bd6a50baf76540086820873ba89589515fc",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/cloud_metrics_handler_test.go",
+      "sha256": "4c413da7a5aa5d33570a3d5723a8e12ba653e719547035a3b9c24e612d1b085e",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/config.go",
+      "sha256": "348abe3f60ece9124d318576dad5515c70592374cca3eb53bebd5a5f66a8133c",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/config_test.go",
+      "sha256": "526c27d5961d01437bd5d169b6c7fb57a0942f4dc98d231206e5cc5da5de64e9",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/chronicle_event_logger.go",
+      "sha256": "bbee99a2ba7f7f16f128251654315dcf009e7661d4667322668a9c2ce7fd7ade",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/chronicle_event_logger_test.go",
+      "sha256": "768aa1ed9f6ba3fe8a20ee253ca8abb09b62a017737a6709da1da9ca0f202ed6",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/event.go",
+      "sha256": "74ffb5113bb32bc761a6829746fbd1fe862a7b27cf298b45b352aa18eccc363c",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/payload_native.go",
+      "sha256": "8521f09afdf3a93c0c1a1009607302b32e9ba7bdd641b411f48872909463cb27",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/producer.go",
+      "sha256": "2d85c3373ae24b7271809f483dfbef7fe53c71560b9c92a96139fdbf6982857a",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/producer_gomad.go",
+      "sha256": "c43a49c165610cb7ce94949e6ba549f4b3a4906d4b7fca3cf4661352f1d1fd89",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/producer_gomad_test.go",
+      "sha256": "877a5ec30d1b52adac711d4dfec688a27d36c8b02b1e869d44237202a74d185c",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/events/schemas.go",
+      "sha256": "57aa91f57c2a2b1d003206b220951cc25680efc0bf9f3be8affa07ccfb17e476",
+      "mode": "0o644"
+    },
+    {
+      "path": "cloudmetricshandler/handler_benchmark_test.go",
+      "sha256": "443bb46c3e53cfb37a79aaf543662a5ec2903a05e4285dac7ddce3e9abaa89d1",
+      "mode": "0o644"
+    },
+    {
+      "path": "common/common.go",
+      "sha256": "0b8b058113589b8129e2a57d0572be70162c536dd9c24ba17cff3191e119f577",
+      "mode": "0o644"
+    },
+    {
+      "path": "common/role_assumer_gomad.go",
+      "sha256": "d92a570f55f25ac05f39f69c8cbd789b924e7570192b6e37493695fbbbd926fa",
+      "mode": "0o644"
+    },
+    {
+      "path": "common/role_assumer_gomad_test.go",
+      "sha256": "b01673b9c1f7f066663de3e699eb500d10b865180c4eb63a8ae2e5542f402b99",
+      "mode": "0o644"
+    },
+    {
+      "path": "common/role_assumer_native.go",
+      "sha256": "c14043816c77c71d2a92c9fde86cef2db2cd7a7bf0e9c8ea69a213c6f9f02c12",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/replica.go",
+      "sha256": "4a9fbad4424d4e463d6a8478df3faef45abf47e560549259de9b40748d6c929e",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/replication.go",
+      "sha256": "52848125584db04e65bfae77fac6355a79c0c8a6ecc4391d2253d2cfb0f055ba",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/replication_gomad_test.go",
+      "sha256": "762c79d29ffc1894a11936344a12d720d15f2fe44b37c97a64c3fef6da37ca5d",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/replication_test.go",
+      "sha256": "a28955fc628f646d335fcc3333943fec492d6c85d741340aa0f331c86bb21177",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/roperation.go",
+      "sha256": "7d8171bd1edba2fd82fc622f84745fb872d27968265e903d5f8e5e3655b06297",
+      "mode": "0o644"
+    },
+    {
+      "path": "walker/wevents/shardspace.go",
+      "sha256": "0ef25b5f56f079457089d180420a93ac015f154bed1ed82174d0c520cf7c8f1f",
+      "mode": "0o644"
+    }
+  ]
+}

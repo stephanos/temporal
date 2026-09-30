@@ -1,0 +1,11 @@
+{
+  "commits": [],
+  "tests": [
+    "GOFLAGS=-p=2 mise run test -t 3m ./cds/storage/memory ./cds/stream/memory",
+    "GOFLAGS=-p=2 mise run test --tags test_dep,gomad -t 3m ./cds/storage/memory ./cds/stream/memory",
+    "mise exec -- golangci-lint run --timeout 2m --build-tags test_dep ./cds/storage/memory ./cds/stream/memory",
+    "flowctl codex impl-review-fanout/finalize then resumed impl-review: task6-review.json SHIP",
+    "Verified all nine current source hashes match the green-check inventory and git diff --check is clean"
+  ],
+  "prs": []
+}

@@ -75,6 +75,7 @@ type (
 		EnableHistoryTaskRecorder bool
 		EnableReplicationRecorder bool
 		EnableArchival            bool
+		DisablePProf              bool
 		SpanExporters             map[telemetry.SpanExporterType]sdktrace.SpanExporter
 		TokenProvider             auth.TokenProvider
 		TLSConfigProvider         *encryption.FixedTLSConfigProvider
@@ -311,9 +312,11 @@ func newClusterWithPersistenceTestBaseFactory(
 		captureMetricsHandler = metricstest.NewCaptureHandler()
 	}
 
-	err = newPProfInitializerImpl(logger, PprofTestPort).Start()
-	if err != nil {
-		logger.Fatal("Failed to start pprof", tag.Error(err))
+	if !clusterConfig.DisablePProf {
+		err = newPProfInitializerImpl(logger, PprofTestPort).Start()
+		if err != nil {
+			logger.Fatal("Failed to start pprof", tag.Error(err))
+		}
 	}
 
 	host := newTemporal(t, &temporalParams{
