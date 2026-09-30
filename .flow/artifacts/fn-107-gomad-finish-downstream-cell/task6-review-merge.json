@@ -1,0 +1,11 @@
+{
+  "keep": [
+    "integration:1",
+    "correctness:1"
+  ],
+  "collapse": {
+    "correctness:2": "integration:1",
+    "integration:2": "correctness:1",
+    "contracts:1": "correctness:1"
+  }
+}

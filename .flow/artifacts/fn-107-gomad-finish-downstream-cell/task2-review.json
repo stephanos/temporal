@@ -1,0 +1,152 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a0f42c-9852-7322-a451-6a8844e80921",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-09-30T21:22:52.717367Z",
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: Normal injected-profile teardown still calls `testutil\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Normal injected-profile teardown still calls `testutil.RemoveDataDir`, which invokes host `os.RemoveAll`. Task2 now creates these datanode directories through `environmentFS`, newly exposing this existing callback as a host-I/O escape. `TestCluster_InjectedProfile` follows this path during cleanup. Coincident host paths can also be deleted.\n- **Suggestion**: Use `removeEnvironmentData(z.exec, args.DataDir)` for datanode cleanup, as the walkanode paths already do.\n- **File:Line**: walker/localcluster/zone.go:218\n- **R-IDs**: R3\n\n## Issue 2\n- **Severity**: P1\n- **Title**: Single-zone profiles leak the TCP gossip listener and its accept goroutine\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Single-zone profiles leak the TCP gossip listener and its accept goroutine. `NewTCPPeer` starts the transport, but `NewWalkaboutNode` creates memberlist only when there are multiple zones (`walker/walkabout/server/walkabout_node.go:209`). Walkabout shutdown therefore never closes this transport, and successful node cleanup has no independent transport shutdown. Restarting the single-zone configuration used by `TestCluster_InjectedProfile` fails when `LocalNode.StartNoWait` rebinds the still-open gossip port.\n- **Suggestion**: Give the in-process node explicit ownership of the transport and close it on termination, including when memberlist was never created. Verify single-zone stop/restart and listener rebinding.\n- **File:Line**: walker/localcluster/in_process_execution_env.go:338\n- **R-IDs**: R5, R6\n\n## Issue 3\n- **Severity**: P2\n- **Title**: Startup-error cleanup breaks the existing native port-conflict retry\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Startup-error cleanup breaks the existing native port-conflict retry. In a multi-zone native cluster, memberlist can return an `\"address already in use\"` error while binding its independently selected UDP port. The new defer closes the main and bimmer listeners, but `LocalNode.StartNoWait` retries with those same listener objects (`walker/localcluster/node.go:511\u2013524`). Even if the next membership bind succeeds, gRPC receives closed listeners and startup fails.\n- **Suggestion**: Recreate the consumed listeners before retrying, preserving the required addresses, or retain them across retryable failures while cleaning up terminal failures.\n- **File:Line**: walker/localcluster/in_process_execution_env.go:143\n- **R-IDs**: R11\n\n## Issue 4\n- **Severity**: P2\n- **Title**: Profile bimmers share mutable `EngineOptions`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Profile bimmers share mutable `EngineOptions`. `VolumeOptions.Clone` is shallow, so every bimmer registry retains the same profile engine-options pointer. With default options, `EngineOptions.Clock` starts nil; unchanged `VolumeOptions.ensureDefaults` reads and assigns it during volume creation (`volume_options.go:61`). The cluster starts datanodes concurrently (`local_cluster.go:430`), allowing their bimmers to race on this field. Previously, each bimmer received fresh default options.\n- **Suggestion**: Clone `EngineOptions` when producing each component\u2019s volume options, as the profile\u2019s initial clone already does.\n- **File:Line**: walker/localcluster/in_process_execution_env.go:702\n- **R-IDs**: R11, R6\n\n```json\n{\"classification_counts\": {\"introduced\": 4, \"pre_existing\": 0}, \"unaddressed\": [\"R11\", \"R3\", \"R5\", \"R6\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "focus": "Review only Flow task fn-107-gomad-finish-downstream-cell.2. Its current authoritative acceptance/spec is /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tasks/fn-107-gomad-finish-downstream-cell.2.md. Exact scoped source inventory (58 files, hashes verified before review) is /private/tmp/fn107-task2-source-identities.json. Read every relevant changed file from that inventory, including untracked files; inspect ACTUAL working tree changes against HEAD using git diff HEAD and untracked file reads. HEAD..HEAD is intentionally empty because the user retains commit ownership: do not conclude no changes and do not require commits. All source is stable; read-only review only.\n\nTask1 storage/checkpoint library changes are already independently reviewed. Its accepted source baseline is /private/tmp/fn107-task1-source-snapshot. For overlapping files such as walker/storage/volume_registry.go review only additional task2 differences relative to this baseline. Ignore task1 changes outside the task2 inventory and ignore task6 new cds/storage/memory/** and cds/stream/memory/** packages, and any other pending task changes outside the 58-file inventory. You can inspect unchanged callsites/interfaces to verify integration, but report only defects introduced by task2.\n\nRequired task2 behavior: a validated in-process Walker profile propagates one injected FS storage tree and explicit local replication provider through bootstrap/datanode/bimmer, restores and checkpoint staging/cleanup, and local IU-buffer paths with no host I/O fallback under gomad. TCP-only membership must preserve discovery, updates, lifecycle, failure handling, port bindings and rebinding while native defaults retain UDP/native behavior. Reject missing providers/capacity/addresses before startup; logical readiness/shutdown and wall watchdogs expose failures and release resources. Build-tag seams for host signal hooks, subprocess/native options, test repo-root discovery and pebble tools/config may be needed; ensure native defaults remain unchanged and unsupported gomad behavior fails explicitly. Preserve existing comments.\n\nEvidence reported by worker: native Quick554 passing/3skip, Gomad-tag39 passing, focused datanode9 passing, focused lint0. These are native Go tests, not evidence of executed Gomad closure compatibility. Identify concrete correctness/contract/integration defects with precise file:line and triggering scenario; speculative coverage gaps or remaining separate tasks are not introduced defects. Read relevant tests and real downstream callsites to substantiate each finding.",
+  "introduced_count": 4,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R11",
+    "R3",
+    "R5",
+    "R6"
+  ],
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-9852-7322-a451-6a8844e80921",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-9850-7cf2-8b9b-031e39a86d3c",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f42c-9850-7b91-ab8f-6523b6315043",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "rid": "d29cbe8173ac52de13f854aaed394c67",
+  "reviewed_head_sha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 1,
+    "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+    "items": [
+      {
+        "id": "finding-af71fdf027c92ebd1fbd6cb94373c46b",
+        "ordinal": 1,
+        "severity": "P1",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Normal injected-profile teardown still calls `testutil",
+        "body": "Normal injected-profile teardown still calls `testutil.RemoveDataDir`, which invokes host `os.RemoveAll`. Task2 now creates these datanode directories through `environmentFS`, newly exposing this existing callback as a host-I/O escape. `TestCluster_InjectedProfile` follows this path during cleanup. Coincident host paths can also be deleted.",
+        "rIds": [
+          "R3"
+        ],
+        "anchor": {
+          "path": "walker/localcluster/zone.go",
+          "side": "head",
+          "startLine": 218,
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6"
+        },
+        "suggestion": "Use `removeEnvironmentData(z.exec, args.DataDir)` for datanode cleanup, as the walkanode paths already do.",
+        "firstSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271",
+        "lastSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271"
+      },
+      {
+        "id": "finding-2bcd91f1624885467f66410f66829589",
+        "ordinal": 2,
+        "severity": "P1",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Single-zone profiles leak the TCP gossip listener and its accept goroutine",
+        "body": "Single-zone profiles leak the TCP gossip listener and its accept goroutine. `NewTCPPeer` starts the transport, but `NewWalkaboutNode` creates memberlist only when there are multiple zones (`walker/walkabout/server/walkabout_node.go:209`). Walkabout shutdown therefore never closes this transport, and successful node cleanup has no independent transport shutdown. Restarting the single-zone configuration used by `TestCluster_InjectedProfile` fails when `LocalNode.StartNoWait` rebinds the still-open gossip port.",
+        "rIds": [
+          "R5",
+          "R6"
+        ],
+        "anchor": {
+          "path": "walker/localcluster/in_process_execution_env.go",
+          "side": "head",
+          "startLine": 338,
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6"
+        },
+        "suggestion": "Give the in-process node explicit ownership of the transport and close it on termination, including when memberlist was never created. Verify single-zone stop/restart and listener rebinding.",
+        "firstSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271",
+        "lastSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271"
+      },
+      {
+        "id": "finding-af18de64ac1bd0ed295a6dd85600e1a7",
+        "ordinal": 3,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Startup-error cleanup breaks the existing native port-conflict retry",
+        "body": "Startup-error cleanup breaks the existing native port-conflict retry. In a multi-zone native cluster, memberlist can return an `\"address already in use\"` error while binding its independently selected UDP port. The new defer closes the main and bimmer listeners, but `LocalNode.StartNoWait` retries with those same listener objects (`walker/localcluster/node.go:511\u2013524`). Even if the next membership bind succeeds, gRPC receives closed listeners and startup fails.",
+        "rIds": [
+          "R11"
+        ],
+        "anchor": {
+          "path": "walker/localcluster/in_process_execution_env.go",
+          "side": "head",
+          "startLine": 143,
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6"
+        },
+        "suggestion": "Recreate the consumed listeners before retrying, preserving the required addresses, or retain them across retryable failures while cleaning up terminal failures.",
+        "firstSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271",
+        "lastSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271"
+      },
+      {
+        "id": "finding-e9d2c16fc2f7b05119e5488139e9aea8",
+        "ordinal": 4,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Profile bimmers share mutable `EngineOptions`",
+        "body": "Profile bimmers share mutable `EngineOptions`. `VolumeOptions.Clone` is shallow, so every bimmer registry retains the same profile engine-options pointer. With default options, `EngineOptions.Clock` starts nil; unchanged `VolumeOptions.ensureDefaults` reads and assigns it during volume creation (`volume_options.go:61`). The cluster starts datanodes concurrently (`local_cluster.go:430`), allowing their bimmers to race on this field. Previously, each bimmer received fresh default options.",
+        "rIds": [
+          "R11",
+          "R6"
+        ],
+        "anchor": {
+          "path": "walker/localcluster/in_process_execution_env.go",
+          "side": "head",
+          "startLine": 702,
+          "baseSha": "398d6c30d8a30d518732e79615d49ba128bf77e6",
+          "headSha": "398d6c30d8a30d518732e79615d49ba128bf77e6"
+        },
+        "suggestion": "Clone `EngineOptions` when producing each component\u2019s volume options, as the profile\u2019s initial clone already does.",
+        "firstSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271",
+        "lastSeenReceiptId": "review-6064bc75a43a6889eb52e40fe5e854bdc07e5df054f185109139db52e88cd271"
+      }
+    ]
+  }
+}
