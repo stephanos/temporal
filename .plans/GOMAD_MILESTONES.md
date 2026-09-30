@@ -90,8 +90,13 @@ short of "any functional test runs deterministically":
   runtime file out of the patch, `time_now` is platform assembly on linux/amd64, and the field is
   written but never read by runtime control flow, so it reaches evidence only if a target prints
   it.
-- **`TestDescribeTaskQueueEnhanced_ReportFlags`** (versioning suite) keeps a deterministic failure
-  ("poller info should not be reported") that is not yet shown to be a test bug.
+- **`TestDescribeTaskQueueEnhanced_ReportFlags`** (versioning suite) fails deterministically ("poller
+  info should not be reported") because of a server bug: the enhanced-mode `DescribeTaskQueue`
+  response cache in `service/matching/matching_engine.go` is keyed by build ID and task-queue type
+  only (`dtq_enhanced:<buildId>.<type>`), so a reachability-only request inside the cache TTL is
+  served the previous response's pollers. Virtual time puts the second call in the same instant
+  as the first, so the hit is certain. Fixing it changes production behavior and needs its own
+  review outside this plan; the suite's `target_failure` expectation cites this finding.
 - **DTrace clock audit** on darwin needs a root run; CI supplies it on the macOS runner.
 - **Downstream cell.** Gomad-side work for a module that embeds the server is complete; its
   in-process cluster test classifies as a capability blocker until the downstream cuts its own
