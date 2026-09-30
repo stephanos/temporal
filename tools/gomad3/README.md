@@ -751,6 +751,20 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
 
+A module outside this repository keeps packs for its own dependencies in its
+own tree, so they never have to be committed here. Every authoring command
+takes `--compatibility-root=/absolute/dir`, which holds that module's
+`requests/`, `reports/`, `packs/`, and `generation.json` in the same layout as
+`internal/compatibilitypack`; requests and review output must stay below it.
+Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
+to the embedded ones for every command, including the Runner's supervisor and
+coordinator processes. They pass the same strict validation, so no external
+pack can admit `os/exec`, `os/signal`, `os/user`, `plugin`, or `runtime/cgo`;
+an ID that collides with an embedded pack, a relative or missing directory, and
+any entry that is not a pack named by its ID fail closed. Each selected pack's
+ID and SHA-256 are part of the target identity, so replaying, resuming, or
+executing a shard without the same pack fails before execution.
+
 Malformed or non-canonical requests and packs are invalid input. Source,
 toolchain, module-cache, adapter, publication, and cleanup failures are
 infrastructure failures. Fresh-review disagreement is unsupported drift. None
