@@ -21,11 +21,11 @@ func TestCheckReportsAvailableContract(t *testing.T) {
 	for index, adapter := range report.Adapters {
 		gotAdapters[index] = adapter.Module + ":" + adapter.Status
 	}
-	wantAdapters := []string{"go.opentelemetry.io/otel/sdk:available", "go.temporal.io/sdk:available", "go.uber.org/fx:available", "golang.org/x/net:available", "google.golang.org/grpc:available", "modernc.org/libc:available", "modernc.org/memory:available"}
+	wantAdapters := []string{"github.com/hashicorp/go-sockaddr:available", "go.opentelemetry.io/otel/sdk:available", "go.temporal.io/sdk:available", "go.uber.org/fx:available", "golang.org/x/net:available", "google.golang.org/grpc:available", "modernc.org/libc:available", "modernc.org/memory:available"}
 	if report.RunnerBuild == "" || report.BoundaryManifestVersion == "" || strings.Join(gotAdapters, ",") != strings.Join(wantAdapters, ",") {
 		t.Fatalf("identity = %#v", report)
 	}
-	if report.ArtifactDirectory != artifacts || report.InstallationSource != "test" || report.RepairInstruction != "repair test toolchain" || len(report.Checks) != 11 {
+	if report.ArtifactDirectory != artifacts || report.InstallationSource != "test" || report.RepairInstruction != "repair test toolchain" || len(report.Checks) != 12 {
 		t.Fatalf("diagnostics = %#v", report)
 	}
 	for _, check := range report.Checks {
