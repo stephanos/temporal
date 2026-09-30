@@ -1,10 +1,10 @@
 package umpire
 
-/** Who performs an action. `system` is reserved for timers and the system's other steps, which a
-  * machine owns. */
+/** Who performs an action. `system` is reserved for timers, which a machine owns. */
 final case class Party(name: String)
 
 object Party:
+  // `system` also performs the steps `internal` declares and a channel's deliveries and losses.
   val system: Party = Party("system")
 
 /** What a machine keeps state for. `key` names the recorded field that identifies an instance;
@@ -18,10 +18,8 @@ final case class Observation(name: String, on: Entity, read: String)
   * class behaves alike, with the example the functional Case runs. */
 final case class ClassExample(value: Any, example: String)
 
-/** One declared action's untyped part: a party's side effect, a timer the system owns, or another
-  * step of the system: an internal step, or a channel's delivery or loss of a message, which
-  * `delivers` and `loses` name the channel of. Its inputs are finite domains; each assignment of
-  * them is one class. */
+/** One declared action's untyped part: a party's side effect, or a timer the system owns. Its
+  * inputs are finite domains; each assignment of them is one class. */
 final case class ActionDecl(
     name: String,
     party: Party,
@@ -33,6 +31,8 @@ final case class ActionDecl(
     examples: List[ClassExample] = Nil,
     timer: Boolean = false,
     domains: List[Finite[?]] = Nil,
+    // Another step of the system: an internal step, or a channel's delivery or loss of a message,
+    // which `delivers` and `loses` name the channel of.
     internal: Boolean = false,
     delivers: String = "",
     loses: String = "",

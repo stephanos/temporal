@@ -1,0 +1,2763 @@
+{
+  "source": "model/scala: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries",
+  "types": [{
+    "name": "fixture.declarations.DetailedPair",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 120
+    },
+    "record": {
+      "fields": [{
+        "name": "front",
+        "type": {
+          "named": "fixture.declarations.Store"
+        }
+      }, {
+        "name": "back",
+        "type": {
+          "named": "fixture.declarations.Disk"
+        }
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Disk",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 54
+    },
+    "record": {
+      "fields": [{
+        "name": "stage",
+        "type": {
+          "named": "fixture.declarations.Stage"
+        }
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Fact",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 20
+    },
+    "enum": {
+      "cases": [{
+        "name": "stored"
+      }, {
+        "name": "staged"
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Kept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 12
+    },
+    "enum": {
+      "cases": [{
+        "name": "nothing"
+      }, {
+        "name": "held"
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Outcome",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 17
+    },
+    "enum": {
+      "cases": [{
+        "name": "accepted"
+      }, {
+        "name": "deferred"
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Pair",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 118
+    },
+    "record": {
+      "fields": [{
+        "name": "front",
+        "type": {
+          "named": "fixture.declarations.Store"
+        }
+      }, {
+        "name": "back",
+        "type": {
+          "named": "fixture.declarations.Store"
+        }
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Seen",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 72
+    },
+    "enum": {
+      "cases": [{
+        "name": "never"
+      }, {
+        "name": "once"
+      }, {
+        "name": "twice"
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Stage",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 51
+    },
+    "enum": {
+      "cases": [{
+        "name": "empty"
+      }, {
+        "name": "staged"
+      }, {
+        "name": "durable"
+      }]
+    }
+  }, {
+    "name": "fixture.declarations.Store",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 15
+    },
+    "record": {
+      "fields": [{
+        "name": "kept",
+        "type": {
+          "named": "fixture.declarations.Kept"
+        }
+      }]
+    }
+  }],
+  "functions": [{
+    "name": "detailedPair.property.frontHeld",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 143
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 143
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 143
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 143
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 143
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 143
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "front"
+              }
+            },
+            "field": "kept"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 143
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Kept",
+              "case": "held"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.evidence",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 106
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.declarations.Fact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 106
+      },
+      "call": {
+        "function": "fixture.declarations.Declarations$package$.evidenceOf",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 106
+          },
+          "var": "f"
+        }]
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.from",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 112
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 112
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 112
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 112
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 112
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "staged"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.to",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 113
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 113
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 113
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 113
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 113
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "durable"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.durableStays",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 133
+    },
+    "params": [{
+      "name": "before",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 134
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 134
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 134
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 134
+                  },
+                  "var": "before"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 134
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 134
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 134
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 134
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 134
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 134
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.putAccepted",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 139
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 139
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 139
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 139
+              },
+              "var": "after"
+            },
+            "field": "outcome"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 139
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Outcome",
+              "case": "accepted"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.visible",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 101
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.declarations.Fact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 101
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 101
+          },
+          "var": "f"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 101
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Fact",
+              "case": "stored"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.visibleOutcomes",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 102
+    },
+    "params": [{
+      "name": "o",
+      "type": {
+        "named": "fixture.declarations.Outcome"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 102
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 102
+          },
+          "var": "o"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 102
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Outcome",
+              "case": "accepted"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.countStored",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 75
+    },
+    "params": [{
+      "name": "seen",
+      "type": {
+        "named": "fixture.declarations.Seen"
+      }
+    }, {
+      "name": "before",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 76
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 76
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 76
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.declarations.Fact",
+                      "case": "stored"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 76
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 76
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 76
+          },
+          "var": "seen"
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 78
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 78
+              },
+              "var": "seen"
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.declarations.Seen",
+                    "case": "never"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                  "line": 79
+                },
+                "literal": {
+                  "enum": {
+                    "type": "fixture.declarations.Seen",
+                    "case": "once"
+                  }
+                }
+              }
+            }, {
+              "pattern": {
+                "alternatives": {
+                  "patterns": [{
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.declarations.Seen",
+                        "case": "once"
+                      }
+                    }
+                  }, {
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.declarations.Seen",
+                        "case": "twice"
+                      }
+                    }
+                  }]
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                  "line": 80
+                },
+                "literal": {
+                  "enum": {
+                    "type": "fixture.declarations.Seen",
+                    "case": "twice"
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.crashStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 69
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 70
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 70
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 70
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 70
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 70
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "staged"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 70
+          },
+          "hole": "fixture.declarations.Declarations$package$.crashUnmodeled"
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 70
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.endsDurable.next",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 88
+    },
+    "params": [{
+      "name": "_$1",
+      "type": {
+        "bool": {
+        }
+      }
+    }, {
+      "name": "_$2",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 89
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 89
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 89
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 89
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 89
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "durable"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.endsDurable.violated",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 90
+    },
+    "params": [{
+      "name": "durable",
+      "type": {
+        "bool": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 90
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 90
+          },
+          "var": "durable"
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.evidenceOf",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 31
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.declarations.Fact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 31
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 31
+          },
+          "var": "f"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.declarations.Fact",
+                "case": "stored"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 32
+            },
+            "literal": {
+              "text": "stored"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.declarations.Fact",
+                "case": "staged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 33
+            },
+            "literal": {
+              "text": "staged"
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.flushStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 64
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 64
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 64
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 64
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.declarations.Stage",
+                "case": "staged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 65
+            },
+            "list": {
+              "items": [{
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                  "line": 65
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 65
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.declarations.Outcome",
+                        "case": "deferred"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 65
+                    },
+                    "construct": {
+                      "type": "fixture.declarations.Disk",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                          "line": 65
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.declarations.Stage",
+                            "case": "durable"
+                          }
+                        }
+                      }]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 65
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                          "line": 65
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.declarations.Fact",
+                            "case": "staged"
+                          }
+                        }
+                      }]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 65
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  }]
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": {
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 66
+            },
+            "list": {
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.putStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 59
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 59
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 59
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 59
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.declarations.Stage",
+                "case": "empty"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 60
+            },
+            "list": {
+              "items": [{
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                  "line": 60
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 60
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.declarations.Outcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 60
+                    },
+                    "construct": {
+                      "type": "fixture.declarations.Disk",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                          "line": 60
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.declarations.Stage",
+                            "case": "staged"
+                          }
+                        }
+                      }]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 60
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                          "line": 60
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.declarations.Fact",
+                            "case": "stored"
+                          }
+                        }
+                      }]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                      "line": 60
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  }]
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [{
+                "literal": {
+                  "enum": {
+                    "type": "fixture.declarations.Stage",
+                    "case": "staged"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.declarations.Stage",
+                    "case": "durable"
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+              "line": 61
+            },
+            "list": {
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.after",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 95
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 95
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 95
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 95
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 95
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 95
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "durable"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.next",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 93
+    },
+    "params": [{
+      "name": "seen",
+      "type": {
+        "bool": {
+        }
+      }
+    }, {
+      "name": "_$3",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 94
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 94
+          },
+          "var": "seen"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 94
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 94
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Fact",
+                  "case": "staged"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 94
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 94
+                  },
+                  "var": "after"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.violated",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 95
+    },
+    "params": [{
+      "name": "seen",
+      "type": {
+        "bool": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 95
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 95
+          },
+          "var": "seen"
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.stored",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 56
+    },
+    "params": [{
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 57
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 57
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 57
+          },
+          "construct": {
+            "type": "fixture.declarations.Store",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "nothing"
+                }
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 57
+          },
+          "construct": {
+            "type": "fixture.declarations.Store",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "held"
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.declarations.Declarations$package$.storedOnce.violated",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 83
+    },
+    "params": [{
+      "name": "seen",
+      "type": {
+        "named": "fixture.declarations.Seen"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 84
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 84
+          },
+          "var": "seen"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 84
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Seen",
+              "case": "twice"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "pair.property.keptTogether",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 141
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 141
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 141
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 141
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 141
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 141
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "front"
+              }
+            },
+            "field": "kept"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 141
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 141
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 141
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 141
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "back"
+              }
+            },
+            "field": "kept"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "store.evidence",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 41
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.declarations.Fact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 41
+      },
+      "call": {
+        "function": "fixture.declarations.Declarations$package$.evidenceOf",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 41
+          },
+          "var": "f"
+        }]
+      }
+    }
+  }, {
+    "name": "store.property.putStores",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 137
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 137
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 137
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Fact",
+              "case": "stored"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 137
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 137
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "store.put",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 43
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.declarations.Store"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 44
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 44
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 44
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "nothing"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 45
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 45
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 45
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.declarations.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 45
+                  },
+                  "construct": {
+                    "type": "fixture.declarations.Store",
+                    "args": [{
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 45
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.declarations.Kept",
+                          "case": "held"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 45
+                  },
+                  "list": {
+                    "items": [{
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 45
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.declarations.Fact",
+                          "case": "stored"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 45
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 46
+          },
+          "list": {
+          }
+        }
+      }
+    }
+  }],
+  "actions": [{
+    "id": "fixture.declarations.Declarations$package$.crash",
+    "name": "crash",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 25
+    },
+    "party": "fault"
+  }, {
+    "id": "fixture.declarations.Declarations$package$.flush",
+    "name": "flush",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 24
+    },
+    "party": "system",
+    "internal": true
+  }, {
+    "id": "fixture.declarations.Declarations$package$.put",
+    "name": "put",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 23
+    },
+    "party": "client"
+  }],
+  "machines": [{
+    "family": "fixture.declarations",
+    "name": "disk",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 99
+    },
+    "stateType": "fixture.declarations.Disk",
+    "outcomeType": "fixture.declarations.Outcome",
+    "factType": "fixture.declarations.Fact",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 104
+      },
+      "construct": {
+        "type": "fixture.declarations.Disk",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 104
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "empty"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 105
+      },
+      "lambda": {
+        "params": [{
+          "name": "d",
+          "type": {
+            "named": "fixture.declarations.Disk"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 105
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 105
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 105
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 105
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "staged"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.declarations.Declarations$package$.put",
+      "function": "fixture.declarations.Declarations$package$.putStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 107
+      }
+    }, {
+      "action": "fixture.declarations.Declarations$package$.flush",
+      "function": "fixture.declarations.Declarations$package$.flushStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 107
+      }
+    }, {
+      "action": "fixture.declarations.Declarations$package$.crash",
+      "function": "fixture.declarations.Declarations$package$.crashStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 107
+      }
+    }],
+    "evidence": "disk.evidence",
+    "refines": {
+      "product": "store",
+      "map": "fixture.declarations.Declarations$package$.stored",
+      "visible": "disk.visible",
+      "visibleOutcomes": "disk.visibleOutcomes"
+    },
+    "monitors": ["fixture.declarations.Declarations$package$.storedOnce", "fixture.declarations.Declarations$package$.endsDurable", "fixture.declarations.Declarations$package$.stagedBeforeDurable"]
+  }, {
+    "family": "fixture.declarations",
+    "name": "store",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 37
+    },
+    "stateType": "fixture.declarations.Store",
+    "outcomeType": "fixture.declarations.Outcome",
+    "factType": "fixture.declarations.Fact",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 39
+      },
+      "construct": {
+        "type": "fixture.declarations.Store",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 39
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Kept",
+              "case": "nothing"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 40
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "fixture.declarations.Store"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 40
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 40
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 40
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 40
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.declarations.Declarations$package$.put",
+      "function": "store.put",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 43
+      }
+    }],
+    "evidence": "store.evidence",
+    "assumes": ["fixture.declarations.Declarations$package$.storeOpaque"]
+  }],
+  "monitors": [{
+    "id": "fixture.declarations.Declarations$package$.endsDurable",
+    "name": "endsDurable",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 87
+    },
+    "state": {
+      "bool": {
+      }
+    },
+    "initial": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 88
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "next": "fixture.declarations.Declarations$package$.endsDurable.next",
+    "violated": "fixture.declarations.Declarations$package$.endsDurable.violated",
+    "atEnds": {
+    }
+  }, {
+    "id": "fixture.declarations.Declarations$package$.stagedBeforeDurable",
+    "name": "stagedBeforeDurable",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 92
+    },
+    "state": {
+      "bool": {
+      }
+    },
+    "initial": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 93
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "next": "fixture.declarations.Declarations$package$.stagedBeforeDurable.next",
+    "violated": "fixture.declarations.Declarations$package$.stagedBeforeDurable.violated",
+    "after": "fixture.declarations.Declarations$package$.stagedBeforeDurable.after"
+  }, {
+    "id": "fixture.declarations.Declarations$package$.storedOnce",
+    "name": "storedOnce",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 82
+    },
+    "state": {
+      "named": "fixture.declarations.Seen"
+    },
+    "initial": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 83
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.declarations.Seen",
+          "case": "never"
+        }
+      }
+    },
+    "next": "fixture.declarations.Declarations$package$.countStored",
+    "violated": "fixture.declarations.Declarations$package$.storedOnce.violated",
+    "everyStep": {
+    }
+  }],
+  "assumptions": [{
+    "id": "fixture.declarations.Declarations$package$.flushRuns",
+    "name": "flushEventuallyRuns",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 28
+    },
+    "fair": ["fixture.declarations.Declarations$package$.flush"]
+  }, {
+    "id": "fixture.declarations.Declarations$package$.storeOpaque",
+    "name": "storeOpaque",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 27
+    }
+  }],
+  "holes": [{
+    "id": "fixture.declarations.Declarations$package$.crashUnmodeled",
+    "name": "crashUnmodeled",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 29
+    }
+  }],
+  "compositions": [{
+    "family": "fixture.declarations",
+    "name": "detailedPair",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 128
+    },
+    "stateType": "fixture.declarations.DetailedPair",
+    "members": [{
+      "field": "front",
+      "machine": "store"
+    }, {
+      "field": "back",
+      "machine": "disk",
+      "replaces": "store"
+    }],
+    "syncs": [{
+      "name": "putBoth",
+      "first": {
+        "member": "front",
+        "action": "put"
+      },
+      "second": {
+        "member": "back",
+        "action": "put"
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 131
+      },
+      "lambda": {
+        "params": [{
+          "name": "p",
+          "type": {
+            "named": "fixture.declarations.DetailedPair"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 131
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 131
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 131
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 131
+                      },
+                      "var": "p"
+                    },
+                    "field": "front"
+                  }
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 131
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.declarations",
+    "name": "pair",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 123
+    },
+    "stateType": "fixture.declarations.Pair",
+    "members": [{
+      "field": "front",
+      "machine": "store"
+    }, {
+      "field": "back",
+      "machine": "store"
+    }],
+    "syncs": [{
+      "name": "putBoth",
+      "first": {
+        "member": "front",
+        "action": "put"
+      },
+      "second": {
+        "member": "back",
+        "action": "put"
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 125
+      },
+      "lambda": {
+        "params": [{
+          "name": "p",
+          "type": {
+            "named": "fixture.declarations.Pair"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 125
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 125
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 125
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 125
+                      },
+                      "var": "p"
+                    },
+                    "field": "front"
+                  }
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 125
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                    "line": 125
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                        "line": 125
+                      },
+                      "var": "p"
+                    },
+                    "field": "back"
+                  }
+                },
+                "field": "kept"
+              }
+            }
+          }
+        }
+      }
+    }
+  }],
+  "properties": [{
+    "machine": "detailedPair",
+    "name": "frontHeld",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 143
+    },
+    "holds": "detailedPair.property.frontHeld"
+  }, {
+    "machine": "disk",
+    "name": "durableStays",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 133
+    },
+    "holds": "disk.property.durableStays",
+    "transition": true
+  }, {
+    "machine": "disk",
+    "name": "putAccepted",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 139
+    },
+    "whenAction": "put",
+    "holds": "disk.property.putAccepted"
+  }, {
+    "machine": "pair",
+    "name": "keptTogether",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 141
+    },
+    "holds": "pair.property.keptTogether"
+  }, {
+    "machine": "store",
+    "name": "putStores",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 137
+    },
+    "whenClass": {
+      "action": "fixture.declarations.Declarations$package$.put"
+    },
+    "holds": "store.property.putStores"
+  }],
+  "scenarios": [{
+    "machine": "detailedPair",
+    "name": "bothPut",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 152
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 154
+      },
+      "construct": {
+        "type": "fixture.declarations.DetailedPair",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 154
+          },
+          "construct": {
+            "type": "fixture.declarations.Store",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 154
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "nothing"
+                }
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 154
+          },
+          "construct": {
+            "type": "fixture.declarations.Disk",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 154
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "empty"
+                }
+              }
+            }]
+          }
+        }]
+      }
+    },
+    "keys": ["putBoth"]
+  }, {
+    "machine": "disk",
+    "name": "any",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 147
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 147
+      },
+      "construct": {
+        "type": "fixture.declarations.Disk",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 147
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "empty"
+            }
+          }
+        }]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "disk",
+    "name": "putThenFlush",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 146
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 146
+      },
+      "construct": {
+        "type": "fixture.declarations.Disk",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 146
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "empty"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.declarations.Declarations$package$.put"
+    }, {
+      "action": "fixture.declarations.Declarations$package$.flush"
+    }]
+  }, {
+    "machine": "pair",
+    "name": "any",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 150
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 150
+      },
+      "construct": {
+        "type": "fixture.declarations.Pair",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 150
+          },
+          "construct": {
+            "type": "fixture.declarations.Store",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 150
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "nothing"
+                }
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 150
+          },
+          "construct": {
+            "type": "fixture.declarations.Store",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+                "line": 150
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Kept",
+                  "case": "nothing"
+                }
+              }
+            }]
+          }
+        }]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "store",
+    "name": "putOnce",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 148
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+        "line": 148
+      },
+      "construct": {
+        "type": "fixture.declarations.Store",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+            "line": 148
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Kept",
+              "case": "nothing"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.declarations.Declarations$package$.put"
+    }]
+  }],
+  "queries": [{
+    "name": "bothPut",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 167
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "detailedPair",
+      "name": "frontHeld"
+    },
+    "scenario": {
+      "machine": "detailedPair",
+      "name": "bothPut"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }, {
+    "name": "durableStays",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 160
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "disk",
+      "name": "durableStays"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "any"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }, {
+    "name": "keptTogether",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 166
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "pair",
+      "name": "keptTogether"
+    },
+    "scenario": {
+      "machine": "pair",
+      "name": "any"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }, {
+    "name": "putAccepted",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 161
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "disk",
+      "name": "putAccepted"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "putThenFlush"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }, {
+    "name": "putStores",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 162
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "store",
+      "name": "putStores"
+    },
+    "scenario": {
+      "machine": "store",
+      "name": "putOnce"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }, {
+    "name": "putStoresThroughDisk",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 163
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "store",
+      "name": "putStores"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "putThenFlush"
+    },
+    "through": true,
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    }
+  }],
+  "progress": [{
+    "machine": "disk",
+    "name": "durableEventually",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "line": 111
+    },
+    "from": "disk.progress.durableEventually.from",
+    "to": "disk.progress.durableEventually.to",
+    "within": 2,
+    "assumptions": ["fixture.declarations.Declarations$package$.flushRuns"]
+  }]
+}

@@ -6,5 +6,3 @@
 //> using dep com.google.protobuf:protobuf-java:4.29.5
 //> using dep com.google.protobuf:protobuf-java-util:4.29.5
 //> using jar ../gen/ir-proto.jar
-// The fixtures under testdata/ are Models the gate builds and lifts, not sources of the lifter.
-//> using exclude "testdata/**"

@@ -62,6 +62,7 @@ type Table struct {
 	// Evidence is the machine's evidence lines in declaration order: a fact constructor and the
 	// recorded kind that confirms it.
 	Evidence    [][2]string
+	Assumptions []Assumption
 	alter       alterer
 	fieldValues map[string][]Atom
 	stateValue  map[string]any   // state key to typed state
@@ -256,6 +257,7 @@ type TableSpec struct {
 	StateFields []string
 	Entity      string
 	Evidence    [][2]string
+	Assumptions []Assumption
 }
 
 // NewTable builds a table from keys, indexing its rows and computing reachability and the stuck
@@ -265,6 +267,7 @@ func NewTable(spec TableSpec) *Table {
 		Actions: spec.Actions, Outcomes: spec.Outcomes, Facts: spec.Facts, Starts: spec.Starts, Ends: spec.Ends,
 		Rows: spec.Rows, StateFields: spec.StateFields, Entity: spec.Entity, Evidence: spec.Evidence,
 		stateValue: map[string]any{}, classes: map[string]Class{}, decls: map[string]*ActionDecl{}}
+	t.Assumptions = spec.Assumptions
 	if t.Facts == nil {
 		t.Facts = []string{}
 	}

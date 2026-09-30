@@ -162,6 +162,7 @@ type Query struct {
 	Scenario   *ScenarioDecl
 	Limits     Limits
 	refinement func() (*Refinement, error)
+	monitors   []*Monitor
 }
 
 // Find asks for a trace of the Scenario on which p holds. p and the Scenario share the state type
@@ -239,6 +240,10 @@ type Answer struct {
 	// Exercised reports that the Property's clause fired on some explored step, so a verified
 	// answer was earned rather than vacuous.
 	Exercised bool
+	// Monitor names the Monitor whose violation is the counterexample, or "".
+	Monitor string
+	// Monitors are the watching Monitors' verdicts, in the order the Query names them.
+	Monitors []MonitorVerdict
 }
 
 func (q *Query) decl() string { return "query " + q.Name }
@@ -260,7 +265,7 @@ func (q *Query) check() error {
 		return errorf(q.decl(), "%s pins %d actions and the limits %s allow %d",
 			q.Scenario.Name, len(q.Scenario.Actions), q.Limits.Name, q.Limits.Actions)
 	}
-	return nil
+	return q.checkMonitors()
 }
 
 func describeState(key string) string { return "{" + strings.ReplaceAll(key, "-", ", ") + "}" }

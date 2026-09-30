@@ -97,6 +97,12 @@ const StepType = "umpire.Step"
 
 var stepFields = []string{"outcome", "state", "facts", "because"}
 
+// DeliveryType is the framework's delivery record, `{message, redeliveries}`: one message a channel
+// holds, and how many more times than once it has been delivered.
+const DeliveryType = "umpire.Delivery"
+
+var deliveryFields = []string{"message", "redeliveries"}
+
 // Error is an evaluation or validation failure at the position of the IR node it concerns, which is
 // where the front end says the author wrote it.
 type Error struct {
@@ -111,12 +117,31 @@ func (e *Error) Error() string {
 	return e.Position + ": " + e.Message
 }
 
-func errorAt(p *modelirspb.Position, format string, args ...any) error {
-	where := ""
-	if p.GetFile() != "" {
-		where = fmt.Sprintf("%s:%d", p.GetFile(), p.GetLine())
+// Hole is ⊥, a value of the Model rather than a failure of it: an evaluation that reached the declared
+// hole ID, or, with no ID, a value no case of a match matches, an undeclared hole. It propagates the
+// way an error does, and a row whose value it is is a hole row.
+type Hole struct {
+	ID       string
+	Position string
+	Message  string
+}
+
+func (h *Hole) Error() string {
+	if h.Position == "" {
+		return h.Message
 	}
-	return &Error{Position: where, Message: fmt.Sprintf(format, args...)}
+	return h.Position + ": " + h.Message
+}
+
+func errorAt(p *modelirspb.Position, format string, args ...any) error {
+	return &Error{Position: where(p), Message: fmt.Sprintf(format, args...)}
+}
+
+func where(p *modelirspb.Position) string {
+	if p.GetFile() == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s:%d", p.GetFile(), p.GetLine())
 }
 
 type env struct {
@@ -137,20 +162,32 @@ func (e *env) lookup(name string) (Value, bool) {
 }
 
 // Interpreter evaluates a Model's expressions.
+// It also lists catalogs, within its ceilings.
 type Interpreter struct {
 	model     *modelirspb.Model
 	types     map[string]*modelirspb.Type
 	functions map[string]*modelirspb.Function
+	channels  map[string]*modelirspb.Channel
+	holes     map[string]*modelirspb.Hole
+	ceilings  Ceilings
 }
 
 // NewInterpreter indexes a Model's declarations.
+// It interprets them within DefaultCeilings.
 func NewInterpreter(m *modelirspb.Model) *Interpreter {
-	in := &Interpreter{model: m, types: map[string]*modelirspb.Type{}, functions: map[string]*modelirspb.Function{}}
+	in := &Interpreter{model: m, types: map[string]*modelirspb.Type{}, functions: map[string]*modelirspb.Function{},
+		channels: map[string]*modelirspb.Channel{}, holes: map[string]*modelirspb.Hole{}, ceilings: DefaultCeilings}
 	for _, t := range m.GetTypes() {
 		in.types[t.GetName()] = t
 	}
 	for _, f := range m.GetFunctions() {
 		in.functions[f.GetName()] = f
+	}
+	for _, c := range m.GetChannels() {
+		in.channels[c.GetId()] = c
+	}
+	for _, h := range m.GetHoles() {
+		in.holes[h.GetId()] = h
 	}
 	return in
 }
@@ -219,18 +256,7 @@ func (in *Interpreter) eval(x *modelirspb.Expr, e *env) (Value, error) {
 	case *modelirspb.Expr_Copy:
 		return in.copy(x, k.Copy, e)
 	case *modelirspb.Expr_Unary:
-		v, err := in.eval(k.Unary.GetOperand(), e)
-		if err != nil {
-			return Value{}, err
-		}
-		switch k.Unary.GetOp() {
-		case modelirspb.Unary_OP_NOT:
-			return Value{Kind: BoolValue, Bool: !v.Bool}, nil
-		case modelirspb.Unary_OP_NEG:
-			return Value{Kind: IntValue, Int: -v.Int}, nil
-		default:
-			return Value{}, errorAt(x.GetPosition(), "unknown unary operator %v", k.Unary.GetOp())
-		}
+		return in.unary(x, k.Unary, e)
 	case *modelirspb.Expr_Binary:
 		return in.binary(x, k.Binary, e)
 	case *modelirspb.Expr_If:
@@ -258,6 +284,14 @@ func (in *Interpreter) eval(x *modelirspb.Expr, e *env) (Value, error) {
 		return Value{Kind: ListValue, Items: items}, nil
 	case *modelirspb.Expr_Lambda:
 		return Value{Kind: LambdaValue, lambda: k.Lambda, env: e}, nil
+	case *modelirspb.Expr_Hole:
+		name := k.Hole
+		if h, ok := in.holes[k.Hole]; ok {
+			name = h.GetName()
+		}
+		return Value{}, &Hole{ID: k.Hole, Position: where(x.GetPosition()), Message: "reaches the hole " + name}
+	case *modelirspb.Expr_Inbox:
+		return in.inbox(x, k.Inbox, e)
 	default:
 		return Value{}, errorAt(x.GetPosition(), "unknown expression %T", k)
 	}
@@ -308,8 +342,12 @@ func (in *Interpreter) literal(v *modelirspb.Value) Value {
 
 // fieldNames is the field names of a record, or of one case of an enum.
 func (in *Interpreter) fieldNames(typeName, caseName string) ([]string, bool) {
-	if typeName == StepType {
+	switch typeName {
+	case StepType:
 		return stepFields, true
+	case DeliveryType:
+		return deliveryFields, true
+	default:
 	}
 	t, ok := in.types[typeName]
 	if !ok {
@@ -392,6 +430,21 @@ func (in *Interpreter) copy(x *modelirspb.Expr, c *modelirspb.Copy, e *env) (Val
 	return out, nil
 }
 
+func (in *Interpreter) unary(x *modelirspb.Expr, u *modelirspb.Unary, e *env) (Value, error) {
+	v, err := in.eval(u.GetOperand(), e)
+	if err != nil {
+		return Value{}, err
+	}
+	switch u.GetOp() {
+	case modelirspb.Unary_OP_NOT:
+		return Value{Kind: BoolValue, Bool: !v.Bool}, nil
+	case modelirspb.Unary_OP_NEG:
+		return Value{Kind: IntValue, Int: -v.Int}, nil
+	default:
+		return Value{}, errorAt(x.GetPosition(), "unknown unary operator %v", u.GetOp())
+	}
+}
+
 func (in *Interpreter) binary(x *modelirspb.Expr, b *modelirspb.Binary, e *env) (Value, error) {
 	l, err := in.eval(b.GetLeft(), e)
 	if err != nil {
@@ -449,6 +502,7 @@ func (in *Interpreter) binary(x *modelirspb.Expr, b *modelirspb.Binary, e *env) 
 
 // match takes the first case whose pattern matches and whose guard holds. A value no case matches is
 // a hole in the Model.
+// That hole is an undeclared one: a Hole with no ID.
 func (in *Interpreter) match(x *modelirspb.Expr, m *modelirspb.Match, e *env) (Value, error) {
 	v, err := in.eval(m.GetScrutinee(), e)
 	if err != nil {
@@ -470,7 +524,7 @@ func (in *Interpreter) match(x *modelirspb.Expr, m *modelirspb.Match, e *env) (V
 		}
 		return in.eval(c.GetBody(), bound)
 	}
-	return Value{}, errorAt(x.GetPosition(), "no case matches %s", v.Key())
+	return Value{}, &Hole{Position: where(x.GetPosition()), Message: "no case matches " + v.Key()}
 }
 
 func (in *Interpreter) bindPattern(p *modelirspb.Pattern, v Value, e *env) (*env, bool) {

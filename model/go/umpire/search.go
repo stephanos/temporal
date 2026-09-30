@@ -8,27 +8,39 @@ import "fmt"
 // row, in result order, and the first-discovered parent is kept, so the witness is the shortest
 // and ties go to the lower index: the order Veil's checker and the reference search agree on.
 func (q *Query) Answer() (Answer, error) {
-	if err := q.check(); err != nil {
-		return Answer{}, err
-	}
-	t, err := q.Scenario.Machine.Table()
+	s, err := q.searcher()
 	if err != nil {
 		return Answer{}, err
 	}
+	return s.run()
+}
+
+// searcher checks the Query and prepares one search of it.
+func (q *Query) searcher() (*searcher, error) {
+	if err := q.check(); err != nil {
+		return nil, err
+	}
+	t, err := q.Scenario.Machine.Table()
+	if err != nil {
+		return nil, err
+	}
 	if err := q.checkScenario(t); err != nil {
-		return Answer{}, err
+		return nil, err
 	}
 	var ref *Refinement
 	if q.refinement != nil {
 		if ref, err = q.refinement(); err != nil {
-			return Answer{}, err
+			return nil, err
 		}
 		if err := q.checkRefined(t, ref); err != nil {
-			return Answer{}, err
+			return nil, err
 		}
 	}
-	s := &searcher{q: q, t: t, ref: ref}
-	return s.run()
+	ends := map[string]bool{}
+	for _, e := range t.Ends {
+		ends[e] = true
+	}
+	return &searcher{q: q, t: t, ref: ref, ends: ends, monRead: make([]bool, len(q.monitors))}, nil
 }
 
 func (q *Query) checkScenario(t *Table) error {
@@ -78,6 +90,7 @@ type node struct {
 	state  string
 	pos    int
 	mon    monitor
+	mons   []monitorState
 	parent int
 	row    string
 	result Result
@@ -87,6 +100,11 @@ type productKey struct {
 	state string
 	pos   int
 	mon   monitor
+	mons  string
+}
+
+func (s *searcher) keyOf(n node) productKey {
+	return productKey{n.state, s.progress(n.pos), n.mon, identity(n.mons)}
 }
 
 // searcher is one breadth-first search over a Query's product state space.
@@ -94,11 +112,13 @@ type searcher struct {
 	q              *Query
 	t              *Table
 	ref            *Refinement
+	ends           map[string]bool
 	nodes          []node
 	visited        map[productKey]bool
 	counterexample int
 	found          int
 	exercised      bool
+	monRead        []bool
 }
 
 func (s *searcher) free() bool { return s.q.Scenario.free }
@@ -123,9 +143,8 @@ func (s *searcher) progress(pos int) int {
 }
 
 func (s *searcher) run() (Answer, error) {
-	start := s.q.Scenario.Start
-	s.nodes = []node{{state: start, mon: monitor{held: true}, parent: -1}}
-	s.visited = map[productKey]bool{{start, 0, monitor{held: true}}: true}
+	s.nodes = []node{s.initial()}
+	s.visited = map[productKey]bool{s.keyOf(s.nodes[0]): true}
 	s.counterexample, s.found = -1, -1
 	frontier := []int{0}
 	for len(frontier) > 0 {
@@ -157,21 +176,20 @@ func (s *searcher) expand(i int) ([]int, error) {
 	}
 	var added []int
 	for _, row := range s.t.RowsFrom(n.state) {
-		if !s.free() && row.Action != s.q.Scenario.Actions[n.pos] {
+		if !s.scheduled(n, row) {
 			continue
 		}
 		for _, res := range row.Results {
-			mon, err := s.observe(n, row, res)
+			next, err := s.step(i, row, res)
 			if err != nil {
 				return nil, err
 			}
-			key := productKey{res.State, s.progress(n.pos + 1), mon}
+			key := s.keyOf(next)
 			if s.visited[key] {
 				continue
 			}
 			s.visited[key] = true
-			s.nodes = append(s.nodes, node{state: res.State, pos: n.pos + 1, mon: mon, parent: i,
-				row: row.Key, result: res})
+			s.nodes = append(s.nodes, next)
 			j := len(s.nodes) - 1
 			s.record(j)
 			if s.found >= 0 {
@@ -181,6 +199,43 @@ func (s *searcher) expand(i int) ([]int, error) {
 		}
 	}
 	return added, nil
+}
+
+func (s *searcher) initial() node {
+	mons := make([]monitorState, len(s.q.monitors))
+	for k, m := range s.q.monitors {
+		mons[k] = monitorState{key: m.Initial}
+	}
+	return node{state: s.q.Scenario.Start, mon: monitor{held: true}, mons: mons, parent: -1}
+}
+
+// scheduled reports whether the Scenario admits a row as the next step after n.
+func (s *searcher) scheduled(n node, row Row) bool {
+	return s.free() || row.Action == s.q.Scenario.Actions[n.pos]
+}
+
+// step is the node one result of a row leads to from node i: the Property monitor and every
+// watching Monitor advanced over it.
+func (s *searcher) step(i int, row Row, res Result) (node, error) {
+	n := s.nodes[i]
+	mon, err := s.observe(n, row, res)
+	if err != nil {
+		return node{}, err
+	}
+	before, _ := s.t.StateValue(n.state)
+	mons := make([]monitorState, len(n.mons))
+	for k, m := range s.q.monitors {
+		ms := n.mons[k]
+		if ms.key, err = m.Next(ms.key, before, res); err != nil {
+			return node{}, errorf(s.q.decl(), "%v", err)
+		}
+		if m.At.reads(res, s.ends) {
+			ms.read, s.monRead[k] = true, true
+			ms.violated = ms.violated || m.Violated(ms.key)
+		}
+		mons[k] = ms
+	}
+	return node{state: res.State, pos: n.pos + 1, mon: mon, mons: mons, parent: i, row: row.Key, result: res}, nil
 }
 
 // observe advances the Property monitor over one step.
@@ -216,25 +271,51 @@ func (s *searcher) record(j int) {
 	n := s.nodes[j]
 	switch s.q.Form {
 	case FindForm:
-		complete := s.free() || n.pos == len(s.q.Scenario.Actions)
-		if complete && n.mon.fired && n.mon.held {
+		if s.realizes(n) {
 			s.found = j
 		}
 	case VerifyForm:
-		if !n.mon.held && s.counterexample < 0 {
+		if s.fails(n) && s.counterexample < 0 {
 			s.counterexample = j
 		}
 	default:
 	}
 }
 
+// realizes reports whether a node completes a trace on which a find's claim fired and held.
+func (s *searcher) realizes(n node) bool {
+	complete := s.free() || n.pos == len(s.q.Scenario.Actions)
+	return complete && n.mon.fired && n.mon.held
+}
+
+// fails reports whether a verify's claim, or a watching Monitor, fails on the path to a node.
+func (s *searcher) fails(n node) bool { return !n.mon.held || s.violated(n) != "" }
+
+// violated names the first watching Monitor violated on the path to a node, or "".
+func (s *searcher) violated(n node) string {
+	for k, m := range n.mons {
+		if m.violated {
+			return s.q.monitors[k].Name
+		}
+	}
+	return ""
+}
+
 func (s *searcher) conclude() Answer {
 	if s.q.Form == VerifyForm {
 		if s.counterexample >= 0 {
-			return s.answer(CounterexampleFound, s.counterexample, fmt.Sprintf("%s fails at %s",
-				s.q.Property.Name, describeState(s.nodes[s.counterexample].state)))
+			n := s.nodes[s.counterexample]
+			if !n.mon.held {
+				return s.answer(CounterexampleFound, s.counterexample, fmt.Sprintf("%s fails at %s",
+					s.q.Property.Name, describeState(n.state)))
+			}
+			a := s.answer(CounterexampleFound, s.counterexample, fmt.Sprintf("the monitor %s is violated at %s",
+				s.violated(n), describeState(n.state)))
+			a.Monitor = s.violated(n)
+			return a
 		}
-		return Answer{Outcome: VerifiedWithinLimits, Explored: len(s.visited), Exercised: s.exercised}
+		return Answer{Outcome: VerifiedWithinLimits, Explored: len(s.visited), Exercised: s.exercised,
+			Monitors: s.explored()}
 	}
 	return Answer{Outcome: NotFound, Explored: len(s.visited), Explanation: fmt.Sprintf(
 		"no trace of %s within %s reaches %s", s.q.Scenario.Name, s.q.Limits.Name, s.q.Property.Name)}
@@ -242,7 +323,30 @@ func (s *searcher) conclude() Answer {
 
 func (s *searcher) answer(outcome Outcome, j int, explanation string) Answer {
 	return Answer{Outcome: outcome, Witness: s.witness(j), Rows: s.rowsOf(j), Explored: len(s.visited),
-		Explanation: explanation, Exercised: s.exercised}
+		Explanation: explanation, Exercised: s.exercised, Monitors: s.verdicts(s.nodes[j])}
+}
+
+// verdicts is every watching Monitor's verdict on the path to a node.
+func (s *searcher) verdicts(n node) []MonitorVerdict {
+	var out []MonitorVerdict
+	for k, m := range n.mons {
+		out = append(out, MonitorVerdict{Name: s.q.monitors[k].Name, State: m.key, Verdict: m.verdict()})
+	}
+	return out
+}
+
+// explored is every watching Monitor's verdict over a search with no witness: held when some
+// explored step read it, unread otherwise.
+func (s *searcher) explored() []MonitorVerdict {
+	var out []MonitorVerdict
+	for k, m := range s.q.monitors {
+		v := MonitorUnread
+		if s.monRead[k] {
+			v = MonitorHeld
+		}
+		out = append(out, MonitorVerdict{Name: m.Name, Verdict: v})
+	}
+	return out
 }
 
 // readState turns a state into what the Property reads: the typed state, or the refined machine's
@@ -273,21 +377,12 @@ func (s *searcher) rowsOf(j int) []string {
 }
 
 func (s *searcher) witness(j int) *Trace {
-	t := s.t
-	owner := t.owner()
-	atom := func(kind, value string) Atom { return Atom{ID: t.Family.ID(kind, owner, value), Value: value} }
-	var steps []TraceStep
+	var path []edge
 	for ; s.nodes[j].parent >= 0; j = s.nodes[j].parent {
 		n := s.nodes[j]
-		facts := []Atom{}
-		for _, f := range n.result.Facts {
-			facts = append(facts, atom("fact", f))
-		}
-		row := t.Rows[t.rowIndex(n.row)]
-		steps = append([]TraceStep{{Action: atom("action", row.Action), Outcome: atom("outcome", n.result.Outcome),
-			State: atom("state", n.result.State), Facts: facts}}, steps...)
+		path = append([]edge{{n.row, n.result}}, path...)
 	}
-	return &Trace{Initial: atom("state", s.nodes[0].state), Steps: steps}
+	return s.t.trace(s.nodes[0].state, path)
 }
 
 func (t *Table) rowIndex(key string) int {

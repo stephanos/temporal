@@ -44,6 +44,7 @@ final class MachineScope[S, O, F] private[umpire] ():
   private[umpire] val bindings = mutable.ArrayBuffer.empty[StepBinding[S, O, F]]
   private[umpire] var refinement: Option[RefinementDecl[S]] = None
   private[umpire] var visible: Option[F => Boolean] = None
+  private[umpire] var visibleOutcomes: Option[O => Boolean] = None
   private[umpire] val monitors = mutable.ArrayBuffer.empty[Monitor[S, O, F, ?]]
   private[umpire] val assumptions = mutable.ArrayBuffer.empty[Assumption]
 
@@ -56,7 +57,8 @@ def machine[S, O, F](family: Family, name: String)(body: MachineScope[S, O, F] ?
   val scope = MachineScope[S, O, F]()
   body(using scope)
   Machine(family, name, scope.entity, scope.starts, scope.ends, scope.evidence, scope.unobservable.toSet,
-    scope.bindings.toList, scope.refinement, scope.visible, scope.monitors.toList, scope.assumptions.toList)
+    scope.bindings.toList, scope.refinement, scope.visible, scope.visibleOutcomes, scope.monitors.toList,
+    scope.assumptions.toList)
 
 /** Names the entity the machine keeps state for. */
 def forEntity(e: Entity)(using m: MachineScope[?, ?, ?]): Unit = m.entity = Some(e)
@@ -83,6 +85,9 @@ def steps[S, O, F](using m: MachineScope[S, O, F])(bindings: StepBinding[S, O, F
   * and a step it carries records only the ones its carrying step records. */
 def visible[F](using m: MachineScope[?, ?, F])(sees: F => Boolean): Unit = m.visible = Some(sees)
 
+/** The outcomes the refined machine sees. A step that reads as a stutter of it answers none of them. */
+def visibleOutcomes[O](using m: MachineScope[?, O, ?])(sees: O => Boolean): Unit = m.visibleOutcomes = Some(sees)
+
 /** A machine. Its table is computed once, on first use, and every failure is a `ModelError` naming
   * the machine rather than an exception out of an object initialiser. */
 final class Machine[S, O, F] private[umpire] (
@@ -96,6 +101,7 @@ final class Machine[S, O, F] private[umpire] (
     private[umpire] val bindings: List[StepBinding[S, O, F]],
     private[umpire] val refinement: Option[RefinementDecl[S]],
     private[umpire] val visibleFacts: Option[F => Boolean],
+    private[umpire] val visibleOutcomeSet: Option[O => Boolean],
     private[umpire] val monitorList: List[Monitor[S, O, F, ?]],
     private[umpire] val assumptions: List[Assumption],
 )(using private[umpire] val fs: Finite[S], private[umpire] val fo: Finite[O], private[umpire] val ff: Finite[F])
@@ -122,12 +128,12 @@ final class Machine[S, O, F] private[umpire] (
 
   /** A machine that keeps the rows of the named actions and drops the rest: Lean's
     * `from: <machine> restrict: [...]`. It keeps the state type, starts and ends, owns its own name
-    * and Definition IDs, and does not inherit a refinement. It keeps its source's monitors and
-    * assumptions. */
+    * and Definition IDs, and does not inherit a refinement. */
   def restrict(family: Family, name: String)(keep: Action[?]*): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
+    // It keeps its source's monitors and assumptions, which are about the state and the machine.
     Machine(family, name, entity, startStates, isEnd, evidenceOf, Set.empty,
-      bindings.filter(b => decls(b.decl)), None, None, monitorList, assumptions)
+      bindings.filter(b => decls(b.decl)), None, None, None, monitorList, assumptions)
 
   private def build: Checked[Table] = checked {
     val states = fs.values.toVector
@@ -157,14 +163,14 @@ final class Machine[S, O, F] private[umpire] (
     )
   }
 
-  /** Every class of every bound action, sorted by key; a class two steps bind is rejected, and so is
-    * a channel's delivery or loss, whose rows only the IR interpreter derives. */
+  /** Every class of every bound action, sorted by key; a class two steps bind is rejected. */
   private def bind(using Fails): Vector[(Class, StepBinding[S, O, F])] =
+    // A channel's delivery or loss is rejected too: only the IR interpreter derives its rows.
     for b <- bindings; channel = b.decl.delivers + b.decl.loses if channel.nonEmpty do
       fail(name, s"it binds ${b.decl.name}, which only the IR interpreter derives from channel $channel: lift the " +
         "machine and check its IR")
     val bound = bindings.flatMap(b => b.decl.classes.map(_ -> b)).sortBy(_._1.key).toVector
-    for Vector((a, _), (b, _)) <- bound.sliding(2) if a.key == b.key do
+    for case Vector((a, _), (b, _)) <- bound.sliding(2) if a.key == b.key do
       fail(name, s"two steps bind the action class \"${a.key}\"")
     bound
 

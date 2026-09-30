@@ -64,6 +64,9 @@ private def checkModel(m: Model): List[ModelError] = m.table match
       case mm: Machine[?, ?, ?] if mm.visibleFacts.isDefined =>
         List(ModelError(s"machine ${t.machine}", "the machine names the facts a refined machine sees, and declares no " +
           "refinement"))
+      case mm: Machine[?, ?, ?] if mm.visibleOutcomeSet.isDefined =>
+        List(ModelError(s"machine ${t.machine}", "the machine names the outcomes a refined machine sees, and " +
+          "declares no refinement"))
       case c: Composition[?] => c.replacements
       case _                 => Nil
     names ++ stuck ++ refinement

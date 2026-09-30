@@ -15,8 +15,8 @@ option go_package = "go.temporal.io/server/api/modelir/v1;modelir";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.modelir.v1";
 
-// A Model: its types, its pure functions, its actions, and its machines, with the declarations
-// checks read over them.
+// A Model: its types, its pure functions, its actions, and its machines.
+// It also carries the declarations checks read over them.
 message Model {
   // Where the Model was lifted from, for diagnostics and provenance.
   string source = 1;
@@ -208,7 +208,9 @@ message If {
 }
 
 // The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
-// value no case matches is an undeclared hole in the Model, which the interpreter reports.
+// value no case matches is a hole in the Model, which the interpreter reports.
+// That hole is an undeclared one (model/scalav2/SEMANTICS.md, Holes), neither a declared hole nor an
+// admission error.
 message Match {
   Expr scrutinee = 1;
   repeated MatchCase cases = 2;
@@ -309,8 +311,8 @@ message ListValue {
   repeated Value items = 1;
 }
 
-// An action: a party's side effect, a timer the system owns, or another step of the system, with its
-// finite inputs.
+// An action: a party's side effect or a timer the system owns, with its finite inputs.
+// The system owns its other steps too: an internal step, and a channel's delivery or loss.
 message Action {
   // The key the IR names it by: the front end's qualified name.
   string id = 1;
@@ -340,8 +342,8 @@ message Example {
 }
 
 // A machine: a state type, the step function bound to each action, the states it starts in, the
-// states it may end in, the evidence for each fact, the machine it refines, the monitors that watch
-// it and the assumptions checking it makes.
+// states it may end in, the evidence for each fact, and the machine it refines.
+// It also names the monitors that watch it and the assumptions checking it makes.
 message Machine {
   string family = 1;
   string name = 2;
@@ -383,6 +385,9 @@ message Refinement {
   // A Function from a fact of this machine to whether the refined machine sees it. Empty when the
   // refinement declares no projection.
   string visible = 3;
+  // A Function from an outcome of this machine to whether the refined machine sees it. Empty when the
+  // refinement names no outcome the refined machine sees.
+  string visible_outcomes = 4;
 }
 
 // A bounded channel: the messages one machine's state holds between their send and their delivery.

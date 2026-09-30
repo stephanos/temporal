@@ -9,7 +9,10 @@
   "depends_on_epics": [],
   "id": "fn-107-scala-umpire-prototype-for-standalone",
   "impl_review_rounds": {
-    "fn-107-scala-umpire-prototype-for-standalone.1": 0
+    "fn-107-scala-umpire-prototype-for-standalone.1": 0,
+    "fn-107-scala-umpire-prototype-for-standalone.14": 1,
+    "fn-107-scala-umpire-prototype-for-standalone.15": 1,
+    "fn-107-scala-umpire-prototype-for-standalone.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -346,10 +349,307 @@
       "task": "fn-107-scala-umpire-prototype-for-standalone.1",
       "timestamp": "2026-09-30T18:11:34.765016Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d78d79fcddce1de793549e31f52a19907607b57a0f37a9de1e925c1cd90fb437",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5889de12e9561e2b3a755758e152e15e",
+            "classification": "introduced",
+            "findingId": "finding-5889de12e9561e2b3a755758e152e15e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2531319d17085dc79636162d26845b4a",
+            "classification": "introduced",
+            "findingId": "finding-2531319d17085dc79636162d26845b4a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "classification": "introduced",
+            "findingId": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2634,
+      "output_sha256": "11674b7c0a90efccfd057e806a2dbf56243230848ff502788c9e75d7caea9619",
+      "reservation_id": "2de5fc983a64455b8f5bd9040a827ea9",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.2",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.2",
+      "timestamp": "2026-09-30T20:46:02.876389Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b94fb7616403fee6eb488dfd68d4f5b0484ae495a42a2887073e583e67d28bff",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5889de12e9561e2b3a755758e152e15e",
+            "classification": "introduced",
+            "findingId": "finding-5889de12e9561e2b3a755758e152e15e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2531319d17085dc79636162d26845b4a",
+            "classification": "introduced",
+            "findingId": "finding-2531319d17085dc79636162d26845b4a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "classification": "introduced",
+            "findingId": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1029,
+      "output_sha256": "0e8577bcda9d4895fe2f4f4b26a899208b96fb98943585c1bf50f7d90e220cac",
+      "reservation_id": "893551bbea96420b91c41eca2cc033e5",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.2",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.2",
+      "timestamp": "2026-09-30T21:02:53.562046Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "13008682a4b032e127e0041b3907b143f76ce05d66bf5f5d38399497ecfaa681",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "classification": "introduced",
+            "findingId": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "classification": "introduced",
+            "findingId": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "classification": "introduced",
+            "findingId": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "classification": "introduced",
+            "findingId": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "classification": "introduced",
+            "findingId": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "classification": "introduced",
+            "findingId": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4949,
+      "output_sha256": "029a784c600374847c3a3c50e171f2c8e392cd5e15d5df319999bb2ed4b8d61c",
+      "reservation_id": "046f7bf303d840d28cdc6ddfe2634b3d",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.14",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.14",
+      "timestamp": "2026-09-30T22:14:33.665239Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9f03f7d7f083be15b11a490a120f968d3a87c00ac8bcf21680f64229534ec577",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c03c3827f576683da969ef68d6a6708c",
+            "classification": "introduced",
+            "findingId": "finding-c03c3827f576683da969ef68d6a6708c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "classification": "introduced",
+            "findingId": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "classification": "introduced",
+            "findingId": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-854f76e769229dd3352974589082c5bc",
+            "classification": "introduced",
+            "findingId": "finding-854f76e769229dd3352974589082c5bc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b447704002146870aea94a4aedd32ca5",
+            "classification": "introduced",
+            "findingId": "finding-b447704002146870aea94a4aedd32ca5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3b1e7b48e064bd19359da454c163b860",
+            "classification": "pre_existing",
+            "findingId": "finding-3b1e7b48e064bd19359da454c163b860",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-398d132936156fd3771603eccda56c72",
+            "classification": "introduced",
+            "findingId": "finding-398d132936156fd3771603eccda56c72",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 5511,
+      "output_sha256": "e765be9f22ed9e1304776a61d62536766ae533be109b9a38cc6a728086c3581e",
+      "reservation_id": "5b2b3a205ecb437a9159f491c493b111",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.15",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.15",
+      "timestamp": "2026-09-30T22:14:33.686966Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-107-scala-umpire-prototype-for-standalone.1": 1,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -357,6 +657,9 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-107-scala-umpire-prototype-for-standalone.1": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.14": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.15": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-107-scala-umpire-prototype-for-standalone.md",
@@ -373,5 +676,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T18:11:34.769500Z"
+  "updated_at": "2026-09-30T22:14:33.693040Z"
 }

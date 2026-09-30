@@ -5,6 +5,10 @@
 #
 #   model/scalav2/run.sh           lift, require ir/nexus-caller.json to be current, test
 #   model/scalav2/run.sh --update  lift and rewrite ir/nexus-caller.json
+#
+# The lifter's fixtures under lifter/testdata are built and lifted too: the Models it must lift,
+# compared with the IR in lifter/testdata/lifts/expected, which --update rewrites as well, and the
+# declarations the build or the lifter must refuse, at their lines.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
@@ -25,6 +29,40 @@ scala_build() {
   local out
   out="$("$root/model/scala/scala.sh" "$@")" || { echo "$out" >&2; return 1; }
 }
+# The lifter's own arguments follow `--`, so scala-cli's flags go before it: an argument after it
+# is a root, and the lifter refuses a root that names nothing.
+lift() { mise exec -- scala-cli run --suppress-outdated-dependency-warning "$here/lifter" -- "$@"; }
+# A fixture's sources are stored as <file>.scala.fixture, which no build, formatter or linter of the
+# tree reads, since some of them must not compile. materialize <fixture> copies them into
+# gen/fixtures/<fixture> as the .scala files its build reads, with its project's jar path resolved,
+# and prints that directory. The lifter maps the copies' positions back to the stored files, and the
+# build's diagnostics are mapped back below.
+trap 'rm -rf "$here/gen/fixtures"' EXIT
+materialize() {
+  local from="$here/lifter/testdata/$1" to="$here/gen/fixtures/$1" f
+  rm -rf "$to" && mkdir -p "$to"
+  for f in "$from"/*.scala.fixture; do
+    sed "s#\.\./\.\./\.\./gen/model-scala\.jar#$here/gen/model-scala.jar#" "$f" > "$to/$(basename "$f" .fixture)"
+  done
+  echo "$to"
+}
+# The lifter's positions of a materialized fixture: its stored files.
+stored() { echo "model/scalav2/lifter/testdata/$1/%s.fixture"; }
+# refuses <fixture> <file:line>...: the fixture's build fails, with an error at each line of the
+# stored file.
+refuses() {
+  local fixture="$1" refused line
+  shift
+  refused="$(scala_build compile "$(materialize "$fixture")" 2>&1 && echo "built" || true)"
+  refused="$(sed -e 's/\x1b\[[0-9;]*m//g' \
+    -e "s#\./model/scalav2/gen/fixtures/$fixture/\([^:]*\)\.scala:#./model/scalav2/lifter/testdata/$fixture/\1.scala.fixture:#" \
+    <<<"$refused")"
+  for line in "$@"; do
+    grep -qF "[error] ./model/scalav2/lifter/testdata/$fixture/$line" <<<"$refused" \
+      || { echo "run.sh: expected lifter/testdata/$fixture to fail at $line, got:" >&2; echo "$refused" >&2; exit 1; }
+  done
+  grep -F "[error] ./model/scalav2/lifter/testdata/$fixture/" <<<"$refused"
+}
 roots=('temporal.nexuscaller.Model$package$.nexusProduct' 'temporal.nexuscaller.Model$package$.nexusProtocol'
   'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling')
 
@@ -43,18 +81,13 @@ scala_build --power package --library model/scala/project.scala model/scala/umpi
 scala_cli compile --print-class-path model/scala/project.scala model/scala/umpire model/scala/temporal \
   > "$here/gen/model-scala.classpath"
 
-echo "== the build refuses a warning -Werror makes an error, at its line"
-refused="$(scala_build --power package --library "$here/lifter/testdata/werror" -f -o "$here/gen/werror.jar" 2>&1 \
-  && echo "built" || true)"
-refused="$(sed 's/\x1b\[[0-9;]*m//g' <<<"$refused")"
-expected='[error] ./model/scalav2/lifter/testdata/werror/Evidence.scala:29:16'
-grep -qxF "$expected" <<<"$refused" && grep -qF 'match may not be exhaustive' <<<"$refused" \
-  || { echo "run.sh: expected '$expected' refusing a non-exhaustive match, got:" >&2; echo "$refused" >&2; exit 1; }
-echo "$expected match may not be exhaustive"
+echo "== the build refuses a warning -Werror makes an error, and crossed types, at their lines"
+refuses werror Evidence.scala.fixture:29:16
+refuses crossed Crossed.scala.fixture:35:14 Crossed.scala.fixture:45:28
 
 echo "== lift the Nexus caller Model"
 lifted="$(mktemp)"
-scala_cli run "$here/lifter" -- "$here/gen/model-scala.jar" "$here/gen/model-scala.classpath" "$lifted" model/scala/ "${roots[@]}" \
+lift "$here/gen/model-scala.jar=model/scala/" "$here/gen/model-scala.classpath" "$lifted" "${roots[@]}" \
   2> >(grep -v '^WARNING' >&2)
 if $update; then
   cp "$lifted" "$here/ir/nexus-caller.json"
@@ -66,13 +99,81 @@ fi
 rm -f "$lifted"
 
 echo "== the lifter refuses a construct outside the subset, at its line"
-fixture="$here/lifter/testdata/unsupported"
-scala_cli --power package --library "$fixture" -f -o "$here/gen/unsupported.jar" >/dev/null
-refused="$(scala_cli run "$here/lifter" -- "$here/gen/unsupported.jar" "$here/gen/model-scala.classpath" /dev/null \
-  model/scalav2/lifter/testdata/unsupported/ 'temporal.fixture.Unsupported$package$.unsupported' 2>&1 | grep '^lift:' || true)"
-expected='lift: model/scalav2/lifter/testdata/unsupported/Unsupported.scala:18: `var out` has no IR form'
+fixture="$(materialize unsupported)"
+scala_build --power package --library "$fixture" -f -o "$here/gen/unsupported.jar"
+refused="$(lift "$here/gen/unsupported.jar=$(stored unsupported)" "$here/gen/model-scala.classpath" \
+  /dev/null 'temporal.fixture.Unsupported$package$.unsupported' 2>&1 | grep '^lift:' || true)"
+expected='lift: model/scalav2/lifter/testdata/unsupported/Unsupported.scala.fixture:18: `var out` has no IR form'
 [[ "$refused" == "$expected"* ]] || { echo "run.sh: expected '$expected ...', got '$refused'" >&2; exit 1; }
 echo "$refused"
+
+echo "== lift the fixtures, compare them with lifter/testdata/lifts/expected, and lift the activity Models"
+fixtures="$here/lifter/testdata/lifts"
+scala_build --power package --library "$(materialize lifts)" -f -o "$here/gen/lifts.jar"
+jars="$here/gen/lifts.jar=$(stored lifts),$here/gen/model-scala.jar=model/scala/"
+rm -rf "$here/gen/lifts" && mkdir -p "$here/gen/lifts"
+# Each lift is its own JVM, so they run side by side: <name> <jars> <root>...
+lift_into() {
+  local name="$1" from="$2"
+  shift 2
+  local status=0
+  lift "$from" "$here/gen/model-scala.classpath" "$here/gen/lifts/$name.json" "$@" > "$here/gen/lifts/$name.log" 2>&1 \
+    || status=$?
+  echo "$status" > "$here/gen/lifts/$name.status"
+}
+lift_into presence "$jars" 'fixture.presence.Presence$package$.presence' &
+lift_into channels "$jars" 'fixture.channels.Channels$package$.relay' \
+  'fixture.channels.Channels$package$.tallying' &
+lift_into declarations "$jars" 'fixture.declarations.Declarations$package$.queries' \
+  'fixture.declarations.Declarations$package$.durableEventually' &
+lift_into admission "$jars" 'fixture.specimens.admission.Admission$package$.currentQueries' \
+  'fixture.specimens.admission.Admission$package$.staleQueries' &
+lift_into closereset "$jars" 'fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries' \
+  'fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries' \
+  'fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries' &
+rejected=(unbounded waiting doubled listening counter crossedRead negative watched unrefined misplaced noSuchRoot
+  unrefinedOutcomes counting batching shuffling guessing)
+lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &
+lift_into activity "$here/gen/model-scala.jar=model/scala/" 'temporal.standaloneactivity.Model$package$.standaloneActivity' \
+  'temporal.standaloneactivity.Model$package$.activityProduct' &
+wait
+for name in presence channels declarations admission closereset activity; do
+  [[ "$(cat "$here/gen/lifts/$name.status")" == 0 ]] \
+    || { grep -v '^WARNING' "$here/gen/lifts/$name.log" >&2; echo "run.sh: the $name fixture did not lift" >&2; exit 1; }
+done
+grep '^lift:' "$here/gen/lifts/rejects.log" > "$here/gen/lifts/rejects.txt" || true
+[[ "$(cat "$here/gen/lifts/rejects.status")" != 0 && ! -f "$here/gen/lifts/rejects.json" ]] \
+  || { echo "run.sh: the lifter wrote the rejected declarations' IR" >&2; exit 1; }
+# The activity Models lift; model/scalav2/ir holds no IR of theirs to compare with yet.
+for name in presence channels declarations admission closereset rejects; do
+  file="$name.json"
+  [[ "$name" == rejects ]] && file=rejects.txt
+  if $update; then
+    cp "$here/gen/lifts/$file" "$fixtures/expected/$file"
+  elif ! diff -q "$fixtures/expected/$file" "$here/gen/lifts/$file" >/dev/null 2>&1; then
+    diff "$fixtures/expected/$file" "$here/gen/lifts/$file" | head -20
+    echo "run.sh: lifter/testdata/lifts/expected/$file is stale; rerun with --update" >&2
+    exit 1
+  fi
+done
+echo "lifted presence, channels, declarations, admission, closereset and activity; refused $(wc -l < "$here/gen/lifts/rejects.txt" | tr -d ' ') declarations"
+
+echo "== a declaration's identity does not move with its line"
+shifted="$(mktemp -d)"
+{ printf '// A line the declarations move down by.\n%.0s' 1 2 3; cat "$here/gen/fixtures/lifts/Declarations.scala"; } \
+  > "$shifted/Declarations.scala"
+cp "$here/gen/fixtures/lifts/project.scala" "$shifted/project.scala"
+scala_build --power package --library "$shifted" -f -o "$here/gen/shifted.jar"
+lift "$here/gen/shifted.jar=$(stored lifts),$here/gen/model-scala.jar=model/scala/" \
+  "$here/gen/model-scala.classpath" "$here/gen/lifts/shifted.json" 'fixture.declarations.Declarations$package$.queries' \
+  'fixture.declarations.Declarations$package$.durableEventually' 2> >(grep -v '^WARNING' >&2)
+rm -rf "$shifted"
+lines() { sed -E 's/"line": [0-9]+/"line": _/' "$1"; }
+cmp -s "$here/gen/lifts/declarations.json" "$here/gen/lifts/shifted.json" \
+  && { echo "run.sh: moving the declarations did not move their lines" >&2; exit 1; }
+diff <(lines "$here/gen/lifts/declarations.json") <(lines "$here/gen/lifts/shifted.json") \
+  || { echo "run.sh: moving the declarations down changed more than their lines" >&2; exit 1; }
+echo "moved down 3 lines: only the lines changed"
 
 echo "== interpret the IR in Go and compare with Lean"
 go vet ./model/scalav2/...

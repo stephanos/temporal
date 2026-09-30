@@ -32,8 +32,9 @@ type Composition[S any] struct {
 }
 
 type compositionMember struct {
-	field string
-	model Model
+	field    string
+	model    Model
+	replaces Model
 }
 
 type compositionSync struct {
@@ -51,8 +52,31 @@ func (c *Composition[S]) Name() string { return c.name }
 
 // Member adds a member machine under the state field tagged field.
 func (c *Composition[S]) Member(field string, m Model) *Composition[S] {
-	c.members = append(c.members, compositionMember{field, m})
+	c.members = append(c.members, compositionMember{field: field, model: m})
 	return c
+}
+
+// Replaces says the member at field stands in for replaced within this composition: a detailed
+// provider in place of an opaque one. The member's machine must declare a refinement of replaced
+// that holds and reads every start of it, and a check of the composition relies on none of
+// replaced's assumptions.
+func (c *Composition[S]) Replaces(field string, replaced Model) *Composition[S] {
+	i := slices.IndexFunc(c.members, func(m compositionMember) bool { return m.field == field })
+	if i < 0 {
+		if c.err == nil {
+			c.err = errorf("compose-"+c.name, "the composition replaces %s at %s, and has no member %s",
+				replaced.Name(), field, field)
+		}
+		return c
+	}
+	c.members[i].replaces = replaced
+	return c
+}
+
+// replacing is a member machine that may stand in for the machine it refines.
+type replacing interface {
+	refines() Model
+	checkRefinement(coverStarts bool) (*Refinement, error)
 }
 
 // Sync pairs two members' actions into one step named name. Each ref is "<member>.<action>"; a
@@ -131,15 +155,129 @@ func (c *Composition[S]) build() (*Table, error) {
 	if err := b.resolveMembers(); err != nil {
 		return nil, err
 	}
+	if err := b.checkReplacements(); err != nil {
+		return nil, err
+	}
 	if err := b.collectActions(); err != nil {
 		return nil, err
 	}
-	start := make([]string, len(b.tables))
-	for i, t := range b.tables {
-		start[i] = t.Starts[0]
+	starts := b.starts()
+	reached := b.explore(starts)
+	return b.assemble(starts, reached)
+}
+
+// starts is every composed start: the product of the members' starts in member order, the last
+// member varying fastest.
+func (b *composer[S]) starts() [][]string {
+	out := [][]string{{}}
+	for _, t := range b.tables {
+		var next [][]string
+		for _, prefix := range out {
+			for _, s := range t.Starts {
+				next = append(next, append(slices.Clone(prefix), s))
+			}
+		}
+		out = next
 	}
-	reached := b.explore(start)
-	return b.assemble(start, reached)
+	return out
+}
+
+// checkReplacements checks each replacing member's refinement of what it replaces.
+func (b *composer[S]) checkReplacements() error {
+	for _, m := range b.c.members {
+		if m.replaces == nil {
+			continue
+		}
+		r, ok := m.model.(replacing)
+		if !ok || r.refines() != m.replaces {
+			return errorf(b.owner, "the member %s replaces %s, and %s does not refine it",
+				m.field, m.replaces.Name(), m.model.Name())
+		}
+		if _, err := r.checkRefinement(true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// assumptions is every member's assumptions in member order, a replacing member's without those of
+// the machine it replaces, each fair class read as the composed classes that step it; two members'
+// assumptions of one name are one, fair for both members' classes.
+func (b *composer[S]) assumptions() ([]Assumption, error) {
+	var out []Assumption
+	for i, m := range b.c.members {
+		discharged, err := dischargedBy(m)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range b.tables[i].Assumptions {
+			if discharged[a.Name] {
+				continue
+			}
+			fair, err := b.composedFair(i, a)
+			if err != nil {
+				return nil, err
+			}
+			out = mergeAssumption(out, Assumption{Name: a.Name, Fair: fair})
+		}
+	}
+	return out, nil
+}
+
+// dischargedBy names the assumptions of the machine a member replaces, which the member no longer
+// relies on.
+func dischargedBy(m compositionMember) (map[string]bool, error) {
+	out := map[string]bool{}
+	if m.replaces == nil {
+		return out, nil
+	}
+	t, err := m.replaces.Table()
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range t.Assumptions {
+		out[a.Name] = true
+	}
+	return out, nil
+}
+
+// mergeAssumption adds an assumption, or its fair classes to the one of its name.
+func mergeAssumption(out []Assumption, a Assumption) []Assumption {
+	k := slices.IndexFunc(out, func(x Assumption) bool { return x.Name == a.Name })
+	if k < 0 {
+		return append(out, a)
+	}
+	for _, f := range a.Fair {
+		if !slices.Contains(out[k].Fair, f) {
+			out[k].Fair = append(out[k].Fair, f)
+		}
+	}
+	return out
+}
+
+// composedFair is the composed classes a member's fair classes, or actions, step: its own classes
+// keyed "<member>_<class>" and the synchronized steps it takes part in.
+func (b *composer[S]) composedFair(member int, a Assumption) ([]string, error) {
+	var out []string
+	for _, f := range a.Fair {
+		found := false
+		for _, ca := range b.actions {
+			for _, mv := range ca.moves {
+				if mv.member == member && (mv.action == f || actionName(mv.action) == f) {
+					found = true
+					if !slices.Contains(out, ca.key) {
+						out = append(out, ca.key)
+					}
+				}
+			}
+		}
+		if !found {
+			machine := b.tables[member].Machine
+			return nil, errorf(b.owner, "the assumption %s of %s makes %s fair, which is no action of %s",
+				a.Name, machine, f, machine)
+		}
+	}
+	return out, nil
 }
 
 func (b *composer[S]) resolveMembers() error {
@@ -181,6 +319,12 @@ func (b *composer[S]) collectActions() error {
 			return errorf(b.owner, "sync %s names a member the composition does not have", s.name)
 		}
 		synced[s.refs[0]], synced[s.refs[1]] = true, true
+		for i, member := range []int{first, second} {
+			if len(classesOf(b.tables[member], s.refs[i][1])) == 0 {
+				return errorf(b.owner, "sync %s names %s.%s, and %s has no action %s",
+					s.name, s.refs[i][0], s.refs[i][1], b.tables[member].Machine, s.refs[i][1])
+			}
+		}
 		for _, x := range classesOf(b.tables[first], s.refs[0][1]) {
 			for _, y := range classesOf(b.tables[second], s.refs[1][1]) {
 				key := s.name + strings.TrimPrefix(x, s.refs[0][1]) + strings.TrimPrefix(y, s.refs[1][1])
@@ -263,11 +407,17 @@ func rowOf(t *Table, state, action string) (Row, bool) {
 }
 
 // explore collects every composed state reachable from the start.
-func (b *composer[S]) explore(start []string) map[string]bool {
-	key := strings.Join(start, "_")
-	b.split[key] = start
-	seen := map[string]bool{key: true}
-	queue := [][]string{start}
+func (b *composer[S]) explore(starts [][]string) map[string]bool {
+	seen := map[string]bool{}
+	var queue [][]string
+	for _, start := range starts {
+		key := strings.Join(start, "_")
+		b.split[key] = start
+		if !seen[key] {
+			seen[key] = true
+			queue = append(queue, start)
+		}
+	}
 	for len(queue) > 0 {
 		parts := queue[0]
 		queue = queue[1:]
@@ -285,7 +435,7 @@ func (b *composer[S]) explore(start []string) map[string]bool {
 
 // assemble lays the reachable composition out as a table: states sorted by key, rows states-major
 // over the sorted actions.
-func (b *composer[S]) assemble(start []string, reached map[string]bool) (*Table, error) {
+func (b *composer[S]) assemble(starts [][]string, reached map[string]bool) (*Table, error) {
 	t := &Table{Machine: b.c.name, Owner: b.owner, Family: b.c.family, stateValue: map[string]any{}}
 	for k := range reached {
 		t.States = append(t.States, k)
@@ -322,7 +472,16 @@ func (b *composer[S]) assemble(start []string, reached map[string]bool) (*Table,
 		}
 		t.Rows = append(t.Rows, rows...)
 	}
-	t.Starts = []string{strings.Join(start, "_")}
+	for _, start := range starts {
+		if key := strings.Join(start, "_"); !slices.Contains(t.Starts, key) {
+			t.Starts = append(t.Starts, key)
+		}
+	}
+	assumptions, err := b.assumptions()
+	if err != nil {
+		return nil, err
+	}
+	t.Assumptions = assumptions
 	for _, s := range t.States {
 		v, ok := t.stateValue[s].(S)
 		if !ok {

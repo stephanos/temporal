@@ -3,7 +3,7 @@ satisfies: [R1, R7, R8, R10]
 ---
 # fn-107-scala-umpire-prototype-for-standalone.11 Close the exploration, regression, and trace-inspection loop
 
-Touches: [model/scalav2/explore/**, model/scalav2/README.md, model/scalav2/SEMANTICS.md, tools/umpire/replay/**, tests/testpilot_nexus_control_case_test.go]
+Touches: [model/scalav2/scala/temporal/**, model/scalav2/explore/**, model/scalav2/README.md, model/scalav2/SEMANTICS.md, tools/umpire/replay/**, tests/testpilot_nexus_control_case_test.go]
 
 ## Description
 Connect Scala variation/reduction declarations to existing exploration/replay and produce the final bounded demonstration artifacts.
@@ -30,6 +30,8 @@ Connect Scala variation/reduction declarations to existing exploration/replay an
 - [ ] A controlled runtime failure reproduces, minimizes without breaking dependencies, and produces a replayable proposal; unreproduced failures do not promote.
 - [ ] Repeat generation is byte-identical and the trace artifact exposes both levels, monitor state, evidence, faults, and holes.
 - [ ] The feature-only Scala authoring exercise and all targeted/final demonstration commands are recorded with honest support limits.
+
+- [ ] Feature-only edits use model/scalav2/scala/temporal; final generation/native tests/lint still pass with model/scala absent and preserve the guarded legacy baseline.
 
 ## Done summary
 TBD

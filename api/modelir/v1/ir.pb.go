@@ -392,8 +392,8 @@ func (Query_Form) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{52, 0}
 }
 
-// A Model: its types, its pure functions, its actions, and its machines, with the declarations
-// checks read over them.
+// A Model: its types, its pure functions, its actions, and its machines.
+// It also carries the declarations checks read over them.
 type Model struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Where the Model was lifted from, for diagnostics and provenance.
@@ -2016,7 +2016,9 @@ func (x *If) GetElse() *Expr {
 }
 
 // The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
-// value no case matches is an undeclared hole in the Model, which the interpreter reports.
+// value no case matches is a hole in the Model, which the interpreter reports.
+// That hole is an undeclared one (model/scalav2/SEMANTICS.md, Holes), neither a declared hole nor an
+// admission error.
 type Match struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Scrutinee     *Expr                  `protobuf:"bytes,1,opt,name=scrutinee,proto3" json:"scrutinee,omitempty"`
@@ -2949,8 +2951,8 @@ func (x *ListValue) GetItems() []*Value {
 	return nil
 }
 
-// An action: a party's side effect, a timer the system owns, or another step of the system, with its
-// finite inputs.
+// An action: a party's side effect or a timer the system owns, with its finite inputs.
+// The system owns its other steps too: an internal step, and a channel's delivery or loss.
 type Action struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key the IR names it by: the front end's qualified name.
@@ -3158,8 +3160,8 @@ func (x *Example) GetExample() string {
 }
 
 // A machine: a state type, the step function bound to each action, the states it starts in, the
-// states it may end in, the evidence for each fact, the machine it refines, the monitors that watch
-// it and the assumptions checking it makes.
+// states it may end in, the evidence for each fact, and the machine it refines.
+// It also names the monitors that watch it and the assumptions checking it makes.
 type Machine struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Family      string                 `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
@@ -3393,9 +3395,12 @@ type Refinement struct {
 	Map string `protobuf:"bytes,2,opt,name=map,proto3" json:"map,omitempty"`
 	// A Function from a fact of this machine to whether the refined machine sees it. Empty when the
 	// refinement declares no projection.
-	Visible       string `protobuf:"bytes,3,opt,name=visible,proto3" json:"visible,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Visible string `protobuf:"bytes,3,opt,name=visible,proto3" json:"visible,omitempty"`
+	// A Function from an outcome of this machine to whether the refined machine sees it. Empty when the
+	// refinement names no outcome the refined machine sees.
+	VisibleOutcomes string `protobuf:"bytes,4,opt,name=visible_outcomes,json=visibleOutcomes,proto3" json:"visible_outcomes,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Refinement) Reset() {
@@ -3445,6 +3450,13 @@ func (x *Refinement) GetMap() string {
 func (x *Refinement) GetVisible() string {
 	if x != nil {
 		return x.Visible
+	}
+	return ""
+}
+
+func (x *Refinement) GetVisibleOutcomes() string {
+	if x != nil {
+		return x.VisibleOutcomes
 	}
 	return ""
 }
@@ -4955,12 +4967,13 @@ const file_temporal_server_api_modelir_v1_ir_proto_rawDesc = "" +
 	"\vStepBinding\x12\x16\n" +
 	"\x06action\x18\x01 \x01(\tR\x06action\x12\x1a\n" +
 	"\bfunction\x18\x02 \x01(\tR\bfunction\x12D\n" +
-	"\bposition\x18\x03 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\"R\n" +
+	"\bposition\x18\x03 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\"}\n" +
 	"\n" +
 	"Refinement\x12\x18\n" +
 	"\aproduct\x18\x01 \x01(\tR\aproduct\x12\x10\n" +
 	"\x03map\x18\x02 \x01(\tR\x03map\x12\x18\n" +
-	"\avisible\x18\x03 \x01(\tR\avisible\"\x92\x03\n" +
+	"\avisible\x18\x03 \x01(\tR\avisible\x12)\n" +
+	"\x10visible_outcomes\x18\x04 \x01(\tR\x0fvisibleOutcomes\"\x92\x03\n" +
 	"\aChannel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12D\n" +

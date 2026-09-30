@@ -42,6 +42,9 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
   def replaces(field: String, opaque: Model): Composition[S] =
     Composition(family, name, fieldNames, fromParts, members, syncs, isEnd, replaced :+ (field -> opaque))
 
+  /** The member machines, in member order. */
+  private[umpire] def memberModels: Vector[Model] = members.map(_._2)
+
   /** Every replacement whose member does not refine what it replaces. */
   private[umpire] def replacements: List[ModelError] = replaced.toList.flatMap { (field, opaque) =>
     members.find(_._1 == field).map(_._2) match

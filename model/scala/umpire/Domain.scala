@@ -83,14 +83,14 @@ trait Keyed:
 
 /** Keys as Lean spells them: an enum case by its name, a parametrised case by its name followed by
   * its fields, a Boolean as true or false, a counter in decimal, and a state case class by its fields
-  * in declaration order, all joined by "-". An optional value is spelled as the enum case of its
-  * constructor would be: `None`, or `Some` followed by the value. */
+  * in declaration order, all joined by "-". */
 object Keys:
   def of(v: Any): String = v match
     case k: Keyed               => k.key
     case b: Boolean             => b.toString
     case i: Int                 => i.toString
     case s: String              => s
+    // An optional value is spelled as the enum case of its constructor would be.
     case None                   => "None"
     case Some(v)                => s"Some-${of(v)}"
     case e: scala.reflect.Enum  =>

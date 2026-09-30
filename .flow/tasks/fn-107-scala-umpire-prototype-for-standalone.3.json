@@ -4,7 +4,10 @@
   "claimed_at": null,
   "created_at": "2026-09-30T16:25:09.448574Z",
   "depends_on": [
-    "fn-107-scala-umpire-prototype-for-standalone.2"
+    "fn-107-scala-umpire-prototype-for-standalone.2",
+    "fn-107-scala-umpire-prototype-for-standalone.14",
+    "fn-107-scala-umpire-prototype-for-standalone.15",
+    "fn-107-scala-umpire-prototype-for-standalone.16"
   ],
   "id": "fn-107-scala-umpire-prototype-for-standalone.3",
   "priority": null,
@@ -12,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.3.md",
   "status": "todo",
   "title": "Adapt generic Go checking to the finite semantic IR",
-  "updated_at": "2026-09-30T16:46:45.318894Z"
+  "updated_at": "2026-09-30T21:58:50.291852Z"
 }

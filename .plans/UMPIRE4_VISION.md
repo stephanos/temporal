@@ -26,3 +26,16 @@
 - example of explorartive test to find issues itself
 - example showing how to translate a subset of existing functional tests to model
 - developer-facing syntax is friendly enough for Lean-newbies
+
+---
+
+### Ownership by Feature
+
+Following Conway's Law, the model should reflect the reality of the system being modeled: multiple teams own separte features.
+And even within a feature - like "Workflow" - there are sub-team ownership rules to apply.
+This means the model needs to be very composable/extensible. Maybe one team owns the basics and another builds a separate feature on top.
+And when finding a bug, this needs to be retracable to the owning team.
+
+### Known bugs  
+
+TBD

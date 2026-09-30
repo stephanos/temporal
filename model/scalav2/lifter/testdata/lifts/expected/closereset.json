@@ -1,0 +1,5701 @@
+{
+  "source": "model/scala: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries",
+  "types": [{
+    "name": "fixture.specimens.closereset.Answer",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 53
+    },
+    "enum": {
+      "cases": [{
+        "name": "accepted"
+      }, {
+        "name": "retained"
+      }, {
+        "name": "rejectedTransient"
+      }, {
+        "name": "rejectedPermanent"
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Caller",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 18
+    },
+    "enum": {
+      "cases": [{
+        "name": "open"
+      }, {
+        "name": "closed"
+      }, {
+        "name": "resetOpen"
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseResetState",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 43
+    },
+    "record": {
+      "fields": [{
+        "name": "caller",
+        "type": {
+          "named": "fixture.specimens.closereset.Caller"
+        }
+      }, {
+        "name": "cancel",
+        "type": {
+          "bool": {
+          }
+        }
+      }, {
+        "name": "handler",
+        "type": {
+          "named": "fixture.specimens.closereset.Handler"
+        }
+      }, {
+        "name": "channel",
+        "type": {
+          "named": "fixture.specimens.closereset.Completion"
+        }
+      }, {
+        "name": "retained",
+        "type": {
+          "named": "fixture.specimens.closereset.Retained"
+        }
+      }, {
+        "name": "known",
+        "type": {
+          "named": "fixture.specimens.closereset.Knowledge"
+        }
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Completion",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 28
+    },
+    "enum": {
+      "cases": [{
+        "name": "none"
+      }, {
+        "name": "inFlight",
+        "fields": [{
+          "name": "result",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.Resolution"
+          }
+        }]
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Handler",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 22
+    },
+    "enum": {
+      "cases": [{
+        "name": "running"
+      }, {
+        "name": "done",
+        "fields": [{
+          "name": "result",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.Resolution"
+          }
+        }]
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Knowledge",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 38
+    },
+    "enum": {
+      "cases": [{
+        "name": "none"
+      }, {
+        "name": "original",
+        "fields": [{
+          "name": "result",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.Resolution"
+          }
+        }]
+      }, {
+        "name": "successor",
+        "fields": [{
+          "name": "result",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.Resolution"
+          }
+        }]
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Policy",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 60
+    },
+    "enum": {
+      "cases": [{
+        "name": "rejectAfterClose"
+      }, {
+        "name": "ackByOriginal"
+      }, {
+        "name": "retainAndRoute"
+      }]
+    }
+  }, {
+    "name": "fixture.specimens.closereset.Retained",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 33
+    },
+    "enum": {
+      "cases": [{
+        "name": "none"
+      }, {
+        "name": "pending",
+        "fields": [{
+          "name": "result",
+          "type": {
+            "named": "temporal.nexuscaller.kernel.Resolution"
+          }
+        }]
+      }]
+    }
+  }, {
+    "name": "temporal.nexuscaller.kernel.Resolution",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 32
+    },
+    "enum": {
+      "cases": [{
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      }]
+    }
+  }],
+  "functions": [{
+    "name": "ackByOriginal.complete",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 170
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 170
+      },
+      "call": {
+        "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 170
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Policy",
+              "case": "ackByOriginal"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 170
+          },
+          "var": "s"
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 170
+          },
+          "var": "r"
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 197
+    },
+    "params": [{
+      "name": "before",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 197
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 197
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 197
+              },
+              "var": "before"
+            },
+            "field": "channel"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "case": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "inFlight",
+              "fields": [{
+                "bind": {
+                  "name": "r",
+                  "pattern": {
+                    "wildcard": {
+                    }
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 199
+            },
+            "binary": {
+              "op": "OP_OR",
+              "left": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 199
+                },
+                "binary": {
+                  "op": "OP_OR",
+                  "left": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 199
+                    },
+                    "binary": {
+                      "op": "OP_OR",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 199
+                        },
+                        "binary": {
+                          "op": "OP_AND",
+                          "left": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 199
+                            },
+                            "binary": {
+                              "op": "OP_NE",
+                              "left": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 199
+                                },
+                                "field": {
+                                  "base": {
+                                    "position": {
+                                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                      "line": 199
+                                    },
+                                    "var": "after"
+                                  },
+                                  "field": "outcome"
+                                }
+                              },
+                              "right": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 199
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.specimens.closereset.Answer",
+                                    "case": "accepted"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 199
+                            },
+                            "binary": {
+                              "op": "OP_NE",
+                              "left": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 199
+                                },
+                                "field": {
+                                  "base": {
+                                    "position": {
+                                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                      "line": 199
+                                    },
+                                    "var": "after"
+                                  },
+                                  "field": "outcome"
+                                }
+                              },
+                              "right": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 199
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.specimens.closereset.Answer",
+                                    "case": "retained"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 199
+                        },
+                        "binary": {
+                          "op": "OP_NE",
+                          "left": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 199
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 199
+                                },
+                                "field": {
+                                  "base": {
+                                    "position": {
+                                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                      "line": 199
+                                    },
+                                    "var": "after"
+                                  },
+                                  "field": "state"
+                                }
+                              },
+                              "field": "channel"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 199
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.specimens.closereset.Completion",
+                                "case": "none"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 200
+                    },
+                    "call": {
+                      "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 200
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 200
+                            },
+                            "var": "after"
+                          },
+                          "field": "state"
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 200
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }
+              },
+              "right": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 200
+                },
+                "binary": {
+                  "op": "OP_EQ",
+                  "left": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 200
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 200
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 200
+                            },
+                            "var": "after"
+                          },
+                          "field": "state"
+                        }
+                      },
+                      "field": "retained"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 200
+                    },
+                    "construct": {
+                      "type": "fixture.specimens.closereset.Retained",
+                      "case": "pending",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 200
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.specimens.closereset.Completion",
+                "case": "none"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 201
+            },
+            "literal": {
+              "bool": true
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.cancelStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 80
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 81
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 81
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 81
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 81
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 81
+                      },
+                      "var": "s"
+                    },
+                    "field": "cancel"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 81
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 81
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                            "line": 81
+                          },
+                          "var": "s"
+                        },
+                        "field": "caller"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 81
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.closereset.Caller",
+                          "case": "closed"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 81
+              },
+              "binary": {
+                "op": "OP_NE",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 81
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 81
+                      },
+                      "var": "s"
+                    },
+                    "field": "handler"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 81
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Handler",
+                      "case": "running"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 81
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 82
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 82
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 82
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Answer",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 82
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 82
+                      },
+                      "var": "s"
+                    },
+                    "updates": [{
+                      "name": "cancel",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 82
+                        },
+                        "literal": {
+                          "bool": true
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 82
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 82
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.closeStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 77
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 78
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 78
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 78
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 78
+                  },
+                  "var": "s"
+                },
+                "field": "caller"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 78
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Caller",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 78
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 78
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 78
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 78
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Answer",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 78
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 78
+                      },
+                      "var": "s"
+                    },
+                    "updates": [{
+                      "name": "caller",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 78
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Caller",
+                            "case": "closed"
+                          }
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 78
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 78
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.committed",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 92
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.specimens.closereset.Knowledge"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 92
+      },
+      "list": {
+        "items": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 93
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 93
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 93
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 93
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "channel",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 93
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.specimens.closereset.Completion",
+                        "case": "none"
+                      }
+                    }
+                  }
+                }, {
+                  "name": "known",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 93
+                    },
+                    "var": "k"
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 93
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 93
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 94
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 94
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "rejectedTransient"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 94
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 94
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 94
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 95
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 95
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 95
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 95
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "known",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 95
+                    },
+                    "var": "k"
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 95
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 95
+              },
+              "literal": {
+                "text": "the acknowledgment is lost"
+              }
+            }]
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 104
+    },
+    "params": [{
+      "name": "p",
+      "type": {
+        "named": "fixture.specimens.closereset.Policy"
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 105
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 105
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 105
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 105
+                  },
+                  "var": "s"
+                },
+                "field": "channel"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 105
+              },
+              "construct": {
+                "type": "fixture.specimens.closereset.Completion",
+                "case": "inFlight",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 105
+                  },
+                  "var": "r"
+                }]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 105
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 106
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 106
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 106
+                  },
+                  "var": "s"
+                },
+                "field": "caller"
+              }
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.specimens.closereset.Caller",
+                    "case": "open"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 107
+                },
+                "call": {
+                  "function": "fixture.specimens.closereset.CloseReset$package$.committed",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 107
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 107
+                    },
+                    "construct": {
+                      "type": "fixture.specimens.closereset.Knowledge",
+                      "case": "original",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 107
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.specimens.closereset.Caller",
+                    "case": "closed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 109
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 109
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 109
+                        },
+                        "var": "p"
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 109
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Policy",
+                            "case": "rejectAfterClose"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 110
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 110
+                        },
+                        "construct": {
+                          "type": "umpire.Step",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.specimens.closereset.Answer",
+                                "case": "rejectedPermanent"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "copy": {
+                              "base": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 110
+                                },
+                                "var": "s"
+                              },
+                              "updates": [{
+                                "name": "channel",
+                                "value": {
+                                  "position": {
+                                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                    "line": 110
+                                  },
+                                  "literal": {
+                                    "enum": {
+                                      "type": "fixture.specimens.closereset.Completion",
+                                      "case": "none"
+                                    }
+                                  }
+                                }
+                              }]
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "list": {
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "literal": {
+                              "text": ""
+                            }
+                          }]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 110
+                        },
+                        "construct": {
+                          "type": "umpire.Step",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.specimens.closereset.Answer",
+                                "case": "rejectedTransient"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "list": {
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 110
+                            },
+                            "literal": {
+                              "text": ""
+                            }
+                          }]
+                        }
+                      }]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 111
+                    },
+                    "call": {
+                      "function": "fixture.specimens.closereset.CloseReset$package$.keptAtOperation",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 111
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 111
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.specimens.closereset.Caller",
+                    "case": "resetOpen"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 113
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 113
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 113
+                        },
+                        "var": "p"
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 113
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Policy",
+                            "case": "ackByOriginal"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 114
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 114
+                        },
+                        "construct": {
+                          "type": "umpire.Step",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 114
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.specimens.closereset.Answer",
+                                "case": "accepted"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 114
+                            },
+                            "copy": {
+                              "base": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 114
+                                },
+                                "var": "s"
+                              },
+                              "updates": [{
+                                "name": "channel",
+                                "value": {
+                                  "position": {
+                                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                    "line": 114
+                                  },
+                                  "literal": {
+                                    "enum": {
+                                      "type": "fixture.specimens.closereset.Completion",
+                                      "case": "none"
+                                    }
+                                  }
+                                }
+                              }]
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 114
+                            },
+                            "list": {
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 114
+                            },
+                            "literal": {
+                              "text": "the original run acknowledges it"
+                            }
+                          }]
+                        }
+                      }]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 115
+                    },
+                    "call": {
+                      "function": "fixture.specimens.closereset.CloseReset$package$.committed",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 115
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 115
+                        },
+                        "construct": {
+                          "type": "fixture.specimens.closereset.Knowledge",
+                          "case": "successor",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 115
+                            },
+                            "var": "r"
+                          }]
+                        }
+                      }]
+                    }
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.finishStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 85
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 86
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 86
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 86
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 86
+                  },
+                  "var": "s"
+                },
+                "field": "handler"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 86
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Handler",
+                  "case": "running"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 86
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 87
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 87
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 87
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 87
+                      },
+                      "var": "r"
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 87
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.kernel.Resolution",
+                          "case": "canceled"
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 87
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 87
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                            "line": 87
+                          },
+                          "var": "s"
+                        },
+                        "field": "cancel"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 87
+              },
+              "list": {
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 88
+              },
+              "list": {
+                "items": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 88
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [{
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 88
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.closereset.Answer",
+                          "case": "accepted"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 88
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                            "line": 88
+                          },
+                          "var": "s"
+                        },
+                        "updates": [{
+                          "name": "handler",
+                          "value": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 88
+                            },
+                            "construct": {
+                              "type": "fixture.specimens.closereset.Handler",
+                              "case": "done",
+                              "args": [{
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 88
+                                },
+                                "var": "r"
+                              }]
+                            }
+                          }
+                        }, {
+                          "name": "channel",
+                          "value": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 88
+                            },
+                            "construct": {
+                              "type": "fixture.specimens.closereset.Completion",
+                              "case": "inFlight",
+                              "args": [{
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 88
+                                },
+                                "var": "r"
+                              }]
+                            }
+                          }
+                        }]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 88
+                      },
+                      "list": {
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 88
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    }]
+                  }
+                }]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.keptAtOperation",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 98
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 98
+      },
+      "list": {
+        "items": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 99
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 99
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "retained"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 99
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 99
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "channel",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 99
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.specimens.closereset.Completion",
+                        "case": "none"
+                      }
+                    }
+                  }
+                }, {
+                  "name": "retained",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 99
+                    },
+                    "construct": {
+                      "type": "fixture.specimens.closereset.Retained",
+                      "case": "pending",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 99
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 99
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 99
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 100
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 100
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "rejectedTransient"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 100
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 100
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 100
+              },
+              "literal": {
+                "text": ""
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 101
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 101
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Answer",
+                  "case": "retained"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 101
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 101
+                  },
+                  "var": "s"
+                },
+                "updates": [{
+                  "name": "retained",
+                  "value": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 101
+                    },
+                    "construct": {
+                      "type": "fixture.specimens.closereset.Retained",
+                      "case": "pending",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 101
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 101
+              },
+              "list": {
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 101
+              },
+              "literal": {
+                "text": "the acknowledgment is lost"
+              }
+            }]
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 191
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 191
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 191
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 191
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 191
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "handler"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.specimens.closereset.Handler",
+                "case": "running"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 192
+            },
+            "literal": {
+              "bool": true
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "done",
+              "fields": [{
+                "bind": {
+                  "name": "r",
+                  "pattern": {
+                    "wildcard": {
+                    }
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 194
+            },
+            "binary": {
+              "op": "OP_OR",
+              "left": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 194
+                },
+                "binary": {
+                  "op": "OP_OR",
+                  "left": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 194
+                    },
+                    "call": {
+                      "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 194
+                            },
+                            "var": "after"
+                          },
+                          "field": "state"
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 194
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 194
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                                  "line": 194
+                                },
+                                "var": "after"
+                              },
+                              "field": "state"
+                            }
+                          },
+                          "field": "retained"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "construct": {
+                          "type": "fixture.specimens.closereset.Retained",
+                          "case": "pending",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 194
+                            },
+                            "var": "r"
+                          }]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "right": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 194
+                },
+                "binary": {
+                  "op": "OP_EQ",
+                  "left": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 194
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 194
+                            },
+                            "var": "after"
+                          },
+                          "field": "state"
+                        }
+                      },
+                      "field": "channel"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 194
+                    },
+                    "construct": {
+                      "type": "fixture.specimens.closereset.Completion",
+                      "case": "inFlight",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 194
+                        },
+                        "var": "r"
+                      }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.next",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 148
+    },
+    "params": [{
+      "name": "broken",
+      "type": {
+        "bool": {
+        }
+      }
+    }, {
+      "name": "before",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 149
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 149
+          },
+          "var": "broken"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 149
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 149
+              },
+              "call": {
+                "function": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 149
+                  },
+                  "var": "before"
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 149
+                  },
+                  "var": "after"
+                }]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.violated",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 149
+    },
+    "params": [{
+      "name": "broken",
+      "type": {
+        "bool": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 149
+      },
+      "var": "broken"
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 186
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 187
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 187
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 187
+                  },
+                  "var": "s"
+                },
+                "field": "caller"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Caller",
+                  "case": "resetOpen"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 187
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 187
+                  },
+                  "var": "s"
+                },
+                "field": "known"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "construct": {
+                "type": "fixture.specimens.closereset.Knowledge",
+                "case": "successor",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 187
+                  },
+                  "var": "r"
+                }]
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 187
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 187
+                  },
+                  "var": "s"
+                },
+                "field": "known"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 187
+              },
+              "construct": {
+                "type": "fixture.specimens.closereset.Knowledge",
+                "case": "original",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 187
+                  },
+                  "var": "r"
+                }]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.reapplied",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 124
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 124
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 124
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 124
+              },
+              "var": "s"
+            },
+            "field": "known"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "case": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "original",
+              "fields": [{
+                "bind": {
+                  "name": "r",
+                  "pattern": {
+                    "wildcard": {
+                    }
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 125
+            },
+            "construct": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "successor",
+              "args": [{
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 125
+                },
+                "var": "r"
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": {
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 127
+            },
+            "match": {
+              "scrutinee": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 127
+                },
+                "field": {
+                  "base": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 127
+                    },
+                    "var": "s"
+                  },
+                  "field": "retained"
+                }
+              },
+              "cases": [{
+                "pattern": {
+                  "case": {
+                    "type": "fixture.specimens.closereset.Retained",
+                    "case": "pending",
+                    "fields": [{
+                      "bind": {
+                        "name": "r",
+                        "pattern": {
+                          "wildcard": {
+                          }
+                        }
+                      }
+                    }]
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 128
+                  },
+                  "construct": {
+                    "type": "fixture.specimens.closereset.Knowledge",
+                    "case": "successor",
+                    "args": [{
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 128
+                      },
+                      "var": "r"
+                    }]
+                  }
+                }
+              }, {
+                "pattern": {
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Retained",
+                      "case": "none"
+                    }
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 129
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Knowledge",
+                      "case": "none"
+                    }
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.resetStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 120
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 121
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 121
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 121
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 121
+                  },
+                  "var": "s"
+                },
+                "field": "caller"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.closereset.Caller",
+                  "case": "resetOpen"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 121
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 122
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 122
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 122
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.closereset.Answer",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 122
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                        "line": 122
+                      },
+                      "var": "s"
+                    },
+                    "updates": [{
+                      "name": "caller",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 122
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Caller",
+                            "case": "resetOpen"
+                          }
+                        }
+                      }
+                    }, {
+                      "name": "retained",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 122
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Retained",
+                            "case": "none"
+                          }
+                        }
+                      }
+                    }, {
+                      "name": "known",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 122
+                        },
+                        "call": {
+                          "function": "fixture.specimens.closereset.CloseReset$package$.reapplied",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 122
+                            },
+                            "var": "s"
+                          }]
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 122
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 122
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.next",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 142
+    },
+    "params": [{
+      "name": "lost",
+      "type": {
+        "bool": {
+        }
+      }
+    }, {
+      "name": "_$1",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 143
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 143
+          },
+          "var": "lost"
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 143
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 143
+              },
+              "call": {
+                "function": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                    "line": 143
+                  },
+                  "var": "after"
+                }]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.violated",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 143
+    },
+    "params": [{
+      "name": "lost",
+      "type": {
+        "bool": {
+        }
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 143
+      },
+      "var": "lost"
+    }
+  }, {
+    "name": "fixture.specimens.closereset.CloseReset$package$.settled",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 134
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 134
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 134
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 134
+              },
+              "var": "s"
+            },
+            "field": "handler"
+          }
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.specimens.closereset.Handler",
+                "case": "running"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 135
+            },
+            "literal": {
+              "bool": true
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "done",
+              "fields": [{
+                "bind": {
+                  "name": "r",
+                  "pattern": {
+                    "wildcard": {
+                    }
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+              "line": 136
+            },
+            "binary": {
+              "op": "OP_OR",
+              "left": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 136
+                },
+                "call": {
+                  "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 136
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 136
+                    },
+                    "var": "r"
+                  }]
+                }
+              },
+              "right": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                  "line": 136
+                },
+                "binary": {
+                  "op": "OP_AND",
+                  "left": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 136
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 136
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 136
+                            },
+                            "var": "s"
+                          },
+                          "field": "caller"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 136
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.closereset.Caller",
+                            "case": "closed"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                      "line": 136
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 136
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 136
+                            },
+                            "var": "s"
+                          },
+                          "field": "retained"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                          "line": 136
+                        },
+                        "construct": {
+                          "type": "fixture.specimens.closereset.Retained",
+                          "case": "pending",
+                          "args": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                              "line": 136
+                            },
+                            "var": "r"
+                          }]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "rejectAfterClose.complete",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 160
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 160
+      },
+      "call": {
+        "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 160
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Policy",
+              "case": "rejectAfterClose"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 160
+          },
+          "var": "s"
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 160
+          },
+          "var": "r"
+        }]
+      }
+    }
+  }, {
+    "name": "retainAndRoute.complete",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 180
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.closereset.CloseResetState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 180
+      },
+      "call": {
+        "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 180
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Policy",
+              "case": "retainAndRoute"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 180
+          },
+          "var": "s"
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 180
+          },
+          "var": "r"
+        }]
+      }
+    }
+  }],
+  "actions": [{
+    "id": "fixture.specimens.closereset.CloseReset$package$.callerClose",
+    "name": "callerClose",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 68
+    },
+    "party": "caller",
+    "on": "workflow"
+  }, {
+    "id": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+    "name": "handlerFinish",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 71
+    },
+    "party": "handler",
+    "inputs": [{
+      "name": "result",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "on": "operation"
+  }, {
+    "id": "fixture.specimens.closereset.CloseReset$package$.requestCancel",
+    "name": "requestCancel",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 70
+    },
+    "party": "caller",
+    "on": "operation"
+  }, {
+    "id": "fixture.specimens.closereset.CloseReset$package$.reset",
+    "name": "reset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 69
+    },
+    "party": "caller",
+    "on": "workflow"
+  }, {
+    "id": "temporal.nexuscaller.Model$package$.complete",
+    "name": "complete",
+    "position": {
+      "file": "model/scala/temporal/nexuscaller/Model.scala",
+      "line": 76
+    },
+    "party": "handler",
+    "inputs": [{
+      "name": "resolution",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.Resolution"
+      }
+    }],
+    "on": "operation",
+    "results": "Delivery"
+  }],
+  "machines": [{
+    "family": "temporal.nexus.caller.closereset",
+    "name": "ackByOriginal",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 164
+    },
+    "entity": "operation",
+    "stateType": "fixture.specimens.closereset.CloseResetState",
+    "outcomeType": "fixture.specimens.closereset.Answer",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 168
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "fixture.specimens.closereset.CloseResetState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 168
+          },
+          "call": {
+            "function": "fixture.specimens.closereset.CloseReset$package$.settled",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 168
+              },
+              "var": "s"
+            }]
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
+      "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 169
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset",
+      "function": "fixture.specimens.closereset.CloseReset$package$.resetStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 169
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel",
+      "function": "fixture.specimens.closereset.CloseReset$package$.cancelStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 169
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "function": "fixture.specimens.closereset.CloseReset$package$.finishStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 169
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "ackByOriginal.complete",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 170
+      }
+    }],
+    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
+  }, {
+    "family": "temporal.nexus.caller.closereset",
+    "name": "rejectAfterClose",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 154
+    },
+    "entity": "operation",
+    "stateType": "fixture.specimens.closereset.CloseResetState",
+    "outcomeType": "fixture.specimens.closereset.Answer",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 158
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "fixture.specimens.closereset.CloseResetState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 158
+          },
+          "call": {
+            "function": "fixture.specimens.closereset.CloseReset$package$.settled",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 158
+              },
+              "var": "s"
+            }]
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
+      "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 159
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset",
+      "function": "fixture.specimens.closereset.CloseReset$package$.resetStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 159
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel",
+      "function": "fixture.specimens.closereset.CloseReset$package$.cancelStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 159
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "function": "fixture.specimens.closereset.CloseReset$package$.finishStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 159
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "rejectAfterClose.complete",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 160
+      }
+    }],
+    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
+  }, {
+    "family": "temporal.nexus.caller.closereset",
+    "name": "retainAndRoute",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 174
+    },
+    "entity": "operation",
+    "stateType": "fixture.specimens.closereset.CloseResetState",
+    "outcomeType": "fixture.specimens.closereset.Answer",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 178
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "fixture.specimens.closereset.CloseResetState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 178
+          },
+          "call": {
+            "function": "fixture.specimens.closereset.CloseReset$package$.settled",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+                "line": 178
+              },
+              "var": "s"
+            }]
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
+      "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 179
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset",
+      "function": "fixture.specimens.closereset.CloseReset$package$.resetStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 179
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel",
+      "function": "fixture.specimens.closereset.CloseReset$package$.cancelStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 179
+      }
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "function": "fixture.specimens.closereset.CloseReset$package$.finishStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 179
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "retainAndRoute.complete",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 180
+      }
+    }],
+    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
+  }],
+  "monitors": [{
+    "id": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment",
+    "name": "ownerAcknowledgment",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 147
+    },
+    "state": {
+      "bool": {
+      }
+    },
+    "initial": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 148
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "next": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.next",
+    "violated": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.violated",
+    "everyStep": {
+    }
+  }, {
+    "id": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome",
+    "name": "retainedOutcome",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 141
+    },
+    "state": {
+      "bool": {
+      }
+    },
+    "initial": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 142
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "next": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.next",
+    "violated": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.violated",
+    "everyStep": {
+    }
+  }],
+  "properties": [{
+    "machine": "ackByOriginal",
+    "name": "ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 208
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
+    "transition": true
+  }, {
+    "machine": "ackByOriginal",
+    "name": "outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 207
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved"
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 208
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
+    "transition": true
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 207
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved"
+  }, {
+    "machine": "retainAndRoute",
+    "name": "ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 208
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
+    "transition": true
+  }, {
+    "machine": "retainAndRoute",
+    "name": "outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 207
+    },
+    "holds": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved"
+  }],
+  "scenarios": [{
+    "machine": "ackByOriginal",
+    "name": "ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 215
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "ackByOriginal",
+    "name": "any",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 217
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "ackByOriginal",
+    "name": "canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 213
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }]
+  }, {
+    "machine": "ackByOriginal",
+    "name": "closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 209
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "ackByOriginal",
+    "name": "resetThenDelivered",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 211
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }]
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 215
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "any",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 217
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 213
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }]
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 209
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "rejectAfterClose",
+    "name": "resetThenDelivered",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 211
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }]
+  }, {
+    "machine": "retainAndRoute",
+    "name": "ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 215
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "retainAndRoute",
+    "name": "any",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 217
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "retainAndRoute",
+    "name": "canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 213
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "canceled"
+        }
+      }]
+    }]
+  }, {
+    "machine": "retainAndRoute",
+    "name": "closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 209
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "succeeded"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }]
+  }, {
+    "machine": "retainAndRoute",
+    "name": "resetThenDelivered",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 211
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.specimens.closereset.CloseResetState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.specimens.closereset.Knowledge",
+              "case": "none"
+            }
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }, {
+      "action": "fixture.specimens.closereset.CloseReset$package$.reset"
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [{
+        "enum": {
+          "type": "temporal.nexuscaller.kernel.Resolution",
+          "case": "failed"
+        }
+      }]
+    }]
+  }],
+  "queries": [{
+    "name": "ackByOriginal.ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 223
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "ackedThenReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "ackByOriginal.any.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 225
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "ackByOriginal.any.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 224
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "ackByOriginal.canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 222
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "canceledAcrossReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "ackByOriginal.closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 219
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "closedThenFinished"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "ackByOriginal.resetThenDelivered.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 220
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "ackByOriginal.resetThenDelivered.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 221
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "ackByOriginal",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "ackByOriginal",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "rejectAfterClose.ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 223
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "ackedThenReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "rejectAfterClose.any.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 225
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "rejectAfterClose.any.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 224
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "rejectAfterClose.canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 222
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "canceledAcrossReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "rejectAfterClose.closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 219
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "closedThenFinished"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "rejectAfterClose.resetThenDelivered.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 220
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "rejectAfterClose.resetThenDelivered.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 221
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "rejectAfterClose",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "rejectAfterClose",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "retainAndRoute.ackedThenReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 223
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "ackedThenReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "retainAndRoute.any.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 225
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "retainAndRoute.any.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 224
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "any"
+    },
+    "limits": {
+      "name": "six",
+      "steps": 6,
+      "actions": 6,
+      "search": 4194304
+    }
+  }, {
+    "name": "retainAndRoute.canceledAcrossReset",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 222
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "canceledAcrossReset"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "retainAndRoute.closedThenFinished",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 219
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "closedThenFinished"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "retainAndRoute.resetThenDelivered.ackOnlyWhenKept",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 220
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "ackOnlyWhenKept"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }, {
+    "name": "retainAndRoute.resetThenDelivered.outcomePreserved",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "line": 221
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "retainAndRoute",
+      "name": "outcomePreserved"
+    },
+    "scenario": {
+      "machine": "retainAndRoute",
+      "name": "resetThenDelivered"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 1048576
+    }
+  }]
+}

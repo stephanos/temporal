@@ -42,6 +42,11 @@ type Machine[S, O, F any] struct {
 	refinement   *refinementDecl[S]
 	names        claimNames
 
+	visibleFact    func(F) bool
+	visibleOutcome func(O) bool
+	coverStarts    bool
+	assumptions    []Assumption
+
 	once  sync.Once
 	table *Table
 	err   error
@@ -135,6 +140,7 @@ func (m *Machine[S, O, F]) Restrict(family Family, name string, keep ...*ActionD
 	d := NewMachine[S, O, F](family, name)
 	d.entity, d.starts, d.ends = m.entity, m.starts, m.ends
 	d.evidence = append(d.evidence, m.evidence...)
+	d.assumptions = append(d.assumptions, m.assumptions...)
 	for _, b := range m.bindings {
 		if slices.Contains(keep, b.decl) {
 			d.bindings = append(d.bindings, b)
@@ -152,6 +158,9 @@ func (m *Machine[S, O, F]) Table() (*Table, error) {
 }
 
 func (m *Machine[S, O, F]) build() (*Table, error) {
+	if m.refinement == nil && (m.visibleFact != nil || m.visibleOutcome != nil || m.coverStarts) {
+		return nil, errorf(m.name, "the machine names what a refined machine sees, and refines none")
+	}
 	t := &Table{Machine: m.name, Family: m.family, stateValue: map[string]any{},
 		classes: map[string]Class{}, decls: map[string]*ActionDecl{}}
 	states, err := m.catalogs(t)
@@ -173,6 +182,7 @@ func (m *Machine[S, O, F]) build() (*Table, error) {
 	}
 	t.alter = m.alterer(t)
 	t.Evidence = append([][2]string{}, m.evidence...)
+	t.Assumptions = slices.Clone(m.assumptions)
 	t.fieldValues = m.fieldValues(t, states)
 	t.finish()
 	return t, nil

@@ -8,8 +8,11 @@ import scala.collection.mutable
   * result order, and the first-discovered parent is kept, so the witness is the shortest and ties go
   * to the lower index: the order Veil's checker and the reference search agree on. */
 private[umpire] object Search:
+  // A Query answered here names no assumption its machines make, and a progress claim has no Query
+  // form here: both are the IR interpreter's (model/scalav2/SEMANTICS.md, Assumptions and Progress).
   def answer(q: Query): Checked[Answer] = checked {
     check(q)
+    unwatched(q)
     val t = q.scenario.machine.table.get
     checkScenario(q, t)
     val ref = q.refinement.map { r =>
@@ -29,6 +32,18 @@ private[umpire] object Search:
     if q.scenario.actions.size > q.limits.actions then
       fail(q.decl, s"${q.scenario.name} pins ${q.scenario.actions.size} actions and the limits ${q.limits.name} " +
         s"allow ${q.limits.actions}")
+
+  /** Refuses a Query that reads a machine a monitor watches: this search evaluates no monitor, so its
+    * answer would leave out the monitor's verdict and the histories the monitor keeps apart. */
+  private def unwatched(q: Query)(using Fails): Unit =
+    def watching(m: Model): Vector[(String, String)] = m match
+      case mm: Machine[?, ?, ?] => mm.monitorList.toVector.map(mon => (mon.name, mm.name))
+      case c: Composition[?]    => c.memberModels.flatMap(watching)
+      case _                    => Vector.empty
+    val pairs = Vector(q.scenario.machine, q.property.machine).distinct.flatMap(watching).distinct
+    if pairs.nonEmpty then
+      fail(q.decl, s"it reads machines monitors watch (${pairs.map((mon, m) => s"$mon on $m").mkString(", ")}), " +
+        "and this framework's search evaluates no monitor, so it has no answer here: lift the Model and check its IR")
 
   private def checkScenario(q: Query, t: Table)(using Fails): Unit =
     if !t.stateValue.contains(q.scenario.start) then

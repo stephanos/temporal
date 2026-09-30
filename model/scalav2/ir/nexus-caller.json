@@ -1,5 +1,5 @@
 {
-  "source": "model/scala: --suppress-outdated-dependency-warning, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.worker.Worker$package$.polling",
+  "source": "model/scala: temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.worker.Worker$package$.polling",
   "types": [{
     "name": "temporal.nexuscaller.kernel.Outcome",
     "position": {

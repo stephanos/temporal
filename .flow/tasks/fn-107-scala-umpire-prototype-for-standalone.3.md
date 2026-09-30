@@ -3,18 +3,18 @@ satisfies: [R3, R4, R5, R9]
 ---
 # fn-107-scala-umpire-prototype-for-standalone.3 Adapt generic Go checking to the finite semantic IR
 
-Touches: [model/scalav2/goir/**, model/go/umpire/search.go, model/go/umpire/refine.go, model/go/umpire/claims.go]
+Touches: [model/scalav2/goir/**]
 
 ## Description
-Adapt the existing finite Go checker for IR properties, passive monitors, composition, scoped refinement, and support accounting.
+Bind the admitted IR to the generic checker for properties, passive monitors, composition, scoped refinement, and support accounting. Tasks 14 and 15 separately deliver the generic algorithms and finite IR admission/interpreter so those independent source surfaces can run concurrently.
 
 **Size:** M
-**Files:** goir machine.go and proposed checking.go/checking_test.go; existing generic search/refine seams if adaptation requires them.
+**Files:** goir declaration adapters and proposed checking.go/checking_test.go; consume the generic checker APIs delivered by task 14 and the evaluator delivered by task 15.
 
 ### Approach
-- Reuse umpire table/search/composition owners instead of another feature checker. Include monitor state in visited identity.
+- Bind authored monitors/properties/queries/assumptions through task 14's generic table/search/composition owners instead of another feature checker. Preserve observer state in visited identity and every modeled behavior.
 - Check initial correspondence plus visible event/result projection; reject public-output stutter. Enumerate opaque-provider behaviors under selected bounds.
-- Add reusable deadline/deadlock/fair-cycle progress checks with explicit assumptions. Report unestablished progress as unresolved rather than infer it from a prefix.
+- Bind authored deadline/deadlock/fair-cycle progress claims to task 14's generic checks with explicit assumptions. Report unestablished progress as unresolved rather than infer it from a prefix.
 - Keep admission errors, exhausted resource limits, semantic holes, and failed witnesses distinct. Replay every generated witness before receipt finalization.
 - Add a tenfold finite-input probe with an explicit small work ceiling. Assert complete coverage under sufficient ceilings or an explicit resource-limit result under insufficient ceilings, preserving actual scope/work counts and never claiming truncated exploration is exhaustive.
 
