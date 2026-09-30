@@ -13,9 +13,10 @@ C1. explore/qualify/analyze take the target module from os.Getwd(); adapter sele
 
 
 ## Done summary
-TBD
+explore, plan, qualify, and analyze accept --working-dir, which must be an absolute, clean module root (relative, unclean, missing, non-directory, and go.mod-less paths are invalid input, exit 2; qualify-set already had the flag). Build adapters are selected from the go.mod of the module that owns the target (target.ModuleDirectory: nearest go.mod above a path source, the working directory for an import path), not the raw working directory. Read-only mount sources may already be absolute, which covers the server schema in a local replace or the module cache. The README records the forced build environment and its consequences: no workspace files, no vendoring, private-module settings as exported variables. Measured on 2026-09-29 against a downstream module from its root with a local server replace: analyze prepared and analyzed without other go.mod changes.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: abdb22c27
+- Tests: go test ./cmd/gomad/internal/cli -run ResolveWorkingDirectory, go test ./target -run ModuleDirectory, gomad analyze --working-dir=<fixture> (x/sys fixture)
 - PRs:

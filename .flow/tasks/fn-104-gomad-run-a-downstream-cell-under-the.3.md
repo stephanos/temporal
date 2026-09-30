@@ -12,9 +12,10 @@ The x/sys packs bind activation to the modernc libc adapter, so a closure withou
 
 
 ## Done summary
-TBD
+Added golang-x-sys-v047-darwin-arm64, reviewed through discover/review/generate/check/qualify: it activates on golang.org/x/sys v0.47.0 alone and admits the x/sys/unix and x/sys/cpu darwin/arm64 assembly, syscall imports, and runtime/libSystem linknames, plus the x/sys imports of the x/term v0.45.0 and x/crypto/sha3 v0.55.0 versions the server pins. The fixture module internal/compatibilitypack/testdata/xsys reaches x/sys only through those modules (a direct import is a main-module finding no pack may admit) and analyzes as supported with zero blockers; compatibility-pack-qualification qualifies it; existing packs unchanged apart from the profile digest that the address-library adapter later moved. On darwin the SQLite closure now also selects this pack. linux/amd64 is fn-105 D9.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4bd232127
+- Tests: gomad analyze --working-dir=testdata/xsys: supported, 0 blockers, make compatibility-pack-qualification (darwin: 9 requests), make validate
 - PRs:
