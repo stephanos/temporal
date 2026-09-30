@@ -69,6 +69,12 @@ type schema struct {
 	} `json:"golden"`
 }
 
+// BootstrapSeedOffset is where the seed starts: it is the last field before
+// the checksum, which EncodeBootstrap writes immediately after it.
+func (s schema) BootstrapSeedOffset() int {
+	return s.Bootstrap.ChecksumOffset - 8
+}
+
 type templateData struct {
 	Package    string
 	TestImport string
@@ -316,6 +322,7 @@ func GenerateProtocols(root string, check bool) error {
 		{Package: "wire", Template: "iowire_test.go.tmpl", Path: "deterministicio/internal/wire/wire_generated_test.go"},
 		{Package: "gomadwire", Template: "iowire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go"},
 		{Package: "gomadwire_test", TestImport: "internal/gomadwire", Template: "iowire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go"},
+		{Package: "runtime", Template: "iowire_runtime.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go"},
 	}
 	for _, target := range outputs {
 		generated, generateErr := generate(filepath.Join(root, "deterministicio", "schema", target.Template), templateData{Package: target.Package, TestImport: target.TestImport, Schema: definition})

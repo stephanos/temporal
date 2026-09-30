@@ -23,6 +23,17 @@ func TestBootstrapGoldenVector(t *testing.T) {
 	}
 }
 
+// The runtime's early bootstrap consumer reads the seed at this generated
+// offset without decoding the frame, so the encoder must place it there.
+func TestBootstrapSeedAtRuntimeOffset(t *testing.T) {
+	for _, seed := range []uint64{0, 1, 0x0102030405060708, ^uint64(0)} {
+		frame := EncodeBootstrap(Bootstrap{Seed: seed})
+		if got := binary.BigEndian.Uint64(frame[172 : 172+8]); got != seed {
+			t.Fatalf("seed %d encoded at offset 172 as %d", seed, got)
+		}
+	}
+}
+
 func TestMountGoldenVectors(t *testing.T) {
 	var request bytes.Buffer
 	if err := WriteMountLookupRequest(&request, MountRequest{Ordinal: 4, Path: "/x"}, MountLimits{PathBytes: 4096}); err != nil {

@@ -111,6 +111,9 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	); err != nil {
 		return err
 	}
+	if err := campaign.requireBootstrapConsumer(binaries["activation"]); err != nil {
+		return err
+	}
 	for _, invalid := range []struct{ seed, name string }{
 		{seed: "", name: "empty"}, {seed: "+1", name: "signed-plus"}, {seed: "-1", name: "signed-minus"},
 		{seed: " 1", name: "leading-whitespace"}, {seed: "1 ", name: "trailing-whitespace"},

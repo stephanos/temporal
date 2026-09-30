@@ -19,7 +19,7 @@ var gomadSeed uint64
 var gomadExternal bool
 var gomadIOProfile bool
 var gomadConfigPresent bool
-var gomadConfig [212]byte
+var gomadConfig [gomadBootstrapFrameBytes]byte
 var gomadSimulationTimeEnabled bool
 var gomadSimulationTimeRequestDescriptor int32
 var gomadSimulationTimeResponseDescriptor int32
@@ -1217,7 +1217,7 @@ func gomadTraceWrite(descriptor int32, source []byte) bool {
 }
 
 //go:linkname gomadIOConfigFrame
-func gomadIOConfigFrame() *[212]byte {
+func gomadIOConfigFrame() *[gomadBootstrapFrameBytes]byte {
 	return &gomadConfig
 }
 
@@ -1234,7 +1234,7 @@ func gomadReadConfig() bool {
 	if offset == 0 {
 		return false
 	}
-	if offset != int32(len(gomadConfig)) || gomadConfig[0] != 'G' || gomadConfig[1] != 'O' || gomadConfig[2] != 'M' || gomadConfig[3] != 'A' || gomadConfig[4] != 'D' || gomadConfig[5] != 'I' || gomadConfig[6] != 'O' || gomadConfig[7] != 1 || gomadConfig[8] != 0 || gomadConfig[9] != 1 || gomadConfig[10] != 0 || gomadConfig[11] != 1 {
+	if offset != int32(len(gomadConfig)) || !gomadBootstrapHeaderValid(&gomadConfig) {
 		print("runtime: invalid Gomad bootstrap configuration\n")
 		exit(2)
 	}
@@ -1244,12 +1244,7 @@ func gomadReadConfig() bool {
 }
 
 func gomadConfigSeed() uint64 {
-	const offset = 172
-	value := uint64(0)
-	for i := 0; i < 8; i++ {
-		value = value<<8 | uint64(gomadConfig[offset+i])
-	}
-	return value
+	return gomadBootstrapSeed(&gomadConfig)
 }
 
 func gomadEnv(prefix string) (string, bool) {
