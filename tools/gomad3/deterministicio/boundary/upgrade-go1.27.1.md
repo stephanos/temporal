@@ -9,6 +9,7 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 - supported platforms: `darwin/arm64`, `linux/amd64`
 - boundary manifest: `go1.27.1-v1`
 - patch: [`../../toolchain/runtime/go1.27.1.patch`](../../toolchain/runtime/go1.27.1.patch)
+- adapter: `github.com/hashicorp/go-sockaddr@v1.0.7` (`h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=`)
 - adapter: `go.opentelemetry.io/otel/sdk@v1.44.0` (`h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=`)
 - adapter: `go.temporal.io/sdk@v1.48.0` (`h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=`)
 - adapter: `go.uber.org/fx@v1.24.0` (`h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=`)

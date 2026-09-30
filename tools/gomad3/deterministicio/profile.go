@@ -97,6 +97,13 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 		prepare: prepareOtelSDK,
 	},
 	{
+		module: sockaddrModulePath,
+		inventory: inventoryEntry{
+			Boundary: sockaddrModulePath, Disposition: "target-adapter", Operations: []string{"route-command-denial"},
+		},
+		prepare: prepareSockaddr,
+	},
+	{
 		module: libcModulePath,
 		inventory: inventoryEntry{
 			Boundary: libcModulePath, Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"},
