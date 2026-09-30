@@ -3581,6 +3581,37 @@
       }
     },
     {
+      "id": "tests-versioning3-functional-suite",
+      "name": "TestVersioning3FunctionalSuite",
+      "tier": 3,
+      "invariant": "TestVersioning3FunctionalSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestVersioning3FunctionalSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "io_transcript_bytes": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "tests-versioning3-one-time-override-functional-suite",
       "name": "TestVersioning3OneTimeOverrideFunctionalSuite",
       "tier": 3,

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-106-gomad-close-the-remaining-tests-gaps",
   "spec_path": ".flow/tasks/fn-106-gomad-close-the-remaining-tests-gaps.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make the I/O transcript bound configurable and run the four excluded suites",
   "updated_at": "2026-09-30T15:02:45.962077Z"
 }

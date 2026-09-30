@@ -23,7 +23,7 @@ changes, change the spec and summarize the change here.
 | Milestone | Spec | State |
 | --- | --- | --- |
 | F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
-| Gaps | `fn-106-gomad-close-the-remaining-tests-gaps` | open; the transcript bound, the linux seed-17 divergence, the dedicated-cluster pool, the traceback leak and worker-commands hang ([GOMAD_GAPS.md](GOMAD_GAPS.md)) |
+| Gaps | `fn-106-gomad-close-the-remaining-tests-gaps` | done 2026-09-30: no exclusions left, the traceback leak fixed, the remaining gaps classified ([GOMAD_GAPS.md](GOMAD_GAPS.md)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
@@ -34,11 +34,13 @@ The generated manifest (`tools/gomad3integration/qualification/tests.json`, from
 short of "any functional test runs deterministically":
 
 - **Transcript-heavy suites (fn-106 `.3`).** The I/O transcript bound is configurable
-  (`--io-transcript-bytes`, `io_transcript_bytes`, up to 1 GiB). `TestTaskQueueStats_Pri_Suite`,
-  `TestVersioning3QueryFunctionalSuite`, and `TestWorkerDeploymentSuite` left the exclusions: with
-  a 512 MiB transcript and no choice trace (they also exceed the 64 MiB choice maximum) they
-  qualify on seeds 11 and 17, which proves same-seed repeatability without an exact-replay
-  artifact. `TestVersioning3FunctionalSuite` still overflows 512 MiB.
+  (`--io-transcript-bytes`, `io_transcript_bytes`, up to 1 GiB), and no `./tests` test is excluded
+  any more. `TestTaskQueueStats_Pri_Suite`, `TestVersioning3QueryFunctionalSuite`, and
+  `TestWorkerDeploymentSuite` qualify on seeds 11 and 17 with a 512 MiB transcript,
+  `TestVersioning3FunctionalSuite` with the 1 GiB maximum. All four also exceed the 64 MiB
+  choice-trace maximum, so they run without a choice trace: that proves same-seed repeatability but
+  retains no exact-replay artifact. A larger or streamed choice trace would restore replay for
+  them.
 - **One forward-tick skip.** The seven suites that had timestamp-tie skips run under
   `clock_tick: forward` (fn-103, closed 2026-09-30) and qualify on both seeds with those eighteen
   skips removed. `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`

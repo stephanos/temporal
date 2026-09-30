@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-106-gomad-close-the-remaining-tests-gaps.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: close the remaining ./tests gaps",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T15:02:31.055410Z"
+  "updated_at": "2026-09-30T17:52:21.339559Z"
 }
