@@ -137,6 +137,7 @@ would revive it.
 | D9 linux/amd64 downstream packs | F9 | a downstream gate must run in linux CI |
 | D10 downstream-seam guide | F9 R4 | a second downstream module adopts Gomad |
 | D11 dynamic linux clock audit | F7 R5 (pre-amendment) | a linux-only clock escape is observed |
+| D12 linux replay-divergence channel | fn-106 `.1` | a linux/amd64 host is available for runtime instrumentation, or the rate rises |
 
 **Constraints.** An item is worked only after its trigger is recorded here; its acceptance is the
 origin spec's requirement text. Items may be closed as won't-do.

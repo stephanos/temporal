@@ -3602,9 +3602,6 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "skip": [
-        "TestWFTFailureReportedProblems_NotClearedBySignals"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
