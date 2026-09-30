@@ -43,6 +43,9 @@ final class MachineScope[S, O, F] private[umpire] ():
   private[umpire] val unobservable = mutable.LinkedHashSet.empty[String]
   private[umpire] val bindings = mutable.ArrayBuffer.empty[StepBinding[S, O, F]]
   private[umpire] var refinement: Option[RefinementDecl[S]] = None
+  private[umpire] var visible: Option[F => Boolean] = None
+  private[umpire] val monitors = mutable.ArrayBuffer.empty[Monitor[S, O, F, ?]]
+  private[umpire] val assumptions = mutable.ArrayBuffer.empty[Assumption]
 
 /** Declares a machine: a transition relation over the finite state type `S` with outcomes `O` and
   * facts `F`, one step function per action, the states it starts in, the states it may end in and
@@ -53,7 +56,7 @@ def machine[S, O, F](family: Family, name: String)(body: MachineScope[S, O, F] ?
   val scope = MachineScope[S, O, F]()
   body(using scope)
   Machine(family, name, scope.entity, scope.starts, scope.ends, scope.evidence, scope.unobservable.toSet,
-    scope.bindings.toList, scope.refinement)
+    scope.bindings.toList, scope.refinement, scope.visible, scope.monitors.toList, scope.assumptions.toList)
 
 /** Names the entity the machine keeps state for. */
 def forEntity(e: Entity)(using m: MachineScope[?, ?, ?]): Unit = m.entity = Some(e)
@@ -76,6 +79,10 @@ def evidence[F](using m: MachineScope[?, ?, F])(lines: F => String): Unit = m.ev
 def steps[S, O, F](using m: MachineScope[S, O, F])(bindings: StepBinding[S, O, F]*): Unit =
   m.bindings ++= bindings
 
+/** The facts the refined machine sees. A step that reads as a stutter of it records none of them,
+  * and a step it carries records only the ones its carrying step records. */
+def visible[F](using m: MachineScope[?, ?, F])(sees: F => Boolean): Unit = m.visible = Some(sees)
+
 /** A machine. Its table is computed once, on first use, and every failure is a `ModelError` naming
   * the machine rather than an exception out of an object initialiser. */
 final class Machine[S, O, F] private[umpire] (
@@ -88,6 +95,9 @@ final class Machine[S, O, F] private[umpire] (
     private[umpire] val unobservableNames: Set[String],
     private[umpire] val bindings: List[StepBinding[S, O, F]],
     private[umpire] val refinement: Option[RefinementDecl[S]],
+    private[umpire] val visibleFacts: Option[F => Boolean],
+    private[umpire] val monitorList: List[Monitor[S, O, F, ?]],
+    private[umpire] val assumptions: List[Assumption],
 )(using private[umpire] val fs: Finite[S], private[umpire] val fo: Finite[O], private[umpire] val ff: Finite[F])
     extends Model:
   private[umpire] val names = ClaimNames()
@@ -112,11 +122,12 @@ final class Machine[S, O, F] private[umpire] (
 
   /** A machine that keeps the rows of the named actions and drops the rest: Lean's
     * `from: <machine> restrict: [...]`. It keeps the state type, starts and ends, owns its own name
-    * and Definition IDs, and does not inherit a refinement. */
+    * and Definition IDs, and does not inherit a refinement. It keeps its source's monitors and
+    * assumptions. */
   def restrict(family: Family, name: String)(keep: Action[?]*): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
     Machine(family, name, entity, startStates, isEnd, evidenceOf, Set.empty,
-      bindings.filter(b => decls(b.decl)), None)
+      bindings.filter(b => decls(b.decl)), None, None, monitorList, assumptions)
 
   private def build: Checked[Table] = checked {
     val states = fs.values.toVector
@@ -146,8 +157,12 @@ final class Machine[S, O, F] private[umpire] (
     )
   }
 
-  /** Every class of every bound action, sorted by key; a class two steps bind is rejected. */
+  /** Every class of every bound action, sorted by key; a class two steps bind is rejected, and so is
+    * a channel's delivery or loss, whose rows only the IR interpreter derives. */
   private def bind(using Fails): Vector[(Class, StepBinding[S, O, F])] =
+    for b <- bindings; channel = b.decl.delivers + b.decl.loses if channel.nonEmpty do
+      fail(name, s"it binds ${b.decl.name}, which only the IR interpreter derives from channel $channel: lift the " +
+        "machine and check its IR")
     val bound = bindings.flatMap(b => b.decl.classes.map(_ -> b)).sortBy(_._1.key).toVector
     for Vector((a, _), (b, _)) <- bound.sliding(2) if a.key == b.key do
       fail(name, s"two steps bind the action class \"${a.key}\"")
@@ -161,7 +176,7 @@ final class Machine[S, O, F] private[umpire] (
     for
       s <- states
       (c, b) <- bound
-      results = b.run(s, c)
+      results = run(b, s, c)
       if results.nonEmpty
     yield
       val key = Table.rowKey(Keys.of(s), c.key)
@@ -170,6 +185,14 @@ final class Machine[S, O, F] private[umpire] (
         if !stateValue.contains(next) then fail(name, s"row $key lands in $next, which is outside the state domain")
         RowResult(Keys.of(step.outcome), next, step.facts.toVector.map(Keys.of), step, step.because)
       })
+
+  /** One step function's results, failing at a row that reaches a declared hole. */
+  private def run(b: StepBinding[S, O, F], s: S, c: Class)(using Fails): List[Step[S, O, F]] =
+    try b.run(s, c)
+    catch
+      case HoleReached(h) =>
+        fail(name, s"the row '${Table.rowKey(Keys.of(s), c.key)}' reaches the hole ${h.name}, which only the IR " +
+          "interpreter reads: lift the machine and check its IR")
 
   private def alterer(stateValue: Map[String, Any]): Alterer =
     val outcomeOf = fo.values.map(o => Keys.of(o) -> o).toMap

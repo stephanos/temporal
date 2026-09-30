@@ -22,6 +22,7 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
     private val members: Vector[(String, Model)],
     private val syncs: Vector[(String, (String, String), (String, String))],
     private val isEnd: S => Boolean,
+    private val replaced: Vector[(String, Model)],
 ) extends Model:
   private[umpire] val names = ClaimNames()
   private val owner = s"compose-$name"
@@ -29,11 +30,26 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
   /** Pairs two members' actions into one step named `name`. */
   def sync(name: String, first: (String, Action[?]), second: (String, Action[?])): Composition[S] =
     Composition(family, this.name, fieldNames, fromParts, members,
-      syncs :+ (name, first._1 -> first._2.name, second._1 -> second._2.name), isEnd)
+      syncs :+ (name, first._1 -> first._2.name, second._1 -> second._2.name), isEnd, replaced)
 
   /** Which composed states the composition may end in. */
   def ends(end: S => Boolean): Composition[S] =
-    Composition(family, name, fieldNames, fromParts, members, syncs, end)
+    Composition(family, name, fieldNames, fromParts, members, syncs, end, replaced)
+
+  /** Says the member `field` stands in for `opaque` within this composition: a detailed provider in
+    * place of an opaque one. The member must declare a refinement of `opaque` that holds, which is
+    * what makes the replacement scoped to this composition. */
+  def replaces(field: String, opaque: Model): Composition[S] =
+    Composition(family, name, fieldNames, fromParts, members, syncs, isEnd, replaced :+ (field -> opaque))
+
+  /** Every replacement whose member does not refine what it replaces. */
+  private[umpire] def replacements: List[ModelError] = replaced.toList.flatMap { (field, opaque) =>
+    members.find(_._1 == field).map(_._2) match
+      case None => List(ModelError(owner, s"$field replaces ${opaque.name}, and no member fills $field"))
+      case Some(m: Machine[?, ?, ?]) if m.refinement.exists(_.product eq opaque) => m.refinementCheck.left.toSeq.toList
+      case Some(m) =>
+        List(ModelError(owner, s"$field replaces ${opaque.name}, and its member ${m.name} does not refine ${opaque.name}"))
+  }
 
   /** The composed key of a member's own action class. */
   def own(member: String, c: ClassRef): String = s"${member}_${ClassRef.resolve(c).key}"
@@ -146,4 +162,4 @@ inline def compose[S <: Product](family: Family, name: String)(members: (String,
 ): Composition[S] =
   val labels = constValueTuple[m.MirroredElemLabels].toList.map(_.toString).toVector
   Composition[S](family, name, labels, arr => m.fromProduct(Tuple.fromArray(arr)), members.toVector,
-    Vector.empty, _ => false)
+    Vector.empty, _ => false, Vector.empty)

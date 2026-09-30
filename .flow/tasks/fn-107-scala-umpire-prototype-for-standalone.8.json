@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T16:25:09.448741Z",
+  "depends_on": [
+    "fn-107-scala-umpire-prototype-for-standalone.4",
+    "fn-107-scala-umpire-prototype-for-standalone.5"
+  ],
+  "id": "fn-107-scala-umpire-prototype-for-standalone.8",
+  "priority": null,
+  "spec": "fn-107-scala-umpire-prototype-for-standalone",
+  "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.8.md",
+  "status": "todo",
+  "title": "Demonstrate Quint transition agreement and one P monitor",
+  "updated_at": "2026-09-30T16:25:09.448741Z"
+}

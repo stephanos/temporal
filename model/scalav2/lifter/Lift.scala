@@ -17,7 +17,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.quoted.*
 import scala.tasty.inspector.*
-import io.temporal.server.api.umpire.v1 as ir
+import io.temporal.server.api.modelir.v1 as ir
 
 /** A construct the IR cannot express, at the position the author wrote it. */
 final case class LiftError(position: String, message: String) extends Exception(s"$position: $message")

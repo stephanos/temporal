@@ -1,6 +1,6 @@
 package standaloneactivity
 
-// What the standalone activity Model says, pinned the way .plans/cmp/lean/ActivityPins.lean pins
+// What the standalone activity Model says, pinned the way .plans/archive/cmp/lean/ActivityPins.lean pins
 // it. Each assertion cites the Lean pin it translates. That file was never compiled: Lean refuses the
 // 288-state protocol machine, so only its product-machine pins have a Lean answer, compared in
 // parity/. Everything else here is Go's own answer.

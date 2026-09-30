@@ -55,10 +55,10 @@ contributes four under `tests/testcore/testpilot`. There are no unclassified row
 | `tools/umpire/verification` | removed by fn-69 | Contract preparation and evaluation moved to `common/testing/testpilot/internal/verification`. |
 | `tools/umpire/vocabulary` | retained test package | Its external test runs the real vocabulary command and protects the active terminology gate. |
 
-`tools/planindex` and `make umpire-check-plan-index` are adjacent tooling, outside the
+`tools/planindex` and `make umpire-check-plan-index` were adjacent tooling, outside the
 `tools/umpire/...` inventory. fn-66 retained them deliberately, and fn-81 revalidated that
-retention: the validator is what keeps `.plans/index.json` honest, so it is the gate over this
-repository's own documentation reconciliation rather than a candidate for removal.
+retention. On 2026-09-30 the owner removed both, with `.plans/index.json`, when `.plans` was cut
+down to the documents current work needs and the rest moved to `.plans/archive`.
 
 ## Authorized deletion paths
 
@@ -279,7 +279,7 @@ or missing header fails the final gate even if the total is smaller.
   aggregate checks. Retained source and comments in `artifact.go`, `natural.go`, and
   `artifact_test.go` were not edited.
 - Completion review found and removed two remaining prospective claims in
-  `.plans/lean/UMPIRE4_SPEC_COMPS.md`: exact Artifact/set checking as an intended command and the public
+  `.plans/archive/lean/UMPIRE4_SPEC_COMPS.md`: exact Artifact/set checking as an intended command and the public
   `tools/umpire/artifact/` entry in the recommended Go tree. This documentation-only correction
   aligns both sections with the already recorded retired surface and does not change executable
   code or prior gate evidence.
@@ -374,7 +374,7 @@ are Go; the remainder is Lean under `tools/umpire3/model`, testdata, and fixture
 | Neighbour | Decision | Reason and evidence |
 | --- | --- | --- |
 | `tools/fairsim`, `cmd/tools/fairsim` | retained — not a choice | Upstream Temporal code, not a pre-Testpilot generation of this project. `Makefile:561,573-575` and `.gitignore:55` stay untouched. Excluding it is upstream ownership, not a scope decision. |
-| `tools/planindex`, `.plans/index.json` | retained — fn-66 carve-out revalidated | fn-66 retained `tools/planindex` and `make umpire-check-plan-index` deliberately as adjacent tooling outside its inventory. fn-81's first draft proposed deleting it; that is reversed here. Its validator is the only thing that keeps `.plans/index.json` honest once the deleted-tree documents are relabelled historical in .5, so deleting it would remove the gate that checks this spec's own documentation reconciliation. |
+| `tools/planindex`, `.plans/index.json` | removed 2026-09-30 by the owner; retained until then — fn-66 carve-out revalidated | fn-66 retained `tools/planindex` and `make umpire-check-plan-index` deliberately as adjacent tooling outside its inventory. fn-81's first draft proposed deleting it; that is reversed here. Its validator is the only thing that keeps `.plans/index.json` honest once the deleted-tree documents are relabelled historical in .5, so deleting it would remove the gate that checks this spec's own documentation reconciliation. |
 | `tools/umpire`, `common/testing/testpilot`, `tests/testcore/testpilot` | retained, untouched apart from reference edits | No deletion-set root imports them and they import no deletion-set root. `tools/umpire/regression/ci_workflow_test.go` is edited in .4 to pin the new gate, and `tools/umpire/vocabulary/retired_vocabulary_test.go:91` is repointed in .2. |
 | `.plans`, `docs`, `.turbo` | retained, notes only | Historical reasoning that led to Umpire 4. Records that link into deleted trees gain a historical banner in .5; nothing is deleted. |
 | Lean previous generations (Nexus v1, Nexus.Race, Umpire Artifact, Space, Exploration under `model/lean/`) | out of scope | Imported by live modules or reserved by open specs fn-22, fn-33, fn-79, and fn-80. Their removal needs a roadmap decision, not this sweep. |

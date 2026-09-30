@@ -1,7 +1,7 @@
 # Results: the Scala model layer
 
 Run on 2026-09-30 against commit `d08d20140` plus the uncommitted `model/` tree. Plan:
-[`.plans/UMPIRE_SCALA.md`](../../.plans/UMPIRE_SCALA.md). The Go results are in
+[`.plans/archive/UMPIRE_SCALA.md`](../../.plans/archive/UMPIRE_SCALA.md). The Go results are in
 [`model/go/RESULTS.md`](../go/RESULTS.md); this report compares all three implementations.
 
 ## Outcome
@@ -12,7 +12,7 @@ quarter smaller, its edit loop is about three seconds, and it catches more autho
 compile time than Go does. Stainless adds proofs over every state of the Nexus protocol machine in
 about ten seconds, from the same source the machines run.
 
-Two things cost more than the sample in `.plans/cmp/scala/` suggested. Stainless needs the step
+Two things cost more than the sample in `.plans/archive/cmp/scala` suggested. Stainless needs the step
 functions in a restricted subset with a prelude per side. And `scala-cli` through its Bloop server
 exits 0 on a `-Werror` failure, which a wrapper script has to correct.
 

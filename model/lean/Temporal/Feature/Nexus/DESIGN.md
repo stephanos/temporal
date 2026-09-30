@@ -4,7 +4,7 @@ Design specimen, delivered by fn-85 ("Model side effects as typed actions and ru
 closed 2026-09-20). Nothing here compiles, and no module imports it: the Model it describes is
 [`Caller/Model.lean`](Caller/Model.lean), walked through region by region in
 [`AUTHORING.md`](../../../AUTHORING.md), and the rules it needed are drafted in
-[UMPIRE4_SPEC](../../../../../.plans/UMPIRE4_SPEC.md) (AUT-07a, AUT-09 and MOD-02 amendments under
+[the Lean front end specification](../../../../../.plans/lean/UMPIRE4_SPEC_LEAN.md) (AUT-07a, AUT-09 and MOD-02 amendments under
 GOV-02). Where delivery departed from a section, a dated `.N` amendment under it says how. Server
 citations were read at commit `7c42dec82c`; no test was run to produce them.
 

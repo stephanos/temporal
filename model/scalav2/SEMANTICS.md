@@ -1,7 +1,7 @@
 # Semantics of the Umpire IR
 
 The IR's meaning is defined here, not by the lifter that writes it or the Go interpreter that reads
-it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema; `goir/` is one evaluator of these rules, and the parity
+it. `proto/internal/temporal/server/api/modelir/v1/ir.proto` is the schema; `goir/` is one evaluator of these rules, and the parity
 tests check it against the Lean Model.
 
 ## Values
@@ -81,3 +81,25 @@ A machine's table is derived from its declaration:
 
 Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of model/go's
 `umpire.Table` over the derived keys.
+
+## Not defined here yet
+
+The [fn-107 specimens](specimens/README.md) need constructs these rules do not define. An IR that uses one
+has no meaning under this document until a rule for it is added here:
+
+- passive monitors;
+- channels and the faults derived from them;
+- opaque providers and scoped replacement;
+- visible-result projection;
+- named assumptions and conditional progress;
+- declared holes;
+- non-timer system actions.
+
+Two rules above are narrower than the specimens need:
+
+- **Machines 6.** A result whose source and target map to one product state is a stutter, whatever
+  facts it records. `activityProtocol` has 240 such results that record a product fact.
+- **Expressions, `match`.** A value no case matches is called both an error and a hole, where the
+  spec distinguishes admission errors, declared holes and undeclared holes.
+
+`specimens/README.md` gives the evidence for both (findings F3 and F4).

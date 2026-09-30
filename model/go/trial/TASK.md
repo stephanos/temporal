@@ -26,7 +26,7 @@ Add a heartbeat timeout to the standalone activity Model.
 | --- | --- | --- |
 | Go | `model/go/standaloneactivity/`, `model/go/views/testdata/` | `model/go/run.sh` |
 | Scala | `model/scala/temporal/standaloneactivity/`, `model/scala/temporal/test/StandaloneActivity*.test.scala`, `model/scala/goldens/views/`, `model/scala/temporal/test/CheckedViews.test.scala` | `model/scala/run.sh --no-prove` |
-| Lean | `.plans/cmp/lean/StandaloneActivity.lean`, `.plans/cmp/lean/ActivityPins.lean` | none: see below |
+| Lean | `.plans/archive/cmp/lean/StandaloneActivity.lean`, `.plans/archive/cmp/lean/ActivityPins.lean` | none: see below |
 
 The new rows change the activity's generated views, which each side checks against goldens. Go
 regenerates them with `go run ./model/go/views/cmd/render -out model/go/views/testdata`; Scala with

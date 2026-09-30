@@ -19,23 +19,38 @@ for arg in "$@"; do
 done
 
 scala_cli() { mise exec -- scala-cli "$@" --suppress-outdated-dependency-warning; }
+# scala-cli exits 0 when -Werror turns a warning into an error, such as a match that misses a case;
+# model/scala/scala.sh fails on any error it prints. Its output is shown only when the build fails.
+scala_build() {
+  local out
+  out="$("$root/model/scala/scala.sh" "$@")" || { echo "$out" >&2; return 1; }
+}
 roots=('temporal.nexuscaller.Model$package$.nexusProduct' 'temporal.nexuscaller.Model$package$.nexusProtocol'
   'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling')
 
-schema="$root/proto/internal/temporal/server/api/umpire/v1/ir.proto"
+schema="$root/proto/internal/temporal/server/api/modelir/v1/ir.proto"
 stamp="$(shasum -a 256 "$schema" | cut -d' ' -f1)"
 if [[ ! -f "$here/gen/ir-proto.jar" || "$(cat "$here/gen/ir.stamp" 2>/dev/null)" != "$stamp" ]]; then
   echo "== generate the IR's Java classes"
   "$here/gen.sh"
   echo "$stamp" > "$here/gen/ir.stamp"
 fi
-[[ api/umpire/v1/ir.pb.go -nt "$schema" ]] || { echo "run.sh: api/umpire/v1 is older than the IR schema; run make protoc" >&2; exit 1; }
+[[ api/modelir/v1/ir.pb.go -nt "$schema" ]] || { echo "run.sh: api/modelir/v1 is older than the IR schema; run make protoc" >&2; exit 1; }
 
 echo "== compile model/scala and package its TASTy"
-scala_cli --power package --library model/scala/project.scala model/scala/umpire model/scala/temporal \
-  -f -o "$here/gen/model-scala.jar" >/dev/null
+scala_build --power package --library model/scala/project.scala model/scala/umpire model/scala/temporal \
+  -f -o "$here/gen/model-scala.jar"
 scala_cli compile --print-class-path model/scala/project.scala model/scala/umpire model/scala/temporal \
   > "$here/gen/model-scala.classpath"
+
+echo "== the build refuses a warning -Werror makes an error, at its line"
+refused="$(scala_build --power package --library "$here/lifter/testdata/werror" -f -o "$here/gen/werror.jar" 2>&1 \
+  && echo "built" || true)"
+refused="$(sed 's/\x1b\[[0-9;]*m//g' <<<"$refused")"
+expected='[error] ./model/scalav2/lifter/testdata/werror/Evidence.scala:29:16'
+grep -qxF "$expected" <<<"$refused" && grep -qF 'match may not be exhaustive' <<<"$refused" \
+  || { echo "run.sh: expected '$expected' refusing a non-exhaustive match, got:" >&2; echo "$refused" >&2; exit 1; }
+echo "$expected match may not be exhaustive"
 
 echo "== lift the Nexus caller Model"
 lifted="$(mktemp)"

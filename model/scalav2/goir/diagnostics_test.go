@@ -8,18 +8,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpirespb "go.temporal.io/server/api/umpire/v1"
+	modelirspb "go.temporal.io/server/api/modelir/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-func load(t *testing.T) *umpirespb.Model {
+func load(t *testing.T) *modelirspb.Model {
 	t.Helper()
 	m, err := Load(irPath)
 	require.NoError(t, err)
 	return m
 }
 
-func function(m *umpirespb.Model, suffix string) *umpirespb.Function {
+func function(m *modelirspb.Model, suffix string) *modelirspb.Function {
 	for _, f := range m.GetFunctions() {
 		if strings.HasSuffix(f.GetName(), suffix) {
 			return f
@@ -29,38 +29,38 @@ func function(m *umpirespb.Model, suffix string) *umpirespb.Function {
 }
 
 // walk visits every expression under x.
-func walk(x *umpirespb.Expr, visit func(*umpirespb.Expr)) {
+func walk(x *modelirspb.Expr, visit func(*modelirspb.Expr)) {
 	if x == nil {
 		return
 	}
 	visit(x)
 	switch k := x.GetKind().(type) {
-	case *umpirespb.Expr_Call:
+	case *modelirspb.Expr_Call:
 		for _, a := range k.Call.GetArgs() {
 			walk(a, visit)
 		}
-	case *umpirespb.Expr_If:
+	case *modelirspb.Expr_If:
 		walk(k.If.GetCondition(), visit)
 		walk(k.If.GetThen(), visit)
 		walk(k.If.GetElse(), visit)
-	case *umpirespb.Expr_Match:
+	case *modelirspb.Expr_Match:
 		walk(k.Match.GetScrutinee(), visit)
 		for _, c := range k.Match.GetCases() {
 			walk(c.GetBody(), visit)
 		}
-	case *umpirespb.Expr_Construct:
+	case *modelirspb.Expr_Construct:
 		for _, a := range k.Construct.GetArgs() {
 			walk(a, visit)
 		}
-	case *umpirespb.Expr_Copy:
+	case *modelirspb.Expr_Copy:
 		walk(k.Copy.GetBase(), visit)
 		for _, u := range k.Copy.GetUpdates() {
 			walk(u.GetValue(), visit)
 		}
-	case *umpirespb.Expr_Let:
+	case *modelirspb.Expr_Let:
 		walk(k.Let.GetValue(), visit)
 		walk(k.Let.GetBody(), visit)
-	case *umpirespb.Expr_List:
+	case *modelirspb.Expr_List:
 		for _, i := range k.List.GetItems() {
 			walk(i, visit)
 		}
@@ -69,9 +69,9 @@ func walk(x *umpirespb.Expr, visit func(*umpirespb.Expr)) {
 }
 
 func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
-	m := proto.Clone(load(t)).(*umpirespb.Model)
+	m := proto.Clone(load(t)).(*modelirspb.Model)
 	// Rename the helper every protocol step calls, and drop a type a function constructs.
-	walk(function(m, "Protocol$.handlerReplyStep").GetBody(), func(x *umpirespb.Expr) {
+	walk(function(m, "Protocol$.handlerReplyStep").GetBody(), func(x *modelirspb.Expr) {
 		if c := x.GetCall(); c != nil && strings.HasSuffix(c.GetFunction(), "Protocol$.moves") {
 			c.Function = "temporal.nexuscaller.kernel.Protocol$.move"
 		}
@@ -86,7 +86,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 }
 
 func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
-	m := proto.Clone(load(t)).(*umpirespb.Model)
+	m := proto.Clone(load(t)).(*modelirspb.Model)
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
 			if strings.HasSuffix(b.GetFunction(), "Protocol$.handlerReplyStep") {
@@ -101,12 +101,12 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 // The saturating successor, rewritten as a plain increment: the IR stays well formed, and the
 // interpreter finds the row that leaves the domain.
 func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
-	m := proto.Clone(load(t)).(*umpirespb.Model)
+	m := proto.Clone(load(t)).(*modelirspb.Model)
 	succ := function(m, "Protocol$.saturatingSucc")
 	at := succ.GetBody().GetPosition()
-	succ.Body = &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_ADD,
-		Left:  &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Var{Var: "a"}},
-		Right: &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: 1}}}}}}}
+	succ.Body = &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Binary{Binary: &modelirspb.Binary{Op: modelirspb.Binary_OP_ADD,
+		Left:  &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Var{Var: "a"}},
+		Right: &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: 1}}}}}}}
 	require.NoError(t, Validate(m))
 	_, err := Build(m)
 	require.ErrorContains(t, err, "nexusProtocol: row scheduled-2-unset-unset-unset-handlerReply-handlerError-true lands in "+

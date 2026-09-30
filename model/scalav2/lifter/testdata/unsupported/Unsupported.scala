@@ -19,7 +19,8 @@ def goStep(s: State): List[Step[State, Outcome, Nothing]] =
   while out.isEmpty do out = List(Step(Outcome.accepted, State(Phase.done)))
   out
 
-val unsupported: Machine[State, Outcome, Nothing] = machine[State, Outcome, Nothing](Family("temporal.fixture"), "unsupported") {
-  starts(State(Phase.idle))
-  steps(go ~> goStep)
-}
+val unsupported: Machine[State, Outcome, Nothing] =
+  machine[State, Outcome, Nothing](Family("temporal.fixture"), "unsupported") {
+    starts(State(Phase.idle))
+    steps(go ~> goStep)
+  }

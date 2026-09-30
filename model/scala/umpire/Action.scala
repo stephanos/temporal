@@ -1,6 +1,7 @@
 package umpire
 
-/** Who performs an action. `system` is reserved for timers, which a machine owns. */
+/** Who performs an action. `system` is reserved for timers and the system's other steps, which a
+  * machine owns. */
 final case class Party(name: String)
 
 object Party:
@@ -17,8 +18,10 @@ final case class Observation(name: String, on: Entity, read: String)
   * class behaves alike, with the example the functional Case runs. */
 final case class ClassExample(value: Any, example: String)
 
-/** One declared action's untyped part: a party's side effect, or a timer the system owns. Its
-  * inputs are finite domains; each assignment of them is one class. */
+/** One declared action's untyped part: a party's side effect, a timer the system owns, or another
+  * step of the system: an internal step, or a channel's delivery or loss of a message, which
+  * `delivers` and `loses` name the channel of. Its inputs are finite domains; each assignment of
+  * them is one class. */
 final case class ActionDecl(
     name: String,
     party: Party,
@@ -30,6 +33,9 @@ final case class ActionDecl(
     examples: List[ClassExample] = Nil,
     timer: Boolean = false,
     domains: List[Finite[?]] = Nil,
+    internal: Boolean = false,
+    delivers: String = "",
+    loses: String = "",
 ):
   /** Every class of the action: the product of its input domains, the last input varying fastest. */
   def classes: List[Class] =
@@ -86,6 +92,9 @@ def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(n
 
 /** Declares a timer: an action with no input that the system performs. */
 def timer(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, timer = true))
+
+/** Declares a step of the system that is not a timer, such as a dispatch or a commit. */
+def internal(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, internal = true))
 
 /** One class of an action: the action with one assignment of its inputs. */
 final case class Class(decl: ActionDecl, values: List[Any]):

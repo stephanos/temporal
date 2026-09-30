@@ -28,18 +28,19 @@ go test ./model/scalav2/...    # the Go side alone, from the checked-in IR, no J
 ```
 
 scala-cli, the JDK and protoc come from the repository's `mise.toml`. After changing the schema, run
-`make protoc` to regenerate `api/umpire/v1`.
+`make protoc` to regenerate `api/modelir/v1`.
 
 ## Layout
 
 | Path | What it holds |
 | --- | --- |
-| `proto/internal/temporal/server/api/umpire/v1/ir.proto` | The IR schema, with the other internal protos: types and catalogs, functions as expression trees with `match`, actions, machines, source positions; its Go code is `api/umpire/v1`, from `make protoc` |
+| `proto/internal/temporal/server/api/modelir/v1/ir.proto` | The IR schema, with the other internal protos: types and catalogs, functions as expression trees with `match`, actions, machines, source positions; its Go code is `api/modelir/v1`, from `make protoc` |
 | `SEMANTICS.md` | The evaluation rules, which neither side defines |
 | `ir/nexus-caller.json` | The Nexus caller and worker Models, lifted |
 | `lifter/` | The TASTy lifter; `testdata/unsupported` is a Model it must refuse |
 | `goir/` | Loader, validator and interpreter |
 | `gen.sh` | Packages the IR's Java classes as `gen/ir-proto.jar` (gitignored) for the lifter |
+| [specimens/](specimens/README.md) | fn-107's two reviewed authoring sketches, standalone activity admission and Nexus close/reset, with their trace oracles, proposed extensions, Testpilot gaps and authoring measurements; hand-reviewed, and built by no gate |
 
 ## What is lifted
 
@@ -80,3 +81,7 @@ seconds after compiling, rather than as a compile error.
 Not lifted yet: Properties, Scenarios and Queries, whose predicates are Scala lambdas; the
 composition; the standalone activity. The IR has the expression forms Properties need, so lifting
 them, and with them Cases, is the next step.
+
+Of the standalone activity, `activityProduct` lifts today and `activityProtocol` stops at its
+varargs `moves` (`model/scala/temporal/standaloneactivity/Model.scala:263`). The specimens record
+the other constructs they found outside the subset in `specimens/README.md` (findings F2, F5-F7).

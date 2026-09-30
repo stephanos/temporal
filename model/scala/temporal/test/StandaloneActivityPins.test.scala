@@ -1,6 +1,6 @@
 package temporal
 package standaloneactivity
-// What the standalone activity Model says, pinned the way .plans/cmp/lean/ActivityPins.lean pins it
+// What the standalone activity Model says, pinned the way .plans/archive/cmp/lean/ActivityPins.lean pins it
 // and model/go/standaloneactivity/pins_test.go translates it. Each assertion cites the Lean pin it
 // translates. That file was never compiled: Lean refuses the 288-state protocol machine, so only its
 // product-machine pins have a Lean answer, compared in StandaloneActivityParity. Everything else here

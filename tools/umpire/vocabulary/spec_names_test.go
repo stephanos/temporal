@@ -28,14 +28,20 @@ func TestUmpireSpecNamesResolveAgainstTheModelTree(t *testing.T) {
 	require.Positive(t, namespaces)
 	require.Greater(t, declarations, 1000, "model tree index looks truncated")
 
-	document, err := os.ReadFile(filepath.Join(repositoryRoot, ".plans", "UMPIRE4_SPEC.md"))
-	require.NoError(t, err)
+	// The Umpire 4 specification names no front end; the Lean front end's specification is the one
+	// that cites Lean names.
+	for _, document := range []string{
+		filepath.Join(".plans", "lean", "UMPIRE4_SPEC_LEAN.md"),
+	} {
+		content, err := os.ReadFile(filepath.Join(repositoryRoot, document))
+		require.NoError(t, err)
 
-	names := leannames.ExtractSpecNames(string(document))
-	require.NotEmpty(t, names)
+		names := leannames.ExtractSpecNames(string(content))
+		require.NotEmpty(t, names, document)
 
-	unresolved, err := leannames.Unresolved(
-		index, names, "UMPIRE4_SPEC.md", filepath.Join(repositoryRoot, ".flow", "specs"))
-	require.NoError(t, err)
-	require.Empty(t, unresolved)
+		unresolved, err := leannames.Unresolved(
+			index, names, filepath.Base(document), filepath.Join(repositoryRoot, ".flow", "specs"))
+		require.NoError(t, err)
+		require.Empty(t, unresolved, document)
+	}
 }

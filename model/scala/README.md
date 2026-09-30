@@ -3,7 +3,7 @@
 A Scala 3 implementation of the Umpire model layer, beside the Lean one in `model/lean/` and the Go
 one in `model/go/`. It ports the same Models, checks them against the same Lean evidence, and adds
 Stainless proofs over the Nexus caller's step functions. The plan is
-[`.plans/UMPIRE_SCALA.md`](../../.plans/UMPIRE_SCALA.md); the results are in [RESULTS.md](RESULTS.md).
+[`.plans/archive/UMPIRE_SCALA.md`](../../.plans/archive/UMPIRE_SCALA.md); the results are in [RESULTS.md](RESULTS.md).
 
 ## Run
 

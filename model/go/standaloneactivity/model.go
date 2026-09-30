@@ -9,7 +9,7 @@
 // DescribeActivityExecution, or a result read through PollActivityExecution, so the evidence lines
 // of the machines name observations rather than events.
 //
-// Ported from .plans/cmp/lean/StandaloneActivity.lean, in its order: vocabulary, the two machines,
+// Ported from .plans/archive/cmp/lean/StandaloneActivity.lean, in its order: vocabulary, the two machines,
 // what they promise, what the set asks.
 package standaloneactivity
 

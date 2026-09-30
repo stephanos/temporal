@@ -10,7 +10,7 @@
  * of the machines name observations rather than events.
  *
  * Unlike the Nexus caller, the activity has no Stainless kernel: its domains, states and step
- * functions are declared here in ordinary Scala. Ported from .plans/cmp/lean/StandaloneActivity.lean
+ * functions are declared here in ordinary Scala. Ported from .plans/archive/cmp/lean/StandaloneActivity.lean
  * and model/go/standaloneactivity, in their order: vocabulary, the two machines, what they promise,
  * what the set asks.
  */

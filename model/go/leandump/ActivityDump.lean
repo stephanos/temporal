@@ -1,4 +1,4 @@
--- Copied from .plans/cmp/lean/StandaloneActivity.lean for the Go parity harness, with the three
+-- Copied from .plans/archive/cmp/lean/StandaloneActivity.lean for the Go parity harness, with the three
 -- `case` blocks, the `schema:` lines and everything from the protocol machine on removed, and a
 -- dump `main` appended. The schemas are removed
 -- because no activity RPC message is reachable from the roots in model/Temporal/Case/Schema.lean,

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T16:25:09.448526Z",
+  "depends_on": [
+    "fn-107-scala-umpire-prototype-for-standalone.1"
+  ],
+  "id": "fn-107-scala-umpire-prototype-for-standalone.2",
+  "priority": null,
+  "spec": "fn-107-scala-umpire-prototype-for-standalone",
+  "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.2.md",
+  "status": "todo",
+  "title": "Extend finite model IR and TASTy lifting",
+  "updated_at": "2026-09-30T17:36:49.120036Z"
+}

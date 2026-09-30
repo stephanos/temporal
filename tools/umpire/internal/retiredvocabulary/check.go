@@ -171,6 +171,12 @@ func scopedPaths(repositoryRoot string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("find active Umpire4 plans: %w", err)
 	}
+	// The Lean front end's part of the specification lives beside the Lean guidelines.
+	leanPlanMatches, err := filepath.Glob(filepath.Join(repositoryRoot, ".plans", "lean", "UMPIRE4_*.md"))
+	if err != nil {
+		return nil, fmt.Errorf("find active Umpire4 Lean plans: %w", err)
+	}
+	planMatches = append(planMatches, leanPlanMatches...)
 	for _, path := range planMatches {
 		relativePath, err := filepath.Rel(repositoryRoot, path)
 		if err != nil {

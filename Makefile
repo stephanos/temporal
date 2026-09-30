@@ -479,10 +479,6 @@ umpire-build-model:
 	@printf $(COLOR) "Build Temporal Umpire Lean model..."
 	@cd model/lean && $(LEAN_LAKE) build
 
-umpire-check-plan-index:
-	@printf $(COLOR) "Check Umpire plan authority index..."
-	@go run ./tools/planindex
-
 umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
 	@cd model/lean && $(UMPIRE_INSPECT) "$(SCENARIO)"
@@ -1061,7 +1057,7 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-pin umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-pin umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
@@ -1191,7 +1187,7 @@ SCALAFIX = $(SCALA_CLI) --power fix --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(SCALA_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 
-$(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto $(SCALA_ROOT)/gen.sh
+$(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/modelir/v1/ir.proto $(SCALA_ROOT)/gen.sh
 	@printf $(COLOR) "Package Scala model IR classes..."
 	@$(SCALA_ROOT)/gen.sh
 

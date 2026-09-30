@@ -2,7 +2,7 @@
 
 This directory contains neutral formal primitives, the reusable Umpire library, generated Temporal
 structure, handwritten Temporal behavior, and the first Case Producer. The normative rules live in
-[the Umpire 4 specification](../../.plans/UMPIRE4_SPEC.md); the reusable API is described in
+[the Lean front end specification](../../.plans/lean/UMPIRE4_SPEC_LEAN.md); the reusable API is described in
 [Umpire/ARCHITECTURE.md](Umpire/ARCHITECTURE.md).
 
 ## Libraries and imports

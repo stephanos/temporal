@@ -38,6 +38,9 @@ object Finite:
   /** A domain with no members: a machine that records no facts has `Nothing` as its fact type. */
   given Finite[Nothing] = of()
 
+  /** An optional value: absent, then present with each member of `A` in its catalog order. */
+  given [A](using a: Finite[A]): Finite[Option[A]] = of((None +: a.values.map(Some(_)))*)
+
   inline def derived[T](using m: Mirror.Of[T]): Finite[T] =
     inline m match
       case s: Mirror.SumOf[T] =>
@@ -80,13 +83,16 @@ trait Keyed:
 
 /** Keys as Lean spells them: an enum case by its name, a parametrised case by its name followed by
   * its fields, a Boolean as true or false, a counter in decimal, and a state case class by its fields
-  * in declaration order, all joined by "-". */
+  * in declaration order, all joined by "-". An optional value is spelled as the enum case of its
+  * constructor would be: `None`, or `Some` followed by the value. */
 object Keys:
   def of(v: Any): String = v match
     case k: Keyed               => k.key
     case b: Boolean             => b.toString
     case i: Int                 => i.toString
     case s: String              => s
+    case None                   => "None"
+    case Some(v)                => s"Some-${of(v)}"
     case e: scala.reflect.Enum  =>
       if e.productArity == 0 then e.toString
       else (e.productPrefix :: e.productIterator.map(of).toList).mkString("-")

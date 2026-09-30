@@ -6,7 +6,7 @@ caller-side Model, region by region: each Lean block below is a marked region of
 (`-- authoring: <name>`), and `go test ./tools/umpire/authoring/...` fails when a block and its
 region part, so what this page shows is what compiles. Section 13 quotes the worker entity's
 module, the Outage composition and the derived negative control the same way. The commands
-themselves are `Umpire.Command`'s and are specified by [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md)
+themselves are `Umpire.Command`'s and are specified by [the Lean front end specification](../../.plans/lean/UMPIRE4_SPEC_LEAN.md)
 under AUT-07a; the design the Model realizes is [DESIGN.md](Temporal/Feature/Nexus/DESIGN.md).
 
 What you end with: one Model file; one fixture per Query under

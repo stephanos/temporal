@@ -4,30 +4,30 @@ import (
 	"slices"
 	"strings"
 
-	umpirespb "go.temporal.io/server/api/umpire/v1"
+	modelirspb "go.temporal.io/server/api/modelir/v1"
 	"go.temporal.io/server/model/go/umpire"
 )
 
 // Members lists every value of a finite type in catalog order: an enum's cases in declaration order,
 // each case with fields once per assignment of them; a record as the product of its fields; with the
 // last field varying fastest in both, which is the order the Lean `Finite` derivation produces.
-func (in *Interpreter) Members(t *umpirespb.TypeRef) ([]Value, error) {
+func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
 	switch r := t.GetRef().(type) {
-	case *umpirespb.TypeRef_Bool:
+	case *modelirspb.TypeRef_Bool:
 		return []Value{{Kind: BoolValue, Bool: false}, {Kind: BoolValue, Bool: true}}, nil
-	case *umpirespb.TypeRef_IntRange:
+	case *modelirspb.TypeRef_IntRange:
 		var out []Value
 		for i := r.IntRange.GetLow(); i <= r.IntRange.GetHigh(); i++ {
 			out = append(out, Value{Kind: IntValue, Int: i})
 		}
 		return out, nil
-	case *umpirespb.TypeRef_Named:
+	case *modelirspb.TypeRef_Named:
 		decl, ok := in.types[r.Named]
 		if !ok {
 			return nil, &Error{Message: "no type " + r.Named}
 		}
 		switch s := decl.GetShape().(type) {
-		case *umpirespb.Type_Enum:
+		case *modelirspb.Type_Enum:
 			var out []Value
 			for _, c := range s.Enum.GetCases() {
 				assignments, err := in.product(c.GetFields())
@@ -39,7 +39,7 @@ func (in *Interpreter) Members(t *umpirespb.TypeRef) ([]Value, error) {
 				}
 			}
 			return out, nil
-		case *umpirespb.Type_Record:
+		case *modelirspb.Type_Record:
 			assignments, err := in.product(s.Record.GetFields())
 			if err != nil {
 				return nil, err
@@ -57,7 +57,7 @@ func (in *Interpreter) Members(t *umpirespb.TypeRef) ([]Value, error) {
 	}
 }
 
-func (in *Interpreter) product(fields []*umpirespb.Field) ([][]Value, error) {
+func (in *Interpreter) product(fields []*modelirspb.Field) ([][]Value, error) {
 	out := [][]Value{{}}
 	for _, f := range fields {
 		members, err := in.Members(f.GetType())
@@ -75,8 +75,8 @@ func (in *Interpreter) product(fields []*umpirespb.Field) ([][]Value, error) {
 	return out, nil
 }
 
-func named(name string) *umpirespb.TypeRef {
-	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: name}}
+func named(name string) *modelirspb.TypeRef {
+	return &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Named{Named: name}}
 }
 
 // class is one class of an action: the action and one assignment of its inputs.
@@ -84,13 +84,13 @@ type class struct {
 	key    string
 	inputs []Value
 	step   string
-	at     *umpirespb.Position
+	at     *modelirspb.Position
 }
 
 // Machine is one machine of the IR, interpreted: its table and, for a refining machine, its
 // refinement rows.
 type Machine struct {
-	Decl       *umpirespb.Machine
+	Decl       *modelirspb.Machine
 	Table      *umpire.Table
 	states     map[string]Value
 	Refinement []umpire.RefinementRow
@@ -98,9 +98,9 @@ type Machine struct {
 
 // Build interprets every machine of a Model. A refining machine's refinement is checked against the
 // machine it names, which must be in the Model.
-func Build(m *umpirespb.Model) (map[string]*Machine, error) {
+func Build(m *modelirspb.Model) (map[string]*Machine, error) {
 	in := NewInterpreter(m)
-	actions := map[string]*umpirespb.Action{}
+	actions := map[string]*modelirspb.Action{}
 	for _, a := range m.GetActions() {
 		actions[a.GetId()] = a
 	}
@@ -128,7 +128,7 @@ func Build(m *umpirespb.Model) (map[string]*Machine, error) {
 	return out, nil
 }
 
-func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (*Machine, error) {
+func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) (*Machine, error) {
 	states, err := in.Members(named(decl.GetStateType()))
 	if err != nil {
 		return nil, err
@@ -184,16 +184,16 @@ func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpi
 }
 
 // classes lists every class of every bound action, sorted by key, and rejects a class two steps bind.
-func (in *Interpreter) classes(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) ([]class, error) {
+func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) ([]class, error) {
 	var out []class
 	for _, b := range decl.GetSteps() {
 		a, ok := actions[b.GetAction()]
 		if !ok {
 			return nil, errorAt(b.GetPosition(), "no action %s", b.GetAction())
 		}
-		fields := make([]*umpirespb.Field, len(a.GetInputs()))
+		fields := make([]*modelirspb.Field, len(a.GetInputs()))
 		for i, p := range a.GetInputs() {
-			fields[i] = &umpirespb.Field{Name: p.GetName(), Type: p.GetType()}
+			fields[i] = &modelirspb.Field{Name: p.GetName(), Type: p.GetType()}
 		}
 		assignments, err := in.product(fields)
 		if err != nil {
@@ -218,7 +218,7 @@ func (in *Interpreter) classes(decl *umpirespb.Machine, actions map[string]*umpi
 
 // rows evaluates every step function once per state and class, states-major, keeping the enabled
 // pairs as rows and rejecting a result outside the state domain.
-func (in *Interpreter) rows(decl *umpirespb.Machine, states []Value, classes []class, domain map[string]Value) ([]umpire.Row, error) {
+func (in *Interpreter) rows(decl *modelirspb.Machine, states []Value, classes []class, domain map[string]Value) ([]umpire.Row, error) {
 	var rows []umpire.Row
 	for _, s := range states {
 		for _, c := range classes {
@@ -250,7 +250,7 @@ func (in *Interpreter) rows(decl *umpirespb.Machine, states []Value, classes []c
 	return rows, nil
 }
 
-func (in *Interpreter) startsAndEnds(decl *umpirespb.Machine, states []Value, domain map[string]Value) (starts, ends []string, err error) {
+func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, domain map[string]Value) (starts, ends []string, err error) {
 	for _, x := range decl.GetStarts() {
 		v, err := in.Eval(x)
 		if err != nil {
@@ -285,7 +285,7 @@ func (in *Interpreter) startsAndEnds(decl *umpirespb.Machine, states []Value, do
 
 // evidence is one line per fact constructor, in catalog order: the constructor, and the recorded
 // event or observation the evidence function names for it.
-func (in *Interpreter) evidence(decl *umpirespb.Machine, facts []Value) ([][2]string, error) {
+func (in *Interpreter) evidence(decl *modelirspb.Machine, facts []Value) ([][2]string, error) {
 	if decl.GetEvidence() == "" {
 		return nil, nil
 	}

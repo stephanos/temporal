@@ -1,7 +1,7 @@
 # Results: the Go model layer
 
 Run on 2026-09-30 against commit `d08d20140` plus the uncommitted `model/` tree. Plan:
-[`.plans/UMPIRE_GO.md`](../../.plans/UMPIRE_GO.md). The Scala implementation built afterwards is
+[`.plans/archive/UMPIRE_GO.md`](../../.plans/archive/UMPIRE_GO.md). The Scala implementation built afterwards is
 reported in [`model/scala/RESULTS.md`](../scala/RESULTS.md); the tables below show all three sides.
 
 ## Outcome

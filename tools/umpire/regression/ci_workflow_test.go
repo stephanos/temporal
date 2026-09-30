@@ -218,7 +218,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"`Observe` processes an appended event synchronously",
 			"a PreparedContract supports concurrent independent Runs",
 		},
-		".plans/UMPIRE_CASE_RUNTIME_DESIGN.md": {
+		".plans/archive/UMPIRE_CASE_RUNTIME_DESIGN.md": {
 			"Current ownership is `common/testing/testpilot`",
 			"Temporal Driver under `common/testing/testpilot/temporal`",
 		},

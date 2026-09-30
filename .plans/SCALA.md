@@ -2,7 +2,7 @@
 
 Notes distilled from a ChatGPT conversation titled "Compare Specification Languages" (shared link
 `chatgpt.com/share/6abd1e86-…`), scoped to its Scala 3, CEL and model-IR parts, and checked against
-what the `temporal/.plans/cmp/` comparison measured on 2026-09-30. Where the two disagree, both
+what the `temporal/.plans/archive/cmp` comparison measured on 2026-09-30. Where the two disagree, both
 positions are stated. Library facts were re-checked with the GitHub API on 2026-09-30; claims about
 tool features (P, Veil, Stainless, Quint) are the conversation's and were not re-verified.
 

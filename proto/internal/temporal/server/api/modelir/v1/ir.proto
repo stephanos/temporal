@@ -1,0 +1,579 @@
+// The Umpire model IR: a semantic transition system, independent of the language a Model is authored
+// in. A front end (model/scalav2/lifter lifts Scala) emits it; the Go loader in model/scalav2/goir
+// validates it, interprets it, and derives every table, identity and fingerprint from it. Like the
+// Testpilot protocol, it is an internal wire with no compatibility promise. The
+// evaluation rules are written in model/scalav2/SEMANTICS.md; neither front end nor interpreter
+// defines them.
+//
+// The IR carries declarations, never derived tables: steps are pure functions over values, and the
+// tables are what the interpreter computes from them.
+syntax = "proto3";
+
+package temporal.server.api.modelir.v1;
+
+option go_package = "go.temporal.io/server/api/modelir/v1;modelir";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.modelir.v1";
+
+// A Model: its types, its pure functions, its actions, and its machines, with the declarations
+// checks read over them.
+message Model {
+  // Where the Model was lifted from, for diagnostics and provenance.
+  string source = 1;
+  repeated Type types = 2;
+  repeated Function functions = 3;
+  repeated Action actions = 4;
+  repeated Machine machines = 5;
+  // The IR's major version. model/scalav2/SEMANTICS.md defines version 0, which every Model written
+  // before this field was is in; a reader rejects a version it does not know.
+  uint32 version = 6;
+  repeated Channel channels = 7;
+  repeated Monitor monitors = 8;
+  repeated Assumption assumptions = 9;
+  repeated Hole holes = 10;
+  repeated Composition compositions = 11;
+  repeated Property properties = 12;
+  repeated Scenario scenarios = 13;
+  repeated Query queries = 14;
+  repeated Progress progress = 15;
+}
+
+// Where a declaration or expression was written, as a front end reports it.
+message Position {
+  string file = 1;
+  int32 line = 2;
+}
+
+// A finite type, with its members in catalog order.
+message Type {
+  // Fully qualified, e.g. `temporal.nexuscaller.kernel.ProtocolState`.
+  string name = 1;
+  Position position = 2;
+  oneof shape {
+    // A sum of cases, each with its own finite fields; a case without fields is one member.
+    Enum enum = 3;
+    // A product of finite fields, the last field varying fastest.
+    Record record = 4;
+  }
+}
+
+message Enum {
+  repeated Case cases = 1;
+}
+
+message Case {
+  string name = 1;
+  repeated Field fields = 2;
+}
+
+message Record {
+  repeated Field fields = 1;
+}
+
+message Field {
+  string name = 1;
+  TypeRef type = 2;
+}
+
+// A reference to a finite type: a declared type, the Booleans, or an integer range.
+message TypeRef {
+  oneof ref {
+    string named = 1;
+    Empty bool = 2;
+    IntRange int_range = 3;
+    // A list of values, for a step's facts and a function's results; not a state field.
+    TypeRef list = 4;
+    // An integer with no declared range: a function parameter, never a state field.
+    Empty int = 5;
+    // What a declared channel holds, named by the channel's id: a state field's bounded collection.
+    string channel = 6;
+  }
+}
+
+message IntRange {
+  int64 low = 1;
+  int64 high = 2;
+}
+
+message Empty {}
+
+// A pure function: parameters, and a body that is an expression tree.
+message Function {
+  // Fully qualified, e.g. `temporal.nexuscaller.kernel.Protocol.handlerReplyStep`.
+  string name = 1;
+  Position position = 2;
+  repeated Param params = 3;
+  Expr body = 4;
+  // A precondition the front end recorded. The interpreter evaluates only functions whose callers
+  // satisfy it; the Stainless lemmas are what prove it holds.
+  Expr requires = 5;
+}
+
+message Param {
+  string name = 1;
+  TypeRef type = 2;
+}
+
+// An expression. Every operator is total over the values the types admit.
+message Expr {
+  Position position = 1;
+  oneof kind {
+    Value literal = 2;
+    // A parameter, or a name a `let` or a pattern bound.
+    string var = 3;
+    FieldAccess field = 4;
+    Call call = 5;
+    Construct construct = 6;
+    Copy copy = 7;
+    Unary unary = 8;
+    Binary binary = 9;
+    If if = 10;
+    Match match = 11;
+    Let let = 12;
+    ListOf list = 13;
+    Lambda lambda = 14;
+    // A declared hole, by its id: the Model does not say what happens here.
+    string hole = 15;
+    Inbox inbox = 16;
+  }
+}
+
+message FieldAccess {
+  Expr base = 1;
+  string field = 2;
+}
+
+message Call {
+  // A Function of the Model.
+  string function = 1;
+  repeated Expr args = 2;
+}
+
+// A record, or an enum case with its fields, from arguments in field order.
+message Construct {
+  string type = 1;
+  // The case, for an enum; empty for a record.
+  string case = 2;
+  repeated Expr args = 3;
+}
+
+// A record with some fields replaced.
+message Copy {
+  Expr base = 1;
+  repeated NamedExpr updates = 2;
+}
+
+message NamedExpr {
+  string name = 1;
+  Expr value = 2;
+}
+
+message Unary {
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    OP_NOT = 1;
+    OP_NEG = 2;
+  }
+  Op op = 1;
+  Expr operand = 2;
+}
+
+message Binary {
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    OP_EQ = 1;
+    OP_NE = 2;
+    OP_AND = 3;
+    OP_OR = 4;
+    OP_LT = 5;
+    OP_LE = 6;
+    OP_GT = 7;
+    OP_GE = 8;
+    OP_ADD = 9;
+    OP_SUB = 10;
+    // List concatenation.
+    OP_CONCAT = 11;
+    // List membership: the right operand contains the left.
+    OP_CONTAINS = 12;
+  }
+  Op op = 1;
+  Expr left = 2;
+  Expr right = 3;
+}
+
+message If {
+  Expr condition = 1;
+  Expr then = 2;
+  Expr else = 3;
+}
+
+// The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
+// value no case matches is an undeclared hole in the Model, which the interpreter reports.
+message Match {
+  Expr scrutinee = 1;
+  repeated MatchCase cases = 2;
+}
+
+message MatchCase {
+  Pattern pattern = 1;
+  Expr guard = 2;
+  Expr body = 3;
+}
+
+message Pattern {
+  oneof kind {
+    Empty wildcard = 1;
+    // Binds the value to a name, and matches it against the inner pattern.
+    Bind bind = 2;
+    // A value: an enum case without fields, a Boolean, an integer.
+    Value literal = 3;
+    // An enum case, and patterns for its fields.
+    CasePattern case = 4;
+    Alternatives alternatives = 5;
+  }
+}
+
+message Bind {
+  string name = 1;
+  Pattern pattern = 2;
+}
+
+message CasePattern {
+  string type = 1;
+  string case = 2;
+  repeated Pattern fields = 3;
+}
+
+message Alternatives {
+  repeated Pattern patterns = 1;
+}
+
+message Let {
+  string name = 1;
+  Expr value = 2;
+  Expr body = 3;
+}
+
+message ListOf {
+  repeated Expr items = 1;
+}
+
+// An operation on what a channel holds.
+message Inbox {
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    // The contents with the message added.
+    OP_SEND = 1;
+    OP_IS_EMPTY = 2;
+    // Whether the contents hold as many messages as the channel's capacity.
+    OP_IS_FULL = 3;
+  }
+  Op op = 1;
+  // The channel's id.
+  string channel = 2;
+  Expr contents = 3;
+  // The message, for OP_SEND.
+  Expr message = 4;
+}
+
+// An anonymous function, for a machine's `ends` predicate.
+message Lambda {
+  repeated Param params = 1;
+  Expr body = 2;
+}
+
+// A value of a finite type.
+message Value {
+  oneof kind {
+    bool bool = 1;
+    int64 int = 2;
+    EnumValue enum = 3;
+    RecordValue record = 4;
+    ListValue list = 5;
+    string text = 6;
+  }
+}
+
+message EnumValue {
+  string type = 1;
+  string case = 2;
+  repeated Value fields = 3;
+}
+
+message RecordValue {
+  string type = 1;
+  repeated Value fields = 2;
+}
+
+message ListValue {
+  repeated Value items = 1;
+}
+
+// An action: a party's side effect, a timer the system owns, or another step of the system, with its
+// finite inputs.
+message Action {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  // The name its classes are keyed by.
+  string name = 2;
+  Position position = 3;
+  string party = 4;
+  bool timer = 5;
+  repeated Param inputs = 6;
+  string on = 7;
+  string creates = 8;
+  repeated string schemas = 9;
+  string results = 10;
+  repeated Example examples = 11;
+  // A step of the system that is not a timer.
+  bool internal = 12;
+  // A channel's delivery of one message, its one input, by the channel's id.
+  string delivers = 13;
+  // A lossy channel's loss of one message, its one input, by the channel's id.
+  string loses = 14;
+}
+
+// An Abstraction Claim on one class of a one-input action.
+message Example {
+  Value value = 1;
+  string example = 2;
+}
+
+// A machine: a state type, the step function bound to each action, the states it starts in, the
+// states it may end in, the evidence for each fact, the machine it refines, the monitors that watch
+// it and the assumptions checking it makes.
+message Machine {
+  string family = 1;
+  string name = 2;
+  Position position = 3;
+  string entity = 4;
+  string state_type = 5;
+  string outcome_type = 6;
+  // Empty when the machine records no facts.
+  string fact_type = 7;
+  repeated Expr starts = 8;
+  // A predicate over the state.
+  Expr ends = 9;
+  repeated StepBinding steps = 10;
+  // A function from a fact to the recorded event or observation that confirms it.
+  string evidence = 11;
+  repeated string unobservable = 12;
+  Refinement refines = 13;
+  // Monitors, by id.
+  repeated string monitors = 14;
+  // Assumptions every result of a check of this machine names, by id: that it stands for an opaque
+  // provider, or that it includes a fault only an assumption allows.
+  repeated string assumes = 15;
+}
+
+message StepBinding {
+  // An Action's id.
+  string action = 1;
+  // A Function taking the state, then one argument per input, returning a list of the framework's
+  // step records `{outcome, state, facts, because}`.
+  string function = 2;
+  Position position = 3;
+}
+
+message Refinement {
+  // The refined machine's name.
+  string product = 1;
+  // A Function from this machine's state to the refined machine's.
+  string map = 2;
+  // A Function from a fact of this machine to whether the refined machine sees it. Empty when the
+  // refinement declares no projection.
+  string visible = 3;
+}
+
+// A bounded channel: the messages one machine's state holds between their send and their delivery.
+message Channel {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  TypeRef message = 4;
+  // The most messages it holds at once, at least 1.
+  int32 capacity = 5;
+  enum Order {
+    ORDER_UNSPECIFIED = 0;
+    // In the order they were sent.
+    ORDER_FIFO = 1;
+    // Any held message may be delivered next.
+    ORDER_UNORDERED = 2;
+  }
+  Order order = 6;
+  // Whether it may lose a message it holds.
+  bool lossy = 7;
+  // How many more times than once it may deliver a message, because the acknowledgment of a
+  // delivery was lost.
+  int32 duplicates = 8;
+}
+
+// A passive monitor: a finite state that every step of the machines it watches advances, and a
+// verdict read at its evaluation point. It reads steps and never disables one.
+message Monitor {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  TypeRef state = 4;
+  Expr initial = 5;
+  // A Function taking the monitor's state, the machine's state before a step and the step record,
+  // returning the monitor's state after the step.
+  string next = 6;
+  // A Function from the monitor's state to whether the monitor is violated.
+  string violated = 7;
+  // Where the verdict is read.
+  oneof evaluate {
+    // After every step.
+    Empty every_step = 8;
+    // At the end of a path, in a state the machine may end in.
+    Empty at_ends = 9;
+    // After the steps a Function from the step record to a Boolean accepts.
+    string after = 10;
+  }
+}
+
+// A named assumption a check makes and every result it reports names.
+message Assumption {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  // Actions, by id, that the assumption makes weakly fair: one that stays enabled is taken.
+  repeated string fair = 4;
+}
+
+// A declared hole: behavior the Model leaves unknown on purpose, which makes a result that reaches it
+// incomplete.
+message Hole {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+}
+
+// A composition: one Model from machines of different entities, a state with one field per member.
+message Composition {
+  string family = 1;
+  string name = 2;
+  Position position = 3;
+  string state_type = 4;
+  repeated Member members = 5;
+  repeated Sync syncs = 6;
+  // A predicate over the composed state.
+  Expr ends = 7;
+}
+
+message Member {
+  // The composed state's field the member fills.
+  string field = 1;
+  // A machine's name.
+  string machine = 2;
+  // The name of the machine this member stands in for, which it must refine: a detailed provider
+  // replacing an opaque one within this composition. Empty when it replaces none.
+  string replaces = 3;
+}
+
+// Two members' actions paired into one step.
+message Sync {
+  string name = 1;
+  SyncMove first = 2;
+  SyncMove second = 3;
+}
+
+message SyncMove {
+  // The member's field.
+  string member = 1;
+  // The action's name.
+  string action = 2;
+}
+
+// One class of an action: the action, by id, and one value per input.
+message ActionClass {
+  string action = 1;
+  repeated Value inputs = 2;
+}
+
+// A Property: a pass/fail rule over the steps of the machine or composition it is declared on.
+message Property {
+  // The machine's or composition's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  // The steps it is about; every step when neither is set.
+  oneof when {
+    ActionClass when_class = 4;
+    // Every class of the action of this name.
+    string when_action = 5;
+  }
+  // A Function from the step record to a Boolean, or with `transition` from the state before the
+  // step and the step record.
+  string holds = 6;
+  bool transition = 7;
+}
+
+// A Scenario: a named schedule from one start.
+message Scenario {
+  // The machine's or composition's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  Expr start = 4;
+  // The pinned schedule, one class per step.
+  repeated ActionClass actions = 5;
+  // A composition's pinned schedule, by its composed class keys.
+  repeated string keys = 6;
+  // Any action at every step, within the Query's step limit.
+  bool free = 7;
+}
+
+// A Property or Scenario, by the machine it is declared on and its name.
+message ClaimRef {
+  string machine = 1;
+  string name = 2;
+}
+
+// A bounded question: a Property, a Scenario and Limits.
+message Query {
+  string name = 1;
+  Position position = 2;
+  enum Form {
+    FORM_UNSPECIFIED = 0;
+    // One trace of the Scenario on which the Property holds.
+    FORM_FIND = 1;
+    // Whether the Property holds on every trace of the Scenario.
+    FORM_VERIFY = 2;
+  }
+  Form form = 3;
+  ClaimRef property = 4;
+  ClaimRef scenario = 5;
+  // The Scenario's machine reads the Property through the refinement it declares.
+  bool through = 6;
+  Limits limits = 7;
+}
+
+message Limits {
+  string name = 1;
+  // The depth bound.
+  int32 steps = 2;
+  // The schedule length.
+  int32 actions = 3;
+  // The product states the search may visit.
+  int32 search = 4;
+}
+
+// A bounded progress claim: from a state `from` accepts, a state `to` accepts follows within
+// `within` steps, under the named assumptions.
+message Progress {
+  // The machine's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  // Functions from the state to a Boolean.
+  string from = 4;
+  string to = 5;
+  int32 within = 6;
+  // Assumptions, by id.
+  repeated string assumptions = 7;
+}

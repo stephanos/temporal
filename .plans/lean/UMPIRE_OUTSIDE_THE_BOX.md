@@ -305,9 +305,9 @@ produce, and it is one no protocol-shaped model produces.
 ## Related notes
 
 - [UMPIRE4_VISION](../UMPIRE4_VISION.md), the bullets everything above is measured against
-- [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md), Veil, Specula, tracing, FizzBee
-- [UMPIRE_CMP_FIZZBEE](UMPIRE_CMP_FIZZBEE.md)
-- [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md)
-- [FEATURE_AUTHORING_ASSESSMENT](FEATURE_AUTHORING_ASSESSMENT.md)
+- [UMPIRE4_DIRECTION](../archive/lean/UMPIRE4_DIRECTION.md), Veil, Specula, tracing, FizzBee
+- [UMPIRE_CMP_FIZZBEE](../archive/lean/UMPIRE_CMP_FIZZBEE.md)
+- [VEIL_BACKEND_RESEARCH](../archive/lean/VEIL_BACKEND_RESEARCH.md)
+- [FEATURE_AUTHORING_ASSESSMENT](../archive/lean/FEATURE_AUTHORING_ASSESSMENT.md)
 - `.flow/specs/fn-88-veil-concrete-checker-as-the-umpire.md`, `fn-93-simplify-the-lean-model.md`,
   `fn-94-simplify-the-testpilot-go-runtime.md`
