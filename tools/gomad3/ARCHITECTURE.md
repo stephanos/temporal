@@ -85,6 +85,67 @@ occurrence counting, target selection, application bounds, and fail-before-
 mutation replay. Typed scenarios and semantic oracles consume those modules
 through the Cluster seam without taking ownership of their state machines.
 
+### Incarnation and backend fidelity
+
+A cluster selects one backend for its lifetime. Node IDs are stable and
+incarnations increase monotonically. Restart retains configured addresses, boot
+identity, and declared durable volumes while revoking old handles, mappings,
+connections, and model access. Stale work fails before consuming fault/replay
+entries or mutating model state.
+
+In-process revocation cannot reset arbitrary package globals or terminate a CPU
+loop. Graceful Stop checks cancellation before admission, then waits for the
+boot's terminal commit; boot code that ignores cancellation requires the outer
+watchdog. Fresh package initialization and hard crash/reap belong to the process
+backend. Invalid lifecycle transitions cannot partially commit model state.
+
+### Network and persistence semantics
+
+Directional link changes affect newly submitted deliveries. Already queued
+deliveries keep their scheduled order and time unless an endpoint or incarnation
+is revoked. Delayed data cannot reach a restarted node through an old connection
+or a reused address/port.
+
+A volume write updates the volatile view and adds dependency-tracked pending
+operations. File sync persists required data, size, allocation, and their
+dependency closure; directory sync persists namespace changes. Graceful stop
+flushes pending operations. Crash restores a selected dependency-closed
+persistence outcome, and restart creates fresh handles and mappings.
+
+Crash-state enumeration is canonical, bounded, and resumable. Reaching a state,
+operation, depth, byte, or time bound produces explicit incomplete evidence and
+remaining work. Captured read-only mounts are replay inputs; restarted nodes
+never reopen their original host paths.
+
+### Process arbitration and model evidence
+
+Process nodes submit model operations and native timer/quiescence reports through
+private bounded IPC. The coordinator owns shared model state and logical-time
+advancement. Request identities correlate bounded IPC exchanges. Time advances
+to the earliest participant deadline only after runnable work, in-flight handlers,
+and delivered-but-unconsumed model operations are accounted for. Participants
+blocked on external model work are excluded until their results arrive. Replay
+validates semantic transitions rather than raw IPC arrival order. A node that
+spins prevents quiescence and reaches the wall watchdog. Process death must leave
+an operation classified as committed or uncommitted, with no ambiguous partial
+model transition.
+
+Runtime, scenario, network, storage, and fault evidence retain independent
+identities. Replay validates static inputs before node activation, validates
+choices and transitions before mutation, requires complete tape consumption, and
+checks terminal model states, histories, output, and outcomes. Count/byte limits
+belong to the recorded identity; overflow is a typed capacity result.
+
+Backend conformance compares detached model transitions, topology, volume state,
+histories, oracles, and normalized outcomes. Runtime tapes, raw logs, process
+exits, and diagnostic timing need not match across backends. An artifact replays
+only on its recorded backend and platform.
+
+Oracles consume detached values without holding model locks, calling back from
+World, or reading host time. Their histories and search work have separate bounds.
+An explicit-model digest cannot establish equivalence of arbitrary native Go
+execution state or justify pruning its schedule frontier.
+
 ## Runtime choices and virtual time
 
 ### Activation
