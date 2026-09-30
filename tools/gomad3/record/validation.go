@@ -507,6 +507,15 @@ func ValidateCompatibilityPacks(packs []CompatibilityPack) error {
 	return nil
 }
 
+// ClockTickEnvironment carries a non-default virtual-clock tick policy to the
+// target. Only ClockTickForward is recorded; the strict default is the absence
+// of the entry, so records made without a tick policy keep their bytes.
+const (
+	ClockTickEnvironment = "GOMAD3_CLOCK_TICK"
+	ClockTickStrict      = "strict"
+	ClockTickForward     = "forward"
+)
+
 func validateEnvironment(environment []Environment, seed uint64, ioProfile, choiceProfile string) error {
 	reserved := map[string]struct{}{
 		"GOMAD3_CHILD_SEED": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
@@ -541,6 +550,10 @@ func validateEnvironment(environment []Environment, seed uint64, ioProfile, choi
 			foundChoiceProfile = choiceProfile != "" && entry.Value == choiceProfile
 		case "TZ":
 			foundTimezone = entry.Value == "UTC"
+		case ClockTickEnvironment:
+			if entry.Value != ClockTickForward {
+				return fmt.Errorf("environment clock tick policy %q is invalid", entry.Value)
+			}
 		}
 	}
 	if !foundSeed || !foundTimezone {

@@ -132,6 +132,10 @@ tools/gomad3/.bin/gomad explore \
 
 Repeat `--require-probe=NAME` when a known semantic boundary must be observed. Missing a required probe becomes a visible Campaign failure rather than an optimistic coverage report.
 
+Virtual time stands still within a busy stretch, so every `time.Now` there returns the same instant. A test that orders records by timestamp can fail only because of that tie. Add `--clock-tick=forward` to `explore` or `qualify` to advance the clock by a seeded 1 to 1024 nanoseconds at every `time.Now`; the policy is part of the Campaign and Artifact identity and replay restores it. `--clock-tick=strict` is the default.
+
+To run a module that lives elsewhere, such as one that depends on the server through a local `replace`, pass `--working-dir=/absolute/module/root` instead of changing directories.
+
 Successful executions are discarded by default. Retain only successes that add coverage:
 
 ```sh

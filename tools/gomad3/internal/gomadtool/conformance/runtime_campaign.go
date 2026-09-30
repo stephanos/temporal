@@ -305,12 +305,16 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "clock-spin", packageName: "./clock_spin"},
 		{name: "clock-deadlock", packageName: "./clock_deadlock"},
 		{name: "clock-io", packageName: "./clock_io"},
+		{name: "clock-tick", packageName: "./clock_tick"},
 	} {
 		binary, err := campaign.build(fixture.name, fixture.packageName, fixture.cgo)
 		if err != nil {
 			return err
 		}
 		binaries[fixture.name] = binary
+	}
+	if err := campaign.requireClockTickBehavior(binaries["clock-tick"]); err != nil {
+		return err
 	}
 	if err := campaign.requireClockBehavior(binaries); err != nil {
 		return err

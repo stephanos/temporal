@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -68,7 +69,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 	if !equalCampaignPlanMountIdentity(mountIdentity, opened.mounts) {
 		return CampaignResult{}, errors.New("campaign plan read-only mount identity changed")
 	}
-	environment, err := campaignPlanEnvironment(plan)
+	environment, clockTick, err := campaignPlanEnvironment(plan)
 	if err != nil {
 		return CampaignResult{}, err
 	}
@@ -77,7 +78,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), Artifacts: spec.Artifacts, Environment: environment,
+		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, Artifacts: spec.Artifacts, Environment: environment,
 		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
 		Target: target.Spec{
 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
@@ -99,30 +100,36 @@ func campaignPlanChoiceLimit(plan *campaign.ChoiceProfilePlan) uint64 {
 	return uint64(plan.Limit)
 }
 
-func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, error) {
+func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, error) {
 	result := make([]string, 0, len(plan.Environment))
+	clockTick := ""
 	ioProfile := false
 	choiceProfile := plan.ChoiceProfile == nil
 	for _, entry := range plan.Environment {
 		switch entry.Name {
 		case "GOMAD3_IO_PROFILE":
 			if ioProfile || entry.Value != deterministicio.Deterministic {
-				return nil, errors.New("campaign plan I/O profile environment is invalid")
+				return nil, "", errors.New("campaign plan I/O profile environment is invalid")
 			}
 			ioProfile = true
 		case "GOMAD3_CHOICE_PROFILE":
 			if choiceProfile || plan.ChoiceProfile == nil || entry.Value != plan.ChoiceProfile.Name {
-				return nil, errors.New("campaign plan choice profile environment is invalid")
+				return nil, "", errors.New("campaign plan choice profile environment is invalid")
 			}
 			choiceProfile = true
+		case record.ClockTickEnvironment:
+			if clockTick != "" || entry.Value != record.ClockTickForward {
+				return nil, "", errors.New("campaign plan clock tick environment is invalid")
+			}
+			clockTick = entry.Value
 		default:
 			result = append(result, entry.Name+"="+entry.Value)
 		}
 	}
 	if !ioProfile || !choiceProfile {
-		return nil, errors.New("campaign plan profile environment is incomplete")
+		return nil, "", errors.New("campaign plan profile environment is incomplete")
 	}
-	return result, nil
+	return result, clockTick, nil
 }
 
 type campaignPlanPreparer struct {

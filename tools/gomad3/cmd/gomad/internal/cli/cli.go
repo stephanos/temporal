@@ -456,6 +456,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
+	clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -614,7 +615,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
 		MaxExplorationBytes: uint64(explorationLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,

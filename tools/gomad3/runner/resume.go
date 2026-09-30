@@ -114,6 +114,11 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
 	}
+	for _, entry := range plan.Environment {
+		if entry.Name == record.ClockTickEnvironment {
+			config.ClockTick = entry.Value
+		}
+	}
 	if plan.Guidance != nil {
 		config.Guide = true
 		config.Corpus = plan.Guidance.Corpus

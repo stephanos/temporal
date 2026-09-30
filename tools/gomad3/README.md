@@ -626,6 +626,21 @@ work is never skipped to deliver a future timer, and equal-deadline timers use
 the seeded runtime choice stream. An explicit `testing/synctest` bubble keeps
 its private clock and takes precedence over the process clock.
 
+Under the default `strict` tick policy every `time.Now` within one busy stretch
+returns the same instant. `--clock-tick=forward` on `explore` and `qualify`
+(`"clock_tick": "forward"` on a `qualify-set` workload) advances the clock at
+every `time.Now` by 1 to 1024 nanoseconds, drawn from a stream derived from the
+seed and separate from the scheduling choices, so two reads never tie the way
+they cannot on a real clock, and one seed repeats exactly. The advance can make
+a timer due while work is runnable; the scheduler delivers it at its next timer
+check like any other due timer. Runtime-internal clock reads do not tick. The
+policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
+recorded environment and therefore of Campaign, Artifact, plan, and evidence
+identity; `strict` is recorded as the entry's absence, so its identities are
+unchanged, and replay, resume, and shards restore the recorded policy. A direct
+`GOMADSEED` run honors the same variable, and any other value stops the
+process before user initialization.
+
 The standard `go test` harness also observes virtual time. In particular,
 `-test.timeout` is a logical-time deadline and may fire immediately in wall
 time when it is the next event. A separate wall-time process watchdog is still

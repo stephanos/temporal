@@ -74,6 +74,7 @@ type WorkloadDefaults struct {
 	Invariant            string                  `json:"invariant"`
 	ReadOnlyMounts       []set.Mount             `json:"read_only_mounts,omitempty"`
 	ChoiceBytes          uint64                  `json:"choice_bytes"`
+	ClockTick            string                  `json:"clock_tick,omitempty"`
 	ReplaySuccesses      bool                    `json:"replay_successes"`
 	SuccessArtifactLimit uint64                  `json:"success_artifact_limit"`
 	SuccessBytesLimit    uint64                  `json:"success_bytes_limit"`
@@ -92,6 +93,7 @@ type TestOverride struct {
 	Expectation          *set.WorkloadExpectation           `json:"expectation,omitempty"`
 	PlatformExpectations map[string]set.WorkloadExpectation `json:"platform_expectations,omitempty"`
 	ChoiceBytes          *uint64                            `json:"choice_bytes,omitempty"`
+	ClockTick            string                             `json:"clock_tick,omitempty"`
 	ReplaySuccesses      *bool                              `json:"replay_successes,omitempty"`
 	ExecutionTimeout     string                             `json:"execution_timeout,omitempty"`
 	OverallTimeout       string                             `json:"overall_timeout,omitempty"`
@@ -464,7 +466,7 @@ func workload(spec Spec, test, id string) set.Workload {
 		ID: id, Name: test, Tier: defaults.Tier, Invariant: test + " " + defaults.Invariant,
 		Package: spec.Package, Test: test, BuildTags: slices.Clone(spec.BuildTags),
 		CapabilityMode: defaults.CapabilityMode, ReadOnlyMounts: slices.Clone(defaults.ReadOnlyMounts),
-		ChoiceBytes: defaults.ChoiceBytes, ReplaySuccesses: defaults.ReplaySuccesses,
+		ChoiceBytes: defaults.ChoiceBytes, ClockTick: defaults.ClockTick, ReplaySuccesses: defaults.ReplaySuccesses,
 		SuccessArtifactLimit: defaults.SuccessArtifactLimit, SuccessBytesLimit: defaults.SuccessBytesLimit,
 		ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
 		TestParallel: defaults.TestParallel, Expectation: defaults.Expectation,
@@ -479,6 +481,9 @@ func workload(spec Spec, test, id string) set.Workload {
 		}
 		if override.ChoiceBytes != nil {
 			generated.ChoiceBytes = *override.ChoiceBytes
+		}
+		if override.ClockTick != "" {
+			generated.ClockTick = override.ClockTick
 		}
 		if override.ReplaySuccesses != nil {
 			generated.ReplaySuccesses = *override.ReplaySuccesses

@@ -109,6 +109,7 @@ func gomadInit() {
 		exit(2)
 	}
 
+	gomadClockTickInit(seed)
 	gomadEnabled = true
 	gomadSeed = seed
 	gomadChoiceSeedRandom()
@@ -117,6 +118,51 @@ func gomadInit() {
 	debug.asyncpreemptoff = 1
 	haveSysmon = false
 	randomizeScheduler = true
+}
+
+// gomadClockForward advances the virtual clock at every time.Now so that two
+// reads never share an instant, the way a real clock moves between them. The
+// draw comes from its own stream derived from the seed, so it neither consumes
+// nor perturbs the scheduling choices, and replay derives the same draws.
+var (
+	gomadClockForward   bool
+	gomadClockTickState uint64
+)
+
+// gomadClockTickMask bounds each forward draw to 1 through 1024 nanoseconds:
+// enough to separate timestamps, far below any timer a test would set.
+const gomadClockTickMask = 1023
+
+func gomadClockTickInit(seed uint64) {
+	value, present := gomadEnv("GOMAD3_CLOCK_TICK=")
+	if !present {
+		return
+	}
+	if value != "forward" {
+		print("runtime: invalid GOMAD3_CLOCK_TICK\n")
+		exit(2)
+	}
+	gomadClockForward = true
+	gomadClockTickState = seed ^ 0x6c62272e07bb0142
+}
+
+func gomadClockTickDraw() int64 {
+	gomadClockTickState += 0x9e3779b97f4a7c15
+	value := gomadClockTickState
+	value = (value ^ value>>30) * 0xbf58476d1ce4e5b9
+	value = (value ^ value>>27) * 0x94d049bb133111eb
+	value ^= value >> 31
+	return int64(1 + value&gomadClockTickMask)
+}
+
+// gomadTimeNow serves time.Now while Gomad is enabled. Advancing faketime here
+// can make a timer due while work is runnable; the scheduler then delivers it at
+// its next timer check, in the same deterministic order as any due timer.
+func gomadTimeNow() (sec int64, nsec int32, mono int64) {
+	if gomadClockForward {
+		faketime += gomadClockTickDraw()
+	}
+	return faketime / 1e9, int32(faketime % 1e9), faketime
 }
 
 //go:linkname gomadCapabilityGuard
