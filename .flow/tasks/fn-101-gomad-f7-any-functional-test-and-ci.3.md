@@ -14,9 +14,14 @@ Escapes it finds are recorded with findings, not fixed here.
 - the host-tools job (stock Go, no toolchain) skips it
 
 ## Done summary
-TBD
+Replaced the planned dynamic linux audit with a static host-clock inventory (R5 amended 2026-09-29, user decision). On linux/amd64 the runtime reads the clock through the vDSO, which seccomp and ptrace cannot observe, and the interception is platform-neutral Go that the darwin DTrace audit already exercises; what differs per platform is who reaches the host clock without passing through it.
 
+`tools/gomad3/toolchain/clock_inventory_test.go` runs in `make test-toolchain`. It counts every standard-library reference to `nanotime1`, `walltime`, `time_now`, and the vDSO clock symbols in the patched GOROOT per qualified platform (go/build MatchFile per platform, comments stripped, `//go:` directives kept) against a reviewed allowlist classified as implementation, guarded, host-by-design, escape (with a finding), or unrelated, and an AST check requires `nanotime` and `time_runtimeNow` to return on `gomadEnabled` before their host call. A new, removed, or recounted reference fails the tier on either host; a mutated count fails it; stock Go without a toolchain skips it.
+
+Escapes recorded, not fixed: `gcMarkTermination` stamps `MemStats.LastGC` with host wall time; the FIPS entropy source's `monoTime`; the execution tracer's clock snapshot; on linux, `syscall.Gettimeofday` behind the syscall pack gate. The dynamic seccomp audit is fn-105 D11.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 49d7cde43
+- Tests: make test-toolchain (darwin/arm64), mutation: changed count fails the inventory, fork run 36668156879 core-linux step 5 (conformance tiers incl. test-toolchain): success
 - PRs:

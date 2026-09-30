@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make the gomad3 workflow pass on a clean checkout (linux and macOS runners)",
   "updated_at": "2026-09-28T16:55:15.293919Z"
 }

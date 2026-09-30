@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add a Linux host-clock escape audit replacing DTrace",
   "updated_at": "2026-09-27T15:28:25.940017Z"
 }

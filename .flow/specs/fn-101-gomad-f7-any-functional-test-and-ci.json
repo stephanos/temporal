@@ -592,7 +592,7 @@
     "impl:fn-101-gomad-f7-any-functional-test-and-ci.6": 0
   },
   "spec_path": ".flow/specs/fn-101-gomad-f7-any-functional-test-and-ci.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad F7: any functional test, and CI",
   "tracker": {
     "baseHashFlow": null,
@@ -605,5 +605,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T23:15:48.218754Z"
+  "updated_at": "2026-09-30T05:31:15.860629Z"
 }

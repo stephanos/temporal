@@ -39,7 +39,7 @@ milestone's status here.
 | F4 | `fn-98-gomad-f4-close-the-tests-capability` | done on darwin/arm64 (activity batch cancel is tier-3 `intermittent`) |
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | done on darwin/arm64 (linux/amd64 not re-measured) |
-| F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | open; `.3` awaits a linux CI run, `.4` (linux smoke gate) not started |
+| F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | done (linux seed-17 replay divergence open as a finding) |
 | F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; cut to R1 (generated bootstrap decoder), R2–R6 moved to F10 |
 | F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; cut to `forward` and `strict` (default decided by measurement), `seeded`/`fixed` moved to F10 |
 | F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; no dependency; linked mode on darwin/arm64 ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
@@ -1227,6 +1227,25 @@ is now a demonstrated test bug (it sorts the client and server spans by StartTim
 under virtual time). The exclusions that remain in `tests.generator.json` are the four
 I/O-transcript overflows and the named subtests; the callbacks and chasm exclusions are
 removed.
+
+**Status (done, 2026-09-30).** F7's six tasks are closed. The required CI gate is the linux
+functional smoke gate (`.github/workflows/gomad3-smoke.yml`, called from `gomad3.yml`): four
+`./tests` suites (user timers, activity, update, child workflow) copied verbatim from
+`temporal.json`, qualified with exact replay and zero unsupported, failed, and infrastructure
+errors, plus the `./tests` manifest staleness check; fork run 36668156879 passed it in 9.5 minutes.
+The host-clock escape gate for linux is the static inventory in `toolchain/clock_inventory_test.go`
+(R5 amended), which passed on both platforms in the same run and records four escapes as
+findings, of which `MemStats.LastGC` is the one ordinary targets reach. Two findings stay open:
+
+- **Linux seed-17 replay divergence.** Since the FIPS DRBG draw (`6bc11ef7d`) and the mark-start
+  greying fix (`440552d2c`) landed, seed 17 of one tier-3 suite per linux run has diverged on
+  replay near choice ordinal 9100-9400, a different suite each time (`functional-activity` in run
+  36668156879, `functional-query` in run 36669836359). The F5 and F6 suites are `intermittent` on
+  linux under this finding, the dispatch-only linux gate accepts `nondeterministic` for them, and
+  the required smoke gate runs seed 11, where no divergence has been observed. The darwin
+  representative set stayed fully qualified on the same commits.
+- **`TestDescribeTaskQueueEnhanced_ReportFlags`** keeps its deterministic failure (see the status
+  above).
 
 ## F8: consolidate architecture after functional qualification
 

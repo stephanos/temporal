@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
   "spec_path": ".flow/tasks/fn-101-gomad-f7-any-functional-test-and-ci.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make core-linux pass: platform-neutral required probes, measured linux expectations, platform-aware host tier",
   "updated_at": "2026-09-28T22:37:36.332269Z"
 }
