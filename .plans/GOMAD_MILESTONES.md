@@ -22,10 +22,49 @@ changes, change the spec and summarize the change here.
 
 | Milestone | Spec | State |
 | --- | --- | --- |
-| F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; `.1` done (`forward` and `strict` tick policies), `.2` open (measure the timestamp-tie suites under `forward`, decide the default) |
+| F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; `.1` done (`forward` and `strict` tick policies; the spec title predates the cut to those two), `.2` open (measure the timestamp-tie skips below under `forward`, decide the default) |
 | F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
+| — | none yet | the untracked items marked **(untracked)** under "Remaining `./tests` gaps" and "Open findings" |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
+
+## Remaining `./tests` gaps
+
+The generated manifest (`tools/gomad3integration/qualification/tests.json`, from
+`tests.generator.json`) gives every `./tests` test a disposition. What still keeps the package
+short of "any functional test runs deterministically":
+
+- **Four excluded suites (untracked).** `TestTaskQueueStats_Pri_Suite`,
+  `TestVersioning3FunctionalSuite`, `TestVersioning3QueryFunctionalSuite`, and
+  `TestWorkerDeploymentSuite` overflow the 64 MiB I/O transcript (`deterministicio.MaximumTranscriptBytes`,
+  a fixed runtime mapping). Raising or streaming the bound, with a runner flag and an
+  artifact-identity field, is the work.
+- **Eighteen timestamp-tie skips (fn-103 `.2`).** Tests that expect two reads of the clock, or two
+  server timestamps, to differ: `TestAdvancedVisibilitySuite{,Legacy}/TestListWorkflow_OrQuery`,
+  `TestDescribeTestSuite/TestDescribeTaskQueue`, `TestNexusOTELSuite/TestWorkerOperation`,
+  `TestNexusStandaloneTestSuite/…/QueryBySupportedSearchAttributes`, eleven
+  `TestStandaloneActivityTestSuite` subtests, and three `TestTaskQueueSuite/TestTaskDispatchLatencyMetric_*`.
+  `--clock-tick=forward` targets exactly these.
+- **Gomad-side limits (untracked).**
+  - `TestNexusOTELSuite/TestOperation` needs two dedicated clusters, and `testcore` sizes its
+    dedicated pool from `GOMAXPROCS`, which Gomad pins to 1, so the test waits on itself.
+  - `TestWFTFailureReportedProblemsTestSuite/…_NotClearedBySignals`: the SDK's panic traceback
+    prints dead argument slots holding host thread-stack addresses, so output differs between
+    same-seed runs.
+  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: seed 11 never delivers the
+    cancel command within the 120 s wait; not yet explained.
+- **Tests that assume wall time passes during server work.**
+  `TestFairness{,AutoEnable}Suite/Test_Activity_Basic` (backlog written before polling) and
+  `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult` (timeouts driven by RPC
+  latency). Under virtual time server work takes no time; `forward` does not change timers, so
+  these stay skipped unless the tests stop relying on wall-clock latency.
+- **Test bugs, kept as owned skips.** The Nexus API `…Operation_Outcomes` subtests register one
+  endpoint name from parallel subtests (four skips); `TestScheduleMigrationV2ToV1Idempotent`
+  expects idempotency after the migration closed; `TestNexusOperationSurvivesResetCrossTree`
+  signals before the post-reset workflow task completes.
+- **Intermittent suite.** `TestSignalWorkflowTestSuiteChasm` is `intermittent` on darwin for a
+  residual replay difference (about 1 in 28 seed-11 replays, two heap-span refills swapping order
+  at cluster start); its allocating goroutine is not identified.
 
 ## Open findings
 
@@ -35,13 +74,15 @@ Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl read
   run 36668156879, `functional-query` in 36669836359). The F5 and F6 suites are `intermittent` on
   linux under this finding, the dispatch-only linux gate accepts `nondeterministic` for them, and
   the required smoke gate runs seed 11 only. The darwin representative set stayed fully qualified
-  on the same commits. Bisecting the two runtime changes on linux/amd64 is the next step.
+  on the same commits. **(untracked)** Bisecting the two runtime changes on linux/amd64 is the
+  next step; a linux/amd64 container under Rosetta on a Mac, or one fork branch per reverted
+  commit, can run it.
 - **Host-clock escapes** recorded by the static inventory (`toolchain/clock_inventory_test.go`):
   `gcMarkTermination` stamps `MemStats.LastGC` with host wall time (also visible through
   `debug.GCStats` and the Prometheus `go_memstats_last_gc_time_seconds` gauge), the FIPS entropy
   source's `monoTime`, and the execution tracer's clock snapshot; on linux also
   `syscall.Gettimeofday` behind the `syscall` pack gate. `LastGC` is the one ordinary targets
-  reach.
+  reach; **(untracked)** guarding it on `gomadEnabled` in the runtime patch is the fix.
 - **`TestDescribeTaskQueueEnhanced_ReportFlags`** (versioning suite) keeps a deterministic failure
   ("poller info should not be reported") that is not yet shown to be a test bug.
 - **DTrace clock audit** on darwin needs a root run; CI supplies it on the macOS runner.
