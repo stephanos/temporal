@@ -1,14 +1,14 @@
 {
-  "branch_name": "fn-107-gomad-finish-downstream-cell",
-  "created_at": "2026-09-30T18:56:59.069356Z",
+  "branch_name": "fn-111-gomad-consolidate-vocabulary-and-update",
+  "created_at": "2026-09-30T19:30:49.980509Z",
   "depends_on_epics": [],
-  "id": "fn-107-gomad-finish-downstream-cell",
+  "id": "fn-111-gomad-consolidate-vocabulary-and-update",
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-107-gomad-finish-downstream-cell.md",
+  "spec_path": ".flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md",
   "status": "open",
-  "title": "Gomad: finish downstream cell integration and qualification",
+  "title": "Gomad: consolidate vocabulary and update documentation",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T20:20:40.121326Z"
+  "updated_at": "2026-09-30T19:30:50.001660Z"
 }
