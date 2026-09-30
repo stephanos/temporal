@@ -24,7 +24,7 @@ const (
 // valid header passes that phase; without the Runner's other descriptors the
 // process then stops in a later Gomad phase (the transcript mapping, or the full
 // checksum and identity validation), still before user initialization.
-func (campaign *runtimeCampaign) requireBootstrapConsumer(binary string) error {
+func (campaign *runtimeCampaign) requireBootstrapConsumer(fixture string) error {
 	directory, err := os.MkdirTemp("", "gomad3-bootstrap-")
 	if err != nil {
 		return fmt.Errorf("create bootstrap frame directory: %w", err)
@@ -66,7 +66,7 @@ func (campaign *runtimeCampaign) requireBootstrapConsumer(binary string) error {
 		// hostexec passes no extra descriptors, so the shell opens the frame on
 		// descriptor 5 and replaces itself with the fixture.
 		if err := campaign.expectedExit(
-			"bootstrap-"+test.name, []string{"/bin/sh", "-c", `exec "$0" 5<"$1"`, binary, path}, campaign.testdata, 10*time.Second, 2,
+			"bootstrap-"+test.name, []string{"/bin/sh", "-c", `exec "$0" 5<"$1"`, fixture, path}, campaign.testdata, 10*time.Second, 2,
 			test.oracle, []string{"GOMADSEED", "GOMAD3_IO_PROFILE"}, "GOMAD3_IO_PROFILE=deterministic",
 		); err != nil {
 			return err

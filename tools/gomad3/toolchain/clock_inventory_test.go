@@ -110,6 +110,7 @@ func TestPatchedRuntimeHostClockReferencesAreReviewed(t *testing.T) {
 			problems = append(problems, fmt.Sprintf("unreviewed host-clock reference: %s (%d)", key, count))
 		case reference.count != count:
 			problems = append(problems, fmt.Sprintf("host-clock reference count changed: %s = %d, reviewed %d", key, count, reference.count))
+		default:
 		}
 	}
 	for key := range want {
@@ -252,6 +253,7 @@ func guardAndHostCallPositions(path, function, hostCall string) (guard, host tok
 				if identifier, ok := node.Fun.(*ast.Ident); ok && identifier.Name == hostCall && !host.IsValid() {
 					host = fileSet.Position(node.Pos())
 				}
+			default:
 			}
 			return true
 		})
