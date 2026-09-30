@@ -1403,6 +1403,17 @@ external service topology. Spec created; no tasks yet. Cut on 2026-09-29 to link
 darwin/arm64 with no dependency on F7; closure-mode support, linux/amd64 packs, and the seam
 guide moved to F10 as D8–D10.
 
+**Status (2026-09-30).** All six tasks are implemented: `--working-dir` with adapters selected
+from the owning module, external digest-bound compatibility packs (`--compatibility-root`,
+`GOMAD3_COMPATIBILITY_PACKS`), a standalone `x/sys` pack, the exact address-library adapter (the
+four libc packs moved to the new profile digests, the linux one computed from the same inventory
+and confirmed by CI's bootstrap-frame golden), a tested in-memory bind contract with every C4
+disposition recorded, and the measurement. Linked analysis of the downstream in-process cluster
+test fell from 78 to 44 live blockers, all downstream-owned (10 `remain_unsupported` subprocess,
+signal, and credential-chain sites; 34 `model_operation` with named injection points), and
+`gomad qualify` classifies both seeds as `unsupported_target`, a capability blocker, at the first of
+them. The details are in [GOMAD_CLOUD.md](GOMAD_CLOUD.md) under "Measurement".
+
 ## F10: follow-ups (deferred scope)
 
 **Spec.** [fn-105-gomad-follow-ups-deferred-scope](../.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md);
