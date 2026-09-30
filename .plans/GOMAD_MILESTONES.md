@@ -40,7 +40,7 @@ milestone's status here.
 | F5 | `fn-99-gomad-f5-one-workflow-executing` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F6 | `fn-100-gomad-f6-a-package-level-functional` | done on darwin/arm64 (linux/amd64 not re-measured) |
 | F7 | `fn-101-gomad-f7-any-functional-test-and-ci` | done (linux seed-17 replay divergence open as a finding) |
-| F8 | `fn-102-gomad-architecture-consolidate` | open; depends on F7; cut to R1 (generated bootstrap decoder), R2–R6 moved to F10 |
+| F8 | `fn-102-gomad-architecture-consolidate` | done (cut to R1, the generated bootstrap decoder; R2–R6 moved to F10) |
 | F7+ | `fn-103-gomad-seeded-virtual-clock-ticks` | open; depends on F7; cut to `forward` and `strict` (default decided by measurement), `seeded`/`fixed` moved to F10 |
 | F9 | `fn-104-gomad-run-a-downstream-cell-under-the` | open; no dependency; linked mode on darwin/arm64 ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)) |
 | F10 | `fn-105-gomad-follow-ups-deferred-scope` | backlog; scope cut from F7–F9 on 2026-09-29, each item with a revival trigger ([GOMAD_FOLLOWUPS.md](GOMAD_FOLLOWUPS.md)) |
@@ -1307,7 +1307,14 @@ records the findings and evidence behind this work.
 **Status.** Planned on 2026-09-27 with six tasks and an explicit dependency on F7. Flow-Next
 validation passes and plan review returned `SHIP`; implementation has not started. Cut on
 2026-09-29 to R1 (task `.1`, which now also carries the full-gate qualification); R2–R6 moved to
-F10 as D1–D5, because they change no behavior and no consumer is waiting on them. The
+F10 as D1–D5, because they change no behavior and no consumer is waiting on them.
+
+**Status (done, 2026-09-30).** The runtime bootstrap consumer is generated from the I/O schema
+(`gomad_iowire_generated.go`, commit `c506f3f39`); the runtime tier feeds truncated, header-only,
+wrong-magic, wrong-version, and wrong-kind frames to it on descriptor 5 and requires the early
+diagnostic, valid-header frames at seed 0 and 2^64-1 pass that phase, and a generated wire test
+pins the encoder's seed to the runtime offset. The full gates passed on both platforms in fork run
+36669836359. The
 existing architecture test package passed during assessment, which is not full runtime
 qualification.
 

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-102-gomad-architecture-consolidate",
   "spec_path": ".flow/tasks/fn-102-gomad-architecture-consolidate.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Extract shared completed-execution assessment inside Runner",
   "updated_at": "2026-09-27T23:52:46.697205Z"
 }

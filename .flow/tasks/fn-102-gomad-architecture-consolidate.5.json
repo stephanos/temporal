@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-102-gomad-architecture-consolidate",
   "spec_path": ".flow/tasks/fn-102-gomad-architecture-consolidate.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce package coverage, purity, and public signature visibility",
   "updated_at": "2026-09-27T23:52:48.023093Z"
 }

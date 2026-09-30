@@ -22,9 +22,14 @@ R1. Current runtime gomadIOConfigFrame/gomadReadConfig/gomadConfigSeed repeat th
 - The runtime bootstrap consumer passes valid, empty, truncated, malformed-header, and seed-boundary cases on both qualified platforms; later checksum/identity rejection and disabled/direct-seed behavior unchanged.
 - Generated-source checks, focused tests, the full Gomad gates on darwin/arm64 and linux/amd64 (CI), and project lint pass (moved here from fn-102.6 on 2026-09-29).
 ## Done summary
-TBD
+The runtime's early bootstrap consumer is generated from `deterministicio/schema/iowire.json`: `protocol-generate` emits `toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go` (frame size, version, kind, magic, header recognition, seed projection) next to the host and overlay codecs, and the file is registered in the version descriptor's overlay allowlist. The seed offset derives from the schema's checksum offset (the seed is the last field before it), so no schema field was added and protocol bytes are unchanged. Descriptor reads, the zero-frame fallback, short-frame rejection, and startup termination stay in the runtime; full checksum and identity validation stays in internal/gomadio before any workload.
 
+The runtime tier feeds real frames to the consumer on descriptor 5: truncated, header-only, wrong magic, wrong magic terminator, wrong version (both bytes), and wrong kind exit 2 with the early diagnostic before user initialization; valid-header frames at seed 0 and 2^64-1 pass the early phase and stop in a later Gomad phase. A generated wire test pins the encoder's seed to the runtime offset for 0, 1, a byte-order vector, and 2^64-1. Disabled and direct-seed activation cases are unchanged and pass.
+
+Scope: F8 was cut to this task on 2026-09-29; R2-R6 moved to fn-105 D1-D5, and this task carries the full-gate qualification R6 used to own. Gates: make validate, test-toolchain, test-runtime on darwin/arm64; fork run 36669836359 at df0fa048f: darwin core (upgrade dossier, all gates) and linux conformance, host, pack, and core tiers passed. Project lint: server packages 0 issues; the nested gomad3 module is outside the root lint config (857 pre-existing findings), and the files this work added are clean under it.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c506f3f39
+- Tests: make validate, make test-toolchain, make test-runtime (darwin/arm64), go test ./deterministicio/internal/wire ./internal/gomadtool/generation/protocol, fork run 36669836359: core success, core-linux steps 5-10 success, make lint-code-fast (server packages: 0 issues)
 - PRs:

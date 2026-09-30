@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-102-gomad-architecture-consolidate",
   "spec_path": ".flow/tasks/fn-102-gomad-architecture-consolidate.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move inaccessible public executor injection behind private dependencies",
   "updated_at": "2026-09-27T23:52:47.579790Z"
 }
