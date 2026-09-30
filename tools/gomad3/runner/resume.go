@@ -114,6 +114,7 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
 	}
+	config.IOTranscriptLimit = uint64(plan.IOTranscriptBytes)
 	for _, entry := range plan.Environment {
 		if entry.Name == record.ClockTickEnvironment {
 			config.ClockTick = entry.Value

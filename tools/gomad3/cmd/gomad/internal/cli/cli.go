@@ -445,6 +445,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "total retained successful-execution bytes")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
+	transcriptLimit := byteSize(64 << 20)
+	flags.Var(&transcriptLimit, "io-transcript-bytes", "I/O transcript capacity (64MiB to 1GiB, whole MiB)")
 	flags.Var(&explorationLimit, "max-exploration-bytes", "maximum live choice-exploration bytes")
 	flags.Var(&explorationResultLimit, "max-exploration-result-bytes", "maximum combined result bytes per candidate")
 	var environment stringList
@@ -615,7 +617,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
 		MaxExplorationBytes: uint64(explorationLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,

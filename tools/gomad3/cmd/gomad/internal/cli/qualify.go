@@ -63,6 +63,8 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "retained successful-execution bytes per repetition")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
+	transcriptLimit := byteSize(64 << 20)
+	flags.Var(&transcriptLimit, "io-transcript-bytes", "I/O transcript capacity (64MiB to 1GiB, whole MiB)")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
@@ -136,7 +138,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	config := runner.CampaignSpec{
 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick,
+		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,

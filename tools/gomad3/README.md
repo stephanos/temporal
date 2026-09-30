@@ -497,6 +497,15 @@ tools/gomad3/.bin/gomad replay ARTIFACT_DIR
 tools/gomad3/.bin/gomad replay --verify-only ARTIFACT_DIR
 ```
 
+The transcript holds 64 MiB by default, about half a million operations; a
+target that fills it stops with an incomplete transcript. `--io-transcript-bytes`
+on `explore` and `qualify` (`"io_transcript_bytes"` on a `qualify-set`
+workload) raises it in whole MiB up to 1 GiB. The Runner sizes both transcript
+backings to the bound and writes it as the produced header's capacity, which
+the runtime maps; the bound is recorded in the execution limits, the campaign
+plan when it differs from the default, and the evidence, so replay, resume, and
+shards restore it.
+
 Unsupported calls entering an inventoried shim fail closed before host I/O.
 This boundary is not an OS sandbox: trusted target code must not bypass the
 reviewed boundaries with a direct raw syscall. DNS, non-loopback sockets,

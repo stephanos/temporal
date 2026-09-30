@@ -17,7 +17,10 @@ const (
 	transcriptDescriptor = 6
 	terminalDescriptor   = 7
 	expectedDescriptor   = 8
-	transcriptBytes      = 64 << 20
+	// maximumTranscriptBytes matches deterministicio.MaximumTranscriptBytes:
+	// the Runner sizes both backings to the campaign's bound and writes it as
+	// the produced header's capacity.
+	maximumTranscriptBytes = 1 << 30
 )
 
 var transcript = struct {
@@ -51,19 +54,24 @@ func Init() {
 	if transcript.bytes != nil {
 		return
 	}
+	header := runtimeTraceMap(transcriptDescriptor, gomadwire.TranscriptHeaderBytes, true)
+	if header == nil {
+		panic("gomad3: map I/O transcript")
+	}
+	producedHeader, err := gomadwire.DecodeProducedTranscriptHeader(header[:gomadwire.TranscriptHeaderBytes])
+	if err != nil || producedHeader.Capacity < gomadwire.TranscriptHeaderBytes+gomadwire.TranscriptRecordBytes || producedHeader.Capacity > maximumTranscriptBytes || producedHeader.NextOffset != gomadwire.TranscriptHeaderBytes || producedHeader.RecordCount != 0 {
+		panic("gomad3: invalid I/O transcript backing")
+	}
+	transcriptBytes := uintptr(producedHeader.Capacity)
 	mapped := runtimeTraceMap(transcriptDescriptor, transcriptBytes, true)
 	if mapped == nil {
 		panic("gomad3: map I/O transcript")
-	}
-	producedHeader, err := gomadwire.DecodeProducedTranscriptHeader(mapped[:gomadwire.TranscriptHeaderBytes])
-	if err != nil || producedHeader.Capacity != transcriptBytes || producedHeader.NextOffset != gomadwire.TranscriptHeaderBytes || producedHeader.RecordCount != 0 {
-		panic("gomad3: invalid I/O transcript backing")
 	}
 	expected := runtimeTraceMap(expectedDescriptor, transcriptBytes, false)
 	if expected == nil {
 		panic("gomad3: map expected I/O transcript")
 	}
-	expectedHeader, err := gomadwire.DecodeExpectedTranscriptHeader(expected[:gomadwire.TranscriptHeaderBytes], transcriptBytes)
+	expectedHeader, err := gomadwire.DecodeExpectedTranscriptHeader(expected[:gomadwire.TranscriptHeaderBytes], uint64(transcriptBytes))
 	if err != nil {
 		panic("gomad3: invalid expected I/O transcript backing")
 	}

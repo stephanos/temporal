@@ -78,7 +78,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, Artifacts: spec.Artifacts, Environment: environment,
+		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
 		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
 		Target: target.Spec{
 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),

@@ -68,3 +68,9 @@ func addStrings(destination map[string]struct{}, values []string) {
 		destination[value] = struct{}{}
 	}
 }
+
+// choiceTraceObserved reports whether the target ran to a point where it wrote
+// its choice trace: a watchdog kill or a cancellation stops it before.
+func choiceTraceObserved(result execution.Result) bool {
+	return !result.WatchdogTimeout && !result.Cancelled
+}

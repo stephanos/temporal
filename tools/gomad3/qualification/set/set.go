@@ -72,7 +72,10 @@ type Workload struct {
 	ChoiceBytes    uint64                `json:"choice_bytes"`
 	// ClockTick selects a non-default virtual-clock tick policy; only
 	// "forward" is valid, and the strict default is the field's absence.
-	ClockTick            string `json:"clock_tick,omitempty"`
+	ClockTick string `json:"clock_tick,omitempty"`
+	// IOTranscriptBytes raises the I/O transcript bound for a workload whose
+	// cluster outgrows the default; absent means the default.
+	IOTranscriptBytes    uint64 `json:"io_transcript_bytes,omitempty"`
 	ReplaySuccesses      bool   `json:"replay_successes"`
 	SuccessArtifactLimit uint64 `json:"success_artifact_limit"`
 	SuccessBytesLimit    uint64 `json:"success_bytes_limit"`
@@ -710,6 +713,9 @@ func ValidateManifest(manifest Manifest) error {
 		if workload.CapabilityMode != target.CapabilityModeClosure && workload.CapabilityMode != target.CapabilityModeLinked && workload.CapabilityMode != target.CapabilityModeGuarded {
 			return fmt.Errorf("qualification workload %s capability mode is invalid", workload.ID)
 		}
+		if workload.IOTranscriptBytes != 0 && deterministicio.ValidateTranscriptLimit(workload.IOTranscriptBytes) != nil {
+			return fmt.Errorf("qualification workload %s I/O transcript limit is invalid", workload.ID)
+		}
 		if workload.ClockTick != "" && workload.ClockTick != record.ClockTickForward {
 			return fmt.Errorf("qualification workload %s clock tick policy %q must be absent or forward", workload.ID, workload.ClockTick)
 		}
@@ -785,6 +791,9 @@ func workloadCommand(config Spec, manifest Manifest, workload Workload, seed uin
 	}
 	if workload.ClockTick != "" {
 		args = append(args, "--clock-tick="+workload.ClockTick)
+	}
+	if workload.IOTranscriptBytes != 0 {
+		args = append(args, "--io-transcript-bytes="+strconv.FormatUint(workload.IOTranscriptBytes, 10))
 	}
 	if workload.ReplaySuccesses {
 		args = append(args, "--replay-successes", "--success-limit="+strconv.FormatUint(workload.SuccessArtifactLimit, 10), "--success-bytes="+strconv.FormatUint(workload.SuccessBytesLimit, 10))
