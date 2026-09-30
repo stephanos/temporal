@@ -39,8 +39,7 @@ short of "any functional test runs deterministically":
   `TestWorkerDeploymentSuite` qualify on seeds 11 and 17 with a 512 MiB transcript,
   `TestVersioning3FunctionalSuite` with the 1 GiB maximum. All four also exceed the 64 MiB
   choice-trace maximum, so they run without a choice trace: that proves same-seed repeatability but
-  retains no exact-replay artifact. A larger or streamed choice trace would restore replay for
-  them.
+  retains no exact-replay artifact. Restoring replay for them is F10 D13.
 - **One forward-tick skip.** The seven suites that had timestamp-tie skips run under
   `clock_tick: forward` (fn-103, closed 2026-09-30) and qualify on both seeds with those eighteen
   skips removed. `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`
@@ -67,7 +66,7 @@ short of "any functional test runs deterministically":
   signals before the post-reset workflow task completes.
 - **Intermittent suite.** `TestSignalWorkflowTestSuiteChasm` is `intermittent` on darwin for a
   residual replay difference (about 1 in 28 seed-11 replays, two heap-span refills swapping order
-  at cluster start); its allocating goroutine is not identified.
+  at cluster start); its allocating goroutine is not identified (F10 D14).
 
 ## Open findings
 
@@ -148,6 +147,8 @@ would revive it.
 | D10 downstream-seam guide | F9 R4 | a second downstream module adopts Gomad |
 | D11 dynamic linux clock audit | F7 R5 (pre-amendment) | a linux-only clock escape is observed |
 | D12 linux replay-divergence channel | fn-106 `.1` | a linux/amd64 host is available for runtime instrumentation, or the rate rises |
+| D13 choice-trace capacity for the transcript-heavy suites | fn-106 `.3` | a failure in one of them needs an exact replay |
+| D14 darwin chasm replay residual | F7 | with D12, or the rate rises |
 
 **Constraints.** An item is worked only after its trigger is recorded here; its acceptance is the
 origin spec's requirement text. Items may be closed as won't-do.
