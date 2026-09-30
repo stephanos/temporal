@@ -56,7 +56,7 @@ func TestWriteProposalsNeverReplacesAFile(t *testing.T) {
 // that resolves out of it through a symlink is refused.
 func TestProposalRootsResolveSymlinks(t *testing.T) {
 	base := resolvedTemp(t)
-	model := filepath.Join(base, "model")
+	model := filepath.Join(base, "model", "lean")
 	require.NoError(t, os.MkdirAll(model, 0o755))
 	link := filepath.Join(base, "looks-outside")
 	require.NoError(t, os.Symlink(model, link))

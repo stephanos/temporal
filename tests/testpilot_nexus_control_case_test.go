@@ -114,7 +114,7 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 // a scratch root -- proving the mechanism only, since the control's expected trace is the row the
 // platform never takes. The Lean replay bridge is required: without it the test fails.
 func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "lean"))
 	require.NoError(t, err)
 	_, err = os.Stat(filepath.Join(modelRoot, ".lake", "build", "bin", "umpire-replay-bridge"))
 	require.NoError(t, err, "the replay bridge is not built; make umpire-check-live-tests builds it")

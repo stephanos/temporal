@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002364Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.8",
+    "fn-104-comparative-go-implementation-of-the.10"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.12",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.12.md",
+  "status": "todo",
+  "title": "T11 Agent authoring trial on both sides",
+  "updated_at": "2026-09-30T03:53:19.002364Z"
+}

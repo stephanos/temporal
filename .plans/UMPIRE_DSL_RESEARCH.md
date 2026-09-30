@@ -1,8 +1,8 @@
 # Nexus3 DSL and verification framework research
 
 Research date: 2026-09-06. This note evaluates existing facilities against the proposed syntax in
-[`Nexus.md`](../model/Temporal/Feature/Nexus3/Nexus.md) and its proposed Case boundary in
-[`Integration.md`](../model/Temporal/Feature/Nexus3/Integration.md). The Nexus3 files are design
+[`Nexus.md`](../model/lean/Temporal/Feature/Nexus3/Nexus.md) and its proposed Case boundary in
+[`Integration.md`](../model/lean/Temporal/Feature/Nexus3/Integration.md). The Nexus3 files are design
 specimens: the proposed Markdown blocks do not parse as Lean and have no implemented compiler.
 The separate `Nexus.lean` already contains a narrower executable success model. Nothing below
 is an adoption decision. No external toolchain was installed or compatibility-tested.
@@ -91,7 +91,7 @@ reproducibility, and maintenance questions for an isolated adoption spike, not e
 approach.
 ([Veil toolchain](https://github.com/verse-lab/veil/blob/main/lean-toolchain),
 [Lake configuration](https://github.com/verse-lab/veil/blob/main/lakefile.lean),
-[Umpire toolchain](../model/lean-toolchain))
+[Umpire toolchain](../model/lean/lean-toolchain))
 
 Veil is therefore a credible optional safety checker and a valuable DSL implementation reference.
 It does not remove the need for the Umpire authoring frontend, checked view correspondence, bounded

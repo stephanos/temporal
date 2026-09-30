@@ -29,7 +29,7 @@ jobs:
         with:
           version: "2026.8.16"
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
-          working_directory: model
+          working_directory: model/lean
           cache: false
       - name: Generate the API descriptor set the model build reads
         run: make proto/api.binpb
@@ -51,7 +51,7 @@ jobs:
         with:
           version: "2026.8.16"
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
-          working_directory: model
+          working_directory: model/lean
           cache: false
       - name: Generate the API descriptor set the model build reads
         run: make proto/api.binpb

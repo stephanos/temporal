@@ -153,7 +153,7 @@ func projectSources(modelRoot string, sources []experimentSource) ([]sourceView,
 		}
 		result = append(result, sourceView{
 			CanonicalPath:  source,
-			RepositoryPath: path.Join("model", source),
+			RepositoryPath: path.Join("model", "lean", source),
 		})
 	}
 	return result, nil

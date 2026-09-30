@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	walkthroughPath = "model/AUTHORING.md"
-	callerPath      = "model/Temporal/Feature/Nexus/Caller/Model.lean"
-	workerPath      = "model/Temporal/Feature/Worker/Model.lean"
-	outagePath      = "model/Temporal/Feature/Workflow/Outage/Model.lean"
-	controlPath     = "model/Temporal/Feature/Nexus/Control/Model.lean"
+	walkthroughPath = "model/lean/AUTHORING.md"
+	callerPath      = "model/lean/Temporal/Feature/Nexus/Caller/Model.lean"
+	workerPath      = "model/lean/Temporal/Feature/Worker/Model.lean"
+	outagePath      = "model/lean/Temporal/Feature/Workflow/Outage/Model.lean"
+	controlPath     = "model/lean/Temporal/Feature/Nexus/Control/Model.lean"
 )
 
 // modelPaths are the Model files the walkthrough quotes: the caller Model it walks through, and the

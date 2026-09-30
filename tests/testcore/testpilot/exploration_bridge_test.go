@@ -18,7 +18,7 @@ import (
 // builds it before this test runs, and a checkout without it skips.
 func explorationBridgeBinary(t *testing.T) string {
 	t.Helper()
-	path, err := filepath.Abs(filepath.Join("..", "..", "..", "model", ".lake", "build", "bin", "umpire-explore"))
+	path, err := filepath.Abs(filepath.Join("..", "..", "..", "model", "lean", ".lake", "build", "bin", "umpire-explore"))
 	require.NoError(t, err)
 	if _, err := os.Stat(path); err != nil {
 		t.Skipf("exploration bridge is not built at %s: %v", path, err)

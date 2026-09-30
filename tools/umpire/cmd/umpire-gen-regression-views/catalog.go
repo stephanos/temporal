@@ -22,9 +22,9 @@ func productionManifest() []manifestEntry {
 	return []manifestEntry{
 		{
 			Identity:           switchIdentity,
-			FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
+			FixturePath:        "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json",
 			GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
-			MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
+			MarkdownOutputPath: "model/lean/Umpire/Examples/Generated/Switch.md",
 		},
 	}
 }

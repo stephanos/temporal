@@ -42,7 +42,7 @@ const (
 // time, relative to the repository root; fingerprintBinaries are the Lean helpers they execute.
 var (
 	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire"}
-	fingerprintBinaries = []string{"model/.lake/build/bin/umpire-explore", "model/.lake/build/bin/umpire-replay-bridge"}
+	fingerprintBinaries = []string{"model/lean/.lake/build/bin/umpire-explore", "model/lean/.lake/build/bin/umpire-replay-bridge"}
 )
 
 type config struct {

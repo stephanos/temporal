@@ -15,7 +15,7 @@ func TestRequireGeneratedViewIsIndependentOfWorkingDirectory(t *testing.T) {
 	RequireGeneratedView(t, Reference{
 		FormatVersion: "umpire-experiment/v2",
 		Identity:      "umpire.switch.query.exactAction",
-		FixturePath:   "model/Umpire/Examples/testdata/switch-experiment-spec.json",
+		FixturePath:   "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json",
 		Sources: []string{
 			"Umpire/Examples/Switch.lean",
 		},
@@ -47,7 +47,7 @@ func TestLoadGeneratedViewDetectsEveryDisplayedFixtureField(t *testing.T) {
 			fixture.Plan.QueryDefinitionID = "query.changed"
 		},
 		"sources": func(t *testing.T, root string, fixture *fixtureEnvelope) {
-			writeFile(t, filepath.Join(root, "model", "Temporal", "Changed.lean"), []byte("-- changed source\n"))
+			writeFile(t, filepath.Join(root, "model", "lean", "Temporal", "Changed.lean"), []byte("-- changed source\n"))
 			fixture.Provenance.SourceLocations[0].Path = "Temporal/Changed.lean"
 		},
 		"properties": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
@@ -183,13 +183,13 @@ func TestLoadGeneratedViewRejectsUnsafeLeanSourcePaths(t *testing.T) {
 		"symlink escape": func(t *testing.T, root string, reference *Reference, fixture *fixtureEnvelope) {
 			external := filepath.Join(t.TempDir(), "external.lean")
 			writeFile(t, external, []byte("-- external source\n"))
-			link := filepath.Join(root, "model", "escaped.lean")
+			link := filepath.Join(root, "model", "lean", "escaped.lean")
 			require.NoError(t, os.Symlink(external, link))
 			reference.Sources = []string{"escaped.lean"}
 			fixture.Provenance.SourceLocations[0].Path = "escaped.lean"
 		},
 		"wrong kind": func(t *testing.T, root string, reference *Reference, fixture *fixtureEnvelope) {
-			directory := filepath.Join(root, "model", "directory.lean")
+			directory := filepath.Join(root, "model", "lean", "directory.lean")
 			require.NoError(t, os.MkdirAll(directory, 0o755))
 			reference.Sources = []string{"directory.lean"}
 			fixture.Provenance.SourceLocations[0].Path = "directory.lean"
@@ -218,7 +218,7 @@ func newGeneratedViewRepository(t *testing.T) (string, Reference, fixtureEnvelop
 	source := "Umpire/Examples/Switch.lean"
 	writeFile(t, filepath.Join(repositoryRoot, "model", filepath.FromSlash(source)), []byte("-- canonical source\n"))
 	realRoot := filepath.Clean(filepath.Join("..", "..", ".."))
-	encoded, err := os.ReadFile(filepath.Join(realRoot, "model/Umpire/Examples/testdata/switch-experiment-spec.json"))
+	encoded, err := os.ReadFile(filepath.Join(realRoot, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)
 	fixture, err := artifactv2.DecodePlan(encoded)
 	require.NoError(t, err)

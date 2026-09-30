@@ -32,7 +32,7 @@ const (
 const (
 	defaultTimeout    = 30 * time.Minute
 	defaultRunTimeout = 5 * time.Minute
-	defaultModelRoot  = "model"
+	defaultModelRoot  = "model/lean"
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-explore"
 	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary

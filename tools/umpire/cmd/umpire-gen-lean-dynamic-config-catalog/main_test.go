@@ -19,8 +19,8 @@ func TestParseOutputRoot(t *testing.T) {
 	}{
 		{
 			name: "relative to module",
-			args: []string{"--output-root", "model"},
-			want: filepath.Join(moduleRoot, "model"),
+			args: []string{"--output-root", "model/lean"},
+			want: filepath.Join(moduleRoot, "model", "lean"),
 		},
 		{
 			name: "absolute",
@@ -46,7 +46,7 @@ func TestParseOutputRootRejectsMissingOrUnexpectedArguments(t *testing.T) {
 	_, err := parseOutputRoot(nil, moduleRoot)
 	require.EqualError(t, err, "--output-root is required")
 
-	_, err = parseOutputRoot([]string{"--output-root", "model", "extra"}, moduleRoot)
+	_, err = parseOutputRoot([]string{"--output-root", "model/lean", "extra"}, moduleRoot)
 	require.EqualError(t, err, "unexpected arguments")
 
 	_, err = parseOutputRoot([]string{"--unknown"}, moduleRoot)

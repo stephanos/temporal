@@ -18,7 +18,7 @@ import (
 
 const (
 	inspectorExecutable            = "umpire-inspect"
-	retiredCallerClosureReportPath = "model/Temporal/Tool/Generated/Regressions.md"
+	retiredCallerClosureReportPath = "model/lean/Temporal/Tool/Generated/Regressions.md"
 )
 
 type generationConfig struct {
@@ -113,7 +113,7 @@ func runGeneration(
 	if err != nil {
 		return fmt.Errorf("resolve regression generated view repository root: %w", err)
 	}
-	modelRoot := filepath.Join(repositoryRoot, "model")
+	modelRoot := filepath.Join(repositoryRoot, "model", "lean")
 	if _, _, err := resolveModelRoot(modelRoot); err != nil {
 		return fmt.Errorf("resolve regression generated view model root: %w", err)
 	}

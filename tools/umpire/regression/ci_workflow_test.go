@@ -222,18 +222,18 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"Current ownership is `common/testing/testpilot`",
 			"Temporal Driver under `common/testing/testpilot/temporal`",
 		},
-		"model/README.md": {
+		"model/lean/README.md": {
 			"testpilot.Prepare(case, Profile)",
 			"Temporal authority remains split",
 			"complete twelve-file conformance tree",
 		},
-		"model/ARCHITECTURE.md": {
+		"model/lean/ARCHITECTURE.md": {
 			"The Testpilot `.proto` files own the Case protocol",
 			"`common/testing/testpilot` owns the Profile/Driver contract",
 			"`common/testing/testpilot/temporal`",
 			"checks deadline expiry before every transition",
 		},
-		"model/Umpire/ARCHITECTURE.md": {
+		"model/lean/Umpire/ARCHITECTURE.md": {
 			"Case, Program, Contract, and Run vocabularies are finite, versioned, and bounded",
 			"Promotion remains generic and review-only",
 		},
@@ -354,7 +354,7 @@ func TestTestpilotOwnsCaseProtocolAndRuntime(t *testing.T) {
 		require.NoFileExists(t, filepath.Join(repositoryRoot, filepath.FromSlash(former)), former)
 	}
 	require.FileExists(t, filepath.Join(repositoryRoot, "common", "testing", "testpilot", "internal", "verification", "evaluator.go"))
-	generatedTypes, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "Temporal", "API", "Types.lean"))
+	generatedTypes, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "lean", "Temporal", "API", "Types.lean"))
 	require.NoError(t, err)
 	require.NotContains(t, string(generatedTypes), "Temporal.Server.Api."+"Umpire.V1")
 
@@ -661,9 +661,9 @@ func TestMigrationLedgerAndGenericPromotionRemainClosed(t *testing.T) {
 		require.Contains(t, ledgerText, fragment)
 	}
 
-	promotion, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "Umpire", "Promotion.lean"))
+	promotion, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "lean", "Umpire", "Promotion.lean"))
 	require.NoError(t, err)
-	promotionTests, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "Umpire", "PromotionTests.lean"))
+	promotionTests, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "lean", "Umpire", "PromotionTests.lean"))
 	require.NoError(t, err)
 	combined := string(promotion) + string(promotionTests)
 	require.NotContains(t, combined, "Caller"+"Closure")

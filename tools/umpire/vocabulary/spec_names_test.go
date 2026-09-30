@@ -19,7 +19,7 @@ func TestUmpireSpecNamesResolveAgainstTheModelTree(t *testing.T) {
 
 	repositoryRoot := checkoutRoot(t)
 
-	index, err := leannames.Build(filepath.Join(repositoryRoot, "model"))
+	index, err := leannames.Build(filepath.Join(repositoryRoot, "model", "lean"))
 	require.NoError(t, err)
 	modules, namespaces, declarations := index.Size()
 	// A truncated walk would report that every name resolved, so the index has to look

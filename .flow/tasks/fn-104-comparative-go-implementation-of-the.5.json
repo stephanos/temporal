@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002158Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.3"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.5",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.5.md",
+  "status": "todo",
+  "title": "T4 Claims and search: properties, scenarios, queries, sets, coverage",
+  "updated_at": "2026-09-30T03:53:19.002158Z"
+}

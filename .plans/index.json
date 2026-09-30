@@ -17,32 +17,32 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Feature/Nexus/Lifecycle/Semantics.lean",
+          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Semantics.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus/Lifecycle/Target.lean",
+          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Target.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus/Operations/Cancellation.lean",
+          "target": "model/lean/Temporal/Feature/Nexus/Operations/Cancellation.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Evaluation.lean",
+          "target": "model/lean/Umpire/Property/Evaluation.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Language.lean",
+          "target": "model/lean/Umpire/Property/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Query/Language.lean",
+          "target": "model/lean/Umpire/Query/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
@@ -56,7 +56,7 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/lakefile.toml",
+          "target": "model/lean/lakefile.toml",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
@@ -248,27 +248,27 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Testpilot/TestpilotProtoJSON.lean",
+          "target": "model/lean/Temporal/Testpilot/TestpilotProtoJSON.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Case/ProtoJSON.lean",
+          "target": "model/lean/Umpire/Case/ProtoJSON.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Observation/Evaluation/Types.lean",
+          "target": "model/lean/Umpire/Observation/Evaluation/Types.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Planning/Engine.lean",
+          "target": "model/lean/Umpire/Planning/Engine.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Target/Language.lean",
+          "target": "model/lean/Umpire/Target/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
@@ -305,7 +305,7 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Feature/Nexus/Experimental/AutoClose.lean",
+          "target": "model/lean/Temporal/Feature/Nexus/Experimental/AutoClose.lean",
           "reason": "Experimental Nexus model deleted by fn-86; the comparison cites it as provenance.",
           "anchor": null
         }
@@ -319,22 +319,22 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Umpire/Behavior/Language.lean",
+          "target": "model/lean/Umpire/Behavior/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Planning/Engine.lean",
+          "target": "model/lean/Umpire/Planning/Engine.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Evaluation.lean",
+          "target": "model/lean/Umpire/Property/Evaluation.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Target/Language.lean",
+          "target": "model/lean/Umpire/Target/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
@@ -348,42 +348,42 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Feature/Nexus3/Authoring.lean",
+          "target": "model/lean/Temporal/Feature/Nexus3/Authoring.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "target": "model/lean/Temporal/Feature/Nexus3/Integration.md",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus3/Nexus.lean",
+          "target": "model/lean/Temporal/Feature/Nexus3/Nexus.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus3/Nexus.md",
+          "target": "model/lean/Temporal/Feature/Nexus3/Nexus.md",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus3/Syntax.lean",
+          "target": "model/lean/Temporal/Feature/Nexus3/Syntax.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Behavior/Language.lean",
+          "target": "model/lean/Umpire/Behavior/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Evaluation.lean",
+          "target": "model/lean/Umpire/Property/Evaluation.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Language.lean",
+          "target": "model/lean/Umpire/Property/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
@@ -405,16 +405,26 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "target": "model/lean/Temporal/Feature/Nexus3/Integration.md",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Temporal/Feature/Nexus3/Nexus.md",
+          "target": "model/lean/Temporal/Feature/Nexus3/Nexus.md",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
       ]
+    },
+    {
+      "path": ".plans/UMPIRE_GO.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
     },
     {
       "path": ".plans/UMPIRE_OUTSIDE_THE_BOX.md",
@@ -446,17 +456,17 @@
       "supersededBy": null,
       "allowedMissingLinks": [
         {
-          "target": "model/Temporal/Feature/Nexus3/Integration.md",
+          "target": "model/lean/Temporal/Feature/Nexus3/Integration.md",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Property/Evaluation.lean",
+          "target": "model/lean/Umpire/Property/Evaluation.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         },
         {
-          "target": "model/Umpire/Target/Language.lean",
+          "target": "model/lean/Umpire/Target/Language.lean",
           "reason": "Removed after this note was written; cited as provenance.",
           "anchor": null
         }
@@ -482,6 +492,16 @@
       "status": "done",
       "ready": false,
       "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-104-comparative-go-implementation-of-the",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
       "specDependencies": []
     },
     {

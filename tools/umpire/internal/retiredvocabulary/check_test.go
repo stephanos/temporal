@@ -160,7 +160,7 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		// `DeclaredModel` is what they resolve to, and a doc comment may wrap a line onto it.
 		{line: "  model: lifecycle"},
 		{line: "model: lifecycle"},
-		{line: "model/Umpire/Command/Syntax.lean"},
+		{line: "model/lean/Umpire/Command/Syntax.lean"},
 		{line: "(candidate : Umpire.Command.DeclaredModel Setup State Action Outcome Fact)"},
 		{line: "model honest: a witness used to refute `skip` must be reachable *under* `skip`."},
 		{line: "model payload; the guard above proves every projection this module uses is admitted."},

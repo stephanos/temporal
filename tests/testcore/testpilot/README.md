@@ -2,7 +2,7 @@
 
 This package owns the retained generated functional fixtures in `testdata`, plus their fixture
 admission and prepared-Case reuse tests. Every fixture is canonical ProtoJSON produced from a Model
-file's `case … realizes` block under `model/Temporal/Feature` and rendered by `umpire-case`; none is
+file's `case … realizes` block under `model/lean/Temporal/Feature` and rendered by `umpire-case`; none is
 written by hand. It is stored indented for review -- two spaces and one trailing newline -- so a Case
 change reads as a line diff; `umpire-gen-case-runtime-conformance` continues to write its functional
 output to this package and is the only writer of that form.
@@ -11,13 +11,13 @@ Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownershi
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
-The caller Model's functional set (`model/Temporal/Feature/Nexus/Caller/Model.lean`) produces one
+The caller Model's functional set (`model/lean/Temporal/Feature/Nexus/Caller/Model.lean`) produces one
 fixture per Query, `nexusCallerTests-<query>-case.json`: sync success, async reply then succeeded
 callback, async reply then failed callback, a non-retryable handler error, a retryable handler error
 then success after one backoff, a schedule-to-start timeout with the handler's worker stopped, and a
 start-to-close timeout after an asynchronous reply. Each is one canonical Case 1.0 artifact with
 symbolic resource references; the Model's canary set produces no fixture, and its exploratory set's
-coverage targets are a golden under `model/`. Fixture tests prepare the async-completion
+coverage targets are a golden under `model/lean/`. Fixture tests prepare the async-completion
 fixture's unchanged bytes against two physical Profiles, confirm distinct binding identities, and
 reject missing or inconsistent references before dispatch. The tagged live tests run each Query once
 per value of the implementation switch, under two isolated namespaces, queues and named Nexus routes

@@ -23,9 +23,9 @@ func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
 	expected := []manifestEntry{
 		{
 			Identity:           switchIdentity,
-			FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
+			FixturePath:        "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json",
 			GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
-			MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
+			MarkdownOutputPath: "model/lean/Umpire/Examples/Generated/Switch.md",
 		},
 	}
 	require.Equal(t, expected, productionManifest())
@@ -39,7 +39,7 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 	encoded, err := os.ReadFile(filepath.Join(repositoryRoot, filepath.FromSlash(entry.FixturePath)))
 	require.NoError(t, err)
 
-	view, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
+	view, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model", "lean"))
 	require.NoError(t, err)
 	require.Equal(t, generatedViewRecord{
 		Identity:           switchIdentity,
@@ -50,7 +50,7 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 		TestName:           "TestUmpireSwitchQueryExactAction",
 		Sources: []sourceView{{
 			CanonicalPath:  "Umpire/Examples/Switch.lean",
-			RepositoryPath: "model/Umpire/Examples/Switch.lean",
+			RepositoryPath: "model/lean/Umpire/Examples/Switch.lean",
 		}},
 		Properties: []string{
 			"umpire.switch.property.flipTurnsOn",
@@ -69,7 +69,7 @@ func TestProductionGeneratedViewSetOwnsExactlyTwoCompleteOutputs(t *testing.T) {
 	for _, entry := range productionManifest() {
 		encoded, err := os.ReadFile(filepath.Join(repositoryRoot, filepath.FromSlash(entry.FixturePath)))
 		require.NoError(t, err)
-		record, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
+		record, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model", "lean"))
 		require.NoError(t, err)
 		records = append(records, record)
 	}
@@ -77,7 +77,7 @@ func TestProductionGeneratedViewSetOwnsExactlyTwoCompleteOutputs(t *testing.T) {
 	artifacts, err := renderGeneratedViews(records)
 	require.NoError(t, err)
 	require.Equal(t, []string{
-		"model/Umpire/Examples/Generated/Switch.md",
+		"model/lean/Umpire/Examples/Generated/Switch.md",
 		"tools/umpire/regression/switch_generated_view_test.go",
 	}, managedArtifactPaths(productionManifest()))
 	require.Len(t, artifacts, 2)
@@ -87,7 +87,7 @@ func TestProductionGeneratedViewSetOwnsExactlyTwoCompleteOutputs(t *testing.T) {
 	delete(missing, records[0].MarkdownOutputPath)
 	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, missing))
 	extra := cloneArtifacts(artifacts)
-	extra["model/Unexpected.md"] = []byte("unexpected\n")
+	extra["model/lean/Unexpected.md"] = []byte("unexpected\n")
 	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, extra))
 	stale := cloneArtifacts(artifacts)
 	stale[records[0].MarkdownOutputPath] = []byte("stale\n")
@@ -425,9 +425,9 @@ func syntheticPlan(t *testing.T, options syntheticOptions) []byte {
 func syntheticEntry(identity string) manifestEntry {
 	return manifestEntry{
 		Identity:           identity,
-		FixturePath:        "model/fixture.json",
+		FixturePath:        "model/lean/fixture.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
-		MarkdownOutputPath: "model/Generated.md",
+		MarkdownOutputPath: "model/lean/Generated.md",
 	}
 }
 
@@ -435,13 +435,13 @@ func syntheticGeneratedView() generatedViewRecord {
 	return generatedViewRecord{
 		Identity:           syntheticIdentity,
 		Format:             supportedPlanFormat,
-		FixturePath:        "model/fixture.json",
+		FixturePath:        "model/lean/fixture.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
-		MarkdownOutputPath: "model/Generated.md",
+		MarkdownOutputPath: "model/lean/Generated.md",
 		TestName:           "TestSyntheticQuery",
 		Sources: []sourceView{{
 			CanonicalPath:  "One.lean",
-			RepositoryPath: "model/One.lean",
+			RepositoryPath: "model/lean/One.lean",
 		}},
 		Properties:              []string{"property.one"},
 		ObservationRequirements: []string{"observation.one"},

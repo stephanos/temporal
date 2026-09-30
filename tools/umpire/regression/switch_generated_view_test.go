@@ -12,7 +12,7 @@ func TestUmpireSwitchQueryExactAction(t *testing.T) {
 	RequireGeneratedView(t, Reference{
 		FormatVersion: "umpire-experiment/v2",
 		Identity:      "umpire.switch.query.exactAction",
-		FixturePath:   "model/Umpire/Examples/testdata/switch-experiment-spec.json",
+		FixturePath:   "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json",
 		Sources: []string{
 			"Umpire/Examples/Switch.lean",
 		},

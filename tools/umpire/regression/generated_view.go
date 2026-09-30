@@ -102,7 +102,7 @@ func loadGeneratedView(repositoryRoot string, reference Reference) (Reference, e
 	for _, source := range document.Provenance.SourceLocations {
 		sources = append(sources, source.Path)
 	}
-	modelRoot, err := resolveDirectory(filepath.Join(resolvedRepositoryRoot, "model"), "model root")
+	modelRoot, err := resolveDirectory(filepath.Join(resolvedRepositoryRoot, "model", "lean"), "model root")
 	if err != nil {
 		return Reference{}, err
 	}
@@ -142,7 +142,7 @@ func validateReference(repositoryRoot string, reference Reference) error {
 	if err := validateRelativePath(reference.FixturePath); err != nil {
 		return fmt.Errorf("fixture path %q is unsafe: %w", reference.FixturePath, err)
 	}
-	modelRoot, err := resolveDirectory(filepath.Join(repositoryRoot, "model"), "model root")
+	modelRoot, err := resolveDirectory(filepath.Join(repositoryRoot, "model", "lean"), "model root")
 	if err != nil {
 		return err
 	}

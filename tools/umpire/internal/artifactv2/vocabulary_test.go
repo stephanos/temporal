@@ -21,19 +21,19 @@ func TestKindVocabulariesMatchLean(t *testing.T) {
 	}{
 		{
 			name:     "known gap kinds",
-			relative: "model/Umpire/KnownGap.lean",
+			relative: "model/lean/Umpire/KnownGap.lean",
 			function: "KnownGapKind",
 			want:     knownGapKinds,
 		},
 		{
 			name:     "definition kinds",
-			relative: "model/Umpire/Core.lean",
+			relative: "model/lean/Umpire/Core.lean",
 			function: "DefinitionKind",
 			want:     definitionKinds,
 		},
 		{
 			name:     "limit units",
-			relative: "model/Umpire/Core.lean",
+			relative: "model/lean/Umpire/Core.lean",
 			function: "LimitUnit",
 			want:     limitUnits,
 		},

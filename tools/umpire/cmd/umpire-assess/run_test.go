@@ -94,7 +94,7 @@ func satisfy(run *testpilotspb.Run) {
 }
 
 func flags(casePath, runPath, root string) []string {
-	return []string{"run", "--case", casePath, "--run", runPath, "--profile", "local-ephemeral", "--receipt-root", root, "--model-root", "../../../../model"}
+	return []string{"run", "--case", casePath, "--run", runPath, "--profile", "local-ephemeral", "--receipt-root", root, "--model-root", "../../../../model/lean"}
 }
 
 func run(t *testing.T, arguments []string, env environment) (int, summary, string) {

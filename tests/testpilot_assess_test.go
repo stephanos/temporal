@@ -48,7 +48,7 @@ func assess(t *testing.T, ctx context.Context, binary, casePath, runPath, root, 
 // given an address, so neither can create or replay a Run, and the recorded Run is read, never
 // changed.
 func TestTestpilotAssessRecordedRuns(t *testing.T) {
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "lean"))
 	require.NoError(t, err)
 	runBinary := buildUmpireRun(t)
 	assessBinary := buildUmpireCommand(t, "umpire-assess")

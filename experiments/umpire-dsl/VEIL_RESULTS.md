@@ -263,10 +263,10 @@ obligations carry forward:
 ## Landed state (fn-88)
 
 The R22 `adopt` landed. The model is on Lean 4.32.0 (fn-88.12) and requires Veil at
-`517f2badbf9a7ba2b18a72242351ff20943cbdd7` ([`model/lakefile.lean`](../../model/lakefile.lean);
+`517f2badbf9a7ba2b18a72242351ff20943cbdd7` ([`model/lakefile.lean`](../../model/lean/lakefile.lean);
 `make umpire-check-veil-pin`). The adapter is
-[`Umpire.Search.Backend.Veil`](../../model/Umpire/Search/Backend/Veil.lean), chosen per Query by
-[`Umpire.Search.Selection`](../../model/Umpire/Search/Selection.lean), and `veil` has been the
+[`Umpire.Search.Backend.Veil`](../../model/lean/Umpire/Search/Backend/Veil.lean), chosen per Query by
+[`Umpire.Search.Selection`](../../model/lean/Umpire/Search/Selection.lean), and `veil` has been the
 default search backend since fn-88.10. Two things differ from the R22 decision above:
 
 - The adapter does not call `findReachable`. It drives Veil's pure `bfsStep` itself, at most
@@ -275,6 +275,6 @@ default search backend since fn-88.10. Two things differ from the R22 decision a
 - Deduplication compares whole product states, not 64-bit hashes, so the hash-merge trust
   assumption R22 carried to `AUTHORING.md` does not apply. A `veil` absence answer rests on the
   adapter's equivalence theorems and the differential test against `reference`
-  ([`model/AUTHORING.md` §8](../../model/AUTHORING.md#8-the-paths-and-their-limits)).
+  ([`model/AUTHORING.md` §8](../../model/lean/AUTHORING.md#8-the-paths-and-their-limits)).
 
 Every `veil` witness passes the kernel replay gate in `Umpire.Search.finalizeBackendResult`.

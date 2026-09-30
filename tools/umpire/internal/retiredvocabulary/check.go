@@ -50,16 +50,16 @@ var downstreamSpecs = []string{
 // facade or document a rename sweep is likely to move, so a missing entry is a
 // silent scan hole rather than an absence to tolerate.
 var requiredFiles = []string{
-	"model/Umpire.lean",
-	"model/UmpireTests.lean",
-	"model/Temporal.lean",
-	"model/TemporalModelTests.lean",
-	"model/Shared.lean",
-	"model/Testpilot.lean",
-	"model/README.md",
-	"model/AUTHORING.md",
-	"model/ARCHITECTURE.md",
-	"model/Umpire/ARCHITECTURE.md",
+	"model/lean/Umpire.lean",
+	"model/lean/UmpireTests.lean",
+	"model/lean/Temporal.lean",
+	"model/lean/TemporalModelTests.lean",
+	"model/lean/Shared.lean",
+	"model/lean/Testpilot.lean",
+	"model/lean/README.md",
+	"model/lean/AUTHORING.md",
+	"model/lean/ARCHITECTURE.md",
+	"model/lean/Umpire/ARCHITECTURE.md",
 }
 
 type scanRoot struct {
@@ -70,10 +70,10 @@ type scanRoot struct {
 // scanRoots names the trees the scan walks. A root that has moved is a hole in
 // the scan, so the walk fails closed on a missing one just as requiredFiles does.
 var scanRoots = []scanRoot{
-	{path: "model/Umpire", extensions: modelExtensions},
-	{path: "model/Temporal", extensions: modelExtensions},
-	{path: "model/Testpilot", extensions: modelExtensions},
-	{path: "model/Shared", extensions: modelExtensions},
+	{path: "model/lean/Umpire", extensions: modelExtensions},
+	{path: "model/lean/Temporal", extensions: modelExtensions},
+	{path: "model/lean/Testpilot", extensions: modelExtensions},
+	{path: "model/lean/Shared", extensions: modelExtensions},
 	{path: "tools/umpire", extensions: facadeExtensions},
 	{path: "common/testing/testpilot", extensions: facadeExtensions},
 	{path: "common/testing/testpilot/temporal", extensions: facadeExtensions},

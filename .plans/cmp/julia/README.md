@@ -178,8 +178,7 @@ Easy:
   within a few characters of the Lean, `var"for"` aside.
 - Pinned errors. `LineNumberNode`s are in the tree; `DSLError` carries one and `showerror` prints it.
 - Registries at expansion time. Sequential top-level evaluation means "the actions declared above"
-  is a real thing a macro can read, with no separate compile-time store (contrast Nim's
-  `macrocache`).
+  is a real thing a macro can read, with no separate compile-time store.
 - Finite enumeration and record update, once, generically, by dispatch on the field types.
 - Compile-time-ish checks without a separate stage: a `const` in a package is precompiled.
 

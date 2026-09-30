@@ -196,7 +196,7 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 	if err != nil {
 		return fmt.Errorf("resolve repository root: %w", err)
 	}
-	modelRoot := filepath.Join(repositoryRoot, "model")
+	modelRoot := filepath.Join(repositoryRoot, "model", "lean")
 	artifacts, err := renderConformanceArtifacts(entries, modelRoot, dependencies)
 	if err != nil {
 		return err
@@ -338,7 +338,7 @@ func runFunctionalGeneration(configuration generationConfig, dependencies genera
 	if err != nil {
 		return fmt.Errorf("resolve repository root: %w", err)
 	}
-	modelRoot := filepath.Join(repositoryRoot, "model")
+	modelRoot := filepath.Join(repositoryRoot, "model", "lean")
 	entries, err := functionalEntries(modelRoot, dependencies)
 	if err != nil {
 		return err

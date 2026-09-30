@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002242Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.6"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.8",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.8.md",
+  "status": "todo",
+  "title": "T7 Port the standalone activity Model with pins",
+  "updated_at": "2026-09-30T03:53:19.002242Z"
+}

@@ -33,7 +33,7 @@ func publishCatalog(
 }
 
 func validateLeanCandidate(ctx context.Context, moduleRoot string, candidateRoot string) error {
-	modelRoot := filepath.Join(moduleRoot, "model")
+	modelRoot := filepath.Join(moduleRoot, "model", "lean")
 	leanPathCommand := exec.CommandContext(ctx, "mise", "exec", "--", "lake", "env", "printenv", "LEAN_PATH")
 	leanPathCommand.Dir = modelRoot
 	leanPathOutput, err := leanPathCommand.CombinedOutput()

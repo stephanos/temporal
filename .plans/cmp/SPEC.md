@@ -1,4 +1,4 @@
-# Comparison spec: the same two Models in eight languages
+# Comparison spec: the same two Models in several languages
 
 This directory holds one authoring sample per language for the Umpire model layer. Every sample
 implements the same two behavioral Models, described here, so the samples differ only in language
@@ -60,7 +60,11 @@ but not dropped. Names must match this spec exactly so the samples can be compar
 - **property**: `machine`, optional `when: action (class)` (same-step claim) and `holds` predicate;
   without `when` it is a transition claim `holds: before after -> Bool`.
 - **scenario**: `model`, `starts` (state by phase), `actions` (list of classed actions in order).
-- **limits**: `steps`, `actions`, `search`.
+- **limits**: `steps`, `actions`, `search`, as the Lean search uses them
+  (`Umpire/Search.lean`): the search explores traces up to depth `min(steps, actions)`, and
+  `search` is the budget of search nodes visited before it stops with "bound reached". A trace's
+  length counts every action, timers included. A find query whose witness is longer than the
+  depth is not found; a verify query that hits the node budget is inconclusive, not verified.
 - **query**: `find: property in: scenario limits:` (realized by a set) or
   `verify: property in: scenario limits:` (searched, never realized).
 - **set**: `purpose: functional | canary | exploratory`, `bind: party -> driven | observed`,
@@ -227,11 +231,10 @@ Steps:
 - attemptResult from started: completed -> completed+statusCompleted; failed(false) ->
   failed+statusFailed; failed(true) -> backingOff, facts [attemptCount]; canceled -> [] (no cancel
   was requested). From cancelRequested: completed -> completed; failed(false) -> failed;
-  failed(true) -> backingOff (the cancel request is not honored by a retryable failure, matches
-  TransitionRescheduled from CANCEL_REQUESTED? No: keep it simple and faithful to
-  statemachine.go, where CANCEL_REQUESTED is a source of Completed, Failed, Canceled, TimedOut
-  and Terminated; a retryable failure in CANCEL_REQUESTED transitions to Canceled with
-  statusCanceled); canceled -> canceled+statusCanceled. From pauseRequested: completed ->
+  failed(true) -> canceled + statusCanceled (in `statemachine.go` CANCEL_REQUESTED is a
+  source of Completed, Failed, Canceled, TimedOut and Terminated, not of Rescheduled, so a
+  retryable failure under a cancel request settles the activity as canceled); canceled ->
+  canceled+statusCanceled. From pauseRequested: completed ->
   completed; failed(false) -> failed; failed(true) -> paused + statusPaused
   (TransitionAttemptFailedWhilePauseRequested); canceled -> []. Other phases [].
 - control pause: scheduled|backingOff -> paused + statusPaused (TransitionPaused); started ->

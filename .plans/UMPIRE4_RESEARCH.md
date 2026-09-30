@@ -3,7 +3,7 @@
 Status: historical decision-support research, substantially expanded 2026-08-30. Runtime and
 evaluation recommendations in this research were superseded by the Case Runtime design. This is not a replacement for the
 normative [Umpire 4 specification](UMPIRE4_SPEC.md), the
-[Umpire vision](UMPIRE4_VISION.md), or the [current model documentation](../model/README.md).
+[Umpire vision](UMPIRE4_VISION.md), or the [current model documentation](../model/lean/README.md).
 
 ## Purpose and source discipline
 

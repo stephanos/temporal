@@ -22,7 +22,7 @@ func TestRunGenerationInspectsOnceAndPublishesTheCompleteSetDeterministically(t 
 	var inspections atomic.Int32
 	dependencies.Inspect = func(modelRoot, identity string) (inspectorOutput, error) {
 		inspections.Add(1)
-		require.Equal(t, filepath.Join(configuration.RepositoryRoot, "model"), modelRoot)
+		require.Equal(t, filepath.Join(configuration.RepositoryRoot, "model", "lean"), modelRoot)
 		require.Equal(t, entry.Identity, identity)
 		return inspectorOutput{Stdout: slices.Clone(encoded)}, nil
 	}
@@ -63,7 +63,7 @@ func TestRunGenerationRejectsEveryStaleDisplayedFixtureFieldBeforePublication(t 
 			fixture.Plan.QueryDefinitionID = "query.changed"
 		},
 		"canonical sources": func(t *testing.T, repositoryRoot string, fixture *experimentEnvelope) {
-			writeLeanSource(t, filepath.Join(repositoryRoot, "model"), "Changed.lean")
+			writeLeanSource(t, filepath.Join(repositoryRoot, "model", "lean"), "Changed.lean")
 			fixture.Provenance.SourceLocations[0].Path = "Changed.lean"
 		},
 		"property identities": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
@@ -455,7 +455,7 @@ func newGenerationFixture(
 	t.Helper()
 	repositoryRoot := resolvedTemp(t)
 	outputRoot := resolvedTemp(t)
-	modelRoot := filepath.Join(repositoryRoot, "model")
+	modelRoot := filepath.Join(repositoryRoot, "model", "lean")
 	writeLeanSource(t, modelRoot, "One.lean")
 	entry := syntheticEntry(syntheticIdentity)
 	encoded := syntheticPlan(t, syntheticOptions{})

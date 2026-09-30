@@ -14,7 +14,7 @@ import (
 // builds it before the Lean and Go proofs run, and a checkout without it skips.
 func bridgeExecutable(t *testing.T) (executable, modelRoot string) {
 	t.Helper()
-	modelRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "model"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "model", "lean"))
 	require.NoError(t, err)
 	executable = filepath.Join(modelRoot, ".lake", "build", "bin", "umpire-explore")
 	if _, err := os.Stat(executable); err != nil {

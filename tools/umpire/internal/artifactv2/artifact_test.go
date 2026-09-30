@@ -14,9 +14,9 @@ import (
 
 func TestDecodePlanAcceptsCanonicalSwitchV2(t *testing.T) {
 	for _, relative := range []string{
-		"model/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
-		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
-		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
+		"model/lean/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
+		"model/lean/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
+		"model/lean/Umpire/Examples/testdata/switch-experiment-spec.json",
 	} {
 		t.Run(filepath.Base(relative), func(t *testing.T) {
 			document, err := DecodePlan(readRepositoryFile(t, relative))
@@ -28,7 +28,7 @@ func TestDecodePlanAcceptsCanonicalSwitchV2(t *testing.T) {
 }
 
 func TestDecodePlanAcceptsLeanNaturalAboveUint64(t *testing.T) {
-	encodedNatural := readRepositoryFile(t, "model/Umpire/Search/Tests/Fixtures/NaturalAboveUint64.json")
+	encodedNatural := readRepositoryFile(t, "model/lean/Umpire/Search/Tests/Fixtures/NaturalAboveUint64.json")
 	var natural Natural
 	require.NoError(t, json.Unmarshal(bytes.TrimSuffix(encodedNatural, []byte{'\n'}), &natural))
 	require.Equal(t, Natural("18446744073709551616"), natural)
@@ -38,7 +38,7 @@ func TestDecodePlanAcceptsLeanNaturalAboveUint64(t *testing.T) {
 	require.Equal(t, bytes.TrimSuffix(encodedNatural, []byte{'\n'}), encoded)
 
 	document, err := DecodePlan(readRepositoryFile(t,
-		"model/Umpire/Examples/testdata/switch-experiment-spec.json"))
+		"model/lean/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)
 	document.Plan.ExpandedLimits.Steps.Value = natural
 	document, err = SealPlan(document)
@@ -54,7 +54,7 @@ func TestDecodePlanAcceptsLeanNaturalAboveUint64(t *testing.T) {
 func TestCanonicalPlanBytesUsesStablePrettyJSON(t *testing.T) {
 	var document Plan
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
-		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
+		"model/lean/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
 
 	canonical, err := CanonicalPlanBytes(document)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestCanonicalJSONEscapingMatchesLean(t *testing.T) {
 func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	var document Plan
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
-		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
+		"model/lean/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
 
 	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func uppercaseFirstDigest(t *testing.T, encoded []byte) []byte {
 }
 
 func TestDecodePlanRejectsNoncanonicalEncodings(t *testing.T) {
-	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 	withoutTerminalLF := bytes.TrimSuffix(canonical, []byte{'\n'})
 	lines := bytes.Split(withoutTerminalLF, []byte{'\n'})
 	require.Greater(t, len(lines), 3)
@@ -180,7 +180,7 @@ func TestDecodePlanRejectsNoncanonicalEncodings(t *testing.T) {
 }
 
 func TestDecodePlanVerifiesNestedAndOuterChecksumsIndependently(t *testing.T) {
-	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 	cases := map[string]struct {
 		encoded []byte
 		want    string
@@ -201,7 +201,7 @@ func TestDecodePlanVerifiesNestedAndOuterChecksumsIndependently(t *testing.T) {
 }
 
 func TestDecodePlanRejectsInvalidPersistedKnownGaps(t *testing.T) {
-	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 	cases := map[string]struct {
 		mutate func(*Plan)
 		reseal bool
@@ -278,7 +278,7 @@ func TestDecodePlanRejectsInvalidPersistedKnownGaps(t *testing.T) {
 }
 
 func TestPlanV2HooksPreserveDecodePlanContract(t *testing.T) {
-	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 	document, err := DecodePlan(canonical)
 	require.NoError(t, err)
 	require.NoError(t, ValidatePlan(document))
@@ -402,7 +402,7 @@ func TestDecodePlanRejectsResealedMalformedV2Values(t *testing.T) {
 
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
-			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+			canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 			document, err := DecodePlan(canonical)
 			require.NoError(t, err)
 			test.mutate(&document)
@@ -446,7 +446,7 @@ func TestDecodePlanAcceptsResealedLeanRecordValues(t *testing.T) {
 
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
-			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+			canonical := readRepositoryFile(t, "model/lean/Umpire/Examples/testdata/switch-experiment-spec.json")
 			document, err := DecodePlan(canonical)
 			require.NoError(t, err)
 			mutate(&document)

@@ -18,7 +18,7 @@ import (
 // umpire-check-replay-bridge` builds it, and a checkout without it skips.
 func replayBridgeExecutable(t *testing.T) (executable, modelRoot string) {
 	t.Helper()
-	modelRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "model"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "model", "lean"))
 	require.NoError(t, err)
 	executable = filepath.Join(modelRoot, ".lake", "build", "bin", "umpire-replay-bridge")
 	if _, err := os.Stat(executable); err != nil {

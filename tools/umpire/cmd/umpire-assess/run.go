@@ -27,7 +27,7 @@ const (
 // an interrupt there simply ends the process with nothing published.
 const assessTimeout = time.Minute
 
-const defaultModelRoot = "model"
+const defaultModelRoot = "model/lean"
 
 // The summary statuses beyond the three decisions, each its own named failure.
 const (

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002188Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.4",
+    "fn-104-comparative-go-implementation-of-the.5"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.6",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.6.md",
+  "status": "todo",
+  "title": "T5 Port the worker and Nexus caller Models",
+  "updated_at": "2026-09-30T03:53:19.002188Z"
+}

@@ -31,19 +31,19 @@ check.
 
 ### What the checker does today
 
-[`Umpire/Search.lean`](../model/Umpire/Search.lean) runs iterative-deepening depth-first search
+[`Umpire/Search.lean`](../model/lean/Umpire/Search.lean) runs iterative-deepening depth-first search
 over paths of a finite table. It keeps a cursor path and no visited-state set, prunes by the
 Scenario's admitted prefixes, and stops at the `search` Limit, a candidate count. The `seeded`
 strategy rotates enumeration order by a fixed offset. The table comes from
-[`Umpire/Model/Table.lean`](../model/Umpire/Model/Table.lean): the `machine` command runs every
+[`Umpire/Model/Table.lean`](../model/lean/Umpire/Model/Table.lean): the `machine` command runs every
 step function on every state and action pair and stores the rows, and
-[`Umpire/Core.lean`](../model/Umpire/Core.lean) carries the `Machine` proofs that the rows are
+[`Umpire/Core.lean`](../model/lean/Umpire/Core.lean) carries the `Machine` proofs that the rows are
 exactly the declared relation. States are structures of enums, `Bool`, and saturating `Fin`
-counters ([`Umpire/Command/Finite.lean`](../model/Umpire/Command/Finite.lean)).
+counters ([`Umpire/Command/Finite.lean`](../model/lean/Umpire/Command/Finite.lean)).
 
 The largest model is the Nexus caller protocol machine
-([`Caller/Model.lean`](../model/Temporal/Feature/Nexus/Caller/Model.lean)). Its numbers, pinned in
-[`Caller/Tests.lean`](../model/Temporal/Feature/Nexus/Caller/Tests.lean):
+([`Caller/Model.lean`](../model/lean/Temporal/Feature/Nexus/Caller/Model.lean)). Its numbers, pinned in
+[`Caller/Tests.lean`](../model/lean/Temporal/Feature/Nexus/Caller/Tests.lean):
 
 | Quantity | Value |
 | --- | ---: |
@@ -157,10 +157,10 @@ handwritten Temporal behavior models total about 1.5k.
 | --- | ---: | --- |
 | Search, Model table, Machine kernel, Command/Finite | ~8k | Yes, through `RelationalTransitionSystem`, `EnumerableTransitionSystem`, and the concrete checker |
 | Exploration | 1.6k | Partly, the walker over coverage targets |
-| Property ([`Property.lean`](../model/Umpire/Property.lean), [`Evaluate.lean`](../model/Umpire/Property/Evaluate.lean)) | 8.3k | No. Veil has state invariants and fixed bounded trace formulas; no `ordered`, `eventuallyWithin`, correlated per-operation rules, or protobuf field relations |
+| Property ([`Property.lean`](../model/lean/Umpire/Property.lean), [`Evaluate.lean`](../model/lean/Umpire/Property/Evaluate.lean)) | 8.3k | No. Veil has state invariants and fixed bounded trace formulas; no `ordered`, `eventuallyWithin`, correlated per-operation rules, or protobuf field relations |
 | Evidence, Case, Artifact, Provenance, KnownGap, Replay, Promotion, Fingerprint | ~24k | No. Veil has nothing in this area |
 | Command DSL | 6.1k | Only by replacing the authoring surface with Veil's, a GOV-02 change to AUT-07 |
-| ImplementationLink and [refinement](../model/Umpire/ImplementationLink/Refinement.lean) | 4.1k | No. Veil has no refinement command |
+| ImplementationLink and [refinement](../model/lean/Umpire/ImplementationLink/Refinement.lean) | 4.1k | No. Veil has no refinement command |
 | Testpilot Lean and the Go runtime | 2.6k plus Go | No |
 
 Two facts decide whether path 3 of [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#three-adoption-paths)
@@ -191,7 +191,7 @@ Umpire runs the opposite direction on both axes.
   Specula's spec is implementation-shaped by construction.
 - **Bridge.** Specula validates recorded traces. Umpire generates Cases and drives the system. Umpire
   has no working trace-validation path: `Umpire.Evidence` is exercised only by tests, and
-  [`ExplorationBridge.lean`](../model/Temporal/Tool/ExplorationBridge.lean) states that it reads no
+  [`ExplorationBridge.lean`](../model/lean/Temporal/Tool/ExplorationBridge.lean) states that it reads no
   Run Event.
 
 What to borrow:
@@ -239,7 +239,7 @@ through fx, and every caller passes `nil`. The test hooks in
 | Guided fuzzing | Absent |
 | Canary | [fn-29](../.flow/specs/fn-29-bounded-production-canary-execution-and.md) in progress; black-box, which is correct |
 
-The Nexus caller's [COVERAGE.md](../model/Temporal/Feature/Nexus/Caller/COVERAGE.md) already lists
+The Nexus caller's [COVERAGE.md](../model/lean/Temporal/Feature/Nexus/Caller/COVERAGE.md) already lists
 transport faults, mutable state, pending timeouts, duplicate completion, and two unobserved silent
 steps as Known Gaps. The bugs Temporal ships, task-queue races, speculative workflow task handling,
 update races, and duplicate delivery, live below the public API. History reads detect some after
@@ -283,14 +283,14 @@ Fixes, in value order:
 
 Partly, and the current roadmap adds the rest of one.
 
-**What exists.** [`Umpire/Search.lean`](../model/Umpire/Search.lean) is a 1.2k-line hand-rolled
+**What exists.** [`Umpire/Search.lean`](../model/lean/Umpire/Search.lean) is a 1.2k-line hand-rolled
 checker: iterative-deepening depth-first search over traces, candidate caps, deterministic ordering,
-and a seeded rotation. [`Scenario/Check.lean`](../model/Umpire/Scenario/Check.lean) is an 800-line
-admitted-prefix automaton and [`Exploration.lean`](../model/Umpire/Exploration.lean) with its
+and a seeded rotation. [`Scenario/Check.lean`](../model/lean/Umpire/Scenario/Check.lean) is an 800-line
+admitted-prefix automaton and [`Exploration.lean`](../model/lean/Umpire/Exploration.lean) with its
 directory is a 1.6k-line coverage walker. Together they are the `Checker` of
 [Stateright](https://github.com/stateright/stateright) written in Lean, minus the parts Stateright
 gets right: no visited set, no symmetry reduction, no breadth-first search, no explorer. The
-property side is different in kind. [`Property/Evaluate.lean`](../model/Umpire/Property/Evaluate.lean)
+property side is different in kind. [`Property/Evaluate.lean`](../model/lean/Umpire/Property/Evaluate.lean)
 is a trace oracle with a proven agreement to its denotation, and that oracle stays whichever engine
 runs the search.
 
@@ -300,7 +300,7 @@ concrete checker all check a state predicate over a product of model state and m
 [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#the-exact-umpire-seam) names the fix: the checked
 state must be the product of model state, Scenario progress, and Property-monitor state. The monitor
 form already exists. A Contract Rule is a finite state machine with satisfied and violated terminals,
-and [`Case/Compiler.lean`](../model/Umpire/Case/Compiler.lean) assembles Properties into it for the
+and [`Case/Compiler.lean`](../model/lean/Umpire/Case/Compiler.lean) assembles Properties into it for the
 Go runtime. Lowering the same way for search turns the problem into safety reachability on a finite
 labeled graph.
 

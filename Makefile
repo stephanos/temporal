@@ -105,8 +105,8 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/program.proto \
 	proto/internal/temporal/server/api/testpilot/v1/run.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
-_UMPIRE_INVENTORY_DOCUMENT ?= model/INVENTORY.md
-_UMPIRE_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe umpire-inventory
+_UMPIRE_INVENTORY_DOCUMENT ?= model/lean/INVENTORY.md
+_UMPIRE_INVENTORY_RENDERER ?= cd model/lean && $(LEAN_LAKE) -q exe umpire-inventory
 UMPIRE_REGRESSION_FIXTURES := \
 	umpire.switch.query.exactAction:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_LEAN_API_INPUT_ARGS = \
@@ -116,7 +116,7 @@ UMPIRE_GEN_LEAN_API_INPUT_ARGS = \
 	--descriptor $(CHASM_BINPB) \
 	--skip-package temporal.server.api.testpilot.v1 \
 	--lean-root Temporal
-UMPIRE_GEN_LEAN_API_ARGS = $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root model
+UMPIRE_GEN_LEAN_API_ARGS = $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root model/lean
 
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
@@ -477,7 +477,7 @@ temporal-server-debug: $(ALL_SRC)
 
 umpire-build-model:
 	@printf $(COLOR) "Build Temporal Umpire Lean model..."
-	@cd model && $(LEAN_LAKE) build
+	@cd model/lean && $(LEAN_LAKE) build
 
 umpire-check-plan-index:
 	@printf $(COLOR) "Check Umpire plan authority index..."
@@ -485,14 +485,14 @@ umpire-check-plan-index:
 
 umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
-	@cd model && $(UMPIRE_INSPECT) "$(SCENARIO)"
+	@cd model/lean && $(UMPIRE_INSPECT) "$(SCENARIO)"
 
 umpire-list:
-	@cd model && $(UMPIRE_INSPECT) list
+	@cd model/lean && $(UMPIRE_INSPECT) list
 
 umpire-explain:
 	@test -n "$(QUERY)" || (echo "QUERY is required" >&2; exit 1)
-	@cd model && $(UMPIRE_INSPECT) explain "$(QUERY)"
+	@cd model/lean && $(UMPIRE_INSPECT) explain "$(QUERY)"
 
 umpire-gen-lean-api: PROTOC = mise exec -- protoc
 umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
@@ -501,7 +501,7 @@ umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHA
 
 umpire-gen-lean-dynamic-config-catalog:
 	@printf $(COLOR) "Generate Temporal dynamic configuration Lean modules..."
-	@$(UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND) --output-root model
+	@$(UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND) --output-root model/lean
 
 $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMPIRE_API_FIXTURE_PROTOS))
 	@mise exec -- protoc \
@@ -523,37 +523,37 @@ umpire-check-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(C
 		temporary=$$(mktemp -d "$$temporary_root/umpire-lean-api.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
 		$(UMPIRE_GEN_LEAN_API_COMMAND) $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root "$$temporary"; \
-		diff -u model/Temporal/API.lean "$$temporary/Temporal/API.lean"; \
-		diff -ru model/Temporal/API "$$temporary/Temporal/API"
+		diff -u model/lean/Temporal/API.lean "$$temporary/Temporal/API.lean"; \
+		diff -ru model/lean/Temporal/API "$$temporary/Temporal/API"
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
-	@cd model && $(LEAN_LAKE) build Umpire.Operation.Tests Temporal.API
-	@cd model && $(LEAN_LAKE) env sh ../tools/umpire/cmd/umpire-gen-lean-api/check-fixtures.sh
+	@cd model/lean && $(LEAN_LAKE) build Umpire.Operation.Tests Temporal.API
+	@cd model/lean && $(LEAN_LAKE) env sh ../../tools/umpire/cmd/umpire-gen-lean-api/check-fixtures.sh
 
 umpire-gen-regression-views:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
 	@$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root .
 
 umpire-check-regression-views:
 	@printf $(COLOR) "Check generated Umpire regression views..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR)
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR)
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-regression.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root "$$temporary"; \
 		diff -u tools/umpire/regression/switch_generated_view_test.go \
 			"$$temporary/tools/umpire/regression/switch_generated_view_test.go"; \
-		diff -u model/Umpire/Examples/Generated/Switch.md \
+		diff -u model/lean/Umpire/Examples/Generated/Switch.md \
 			"$$temporary/model/Umpire/Examples/Generated/Switch.md"; \
-		test ! -e model/Temporal/Tool/Generated/Regressions.md; \
+		test ! -e model/lean/Temporal/Tool/Generated/Regressions.md; \
 		test ! -e "$$temporary/model/Temporal/Tool/Generated/Regressions.md"
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
 umpire-gen-goldens:
-	@cd model && $(LEAN_LAKE) build umpire-goldens $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
-	@cd model && $(LEAN_LAKE) exe umpire-goldens --output-root .
-	@set -eu; cd model; for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
+	@cd model/lean && $(LEAN_LAKE) build umpire-goldens $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
+	@cd model/lean && $(LEAN_LAKE) exe umpire-goldens --output-root .
+	@set -eu; cd model/lean; for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
 		scenario=$${scenario_fixture%%:*}; \
 		fixture=$${scenario_fixture#*:}; \
 		$(UMPIRE_INSPECT) "$$scenario" > "$$fixture"; \
@@ -561,13 +561,13 @@ umpire-gen-goldens:
 
 umpire-check-goldens:
 	@printf $(COLOR) "Check Umpire model goldens..."
-	@cd model && $(LEAN_LAKE) build umpire-goldens
+	@cd model/lean && $(LEAN_LAKE) build umpire-goldens
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-goldens.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe umpire-goldens --output-root "$$temporary" ); \
+		( cd model/lean && $(LEAN_LAKE) exe umpire-goldens --output-root "$$temporary" ); \
 		for directory in $(UMPIRE_GOLDEN_DIRECTORIES); do \
-			diff -ru "model/$$directory" "$$temporary/$$directory"; \
+			diff -ru "model/lean/$$directory" "$$temporary/$$directory"; \
 		done
 
 # The rendered Evaluation Profiles, each group in the directory that embeds it: the local ones
@@ -575,20 +575,20 @@ umpire-check-goldens:
 _UMPIRE_EVALUATION_PROFILE_DIRS := local:tools/umpire/evaluation/profiles canary:tools/canary/assessment/profiles harness:tools/canary/testharness/profiles
 
 umpire-gen-evaluation-profiles:
-	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles >/dev/null
-	@cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles \
+	@cd model/lean && $(LEAN_LAKE) build umpire-evaluation-profiles >/dev/null
+	@cd model/lean && $(LEAN_LAKE) exe umpire-evaluation-profiles \
 		--local-dir ../tools/umpire/evaluation/profiles \
 		--canary-dir ../tools/canary/assessment/profiles \
 		--harness-dir ../tools/canary/testharness/profiles
 
 umpire-check-evaluation-profiles:
 	@printf $(COLOR) "Check rendered Umpire Evaluation Profiles..."
-	@cd model && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests Temporal.Evaluation.CanaryTests
+	@cd model/lean && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests Temporal.Evaluation.CanaryTests
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-evaluation-profiles.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
 		mkdir "$$temporary/local" "$$temporary/canary" "$$temporary/harness"; \
-		( cd model && $(LEAN_LAKE) exe umpire-evaluation-profiles --local-dir "$$temporary/local" \
+		( cd model/lean && $(LEAN_LAKE) exe umpire-evaluation-profiles --local-dir "$$temporary/local" \
 			--canary-dir "$$temporary/canary" --harness-dir "$$temporary/harness" ); \
 		for group_dir in $(_UMPIRE_EVALUATION_PROFILE_DIRS); do \
 			diff -r "$${group_dir#*:}" "$$temporary/$${group_dir%%:*}"; \
@@ -600,19 +600,19 @@ CANARY_CASE_ID := temporal.case.nexusCallerCanary.syncCompletion
 CANARY_CASE_FIXTURE := tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json
 
 canary-gen-case:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@set -eu; mkdir -p $$(dirname $(CANARY_CASE_FIXTURE)); \
 		temporary=$$(mktemp "$$(dirname $(CANARY_CASE_FIXTURE))/.case.XXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
+		( cd model/lean && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
 		chmod 0644 "$$temporary"; \
 		mv -f "$$temporary" $(CANARY_CASE_FIXTURE)
 
 canary-check-case:
 	@printf $(COLOR) "Check the production canary's pinned Case..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@set -eu; temporary=$$(mktemp); trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
+		( cd model/lean && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
 		diff $(CANARY_CASE_FIXTURE) "$$temporary"
 
 # The production canary's one binary. The untagged build is the only one the protected workflow
@@ -623,13 +623,13 @@ canary-build:
 	@printf 'Built ./.build/umpire-canary\n'
 
 umpire-gen-case-runtime-conformance:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root . --mode functional
 
 umpire-check-case-runtime-conformance:
 	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures
+	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
@@ -656,7 +656,7 @@ umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
 		TESTPILOT_PROTOCOL_DESCRIPTOR_SET="$$temporary" \
 			mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot \
 			-run '^TestProtocolMessagesCarryLeadingComments$$'; \
-		cd model; \
+		cd model/lean; \
 		PROTOC="$$protoc" $(LEAN_LAKE) env lean Testpilot/Protocol.lean; \
 		PROTOC="$$protoc" $(LEAN_LAKE) build Testpilot TestpilotTests
 
@@ -664,10 +664,10 @@ umpire-check-testpilot-authoring:
 	@printf $(COLOR) "Check Lean Testpilot authoring and ProtoJSON..."
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		cd model; \
+		cd model/lean; \
 		$(LEAN_LAKE) build Testpilot TestpilotTests umpire-protojson-fixture; \
 		$(LEAN_LAKE) exe umpire-protojson-fixture > "$$temporary"; \
-		cd ..; \
+		cd ../..; \
 		TESTPILOT_LEAN_AUTHORING_CASE="$$temporary" \
 			mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot \
 			-run '^TestLeanAuthoringProtoJSONStrictDecode$$'
@@ -721,7 +721,7 @@ umpire-fuzz-run:
 		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
 	done
 	@$(MAKE) --no-print-directory umpire-fuzz
-	@cd model && $(LEAN_LAKE) -q build umpire-explore
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore
 	@./.build/umpire-fuzz run --set "$(SET)" \
 		--grpc "$$UMPIRE_FUZZ_GRPC" --http "$$UMPIRE_FUZZ_HTTP" \
 		--namespace "$$UMPIRE_FUZZ_NAMESPACE" --task-queue "$$UMPIRE_FUZZ_TASK_QUEUE" \
@@ -745,7 +745,7 @@ umpire-repeat-run:
 	@test -n "$(COUNT)" || { printf 'COUNT=<iterations> is required\n'; exit 3; }
 	@test -n "$(MODE)" || { printf 'MODE=process|in-process is required\n'; exit 3; }
 	@$(MAKE) --no-print-directory umpire-repeat
-	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		record='$(RECORD)'; \
@@ -772,7 +772,7 @@ umpire-replay-run:
 		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
 	done
 	@$(MAKE) --no-print-directory umpire-replay
-	@cd model && $(LEAN_LAKE) -q build umpire-replay-bridge
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-replay-bridge
 	@./.build/umpire-replay run --case "$(CASE)" --run "$(RUN)" --set "$(SET)" \
 		$(if $(QUERY),--query "$(QUERY)") $(if $(TARGET),--target "$(TARGET)") \
 		--grpc "$$UMPIRE_REPLAY_GRPC" --http "$$UMPIRE_REPLAY_HTTP" \
@@ -797,12 +797,12 @@ umpire-assess-run:
 	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
 
 umpire-export-model-module-index:
-	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index
+	@cd model/lean && $(LEAN_LAKE) -q exe temporal-model-module-index
 
 umpire-check-model-module-index:
 	@printf $(COLOR) "Check the model module impact index exporter..."
-	@cd model && $(LEAN_LAKE) -q build temporal-model-module-index temporal-model-module-index-tests
-	@cd model && $(LEAN_LAKE) -q exe temporal-model-module-index-tests
+	@cd model/lean && $(LEAN_LAKE) -q build temporal-model-module-index temporal-model-module-index-tests
+	@cd model/lean && $(LEAN_LAKE) -q exe temporal-model-module-index-tests
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		stdout=$$(TMPDIR="$$physical_tmpdir" mktemp); \
@@ -819,18 +819,18 @@ umpire-check-model-module-index:
 
 umpire-check-exploration-bridge:
 	@printf $(COLOR) "Check the exploration bridge..."
-	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-explore-tests
-	@cd model && $(LEAN_LAKE) -q exe umpire-explore-tests
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-explore-tests
+	@cd model/lean && $(LEAN_LAKE) -q exe umpire-explore-tests
 	@mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot -run '^TestExplorationBridge'
 
 umpire-check-replay-bridge:
 	@printf $(COLOR) "Check the replay bridge..."
-	@cd model && $(LEAN_LAKE) -q build umpire-replay-bridge umpire-replay-bridge-tests
-	@cd model && $(LEAN_LAKE) -q exe umpire-replay-bridge-tests
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-replay-bridge umpire-replay-bridge-tests
+	@cd model/lean && $(LEAN_LAKE) -q exe umpire-replay-bridge-tests
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/replay -run '^TestLiveReplayBridge'
 
 umpire-check-live-tests:
-	@cd model && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
+	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
@@ -912,33 +912,33 @@ umpire-rerecord-pinned-runs:
 			./tools/umpire/replay ./tools/umpire/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
 
 # A shell function: `check_veil_manifest <manifest>` fails unless the manifest resolves the Veil
-# commit `model/lakefile.lean` requires, and that commit is the one the `veil` search backend
+# commit `model/lean/lakefile.lean` requires, and that commit is the one the `veil` search backend
 # reports (`Umpire.Search.Backend.Veil.commit`). A function rather than a sub-make, so `make -n`
 # lists the check instead of running it.
 _UMPIRE_CHECK_VEIL_MANIFEST = check_veil_manifest() { \
-		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
+		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/lakefile.lean); \
 		resolved=$$(awk '/"rev":/ {rev=$$2} /"name": "veil"/ {gsub(/[",]/, "", rev); print rev}' "$$1"); \
-		reported=$$(sed -n 's/^def commit : String := "\([0-9a-f]\{40\}\)"$$/\1/p' model/Umpire/Search/Backend/Veil.lean); \
-		test -n "$$required" || { echo "model/lakefile.lean requires no pinned Veil commit" >&2; return 1; }; \
-		test "$$resolved" = "$$required" || { echo "$$1 resolves Veil '$$resolved', model/lakefile.lean requires $$required" >&2; return 1; }; \
-		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lakefile.lean requires $$required" >&2; return 1; }; \
+		reported=$$(sed -n 's/^def commit : String := "\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/Umpire/Search/Backend/Veil.lean); \
+		test -n "$$required" || { echo "model/lean/lakefile.lean requires no pinned Veil commit" >&2; return 1; }; \
+		test "$$resolved" = "$$required" || { echo "$$1 resolves Veil '$$resolved', model/lean/lakefile.lean requires $$required" >&2; return 1; }; \
+		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lean/lakefile.lean requires $$required" >&2; return 1; }; \
 	}
 
 # Check the Veil pin, then plant a manifest that resolves another revision and require the check to
 # reject it with its diagnostic.
 umpire-check-veil-pin:
 	@printf $(COLOR) "Check the pinned Veil commit..."
-	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); check_veil_manifest model/lake-manifest.json
+	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); check_veil_manifest model/lean/lake-manifest.json
 	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); \
 		planted=$$(mktemp); diagnostics=$$(mktemp); \
 		trap 'rm -f "$$planted" "$$diagnostics"' EXIT; \
-		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lakefile.lean); \
+		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/lakefile.lean); \
 		other=0000000000000000000000000000000000000000; \
-		awk -v other="$$other" '/"rev":/ {line[++n]=$$0; rev=n; next} {line[++n]=$$0} /"name": "veil"/ {sub(/"rev": "[0-9a-f]*"/, "\"rev\": \"" other "\"", line[rev])} END {for (i = 1; i <= n; i++) print line[i]}' model/lake-manifest.json >"$$planted"; \
+		awk -v other="$$other" '/"rev":/ {line[++n]=$$0; rev=n; next} {line[++n]=$$0} /"name": "veil"/ {sub(/"rev": "[0-9a-f]*"/, "\"rev\": \"" other "\"", line[rev])} END {for (i = 1; i <= n; i++) print line[i]}' model/lean/lake-manifest.json >"$$planted"; \
 		status=0; \
 		check_veil_manifest "$$planted" 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -ne 0 || { echo "check_veil_manifest accepted a manifest that resolves Veil $$other" >&2; exit 1; }; \
-		expected="$$planted resolves Veil '$$other', model/lakefile.lean requires $$required"; \
+		expected="$$planted resolves Veil '$$other', model/lean/lakefile.lean requires $$required"; \
 		grep -qxF "$$expected" "$$diagnostics" || { echo "unexpected diagnostic:" >&2; cat "$$diagnostics" >&2; exit 1; }
 
 umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
@@ -950,12 +950,12 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \
 		old_targets='Experiment''Tests|temporal-experiment''-inspect|Temporal''UmpireTests|temporal-umpire''-inspect|Nexus''AutoClose'; \
-		old_experiment_tree=model/Temporal/''Experiment; \
-		old_umpire_tree=model/Temporal/''Umpire; \
-		old_temporal_tests=model/Temporal''UmpireTests.lean; \
-		old_auto_close_root=model/Temporal/Feature/Nexus/AutoClose.lean; \
-		old_caller_closure_root=model/Temporal/Feature/Nexus/CallerClosure.lean; \
-		old_examples_tree=model/Temporal/Feature/Nexus/Examples; \
+		old_experiment_tree=model/lean/Temporal/''Experiment; \
+		old_umpire_tree=model/lean/Temporal/''Umpire; \
+		old_temporal_tests=model/lean/Temporal''UmpireTests.lean; \
+		old_auto_close_root=model/lean/Temporal/Feature/Nexus/AutoClose.lean; \
+		old_caller_closure_root=model/lean/Temporal/Feature/Nexus/CallerClosure.lean; \
+		old_examples_tree=model/lean/Temporal/Feature/Nexus/Examples; \
 		test ! -e "$$old_experiment_tree"; \
 		test ! -e "$${old_experiment_tree}Tests.lean"; \
 		test ! -e "$$old_umpire_tree"; \
@@ -963,17 +963,17 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 		test ! -e "$$old_auto_close_root"; \
 		test ! -e "$$old_caller_closure_root"; \
 		test ! -e "$$old_examples_tree"; \
-		live_sources=$$(find model/Umpire model/Temporal -type f -name '*.lean' -print); \
+		live_sources=$$(find model/lean/Umpire model/lean/Temporal -type f -name '*.lean' -print); \
 		test -n "$$live_sources"; \
 		if grep -nE "$$old_namespace|$$old_path" $$live_sources \
-			model/Umpire.lean model/UmpireTests.lean model/Temporal.lean model/TemporalModelTests.lean; then \
+			model/lean/Umpire.lean model/lean/UmpireTests.lean model/lean/Temporal.lean model/lean/TemporalModelTests.lean; then \
 			echo "found obsolete Temporal interface in live Lean sources" >&2; \
 			exit 1; \
 		else \
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lakefile.lean model/README.md; then \
+		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lean/lakefile.lean model/lean/README.md; then \
 			echo "found obsolete Temporal interface in live build or model documentation" >&2; \
 			exit 1; \
 		else \
@@ -981,14 +981,14 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 			test "$$scan_status" -eq 1; \
 		fi; \
 		if git grep -nE '^[[:space:]]*(import|namespace)[[:space:]]+(Temporal|Nexus)([.]|[[:space:]]|$$)|(^|[^[:alnum:]_-])(Temporal|Nexus)([.]|/)|(^|[^[:alnum:]_-])(nexus|workflow|workflow-nexus)[.]' -- \
-			model/Umpire model/Umpire.lean model/UmpireTests.lean; then \
+			model/lean/Umpire model/lean/Umpire.lean model/lean/UmpireTests.lean; then \
 			echo "found Temporal-owned dependency, namespace, or semantic prefix in reusable Umpire artifacts" >&2; \
 			exit 1; \
 		else \
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		configuration_sources="model/Temporal/System/Configuration.lean $$(find model/Temporal/System/Configuration -type f -name '*.lean' ! -name '*Tests.lean' -print)"; \
+		configuration_sources="model/lean/Temporal/System/Configuration.lean $$(find model/lean/Temporal/System/Configuration -type f -name '*.lean' ! -name '*Tests.lean' -print)"; \
 		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System[.](Callback|Matching)([.]|[[:space:]]|$$)' $$configuration_sources; then \
 			echo "found forbidden shared Configuration dependency on Callback or Matching" >&2; \
 			exit 1; \
@@ -996,36 +996,36 @@ umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-chec
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		test -f model/Umpire/Model/Check.lean || { \
+		test -f model/lean/Umpire/Model/Check.lean || { \
 			echo "missing physical Umpire Model package" >&2; \
 			exit 1; \
 		}; \
-		grep -qx 'import Umpire.Model.Elab' model/Umpire/Model.lean || { \
+		grep -qx 'import Umpire.Model.Elab' model/lean/Umpire/Model.lean || { \
 			echo "Umpire Model facade does not expose its package" >&2; \
 			exit 1; \
 		}; \
 		for package in Property Scenario Query; do \
-			test -f "model/Umpire/$$package/Check.lean" || { \
+			test -f "model/lean/Umpire/$$package/Check.lean" || { \
 				echo "missing physical Umpire $$package package" >&2; \
 				exit 1; \
 			}; \
-			grep -qx "import Umpire.$$package" "model/Umpire/$$package/Check.lean" || { \
+			grep -qx "import Umpire.$$package" "model/lean/Umpire/$$package/Check.lean" || { \
 				echo "Umpire $$package package does not build on its types module" >&2; \
 				exit 1; \
 			}; \
 		done; \
-		test -f model/Umpire/Search/Branches.lean || { \
+		test -f model/lean/Umpire/Search/Branches.lean || { \
 			echo "missing physical Umpire Search package" >&2; \
 			exit 1; \
 		}; \
-		grep -qx 'import Umpire.Search' model/Umpire/Search/Branches.lean || { \
+		grep -qx 'import Umpire.Search' model/lean/Umpire/Search/Branches.lean || { \
 			echo "Umpire Search package does not build on its engine module" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
+	@cd model/lean && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
-		cd model; \
+		cd model/lean; \
 		$(UMPIRE_INSPECT) list > "$$temporary/list-first.json"; \
 		$(UMPIRE_INSPECT) list > "$$temporary/list-second.json"; \
 		cmp -s "$$temporary/list-first.json" "$$temporary/list-second.json"; \
@@ -1110,7 +1110,7 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 	@go vet -tags $(ALL_TEST_TAGS) -vettool="$(ERRORTYPE)" -style-check=false $(LINT_CODE_TARGETS)
 
 # Builtin linting rebuilds every module with linter options, and those options are part of each
-# module's build trace. Running it in model/ would thrash model/.lake against ordinary builds, so it
+# module's build trace. Running it in model/lean/ would thrash model/lean/.lake against ordinary builds, so it
 # runs in a mirror of the sources with a build directory of its own that stays warm between runs.
 LINT_MODEL_DIR ?= $(CURDIR)/.build/lint-model
 # The default roots cover production and tool declarations without re-elaborating the test
@@ -1126,51 +1126,51 @@ LINT_MODEL_MODULES ?= \
 .PHONY: lint-model lint-model-builtin
 lint-model: umpire-check-inventory
 	@printf $(COLOR) "Linting Lean model..."
-	@test -f model/HANDWRITTEN_INVENTORY.md || { echo "model/HANDWRITTEN_INVENTORY.md is an input of lint-model" >&2; exit 1; }
-	@cd model && $(LEAN_LAKE) build umpire-lint-tests umpire-lint
-	@cd model && $(LEAN_LAKE) exe umpire-lint-tests
+	@test -f model/lean/HANDWRITTEN_INVENTORY.md || { echo "model/lean/HANDWRITTEN_INVENTORY.md is an input of lint-model" >&2; exit 1; }
+	@cd model/lean && $(LEAN_LAKE) build umpire-lint-tests umpire-lint
+	@cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-violation 2>"$$diagnostics" || status=$$?; \
+		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-authoring-violation 2>"$$diagnostics" || status=$$?; \
+		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-authoring-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/authoring-path-isolation] forbidden direct import: Temporal.Feature.Planted -> Umpire.Model'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-search-backend-violation 2>"$$diagnostics" || status=$$?; \
+		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-search-backend-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/search-backend-isolation] forbidden direct import: Umpire.Search -> Veil.Core.Tools.ModelChecker.Concrete.Checker'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-unbuilt-violation 2>"$$diagnostics" || status=$$?; \
+		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-unbuilt-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
-		expected='[model-import-graph/unbuilt] Umpire.Planted is not reachable from any model/lakefile.lean root'; \
+		expected='[model-import-graph/unbuilt] Umpire.Planted is not reachable from any model/lean/lakefile.lean root'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-entity-violation 2>"$$diagnostics" || status=$$?; \
+		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-entity-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-entity/feature-entity-uniqueness] duplicate action serve: Temporal.Feature.Planted and Temporal.Feature.Worker.Model'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
-	@cd model && $(LEAN_LAKE) exe umpire-lint
+	@cd model/lean && $(LEAN_LAKE) exe umpire-lint
 	@$(MAKE) --no-print-directory lint-model-builtin
 
 # LINT_MODEL_MODULES narrows the builtin lints to the named modules (and what they import).
 lint-model-builtin:
 	@mkdir -p "$(LINT_MODEL_DIR)/model/.lake" "$(LINT_MODEL_DIR)/proto"
-	@rsync -a --delete --exclude /.lake/ model/ "$(LINT_MODEL_DIR)/model/"
+	@rsync -a --delete --exclude /.lake/ model/lean/ "$(LINT_MODEL_DIR)/model/"
 	@rsync -a --delete proto/ "$(LINT_MODEL_DIR)/proto/"
 	@ln -sfn "$(CURDIR)/model/.lake/packages" "$(LINT_MODEL_DIR)/model/.lake/packages"
 	@cd "$(LINT_MODEL_DIR)/model" && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs $(LINT_MODEL_MODULES)

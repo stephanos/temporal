@@ -4,7 +4,7 @@ var fixtureTestConfiguration = testGenerationConfig("Fixture")
 
 func testGenerationConfig(root string) generationConfig {
 	return generationConfig{
-		OutputRoot: "model",
+		OutputRoot: "model/lean",
 		Layout:     newOutputLayout(root),
 	}
 }

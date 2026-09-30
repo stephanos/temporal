@@ -1,4 +1,4 @@
-# Umpire model layer: the same two Models in ten languages
+# Umpire model layer: the same two Models in eight languages
 
 Each directory holds the Nexus caller Model and a new standalone activity Model written the way a
 fluent author would write them in that language, against the shared [SPEC.md](SPEC.md). The Lean
@@ -19,9 +19,7 @@ side by side.
 | `kotlin/` | 2,484 | type-safe builders, lambdas with receiver, `infix`, sealed classes |
 | `scala/` | 2,143 | builder blocks with context functions, `inline` + `compiletime.error`, `derives`, a `query` macro |
 | `rust/` | 3,710 | `machine! { }` proc macros over `syn`/`quote`, `#[derive(Finite)]`, enums with payloads |
-| `nim/` | 2,383 | macros over Nim's own colon-block syntax, `static:` compile-time evaluation |
 | `racket/` | 2,235 | `syntax-parse` macros, optionally a `#lang umpire` |
-| `typescript/` | 2,589 | object literals with `satisfies`, literal types tying declarations together |
 | `julia/` | 2,658 | hygienic `@machine` block macros, Moshi sum types, multiple dispatch |
 | `quint/` | 2,081 | the language itself: modules, `var`, `action`, `run`, invariants |
 
@@ -49,21 +47,6 @@ machine nexusProduct
     complete: completeStep
 ```
 
-Nim:
-
-```nim
-machine nexusProduct:
-  `for`: operation
-  state: ProductState
-  starts: [scheduled]
-  ends: [succeeded, failed, canceled, timedOut]
-  timers: [timeout]
-  evidence:
-    nexusOperationStarted: nexusOperationStarted
-  steps:
-    handlerReply: handlerReplyStep
-    complete: completeStep
-```
 
 Rust:
 
@@ -131,20 +114,6 @@ Julia:
 end
 ```
 
-TypeScript:
-
-```ts
-export const nexusProduct = defineMachine({
-  name: "nexusProduct",
-  for: operation,
-  state: ProductState,
-  starts: ["scheduled"],
-  ends: ["succeeded", "failed", "canceled", "timedOut"],
-  actions: [handlerReply, complete, transportFault, workerStop],
-  timers: ["timeout"],
-  steps: { handlerReply: handlerReplyStep, complete: completeStep },
-});
-```
 
 Go:
 
@@ -175,9 +144,7 @@ Quint has no machine declaration. A module holds `var phase`, one `action` per a
 | Kotlin | types, sealed exhaustiveness; semantics when builders run, or via KSP/K2 plugin later | good | seconds to a minute | good | kotest, jqwik `ActionChain`, grpc-kotlin, Java SDK, KSP | JVM and Gradle in CI |
 | Scala 3 | types plus semantic checks via `inline`/macros, including a compile-time query | excellent | tens of seconds; macros slow it | medium | ScalaCheck `Commands`, ScalaPB, munit, jsoniter | language breadth, compile times |
 | Rust | types, exhaustive match, macro diagnostics with spans | excellent | tens of seconds to minutes | medium | proptest-state-machine, prost, syn/quote, trybuild, insta | proc-macro upkeep; stateright is unmaintained (last push 2025-07) |
-| Nim | types, exhaustive `case`, `static:` table checks | good | seconds | poor | stdlib macros, status-im protobuf, one young gRPC | niche, small ecosystem |
 | Racket | whatever the macros check at expansion | excellent | seconds | very poor | syntax-parse, Rosette, Redex; PBT libs unmaintained | Lisp for a Go team |
-| TypeScript | literal-type wiring between declarations, `never` exhaustiveness | good | seconds | very good | fast-check `modelRun`, protobuf-es, TS SDK | no runtime sum types, type-level upkeep |
 | Julia | none static without JET; macro-time errors | fair | seconds after precompile | poor | Moshi sum types, JET, ProtoBuf.jl; MLStyle unmaintained | dynamic typing, thin gRPC |
 | Quint | types and effect system; invariants by simulator or Apalache | good | seconds | medium | Apalache, ITF traces, quint-connect (Rust) | small team, Go ITF replayer is yours to write |
 
@@ -256,13 +223,15 @@ stateful testing, and the exhaustive table stays hand-written in every language.
 
 ## Caveats
 
+Nim and TypeScript were dropped from the comparison on 2026-09-30. Their samples, reviews and
+walkthroughs are in git history.
+
 The first version of the Model 2 spec had a refinement that could not hold: three protocol rows
 mapped to product transitions the product did not have. Four of the writers caught it
 independently while implementing it, which is a small argument for the value of a refinement
 check in whatever language wins. SPEC.md carries the fix and a revision note; each sample was
 asked to apply it, and its README says whether it did.
 
-The nine non-Lean samples were written by parallel agents from the same spec and reviewed for
-shape, not compiled. Several READMEs record where the spec's names fought the language: Nim's
-scoping of `for` and `set`, Kotlin's and Scala's fidelity notes, Julia's `var"for"`. Treat the
+The seven non-Lean samples were written by parallel agents from the same spec and reviewed for
+shape, not compiled. Several READMEs record where the spec's names fought the language: Kotlin's and Scala's fidelity notes, Julia's `var"for"`. Treat the
 snippets as what the authoring surface would look like, and the READMEs as the honest part.

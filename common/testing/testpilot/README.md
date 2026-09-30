@@ -122,7 +122,7 @@ first planned use.
    field numbers stay dense from 1, and a new oneof arm is appended;
    `TestProtocolMessagesCarryLeadingComments` enforces the first two. A new file must be reachable from
    `case.proto` or `run.proto` and is listed in `TESTPILOT_PROTOCOL_PROTOS` (the Makefile),
-   `testpilotProtocolSchemas` (`model/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
+   `testpilotProtocolSchemas` (`model/lean/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
    list in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`.
    A Run-only message never enters the Case closure (`TestCaseImportClosureExcludesRunOnlyMessages`).
    A field that carries a public API message imports that message's file from `proto/api.binpb`
@@ -134,8 +134,8 @@ first planned use.
    enum field naming an enum from another file of the package compiles only through the rewrite in
    `cmd/tools/protogen/enum_references.go`. `Testpilot/Protocol.lean` elaborates both closures with one
    `protoc` call, and `make umpire-check-testpilot-protocol` checks it.
-3. **`Testpilot.Authoring`.** Add the constructor Producers write (`model/Testpilot/Authoring.lean`) and
-   guard it in `model/Testpilot/Tests/Authoring.lean`; `make umpire-check-testpilot-authoring` decodes
+3. **`Testpilot.Authoring`.** Add the constructor Producers write (`model/lean/Testpilot/Authoring.lean`) and
+   guard it in `model/lean/Testpilot/Tests/Authoring.lean`; `make umpire-check-testpilot-authoring` decodes
    the Lean ProtoJSON strictly in Go.
 4. **Go interpreter or evaluator.** Instructions bind in `internal/execution` and run in its scheduler
    or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
@@ -270,7 +270,7 @@ A removal walks the same places in the same order, deleting instead of adding. I
 or Contract capability, so it needs no migration only because the protocol has no compatibility
 promise.
 
-1. **Decision.** Keep the element if a Lean Producer emits it (search `model/` for its snake_case and
+1. **Decision.** Keep the element if a Lean Producer emits it (search `model/lean/` for its snake_case and
    lowerCamel spellings), a fixture uses it, hand-written Go reads it outside its own handler, or an
    open spec or a governed requirement names it. Record the decision and its evidence in the
    removing task.
@@ -303,8 +303,8 @@ it, and only the renamer and the context probe tables named it.
    added.
 3. **`Testpilot.Authoring`.** `Program.injectFault "queue" .FAULT_KIND_WORKER_STOP`, guarded by
    `injectFaultNamesRoleAndKind`. Producers reach it two ways: `Umpire.faultKindOf`
-   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, the
-   worker-outage Model's realization (`model/Temporal/Case/Realization/Workflow.lean`) binds the
+   (`model/lean/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, the
+   worker-outage Model's realization (`model/lean/Temporal/Case/Realization/Workflow.lean`) binds the
    `workerStop` and `workerResume` classes to it, and `Umpire.Case.Producer.faultKindName` names it
    in an exhaustive match, so a new kind is a Lean error there until it is named.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
@@ -331,7 +331,7 @@ it, and only the renamer and the context probe tables named it.
 9. **Equivalence mapping.** An added enum value changes no baseline fixture, so no step; a Producer
    that starts writing it into `workerOutageTests-survived-case.json` needs one.
 10. **Fixtures.** `workerOutageTests-survived-case.json` is rendered from the worker-outage Model
-    (`model/Temporal/Feature/Workflow/Outage/Model.lean`, whose `case` block registers it) by
+    (`model/lean/Temporal/Feature/Workflow/Outage/Model.lean`, whose `case` block registers it) by
     `make umpire-gen-case-runtime-conformance`.
 
 ## Preparation diagnostics

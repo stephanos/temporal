@@ -21,13 +21,13 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 	}{
 		{
 			name:    "Lean API",
-			path:    "model/Umpire/Fixture.lean",
+			path:    "model/lean/Umpire/Fixture.lean",
 			content: "def retired : " + "Declaration" + "Id := by sorry\n",
 			token:   "Declaration" + "Id",
 		},
 		{
 			name:    "artifact wire version",
-			path:    "model/README.md",
+			path:    "model/lean/README.md",
 			content: "The old format was `umpire-experiment/" + "v1`.\n",
 			token:   "umpire-experiment/" + "v1",
 		},
@@ -63,19 +63,19 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 		},
 		{
 			name:    "versioned Refinement API",
-			path:    "model/Temporal/System/Nexus/Fixture.lean",
+			path:    "model/lean/Temporal/System/Nexus/Fixture.lean",
 			content: "structure " + "Refinement" + "ResultV3 where\n  accepted : Bool\n",
 			token:   "Refinement" + "Result",
 		},
 		{
 			name:    "generation-numbered module root",
-			path:    "model/Temporal/Feature/Fixture.lean",
+			path:    "model/lean/Temporal/Feature/Fixture.lean",
 			content: "import Temporal.Feature." + "Nexus" + "3.Model\n",
 			token:   "Nexus" + "3",
 		},
 		{
 			name:    "generation-numbered identity root",
-			path:    "model/Temporal/Feature/Fixture.lean",
+			path:    "model/lean/Temporal/Feature/Fixture.lean",
 			content: "def id := \"temporal." + "nexus" + "2.target\"\n",
 			token:   "Nexus" + "2",
 		},
@@ -87,7 +87,7 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 		},
 		{
 			name:    "Nexus require keyword",
-			path:    "model/Temporal/Feature/Fixture.lean",
+			path:    "model/lean/Temporal/Feature/Fixture.lean",
 			content: "  require successState: " + "resultingState" + " succeeded\n",
 			token:   "resultingState",
 		},
@@ -111,7 +111,7 @@ func TestRetiredVocabularyCommandAllowsOrdinaryEnglishAndExcludedHistory(t *test
 	t.Parallel()
 
 	repositoryRoot := seedScannedSurface(t)
-	writeFixture(t, repositoryRoot, "model/README.md", "A projection can refine a bounded engineering approximation without claiming conformance or qualification.\n")
+	writeFixture(t, repositoryRoot, "model/lean/README.md", "A projection can refine a bounded engineering approximation without claiming conformance or qualification.\n")
 	writeFixture(t, repositoryRoot, "tools/legacy/history.go", "package legacy\nconst old = \""+"semantic"+"Identity\"\n")
 	writeFixture(t, repositoryRoot, ".flow/memory/history.md", "The old API used "+"Declaration"+"Id.\n")
 	writeFixture(t, repositoryRoot, ".flow/specs/fn-18-versioned-umpire-artifact-boundary.json", `{"id":"fn-18-versioned-umpire-artifact-boundary","status":"closed","note":"`+"semantic"+`Identity"}`+"\n")
@@ -146,7 +146,7 @@ func TestRetiredVocabularyCommandAllowsTheThreeNarrowedBoundaries(t *testing.T) 
 		},
 		{
 			name:    "Property trace field constructor",
-			path:    "model/Umpire/Fixture.lean",
+			path:    "model/lean/Umpire/Fixture.lean",
 			content: "def field := PropertyTraceField." + "resultingState" + "\n",
 		},
 	} {
@@ -206,8 +206,8 @@ func TestRetiredVocabularyCommandFailsOnAMissingScannedPath(t *testing.T) {
 		name    string
 		removed string
 	}{
-		{name: "required file", removed: "model/Umpire/ARCHITECTURE.md"},
-		{name: "scan root", removed: "model/Shared"},
+		{name: "required file", removed: "model/lean/Umpire/ARCHITECTURE.md"},
+		{name: "scan root", removed: "model/lean/Shared"},
 		{name: "open spec record", removed: ".flow/specs/" + retiredvocabulary.DownstreamSpecs()[0] + ".json"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -224,7 +224,7 @@ func TestRetiredVocabularyCommandFailsOnAMissingScannedPath(t *testing.T) {
 func TestRetiredVocabularyCommandScansTestpilotAndSharedTrees(t *testing.T) {
 	t.Parallel()
 
-	for _, path := range []string{"model/Testpilot/Fixture.lean", "model/Shared/Fixture.lean"} {
+	for _, path := range []string{"model/lean/Testpilot/Fixture.lean", "model/lean/Shared/Fixture.lean"} {
 		t.Run(path, func(t *testing.T) {
 			repositoryRoot := seedScannedSurface(t)
 			writeFixture(t, repositoryRoot, path, "structure "+"Projection"+"Record where\n  id : String\n")

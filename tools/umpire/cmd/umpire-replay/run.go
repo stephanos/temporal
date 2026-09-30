@@ -20,7 +20,7 @@ import (
 
 const (
 	defaultTimeout   = 30 * time.Minute
-	defaultModelRoot = "model"
+	defaultModelRoot = "model/lean"
 	// The bridge the model package builds, relative to the model root.
 	bridgeRelativePath = ".lake/build/bin/umpire-replay-bridge"
 )
