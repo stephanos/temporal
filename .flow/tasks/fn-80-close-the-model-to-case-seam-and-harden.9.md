@@ -7,8 +7,8 @@ satisfies: [R7]
 Implements R7 (spec §R7). Reconciles every document the docs-gap scan found false after fn-80, drafts three new UMPIRE4_SPEC rules under fresh IDs for human approval (GOV-01, GOV-02), adds the fn-80 roadmap entry, and runs the full gate set as the final check.
 
 **Size:** S
-**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_ORDER.md`, `model/ARCHITECTURE.md`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/Temporal/Feature/Nexus3/Nexus.md`, `model/Temporal/Feature/Nexus3/Integration.md`, `common/testing/testpilot/README.md`, `common/testing/testpilot/internal/execution/README.md`, `common/testing/testpilot/internal/verification/README.md`, `common/testing/testpilot/temporal/worker/README.md`, `common/testing/testpilot/temporal/server/README.md`, `tools/umpire/CONTEXT.md`
-**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_ORDER.md, model/ARCHITECTURE.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/Temporal/Feature/Nexus3/*.md, common/testing/testpilot/**/README.md, tools/umpire/CONTEXT.md]
+**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_ORDER.md`, `model/ARCHITECTURE.md`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/Temporal/Feature/Nexus3/Nexus.md`, `model/Temporal/Feature/Nexus3/Integration.md`, `common/testing/testpilot/README.md`, `common/testing/testpilot/internal/execution/README.md`, `common/testing/testpilot/internal/verification/README.md`, `common/testing/testpilot/temporal/worker/README.md`, `common/testing/testpilot/temporal/server/README.md`, `tools/umpire/CONTEXT.md`
+**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_ORDER.md, model/ARCHITECTURE.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/Temporal/Feature/Nexus3/*.md, common/testing/testpilot/**/README.md, tools/umpire/CONTEXT.md]
 
 ### Approach
 - New rules, each with a new ID (never renumber): (a) Driver-realized faults — declared instruction, Profile capability gate, one `FAULT_INJECTED` Run Event per instruction, a requested fault proves nothing until that event exists (EVD-17 currently allows only unary RPC transport and SDK entrypoints); (b) horizon units — two admitted bounds, `rule_events` semantics, both paths tick one counter, `elapsed_milliseconds` retained but host-clock dependent (ties to EVD-07); (c) AUT-08 clarification that macro-derived ordered domains and enumerators count as author-provided. Mark all three as pending human approval in the task receipt.
@@ -77,7 +77,7 @@ in this task's list and neither was edited.
 
 Two files on the Files list were searched and left alone because nothing in them was falsified:
 `model/ARCHITECTURE.md` and `common/testing/testpilot/temporal/server/README.md` assert nothing
-about faults, horizons or the Nexus3 syntax. `.plans/UMPIRE4_SPEC_COMPS.md` did carry one stale
+about faults, horizons or the Nexus3 syntax. `.plans/lean/UMPIRE4_SPEC_COMPS.md` did carry one stale
 claim — `Umpire.Space` marked "Planned" — and now reads Delivered, with the fault-intent lowering
 named.
 

@@ -28,7 +28,7 @@ Implements R1 (spec §R1). Replaces the hand-written Program-and-monitor Produce
 
 **Optional** (reference as needed):
 - `model/Umpire/Case/Tests/ScopedFixtures.lean` — worked scoped lowering
-- `.plans/LEAN_GUIDELINES.md:182-238` — trust boundary and incremental verification
+- `.plans/lean/LEAN_GUIDELINES.md:182-238` — trust boundary and incremental verification
 
 ### Key context
 - The Case declares no classic horizon after this task; liveness comes from the scoped operation-transition clock.

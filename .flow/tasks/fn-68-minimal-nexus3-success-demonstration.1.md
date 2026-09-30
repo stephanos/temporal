@@ -27,7 +27,7 @@ Build the early proof point for R1/R2 using existing typed authoring owners.
 - model/Umpire/Query/Authoring.lean:19-54 — existing Query owner
 **Optional:**
 - model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean:28-112 — Property and planning proof pattern
-- .plans/LEAN_GUIDELINES.md — authored proof/validation rules
+- .plans/lean/LEAN_GUIDELINES.md — authored proof/validation rules
 
 ### Quick commands
 `cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests`

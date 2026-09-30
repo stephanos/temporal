@@ -22,7 +22,7 @@ Run final integrated verification after the API, migrations, compatibility tests
 - `model/README.md:246-287` — focused and complete model verification commands.
 - `Makefile:989-992` — model build entry point.
 - `Makefile:1275-1288` — model lint and regression entry points.
-- `.plans/LEAN_GUIDELINES.md:191-261` — proof trust, regression, lint, and review gates.
+- `.plans/lean/LEAN_GUIDELINES.md:191-261` — proof trust, regression, lint, and review gates.
 
 **Optional** (reference as needed):
 - `model/Temporal/Feature/Nexus/Fixtures/` — generator-owned compatibility fixtures that must remain unchanged.

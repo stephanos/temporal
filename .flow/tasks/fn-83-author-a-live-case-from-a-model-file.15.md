@@ -84,7 +84,7 @@ case asyncNexusSuccess
 - the Temporal `case` command — `caseTemplate`, `caseEvidence`
 - `model/Umpire/Model/Table.lean` — `FiniteCatalog.validKey`, row key uniqueness
 - `model/Temporal/Feature/Nexus/Success/Tests.lean` — every command occurrence and `#guard_msgs` pin
-- `.plans/LEAN_GUIDELINES.md` — syntax and whitespace-sensitivity conventions
+- `.plans/lean/LEAN_GUIDELINES.md` — syntax and whitespace-sensitivity conventions
 
 ### Key context
 - Depends on .11 (Known Gap lines on `query`) and .13 (optional Facts) so the grammar is respelled once, after it stops growing. .16, .17 and .14 follow it.

@@ -8,7 +8,7 @@ Apply the second slice only after recomputing consumers, then consolidate final 
 
 **Size:** M
 **Files:** tools/umpire/internal/artifactv2/{runtime,evidence,result,clone}.go and clone_test.go; inventory and active compatibility/component docs
-**Touches:** [tools/umpire/internal/artifactv2/**, tools/umpire/CLEANUP_INVENTORY.md, model/Umpire/Property/COMPATIBILITY.md, .plans/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md]
+**Touches:** [tools/umpire/internal/artifactv2/**, tools/umpire/CLEANUP_INVENTORY.md, model/Umpire/Property/COMPATIBILITY.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Recompute symbol/import/reference closure after .2. Remove only orphan runtime/evidence/result/clone support and its five clone tests. Preserve every symbol used by the Experiment reader, generator, regression consumers and their tests, including checksum/sealing helpers.
@@ -46,7 +46,7 @@ Removed the five ledger-approved orphaned internal artifactv2 files and their fi
 
 Baseline and focused post-trim tagged tests passed. The model build, physical-TMPDIR aggregate regression, generated-view and conformance comparisons, exact inherited live identities, aggregate complete Go selector, and final model lint passed. The direct host `go test` selector encountered an inherited C header lookup failure, while the same selector passed under the repository's `mise` aggregate. Final-tree repository lint reported the expected 1,272 findings with raw SHA-256 `f53910724a8830c9fc2a58e67a3d3569e5710b8bd4242ecfc54307d9b09e439f`; only the two proven overlapping Revive identities at `catalog.go:33` and `catalog.go:39` differed. Narrow canonicalization of those aliases produced byte-identical 1,272-row expected and actual files with SHA-256 `6af8054b95719a1cfbaeab137e49dfdc0b654272867910850f5f7c7f65f6b136`. A global-rule diagnostic experiment changed unrelated identities and was discarded, leaving source and lint configuration unchanged.
 
-Completion review found two stale prospective claims in `.plans/UMPIRE4_SPEC_COMPS.md`: an intended exact Artifact/set check and a recommended public `tools/umpire/artifact/` tree entry. Both were removed to match the retired surface. This documentation-only correction passed `git diff --check`; executable gates were not repeated.
+Completion review found two stale prospective claims in `.plans/lean/UMPIRE4_SPEC_COMPS.md`: an intended exact Artifact/set check and a recommended public `tools/umpire/artifact/` tree entry. Both were removed to match the retired surface. This documentation-only correction passed `git diff --check`; executable gates were not repeated.
 
 No commit was created because the user retains commit control.
 

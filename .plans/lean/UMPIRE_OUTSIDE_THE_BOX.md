@@ -304,7 +304,7 @@ produce, and it is one no protocol-shaped model produces.
 
 ## Related notes
 
-- [UMPIRE4_VISION](UMPIRE4_VISION.md), the bullets everything above is measured against
+- [UMPIRE4_VISION](../UMPIRE4_VISION.md), the bullets everything above is measured against
 - [UMPIRE4_DIRECTION](UMPIRE4_DIRECTION.md), Veil, Specula, tracing, FizzBee
 - [UMPIRE_CMP_FIZZBEE](UMPIRE_CMP_FIZZBEE.md)
 - [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md)

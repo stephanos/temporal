@@ -11,8 +11,8 @@ Close R4 and R6 with facade/import/mutation coverage and synchronized authoring 
 Target mutations in this task are exactly the existing `DeclarationErrorKind` cases: identity syntax/duplicates, unknown/wrong kind, missing/unexpected/mismatched law, missing/conflicting provider, ambiguous connector, and `KernelAvailability.incomplete`. Query bound/unit, role/action finite-completeness, and `targetKernelMismatch` mutations belong exclusively to Tasks `.7` and `.6`; they must not be moved into Target.
 
 **Size:** M
-**Files:** `model/Umpire.lean`, `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_DSL.md`, `.plans/UMPIRE4_SPEC_MODEL_ARCH.md`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`
-**Touches:** [model/Umpire.lean, model/UmpireTests.lean, model/TemporalModelTests.lean, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, .plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_DSL.md, .plans/UMPIRE4_SPEC_MODEL_ARCH.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md]
+**Files:** `model/Umpire.lean`, `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_DSL.md`, `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`
+**Touches:** [model/Umpire.lean, model/UmpireTests.lean, model/TemporalModelTests.lean, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, .plans/UMPIRE4_SPEC.md, .plans/lean/UMPIRE4_DSL.md, .plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md]
 
 ### Approach
 - Test public facades and forbidden import directions.
@@ -27,8 +27,8 @@ Target mutations in this task are exactly the existing `DeclarationErrorKind` ca
 - `model/UmpireTests.lean` — aggregate test boundary
 - `model/TemporalModelTests.lean` — ordinary Temporal test aggregate
 - `model/ModelLint/ImportGraph.lean` and `model/ModelLint/ImportGraphTests.lean` — fn-34 enforcement substrate and controlled fixtures
-- `.plans/UMPIRE4_SPEC.md:211-228` and `.plans/UMPIRE4_DSL.md:68-82` — normative authoring-path wording to reconcile
-- `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:114-197` — deep-module and author-role contract to preserve
+- `.plans/UMPIRE4_SPEC.md:211-228` and `.plans/lean/UMPIRE4_DSL.md:68-82` — normative authoring-path wording to reconcile
+- `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md:114-197` — deep-module and author-role contract to preserve
 - `model/Umpire/ARCHITECTURE.md:37-46` — current checked lifecycle
 
 ### Acceptance

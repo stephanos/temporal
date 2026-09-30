@@ -30,7 +30,7 @@ Make the Lean Producer emit one Rule per relation with one Rule instance per pla
 - `tests/testcore/testpilot/nexus_pair_artifact_test.go`, `nexus_pair_fixture.go:19-20`
 
 **Optional**:
-- `.plans/LEAN_GUIDELINES.md` — required reading before Lean work
+- `.plans/lean/LEAN_GUIDELINES.md` — required reading before Lean work
 - `model/Umpire/ARCHITECTURE.md:281-296` — typed field lowering (doc updated in task 6)
 
 ## Key context

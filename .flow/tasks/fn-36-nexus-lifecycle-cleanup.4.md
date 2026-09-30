@@ -7,8 +7,8 @@ satisfies: [R4, R5]
 Update live architecture/learning documentation and exact import-policy references, then run the complete verification matrix (R4, R5). Do not edit concurrent fn-31/fn-34 Flow planning artifacts.
 
 **Size:** M
-**Files:** `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`
-**Touches:** [model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/UMPIRE4_SPEC_COMPS.md, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean]
+**Files:** `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`
+**Touches:** [model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_SPEC.md, .plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean]
 
 ### Approach
 - Rewrite the live learning path and dependency map to lead with Lifecycle/Operations start-cancel-complete and label AutoClose/CallerClosure as inspectable experimental material.

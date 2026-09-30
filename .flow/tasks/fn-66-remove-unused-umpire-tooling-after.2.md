@@ -8,7 +8,7 @@ Apply the inventory's first retirement slice atomically; .1 owns the consumer an
 
 **Size:** M
 **Files:** tools/umpire/artifact/**, tools/umpire/cmd/umpire-artifact/**, Makefile, active compatibility/component docs, tools/umpire/CLEANUP_INVENTORY.md
-**Touches:** [tools/umpire/artifact/**, tools/umpire/cmd/umpire-artifact/**, Makefile, model/Umpire/Property/COMPATIBILITY.md, .plans/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md, tools/umpire/CLEANUP_INVENTORY.md]
+**Touches:** [tools/umpire/artifact/**, tools/umpire/cmd/umpire-artifact/**, Makefile, model/Umpire/Property/COMPATIBILITY.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md, tools/umpire/CLEANUP_INVENTORY.md]
 
 ### Approach
 - Re-anchor the frozen inventory and verify every removal path still has its approved ownership. Remove only the public artifact package, CLI, and exclusively owned fixtures/tests from this slice.
@@ -23,7 +23,7 @@ Apply the inventory's first retirement slice atomically; .1 owns the consumer an
 - `tools/umpire/cmd/umpire-artifact` — retired process entrypoint and tests.
 - `Makefile:1000` — exact wrappers and associated variable/PHONY entries.
 - `model/Umpire/Property/COMPATIBILITY.md:21` — obsolete public consumer claim.
-- `.plans/UMPIRE4_SPEC_COMPS.md:797` — obsolete command row.
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md:797` — obsolete command row.
 - `.plans/UMPIRE4_COMPONENTS.md:199` — current implementation claims.
 
 ### Quick commands

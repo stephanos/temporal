@@ -11,7 +11,7 @@ Move the five Model commands (`model`, `property`, `scenario`, `limits`, `query`
 **Touches:** [model/Umpire/**, model/Temporal/Feature/Nexus/Success/**, model/Temporal/Case/**, model/Temporal/Tool/Testpilot.lean, model/Umpire.lean, model/UmpireTests.lean, model/ARCHITECTURE.md, .plans/UMPIRE4_SPEC.md]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` and `.plans/UMPIRE4_SPEC.md` (MOD-01, SCP-02, AUT-07, AUT-09) first.
+- Read `.plans/lean/LEAN_GUIDELINES.md` and `.plans/UMPIRE4_SPEC.md` (MOD-01, SCP-02, AUT-07, AUT-09) first.
 - Temporal couplings to remove from the moved code, each with its replacement:
   - `Temporal.Shared.definitionFamily` prepends `temporal.`, and `semanticFamilyOf` strips `Temporal.Feature` / `Temporal` from the namespace. Replace with an injected definition root and namespace prefix that a Temporal module declares once (for example a small environment extension or option set by a Temporal prelude the Model files import). Build on `Umpire.Shared`, never `Temporal.Shared`.
   - `packageRelativePath` splits on `/model/`. Make the package-root convention explicit rather than a string split on a repository directory name.

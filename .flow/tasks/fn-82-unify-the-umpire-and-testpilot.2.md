@@ -68,7 +68,7 @@ join the gate here. `PropertyTraceField` / `PropertyPredicateField` still spell 
 `resultingState` is a live Nexus3 `require` keyword (task .8), and the proto field
 `ScopedTransition.resulting_state` renders `json=resultingState` into the scanned
 `api/testpilot/v1/contract.pb.go` (task .7). Four other Case definition-kind spellings were retired
-instead. `.plans/UMPIRE4_SPEC_COMPS.md` and `UMPIRE4_SPEC_MODEL_ARCH.md` were respelled (five lines)
+instead. `.plans/lean/UMPIRE4_SPEC_COMPS.md` and `UMPIRE4_SPEC_MODEL_ARCH.md` were respelled (five lines)
 against the spec's "no edits to historical .plans" boundary, because the gate's `UMPIRE4_*.md` glob
 scans them. The writer covers seventeen files, not the sixteen the task counted: the seventh file in
 `Umpire/Artifact/Tests/Fixtures` is `ArtifactSetV2.json`, which the rename also changes.

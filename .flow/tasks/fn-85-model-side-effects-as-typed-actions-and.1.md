@@ -22,7 +22,7 @@ Prove the party-to-entrypoint design before any syntax exists (Early proof point
   a separate commit before anything else, so the later tasks are not each carrying a mapping to a
   baseline nobody reads. The conformance `expected.json` pins stay: they, not the oracle, are the
   Verdict net.
-- Read `.plans/LEAN_GUIDELINES.md` first. Start from the fn-87 shapes (order by default: an instruction depends on the previous one in its entrypoint; `after` for the rest; no environment list, reservations or outcome fields in the Case).
+- Read `.plans/lean/LEAN_GUIDELINES.md` first. Start from the fn-87 shapes (order by default: an instruction depends on the previous one in its entrypoint; `after` for the rest; no environment list, reservations or outcome fields in the Case).
 - Records are Temporal-free (`Umpire.*` names no RPC, instruction or event); the realization is the only Temporal-owned value. Bind per action class, not per party: today's `complete` is a handler-party action realized as a controller instruction over a handle slot, so a per-party binding is wrong by construction.
 - Assembly: walk the Query's path; each `driven` action becomes the instruction its class binds, appended to its entrypoint; observed actions and `system` rows become Contract expectations through the existing projection lowering; evidence resolves through `Temporal.Case.EventKind`. Keep `Umpire.Case.Compiler` and the correlated lowering as they are.
 - Masking: Case ID, Program and Contract IDs, run scope and provenance rows are replaced by placeholders on both sides; everything else must be byte-equal. Record the diff in the receipt if the comparison needs more masks and explain each.

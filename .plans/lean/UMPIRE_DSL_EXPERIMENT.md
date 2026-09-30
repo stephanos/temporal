@@ -1,7 +1,7 @@
 # Umpire DSL experiment
 
 Date: 2026-09-06. This is the decision record for isolated executable experiments under
-[`experiments/umpire-dsl/`](../experiments/umpire-dsl/README.md). It does not change the normative Umpire
+[`experiments/umpire-dsl/`](../../experiments/umpire-dsl/README.md). It does not change the normative Umpire
 specification or authorize a production migration. No Flow-Next state is used by this work.
 
 ## Intent and baseline
@@ -14,22 +14,22 @@ error behavior, and the cost of a subsequent edit; a successful solver invocatio
 The source baseline inspected for this experiment is more capable than “no DSL,” but narrower than
 the proposed cancellation language:
 
-- [`Nexus.lean`](../model/lean/Temporal/Feature/Nexus3/Nexus.lean) implements only
+- [`Nexus.lean`](../../model/lean/Temporal/Feature/Nexus3/Nexus.lean) implements only
   `scheduled → started → succeeded`, using `awaitStart` and `awaitSuccess`. Its custom blocks
-  compile through [`Syntax.lean`](../model/lean/Temporal/Feature/Nexus3/Syntax.lean) and
-  [`Authoring.lean`](../model/lean/Temporal/Feature/Nexus3/Authoring.lean), which deliberately admit a
+  compile through [`Syntax.lean`](../../model/lean/Temporal/Feature/Nexus3/Syntax.lean) and
+  [`Authoring.lean`](../../model/lean/Temporal/Feature/Nexus3/Authoring.lean), which deliberately admit a
   fixed canonical success table. Cancellation and scoped progress are explicit Known Gaps.
-- [`Nexus.md`](../model/lean/Temporal/Feature/Nexus3/Nexus.md) and
-  [`Integration.md`](../model/lean/Temporal/Feature/Nexus3/Integration.md) describe the larger draft.
+- [`Nexus.md`](../../model/lean/Temporal/Feature/Nexus3/Nexus.md) and
+  [`Integration.md`](../../model/lean/Temporal/Feature/Nexus3/Integration.md) describe the larger draft.
   Their cancellation syntax, SDK cancellation capability, and scoped monitor lowering are not
   implemented by the success slice. They are requirements to test, not working baselines.
-- [`BehaviorDeclaration`](../model/lean/Umpire/Behavior/Language.lean) already represents required,
+- [`BehaviorDeclaration`](../../model/lean/Umpire/Behavior/Language.lean) already represents required,
   allowed, and forbidden actions, occurrence bounds, ordering, sequences, adjacency, exact action
   lists, and exact traces. A nicer frontend need not replace these semantics.
-- [`Property/Evaluation.lean`](../model/lean/Umpire/Property/Evaluation.lean) has executable and
+- [`Property/Evaluation.lean`](../../model/lean/Umpire/Property/Evaluation.lean) has executable and
   denotational meanings connected by `evaluateProperty_agrees`. A prototype's own monitor agreement
   is not a substitute for correspondence to this existing evaluator.
-- [`Case/Compiler.lean`](../model/lean/Umpire/Case/Compiler.lean) explicitly consumes already-lowered
+- [`Case/Compiler.lean`](../../model/lean/Umpire/Case/Compiler.lean) explicitly consumes already-lowered
   monitors; it has no checked-Property-to-lowering producer. This is a remaining implementation
   boundary, not functionality that Veil adoption can simply delete.
 - The production Lake workspace uses Lean `v4.33.1` and Batteries `v4.33.0`. Separate experimental
@@ -64,11 +64,11 @@ policy. Neither proves unlimited eventual completion.
 ## Temporal logic and developer-facing syntax
 
 Temporal logic is already part of the core representation:
-[`Property/Language.lean`](../model/lean/Umpire/Property/Language.lean) includes `eventuallyWithin`,
+[`Property/Language.lean`](../../model/lean/Umpire/Property/Language.lean) includes `eventuallyWithin`,
 `quiescentWithin`, and guarded variants. The executable semantics and `evaluateProperty_agrees`
-are in [`Evaluation.lean`](../model/lean/Umpire/Property/Evaluation.lean). Existing temporal capability
+are in [`Evaluation.lean`](../../model/lean/Umpire/Property/Evaluation.lean). Existing temporal capability
 therefore must not be counted as newly supplied by the experiment. The
-[property compatibility table](../model/lean/Umpire/Property/COMPATIBILITY.md) distinguishes model
+[property compatibility table](../../model/lean/Umpire/Property/COMPATIBILITY.md) distinguishes model
 interpretation from the narrower runtime lowering surface.
 
 Evaluate a small, readable finite temporal surface over the same scoped response clause:
@@ -153,7 +153,7 @@ not evidence that all these supporting checks can be removed.
 
 ### Differential check against the current Property evaluator
 
-[`Baseline.lean`](../experiments/umpire-dsl/Baseline.lean) imports the actual cached
+[`Baseline.lean`](../../experiments/umpire-dsl/Baseline.lean) imports the actual cached
 `Umpire.Property.Tests.Fixtures` and checks declarations through `checkProperty` before running
 `evaluatePropertyOnTrace`. It compares the experiment's closed-model verdict with the conjunction
 of two production `eventuallyWithin` evaluations, one per operation. The fixture bridge filters
@@ -235,7 +235,7 @@ There were no production edits, Flow-Next operations, commits, or live-service a
 
 ### Veil representation and subsequent-edit results
 
-The [detailed Veil record](../experiments/umpire-dsl/VEIL_RESULTS.md) pins
+The [detailed Veil record](../../experiments/umpire-dsl/VEIL_RESULTS.md) pins
 `verse-lab/veil@be6a1ceebd103d05e1e0f0863e8bf73db1ea9ccd`. The actual upstream
 `EnumerableTransitionSystem` and `RelationalTransitionSystem` compile unchanged on Lean 4.33.1
 in a narrow package. One shared `advance` definition supplies both the finite consumer and Veil

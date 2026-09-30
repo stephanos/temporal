@@ -6,9 +6,9 @@ for the reasoning that led to Umpire 4.
 
 Umpire3 is the independent implementation under `tools/umpire3`. This document defines its
 semantic, trust, and completion boundaries. It does not govern the Go Umpire2 runtime described in
-[`UMPIRE.md`](UMPIRE.md) or the separate Lean model described in
-[`UMPIRE_DSL.md`](UMPIRE_DSL.md). All three efforts serve the goals in
-[`UMPIRE_VISION.md`](UMPIRE_VISION.md).
+[`UMPIRE.md`](../UMPIRE.md) or the separate Lean model described in
+[`UMPIRE_DSL.md`](../UMPIRE_DSL.md). All three efforts serve the goals in
+[`UMPIRE_VISION.md`](../UMPIRE_VISION.md).
 
 ## End state
 

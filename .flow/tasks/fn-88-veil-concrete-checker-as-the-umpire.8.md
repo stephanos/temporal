@@ -4,8 +4,8 @@
 Draft, under the `*(drafted by fn-88; awaiting GOV-02 approval.)*` marker, every rule amendment the spec's Decision Context lists, so no rule text contradicts the Veil dependency when task .5 lands it. Old sentences are marked, never deleted. Adopt mode only.
 
 **Size:** S
-**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/UMPIRE4_DSL.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/UMPIRE4_DSL.md, .plans/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/lean/UMPIRE4_DSL.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/lean/UMPIRE4_DSL.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - `UMPIRE4_SPEC_MODEL_ARCH.md`: §2 principle 7, §3 module tree and MOD list (add `Umpire/Search/Product`, `Selection`, `Backend/Veil`, and `search-backend-isolation`), §9 (the two sentences, the diagram, the "Generic Veil mechanics" paragraph), §10 diagnostic, §11 build-gate sentence, §13 criterion 5, §14 non-goal.
@@ -15,7 +15,7 @@ Draft, under the `*(drafted by fn-88; awaiting GOV-02 approval.)*` marker, every
 
 ### Investigation targets
 **Required:**
-- `.plans/UMPIRE4_SPEC.md` MOD-11 and MOD-16 blocks; `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:332-382`
+- `.plans/UMPIRE4_SPEC.md` MOD-11 and MOD-16 blocks; `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md:332-382`
 - `tools/umpire/vocabulary/spec_names_test.go`
 
 ### Key context

@@ -240,7 +240,7 @@ The shared package path is established at `common/testing/testpilot/temporal`. A
 ## References
 
 - `.plans/UMPIRE4_SPEC.md` — semantic authority, Testpilot facade and Driver ownership.
-- `.plans/UMPIRE_ARCHITECTURE_REVIEW.md` — findings 1, 3, 4 and 5.
+- `.plans/lean/UMPIRE_ARCHITECTURE_REVIEW.md` — findings 1, 3, 4 and 5.
 - `fn-68-minimal-nexus3-success-demonstration` — checked lowering and existing fixture/live integration.
 - `fn-72-extract-the-reusable-temporal-testpilot` — reusable Temporal Driver extraction.
 - `fn-73-explicit-environment-binding-for` — explicit shared environment binding.

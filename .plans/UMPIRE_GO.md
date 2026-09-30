@@ -3,7 +3,7 @@
 Plan, 2026-09-29. It proposes an experiment that builds the Umpire model layer in Go 1.27 beside
 the Lean one, ports the same Models, and measures both against the same evidence. It changes no rule
 and approves no design. Its result is input to a GOV-02 decision on SCP-03, which today mandates
-Lean for the Behavior Model. Background is in [UMPIRE_OUTSIDE_THE_BOX](UMPIRE_OUTSIDE_THE_BOX.md)
+Lean for the Behavior Model. Background is in [UMPIRE_OUTSIDE_THE_BOX](lean/UMPIRE_OUTSIDE_THE_BOX.md)
 and the ten-language comparison under `../cmp/` (`EVAL.md`, `SPEC.md`, and the uncompiled Go
 sketch in `cmp/go/`).
 

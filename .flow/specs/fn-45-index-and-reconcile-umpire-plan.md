@@ -209,7 +209,7 @@ the registry schema before rewriting Flow plans.
 
 - `.plans/UMPIRE4_SPEC.md` — normative Umpire 4 rules.
 - `.plans/UMPIRE4_ORDER.md` — retained scope, deferred scope, and prototype gates.
-- `.plans/UMPIRE4_SPEC_COMPS.md` — descriptive architecture and authority boundary.
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md` — descriptive architecture and authority boundary.
 - `.plans/UMPIRE4_COMPONENTS.md` — descriptive implementation inventory requiring status/link repair.
 - `.flow/memory/declined/generated-api-drift-verification.md` — broad generated API/CI drift gates
   remain declined; this spec does not reopen them.

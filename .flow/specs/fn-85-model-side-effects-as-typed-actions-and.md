@@ -529,7 +529,7 @@ narrows a requirement without changing its intent, and the task that owns it rec
 - **Step functions, not a row grammar (decided with the user 2026-09-12).** A machine's logic is
   an ordinary Lean function over a structure of finite fields, enumerated at elaboration into the
   same finite table; the command keeps declarations, identity, `ends:`, timers, setup parameters and
-  evidence links. The row grammar of `.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1's comparison is not
+  evidence links. The row grammar of `.plans/lean/UMPIRE_CMP_FIZZBEE.md` section 4.1's comparison is not
   built, not even as sugar (AUT-07). The first commit of fn-85 .3 is the prototype: the success Model
   as a step function with its fingerprint shown equal to the row form's and its elaboration time
   recorded against the Race baselines (6 to 12 ms per check); if it cannot reproduce the fingerprint,
@@ -596,7 +596,7 @@ narrows a requirement without changing its intent, and the task that owns it rec
   exists (one key per implementation, rejecting the workflow task with
   `PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writing no scheduled event), but binding it needs a
   table that varies with `setup:`, a value beside the key, a key per switch value and an evidence
-  source not keyed by the scheduled event; `.plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md` (2026-09-19)
+  source not keyed by the scheduled event; `.plans/lean/UMPIRE4_RESEARCH_NEXUS_MODEL.md` (2026-09-19)
   recommends `.10` drop the parameter rather than carry a gap on every Case.
 - **A set is Umpire's; which Cases it produces is the platform's (decided while delivering `.7`).**
   The `set` command checks what the Model alone decides -- the purpose's keys, every party the
@@ -713,7 +713,7 @@ narrows a requirement without changing its intent, and the task that owns it rec
   `require: state:/outcome:/fact:` form of fn-83 is not built. fn-85 .3 shows the success Model's
   `successfulResult` written as a predicate has the same fingerprint as its keyed form. Guards need no
   keyword (an `if` in a step function), and reachability stays the `find` Query, not a second
-  `exists` word (SEM-19). Source: `.plans/UMPIRE_CMP_FIZZBEE.md` sections 4.1 and 4.8.
+  `exists` word (SEM-19). Source: `.plans/lean/UMPIRE_CMP_FIZZBEE.md` sections 4.1 and 4.8.
 
 ## Requirement coverage
 
@@ -797,7 +797,7 @@ Rejected:
   (2026-09-12): it re-implements `match`, `if`, record update and `List` inside a macro with its own
   diagnostics and learning curve; a Lean step function enumerated into the same table gives the same
   fingerprint, Lean's redundancy check, hover and located errors for free, and is what AUT-01 asks
-  for (`.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1).
+  for (`.plans/lean/UMPIRE_CMP_FIZZBEE.md` section 4.1).
 - **A top-level `link` declaration and a "mechanism machine"**: SEM-08 reserves Implementation Link
   for Feature-to-System connections, MOD-02 gives "implementation mechanisms" to `Temporal.System`,
   and a written step mapping duplicated what the state map determines.

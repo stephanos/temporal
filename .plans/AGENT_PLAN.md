@@ -1702,7 +1702,7 @@ evidence.
 - Current engine and storage prototype: `tools/agentworkflow/agentworkflow.go`.
 - Current tests: `tools/agentworkflow/agentworkflow_test.go`.
 - Nested module: `tools/agentworkflow/go.mod`.
-- Evidence, trust, observation, and result vocabulary precedent: `.plans/UMPIRE3.md`.
+- Evidence, trust, observation, and result vocabulary precedent: `.plans/lean/UMPIRE3.md`.
 - Developer-facing deep-facade precedent: `.plans/UMPIRE.md`.
 
 These documents provide architectural precedent. The agent workflow remains a generic tool and must

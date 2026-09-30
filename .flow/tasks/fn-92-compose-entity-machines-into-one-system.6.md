@@ -7,7 +7,7 @@ satisfies: [R12, R13]
 Draft the GOV-02 amendments the spec lists, add the AUTHORING section on the worker entity module and composition with markers in the new and touched modules, extend the drift test to a marker-to-file map, and update the model and plan docs (R12, R13).
 
 **Size:** M
-**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`, `model/AUTHORING.md`, `tools/umpire/authoring/authoring.go`, `tools/umpire/authoring/drift_test.go`, `model/Temporal/Feature/Worker/Model.lean` and `model/Temporal/Feature/Workflow/Outage/Model.lean` and `model/Temporal/Feature/Nexus/Control/Model.lean` (markers only), `model/Temporal/Feature/Nexus/DESIGN.md`, `model/Temporal/Feature/Nexus.lean`, `model/README.md`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`
+**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`, `model/AUTHORING.md`, `tools/umpire/authoring/authoring.go`, `tools/umpire/authoring/drift_test.go`, `model/Temporal/Feature/Worker/Model.lean` and `model/Temporal/Feature/Workflow/Outage/Model.lean` and `model/Temporal/Feature/Nexus/Control/Model.lean` (markers only), `model/Temporal/Feature/Nexus/DESIGN.md`, `model/Temporal/Feature/Nexus.lean`, `model/README.md`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`
 **Touches:** [.plans/**, model/AUTHORING.md, tools/umpire/authoring/**, model/Temporal/Feature/Worker/Model.lean, model/Temporal/Feature/Workflow/Outage/Model.lean, model/Temporal/Feature/Nexus/Control/Model.lean, model/Temporal/Feature/Nexus/DESIGN.md, model/Temporal/Feature/Nexus.lean, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
 
 ### Approach
@@ -19,7 +19,7 @@ Draft the GOV-02 amendments the spec lists, add the AUTHORING section on the wor
 **Required:**
 - `.plans/UMPIRE4_SPEC.md:218-263, 292-313, 395-453`
 - `tools/umpire/authoring/authoring.go:18-24`, `drift_test.go`; `tools/umpire/internal/leannames/spec.go:30, 109`
-- `model/Temporal/Feature/Nexus/DESIGN.md` §2, §4, §6; `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:99-110`
+- `model/Temporal/Feature/Nexus/DESIGN.md` §2, §4, §6; `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md:99-110`
 
 ### Key context
 - fn-88.7 edits the same model docs and the ORDER and index files; this task lands after fn-88 closes and rebases on it. fn-93 later collapses `model/` Markdown, so these edits are short-lived but `make umpire-check-plan-index` needs them now.

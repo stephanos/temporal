@@ -78,6 +78,23 @@ func TestCheckRepositoryValidatesCoverageGraphAndLifecycle(t *testing.T) {
 	require.Equal(t, want, checkRepository(root, index))
 }
 
+func TestCheckRepositoryValidatesLeanDocuments(t *testing.T) {
+	root, index := validRepositoryFixture(t)
+	require.NoError(t, os.Remove(filepath.Join(root, ".plans", "C.md")))
+	writeFixtureFile(t, root, ".plans/lean/C.md", "# Notes\n[delivery](../B.md#delivery)\n")
+	writeFixtureFile(t, root, ".plans/A.md", "# Authority\n[notes](lean/C.md#notes)\n")
+	index.Documents[0].AllowedMissingLinks = []allowedMissingLink{}
+	index.Documents[2].Path = ".plans/lean/C.md"
+	writeFixtureFile(t, root, ".plans/cmp/Example.md", "# Comparison specimen\n")
+
+	require.Equal(t, []string{}, checkRepository(root, index))
+
+	writeFixtureFile(t, root, ".plans/lean/Unregistered.md", "# Unregistered\n")
+	require.Equal(t, []string{
+		`document .plans/lean/Unregistered.md: not registered`,
+	}, checkRepository(root, index))
+}
+
 func TestCheckRepositoryRejectsSupersessionCycles(t *testing.T) {
 	tests := []struct {
 		name string

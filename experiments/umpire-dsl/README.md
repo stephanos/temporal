@@ -1,7 +1,7 @@
 # Umpire DSL experiment
 
 Intent, comparisons, measurements, and decisions live in
-[UMPIRE_DSL_EXPERIMENT.md](../../.plans/UMPIRE_DSL_EXPERIMENT.md).
+[UMPIRE_DSL_EXPERIMENT.md](../../.plans/lean/UMPIRE_DSL_EXPERIMENT.md).
 This package is independent of the production Lake workspace and Flow-Next.
 
 ## Run

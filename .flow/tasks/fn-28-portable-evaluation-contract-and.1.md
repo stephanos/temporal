@@ -19,7 +19,7 @@ Add the smallest versioned protobuf vocabulary that can carry one closed per-tes
 ### Investigation targets
 
 **Required** (read before coding):
-- `.plans/UMPIRE4_SPEC.md` and `.plans/LEAN_GUIDELINES.md`.
+- `.plans/UMPIRE4_SPEC.md` and `.plans/lean/LEAN_GUIDELINES.md`.
 - Existing `proto/internal/temporal/server/api/*/v1` packages and generated `api/*/v1` output.
 - Existing `artifactv2` bindings, Limits, Known Gaps, Observation, link, verdict, and Result shapes.
 

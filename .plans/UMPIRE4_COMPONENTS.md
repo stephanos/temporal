@@ -76,7 +76,7 @@ the then-existing Go Umpire implementations. The component boundaries were origi
 design conversation. This remains an architectural inventory, not an approved implementation plan.
 [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) owns normative rules,
 [`UMPIRE4_ORDER.md`](UMPIRE4_ORDER.md) owns remaining delivery order, and
-[`UMPIRE4_SPEC_COMPS.md`](UMPIRE4_SPEC_COMPS.md) owns the current component architecture.
+[`UMPIRE4_SPEC_COMPS.md`](lean/UMPIRE4_SPEC_COMPS.md) owns the current component architecture.
 
 Component status in this document means integration status for the current `model/` semantic
 pipeline. Functionality in `common/testing/umpire`, `tools/umpire2`, or `tools/umpire3` is called out
@@ -617,7 +617,7 @@ Lean-native checking is the default. Counterexamples must replay through canonic
 before promotion. Although the chat describes pluggable backends, the active roadmap requires Veil
 to remain a Lean library and embedded DSL, not a second semantic authority or generated target.
 
-The approved current-model Veil direction is detailed in [UMPIRE4_DSL.md](UMPIRE4_DSL.md#optional-veil-checking). Veil is
+The approved current-model Veil direction is detailed in [UMPIRE4_DSL.md](lean/UMPIRE4_DSL.md#optional-veil-checking). Veil is
 optional per model family and property. Its handwritten declarations live beside the owning family
 in the primary Lake project, behind a focused import and test aggregate. A Lean-owned binding must
 relate initial states, actions, transitions, and the checked property to an explicit canonical

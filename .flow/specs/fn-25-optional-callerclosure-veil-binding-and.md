@@ -354,7 +354,7 @@ can never establish a claim. The native fn-24 path remains the stable C11 baseli
 - `.flow/specs/fn-23-veil-toolchain-compatibility-and.md`
 - `.flow/specs/fn-24-lean-native-verification-receipts-and.md`
 - `.plans/UMPIRE4_COMPONENTS.md`
-- `.plans/UMPIRE4_DSL.md`
+- `.plans/lean/UMPIRE4_DSL.md`
 - `model/Temporal/Feature/Nexus/CallerClosure.lean`
 - `model/Umpire/Core.lean`
 - `model/Umpire/Property/Language.lean`
@@ -369,7 +369,7 @@ can never establish a claim. The native fn-24 path remains the stable C11 baseli
 - `model/Temporal/Feature/Nexus/CallerClosure.lean` — owning target, Query, Property, and kernel.
 - `model/Umpire/Formal.lean` — reusable formal-checking facade after fn-24.
 - `model/lakefile.toml` — single primary Lake project and default-target boundary.
-- `.plans/UMPIRE4_DSL.md` and `.plans/UMPIRE4_COMPONENTS.md` — optional-checker and C11 direction.
+- `.plans/lean/UMPIRE4_DSL.md` and `.plans/UMPIRE4_COMPONENTS.md` — optional-checker and C11 direction.
 
 ## Requirement coverage
 

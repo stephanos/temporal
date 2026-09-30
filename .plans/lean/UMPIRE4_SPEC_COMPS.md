@@ -1,17 +1,17 @@
 # Umpire4 deep-module architecture
 
 Status: superseded historical architecture. Case Runtime boundaries are normative in
-[`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) and summarized in
-[`UMPIRE4_COMPONENTS.md`](UMPIRE4_COMPONENTS.md); the legacy interfaces below are retained only as
+[`UMPIRE4_SPEC.md`](../UMPIRE4_SPEC.md) and summarized in
+[`UMPIRE4_COMPONENTS.md`](../UMPIRE4_COMPONENTS.md); the legacy interfaces below are retained only as
 design history and MUST NOT be used as current implementation guidance.
 
 This document defines the module structure, interfaces, dependency direction, artifact seams, and
 development priorities for Umpire4. It refines the component inventory in
-[`UMPIRE4_COMPONENTS.md`](UMPIRE4_COMPONENTS.md), the semantic design in
+[`UMPIRE4_COMPONENTS.md`](../UMPIRE4_COMPONENTS.md), the semantic design in
 [`UMPIRE4_DSL.md`](UMPIRE4_DSL.md), the Lean ownership rules in
 [`UMPIRE4_SPEC_MODEL_ARCH.md`](UMPIRE4_SPEC_MODEL_ARCH.md), the command contract in
-[`UMPIRE4_SPEC_CLI.md`](UMPIRE4_SPEC_CLI.md), and the goals in
-[`UMPIRE4_VISION.md`](UMPIRE4_VISION.md).
+[`UMPIRE4_SPEC_CLI.md`](../UMPIRE4_SPEC_CLI.md), and the goals in
+[`UMPIRE4_VISION.md`](../UMPIRE4_VISION.md).
 
 Implementation status in this document is descriptive, not authorization to perform a migration.
 Each change still needs a bounded design and implementation plan. This specification deliberately

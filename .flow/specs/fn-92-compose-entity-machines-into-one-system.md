@@ -22,7 +22,7 @@ the `operation` entity would rewrite every `temporal.nexus.caller.*` ID and re-p
 shared `workflow` entity needs a key decision the grammar cannot express today (Start correlates by
 `firstExecutionRunId`, Outage by `workflowTaskCompletedEventId` because its only evidence carries no
 run id). Both are recorded under Boundaries as the follow-up. Rule text that needs a
-GOV-02 draft is listed in Decision Context. The direction note `.plans/UMPIRE4_DIRECTION.md` and the
+GOV-02 draft is listed in Decision Context. The direction note `.plans/lean/UMPIRE4_DIRECTION.md` and the
 conversation of 2026-09-26 record the reasoning.
 
 ## Overview
@@ -538,7 +538,7 @@ and the `nexusCaller` composition.
 
 ## References
 
-- `.plans/UMPIRE4_DIRECTION.md`; `model/Temporal/Feature/Nexus/DESIGN.md` §2.1, §2.3, §2.5, §4
+- `.plans/lean/UMPIRE4_DIRECTION.md`; `model/Temporal/Feature/Nexus/DESIGN.md` §2.1, §2.3, §2.5, §4
 - `model/Umpire/Command/Instances.lean`, `model/Umpire/Command/Syntax.lean`,
   `model/Umpire/Command/Finite.lean`, `model/Umpire/Command/Refinement.lean`,
   `model/Umpire/Command/Predicate.lean`

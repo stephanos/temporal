@@ -8,8 +8,8 @@ Update the normative index and supporting architecture documents for R5 after th
 matrix is proven. Keep each rule in one owning section and avoid creating a second normative table.
 
 **Size:** M
-**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, `model/ARCHITECTURE.md`, `model/README.md`
-**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/UMPIRE4_SPEC_COMPS.md, model/ARCHITECTURE.md, model/README.md]
+**Files:** `.plans/UMPIRE4_SPEC.md`, `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, `model/ARCHITECTURE.md`, `model/README.md`
+**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md, .plans/lean/UMPIRE4_SPEC_COMPS.md, model/ARCHITECTURE.md, model/README.md]
 
 ## Approach
 
@@ -39,8 +39,8 @@ matrix is proven. Keep each rule in one owning section and avoid creating a seco
 **Required** (read before editing):
 
 - `.plans/UMPIRE4_SPEC.md:176-193` — stable normative MOD IDs and current mixed architecture section
-- `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:78-94,421-440` — qualified module layout, refinement/Verify exceptions, and mechanical-enforcement claim
-- `.plans/UMPIRE4_SPEC_COMPS.md:809-826,855-869` — supporting dependency matrix and testing strategy
+- `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md:78-94,421-440` — qualified module layout, refinement/Verify exceptions, and mechanical-enforcement claim
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md:809-826,855-869` — supporting dependency matrix and testing strategy
 - `model/ARCHITECTURE.md:95-99,197-200` — current high-level direction and regression-gate description
 - `model/README.md:111-123` — developer-facing focused-check description
 

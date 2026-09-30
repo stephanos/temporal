@@ -18,7 +18,7 @@ Property/Behavior/Query separation; this is not a replacement modeling framework
 
 ## Baseline and evidence
 
-The [DSL experiment](../../.plans/UMPIRE_DSL_EXPERIMENT.md) provides bounded executable evidence: 449,376
+The [DSL experiment](../../.plans/lean/UMPIRE_DSL_EXPERIMENT.md) provides bounded executable evidence: 449,376
 monitor/reference comparisons, 1,340 evidence variants, and 3,510 comparisons against the checked
 Umpire `eventuallyWithin` evaluator. Its Veil probe established a representation seam only;
 full-checker compatibility and symbolic proofs were not established. Experimental syntax and

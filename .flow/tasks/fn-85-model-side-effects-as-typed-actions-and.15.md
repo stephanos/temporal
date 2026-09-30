@@ -13,7 +13,7 @@ Split out of the former single `.3` by plan review round 1 (findings F2 and F3):
 **Touches:** [model/Umpire/Command/**, model/Temporal/Feature/Nexus/Success/**, tools/umpire/internal/retiredvocabulary/check.go]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` first. Depends on `.14`, whose `machine` command owns the table the predicate is enumerated over.
+- Read `.plans/lean/LEAN_GUIDELINES.md` first. Depends on `.14`, whose `machine` command owns the table the predicate is enumerated over.
 - The enumeration is `.3`'s, applied to `Step` rather than to a transition: evaluate the predicate at every step (or every adjacent pair) of the machine's finite table and emit the same `PropertyClause` records the keyed form emits, so the Behavior Fingerprint does not move.
 - Pin the equality: `successfulResult` written as a predicate has the fingerprint its keyed form had. That is the proof that this is a spelling change and not a semantic one.
 - A predicate whose `Step` type belongs to another machine, and a predicate that is not decidable, reject in place.
@@ -23,7 +23,7 @@ Split out of the former single `.3` by plan review round 1 (findings F2 and F3):
 - `model/Umpire/Command/Syntax.lean` — the `property` command and its keyed clause grammar
 - `model/Umpire/Property.lean` and `model/Umpire/Property/Evaluate.lean` — `PropertyClause` and its evaluation
 - `model/Temporal/Feature/Nexus/Success/Model.lean` — `successfulResult` in its keyed form
-- `.plans/UMPIRE_CMP_FIZZBEE.md` sections 4.1 and 4.8 — the decision and its rule reading
+- `.plans/lean/UMPIRE_CMP_FIZZBEE.md` sections 4.1 and 4.8 — the decision and its rule reading
 
 ### Key context
 - Task `.10` writes the Nexus Properties in this form, so this task lands before it.

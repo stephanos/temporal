@@ -572,6 +572,13 @@ func discoverFiles(root, relativeDirectory, extension string) ([]string, error) 
 	}
 	var files []string
 	for _, entry := range entries {
+		if entry.IsDir() && relativeDirectory == ".plans" && entry.Name() == "lean" {
+			nested, err := discoverFiles(root, path.Join(relativeDirectory, entry.Name()), extension)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, nested...)
+		}
 		if entry.IsDir() || filepath.Ext(entry.Name()) != extension {
 			continue
 		}
@@ -582,7 +589,7 @@ func discoverFiles(root, relativeDirectory, extension string) ([]string, error) 
 }
 
 func validDocumentPath(value string) bool {
-	return validRepositoryRelativePath(value) && path.Dir(value) == ".plans" && path.Ext(value) == ".md"
+	return validRepositoryRelativePath(value) && (path.Dir(value) == ".plans" || path.Dir(value) == ".plans/lean") && path.Ext(value) == ".md"
 }
 
 func validRepositoryRelativePath(value string) bool {

@@ -1,7 +1,7 @@
 # Umpire and FizzBee compared
 
 Research note, 2026-09-12. It compares [FizzBee](https://fizzbee.io/) with Umpire as specified in
-[UMPIRE4_SPEC](UMPIRE4_SPEC.md) and as implemented under `model/`, and answers three questions:
+[UMPIRE4_SPEC](../UMPIRE4_SPEC.md) and as implemented under `model/`, and answers three questions:
 what Umpire can take from FizzBee, whether Umpire can express more of a model as ordinary Lean code
 instead of command macros, and where the Lean-based approach is stronger. It is descriptive; it
 changes no rule and approves no design. FizzBee facts were read from fizzbee.io, the
@@ -37,13 +37,13 @@ appends one Run and reaches one three-valued Verdict. Definition IDs, Behavior F
 Artifact checksums, Provenance and Known Gaps tie every artifact back to the model, and evidence
 that is missing or ambiguous never becomes success. Authoring goes through five command macros
 (`model`, `property`, `scenario`, `limits`, `query`) that elaborate to typed Lean records;
-[fn-85](../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md) extends them with
+[fn-85](../../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md) extends them with
 entities, actions with typed inputs, machines, observations, refinement and sets.
 
 ## 2. The same design, written twice
 
 The two-phase-commit example on FizzBee's landing page and the checked-in Nexus success Model in
-[`Success/Model.lean`](../model/lean/Temporal/Feature/Nexus/Success/Model.lean) are the smallest
+[`Success/Model.lean`](../../model/lean/Temporal/Feature/Nexus/Success/Model.lean) are the smallest
 representative specimens of each surface.
 
 FizzBee:
@@ -373,7 +373,7 @@ model, and Umpire has nothing like it; it belongs on the list for the canary wor
 
 FizzBee's docs start from a clock with two actions, every snippet has a playground link, and the
 tool installs skills that teach an AI assistant its language, checker and debugging. Umpire has
-[`AutoClose.lean`](../model/lean/Temporal/Feature/Nexus/Experimental/AutoClose.lean), which is a good
+[`AutoClose.lean`](../../model/lean/Temporal/Feature/Nexus/Experimental/AutoClose.lean), which is a good
 tutorial for the expert path, and fn-83 R5 plans an `AUTHORING.md` whose snippets are asserted
 equal to regions of a real Model file, which is better than a playground link because it cannot
 drift. Add to that a repository skill for the command surface listing every located diagnostic and
@@ -501,7 +501,7 @@ In order of value against cost, and each small enough to be one spec or one task
   [quick start for TLA+ users](https://github.com/fizzbee-io/fizzbee/blob/main/docs/fizzbee-quick-start-for-tlaplus-users.md),
   [language design notes](https://github.com/fizzbee-io/fizzbee/blob/main/docs/language_design_for_review.md),
   the `fizz-spec` and `fizz-mbt` skills under `.claude/skills/`.
-- Umpire: [UMPIRE4_SPEC](UMPIRE4_SPEC.md), [UMPIRE_DSL_RESEARCH](UMPIRE_DSL_RESEARCH.md),
+- Umpire: [UMPIRE4_SPEC](../UMPIRE4_SPEC.md), [UMPIRE_DSL_RESEARCH](UMPIRE_DSL_RESEARCH.md),
   [UMPIRE_DSL_EXPERIMENT](UMPIRE_DSL_EXPERIMENT.md),
-  [`Nexus/DESIGN.md`](../model/lean/Temporal/Feature/Nexus/DESIGN.md), and the fn-83, fn-85 and fn-86
+  [`Nexus/DESIGN.md`](../../model/lean/Temporal/Feature/Nexus/DESIGN.md), and the fn-83, fn-85 and fn-86
   Flow specs.

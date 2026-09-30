@@ -7,8 +7,8 @@ satisfies: [R1, R6, R7]
 Establish the ordinary Nexus newcomer entry point, enforce its non-Experimental boundary, and align all maintained learning/architecture documentation with the completed internal decomposition (R1, R6, R7). Finish with the full compatibility and lint gates.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus.lean`, `model/Temporal/Feature/NexusTests.lean`, `model/Temporal/Feature.lean`, `model/TemporalModelTests.lean`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC_COMPS.md`
-**Touches:** [model/Temporal/Feature/Nexus.lean, model/Temporal/Feature/NexusTests.lean, model/Temporal/Feature.lean, model/TemporalModelTests.lean, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_SPEC_COMPS.md]
+**Files:** `model/Temporal/Feature/Nexus.lean`, `model/Temporal/Feature/NexusTests.lean`, `model/Temporal/Feature.lean`, `model/TemporalModelTests.lean`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`
+**Touches:** [model/Temporal/Feature/Nexus.lean, model/Temporal/Feature/NexusTests.lean, model/Temporal/Feature.lean, model/TemporalModelTests.lean, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean, model/README.md, model/ARCHITECTURE.md, .plans/lean/UMPIRE4_SPEC_COMPS.md]
 
 ### Approach
 - Add `Temporal.Feature.Nexus` as the documented ordinary aggregate and have `Temporal.Feature` consume it without exposing Experimental modules.
@@ -24,7 +24,7 @@ Establish the ordinary Nexus newcomer entry point, enforce its non-Experimental 
 **Required** (read before coding):
 - `model/README.md:68-123` — current Switch-to-Nexus learning sequence and facade description.
 - `model/ARCHITECTURE.md:37-119` — current import/dependency and semantic-interface guidance.
-- `.plans/UMPIRE4_SPEC_COMPS.md:382-416` — logical family template and Nexus decomposition guidance.
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md:382-416` — logical family template and Nexus decomposition guidance.
 - `model/Temporal/Feature.lean:1-3` — current ordinary Feature aggregate.
 - `model/TemporalModelTests.lean:1-25` — ordinary model test aggregate.
 - `model/ModelLint/ImportGraph.lean:17-197` — pure import policy and forbidden-rule dispatch.

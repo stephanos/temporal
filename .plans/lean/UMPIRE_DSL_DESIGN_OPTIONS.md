@@ -29,24 +29,24 @@ a verification engine. The grammar and current internal data structures can both
 
 ## What the current code actually requires
 
-- [Core.lean](../model/lean/Umpire/Core.lean) defines `TransitionKernel` using executable initial/step
+- [Core.lean](../../model/lean/Umpire/Core.lean) defines `TransitionKernel` using executable initial/step
   lists, authoritative relations, and soundness/completeness proofs. `TargetBehaviorDomain` also
   enumerates states, actions, outcomes, and facts.
-- [Target/Language.lean](../model/lean/Umpire/Target/Language.lean) requires complete finite domain
+- [Target/Language.lean](../../model/lean/Umpire/Target/Language.lean) requires complete finite domain
   evidence at admission. `describeBehavior` visits the state/action product and materializes
   transition rows for canonical behavior metadata and fingerprints. A symbolic search adapter
   alone would not remove this admission cost.
-- [Planning/Engine.lean](../model/lean/Umpire/Planning/Engine.lean) exposes an indexed finite kernel
+- [Planning/Engine.lean](../../model/lean/Umpire/Planning/Engine.lean) exposes an indexed finite kernel
   tied by proofs to the Target. Its private backend is a candidate-pull interface. A symbolic
   decision engine does not naturally satisfy that interface without enumeration or redesign.
-- [Behavior/Language.lean](../model/lean/Umpire/Behavior/Language.lean) already supports allowed and
+- [Behavior/Language.lean](../../model/lean/Umpire/Behavior/Language.lean) already supports allowed and
   forbidden actions, occurrence bounds, partial orders, sequences, adjacency, and exact traces.
   Friendlier scenario composition can expose existing semantics; not all such features require
   a new search engine.
-- [Property/Evaluation.lean](../model/lean/Umpire/Property/Evaluation.lean) has an executable evaluator,
+- [Property/Evaluation.lean](../../model/lean/Umpire/Property/Evaluation.lean) has an executable evaluator,
   denotational semantics, and `evaluateProperty_agrees`. A replacement must preserve the assurance
   supplied by these definitions rather than discard it as boilerplate.
-- [Case/Compiler.lean](../model/lean/Umpire/Case/Compiler.lean) assembles already-lowered monitors.
+- [Case/Compiler.lean](../../model/lean/Umpire/Case/Compiler.lean) assembles already-lowered monitors.
   It does not translate the full Property language. Exact Property-to-Contract lowering is still
   an important cost to address. The broader claim in `Umpire/ARCHITECTURE.md` is not supported by
   this implementation.

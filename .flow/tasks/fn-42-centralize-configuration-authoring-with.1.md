@@ -26,7 +26,7 @@ Add the shared typed authoring seam and prove its projection, checking, and proo
 
 **Optional** (reference as needed):
 - `model/Temporal/System/Configuration/Tests/Catalog.lean:30-98` — opaque-default replacement coverage
-- `.plans/LEAN_GUIDELINES.md:34-64` — principal-type deep interfaces and public declaration rules
+- `.plans/lean/LEAN_GUIDELINES.md:34-64` — principal-type deep interfaces and public declaration rules
 
 ### Key context
 - Authored expected key, identity, schema, and default must remain independent of the current generated setting; no `fromGeneratedSetting` shortcut.

@@ -1,6 +1,6 @@
 # Feature spec authoring assessment
 
-Assessment date: 2026-09-04. This is a research assessment and a proposed evaluation, not an approved implementation design. Related implementation work: [fn-62](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md). External language research: [FEATURE_AUTHORING_RESEARCH.md](FEATURE_AUTHORING_RESEARCH.md).
+Assessment date: 2026-09-04. This is a research assessment and a proposed evaluation, not an approved implementation design. Related implementation work: [fn-62](../../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md). External language research: [FEATURE_AUTHORING_RESEARCH.md](FEATURE_AUTHORING_RESEARCH.md).
 
 ## Judgment
 
@@ -22,12 +22,12 @@ This recommendation is based on code inspection, not observed author performance
 | Stable IDs and canonical artifacts | Support review, references, reproducibility, and traceability. |
 | Expected and deliberately wrong traces in tests | Demonstrate how clauses discriminate and which layer owns a failure. |
 
-The clearest entry point is [Lifecycle/Semantics.lean](../model/lean/Temporal/Feature/Nexus/Lifecycle/Semantics.lean), particularly lines 33–53. It is a deliberately small teaching model, not a complete Nexus product specification.
+The clearest entry point is [Lifecycle/Semantics.lean](../../model/lean/Temporal/Feature/Nexus/Lifecycle/Semantics.lean), particularly lines 33–53. It is a deliberately small teaching model, not a complete Nexus product specification.
 
 ## Where the experience breaks down
 
-1. **A small semantic change has a large authoring surface.** The 71-line Semantics module is accompanied by a 451-line [Target module](../model/lean/Temporal/Feature/Nexus/Lifecycle/Target.lean). The latter includes useful contracts and compatibility declarations, but also hand-built encodings, decoding to domain types, domain lists, and coverage/executability proofs. Those line counts are a navigation signal, not a productivity metric. The decisive question is how many of these concepts an author must edit to add a state or transition.
-2. **Ordinary walkthroughs still expose checker plumbing.** [Cancellation.lean](../model/lean/Temporal/Feature/Nexus/Operations/Cancellation.lean) is 107 lines. It repeats raw result, `toOption.isSome` proof using `native_decide`, and checked extraction for Property, Behavior, and Query. It also includes teaching traces and planner runs. A production authoring entry point should make the declarations prominent, with validation fixtures and planner mechanics available separately.
+1. **A small semantic change has a large authoring surface.** The 71-line Semantics module is accompanied by a 451-line [Target module](../../model/lean/Temporal/Feature/Nexus/Lifecycle/Target.lean). The latter includes useful contracts and compatibility declarations, but also hand-built encodings, decoding to domain types, domain lists, and coverage/executability proofs. Those line counts are a navigation signal, not a productivity metric. The decisive question is how many of these concepts an author must edit to add a state or transition.
+2. **Ordinary walkthroughs still expose checker plumbing.** [Cancellation.lean](../../model/lean/Temporal/Feature/Nexus/Operations/Cancellation.lean) is 107 lines. It repeats raw result, `toOption.isSome` proof using `native_decide`, and checked extraction for Property, Behavior, and Query. It also includes teaching traces and planner runs. A production authoring entry point should make the declarations prominent, with validation fixtures and planner mechanics available separately.
 3. **Values lose domain meaning at the interface.** Expressions such as `PropertyPattern.exact .selectedAction cancelActionId cancelAction.value` make authors join a field, reference, and encoded payload. Typed references should own that pairing. Existing canonical encoding can remain behind the interface.
 4. **Repeated IDs obscure the rule.** Stable identity is necessary; repeatedly writing a full family prefix is not. Authors should declare stable semantic suffixes, with the complete IDs inspectable. Neither line numbers nor declaration order should supply identity. Preserve explicit wire tags when names are renamed.
 5. **Source data is too coarse.** Operations share a source pointing at `Operations.lean`, and `Temporal.Shared.sourceLocation` fills in line/column 1. That identifies a facade, not the offending declaration in `Operations/Cancellation.lean`. An improved interface needs source capture and errors at the offending expression, including through helpers.
@@ -45,7 +45,7 @@ The clearest entry point is [Lifecycle/Semantics.lean](../model/lean/Temporal/Fe
 - **Correlation and cardinality:** a phrase such as “every operation receives its own cancellation exactly once” needs entity binding, ordering, and count semantics. The current portable patterns have a field, reference, and scalar constraint; they are not a general quantified relational language. New wording must either lower faithfully to target-owned facts/relations or require an explicit semantic extension.
 - **Independent requirements:** automatically generating every Property from the very transition it checks mostly checks consistency. Authors still need to state meaningful requirements, with negative cases that would violate them.
 
-These conclusions follow from [Property/Language.lean](../model/lean/Umpire/Property/Language.lean), [Property/Evaluation.lean](../model/lean/Umpire/Property/Evaluation.lean), [Query/Language.lean](../model/lean/Umpire/Query/Language.lean), and the ordinary operation tests.
+These conclusions follow from [Property/Language.lean](../../model/lean/Umpire/Property/Language.lean), [Property/Evaluation.lean](../../model/lean/Umpire/Property/Evaluation.lean), [Query/Language.lean](../../model/lean/Umpire/Query/Language.lean), and the ordinary operation tests.
 
 ## Three approaches
 
@@ -114,9 +114,9 @@ Proposed first gate: ordinary tasks require no proof editing; participants disti
 
 ## Relationship to existing plans
 
-[fn-62](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md) already proposes identity/source helpers, named Limits, narrower constructors, and planner adaptation. Retain those useful directions. Its explicit success-proof requirement and exclusion of new syntax should not be mistaken for evidence that they meet this broader audience goal. It also permits stronger Lean knowledge for Target maintenance.
+[fn-62](../../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md) already proposes identity/source helpers, named Limits, narrower constructors, and planner adaptation. Retain those useful directions. Its explicit success-proof requirement and exclusion of new syntax should not be mistaken for evidence that they meet this broader audience goal. It also permits stronger Lean knowledge for Target maintenance.
 
-[UMPIRE4_SPEC.md](UMPIRE4_SPEC.md) requires Lean authority, explicit semantics, existing public Property/Behavior/Query languages, and checked Targets. AUT-07 forbids alternate behavioral authoring paths; AUT-08 says FiniteMachine must not introduce a macro language. These are not blanket bans on every Lean macro. Any proposed syntax must demonstrate one-to-one lowering and reconcile its scope with those rules and fn-62 before implementation. Changing the rules is a deliberate design decision, not a technical impossibility or an implicit approval in this assessment.
+[UMPIRE4_SPEC.md](../UMPIRE4_SPEC.md) requires Lean authority, explicit semantics, existing public Property/Behavior/Query languages, and checked Targets. AUT-07 forbids alternate behavioral authoring paths; AUT-08 says FiniteMachine must not introduce a macro language. These are not blanket bans on every Lean macro. Any proposed syntax must demonstrate one-to-one lowering and reconcile its scope with those rules and fn-62 before implementation. Changing the rules is a deliberate design decision, not a technical impossibility or an implicit approval in this assessment.
 
 The older fn-14 usability pilot is explicitly superseded and should not be resumed as a roadmap gate. Its historical status does not remove the need for fresh human usability evidence.
 

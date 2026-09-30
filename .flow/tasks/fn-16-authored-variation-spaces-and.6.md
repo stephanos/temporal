@@ -7,8 +7,8 @@ satisfies: [R4, R7, R8]
 Expose the approved reusable package, document the small authored-space workflow and downstream contracts, and reconcile component status for R4/R7/R8. Actual fn-5 catalog consumption remains fn-5 implementation work.
 
 **Size:** M
-**Files:** `model/Umpire/Space.lean`, `model/Umpire.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_DSL.md`
-**Touches:** [model/Umpire/Space.lean, model/Umpire.lean, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_DSL.md]
+**Files:** `model/Umpire/Space.lean`, `model/Umpire.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/lean/UMPIRE4_DSL.md`
+**Touches:** [model/Umpire/Space.lean, model/Umpire.lean, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md, .plans/lean/UMPIRE4_DSL.md]
 
 ### Approach
 - Publish a narrow facade over Language, Intent, Metadata, and Compiler modules and preserve vertical package ownership.

@@ -13,7 +13,7 @@ Split out of the former single `.3` by plan review round 1 (finding F2), which f
 **Touches:** [model/Umpire/Command/**, model/Umpire/Search.lean, model/Umpire/Search/**, model/Umpire/Query.lean, model/Temporal/Feature/Nexus/Success/**, tools/umpire/internal/retiredvocabulary/check.go]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` first. Start from `.3`'s enumerator and `Finite`; this task adds no enumeration logic of its own.
+- Read `.plans/lean/LEAN_GUIDELINES.md` first. Start from `.3`'s enumerator and `Finite`; this task adds no enumeration logic of its own.
 - Diagnostics with witnesses: a state outside `ends:` from which some action has no successor is reported with that concrete state and action at the `steps:` line; an evidence line naming an outcome the step never returns rejects at that line; a redundant `match` arm is Lean's own error (pin one specimen to show it surfaces at the function).
 - `system` steps and timers: a step with no input gets a synthesized reserved action value the realization cannot bind `driven`; it counts toward the step Limit, and timer firings count toward the action Limit as R4 states.
 - Evidence keyed by (action class pattern, outcome) with an optional `when` guard over the pre-state; `unobservable` becomes a Known Gap at Case production.
@@ -52,7 +52,7 @@ in `.2`.
 - `model/Umpire/Command/Authoring.lean:138-168,215-323` — `DeclaredModel`, `step`, `declaredTable`, `declareModel`
 - `model/Umpire/Core.lean:311,367-390` — vocabulary materialization and `Machine`
 - `model/Temporal/Feature/Nexus/DESIGN.md` section 2.3 and the section 3 `nexusProtocol` machine — the rows to express as `match` arms
-- `.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1 — the chosen form and its rule reading (AUT-05, AUT-07a, AUT-09)
+- `.plans/lean/UMPIRE_CMP_FIZZBEE.md` section 4.1 — the chosen form and its rule reading (AUT-05, AUT-07a, AUT-09)
 
 **Optional:**
 - `model/Umpire/Property/Evaluate.lean:71` — `naturalAtMost` parses one state value today (task .4 gives fields their own values)

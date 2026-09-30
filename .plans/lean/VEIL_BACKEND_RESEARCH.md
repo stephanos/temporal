@@ -14,7 +14,7 @@ a Node-built widget, while Umpire pins Lean 4.33.1. Compatibility is therefore u
 fail. ([Veil README](https://github.com/verse-lab/veil/blob/be6a1ceebd103d05e1e0f0863e8bf73db1ea9ccd/README.md),
 [Veil toolchain](https://github.com/verse-lab/veil/blob/be6a1ceebd103d05e1e0f0863e8bf73db1ea9ccd/lean-toolchain),
 [Veil Lake configuration](https://github.com/verse-lab/veil/blob/be6a1ceebd103d05e1e0f0863e8bf73db1ea9ccd/lakefile.lean),
-[Umpire toolchain](../model/lean/lean-toolchain))
+[Umpire toolchain](../../model/lean/lean-toolchain))
 
 The conclusion changes materially if Umpire's authoring rules are open to revision: Veil can own
 more than an optional checker. It still cannot replace the distinctive runtime/evidence half of
@@ -88,8 +88,8 @@ sound/complete finite lists. Its `TargetBehaviorDomain` separately enumerates al
 provides stable encoders. Target admission requires a complete behavior domain and materializes the
 state-by-action transition rows for the behavior fingerprint. A symbolic backend therefore cannot
 simply replace the planner; admission and fingerprinting currently require complete finite
-materialization. ([Umpire core](../model/lean/Umpire/Core.lean),
-[target admission and fingerprinting](../model/lean/Umpire/Target/Language.lean))
+materialization. ([Umpire core](../../model/lean/Umpire/Core.lean),
+[target admission and fingerprinting](../../model/lean/Umpire/Target/Language.lean))
 
 A faithful adapter must use a label such as
 `{ action : Action, outcome : Outcome, observations : List Observation }`, rather than only Action,
@@ -110,7 +110,7 @@ same semantic transition coordinate as the Umpire Query limit. For each supporte
 prove that the Veil invariant or bounded-trace formula is equivalent to
 `CheckedProperty.denote` on encoded traces. Umpire already proves its executable Property evaluator
 agrees with that denotation, so this theorem composes the two meanings instead of reimplementing
-the Property interpreter. ([Property evaluator agreement](../model/lean/Umpire/Property/Evaluation.lean))
+the Property interpreter. ([Property evaluator agreement](../../model/lean/Umpire/Property/Evaluation.lean))
 
 A visited-state checker cannot evaluate a history-sensitive Umpire Property from model state alone.
 The adapted state must be a product of Target state, Behavior/scenario progress, Property monitor
@@ -125,7 +125,7 @@ counterexample replay need separate receipt statuses/assurance methods. Veil's U
 display, but stable Definition IDs, Behavior Fingerprints, Limits, Known Gaps, and source bindings
 must come from Umpire's receipt layer. These obligations match the current optional-verification
 rules, but remain necessary even if those rules are rewritten because they prevent semantic drift.
-([Umpire verification rules](UMPIRE4_SPEC.md#verification-cli-and-claims))
+([Umpire verification rules](../UMPIRE4_SPEC.md#verification-cli-and-claims))
 
 ## Three adoption paths
 
@@ -211,8 +211,8 @@ Limits, stable artifact identity, Program compilation, deterministic Contract mo
 projection/correlation, append-only Run Events, Driver authorization, Verdicts, and Known Gaps. The
 current Case compiler is only 97 lines and merely assembles already-lowered monitor rules; the major
 future cost is exact Property-to-Contract lowering, which Veil does not provide.
-([Case compiler](../model/lean/Umpire/Case/Compiler.lean),
-[Nexus command/observation boundary](../model/lean/Temporal/Feature/Nexus3/Integration.md))
+([Case compiler](../../model/lean/Umpire/Case/Compiler.lean),
+[Nexus command/observation boundary](../../model/lean/Temporal/Feature/Nexus3/Integration.md))
 
 ## Recommendation
 

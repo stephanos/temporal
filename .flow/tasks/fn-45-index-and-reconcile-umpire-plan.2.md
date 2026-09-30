@@ -22,8 +22,8 @@ Populate the production v1 registry and focused command surface for R1/R2.
 **Required** (read before coding):
 - `.plans/UMPIRE4_SPEC.md` — normative root.
 - `.plans/UMPIRE4_ORDER.md` — delivery-order root and Flow mapping.
-- `.plans/UMPIRE4_SPEC_COMPS.md:7-16` — architecture/descriptive boundary.
-- `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:1-65` — scoped model contract.
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md:7-16` — architecture/descriptive boundary.
+- `.plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md:1-65` — scoped model contract.
 - `.flow/specs/fn-21-nexus-duplicate-observation-control.json` — completed-prerequisite roadmap work whose stale ready flag task .6 clears.
 - `.flow/specs/fn-42-centralize-configuration-authoring-with.json` — completed-prerequisite support that remains open/unready with SHIP review.
 - `.flow/specs/fn-48-canonicalize-known-gaps-as-a-checked-set.json` — retained support depending on retained fn-43 and fn-47.

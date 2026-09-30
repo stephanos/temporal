@@ -26,7 +26,7 @@ Run the R1 probe and write its receipt. Copy `model/` to a temporary directory o
 - `.flow/specs/fn-23-veil-toolchain-compatibility-and.md` "Decision precedence" — receipt vocabulary to stay compatible with
 
 **Optional:**
-- `.plans/VEIL_BACKEND_RESEARCH.md` "What Veil actually exposes" — module names as of the be6a1ce inspection
+- `.plans/lean/VEIL_BACKEND_RESEARCH.md` "What Veil actually exposes" — module names as of the be6a1ce inspection
 
 ### Key context
 - Do not add the `require` to the real `model/lakefile.lean` here; that is task .5 and only in `adopt` mode.

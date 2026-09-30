@@ -20,7 +20,7 @@ Compare focused property% forms in ordinary def declarations over the same check
 - `model/Umpire/Behavior/Language.lean` — checker result
 - `model/Umpire/Query/Language.lean` — Query checker/limits
 - `model/Temporal/Feature/Nexus2/DESIGN.md` — comparison decisions and evaluation tasks
-- `.plans/LEAN_GUIDELINES.md` — trust/editor/checked example requirements
+- `.plans/lean/LEAN_GUIDELINES.md` — trust/editor/checked example requirements
 
 ### Quick commands
 ```bash

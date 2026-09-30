@@ -18,7 +18,7 @@ candidate should be called the most intuitive until representative authors have 
 
 ## Constraints from this repository
 
-The following are requirements in [UMPIRE4_SPEC.md](UMPIRE4_SPEC.md), not limitations of Lean:
+The following are requirements in [UMPIRE4_SPEC.md](../UMPIRE4_SPEC.md), not limitations of Lean:
 
 - SCP-03 and SEM-01/02 make handwritten Lean Model Definitions the behavior authority. An external
   YAML, Quint, or Alloy model that generates the authoritative behavior is an architectural change.
@@ -44,8 +44,8 @@ The following are requirements in [UMPIRE4_SPEC.md](UMPIRE4_SPEC.md), not limita
 
 ### Verified version and scope
 
-[model/lean-toolchain](../model/lean/lean-toolchain) pins `leanprover/lean4:v4.33.1`.
-[model/lakefile.toml](../model/lean/lakefile.toml) uses Batteries `v4.33.0`.
+[model/lean-toolchain](../../model/lean/lean-toolchain) pins `leanprover/lean4:v4.33.1`.
+[model/lakefile.toml](../../model/lean/lakefile.toml) uses Batteries `v4.33.0`.
 The installed compiler reports Lean 4.33.1, commit
 `819816b2e0a3bf405af45ae5c7af2491d8f5bee6`.
 

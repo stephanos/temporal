@@ -7,8 +7,8 @@ satisfies: [R2]
 Lane E2. 81 `#print axioms` pins exist; 30 have no `#guard_msgs`, so they assert nothing. Add one checker command and convert every pin, including pins in modules lane B later deletes (a declined decision keeps them).
 
 **Size:** M
-**Files:** `model/Umpire/Shared/Test.lean` (or a new `model/Umpire/Shared/AxiomCheck.lean` it re-exports), `model/Umpire/Shared/Tests/AxiomCheck.lean` (new self-tests), the ~23 test files holding pins (list below), `model/UmpireTests.lean` (wire self-tests), `.plans/LEAN_GUIDELINES.md` trust-audit paragraph, `model/README.md` sentence on `#print axioms`
-**Touches:** [model/Umpire/Shared/**, model/Umpire/**/Tests/**, model/Umpire/**/*Tests.lean, model/Temporal/**/Tests/**, model/Temporal/**/*Tests.lean, model/Temporal/Feature/Nexus/Success/Tests.lean, model/UmpireTests.lean, .plans/LEAN_GUIDELINES.md, model/README.md]
+**Files:** `model/Umpire/Shared/Test.lean` (or a new `model/Umpire/Shared/AxiomCheck.lean` it re-exports), `model/Umpire/Shared/Tests/AxiomCheck.lean` (new self-tests), the ~23 test files holding pins (list below), `model/UmpireTests.lean` (wire self-tests), `.plans/lean/LEAN_GUIDELINES.md` trust-audit paragraph, `model/README.md` sentence on `#print axioms`
+**Touches:** [model/Umpire/Shared/**, model/Umpire/**/Tests/**, model/Umpire/**/*Tests.lean, model/Temporal/**/Tests/**, model/Temporal/**/*Tests.lean, model/Temporal/Feature/Nexus/Success/Tests.lean, model/UmpireTests.lean, .plans/lean/LEAN_GUIDELINES.md, model/README.md]
 **Depends on other specs:** fn-88.5 and fn-92.3 add pins under `Search/Tests/*` and `Command/ComposeProofs`; convert what is there at start.
 
 ### Approach
@@ -24,7 +24,7 @@ Lane E2. 81 `#print axioms` pins exist; 30 have no `#guard_msgs`, so they assert
 - `model/Umpire/Command/Syntax.lean:2405-2470` — existing `collectAxioms` guard
 - Pin sites with the most bare pins: `model/Umpire/Evidence/Tests/Compilation.lean:568-571`, `model/Umpire/Model/Tests/FiniteMachine.lean`, `model/Temporal/Feature/Nexus/Success/Tests.lean`, `model/Umpire/Property/Tests/Endpoints.lean`, `model/Umpire/Scenario/Tests/Authoring.lean`
 **Optional:**
-- `.plans/LEAN_GUIDELINES.md:164-173` — trust-audit prose to update
+- `.plans/lean/LEAN_GUIDELINES.md:164-173` — trust-audit prose to update
 
 ### Quick commands
 ```sh
@@ -65,7 +65,7 @@ naming where. Two turned out not to be true duplicates despite sharing a bare-pi
 (`Temporal.Feature.Nexus.{Caller,Tests.Machines}` each declare their own `nexusProduct`), so both
 kept independent entries.
 
-Updated `.plans/LEAN_GUIDELINES.md`'s trust-audit paragraph and `model/README.md`'s `#print axioms`
+Updated `.plans/lean/LEAN_GUIDELINES.md`'s trust-audit paragraph and `model/README.md`'s `#print axioms`
 sentence to describe the checker.
 
 stage: impl-review - ran fan-out (correctness/contracts/integration; round 1 NEEDS_WORK on all 3

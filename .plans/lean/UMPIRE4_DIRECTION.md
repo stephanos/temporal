@@ -21,7 +21,7 @@ check.
    validates recorded traces against it. Borrow its trace-validation harness and agent-drafted
    instrumentation plan, never its authority model.
 4. **Tracing is sufficient for canary and functional regression and insufficient for the white-box,
-   fault, and exploration goals** in [UMPIRE4_VISION](UMPIRE4_VISION.md).
+   fault, and exploration goals** in [UMPIRE4_VISION](../UMPIRE4_VISION.md).
 5. **FizzBee wins on usability today.** Umpire's value proposition is a regression and canary gate
    against a real Temporal with auditable claims, which FizzBee is not. Five fixes below.
 6. **Umpire is partly reimplementing a model checker**, and the roadmap adds the rest of one.
@@ -31,19 +31,19 @@ check.
 
 ### What the checker does today
 
-[`Umpire/Search.lean`](../model/lean/Umpire/Search.lean) runs iterative-deepening depth-first search
+[`Umpire/Search.lean`](../../model/lean/Umpire/Search.lean) runs iterative-deepening depth-first search
 over paths of a finite table. It keeps a cursor path and no visited-state set, prunes by the
 Scenario's admitted prefixes, and stops at the `search` Limit, a candidate count. The `seeded`
 strategy rotates enumeration order by a fixed offset. The table comes from
-[`Umpire/Model/Table.lean`](../model/lean/Umpire/Model/Table.lean): the `machine` command runs every
+[`Umpire/Model/Table.lean`](../../model/lean/Umpire/Model/Table.lean): the `machine` command runs every
 step function on every state and action pair and stores the rows, and
-[`Umpire/Core.lean`](../model/lean/Umpire/Core.lean) carries the `Machine` proofs that the rows are
+[`Umpire/Core.lean`](../../model/lean/Umpire/Core.lean) carries the `Machine` proofs that the rows are
 exactly the declared relation. States are structures of enums, `Bool`, and saturating `Fin`
-counters ([`Umpire/Command/Finite.lean`](../model/lean/Umpire/Command/Finite.lean)).
+counters ([`Umpire/Command/Finite.lean`](../../model/lean/Umpire/Command/Finite.lean)).
 
 The largest model is the Nexus caller protocol machine
-([`Caller/Model.lean`](../model/lean/Temporal/Feature/Nexus/Caller/Model.lean)). Its numbers, pinned in
-[`Caller/Tests.lean`](../model/lean/Temporal/Feature/Nexus/Caller/Tests.lean):
+([`Caller/Model.lean`](../../model/lean/Temporal/Feature/Nexus/Caller/Model.lean)). Its numbers, pinned in
+[`Caller/Tests.lean`](../../model/lean/Temporal/Feature/Nexus/Caller/Tests.lean):
 
 | Quantity | Value |
 | --- | ---: |
@@ -74,13 +74,13 @@ that graph. Avoiding materialization would require changing the admission and fi
 contract, not replacing only the planner.
 
 The checker's actual weakness is path enumeration without state dedup. Multi-instance models
-([fn-85](../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md) plans a five-operation
+([fn-85](../../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md) plans a five-operation
 Query) multiply the state space and the DFS revisits every state once per path. Veil's concrete
 checker is a BFS over an `EnumerableTransitionSystem` with counterexample trace reconstruction,
 and Veil now compiles model checks and random `#simulate` walks through emitted C
 ([verse-lab/veil](https://github.com/verse-lab/veil), commits of 2026-09-13 and 2026-09-18). Those
 are the pieces to take under the hood. SMT bounded model checking and inductive-invariant proof
-belong in the opt-in `Umpire.Verify.Veil` slot that [UMPIRE4_SPEC](UMPIRE4_SPEC.md) reserves under
+belong in the opt-in `Umpire.Verify.Veil` slot that [UMPIRE4_SPEC](../UMPIRE4_SPEC.md) reserves under
 VER-02 and VER-06, for claims the finite table cannot make, such as "for any number of operations".
 
 ### Benefit by benefit
@@ -139,7 +139,7 @@ an SMT backend after it.
   ([Veil, Dafny 2026 paper](https://verse-lab.org/papers/veil-dafny26.pdf)); Lean-SMT proof
   reconstruction costs another three to five times.
 - Veil dropped Mathlib on 2026-09-18, which makes the
-  [fn-23](../.flow/specs/fn-23-veil-toolchain-compatibility-and.md) compatibility gate more likely
+  [fn-23](../../.flow/specs/fn-23-veil-toolchain-compatibility-and.md) compatibility gate more likely
   to pass than when that spec was written. But fn-23 as specified reaches a conclusive result only
   inside a sandboxed `linux/aarch64` rootfs and returns `inconclusive` on the macOS machines the
   team develops on. Cut it down to a temporary Lake project with the probe on a developer machine.
@@ -157,10 +157,10 @@ handwritten Temporal behavior models total about 1.5k.
 | --- | ---: | --- |
 | Search, Model table, Machine kernel, Command/Finite | ~8k | Yes, through `RelationalTransitionSystem`, `EnumerableTransitionSystem`, and the concrete checker |
 | Exploration | 1.6k | Partly, the walker over coverage targets |
-| Property ([`Property.lean`](../model/lean/Umpire/Property.lean), [`Evaluate.lean`](../model/lean/Umpire/Property/Evaluate.lean)) | 8.3k | No. Veil has state invariants and fixed bounded trace formulas; no `ordered`, `eventuallyWithin`, correlated per-operation rules, or protobuf field relations |
+| Property ([`Property.lean`](../../model/lean/Umpire/Property.lean), [`Evaluate.lean`](../../model/lean/Umpire/Property/Evaluate.lean)) | 8.3k | No. Veil has state invariants and fixed bounded trace formulas; no `ordered`, `eventuallyWithin`, correlated per-operation rules, or protobuf field relations |
 | Evidence, Case, Artifact, Provenance, KnownGap, Replay, Promotion, Fingerprint | ~24k | No. Veil has nothing in this area |
 | Command DSL | 6.1k | Only by replacing the authoring surface with Veil's, a GOV-02 change to AUT-07 |
-| ImplementationLink and [refinement](../model/lean/Umpire/ImplementationLink/Refinement.lean) | 4.1k | No. Veil has no refinement command |
+| ImplementationLink and [refinement](../../model/lean/Umpire/ImplementationLink/Refinement.lean) | 4.1k | No. Veil has no refinement command |
 | Testpilot Lean and the Go runtime | 2.6k plus Go | No |
 
 Two facts decide whether path 3 of [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#three-adoption-paths)
@@ -191,7 +191,7 @@ Umpire runs the opposite direction on both axes.
   Specula's spec is implementation-shaped by construction.
 - **Bridge.** Specula validates recorded traces. Umpire generates Cases and drives the system. Umpire
   has no working trace-validation path: `Umpire.Evidence` is exercised only by tests, and
-  [`ExplorationBridge.lean`](../model/lean/Temporal/Tool/ExplorationBridge.lean) states that it reads no
+  [`ExplorationBridge.lean`](../../model/lean/Temporal/Tool/ExplorationBridge.lean) states that it reads no
   Run Event.
 
 What to borrow:
@@ -209,24 +209,24 @@ What to borrow:
 ### What reaches Lean
 
 The only record is the Testpilot Run
-([`run.proto`](../proto/internal/temporal/server/api/testpilot/v1/run.proto),
-[runtime README](../common/testing/testpilot/README.md)): harness events such as instruction
+([`run.proto`](../../proto/internal/temporal/server/api/testpilot/v1/run.proto),
+[runtime README](../../common/testing/testpilot/README.md)): harness events such as instruction
 started or completed, one `FAULT_INJECTED` kind for worker stop and resume, and public-API reads,
 namely history events and `DescribeWorkflowExecution` pending-operation attempts. The Go Monitor
 evaluates the Contract. Lean reads only disposition, cleanup, and Verdict. The server Session
-([`session.go`](../common/testing/testpilot/temporal/server/session.go)) refuses every fault. No
+([`session.go`](../../common/testing/testpilot/temporal/server/session.go)) refuses every fault. No
 server state, persistence, matching, timer, or clock data is recorded.
 
 ### What is emitted and never read
 
-[fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md) deleted the white-box
+[fn-81](../../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md) deleted the white-box
 OTEL observer. The server still emits enriched span events for CHASM transitions
-([`chasm/statemachine.go`](../chasm/statemachine.go)), workflow lineage, updates, and matching
-store or discard, under the vocabulary in [`common/telemetry/tags.go`](../common/telemetry/tags.go),
+([`chasm/statemachine.go`](../../chasm/statemachine.go)), workflow lineage, updates, and matching
+store or discard, under the vocabulary in [`common/telemetry/tags.go`](../../common/telemetry/tags.go),
 whose header cites a plan document that does not exist. Nothing consumes them. A persistence
-interceptor seam ([`interceptor.go`](../common/persistence/intercept/interceptor.go)) is wired
+interceptor seam ([`interceptor.go`](../../common/persistence/intercept/interceptor.go)) is wired
 through fx, and every caller passes `nil`. The test hooks in
-[`hooks.go`](../common/testing/testhooks/hooks.go) change behavior and record nothing.
+[`hooks.go`](../../common/testing/testhooks/hooks.go) change behavior and record nothing.
 
 ### Against the vision
 
@@ -237,9 +237,9 @@ through fx, and every caller passes `nil`. The test hooks in
 | Faults as first-class citizens | One kind, worker stop; server side none |
 | Exploration to find unknown bugs | Walks coverage targets of the finite table; credits from the Verdict alone |
 | Guided fuzzing | Absent |
-| Canary | [fn-29](../.flow/specs/fn-29-bounded-production-canary-execution-and.md) in progress; black-box, which is correct |
+| Canary | [fn-29](../../.flow/specs/fn-29-bounded-production-canary-execution-and.md) in progress; black-box, which is correct |
 
-The Nexus caller's [COVERAGE.md](../model/lean/Temporal/Feature/Nexus/Caller/COVERAGE.md) already lists
+The Nexus caller's [COVERAGE.md](../../model/lean/Temporal/Feature/Nexus/Caller/COVERAGE.md) already lists
 transport faults, mutable state, pending timeouts, duplicate completion, and two unobserved silent
 steps as Known Gaps. The bugs Temporal ships, task-queue races, speculative workflow task handling,
 update races, and duplicate delivery, live below the public API. History reads detect some after
@@ -276,21 +276,21 @@ Fixes, in value order:
    write most of these models.
 5. **Run the human pilot** the authoring assessment asks for: five to eight engineers with no Umpire
    background, measuring time to a live Verdict.
-   [fn-14](../.flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md) was superseded and never
+   [fn-14](../../.flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md) was superseded and never
    replaced.
 
 ## 6. Are we reimplementing a model checker
 
 Partly, and the current roadmap adds the rest of one.
 
-**What exists.** [`Umpire/Search.lean`](../model/lean/Umpire/Search.lean) is a 1.2k-line hand-rolled
+**What exists.** [`Umpire/Search.lean`](../../model/lean/Umpire/Search.lean) is a 1.2k-line hand-rolled
 checker: iterative-deepening depth-first search over traces, candidate caps, deterministic ordering,
-and a seeded rotation. [`Scenario/Check.lean`](../model/lean/Umpire/Scenario/Check.lean) is an 800-line
-admitted-prefix automaton and [`Exploration.lean`](../model/lean/Umpire/Exploration.lean) with its
+and a seeded rotation. [`Scenario/Check.lean`](../../model/lean/Umpire/Scenario/Check.lean) is an 800-line
+admitted-prefix automaton and [`Exploration.lean`](../../model/lean/Umpire/Exploration.lean) with its
 directory is a 1.6k-line coverage walker. Together they are the `Checker` of
 [Stateright](https://github.com/stateright/stateright) written in Lean, minus the parts Stateright
 gets right: no visited set, no symmetry reduction, no breadth-first search, no explorer. The
-property side is different in kind. [`Property/Evaluate.lean`](../model/lean/Umpire/Property/Evaluate.lean)
+property side is different in kind. [`Property/Evaluate.lean`](../../model/lean/Umpire/Property/Evaluate.lean)
 is a trace oracle with a proven agreement to its denotation, and that oracle stays whichever engine
 runs the search.
 
@@ -300,7 +300,7 @@ concrete checker all check a state predicate over a product of model state and m
 [VEIL_BACKEND_RESEARCH](VEIL_BACKEND_RESEARCH.md#the-exact-umpire-seam) names the fix: the checked
 state must be the product of model state, Scenario progress, and Property-monitor state. The monitor
 form already exists. A Contract Rule is a finite state machine with satisfied and violated terminals,
-and [`Case/Compiler.lean`](../model/lean/Umpire/Case/Compiler.lean) assembles Properties into it for the
+and [`Case/Compiler.lean`](../../model/lean/Umpire/Case/Compiler.lean) assembles Properties into it for the
 Go runtime. Lowering the same way for search turns the problem into safety reachability on a finite
 labeled graph.
 
@@ -343,7 +343,7 @@ checker provides. The reimplementation risk is about the next 10k lines.
 3. Human authoring pilot, five to eight engineers, time to a live Verdict.
 4. Consume the existing span events as Observations, and revisit exploration guidance
    with the semantic-coverage experiment
-   ([UMPIRE4_RESEARCH](UMPIRE4_RESEARCH.md#1-lean-native-semantic-coverage-for-implementation-fuzzing)).
+   ([UMPIRE4_RESEARCH](../UMPIRE4_RESEARCH.md#1-lean-native-semantic-coverage-for-implementation-fuzzing)).
 
 ## Verification performed
 

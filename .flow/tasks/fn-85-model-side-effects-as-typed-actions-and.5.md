@@ -89,7 +89,7 @@ agreement. `CaseBinding.DynamicConfig` carries the value into `bindCase`.
 
 `DESIGN.md`'s `atConcurrencyLimit` is not bound. This receipt first said no dynamic-config setting
 bounds pending Nexus operations; the research spike of 2026-09-19
-(`.plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md`) corrected that: there is one key per implementation
+(`.plans/lean/UMPIRE4_RESEARCH_NEXUS_MODEL.md`) corrected that: there is one key per implementation
 (`component.nexusoperations.limit.operation.concurrency` for HSM,
 `nexusoperation.limit.operation.concurrencyPerWorkflow.max` for CHASM), both rejecting with
 `WORKFLOW_TASK_FAILED_CAUSE_PENDING_NEXUS_OPERATIONS_LIMIT_EXCEEDED` and writing no scheduled event.

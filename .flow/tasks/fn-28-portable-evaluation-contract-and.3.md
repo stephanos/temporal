@@ -19,7 +19,7 @@ Add a Lean-owned lowering pass that specializes the selected caller-closure Test
 ### Investigation targets
 
 **Required** (read before coding):
-- `.plans/LEAN_GUIDELINES.md`, parent spec, and task `.1` schema.
+- `.plans/lean/LEAN_GUIDELINES.md`, parent spec, and task `.1` schema.
 - `model/Temporal/Tool/RunEvaluation.lean`, Observation Evaluation, Implementation Link, Property verdict, and Artifact canonical renderers.
 - Existing generated-view and checksum/fingerprint tests.
 

@@ -7,8 +7,8 @@ satisfies: [R6, R7, R8]
 Register the executable, expose root-only commands, publish the shared-core contract for fn-5, and reconcile model/roadmap documentation for R6-R8.
 
 **Size:** M
-**Files:** `model/lakefile.toml`, `Makefile`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_DSL.md`
-**Touches:** [model/lakefile.toml, Makefile, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_DSL.md]
+**Files:** `model/lakefile.toml`, `Makefile`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/lean/UMPIRE4_DSL.md`
+**Touches:** [model/lakefile.toml, Makefile, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md, .plans/lean/UMPIRE4_DSL.md]
 
 ### Approach
 - Register `temporal-input-catalog` and ensure aggregate model tests include both adapters and CLI cases.
@@ -23,7 +23,7 @@ Register the executable, expose root-only commands, publish the shared-core cont
 - `Makefile:988-1032,1254` — root model command conventions.
 - `model/README.md:3-66` and `model/ARCHITECTURE.md:105-139` — current generated/model ownership docs.
 - `.plans/UMPIRE4_COMPONENTS.md:23-24,141-200,721-728` — C1/C2 status and deferred surface.
-- `.plans/UMPIRE4_DSL.md:291-318` — artifact/component authority boundary.
+- `.plans/lean/UMPIRE4_DSL.md:291-318` — artifact/component authority boundary.
 - `.flow/memory/declined/generated-api-drift-verification.md` — binding no-drift/no-CI decision.
 
 ### Quick command

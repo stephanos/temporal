@@ -22,7 +22,7 @@ Update the model documentation for the landed backend, run the rollback drill ag
 - `tools/planindex/check.go` — what the index check validates
 
 **Optional:**
-- `.plans/UMPIRE4_DIRECTION.md` sections 1 and 6 — reasoning to cite
+- `.plans/lean/UMPIRE4_DIRECTION.md` sections 1 and 6 — reasoning to cite
 
 ### Key context
 - The CLAUDE.md cold-build note ("~12 minutes") is loaded by the harness but the file is deleted in the working tree; update it only if restored.
@@ -70,7 +70,7 @@ The model docs and the GOV-02 drafts now describe the `veil` backend as built. T
 
 Follow-ups:
 - Push to measure R20. If a job comes near its timeout, add the `.lake` cache.
-- `.plans/UMPIRE4_DIRECTION.md:137` still says 4.33.1 (the fn-88.12 carry, outside Touches).
+- `.plans/lean/UMPIRE4_DIRECTION.md:137` still says 4.33.1 (the fn-88.12 carry, outside Touches).
 - getproto writes descriptor sets in nondeterministic order.
 
 stage: impl-review - ran [2026-09-28..2026-09-28] (codex fan-out, three draws SHIP, zero findings; forced full review, no triage)

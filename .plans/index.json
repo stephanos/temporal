@@ -10,67 +10,6 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/FEATURE_AUTHORING_ASSESSMENT.md",
-      "lifecycle": "historical",
-      "authority": "historical",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": [
-        {
-          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Semantics.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        },
-        {
-          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Target.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        },
-        {
-          "target": "model/lean/Temporal/Feature/Nexus/Operations/Cancellation.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        },
-        {
-          "target": "model/lean/Umpire/Property/Evaluation.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        },
-        {
-          "target": "model/lean/Umpire/Property/Language.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        },
-        {
-          "target": "model/lean/Umpire/Query/Language.lean",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        }
-      ]
-    },
-    {
-      "path": ".plans/FEATURE_AUTHORING_RESEARCH.md",
-      "lifecycle": "historical",
-      "authority": "historical",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": [
-        {
-          "target": "model/lean/lakefile.toml",
-          "reason": "Removed after this note was written; cited as provenance.",
-          "anchor": null
-        }
-      ]
-    },
-    {
-      "path": ".plans/LEAN_GUIDELINES.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
       "path": ".plans/PLAN_UPDATE_PROPS.md",
       "lifecycle": "historical",
       "authority": "historical",
@@ -110,7 +49,183 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE3.md",
+      "path": ".plans/UMPIRE4_COMPONENTS.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/lean/UMPIRE4_SPEC_COMPS.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": ".plans/UMPIRE_CHATS.md",
+          "reason": "Preserved reference to the historical Umpire design-conversation synthesis.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/UMPIRE4_ORDER.md",
+      "lifecycle": "active",
+      "authority": "delivery-order",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_RESEARCH.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC.md",
+      "lifecycle": "active",
+      "authority": "normative-rules",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC_CLI.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/lean/UMPIRE4_SPEC_COMPS.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_VISION.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_CASE_RUNTIME_DESIGN.md",
+      "lifecycle": "active",
+      "authority": "architecture",
+      "authorityParents": [
+        ".plans/UMPIRE4_ORDER.md",
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_GO.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_SCALA.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_TYPED_ACTIONS_SPEC.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_WALKTHROUGH.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/lean/FEATURE_AUTHORING_ASSESSMENT.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Semantics.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/lean/Temporal/Feature/Nexus/Lifecycle/Target.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/lean/Temporal/Feature/Nexus/Operations/Cancellation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/lean/Umpire/Property/Evaluation.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/lean/Umpire/Property/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        },
+        {
+          "target": "model/lean/Umpire/Query/Language.lean",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/lean/FEATURE_AUTHORING_RESEARCH.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": "model/lean/lakefile.toml",
+          "reason": "Removed after this note was written; cited as provenance.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/lean/LEAN_GUIDELINES.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/lean/UMPIRE3.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [
@@ -136,23 +251,7 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE4_COMPONENTS.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC_COMPS.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": [
-        {
-          "target": ".plans/UMPIRE_CHATS.md",
-          "reason": "Preserved reference to the historical Umpire design-conversation synthesis.",
-          "anchor": null
-        }
-      ]
-    },
-    {
-      "path": ".plans/UMPIRE4_DIRECTION.md",
+      "path": ".plans/lean/UMPIRE4_DIRECTION.md",
       "lifecycle": "reference",
       "authority": "descriptive",
       "authorityParents": [
@@ -162,38 +261,18 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE4_DSL.md",
+      "path": ".plans/lean/UMPIRE4_DSL.md",
       "lifecycle": "active",
       "authority": "scoped-contract",
       "authorityParents": [
-        ".plans/UMPIRE4_SPEC_COMPS.md",
-        ".plans/UMPIRE4_SPEC_MODEL_ARCH.md"
+        ".plans/lean/UMPIRE4_SPEC_COMPS.md",
+        ".plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md"
       ],
       "supersededBy": null,
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE4_ORDER.md",
-      "lifecycle": "active",
-      "authority": "delivery-order",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE4_RESEARCH.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE4_RESEARCH_NEXUS_MODEL.md",
+      "path": ".plans/lean/UMPIRE4_RESEARCH_NEXUS_MODEL.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -201,25 +280,7 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE4_SPEC.md",
-      "lifecycle": "active",
-      "authority": "normative-rules",
-      "authorityParents": [],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE4_SPEC_CLI.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC_COMPS.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE4_SPEC_COMPS.md",
+      "path": ".plans/lean/UMPIRE4_SPEC_COMPS.md",
       "lifecycle": "active",
       "authority": "architecture",
       "authorityParents": [
@@ -230,7 +291,7 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE4_SPEC_MODEL_ARCH.md",
+      "path": ".plans/lean/UMPIRE4_SPEC_MODEL_ARCH.md",
       "lifecycle": "active",
       "authority": "architecture",
       "authorityParents": [
@@ -241,17 +302,7 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE4_VISION.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE_ARCHITECTURE_REVIEW.md",
+      "path": ".plans/lean/UMPIRE_ARCHITECTURE_REVIEW.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -295,18 +346,7 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE_CASE_RUNTIME_DESIGN.md",
-      "lifecycle": "active",
-      "authority": "architecture",
-      "authorityParents": [
-        ".plans/UMPIRE4_ORDER.md",
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE_CMP_FIZZBEE.md",
+      "path": ".plans/lean/UMPIRE_CMP_FIZZBEE.md",
       "lifecycle": "reference",
       "authority": "descriptive",
       "authorityParents": [
@@ -322,7 +362,7 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE_DSL_DESIGN_OPTIONS.md",
+      "path": ".plans/lean/UMPIRE_DSL_DESIGN_OPTIONS.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -351,7 +391,7 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE_DSL_EXPERIMENT.md",
+      "path": ".plans/lean/UMPIRE_DSL_EXPERIMENT.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -400,7 +440,7 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE_DSL_OPPORTUNITIES.md",
+      "path": ".plans/lean/UMPIRE_DSL_OPPORTUNITIES.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -408,7 +448,7 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE_DSL_RESEARCH.md",
+      "path": ".plans/lean/UMPIRE_DSL_RESEARCH.md",
       "lifecycle": "historical",
       "authority": "historical",
       "authorityParents": [],
@@ -427,7 +467,15 @@
       ]
     },
     {
-      "path": ".plans/UMPIRE_GO.md",
+      "path": ".plans/lean/UMPIRE_LEAN_SLIM.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/lean/UMPIRE_OUTSIDE_THE_BOX.md",
       "lifecycle": "reference",
       "authority": "descriptive",
       "authorityParents": [
@@ -437,37 +485,7 @@
       "allowedMissingLinks": []
     },
     {
-      "path": ".plans/UMPIRE_OUTSIDE_THE_BOX.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE_SCALA.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE_TYPED_ACTIONS_SPEC.md",
-      "lifecycle": "reference",
-      "authority": "descriptive",
-      "authorityParents": [
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/VEIL_BACKEND_RESEARCH.md",
+      "path": ".plans/lean/VEIL_BACKEND_RESEARCH.md",
       "lifecycle": "reference",
       "authority": "descriptive",
       "authorityParents": [

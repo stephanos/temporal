@@ -7,10 +7,10 @@ satisfies: [R2, R6]
 Synchronize active/reference documentation with the registry for R6 and make historical exceptions explicit.
 
 **Size:** M
-**Files:** `.plans/UMPIRE2.md`, `.plans/UMPIRE3.md`, `.plans/UMPIRE4_DSL.md`,
+**Files:** `.plans/UMPIRE2.md`, `.plans/lean/UMPIRE3.md`, `.plans/lean/UMPIRE4_DSL.md`,
 `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`,
 `tools/planindex/check_test.go`
-**Touches:** [.plans/UMPIRE2.md, .plans/UMPIRE3.md, .plans/UMPIRE4_DSL.md,
+**Touches:** [.plans/UMPIRE2.md, .plans/lean/UMPIRE3.md, .plans/lean/UMPIRE4_DSL.md,
 .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, .plans/index.json,
 tools/planindex/check_test.go]
 
@@ -26,10 +26,10 @@ tools/planindex/check_test.go]
 ### Investigation targets
 **Required** (read before coding):
 - `.plans/UMPIRE2.md:15-17` — stale vision/DSL links.
-- `.plans/UMPIRE3.md:7-9` — historical missing links.
-- `.plans/UMPIRE4_DSL.md:12-13` — active stale links.
+- `.plans/lean/UMPIRE3.md:7-9` — historical missing links.
+- `.plans/lean/UMPIRE4_DSL.md:12-13` — active stale links.
 - `.plans/UMPIRE4_COMPONENTS.md:3-7,51-68,818` — authority/status drift and missing targets.
-- `.plans/UMPIRE4_SPEC_COMPS.md:7-16` — current architecture authority statement.
+- `.plans/lean/UMPIRE4_SPEC_COMPS.md:7-16` — current architecture authority statement.
 
 ### Quick commands
 `go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$'`

@@ -1,4 +1,4 @@
-I can't write that file from here, because this side channel has no tools. Here is the full content, ready to paste into `.plans/UMPIRE_LEAN_SLIM.md`. You can also ask in the main conversation to have it written and registered in `.plans/index.json`.
+I can't write that file from here, because this side channel has no tools. Here is the full content, ready to paste into `.plans/lean/UMPIRE_LEAN_SLIM.md`. You can also ask in the main conversation to have it written and registered in `.plans/index.json`.
 
 ```markdown
 # Slimming the Lean model
@@ -6,7 +6,7 @@ I can't write that file from here, because this side channel has no tools. Here 
 Assessment note, 2026-09-29. It records where the Lean model's size comes from and three
 successive cuts that shrink it without losing what only Lean provides. It changes no rule and
 approves no design. Line counts were measured on this date with `.lake/` excluded. Companion notes:
-[UMPIRE_OUTSIDE_THE_BOX](UMPIRE_OUTSIDE_THE_BOX.md) and [UMPIRE_GO](UMPIRE_GO.md).
+[UMPIRE_OUTSIDE_THE_BOX](UMPIRE_OUTSIDE_THE_BOX.md) and [UMPIRE_GO](../UMPIRE_GO.md).
 
 ## 1. Where the lines are
 

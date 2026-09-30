@@ -11,7 +11,7 @@ Give Umpire one `admit` operation (R3) that owns the Property, Scenario, Query, 
 **Touches:** [model/Umpire/Search.lean, model/Umpire/Search/**, model/Umpire/Query.lean, model/Umpire/Query/**, model/Umpire/Property.lean, model/Umpire/Scenario.lean, model/Umpire/Variations/**, model/Umpire/Exploration/**, model/Umpire/Promotion.lean, model/Umpire/Examples/Switch.lean, model/Temporal/Feature/Nexus/**, model/UmpireTests.lean, model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md, model/README.md, tools/umpire/CONTEXT.md]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` first (mandatory for Lean work).
+- Read `.plans/lean/LEAN_GUIDELINES.md` first (mandatory for Lean work).
 - Baseline: record the `PlanResult` bytes, `CheckedQuery.id` values, search-run scopes, goldens and fingerprints for the Switch example, every Nexus Model and the Variations fixtures before any change; the task's pin is that none of them moves.
 - Model `admit` on `Umpire.Case.Correlated.lower` (one admission call returning a proof-carrying record with the obligations discharged inside). `admit` takes the checked Model, the Property, an optional Scenario, the authored `Query` record (form, limits, and the identity and policy fields that `CheckedQuery.id`, the search-run scope and the fingerprints read) and Known Gaps. `AdmittedQuery` is indexed by the checked Model, like the search view, and carries the checked Property, Scenario, Query and `SearchView`; `AdmissionDiagnostic` is one union with one constructor per stage, each carrying that stage's typed error unchanged.
 - `admit` lives in `Umpire.Search` because Search imports Query (the search view is Search's type); putting it in Query would invert the `lint-model` import direction.

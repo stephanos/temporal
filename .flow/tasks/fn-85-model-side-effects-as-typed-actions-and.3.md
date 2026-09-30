@@ -13,7 +13,7 @@ Split out of the former single `.3` by plan review round 1 (finding F2): the enu
 **Touches:** [model/Umpire/Command/Finite.lean, model/Umpire/Command/Authoring.lean, model/Umpire/Command/Tests/**]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` first.
+- Read `.plans/lean/LEAN_GUIDELINES.md` first.
 - `Finite` is a small local class, not `Fintype`: no Mathlib.
 - Enumeration: domain = the product of the state structure's fields × the action's input class members (task .2's constructors with fields); evaluate the step for every pair; each successor becomes a transition row keyed by (state, action input, successor, outcome). The bound is the existing `transitionBound`, re-checked against the product state space and reported as a located error, never a truncation.
 - Prototype: rewrite the success Model's two rows as a step function over `structure { phase : State }`, enumerate it, and `#guard` that the resulting `BehaviorTable` and fingerprint equal the row form's. Measure elaboration with `lake env lean` three times against the Race baselines (6 to 12 ms per check) and record all three numbers.
@@ -25,7 +25,7 @@ Split out of the former single `.3` by plan review round 1 (finding F2): the enu
 - `model/Umpire/Command/Syntax.lean:54-57,73-75,97,144-166,195-345,548-566` — the row grammar, `transitionBound`, `relationKey`, reachability, `elabModel`, the `evalExpr` bridge
 - `model/Umpire/Command/Authoring.lean:138-168,215-323` — `DeclaredModel`, `step`, `declaredTable`, `declareModel`
 - `model/Umpire/Model/Types.lean:52-76` — `BehaviorTransitionRow`, `BehaviorTable` (the canonical form the enumeration fills)
-- `.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1 — the chosen form and its rule reading (AUT-05, AUT-07a, AUT-09)
+- `.plans/lean/UMPIRE_CMP_FIZZBEE.md` section 4.1 — the chosen form and its rule reading (AUT-05, AUT-07a, AUT-09)
 
 **Optional:**
 - `model/Temporal/Feature/Nexus/Race/COVERAGE.md:28-30` — the elaboration baselines

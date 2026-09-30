@@ -16,7 +16,7 @@ the selection module, so `Umpire.Search` itself never imports Veil, and a direct
 now depend on it, and fn-23 needs re-scoping (Decision Context). The word "backend" is used
 because fn-82 retired `Engine` under SEM-20; the existing `SearchStats.backendPulls` counter is
 renamed `enumeratorPulls` so "backend" keeps one meaning (SEM-19). The direction note
-`.plans/UMPIRE4_DIRECTION.md`, sections 1 and 6, records the reasoning this spec executes.
+`.plans/lean/UMPIRE4_DIRECTION.md`, sections 1 and 6, records the reasoning this spec executes.
 
 Rule text that conflicts with a Veil dependency in the primary Lake project exists in at least ten
 places (Decision Context lists them). One task drafts every amendment under GOV-02, and the task
@@ -504,7 +504,7 @@ instead of retrying with patches.
 
 ## References
 
-- `.plans/UMPIRE4_DIRECTION.md` sections 1 and 6; `.plans/VEIL_BACKEND_RESEARCH.md`
+- `.plans/lean/UMPIRE4_DIRECTION.md` sections 1 and 6; `.plans/lean/VEIL_BACKEND_RESEARCH.md`
 - `experiments/umpire-dsl/VEIL_RESULTS.md`, `experiments/umpire-dsl/veil/Main.lean`
 - `model/Umpire/Search.lean`, `model/Umpire/Search/Admission.lean`, `model/Umpire/Scenario/Check.lean`
 - `model/Umpire/Property/Check.lean`, `model/Umpire/Property/Evaluate.lean`

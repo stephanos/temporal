@@ -44,7 +44,7 @@ Shrink a Model file's vocabulary declarations to the names an author means (R12)
 - the Umpire command module from .10 — the `model` elaborator (`domainConstructors … Setup`, the `setupConstructor` match) and the five commands' `#guard_msgs` pins
 - `model/Umpire/Model/Canonical.lean` — how the setup key enters the canonical description
 - `model/Temporal/Feature/Nexus/Success/Model.lean`, `RaceSyntaxTests.lean` — the declarations to convert
-- `.plans/LEAN_GUIDELINES.md` — macro and doc-comment conventions
+- `.plans/lean/LEAN_GUIDELINES.md` — macro and doc-comment conventions
 
 ### Key context
 - .5 and .6 add new Model files and .8 writes the tutorial; they depend on this task so they use `enum` and omit `Setup` from the start.

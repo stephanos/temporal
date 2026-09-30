@@ -11,7 +11,7 @@ Turn the offline Evidence structure module (R4) from a bag of findings into a ve
 **Touches:** [model/Umpire/Evidence/**, model/Umpire/Evidence.lean, model/Shared/CorrelatedProjection.lean, model/Shared/**, model/UmpireTests.lean, model/Umpire/ARCHITECTURE.md, tools/umpire/CONTEXT.md]
 
 ### Approach
-- Read `.plans/LEAN_GUIDELINES.md` first.
+- Read `.plans/lean/LEAN_GUIDELINES.md` first.
 - Baseline: run the mutation suite and the evaluation and check suites and record every diagnostic; the memory entry on the earlier Admission extraction that silently strengthened validation is the reason this is the first step and the last check.
 - Before collapsing precedence, prove on every fixture that the raw and accepted orders never disagree on a reachable input. Where they can, make precedence an audience-specific table inside the module so no diagnostic changes; list each such input in the task summary. Both faults firing at once is answered by the same table.
 - Interface: `analyze` returns an opaque `EvidenceStructure`; `orderingFault?` and `closureFault?` take the structure and an `Audience` (`raw` or `accepted`) and return the first fault in canonical precedence; `factsInOrder` and `linkSupport` are the two projections the callers still need. Move the finding enum, closure expectations and the origin-mode branch behind the seam.

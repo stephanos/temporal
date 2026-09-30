@@ -49,7 +49,7 @@ model/Umpire/ARCHITECTURE.md]
 **Optional** (reference as needed):
 - `.flow/memory/bug/integration/portable-model-plans-need-exact-2026-09-03.md` — exact compiler
   obligation lesson
-- `.plans/LEAN_GUIDELINES.md` — mandatory Lean authoring rules
+- `.plans/lean/LEAN_GUIDELINES.md` — mandatory Lean authoring rules
 
 ## Key context
 Lean owns scenario/property semantics. Go may interpret only the general IR; it must not add an

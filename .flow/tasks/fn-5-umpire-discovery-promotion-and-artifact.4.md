@@ -33,7 +33,7 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 - `model/Umpire/Plan.lean` — `.found` result and expected trace ownership.
 - `model/Umpire/Artifact.lean` — current checked Query/plan lineage conventions.
 - `model/Umpire/Tests/Artifact.lean` — exact whole-value mutation-test style.
-- `.plans/LEAN_GUIDELINES.md` — total checked construction and compile-time test rules.
+- `.plans/lean/LEAN_GUIDELINES.md` — total checked construction and compile-time test rules.
 
 ### Quick command
 

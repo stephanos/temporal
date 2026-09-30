@@ -35,7 +35,7 @@ proposal bytes compile without modifying the source tree.
 - `model/Temporal/Tool/InspectTests.lean` — stdout/stderr/status fixture style.
 - `model/Temporal/Tool/PromotionBinding.lean` — task `.5` exact binding.
 - `model/lakefile.toml` — executable and aggregate target registration.
-- `.plans/LEAN_GUIDELINES.md` — clean elaboration and deterministic source constraints.
+- `.plans/lean/LEAN_GUIDELINES.md` — clean elaboration and deterministic source constraints.
 
 ### Quick command
 

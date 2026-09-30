@@ -2,7 +2,7 @@
 
 Status: superseded historical semantic-language design. The reusable planning language remains as
 implemented, but the execution and evaluation interfaces below were replaced by the Case Runtime.
-Current rules live in [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md).
+Current rules live in [`UMPIRE4_SPEC.md`](../UMPIRE4_SPEC.md).
 
 The module seams, author roles, import rules, and optional-verification placement are governed by
 [`UMPIRE4_SPEC_MODEL_ARCH.md`](UMPIRE4_SPEC_MODEL_ARCH.md). This document owns the semantic
@@ -10,8 +10,8 @@ languages and their denotations. Where the documents overlap, the model-architec
 source placement and import isolation.
 
 This document does not describe the Go Umpire2 runtime or the independent Umpire3 implementation.
-See [`UMPIRE2.md`](UMPIRE2.md) and [`UMPIRE3.md`](UMPIRE3.md) for those systems. Shared product goals
-remain in [`UMPIRE4_VISION.md`](UMPIRE4_VISION.md).
+See [`UMPIRE2.md`](../UMPIRE2.md) and [`UMPIRE3.md`](UMPIRE3.md) for those systems. Shared product goals
+remain in [`UMPIRE4_VISION.md`](../UMPIRE4_VISION.md).
 
 ## Purpose
 

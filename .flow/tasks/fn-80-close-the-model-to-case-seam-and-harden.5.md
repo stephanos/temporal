@@ -28,7 +28,7 @@ Implements R2 (spec §R2). Replaces the spelling whitelists in the five-block sy
 
 **Optional** (reference as needed):
 - `model/Temporal/Feature/Nexus2/Race.lean:22-60` — second lifecycle shape
-- `.plans/LEAN_GUIDELINES.md:83-115` — legible proofs
+- `.plans/lean/LEAN_GUIDELINES.md:83-115` — legible proofs
 
 ### Key context
 - AUT-08 says authors provide ordered domains and enumerators; task .9 drafts the rule text that macro-derived domains count as author-provided.

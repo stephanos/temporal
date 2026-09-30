@@ -32,8 +32,8 @@ Contracts preserve the Properties in the first path.
 **1. High priority: model-to-Case lowering is an unimplemented semantic seam.**
 
 This gap is already explicitly owned by
-[`fn-68.2`](../.flow/tasks/fn-68-minimal-nexus3-success-demonstration.2.md), with fixture/live
-integration in [`fn-68.3`](../.flow/tasks/fn-68-minimal-nexus3-success-demonstration.3.md).
+[`fn-68.2`](../../.flow/tasks/fn-68-minimal-nexus3-success-demonstration.2.md), with fixture/live
+integration in [`fn-68.3`](../../.flow/tasks/fn-68-minimal-nexus3-success-demonstration.3.md).
 The planned `Temporal.Feature.Nexus3.Testpilot` adapter consumes the checked Query, its meaning and
 selected witness, derives provenance and the success monitor, rejects unsupported semantic forms,
 and removes the independent async Case. Those requirements directly address this finding for the
@@ -42,13 +42,13 @@ the adapter file was absent and the tracked tasks remained `todo`. Treat the rec
 as acceptance criteria for that existing work, not a proposal for a competing compiler project.
 The initial review should have distinguished this planned remediation from the current code gap.
 
-[`Umpire.Case.Compiler`](../model/lean/Umpire/Case/Compiler.lean) takes a complete `Program` and
+[`Umpire.Case.Compiler`](../../model/lean/Umpire/Case/Compiler.lean) takes a complete `Program` and
 `ContractLowering` values containing already-authored monitor rules. `Input` does not accept a
 `CheckedProperty`, checked Query, selected model trace, or checked evidence interpretation.
 The module explicitly acknowledges that it has no checked-Property-to-lowering producer.
 Its checks cannot establish correspondence between a supplied monitor and a model Property.
 
-[`Temporal.Testpilot`](../model/lean/Temporal/Testpilot.lean) imports that assembly module and separately
+[`Temporal.Testpilot`](../../model/lean/Temporal/Testpilot.lean) imports that assembly module and separately
 authors `asyncProgram`, `asyncRule`, and string-valued behavior fingerprints. It does not import the
 Nexus Feature/System definitions. A change to the modeled lifecycle or Property therefore need not
 change the runtime Contract. Labeling provenance `checked-model` does not establish that connection.
@@ -67,13 +67,13 @@ reimplementing them in drivers.
 
 **2. High priority: the Lean Testpilot protocol has split ownership and a stale public codec.**
 
-[`Umpire.Case.ProtoJSON.canonical`](../model/lean/Umpire/Case/ProtoJSON.lean) emits a `metadata` field.
-The actual [`Case` protobuf](../proto/internal/temporal/server/api/testpilot/v1/case.proto) has
+[`Umpire.Case.ProtoJSON.canonical`](../../model/lean/Umpire/Case/ProtoJSON.lean) emits a `metadata` field.
+The actual [`Case` protobuf](../../proto/internal/temporal/server/api/testpilot/v1/case.proto) has
 `provenance` and opaque `producer_data`; Testpilot's decoder rejects unknown fields.
 The documented generic codec consequently does not produce the current wire envelope.
 
 The working path uses
-[`Temporal.Testpilot.TestpilotProtoJSON`](../model/lean/Temporal/Testpilot/TestpilotProtoJSON.lean).
+[`Temporal.Testpilot.TestpilotProtoJSON`](../../model/lean/Temporal/Testpilot/TestpilotProtoJSON.lean).
 It does substantially more than formatting: it adapts the schema and rejects Program expressions
 containing Contract-only references, and vice versa. The shared Lean `ValueExpression` allows these
 invalid combinations. A lower, supposedly Temporal-specific module repairs an overly broad upper
@@ -92,10 +92,10 @@ generic codec silently stale.
 
 **3. High priority before canary: environment binding is only partially symbolic.**
 
-In [`Temporal.Testpilot`](../model/lean/Temporal/Testpilot.lean), `historyAssignments` and `asyncProgram`
+In [`Temporal.Testpilot`](../../model/lean/Temporal/Testpilot.lean), `historyAssignments` and `asyncProgram`
 embed namespace `default`; workflow-start requests embed a physical task queue. Meanwhile worker
 activation declarations use symbolic task-queue roles, resolved independently by the driver.
-[`worker.validCarrierBinding`](../tests/testcore/testpilot/worker/carrier.go) checks that the concrete
+[`worker.validCarrierBinding`](../../tests/testcore/testpilot/worker/carrier.go) checks that the concrete
 request namespace and queue match the configured worker binding.
 
 These checks correctly reject a mismatch. The architectural problem is that selecting a canary
@@ -113,7 +113,7 @@ request rewriting and no independently maintained request literals.
 
 **4. Medium priority: reusable Temporal execution belongs outside the test harness.**
 
-[`tests/testcore/testpilot`](../tests/testcore/testpilot/README.md) already implements reusable
+[`tests/testcore/testpilot`](../../tests/testcore/testpilot/README.md) already implements reusable
 transport, SDK registration, reservation delivery, cancellation, completion capabilities and
 quarantine. Its production imports use Testpilot, the SDK, transport libraries and its own packages;
 the implementation is not intrinsically a functional-test fixture.
@@ -130,10 +130,10 @@ drivers for tests and canary.
 
 **5. Medium priority: the driver implementer's interface is much larger than the caller's.**
 
-[`Prepare` and `Run`](../common/testing/testpilot/prepare.go) provide real depth. However,
-[`driver.go`](../common/testing/testpilot/driver.go) exposes prepared instruction plans, traversal
+[`Prepare` and `Run`](../../common/testing/testpilot/prepare.go) provide real depth. However,
+[`driver.go`](../../common/testing/testpilot/driver.go) exposes prepared instruction plans, traversal
 order, reference resolvers, work limits and outcome validation. The
-[`worker interpreter`](../tests/testcore/testpilot/worker/interpreter.go) must manage activation
+[`worker interpreter`](../../tests/testcore/testpilot/worker/interpreter.go) must manage activation
 values, subtract work charges, evaluate guards and store validated outcomes.
 
 SDK workflow execution needs its own replay-compatible scheduling and futures; those responsibilities
@@ -160,13 +160,13 @@ another semantic frontend. Nexus3's syntax should continue elaborating into thos
 
 Two concrete internal dependency improvements are available:
 
-- [`Target.Language`](../model/lean/Umpire/Target/Language.lean) mixes the checked Target representation,
+- [`Target.Language`](../../model/lean/Umpire/Target/Language.lean) mixes the checked Target representation,
   authoring occurrence diagnostics, canonical projections and elaborator integration. It imports
   `Lean.Elab.Term`, and even Property's language imports the full Target facade. Separate the
   semantic checked Target/kernel interface from elaboration and codec ownership. Ordinary semantic
   consumers should not need the authoring frontend's dependency surface.
-- [`Planning.Engine`](../model/lean/Umpire/Planning/Engine.lean) and
-  [`Observation.Evaluation.Types`](../model/lean/Umpire/Observation/Evaluation/Types.lean) import
+- [`Planning.Engine`](../../model/lean/Umpire/Planning/Engine.lean) and
+  [`Observation.Evaluation.Types`](../../model/lean/Umpire/Observation/Evaluation/Types.lean) import
   `SemanticInventory.Types` to describe their own outcomes and Known Gap mappings. Move general
   outcome classification and gap-carry contracts to their semantic owners or a small neutral module;
   let the inventory consume those declarations. This is a dependency-direction improvement, not

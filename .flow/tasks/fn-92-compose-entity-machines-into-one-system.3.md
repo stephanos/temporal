@@ -22,7 +22,7 @@ Prove that `composedTableAgrees members literal = true` implies soundness and co
 - `model/Umpire/Command/Syntax.lean:1803, 2409-2465`; `model/Umpire/ImplementationLink/Refinement.lean:251, 274` (theorem shape)
 - `model/Temporal/Feature/Workflow/Outage/Model.lean:87-135`; `Outage/Tests.lean`
 - `model/Umpire/Search/Product/Monitor.lean:69-102`; `model/TemporalModelTests/SearchDifferential.lean:1-104`
-- `.plans/LEAN_GUIDELINES.md` §5
+- `.plans/lean/LEAN_GUIDELINES.md` §5
 
 ### Key context
 - The theorems are about the literal the command emitted; the kernel reduces a value, not the BFS.

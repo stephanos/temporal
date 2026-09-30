@@ -157,7 +157,7 @@ affected removal tasks before deleting anything.
 - `tools/umpire/internal/artifactv2/artifact.go` and `tools/umpire/internal/artifactv2/natural.go`: retained Experiment reader.
 - `tools/umpire/internal/artifactv2/runtime.go`, `tools/umpire/internal/artifactv2/evidence.go`, `tools/umpire/internal/artifactv2/result.go`, and `tools/umpire/internal/artifactv2/clone.go`: internal removal candidates.
 - `tools/umpire/cmd/umpire-gen-regression-views/generated_view.go` and `tools/umpire/regression/generated_view.go`: retained reader consumers.
-- `model/Umpire/Property/COMPATIBILITY.md`, `.plans/UMPIRE4_SPEC_COMPS.md`, and `.plans/UMPIRE4_COMPONENTS.md`: active ownership documentation.
+- `model/Umpire/Property/COMPATIBILITY.md`, `.plans/lean/UMPIRE4_SPEC_COMPS.md`, and `.plans/UMPIRE4_COMPONENTS.md`: active ownership documentation.
 - `Makefile`: command wrappers and retained aggregate gates.
 
 ## References

@@ -24,7 +24,7 @@ Cut over the generated Lean API, Umpire Producer's embedded protocol identities,
 - `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go:20-118` — renderer, transactional publisher, output-root contract, and separate six-class manifest
 - `model/Temporal/Tool/CaseRuntime.lean:11-21` — exact `get-system-info` and `async-nexus` renderer entries
 - `tools/umpire/temporal/testdata/*.json` — namespace-bearing source fixtures
-- `.plans/LEAN_GUIDELINES.md` — mandatory Lean authoring rules
+- `.plans/lean/LEAN_GUIDELINES.md` — mandatory Lean authoring rules
 
 ## Acceptance
 - [ ] Generated Lean API and CaseRuntime embedded protocol identities name Testpilot while Umpire authoring, Query, Producer, Program, and Contract semantics remain unchanged.

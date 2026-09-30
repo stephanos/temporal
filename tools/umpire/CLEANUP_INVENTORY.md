@@ -279,7 +279,7 @@ or missing header fails the final gate even if the total is smaller.
   aggregate checks. Retained source and comments in `artifact.go`, `natural.go`, and
   `artifact_test.go` were not edited.
 - Completion review found and removed two remaining prospective claims in
-  `.plans/UMPIRE4_SPEC_COMPS.md`: exact Artifact/set checking as an intended command and the public
+  `.plans/lean/UMPIRE4_SPEC_COMPS.md`: exact Artifact/set checking as an intended command and the public
   `tools/umpire/artifact/` entry in the recommended Go tree. This documentation-only correction
   aligns both sections with the already recorded retired surface and does not change executable
   code or prior gate evidence.
