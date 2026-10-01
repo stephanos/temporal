@@ -12,6 +12,7 @@
     "fn-107-scala-umpire-prototype-for-standalone.1": 0,
     "fn-107-scala-umpire-prototype-for-standalone.14": 0,
     "fn-107-scala-umpire-prototype-for-standalone.15": 0,
+    "fn-107-scala-umpire-prototype-for-standalone.16": 0,
     "fn-107-scala-umpire-prototype-for-standalone.2": 0
   },
   "next_task": 1,
@@ -821,6 +822,87 @@
       "task": "fn-107-scala-umpire-prototype-for-standalone.15",
       "timestamp": "2026-09-30T23:06:59.478050Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "dispatch_exception",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 93,
+      "output_sha256": "d952f43cacee9e63795215499a42beaad04f558e4596a04142bce9bac0fbf8e8",
+      "reservation_id": "638fe63d7264483db194dda130d65e03",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:36:04.003650Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 75,
+      "output_sha256": "54a3f11c7b2d494ea37c84ca79ea09596e131b28e95c2073cb830fa99ab55bd5",
+      "reservation_id": "8ecb0e97569d4649837195ae6b96636c",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:36:20.999613Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 75,
+      "output_sha256": "54a3f11c7b2d494ea37c84ca79ea09596e131b28e95c2073cb830fa99ab55bd5",
+      "reservation_id": "5501eadb70f5458aa2747d55b73f1720",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:37:42.106427Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -837,6 +919,7 @@
     "impl:fn-107-scala-umpire-prototype-for-standalone.1": 0,
     "impl:fn-107-scala-umpire-prototype-for-standalone.14": 0,
     "impl:fn-107-scala-umpire-prototype-for-standalone.15": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.16": 3,
     "impl:fn-107-scala-umpire-prototype-for-standalone.2": 0,
     "plan": 0
   },
@@ -854,5 +937,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T23:06:59.490997Z"
+  "updated_at": "2026-10-01T00:37:42.106853Z"
 }

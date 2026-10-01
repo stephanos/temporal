@@ -26,6 +26,16 @@ Make the prototype's Scala sources and tooling independent of model/scala. This 
 ### Quick commands
 GOFLAGS=-tags=test_dep make umpire-check-scala; make lint-scala; mise exec -- go test -tags test_dep ./model/scalav2/... ./model/go/...; scoped Go IR lint if its diagnostic paths change. Final isolation snapshot runs the same gates and deterministic regeneration. Record inherited global lint failures separately.
 
+### Wrap-up handoff
+The implementation is in commit `e1d0753f417ab0791d94a018f0148b0390f1b350`. V2 owns the framework, selected activity/Nexus Models, compiler helper and generated proto jars. The eleven task-2 legacy changes were guarded and restored; unrelated legacy files and user edits were preserved. Independent native review has no verdict, so this task is unfinished.
+
+Fresh wrap-up verification: `mise exec -- go test -tags test_dep -count=1 ./model/scalav2/... ./model/go/...` passes. `mise exec -- scala-cli test model/scalav2/scala/project.scala model/scalav2/scala/umpire model/scalav2/scala/temporal --server=false --suppress-outdated-dependency-warning` passes all 66 tests. The scoped Go lint command also fails during package loading with `no go files to analyze`; its cause is not established. The normal Scala gate cannot start Bloop because its cache output is outside the writable workspace; Scala lint cannot acquire Coursier's `.structure.lock` for the same reason. Earlier full live and isolated-snapshot gates passed before these execution restrictions; those earlier results do not establish a fresh full gate.
+
+The prior isolated snapshot omitted the legacy tree and all v2 jars, regenerated all three jars, passed build/test/lint, and reproduced checked-in IR twice byte for byte. Restoring the old gate or introducing legacy references/source positions failed for the expected reasons. A separate snapshot ran the legacy gate with v2 absent. Conductor reconciliation found no semantic IR differences after documented provenance/line relocation, no lost comment text across 40 adopted files, no drift in 53 other legacy files, and no change to `specs/KNOWN_BUG.md`.
+
+Resume by repairing native reviewer startup, then run task 16's review and final gates before marking it done. Do not reset the transport ledger or widen the reviewer sandbox. Before task 3, reconcile the additive generic key-level claim/query/composition prerequisite; the current typed constructors cannot bind arbitrary IR-built tables. Its proposals and task-3 binding draft are preserved under [continuation](../artifacts/fn-107-scala-umpire-prototype-for-standalone/continuation/orchestration-recommendation.md). They remain drafts; no new task was admitted or implemented.
+
+The user's wrap-up request explicitly authorizes committing and pushing this checkpoint, superseding the earlier no-commit constraint. It does not declare the prototype or this task complete.
 ## Acceptance
 - [ ] V2 owns its authoring framework, selected models, compiler helper and generated jars; build/lift/test/runtime inputs do not read model/scala. Existing package names and source-linked IDs are preserved.
 - [ ] In an isolated snapshot without the legacy Scala tree or prebuilt v2 jars, generation, native compile/tests, IR checks, focused Go tests and configured Scala lint pass. The pre-move gate fails in that same snapshot, and repeat generation produces byte-identical artifacts.
@@ -36,8 +46,8 @@ GOFLAGS=-tags=test_dep make umpire-check-scala; make lint-scala; mise exec -- go
 
 
 ## Done summary
-TBD
-
+Blocked:
+Independent implementation review has no verdict. Flow launched three reviewer draws in each attempt; the native Codex CLI exits before session initialization with `failed to initialize in-process app-server client: Operation not permitted (os error 1)`. The initial unsupported inherited `CODEX_SANDBOX=seatbelt` value was resolved by explicitly selecting read-only review. Native transport failures remain recorded; no counters were reset and no sandbox was widened. Implementation and test evidence are saved, but task 16 must remain unfinished until native review succeeds. The user explicitly authorized committing and pushing the current work on 2026-09-30.
 ## Evidence
 - Commits:
 - Tests:
