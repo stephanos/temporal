@@ -1,0 +1,185 @@
+{
+  "baseline_revision": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "full_lint_findings": [
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy.go",
+      "line": 40,
+      "diagnostic": "cognitive-complexity: function copyAdapterModule has cognitive complexity 37 (> max enabled 25) (revive)",
+      "line_text": "func copyAdapterModule(source, destination string, replacements map[string][]byte, limits adapterCopyLimits) error {",
+      "baseline_matching_lines": [
+        40
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy.go",
+      "line": 116,
+      "diagnostic": "use-slices-sort: replace sort.Strings by slices.Sort (revive)",
+      "line_text": "\tsort.Strings(additions)",
+      "baseline_matching_lines": [
+        116
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry.go",
+      "line": 94,
+      "diagnostic": "use-slices-sort: replace sort.Slice by slices.SortFunc (revive)",
+      "line_text": "\tsort.Slice(definitions, func(i, j int) bool { return definitions[i].identity.Module < definitions[j].identity.Module })",
+      "baseline_matching_lines": [
+        94
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry.go",
+      "line": 191,
+      "diagnostic": "cognitive-complexity: function (adapterRegistry).prepare has cognitive complexity 27 (> max enabled 25) (revive)",
+      "line_text": "func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {",
+      "baseline_matching_lines": [
+        191
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry.go",
+      "line": 385,
+      "diagnostic": "Error return value of `os.RemoveAll` is not checked (errcheck)",
+      "line_text": "\tdefer os.RemoveAll(work)",
+      "baseline_matching_lines": [
+        385
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_adapter.go",
+      "line": 218,
+      "diagnostic": "use-slices-sort: replace sort.Slice by slices.SortFunc (revive)",
+      "line_text": "\tsort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })",
+      "baseline_matching_lines": [
+        218
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "line": 155,
+      "diagnostic": "use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)",
+      "line_text": "\t\tpanic(fmt.Errorf(\"encode deterministic I/O inventory: %w\", err))",
+      "baseline_matching_lines": [
+        148
+      ],
+      "whole_source_matches_baseline": false,
+      "diagnosed_function": "func mustSpec(definition profileDefinition) Spec {",
+      "diagnosed_function_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "line": 224,
+      "diagnostic": "unnecessary-format: unnecessary use of formatting function \"fmt.Errorf\", you can replace it with \"errors.New\" (revive)",
+      "line_text": "\t\treturn nil, fmt.Errorf(\"invalid I/O profile specification\")",
+      "baseline_matching_lines": [
+        217
+      ],
+      "whole_source_matches_baseline": false,
+      "diagnosed_function": "func (profile Spec) validated() (*profileDefinition, error) {",
+      "diagnosed_function_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "line": 243,
+      "diagnostic": "unnecessary-format: unnecessary use of formatting function \"fmt.Errorf\", you can replace it with \"errors.New\" (revive)",
+      "line_text": "\t\treturn fmt.Errorf(\"deterministic I/O target identity does not match its build specification\")",
+      "baseline_matching_lines": [
+        236
+      ],
+      "whole_source_matches_baseline": false,
+      "diagnosed_function": "func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error {",
+      "diagnosed_function_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "line": 246,
+      "diagnostic": "unnecessary-format: unnecessary use of formatting function \"fmt.Errorf\", you can replace it with \"errors.New\" (revive)",
+      "line_text": "\t\treturn fmt.Errorf(\"deterministic I/O target arguments do not match their build specification\")",
+      "baseline_matching_lines": [
+        239
+      ],
+      "whole_source_matches_baseline": false,
+      "diagnosed_function": "func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error {",
+      "diagnosed_function_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/requirements.go",
+      "line": 67,
+      "diagnostic": "use-slices-sort: replace sort.Strings by slices.Sort (revive)",
+      "line_text": "\tsort.Strings(features)",
+      "baseline_matching_lines": [
+        67
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/requirements.go",
+      "line": 74,
+      "diagnostic": "use-slices-sort: replace sort.Slice by slices.SortFunc (revive)",
+      "line_text": "\t\tsort.Slice(packages, func(i, j int) bool {",
+      "baseline_matching_lines": [
+        74
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/semantic_coverage.go",
+      "line": 77,
+      "diagnostic": "use-slices-sort: replace sort.Strings by slices.Sort (revive)",
+      "line_text": "\tsort.Strings(probes)",
+      "baseline_matching_lines": [
+        77
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/semantic_coverage.go",
+      "line": 109,
+      "diagnostic": "use-slices-sort: replace sort.Strings by slices.Sort (revive)",
+      "line_text": "\tsort.Strings(missing)",
+      "baseline_matching_lines": [
+        109
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter.go",
+      "line": 106,
+      "diagnostic": "confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)",
+      "line_text": "func rewriteXNetSocket(sysSource, emptySource []byte) ([]byte, []byte, error) {",
+      "baseline_matching_lines": [
+        106
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "line": 132,
+      "diagnostic": "confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)",
+      "line_text": "func readPinnedXNetSocketSources(t *testing.T) ([]byte, []byte) {",
+      "baseline_matching_lines": [
+        132
+      ],
+      "whole_source_matches_baseline": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/descriptor.go",
+      "line": 206,
+      "diagnostic": "if-return: redundant if ...; err != nil check, just return error instead. (revive)",
+      "line_text": "\tif err := validateSortedUnique(\"overlay allowlist path\", descriptor.OverlayAllowlist, func(path string) error {",
+      "baseline_matching_lines": [
+        206
+      ],
+      "whole_source_matches_baseline": true
+    }
+  ],
+  "all_diagnosed_lines_present_in_baseline": true,
+  "changed_line_lint_log": "/private/tmp/fn105-d8-lint-stable.log"
+}

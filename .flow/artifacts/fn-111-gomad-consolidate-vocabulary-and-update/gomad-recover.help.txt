@@ -1,0 +1,3 @@
+Usage of gomad recover:
+  -json
+    	emit stable JSON

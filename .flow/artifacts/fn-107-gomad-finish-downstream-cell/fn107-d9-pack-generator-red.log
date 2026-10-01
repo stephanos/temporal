@@ -1,0 +1,5 @@
+--- FAIL: TestGenerateStandaloneConsumerPackage (0.05s)
+    generate_test.go:30: generated standalone consumer package does not compile: /var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/TestGenerateStandaloneConsumerPackage3164408316/001/packs_generated_test.go:5:40: undefined: generatedPackMutation
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.713s
+FAIL

@@ -182,9 +182,9 @@ func changedFiles(ctx context.Context, pristineRoot, candidateRoot string) ([]st
 
 func sourceFiles(ctx context.Context, root string) (map[string]string, error) {
 	files := make(map[string]string)
-	err := filepath.WalkDir(root, func(filePath string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err := filepath.WalkDir(root, func(filePath string, entry os.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if err := ctx.Err(); err != nil {
 			return err

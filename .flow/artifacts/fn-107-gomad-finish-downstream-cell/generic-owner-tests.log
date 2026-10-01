@@ -1,0 +1,4 @@
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	(cached)
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.505s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.848s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	(cached)

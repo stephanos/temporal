@@ -1,0 +1,38 @@
+{
+  "source_files": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad/go.mod",
+      "sha256": "b8db2c447cde3735f80cc60401344073ff95f3f0029fbae50f12a8a3510e8b87"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad/go.sum",
+      "sha256": "f54be3b70fbf710f1da97fca081669d5b2ddad7d88074a7ee869e11bdcafdb11"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad/README.md",
+      "sha256": "a5e40ad9850d2d3dc5e4100b2ad28b33f6d9f1f35528f5f4402e73cf8297d7f1"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad/smoke/workflow_test.go",
+      "sha256": "15fd792b0e71de993d9d69da37b767c1504c949b2ca9a7420344996f50074813"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tests/testcore/test_cluster.go",
+      "sha256": "32f6002b3c1c25ec0859654c956de0ab0449964a01052968d53f1a10cc858959"
+    }
+  ],
+  "temporal_seam_prior_revision": "5b7748087^:tests/testcore/test_cluster.go",
+  "closure": {
+    "path": "/tmp/fn107-task4-gomad-closure.json",
+    "sha256": "6246adc8de12cb7210d3660f34a3123c4300b35f30627c731acb6f059023e2c7",
+    "package_count": 1410,
+    "hashicorp_version": "v0.5.4",
+    "armon_reachable": false
+  },
+  "logs": [
+    "/tmp/fn107-task4-native-final.log",
+    "/tmp/fn107-task4-gomad-tag.log",
+    "/tmp/fn107-task4-lint-native.log",
+    "/tmp/fn107-task4-lint-gomad-tag.log"
+  ]
+}

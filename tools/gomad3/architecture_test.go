@@ -111,9 +111,9 @@ func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
 
 func TestCurrentVocabularyHasNoLegacyCampaignBoundary(t *testing.T) {
 	for _, root := range []string{"cmd/gomad", "qualification", "runner"} {
-		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
-			if walkErr != nil {
-				return walkErr
+		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, visitErr error) error {
+			if visitErr != nil {
+				return visitErr
 			}
 			if entry.IsDir() || filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
 				return nil

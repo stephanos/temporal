@@ -1,0 +1,12 @@
+../tools/gomad3/deterministicio/adapter_rewrite_test.go:288:23: SA1019: runtime.GOROOT has been deprecated since Go 1.24: The root used during the Go build will not be meaningful if the binary is copied to another machine. Use the system path to locate the “go” binary, and use “go env GOROOT” to find its GOROOT. (staticcheck)
+	spec.ToolchainRoot = runtime.GOROOT()
+	                     ^
+../tools/gomad3/deterministicio/sentry_adapter_test.go:51:29: SA1019: runtime.GOROOT has been deprecated since Go 1.24: The root used during the Go build will not be meaningful if the binary is copied to another machine. Use the system path to locate the “go” binary, and use “go env GOROOT” to find its GOROOT. (staticcheck)
+	goCommand := filepath.Join(runtime.GOROOT(), "bin", "go")
+	                           ^
+../tools/gomad3/deterministicio/sentry_adapter_test.go:97:3: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+		sort.Strings(pkg.GoFiles)
+		^
+3 issues:
+* revive: 1
+* staticcheck: 2

@@ -1,0 +1,69 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/downstream",
+  "files": [
+    {
+      "path": "cds/shard/multi_wal_manager.go",
+      "sha256": "sha256:3387c4a160ebe2de3861dd22693a0875001823608e97c6c8776a259b1fb6250a"
+    },
+    {
+      "path": "cds/shard/wal_dns_gomad.go",
+      "sha256": "sha256:f7edae75cc8e7a6e03eee31ff85b0e2dfde0a2fc00572847e20477ffb3ed0c17"
+    },
+    {
+      "path": "cds/shard/wal_dns_gomad_test.go",
+      "sha256": "sha256:86d4760700bbe95e08e509d3959403e112273908a993e26070b8d3d896292c7e"
+    },
+    {
+      "path": "cds/shard/wal_dns_native.go",
+      "sha256": "sha256:40e26ae85baacf950189fda371d92b35bbf57a3eabadc773f8fecb5745449c48"
+    },
+    {
+      "path": "localcell/gomad/go.mod",
+      "sha256": "sha256:b8db2c447cde3735f80cc60401344073ff95f3f0029fbae50f12a8a3510e8b87"
+    },
+    {
+      "path": "localcell/gomad/go.sum",
+      "sha256": "sha256:f54be3b70fbf710f1da97fca081669d5b2ddad7d88074a7ee869e11bdcafdb11"
+    },
+    {
+      "path": "localcell/gomad/qualification.json",
+      "sha256": "sha256:3b5513331129faed6122f58115071ecf283231575403ae9e1758b60dbfea9bcf"
+    },
+    {
+      "path": "localcell/gomad/qualify.sh",
+      "sha256": "sha256:5dcdf501dd34e47000252485024ced28421bae83cb2483a675cd9515479d96c7"
+    },
+    {
+      "path": "localcell/gomad/smoke/workflow_test.go",
+      "sha256": "sha256:15fd792b0e71de993d9d69da37b767c1504c949b2ca9a7420344996f50074813"
+    },
+    {
+      "path": "storage/serviceinstance/listen_gomad.go",
+      "sha256": "sha256:0e111d56994d8eece6351b4bfb320c86ef76759f8b02aa2b74108a85fb270538"
+    },
+    {
+      "path": "storage/serviceinstance/listen_gomad_test.go",
+      "sha256": "sha256:308ededdadfa21a0b971afbc86246533fbb2f1d72d57f969ccdaed60b1a1fc07"
+    },
+    {
+      "path": "storage/serviceinstance/listen_native.go",
+      "sha256": "sha256:aac4782222ee44c9f50ac872d2b17fba3c13b7d3c910418b0178dfdcb774829f"
+    },
+    {
+      "path": "storage/serviceinstance/service_instance.go",
+      "sha256": "sha256:f0703147abf6e9847845cadd26f12e62afdf272c78ce298acd82fb42b2935516"
+    },
+    {
+      "path": "storage/testutil/port_conflict_gomad.go",
+      "sha256": "sha256:2e8823221c8957efd16dcec1b0833bfc15aa9793796f249386f514abac9688ee"
+    },
+    {
+      "path": "storage/testutil/port_conflict_native.go",
+      "sha256": "sha256:173094819baad81ef2f34a2c138b2b1bffc6dd00c6de2833a3960c113542036f"
+    },
+    {
+      "path": "storage/testutil/testutil.go",
+      "sha256": "sha256:07646a574728531592f0b171da74bf969591a894d8b280f36add0c5cad477948"
+    }
+  ]
+}

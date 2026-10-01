@@ -14,7 +14,7 @@ import (
 
 const (
 	Deterministic                      = "gomad3-deterministic/v1"
-	deterministicImplementationVersion = "gomad3.deterministic-io/v1/implementation-v11"
+	deterministicImplementationVersion = "gomad3.deterministic-io/v1/implementation-v14"
 )
 
 type TargetContract struct {
@@ -62,6 +62,55 @@ type inventoryEntry struct {
 
 var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adapterImplementation{
 	{
+		module: sprigModulePath,
+		inventory: inventoryEntry{
+			Boundary: sprigModulePath, Disposition: "target-adapter", Operations: []string{"host-dns-refusal"},
+		},
+		prepare: prepareSprig,
+	},
+	{
+		module: validatorModulePath,
+		inventory: inventoryEntry{
+			Boundary: validatorModulePath, Disposition: "target-adapter", Operations: []string{"address-resolution-refusal"},
+		},
+		prepare: prepareValidator,
+	},
+	{
+		module: pebbleModulePath,
+		inventory: inventoryEntry{
+			Boundary: pebbleModulePath, Disposition: "target-adapter", Operations: []string{"os-file-construction-refusal", "hard-link-refusal"},
+		},
+		prepare: preparePebble,
+	},
+	{
+		module: cactusStatsDModulePath,
+		inventory: inventoryEntry{
+			Boundary: cactusStatsDModulePath, Disposition: "target-adapter", Operations: []string{"udp-sender-refusal"},
+		},
+		prepare: prepareCactusStatsD,
+	},
+	{
+		module: memberlistModulePath,
+		inventory: inventoryEntry{
+			Boundary: memberlistModulePath, Disposition: "target-adapter", Operations: []string{"native-udp-transport-refusal"},
+		},
+		prepare: prepareMemberlist,
+	},
+	{
+		module: sentryModulePath,
+		inventory: inventoryEntry{
+			Boundary: sentryModulePath, Disposition: "target-adapter", Operations: []string{"optional-git-release-suppression"},
+		},
+		prepare: prepareSentry,
+	},
+	{
+		module: hashicorpMetricsModulePath,
+		inventory: inventoryEntry{
+			Boundary: hashicorpMetricsModulePath, Disposition: "target-adapter", Operations: []string{"signal-service-refusal"},
+		},
+		prepare: prepareHashicorpMetrics,
+	},
+	{
 		module: xnetModulePath,
 		inventory: inventoryEntry{
 			Boundary: xnetModulePath, Disposition: "target-adapter", Operations: []string{"raw-socket-option-denial"},
@@ -71,7 +120,7 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 	{
 		module: grpcModulePath,
 		inventory: inventoryEntry{
-			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression", "portable-syscall-removal"},
+			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression", "portable-syscall-removal", "host-dns-refusal"},
 		},
 		prepare: prepareGRPC,
 	},
@@ -99,7 +148,7 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 	{
 		module: sockaddrModulePath,
 		inventory: inventoryEntry{
-			Boundary: sockaddrModulePath, Disposition: "target-adapter", Operations: []string{"route-command-denial"},
+			Boundary: sockaddrModulePath, Disposition: "target-adapter", Operations: []string{"route-command-denial", "interface-discovery-refusal", "literal-address-parsing"},
 		},
 		prepare: prepareSockaddr,
 	},

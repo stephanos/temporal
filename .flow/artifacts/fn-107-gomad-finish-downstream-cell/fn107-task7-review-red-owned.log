@@ -1,20 +1,20 @@
-Adding "walker"
-Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
-[testrunner] 2026/09/30 14:41:54 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-3b87a143-cacd-4799-a0db-0be9ee2016b1-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/export/cds
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream...
+[testrunner] 2026/09/30 14:41:54 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-3b87a143-cacd-4799-a0db-0be9ee2016b1-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test_0.cover.out ./cds/export/cds
 ✖  cds/export/cds (2.523s) (coverage: 3.1% of statements)
 
 === Failed
-=== FAIL: cds/export/cds TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic/nil_mode (0.00s)
-    controller.go:97: missing call(s) to *mock.MockMetadataStore.Close() /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cds/export/cds/injected_factory_test.go:238
+=== FAIL: cds/export/cds TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic/nil_mode (0.00s)
+    controller.go:97: missing call(s) to *mock.MockMetadataStore.Close() /Users/stephan/Workspace/skunkworks/gomad/downstream/cds/export/cds/injected_factory_test.go:238
     controller.go:97: aborting test due to missing call(s)
 
-=== FAIL: cds/export/cds TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic (0.00s)
+=== FAIL: cds/export/cds TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic (0.00s)
 
 DONE 2 tests, 2 failures in 2.523s
-[testrunner] 2026/09/30 14:42:15 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
-[testrunner] 2026/09/30 14:42:15 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:42:15 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
+[testrunner] 2026/09/30 14:42:15 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
 [testrunner] 2026/09/30 14:42:15 exiting with failure after running 1 attempt(s)
 exit status 1
-2026/09/30 14:42:15 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./cds/export/cds]
+2026/09/30 14:42:15 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/downstream/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.cover.out ./cds/export/cds]
 2026/09/30 14:42:15 test failed: test failed: exit status 1
 exit status 1

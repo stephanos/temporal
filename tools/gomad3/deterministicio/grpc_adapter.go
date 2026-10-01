@@ -17,7 +17,7 @@ const (
 	grpcOriginalSourceInventorySHA256     = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
 	grpcKeepaliveSourceSHA256             = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
 	grpcKeepaliveReplacementSHA256        = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
-	grpcReplacementSourceInventorySHA256  = "sha256:564d80fd13bb88861c7f5e5da650dd4a82699aae2e40043a85cb5a06c38936a3"
+	grpcReplacementSourceInventorySHA256  = "sha256:9098668e7b66e1d82f5ecbb302556cf9723775b19aa2db68ede45aa1a166adbf"
 	grpcKeepalivePath                     = "internal/tcp_keepalive_unix.go"
 	grpcChannelzLinuxPath                 = "internal/channelz/syscall_linux.go"
 	grpcChannelzNonLinuxPath              = "internal/channelz/syscall_nonlinux.go"
@@ -118,6 +118,17 @@ var grpcSyscallRewrites = []sourceRewrite{
 	},
 }
 
+var grpcDNSRewrites = []sourceRewrite{
+	{
+		path:              "internal/resolver/dns/dns_resolver.go",
+		sourceSHA256:      "sha256:fae3828426c9cb90d31a0feafce53892434cfce8ec4ceb2f5cd7f823c2d67136",
+		replacementSHA256: "sha256:990c975b23005dd89b766c501b1a07a1c9735431a5cb29d2da83a70ecca3c7d5",
+		rewrites: []anchorRewrite{
+			{anchor: []byte("var newNetResolver = func(authority string) (internal.NetResolver, error) {\n\tif authority == \"\" {\n\t\treturn net.DefaultResolver, nil\n\t}\n\n\thost, port, err := parseTarget(authority, defaultDNSSvrPort)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tauthorityWithPort := net.JoinHostPort(host, port)\n\n\treturn &net.Resolver{\n\t\tPreferGo: true,\n\t\tDial:     internal.AddressDialer(authorityWithPort),\n\t}, nil\n}\n"), replacement: []byte("var newNetResolver = func(string) (internal.NetResolver, error) {\n\treturn nil, fmt.Errorf(\"gomad: DNS resolution is unavailable; use a literal IP target\")\n}\n")},
+		},
+	},
+}
+
 var grpcPreparedInternalSourceSetSHA256 = hostPin(map[string]string{
 	"darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
 	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
@@ -158,14 +169,16 @@ func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity
 			return adapterPreparation{}, err
 		}
 	}
-	for _, rewrite := range grpcSyscallRewrites {
-		portableSource, err := readGRPCAdapterSource(moduleSource, rewrite.path)
-		if err != nil {
-			return adapterPreparation{}, err
-		}
-		replacements[rewrite.path], err = rewriteAdapterSource(grpcModulePath, rewrite, portableSource)
-		if err != nil {
-			return adapterPreparation{}, err
+	for _, rewrites := range [][]sourceRewrite{grpcSyscallRewrites, grpcDNSRewrites} {
+		for _, rewrite := range rewrites {
+			portableSource, err := readGRPCAdapterSource(moduleSource, rewrite.path)
+			if err != nil {
+				return adapterPreparation{}, err
+			}
+			replacements[rewrite.path], err = rewriteAdapterSource(grpcModulePath, rewrite, portableSource)
+			if err != nil {
+				return adapterPreparation{}, err
+			}
 		}
 	}
 	moduleReplacement := filepath.Join(root, "google-grpc")

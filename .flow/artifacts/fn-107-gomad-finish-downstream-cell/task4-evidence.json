@@ -1,0 +1,13 @@
+{
+  "commits": [],
+  "tests": [
+    "cd ../downstream && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,integration,hashicorpmetrics -t 3m -r TestStorageWorkflow ./localcell/gomad/smoke",
+    "cd ../downstream && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,integration,hashicorpmetrics,gomad -t 3m -r TestStorageWorkflow ./localcell/gomad/smoke",
+    "cd ../downstream/localcell/gomad && GOWORK=off GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,integration,hashicorpmetrics ./smoke/...",
+    "cd ../downstream/localcell/gomad && GOWORK=off GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,integration,hashicorpmetrics,gomad ./smoke/...",
+    "cd ../downstream/localcell/gomad && GOWORK=off GOFLAGS=-mod=readonly go list -deps -json -tags test_dep,integration,hashicorpmetrics,gomad ./smoke:1410 packages, Hashicorp v0.5.4 reachable, no Armon",
+    "flowctl codex impl-review-fanout --base HEAD (standalone scoped working-tree review); fanout-finalize f98938a4b247b7d9edfa123101f8f5fc: SHIP",
+    "SHA-256 final source/closure/log/JUnit verification: matched; two tests pass per variant, no skips"
+  ],
+  "prs": []
+}

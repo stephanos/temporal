@@ -1,0 +1,224 @@
+../tools/gomad3/deterministicio/adapter_copy.go:40:1: cognitive-complexity: function copyAdapterModule has cognitive complexity 37 (> max enabled 25) (revive)
+func copyAdapterModule(source, destination string, replacements map[string][]byte, limits adapterCopyLimits) error {
+	if limits.Files <= 0 || limits.Bytes <= 0 {
+		return errors.New("adapter copy limits must be positive")
+	}
+	if err := os.Mkdir(destination, 0o700); err != nil {
+		return fmt.Errorf("create deterministic I/O adapter module: %w", err)
+	}
+	pending := make(map[string][]byte, len(replacements))
+	for relative, contents := range replacements {
+		clean, err := validAdapterRelativePath(relative)
+		if err != nil {
+			return err
+		}
+		pending[clean] = contents
+	}
+	files := 0
+	bytesCopied := int64(0)
+	write := func(relative string, contents []byte) error {
+		files++
+		if files > limits.Files {
+			return &AdapterCapacityError{Resource: "files", Limit: uint64(limits.Files)}
+		}
+		bytesCopied += int64(len(contents))
+		if bytesCopied > limits.Bytes {
+			return &AdapterCapacityError{Resource: "bytes", Limit: uint64(limits.Bytes)}
+		}
+		targetPath := filepath.Join(destination, relative)
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0o700); err != nil {
+			return fmt.Errorf("create deterministic I/O adapter directory: %w", err)
+		}
+		return writeExclusive(targetPath, contents)
+	}
+	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, storager error) error {
+		if storager != nil {
+			return storager
+		}
+		relative, err := filepath.Rel(source, path)
+		if err != nil {
+			return errors.New("invalid adapter module path")
+		}
+		if relative == "." {
+			return nil
+		}
+		relative, err = validAdapterRelativePath(relative)
+		if err != nil {
+			return err
+		}
+		targetPath := filepath.Join(destination, relative)
+		if entry.IsDir() {
+			return os.Mkdir(targetPath, 0o700)
+		}
+		if files >= limits.Files {
+			return &AdapterCapacityError{Resource: "files", Limit: uint64(limits.Files)}
+		}
+		info, err := entry.Info()
+		if err != nil || !info.Mode().IsRegular() {
+			return errors.New("adapter module contains a non-regular file")
+		}
+		contents, replaced := pending[relative]
+		if replaced {
+			delete(pending, relative)
+		} else {
+			contents, err = readAdapterFile(path, limits.Bytes-bytesCopied)
+			if err != nil {
+				return err
+			}
+		}
+		return write(relative, contents)
+	})
+	if err != nil {
+		return fmt.Errorf("copy deterministic I/O adapter module: %w", err)
+	}
+	additions := make([]string, 0, len(pending))
+	for relative := range pending {
+		additions = append(additions, relative)
+	}
+	sort.Strings(additions)
+	for _, relative := range additions {
+		if err := write(relative, pending[relative]); err != nil {
+			return fmt.Errorf("copy deterministic I/O adapter module: %w", err)
+		}
+	}
+	return nil
+}
+../tools/gomad3/deterministicio/adapter_copy.go:116:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(additions)
+	^
+../tools/gomad3/deterministicio/adapter_registry.go:94:2: use-slices-sort: replace sort.Slice by slices.SortFunc (revive)
+	sort.Slice(definitions, func(i, j int) bool { return definitions[i].identity.Module < definitions[j].identity.Module })
+	^
+../tools/gomad3/deterministicio/adapter_registry.go:191:1: cognitive-complexity: function (adapterRegistry).prepare has cognitive complexity 27 (> max enabled 25) (revive)
+func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {
+	if len(registry.definitions) == 0 {
+		return spec, []BuildAdapter{}, nil
+	}
+	workingDirectory, err := target.ModuleDirectory(spec)
+	if err != nil {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
+	}
+	selected, moduleFile, err := registry.selected(workingDirectory)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	if len(selected) == 0 {
+		return spec, []BuildAdapter{}, nil
+	}
+	if moduleCache == "" || spec.PreparationRoot == "" {
+		return target.Spec{}, nil, errors.New("deterministic I/O build adapter requires module cache and preparation root")
+	}
+	if spec.BuildModFile != "" {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("deterministic I/O build adapters cannot replace an existing build modfile"))
+	}
+	sumFile, err := requireAdapterSums(workingDirectory, selected)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
+	if err != nil {
+		return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O preparation root: %w", err)
+	}
+	root := filepath.Join(preparationRoot, ".io-adapter")
+	if err := os.Mkdir(root, 0o700); err != nil {
+		return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter directory: %w", err)
+	}
+	// The go command records a directory replacement's path in the binary's
+	// module information, so the replacement must live at a path that is the
+	// same for every preparation on this host or the target identity changes
+	// between repetitions. The toolchain root holds one copy per adapter
+	// identity and replacement inventory.
+	cacheRoot := root
+	if spec.ToolchainRoot != "" {
+		cacheRoot, err = filepath.Abs(filepath.Join(spec.ToolchainRoot, "adapters"))
+		if err != nil {
+			return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O adapter cache: %w", err)
+		}
+		if err := os.MkdirAll(cacheRoot, 0o700); err != nil {
+			return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter cache: %w", err)
+		}
+	}
+	evidence := make([]BuildAdapter, 0, len(selected))
+	for _, definition := range selected {
+		var prepared adapterPreparation
+		var prepareErr error
+		if cacheRoot == root {
+			prepared, prepareErr = definition.implementation.prepare(moduleCache, root, definition.identity)
+			if prepareErr == nil && prepared.evidence.ReplacementRoot != prepared.replacement {
+				prepareErr = errors.New("deterministic I/O adapter replacement root mismatch")
+			}
+		} else {
+			prepared, prepareErr = prepareCachedAdapter(definition, moduleCache, cacheRoot)
+		}
+		if prepareErr != nil {
+			return target.Spec{}, nil, prepareErr
+		}
+		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" "+definition.identity.Version+" => "+prepared.replacement+"\n")...)
+		evidence = append(evidence, prepared.evidence)
+	}
+	modFilePath := filepath.Join(root, "gomad.mod")
+	if err := writeExclusive(modFilePath, moduleFile); err != nil {
+		return target.Spec{}, nil, err
+	}
+	if err := writeExclusive(filepath.Join(root, "gomad.sum"), sumFile); err != nil {
+		return target.Spec{}, nil, err
+	}
+	for index := range evidence {
+		evidence[index].BuildModFile = modFilePath
+	}
+	spec.BuildModFile = modFilePath
+	return spec, evidence, nil
+}
+../tools/gomad3/deterministicio/adapter_registry.go:385:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(work)
+	                  ^
+../tools/gomad3/deterministicio/libc_adapter.go:218:2: use-slices-sort: replace sort.Slice by slices.SortFunc (revive)
+	sort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })
+	^
+../tools/gomad3/deterministicio/profile.go:155:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+../tools/gomad3/deterministicio/profile.go:224:15: unnecessary-format: unnecessary use of formatting function "fmt.Errorf", you can replace it with "errors.New" (revive)
+		return nil, fmt.Errorf("invalid I/O profile specification")
+		            ^
+../tools/gomad3/deterministicio/profile.go:243:10: unnecessary-format: unnecessary use of formatting function "fmt.Errorf", you can replace it with "errors.New" (revive)
+		return fmt.Errorf("deterministic I/O target identity does not match its build specification")
+		       ^
+../tools/gomad3/deterministicio/profile.go:246:10: unnecessary-format: unnecessary use of formatting function "fmt.Errorf", you can replace it with "errors.New" (revive)
+		return fmt.Errorf("deterministic I/O target arguments do not match their build specification")
+		       ^
+../tools/gomad3/deterministicio/requirements.go:67:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(features)
+	^
+../tools/gomad3/deterministicio/requirements.go:74:3: use-slices-sort: replace sort.Slice by slices.SortFunc (revive)
+		sort.Slice(packages, func(i, j int) bool {
+			if packages[i].ImportPath != packages[j].ImportPath {
+				return packages[i].ImportPath < packages[j].ImportPath
+			}
+			if packages[i].ForTest != packages[j].ForTest {
+				return packages[i].ForTest < packages[j].ForTest
+			}
+			return packages[i].Name < packages[j].Name
+		})
+../tools/gomad3/deterministicio/semantic_coverage.go:77:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(probes)
+	^
+../tools/gomad3/deterministicio/semantic_coverage.go:109:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(missing)
+	^
+../tools/gomad3/deterministicio/xnet_adapter.go:106:64: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func rewriteXNetSocket(sysSource, emptySource []byte) ([]byte, []byte, error) {
+                                                               ^
+../tools/gomad3/deterministicio/xnet_adapter_test.go:132:57: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func readPinnedXNetSocketSources(t *testing.T) ([]byte, []byte) {
+                                                        ^
+../tools/gomad3/toolchain/version/descriptor.go:206:2: if-return: redundant if ...; err != nil check, just return error instead. (revive)
+	if err := validateSortedUnique("overlay allowlist path", descriptor.OverlayAllowlist, func(path string) error {
+		return validateRelativeFile("overlay allowlist", path)
+	}); err != nil {
+		return err
+	}
+17 issues:
+* errcheck: 1
+* forbidigo: 1
+* revive: 15

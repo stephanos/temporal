@@ -1,0 +1,4 @@
+=== RUN   TestCheckReportsAvailableContract
+--- PASS: TestCheckReportsAvailableContract (0.18s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.831s

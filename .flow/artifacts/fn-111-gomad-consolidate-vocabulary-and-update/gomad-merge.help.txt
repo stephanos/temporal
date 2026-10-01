@@ -1,0 +1,7 @@
+Usage of gomad merge:
+  -json
+    	emit stable JSON
+  -output string
+    	merged campaign output directory
+  -partial
+    	publish an aggregate with explicit missing ordinals

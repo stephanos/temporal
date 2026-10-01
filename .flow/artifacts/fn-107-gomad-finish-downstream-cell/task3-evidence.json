@@ -1,9 +1,9 @@
 {
   "commits": [],
   "tests": [
-    "cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics -t 3m ./cds/stream/memory ./cds/export/cds/integration",
-    "cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics,gomad -t 3m ./cds/stream/memory ./cds/export/cds/integration",
-    "cd ../saas-temporal && GOWORK=off GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,hashicorpmetrics ./cds/stream/memory/... ./cds/export/cds/integration/...",
+    "cd ../downstream && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics -t 3m ./cds/stream/memory ./cds/export/cds/integration",
+    "cd ../downstream && GOWORK=off GOFLAGS=-p=2 mise run test --tags test_dep,hashicorpmetrics,gomad -t 3m ./cds/stream/memory ./cds/export/cds/integration",
+    "cd ../downstream && GOWORK=off GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,hashicorpmetrics ./cds/stream/memory/... ./cds/export/cds/integration/...",
     "flowctl codex impl-review-fanout --base HEAD (standalone working-tree focus); fanout-finalize cff307f440c90574a2a667be3f86b4cf: SHIP",
     "SHA-256 source and retained-log verification: all matched"
   ],

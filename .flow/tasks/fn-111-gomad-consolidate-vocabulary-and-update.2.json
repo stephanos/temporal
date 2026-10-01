@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T00:40:07.459664Z",
+  "depends_on": [
+    "fn-111-gomad-consolidate-vocabulary-and-update.1"
+  ],
+  "id": "fn-111-gomad-consolidate-vocabulary-and-update.2",
+  "priority": null,
+  "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+  "spec_path": ".flow/tasks/fn-111-gomad-consolidate-vocabulary-and-update.2.md",
+  "status": "todo",
+  "title": "Reconcile guides and retain documentation acceptance evidence",
+  "updated_at": "2026-10-01T00:40:07.459664Z"
+}

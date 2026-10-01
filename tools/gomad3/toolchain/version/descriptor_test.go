@@ -1,12 +1,61 @@
 package version
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestGenerateAcceptsPinnedPseudoVersion(t *testing.T) {
+	root := writeDescriptorFixture(t, "go1.26.4-darwin-arm64-v1")
+	descriptor, err := Load(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	descriptor.Adapters = []descriptorAdapter{{
+		Module: "github.com/cockroachdb/pebble", Version: "v0.0.0-20260703021901-41f35d3cb7df",
+		Sum: "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=",
+	}}
+	contents, err := json.Marshal(descriptor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, descriptorPath), contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(root, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(root, true); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadRejectsNonCanonicalAdapterVersions(t *testing.T) {
+	for _, version := range []string{"", "latest", "main", "v1", "v1.2", "v1.2.3invalid"} {
+		t.Run(version, func(t *testing.T) {
+			root := writeDescriptorFixture(t, "go1.26.4-darwin-arm64-v1")
+			descriptor, err := Load(root)
+			if err != nil {
+				t.Fatal(err)
+			}
+			descriptor.Adapters[0].Version = version
+			contents, err := json.Marshal(descriptor)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(root, descriptorPath), contents, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Load(root); err == nil || !strings.Contains(err.Error(), "adapter 1 is invalid") {
+				t.Fatalf("non-canonical adapter version %q: %v", version, err)
+			}
+		})
+	}
+}
 
 func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	root := writeDescriptorFixture(t, "go1.26.4-darwin-arm64-v1")

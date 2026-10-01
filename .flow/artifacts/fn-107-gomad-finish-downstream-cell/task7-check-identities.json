@@ -1,25 +1,25 @@
 {
-  "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal",
+  "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream",
   "inventory": "/private/tmp/fn107-task7-review-fixes-inventory.json",
   "qualification": "Native compiler/runtime source-selection checks only. Gomad supported-analysis and workflow qualification remain separate tasks.",
   "checks": [
     {
       "name": "native final constructor and event compatibility",
-      "command": "GOFLAGS=-p=2 mise run test --run 'TestInjectedWalkerFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./walker/wevents",
+      "command": "GOFLAGS=-p=2 mise run test --run 'TestInjectedStorageFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./storage/wevents",
       "log": "/private/tmp/fn107-task7-review-final-native.log",
-      "result": "exit0;31tests (28root+3Walker)",
+      "result": "exit0;31tests (28root+3Storage)",
       "log_sha256": "d75dc19f510f5f1355f442fd0901e3b8524c86fe74a76091fceca559ec06b39b"
     },
     {
       "name": "Gomad-tagged final constructor and event compatibility",
-      "command": "GOFLAGS=-p=2 mise run test --run 'TestInjectedWalkerFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./walker/wevents",
+      "command": "GOFLAGS=-p=2 mise run test --run 'TestInjectedStorageFactory|TestEmitEvents_LargeWatermarkNotTruncated|TestOSSEventLogger|TestGomad' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./cds/export/cds ./cloudmetricshandler/events ./storage/wevents",
       "log": "/private/tmp/fn107-task7-review-final-gomad.log",
-      "result": "exit0;32tests (29root+3Walker)",
+      "result": "exit0;32tests (29root+3Storage)",
       "log_sha256": "60210017b7e53a6173f37dbc31d927d219f3b1b45979321471783a8411feadc7"
     },
     {
       "name": "native CDS/events lint",
-      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal",
+      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream",
       "command": "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m ./cds/export/cds ./cloudmetricshandler/events",
       "log": "/private/tmp/fn107-task7-review-lint-native.log",
       "result": "exit0;0issues",
@@ -27,23 +27,23 @@
     },
     {
       "name": "Gomad CDS/events lint",
-      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal",
+      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream",
       "command": "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,gomad ./cds/export/cds ./cloudmetricshandler/events",
       "log": "/private/tmp/fn107-task7-review-lint-gomad.log",
       "result": "exit0;0issues",
       "log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
     },
     {
-      "name": "native Walker events lint",
-      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker",
+      "name": "native Storage events lint",
+      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream/storage",
       "command": "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m ./wevents",
       "log": "/private/tmp/fn107-task7-review-wevents-lint-native.log",
       "result": "exit0;0issues",
       "log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
     },
     {
-      "name": "Gomad Walker events lint",
-      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker",
+      "name": "Gomad Storage events lint",
+      "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream/storage",
       "command": "GOFLAGS=-p=2 mise exec -- golangci-lint run --timeout 2m --build-tags test_dep,gomad ./wevents",
       "log": "/private/tmp/fn107-task7-review-wevents-lint-gomad.log",
       "result": "exit0;0issues",
@@ -51,56 +51,56 @@
     },
     {
       "name": "matching invalid shardspace red",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryRejectsMatchingInvalidShardspace$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-red-space.log",
       "result": "expected exit1:expected InvalidArgument but got nil",
       "log_sha256": "f08074c68eb7ae717a66de16527169f073aaf01f47afc8d1ab61b4ed67093093"
     },
     {
       "name": "matching invalid shardspace green",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryRejectsMatchingInvalidShardspace$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-green-space.log",
       "result": "exit0",
       "log_sha256": "95f2ce3171a1aa6dd2e56ecd26b310762bd2907be79e4f24aa65f487bef5102f"
     },
     {
       "name": "HEWAL generation overflow red",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryHEWALGenerationBoundary$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryHEWALGenerationBoundary$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-red-generation.log",
       "result": "expected exit1:overflow expected InvalidArgument but got nil;green also validates positive MaxInt32 branch encoding and HE write routing",
       "log_sha256": "24c87c7961b666027e57c54fc78da2424741f836b2a6fe7718a361f816909cea"
     },
     {
       "name": "HEWAL generation overflow green",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryHEWALGenerationBoundary$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryHEWALGenerationBoundary$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-green-generation.log",
       "result": "exit0",
       "log_sha256": "a0e7541a79d26a383ad3b4d52244516720e1deb04acb1acadf99145a1e60b551"
     },
     {
       "name": "owned resource cleanup after registry startup red",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-red-owned.log",
       "result": "expected exit1:nil ElementLockModeConfig panic leaked owned SQL metadata Close;green also preserves specific unrelated panic value",
       "log_sha256": "f03ab15a664f4eca0db6e5778686b2eb3f3d9312e4e1807932d54d0c2000a05d"
     },
     {
       "name": "owned resource cleanup after registry startup green",
-      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedWalkerFactoryClosesOwnedMetadataAfterRegistryStartupPanic$' ./cds/export/cds",
+      "command": "GOFLAGS=-p=2 mise exec -- ./scripts/go-test.sh --failfast --tags test_dep,hashicorpmetrics --timeout 3m --run '^TestInjectedStorageFactoryClosesOwnedMetadataAfterRegistryStartupPanic$' ./cds/export/cds",
       "log": "/private/tmp/fn107-task7-review-green-owned.log",
       "result": "exit0",
       "log_sha256": "2f6c322faab96c00a9c99847f7669e79a78e84cf698b867fbaf32cae8f582b06"
     },
     {
-      "name": "Gomad Walker event encoder integration red",
-      "command": "GOFLAGS=-p=2 mise run test --run '^TestGomadReplicationEventsPreserveNestedWatermarks$' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./walker/wevents",
+      "name": "Gomad Storage event encoder integration red",
+      "command": "GOFLAGS=-p=2 mise run test --run '^TestGomadReplicationEventsPreserveNestedWatermarks$' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./storage/wevents",
       "log": "/private/tmp/fn107-task7-review-red-wevents.log",
       "result": "expected exit1:shared schema Encode(*chronicle.PayloadEncoder) did not satisfy Gomad events.Event",
       "log_sha256": "a2100615ed965aa3735963e56b8caa72319176365b60f89b9f730d2d97703343"
     },
     {
-      "name": "Gomad Walker event encoder integration green",
-      "command": "GOFLAGS=-p=2 mise run test --run '^TestGomadReplicationEventsPreserveNestedWatermarks$' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./walker/wevents",
+      "name": "Gomad Storage event encoder integration green",
+      "command": "GOFLAGS=-p=2 mise run test --run '^TestGomadReplicationEventsPreserveNestedWatermarks$' -- --tags test_dep,gomad,hashicorpmetrics --timeout 3m ./storage/wevents",
       "log": "/private/tmp/fn107-task7-review-green-wevents.log",
       "result": "exit0;3tests;actual logging preserves nested recovery watermark 4000000265",
       "log_sha256": "ef6673e7a901e6296fb565e5539412279a2937ea8ef8644da0bb2961a268e15c"

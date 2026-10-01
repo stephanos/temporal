@@ -1,0 +1,75 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a0f47b-f744-7d32-8ab1-fceeddea08c3",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-09-30T23:05:20.848236Z",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nDoctor now expects 10 adapters and 14 checks. Each metrics source-reading test downloads the exact module first; isolated-cache evidence confirms they pass independently.\n\nNo new blocking findings. All 18 source hashes and supplied evidence hashes match. Sentry changes only `util.go`, removes Git subprocess discovery, preserves comments and release-selection APIs, and returns unknown release with a diagnostic. Prepared inventories, platform pins, and supplied native/Linux checks agree.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R8 | partial | Source adapters and drift rejection verified. Final packs, SUPPORTED analyses on both platforms, and qualification remain externally pending. |\n\nUnaddressed R-IDs: []\n\nThis is a source-only approval; D8 remains open. No builds, edits, or commits were performed.\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Resume source-only D8 review against final18files /private/tmp/fn105-d8-source-identities.json and final hash-bound evidence/commands /private/tmp/fn105-d8-final-evidence.json. Both prior findings now actualRED/GREEN: doctor10adapters14checks correct; each metrics source-reading test alone against ownemptycache downloads exactmodule first; Sentry4source tests ownemptycache alsoRED/GREEN. Full4nativeaffectedpackages, fixedbaseline5b774... changedline lint0, generator0, actual Linux Sentryconsumer+pin+v13bootstrap golden allgreen. D8 scope expanded by actual final graph SentryGit\u2192execabs\u2192os.exec blocker through Pebble/Cockroacherrors, recorded fn105.8 description. Review exact registered Sentryv0.46.0adapter: onlyutil.go removesexecabsimport/privateoptionalGitfallback; preservescomments/APIs/explicitenv/buildinfo releases, emitsdiagnostic/unknownemptyrelease whenGitwouldbeneeded (existingoptionalmetadatafailure outcome), no fake release/subprocess. TestnativeRED fakeGitexec+hostrelease thenpreparedconsumer refusesGit/unknown plusenv/explicit/buildinfo andallidentity/anchor/inventorynegatives. Perplatformactualpreparedpins, profilev13/10catalog/bootstrapgoldens. Additionalfacts allcurrent18sourcecontents includinguntracked source/testdata, actual gitdiff HEAD trackedfiles. HEAD..HEAD intentionallyempty; userownscommits, fixesverifiedwithoutcommit. Fixedpreimplementationbaseline5b77480876c8262a8c882882a7f1ecffcc7aa10b available. No source edits/builds/commits. Finalcurrentconsumergraph evidence /private/tmp/fn107-d9-darwin/prepared-review-v13.json: thirdpartyexecabs andlocalStorage syscall edges eliminated aftersource seams; exactpack authoring/finalSUPPORTEDbothplatformanalyses/activatedqualifications still externallypending, do notclaimD8complete or flagtheseoutside-sourcegatepending as sourceissues. Updatepriorfinding status honestly andinspectnewSentrysource.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-8837f4502b1a1fca174a308273f59b7516e8c603d71c0f1395131f7b0479baea",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+    "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+    "supersedesReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+    "items": [
+      {
+        "id": "finding-32ce7025d62697d97384dade97fcdad4",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "Registering the adapter makes `cli",
+        "body": "Registering the adapter makes `cli.Check` return nine adapters and thirteen checks. The unchanged `TestCheckReportsAvailableContract` still expects eight adapters and twelve checks (`doctor_test.go:24,28`), so it deterministically fails. The supplied native checks exclude this CLI package.",
+        "rIds": [
+          "R8"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/deterministicio/profile.go",
+          "side": "head",
+          "startLine": 65,
+          "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b"
+        },
+        "suggestion": "Update both doctor expectations and verify `./cmd/gomad/internal/cli`.",
+        "firstSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "lastSeenReceiptId": "review-8837f4502b1a1fca174a308273f59b7516e8c603d71c0f1395131f7b0479baea"
+      },
+      {
+        "id": "finding-b916d7b5854c75432a7bd3f09658d701",
+        "ordinal": 2,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "The new consumer and source-drift tests read the pinned metrics module without downloading it",
+        "body": "The new consumer and source-drift tests read the pinned metrics module without downloading it. `pinnedModuleCache` only locates the cache. With an installed toolchain but no cached metrics module, running only `TestHashicorpMetrics*` fails before exercising the adapter. The supplied focused run masks this dependency by running the generic inventory test, which downloads the module first.",
+        "rIds": [
+          "R8"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+          "side": "head",
+          "startLine": 29,
+          "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b"
+        },
+        "suggestion": "Download the pinned module explicitly in each test that needs its sources, using the existing helper; alternatively, use `PrepareTargetBuildAdapters` for the consumer.",
+        "firstSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "lastSeenReceiptId": "review-8837f4502b1a1fca174a308273f59b7516e8c603d71c0f1395131f7b0479baea"
+      }
+    ]
+  }
+}

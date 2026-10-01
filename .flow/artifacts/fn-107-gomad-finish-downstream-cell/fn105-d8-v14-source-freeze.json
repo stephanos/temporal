@@ -1,0 +1,225 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "files": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+      "sha256": "sha256:3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "sha256:5ad6877eeff68c25b4e7a3a8eb1f9d57e3e7122e6d2464a95067c0eb0c51cc09"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "sha256:3d732433e7fdd1bf9c7350fe2655f5c33a7f1167e2b28260038cd3afe0f65f5a"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/cactusstatsd_adapter.go",
+      "sha256": "sha256:92acb37459407d9c543576df0765d63caa4ce5a795ade31dd7a191a7d8631f8d"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/cactusstatsd_adapter_test.go",
+      "sha256": "sha256:f5b8ddd852f374ee0ca4172f8a41f1ddb01f1ca79177b5b05e2cdc7c1165dce8"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/downstream_adapter_registry_test.go",
+      "sha256": "sha256:b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter.go",
+      "sha256": "sha256:be402dec17441fd890d1834a470e920af35d70b95a661afc8573f513b6aeb154"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "sha256": "sha256:ece2a3d03981705ed76969bef89defc8fa0dadd55f62824f9d58a1069e275483"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+      "sha256": "sha256:3c437d7f4598a75bba1d003e159767721be256331d090ea1c92ef8b06a560c84"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "sha256": "sha256:5f5bbbfb804a681a20a405dd13144a2088825f3fcc0a635a1cc451a0cb36b587"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "sha256": "sha256:ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter.go",
+      "sha256": "sha256:6b38d15a116ff5fb4db26ab48c7f740bfb0c8d1954421c7b0d429660f7b97db8"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter_test.go",
+      "sha256": "sha256:2f308d7cac199b7c383ff14496d681965c9a631320ff165234f0f1c4e9f8012e"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/pebble_adapter.go",
+      "sha256": "sha256:546013b1f69ae882e02be7e9d779082c2bd6adf92c808bf5e768b5f90f0390b4"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/pebble_adapter_test.go",
+      "sha256": "sha256:0829c89ba0cae751b5ac9829e3bff0ac988a22988d523ecd4b664e15bca5052b"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "sha256:1d32438c1bde926d6ca4552684ef961adc53e926712e50c2ad804bf419015aaa"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "sha256": "sha256:48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter.go",
+      "sha256": "sha256:0174c04933cb7e97e1ff18f9990df36b422969bc59a3ba9a5912bf47244cc062"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter_test.go",
+      "sha256": "sha256:c3f685863240737952af1c0752ba63e048bf1bdfe1297b986f721fc74b644f50"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_adapter.go",
+      "sha256": "sha256:df9c231bc1deaa6833bb1b9ef2e019c88e1e0d1d3c6c5c7e98d06df64a47dbd0"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "sha256": "sha256:9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sprig_adapter.go",
+      "sha256": "sha256:83a518072ae4d920712e2f90843ded4334a6061cbf63e76659733900b5ec9925"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sprig_adapter_test.go",
+      "sha256": "sha256:6685bdd890d4436083932aaa1fd1d1e1388afadbe7e9fef51f79b2d393f8860b"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go",
+      "sha256": "sha256:12fe996643e0786d3584095c65f7de206a3264ef9f3ca98111cdab5232588745"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/cactusstatsd/go.mod",
+      "sha256": "sha256:bf3bd503f759c13498c9e4b01138c391b0d5112929b7730cda56af9558e66a6d"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/cactusstatsd/go.sum",
+      "sha256": "sha256:f61be4dcc454fecbf2be1f6232fc80a1ce959d3bb3dda7c39db4147abe837ee5"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/grpcdns/dns_test.go",
+      "sha256": "sha256:c0f5f483c964a748c571b1f5a114e106c3aea6a89472136c284002abbc01c0d1"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.mod",
+      "sha256": "sha256:e56d89158f6595cc294e052f8bfcdf66cfe87ba90dd68a178ee676d01c0550a3"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.sum",
+      "sha256": "sha256:5ead8ce35c14f9e796f77e8aae46b18202e885935e665e751edcab8a60f77e67"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/metrics_test.go",
+      "sha256": "sha256:21aa88c348d91edd5aa0b3575274174ebf74a9f83860b6926bcda8569c2098c2"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/memberlist/go.mod",
+      "sha256": "sha256:8e80b51b8d49651634ea93e77a9fb7ad4cd9e3d61433052a04b3a5d998ca34c4"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/memberlist/go.sum",
+      "sha256": "sha256:6854dd4a319cdaac880cb3595774eea6edc26ba6d7fa2310767d22e69455c863"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/memberlist/memberlist_test.go",
+      "sha256": "sha256:e97c89f8186633a37ade0b4d6f92853702875740b97afb5e059ef1a24a845bf5"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/pebble/go.mod",
+      "sha256": "sha256:c030e27906e8fd3edd55c093df0e2167cea83f204d66041d0fa8a4780816f210"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/pebble/go.sum",
+      "sha256": "sha256:0de5f17e06a4f970f65216db001e877552cdb1791ac86827676aba10e3c26a83"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/pebble/pebble_test.go",
+      "sha256": "sha256:4fb681cc63a6b132717afbdff911f2eb214ede39a509450dd14a88f103366c02"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/go.mod",
+      "sha256": "sha256:a942f8db44ab9e4cd90f0e6807fa1411efd96b1e3ee4c16aafdc9cb6267525a0"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/go.sum",
+      "sha256": "sha256:a9b3992ed47b910937f53b44622b0e119d08fa64e7ca35c043d7f631b87ca07b"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/sentry_test.go",
+      "sha256": "sha256:78b2dd34ac3c5b9ca5d7fd8586e448a0462b46973a1e9b5adb1bed010faca480"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/boundary_test.go",
+      "sha256": "sha256:5bc6df2cbf3ddd11f5e2014c3f9ecfa6d85ecca20a49c5ea50276e2f18fc66d1"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/go.mod",
+      "sha256": "sha256:636b8e9750435f50414b066d20339a8716b730d205358556becf40af8aede3c0"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/go.sum",
+      "sha256": "sha256:5aa01529b7b8b9dea1955a4af1202bb1c89502bbfe528a06503b84cdbed6f499"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/main.go",
+      "sha256": "sha256:92763ec87afd8a411500ba2885662aa3b6e113930501ea0b72bcb1e71a99fb0d"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "sha256": "sha256:18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.sum",
+      "sha256": "sha256:382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/sprig_test.go",
+      "sha256": "sha256:ad9ca321e128b43f301992cd9a87d37113a30d9969e1d56446366be20f020072"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/validator/go.mod",
+      "sha256": "sha256:5bf487135fa027ebff8ae0b8a0c9ff423389029e9dbe0d513b2fcd0b844e5f12"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/validator/go.sum",
+      "sha256": "sha256:546e32872847a0bd6fba6561884c14b49065232a38dd87160256b558cb47c649"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/validator/validator_test.go",
+      "sha256": "sha256:ebf087652976173335134c8b5f455debad191659b373b9564d8b93cbbd3cd4c3"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/validator_adapter.go",
+      "sha256": "sha256:eb5b59122e1e9cbbe417d2a1ea4b0648ecf18e1fbc62db65574557ff41bf2771"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/validator_adapter_test.go",
+      "sha256": "sha256:ec2b6779be812135ac3e6a53a990ef2439bb918b14ad4c130d3af7937d7cc2d8"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/descriptor.go",
+      "sha256": "sha256:881e0a90a1d4ef6349c87a05883c0a62bf06cf695c012e629aaaa45c232ad6fc"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/descriptor_test.go",
+      "sha256": "sha256:e1fe658d1cdd439b20dbe074430b9e2ad8cd9e439f3b0f12f4fd53573abf413c"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/generated.go",
+      "sha256": "sha256:9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "sha256:87eb02f3f8c27c42d411c5a82ae98ef5e86d0e17605f1c6cec10bae316275c2c"
+    }
+  ]
+}

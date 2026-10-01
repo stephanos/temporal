@@ -1,8 +1,8 @@
-Adding "walker"
-Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
-[testrunner] 2026/09/30 14:41:09 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-973d3345-02d8-41d7-b6cb-02b78e62f9bb-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryHEWALGenerationBoundary$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/export/cds
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream...
+[testrunner] 2026/09/30 14:41:09 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-973d3345-02d8-41d7-b6cb-02b78e62f9bb-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedStorageFactoryHEWALGenerationBoundary$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test_0.cover.out ./cds/export/cds
 ✓  cds/export/cds (3.738s) (coverage: 2.9% of statements)
 
 DONE 3 tests in 3.738s
-[testrunner] 2026/09/30 14:41:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
-[testrunner] 2026/09/30 14:41:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:41:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
+[testrunner] 2026/09/30 14:41:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml

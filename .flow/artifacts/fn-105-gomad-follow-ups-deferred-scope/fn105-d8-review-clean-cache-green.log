@@ -1,0 +1,33 @@
+=== RUN   TestHashicorpMetricsAdapterConsumer
+    hashicorpmetrics_adapter_test.go:52: prepared stock metrics consumer:
+        go: downloading github.com/hashicorp/go-immutable-radix v1.0.0
+        go: downloading github.com/hashicorp/golang-lru v0.5.0
+        === RUN   TestSignalServicesRefuse
+        === RUN   TestSignalServicesRefuse/compat
+        === RUN   TestSignalServicesRefuse/compat-default
+        === RUN   TestSignalServicesRefuse/root
+        === RUN   TestSignalServicesRefuse/root-default
+        --- PASS: TestSignalServicesRefuse (0.00s)
+            --- PASS: TestSignalServicesRefuse/compat (0.00s)
+            --- PASS: TestSignalServicesRefuse/compat-default (0.00s)
+            --- PASS: TestSignalServicesRefuse/root (0.00s)
+            --- PASS: TestSignalServicesRefuse/root-default (0.00s)
+        === RUN   TestOrdinaryMetricsEmissionSurvives
+        --- PASS: TestOrdinaryMetricsEmissionSurvives (0.00s)
+        PASS
+        ok  	gomad3.adapter.hashicorpmetrics	0.571s
+--- PASS: TestHashicorpMetricsAdapterConsumer (2.65s)
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/upstream-edit
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/missing-anchor
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/ambiguous-anchor
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/replacement-edit
+--- PASS: TestHashicorpMetricsRewriteRejectsDrift (0.09s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/upstream-edit (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/missing-anchor (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/ambiguous-anchor (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/replacement-edit (0.00s)
+=== RUN   TestHashicorpMetricsRejectsUnrewrittenInventoryDrift
+--- PASS: TestHashicorpMetricsRejectsUnrewrittenInventoryDrift (0.09s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	3.449s

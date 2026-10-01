@@ -1,10 +1,10 @@
 mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
 [test] $ ./scripts/go-test.sh --failfast -r '^TestGomadReplicationEventsPreserv…
-Adding "walker"
-Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker...
-[testrunner] 2026/09/30 14:43:57 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-266abd87-ec19-4f34-9f64-e28a23ecd74f-junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run ^TestGomadReplicationEventsPreserveNestedWatermarks$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./wevents
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/storage...
+[testrunner] 2026/09/30 14:43:57 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-266abd87-ec19-4f34-9f64-e28a23ecd74f-junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run ^TestGomadReplicationEventsPreserveNestedWatermarks$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test_0.cover.out ./wevents
 ✓  wevents (2.204s) (coverage: 32.0% of statements)
 
 DONE 3 tests in 2.204s
-[testrunner] 2026/09/30 14:44:02 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
-[testrunner] 2026/09/30 14:44:02 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:44:02 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
+[testrunner] 2026/09/30 14:44:02 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml

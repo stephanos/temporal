@@ -1,0 +1,5 @@
+--- FAIL: TestHashicorpMetricsAdapterConsumer (1.51s)
+    hashicorpmetrics_adapter_test.go:47: capability review requires source, working directory, and toolchain root
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	2.028s
+FAIL

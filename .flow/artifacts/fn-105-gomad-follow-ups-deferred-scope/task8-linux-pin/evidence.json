@@ -1,0 +1,76 @@
+{
+  "module": "github.com/hashicorp/go-sockaddr",
+  "version": "v1.0.7",
+  "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=",
+  "image_id": "sha256:ecb923204467d17aa269ee9b123c80892bcd202eae287617a8baeb6afbd42a5e",
+  "repo_digest": "golang@sha256:e0174e51e81218523251d85d248a90d24c3d5e81543b4f07a5d66229397db190",
+  "platform": "linux/amd64",
+  "build_tags": [
+    "test_dep",
+    "integration",
+    "hashicorpmetrics",
+    "gomad"
+  ],
+  "original_inventory_sha256": "sha256:ffbeb087a82c83f3e04f3c7f85317e40096a21854b6ce86ce3edc9c5809357c1",
+  "replacement_inventory_sha256": "sha256:8b26b980151c28eb5fbfdc1e2cde5ef7cb213d36e37271cccd0fa2304ac6087b",
+  "listed_package_json_sha256": "sha256:3e224ec48a31ce391a2e38cf87317c75d766b50916e5d719252a5ab545036cc6",
+  "prepared_source_set_sha256": "sha256:8c5b97964cc5167108dbafac200c59685381a16cde8e9f125c322a98ad171aba",
+  "sources": [
+    {
+      "name": "doc.go",
+      "sha256": "sha256:ef22cc0cb1ad857a3e1c756aa9e1341935570bfe9dbb9b8ae1e5a4801dca3020"
+    },
+    {
+      "name": "ifaddr.go",
+      "sha256": "sha256:a157f32dfadf8dfcadbd4cec1e41fafcf70a6c1a59d60e9c9083f92fb5c736f9"
+    },
+    {
+      "name": "ifaddrs.go",
+      "sha256": "sha256:69d92dce7cb9059ed8cba28b8ed596111b44105b7447125f8f1acf944b3e4ca2"
+    },
+    {
+      "name": "ifattr.go",
+      "sha256": "sha256:926fa616231e2c04092a313a74d3782ac72ebc3127d2c1ae9c96eb63f336c6e2"
+    },
+    {
+      "name": "ipaddr.go",
+      "sha256": "sha256:d2b0b540770e976c713ce28616e0781eca845907b8154a645ad6b04a1912570b"
+    },
+    {
+      "name": "ipaddrs.go",
+      "sha256": "sha256:fbdc1ae490501f93bcabe7f8b72f025d19147ae1a39567d363dc9f40e6aee662"
+    },
+    {
+      "name": "ipv4addr.go",
+      "sha256": "sha256:9655d8a01b9bc8e7a46f38335a144e2f3e57d2757d72fcb2cc00514ac2d65a48"
+    },
+    {
+      "name": "ipv6addr.go",
+      "sha256": "sha256:ff59a903ea308a82b9c6fe62a0a47ffa952d130e3268641b9a22dcf25f231fae"
+    },
+    {
+      "name": "rfc.go",
+      "sha256": "sha256:df66755d30a19355ca918fce9658a9e7115e728ea788fc023e44e4ac12c14da4"
+    },
+    {
+      "name": "route_info.go",
+      "sha256": "sha256:2b30075356b65198aac888c58cc2cedcace1698999d8679d0de33bb64c7eb995"
+    },
+    {
+      "name": "route_info_linux.go",
+      "sha256": "sha256:3f93d047bf59e363e5fdb68bc030b457dc21d4d05336285273b963794dbada94"
+    },
+    {
+      "name": "sockaddr.go",
+      "sha256": "sha256:ff0432d11513a8353df29e237bb18c7889a12bf8920163837740caf09a083768"
+    },
+    {
+      "name": "sockaddrs.go",
+      "sha256": "sha256:3675fd8c019540245c844dac08bd37a2ad83bc13c54602f6be8c1dfbfa517a9f"
+    },
+    {
+      "name": "unixsock.go",
+      "sha256": "sha256:50dc4fc39fa2566a3b3c6908c30ab1b6cab1eb5d3359072105d0367bbd82c151"
+    }
+  ]
+}

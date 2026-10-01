@@ -1,0 +1,29 @@
+{
+  "closure_evidence": "Cross-platform stock go-list proves execabs absent and no nonstandard os/exec import edge; trusted standard go/build to os/exec remains.",
+  "cold_green_cache": "/private/tmp/fn107-sentry-cold-green.7UKpi6",
+  "cold_green_exit": 0,
+  "cold_red_exit": 1,
+  "files": {
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/sentry_adapter.go": "0174c04933cb7e97e1ff18f9990df36b422969bc59a3ba9a5912bf47244cc062",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/sentry_adapter_test.go": "c3f685863240737952af1c0752ba63e048bf1bdfe1297b986f721fc74b644f50",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/testdata/sentry/go.mod": "a942f8db44ab9e4cd90f0e6807fa1411efd96b1e3ee4c16aafdc9cb6267525a0",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/testdata/sentry/go.sum": "a9b3992ed47b910937f53b44622b0e119d08fa64e7ca35c043d7f631b87ca07b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/testdata/sentry/sentry_test.go": "78b2dd34ac3c5b9ca5d7fd8586e448a0462b46973a1e9b5adb1bed010faca480",
+    "/private/tmp/fn107-sentry-cold-green.log": "f2a07dc570ab190ed587885defc17e66d79324401bae3ea96b21bbf15b41a06f",
+    "/private/tmp/fn107-sentry-cold-red.log": "c3afeedd5d78689779abac69d7ba2e2d1f6d35a029d5f5395064c84bc7ac6e3a",
+    "/private/tmp/fn107-sentry-green-final.log": "28d00bd9a4354063156d411be434f3645d4bd2767e777f094d09e49a682463af",
+    "/private/tmp/fn107-sentry-green.log": "a44d0c42725698965a9330f996a793c34155bf25b5c7c4cfe7c2ac6300aa75c6",
+    "/private/tmp/fn107-sentry-native-red.log": "50e2be844bca81f51868c304a048cd712dfd0f28aaba0b123466c128b8d23374",
+    "/private/tmp/fn107-sentry-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "final_green_command": "env -u GOROOT PATH=/Users/stephan/.local/share/mise/installs/go/1.27.1/bin:$PATH GOWORK=off GOFLAGS= go test -p=2 -count=1 -run ^TestSentry -v ./deterministicio",
+  "green_command": "env -u GOROOT GOWORK=off GOFLAGS= go test -p=2 -count=1 -run ^TestSentry -v ./deterministicio",
+  "green_exit": 0,
+  "native_go": "/Users/stephan/.local/share/mise/installs/go/1.27.1/bin/go",
+  "native_red_exit": 1,
+  "prepared_source_set": {
+    "darwin/arm64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
+    "linux/amd64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb"
+  },
+  "vet_exit": 0
+}

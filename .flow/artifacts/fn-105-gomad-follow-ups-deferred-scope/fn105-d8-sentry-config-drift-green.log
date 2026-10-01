@@ -1,0 +1,16 @@
+=== RUN   TestProfileRejectsSentryConfigurationDrift
+=== RUN   TestProfileRejectsSentryConfigurationDrift/version
+=== RUN   TestProfileRejectsSentryConfigurationDrift/replacement
+=== RUN   TestProfileRejectsSentryConfigurationDrift/version-replacement
+=== RUN   TestProfileRejectsSentryConfigurationDrift/sum
+=== RUN   TestProfileRejectsSentryConfigurationDrift/missing-sum
+=== RUN   TestProfileRejectsSentryConfigurationDrift/build-modfile
+--- PASS: TestProfileRejectsSentryConfigurationDrift (0.01s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/version (0.00s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/replacement (0.00s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/version-replacement (0.00s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/sum (0.00s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/missing-sum (0.00s)
+    --- PASS: TestProfileRejectsSentryConfigurationDrift/build-modfile (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.513s

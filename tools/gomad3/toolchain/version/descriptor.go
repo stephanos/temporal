@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"golang.org/x/mod/module"
 )
 
 const descriptorPath = "toolchain/version/version.json"
@@ -21,7 +22,6 @@ const descriptorPath = "toolchain/version/version.json"
 var (
 	goVersionPattern = regexp.MustCompile(`^go[1-9][0-9]*\.[0-9]+\.[0-9]+$`)
 	sha256Pattern    = regexp.MustCompile(`^[0-9a-f]{64}$`)
-	versionPattern   = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
 )
 
 type Descriptor struct {
@@ -134,9 +134,9 @@ func validateSourceAllowlists(root string, descriptor Descriptor) error {
 
 	overlayRoot := filepath.Join(root, "toolchain", "runtime", "overlay")
 	var overlayPaths []string
-	err = filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err = filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if entry.IsDir() {
 			return nil
@@ -191,7 +191,7 @@ func validate(descriptor Descriptor) error {
 		return err
 	}
 	for index, adapter := range descriptor.Adapters {
-		if adapter.Module == "" || !versionPattern.MatchString(adapter.Version) || !strings.HasPrefix(adapter.Sum, "h1:") {
+		if adapter.Module == "" || adapter.Version == "" || module.CanonicalVersion(adapter.Version) != adapter.Version || !strings.HasPrefix(adapter.Sum, "h1:") {
 			return fmt.Errorf("version descriptor adapter %d is invalid", index+1)
 		}
 		if index > 0 && adapter.Module <= descriptor.Adapters[index-1].Module {

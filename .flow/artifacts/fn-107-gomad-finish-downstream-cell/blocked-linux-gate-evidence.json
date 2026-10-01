@@ -1,0 +1,115 @@
+{
+  "schema": "fn107-linux-gate-status/v1",
+  "recorded_at": "2026-10-01T00:35:48.478539+00:00",
+  "source_freeze": {
+    "file_count": 79,
+    "all_match": true,
+    "evidence": {
+      "path": "/private/tmp/fn107-d9-linux/v14/source-freeze-verification.json",
+      "sha256": "sha256:84673de81733c682b33439782b369e17d171cd7937aa08ffbb97ffd6dada3aa5",
+      "bytes": 31241
+    },
+    "descriptor_sha256": "sha256:881e0a90a1d4ef6349c87a05883c0a62bf06cf695c012e629aaaa45c232ad6fc"
+  },
+  "blocked": true,
+  "blocking_condition": "Current workspace-write sandbox denies connecting to Docker socket /Users/stephan/.docker/run/docker.sock. Approval policy never prohibits escalation; no alternate socket or sandbox bypass attempted.",
+  "attempt": {
+    "argv": [
+      "/bin/bash",
+      "/private/tmp/fn107-d9-linux/v14/docker.sh",
+      "/bin/bash",
+      "/artifacts/v14/build.sh"
+    ],
+    "exit_status": 1,
+    "stdout": {
+      "path": "/private/tmp/fn107-d9-linux/v14/build-refresh.stdout.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "stderr": {
+      "path": "/private/tmp/fn107-d9-linux/v14/build-refresh.stderr.log",
+      "sha256": "sha256:97870842a04d5bcb8de6250bfde1306f2922726acc07a6e1866e2b6a91de7eb1",
+      "bytes": 109
+    }
+  },
+  "preservation": {
+    "directory": "/private/tmp/fn107-d9-linux/v14/pre-descriptor-format-preserved",
+    "copy_function": "shutil.copy2"
+  },
+  "prior_v14_before_final_descriptor_import_grouping": {
+    "doctor": {
+      "path": "/private/tmp/fn107-d9-linux/v14/pre-descriptor-format-preserved/doctor.json",
+      "sha256": "sha256:98ccf71267201a54cb1ad05ed7902c3227da4ae9fe98c5ab8d76743e6adea325",
+      "bytes": 5600
+    },
+    "available": true,
+    "adapters": 15,
+    "checks": 19,
+    "checks_ok": true,
+    "host": "linux/amd64",
+    "toolchain_build": "9478100322947d6b678a236970267529bf8f238b9a777f509ffdf54c7e016697",
+    "runner_build": "sha256:dc6a8faec35d1c1e0e71e52d05244bb8ca05bae57f25089684d059ee8c070dbf",
+    "io_inventory_sha256": "sha256:b556d860816c57c032f82e68dfe120ed6df6978be23424ce3ecd68acf2a7907f",
+    "io_implementation_sha256": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b",
+    "prepared_review": {
+      "path": "/private/tmp/fn107-d9-linux/v14/pre-descriptor-format-preserved/prepared-review.json",
+      "sha256": "sha256:cb170efba61f69dab725d801780da51f16cb608aa446b435b6e26ce716d08580",
+      "bytes": 1757733
+    },
+    "prepared_findings": 46,
+    "prepared_packages": 1399,
+    "baseline": {
+      "path": "/private/tmp/fn107-d9-linux/v14/pre-descriptor-format-preserved/baseline-closure.json",
+      "sha256": "sha256:7d0307becec5d9c8e28145a32f985010b3cbaaad478d07722d2070bbdcd8c661",
+      "bytes": 168601
+    },
+    "baseline_status": 1,
+    "baseline_classification": "unsupported",
+    "baseline_blockers": 46,
+    "profile_and_generator_tests_log": {
+      "path": "/private/tmp/fn107-d9-linux/v14/pre-descriptor-format-preserved/profile-and-generator-tests.log",
+      "sha256": "sha256:45ac9536625642707c2e491756381c20039645c1375954dc8163b2b23e7dbf07",
+      "bytes": 2993
+    }
+  },
+  "current_consumer_pack": {
+    "request": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad/compatibility/linux-amd64/requests/storage-workflow-linux-amd64.json",
+      "sha256": "sha256:714a3c0bc21a4f411c221e95f24ea0a703ace0f33ea7bedb77291e4c22934d78",
+      "bytes": 76068
+    },
+    "approval_sha256": "sha256:1ae177a50fcd206f88bc006d6e90f0b1527bf7b826dae792f4c7391cd8574063",
+    "generation": "v13; not refreshed to v14"
+  },
+  "prior_v13_final_gate": {
+    "closure_exit_status": 0,
+    "closure_classification": "supported",
+    "linked_exit_status": 3,
+    "linked_stderr": {
+      "path": "/private/tmp/fn107-d9-linux/v13-final-preserved/analysis-linked.stderr.log",
+      "sha256": "sha256:402eb1a0e9ed6a36d2003b1c30395cf04e0ae412e1a4b394f1746f0cc2e2d066",
+      "bytes": 191
+    }
+  },
+  "unperformed_after_final_descriptor_import_grouping": [
+    "fresh Linux bootstrap and patched runner build",
+    "fresh doctor",
+    "fresh prepared review",
+    "consumer pack discover and canonical review",
+    "root canonical-governance approval",
+    "consumer pack generate, check, qualify",
+    "strict closure support analysis",
+    "strict linked support analysis",
+    "application qualification and same-host exact replay"
+  ],
+  "resumption_order": [
+    "/private/tmp/fn107-d9-linux/v14/docker.sh /bin/bash /artifacts/v14/build.sh",
+    "/private/tmp/fn107-d9-linux/v14/docker.sh /bin/bash /artifacts/v14/prepare.sh",
+    "/private/tmp/fn107-d9-linux/v14/docker.sh /bin/bash /artifacts/v14/author-discover-review.sh",
+    "Send canonical review and digest to root; await root approval of concrete facts; do not generate beforehand",
+    "Run fresh v14 generator check and qualify with approved digest",
+    "/private/tmp/fn107-d9-linux/v14/docker.sh /bin/bash /artifacts/v14/analysis.sh",
+    "Both strict support modes must be SUPPORTED with status 0 before root coordinates any application execution"
+  ],
+  "claims": "No fresh Linux support, qualified target, application execution, or replay claim. No source, governance, Flow state, staging, commit, or worktree mutation."
+}

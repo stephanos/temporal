@@ -28,6 +28,50 @@ var rewrittenModuleAdapters = []struct {
 	outsideServerGraph bool
 }{
 	{
+		name: "sprig", module: sprigModulePath, version: sprigVersion, sum: sprigSum, preparedPackage: sprigModulePath, importPath: sprigModulePath,
+		prepare: prepareSprig, rewrites: sprigRewrites,
+		originalInventorySHA256: sprigOriginalSourceInventorySHA256, replacementInventorySHA256: sprigReplacementSourceInventorySHA256, preparedSourceSetSHA256: sprigPreparedSourceSetSHA256,
+	},
+	{
+		name: "validator", module: validatorModulePath, version: validatorVersion, sum: validatorSum, preparedPackage: validatorModulePath, importPath: validatorModulePath,
+		prepare: prepareValidator, rewrites: validatorRewrites,
+		originalInventorySHA256: validatorOriginalSourceInventorySHA256, replacementInventorySHA256: validatorReplacementSourceInventorySHA256, preparedSourceSetSHA256: validatorPreparedSourceSetSHA256,
+		outsideServerGraph: true,
+	},
+	{
+		name: "pebble", module: pebbleModulePath, version: pebbleVersion, sum: pebbleSum, preparedPackage: pebbleModulePath + "/vfs", importPath: pebbleModulePath + "/vfs",
+		prepare: preparePebble, rewrites: pebbleRewrites,
+		originalInventorySHA256: pebbleOriginalSourceInventorySHA256, replacementInventorySHA256: pebbleReplacementSourceInventorySHA256, preparedSourceSetSHA256: pebblePreparedSourceSetSHA256,
+		outsideServerGraph: true,
+	},
+	{
+		name: "cactusstatsd", module: cactusStatsDModulePath, version: cactusStatsDVersion, sum: cactusStatsDSum, preparedPackage: cactusStatsDModulePath + "/statsd", importPath: cactusStatsDModulePath + "/statsd",
+		prepare: prepareCactusStatsD, rewrites: cactusStatsDRewrites,
+		originalInventorySHA256: cactusStatsDOriginalSourceInventorySHA256, replacementInventorySHA256: cactusStatsDReplacementSourceInventorySHA256, preparedSourceSetSHA256: cactusStatsDPreparedSourceSetSHA256,
+	},
+	{
+		name: "memberlist", module: memberlistModulePath, version: memberlistVersion, sum: memberlistSum, preparedPackage: memberlistModulePath, importPath: memberlistModulePath,
+		prepare: prepareMemberlist, rewrites: memberlistRewrites,
+		originalInventorySHA256: memberlistOriginalSourceInventorySHA256, replacementInventorySHA256: memberlistReplacementSourceInventorySHA256, preparedSourceSetSHA256: memberlistPreparedSourceSetSHA256,
+		outsideServerGraph: true,
+	},
+	{
+		name: "sentry", module: sentryModulePath, version: sentryVersion, sum: sentrySum, preparedPackage: sentryModulePath, importPath: sentryModulePath,
+		prepare: prepareSentry, rewrites: sentryRewrites,
+		originalInventorySHA256: sentryOriginalSourceInventorySHA256, replacementInventorySHA256: sentryReplacementSourceInventorySHA256, preparedSourceSetSHA256: sentryPreparedSourceSetSHA256,
+		removed:            []string{"\"golang.org/x/sys/execabs\"", "exec.LookPath", "exec.Command"},
+		retained:           []string{"func defaultRelease() (release string) {", "func revisionFromBuildInfo(info *debug.BuildInfo) string {", "\"SENTRY_RELEASE\"", "debug.ReadBuildInfo()"},
+		outsideServerGraph: true,
+	},
+	{
+		name: "hashicorp-metrics", module: hashicorpMetricsModulePath, version: hashicorpMetricsVersion, sum: hashicorpMetricsSum, preparedPackage: hashicorpMetricsModulePath, importPath: hashicorpMetricsModulePath,
+		prepare: prepareHashicorpMetrics, rewrites: hashicorpMetricsRewrites,
+		originalInventorySHA256: hashicorpMetricsOriginalSourceInventorySHA256, replacementInventorySHA256: hashicorpMetricsReplacementSourceInventorySHA256, preparedSourceSetSHA256: hashicorpMetricsPreparedSourceSetSHA256,
+		removed:            []string{"\"os/signal\"", "signal.Notify", "signal.Stop", "go i.run()"},
+		retained:           []string{"sig syscall.Signal", "func (i *InmemSignal) Stop() {", "func (i *InmemSignal) dumpStats() {", "func (i *InmemSignal) flattenLabels(name string, labels []Label) string {"},
+		outsideServerGraph: true,
+	},
+	{
 		name: "fx", module: fxModulePath, version: fxVersion, sum: fxSum, preparedPackage: fxModulePath, importPath: fxModulePath,
 		prepare: prepareFx, rewrites: fxRewrites,
 		originalInventorySHA256: fxOriginalSourceInventorySHA256, replacementInventorySHA256: fxReplacementSourceInventorySHA256, preparedSourceSetSHA256: fxPreparedSourceSetSHA256,
@@ -243,5 +287,81 @@ func downloadPinnedModule(t *testing.T, module, version string) {
 	command.Env = append(os.Environ(), "GOWORK=off", "GOFLAGS=")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("download %s@%s: %v\n%s", module, version, err, output)
+	}
+}
+
+func TestProfileSelectsSentryAdapter(t *testing.T) {
+	downloadPinnedModule(t, sentryModulePath, sentryVersion)
+	workingDirectory := t.TempDir()
+	for _, name := range []string{"go.mod", "go.sum", "sentry_test.go"} {
+		contents, err := os.ReadFile(filepath.Join("testdata", "sentry", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(workingDirectory, name), contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	spec, adapters, err := Default().PrepareBuildAdapters(target.Spec{
+		Kind: target.KindGoTest, Source: ".", WorkingDir: workingDirectory,
+		PreparationRoot: t.TempDir(), BuildTags: []string{"test_dep", "integration", "hashicorpmetrics", "gomad"},
+	}, pinnedModuleCache(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(adapters) != 1 || adapters[0].Module != sentryModulePath || adapters[0].PreparedSourceSetSHA256 != sentryPreparedSourceSetSHA256 {
+		t.Fatalf("Sentry profile adapter selection = %#v", adapters)
+	}
+	command := exec.CommandContext(t.Context(), "go", "env", "GOROOT")
+	command.Env = append(os.Environ(), "GOWORK=off", "GOFLAGS=")
+	toolchainRoot, err := command.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec.ToolchainRoot = strings.TrimSpace(string(toolchainRoot))
+	if _, err := target.ReviewCapabilities(t.Context(), spec); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestProfileRejectsSentryConfigurationDrift(t *testing.T) {
+	for _, test := range []struct {
+		name         string
+		version      string
+		replace      string
+		sum          string
+		buildModFile bool
+		want         string
+	}{
+		{name: "version", version: "v0.45.0", want: "unsupported github.com/getsentry/sentry-go version"},
+		{name: "replacement", replace: "replace github.com/getsentry/sentry-go => ./sentry\n", want: "already replaces github.com/getsentry/sentry-go"},
+		{name: "version-replacement", replace: "replace github.com/getsentry/sentry-go v0.46.0 => ./sentry\n", want: "already replaces github.com/getsentry/sentry-go"},
+		{name: "sum", sum: "h1:changed", want: "module sum"},
+		{name: "missing-sum", want: "module sum"},
+		{name: "build-modfile", buildModFile: true, want: "existing build modfile"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			workingDirectory := t.TempDir()
+			version := test.version
+			if version == "" {
+				version = sentryVersion
+			}
+			modFile := "module example.test\n\ngo 1.27.1\n\nrequire " + sentryModulePath + " " + version + "\n" + test.replace
+			if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(modFile), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if test.sum != "" {
+				if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte(sentryModulePath+" "+version+" "+test.sum+"\n"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			spec := target.Spec{WorkingDir: workingDirectory, PreparationRoot: t.TempDir()}
+			if test.buildModFile {
+				spec.BuildModFile = filepath.Join(workingDirectory, "existing.mod")
+			}
+			if _, _, err := Default().PrepareBuildAdapters(spec, t.TempDir()); !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("prepare configuration: %v, want %s", err, test.want)
+			}
+		})
 	}
 }

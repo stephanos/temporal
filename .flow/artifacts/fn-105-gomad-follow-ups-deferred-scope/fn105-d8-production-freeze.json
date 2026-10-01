@@ -1,0 +1,36 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "production_frozen": true,
+  "implementation_version": "gomad3.deterministic-io/v1/implementation-v13",
+  "actual_linux_sentry_evidence": "/private/tmp/fn105-d8-sentry-linux/evidence.json",
+  "files": [
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+      "sha256": "sha256:3c437d7f4598a75bba1d003e159767721be256331d090ea1c92ef8b06a560c84"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter.go",
+      "sha256": "sha256:0174c04933cb7e97e1ff18f9990df36b422969bc59a3ba9a5912bf47244cc062"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_adapter.go",
+      "sha256": "sha256:6af34f2505b7e95d73d81b1b18df87c9d72486b29081e2c6d5725fd7f2708b54"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "sha256:a7211001fc46a4981582ffd64339f6f60edb510e312f9fdfae8a09e432b85c32"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "sha256:8957604b5c676588fc210d383002c4b9f1aaf452e478fdcc3337df0e0b4cf925"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/generated.go",
+      "sha256": "sha256:e4a38aae0ce1af9d35d624bbbc131aeda28a1b04c509167029399613a22e6cdb"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "sha256:b580335ed899f739d3a57fd35053ba70a49eb84dee81c487feed8e0d01c72489"
+    }
+  ]
+}

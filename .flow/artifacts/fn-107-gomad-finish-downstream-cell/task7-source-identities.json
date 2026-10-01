@@ -1,17 +1,17 @@
 {
-  "workdir": "/Users/stephan/Workspace/skunkworks/gomad/saas-temporal",
+  "workdir": "/Users/stephan/Workspace/skunkworks/gomad/downstream",
   "base": "398d6c30d8a30d518732e79615d49ba128bf77e6",
   "previous_inventory": "/private/tmp/fn107-task7-inventory.json",
   "changed_this_revision": [
     "cds/export/cds/injected_factory.go",
     "cds/export/cds/injected_factory_test.go",
     "cloudmetricshandler/events/producer_gomad.go",
-    "walker/wevents/replica.go",
-    "walker/wevents/replication.go",
-    "walker/wevents/roperation.go",
-    "walker/wevents/shardspace.go",
-    "walker/wevents/replication_test.go",
-    "walker/wevents/replication_gomad_test.go"
+    "storage/wevents/replica.go",
+    "storage/wevents/replication.go",
+    "storage/wevents/roperation.go",
+    "storage/wevents/shardspace.go",
+    "storage/wevents/replication_test.go",
+    "storage/wevents/replication_gomad_test.go"
   ],
   "files": [
     {
@@ -330,32 +330,32 @@
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/replica.go",
+      "path": "storage/wevents/replica.go",
       "sha256": "4a9fbad4424d4e463d6a8478df3faef45abf47e560549259de9b40748d6c929e",
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/replication.go",
+      "path": "storage/wevents/replication.go",
       "sha256": "52848125584db04e65bfae77fac6355a79c0c8a6ecc4391d2253d2cfb0f055ba",
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/replication_gomad_test.go",
+      "path": "storage/wevents/replication_gomad_test.go",
       "sha256": "762c79d29ffc1894a11936344a12d720d15f2fe44b37c97a64c3fef6da37ca5d",
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/replication_test.go",
+      "path": "storage/wevents/replication_test.go",
       "sha256": "a28955fc628f646d335fcc3333943fec492d6c85d741340aa0f331c86bb21177",
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/roperation.go",
+      "path": "storage/wevents/roperation.go",
       "sha256": "7d8171bd1edba2fd82fc622f84745fb872d27968265e903d5f8e5e3655b06297",
       "mode": "0o644"
     },
     {
-      "path": "walker/wevents/shardspace.go",
+      "path": "storage/wevents/shardspace.go",
       "sha256": "0ef25b5f56f079457089d180420a93ac015f154bed1ed82174d0c520cf7c8f1f",
       "mode": "0o644"
     }

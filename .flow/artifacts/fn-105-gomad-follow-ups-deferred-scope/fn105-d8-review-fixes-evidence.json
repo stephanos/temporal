@@ -1,0 +1,64 @@
+{
+  "changed_source_files": [
+    "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+    "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go"
+  ],
+  "production_profile_version_unchanged": true,
+  "source_inventory": "/private/tmp/fn105-d8-source-identities-metrics-review-fixes.json",
+  "source_inventory_round1": "/private/tmp/fn105-d8-source-identities-round1.json",
+  "logs": [
+    {
+      "path": "/private/tmp/fn105-d8-review-doctor-red.log",
+      "sha256": "sha256:8ea48b0852d6d98ffad291a39926cfc2dbaac247a1ce769f70f88a2cea7c327f"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-doctor-green.log",
+      "sha256": "sha256:fdc183c264a73e96adca02196fe2a6edacf88a13232e3ab8894fd8d9609ba897"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-clean-cache-red.log",
+      "sha256": "sha256:b6e27cccf5508506e6c762640dbdf6e3ea0d072a885ceb8ab94267c70e5182fb"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-clean-cache-green.log",
+      "sha256": "sha256:50f6e0fb73c53589be023218e81433b7ce64cd78ae5641bc89e4b9d587db8d3b"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-isolated-RewriteRejectsDrift.log",
+      "sha256": "sha256:2121f4fb76f091abbc8f8447bd39f3624ac8b9a659d1fbf52e8cdd43001b3f0a"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-isolated-RejectsUnrewrittenInventoryDrift.log",
+      "sha256": "sha256:c5329dd249ed8c05bd8c6db076ad3b31efd06a3f7e1951008986ca7072ffe13f"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-isolated-AdapterConsumer.log",
+      "sha256": "sha256:ccafa7ce1e34f757176814c83e4a73051583761afd0ed0e7ee583085df0782ea"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-focused-green.log",
+      "sha256": "sha256:a726f6875413d7becd4899bb74218cf09d45a7475abe139035679391f4764631"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-cli-native.log",
+      "sha256": "sha256:aa254182d0d72dc2ce16d5e3a78b5071810e38f0bae6c66a836067df309e3925"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-lint-stable.log",
+      "sha256": "sha256:e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-generator-check.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-isolated-toolchain-environment.log",
+      "sha256": "sha256:5302dc5203e72a895f171256ccf0c35743084ec2ea58e10853305cb60288dea9"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-review-native-affected.log",
+      "sha256": "sha256:5e3b08a9e281e5fa91a74f8a83f44384a01df27988ee2847947a6b5fb0a2445e"
+    }
+  ],
+  "scope": "Metrics/doctor-only review fix loop before Sentry registry integration"
+}
