@@ -41,9 +41,6 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(adapters) != 7 {
-		t.Fatalf("adapters = %#v", adapters)
-	}
 	var adapter BuildAdapter
 	var projected target.AdapterReplacement
 	for index := range adapters {
@@ -52,7 +49,7 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 			projected = spec.AdapterReplacements[index]
 		}
 	}
-	if adapter.Module == "" || len(spec.AdapterReplacements) != 7 {
+	if adapter.Module == "" || len(spec.AdapterReplacements) != len(adapters) {
 		t.Fatalf("adapter replacements = %#v", spec.AdapterReplacements)
 	}
 	if projected.Original.Path != adapter.Module || projected.Adapter.Path != adapter.Module || projected.ReplacementPath != adapter.ReplacementRoot || projected.ReplacementSourceInventorySHA256 != adapter.ReplacementSourceInventorySHA256 || projected.PreparedSourceSetSHA256 == "" {

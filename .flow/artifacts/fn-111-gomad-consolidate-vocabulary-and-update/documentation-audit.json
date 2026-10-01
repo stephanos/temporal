@@ -1,0 +1,1091 @@
+{
+  "baseline_revision": "29917069e089dc0739ec091b18e99161245b9bd5",
+  "head_revision": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "guide_sha256": {
+    "SPEC": "sha256:ffd2cc5a1642b4943f2874af71d48b5a4abd050e003db093e1ce0a914ba77559",
+    "ARCHITECTURE": "sha256:6bd432d60ac5acedd2bd95409061d211209ec6d9cf8ca3029e5d3693987dcd23",
+    "CLI": "sha256:40b62e27779cabe3a1f8c3a0920c6961f137fbf46ec73cfacd12949e34138fd2",
+    "TUTORIAL": "sha256:220d57ce3fc1655f7454569d0c90c9f876f371012c4c2822be1493a2de6b6372",
+    "README": "sha256:6e7d5d399bb5ee279f665e7406f021865f55d1720b9a976e69938b3369deba13"
+  },
+  "original_semantic_identifiers": [
+    "PRODUCT",
+    "PRODUCT.PURPOSE",
+    "PRODUCT.SCOPE",
+    "PRODUCT.VOCABULARY",
+    "PRODUCT.VOCABULARY.EXECUTION",
+    "PRODUCT.VOCABULARY.EVIDENCE",
+    "PRODUCT.VOCABULARY.MODELING",
+    "PRODUCT.VOCABULARY.DURABILITY",
+    "PRODUCT.VOCABULARY.SUPPORT",
+    "PRODUCT.VOCABULARY.FAILURE",
+    "PLATFORM",
+    "PLATFORM.SUPPORT",
+    "PLATFORM.TOOLCHAIN",
+    "PLATFORM.INSTALLATION",
+    "PLATFORM.IDENTITY",
+    "TARGET",
+    "TARGET.KINDS",
+    "TARGET.PREPARATION",
+    "TARGET.CAPABILITY",
+    "TARGET.PROVENANCE",
+    "RUNTIME",
+    "RUNTIME.ACTIVATION",
+    "RUNTIME.SCHEDULING",
+    "RUNTIME.TIME",
+    "RUNTIME.CHOICES",
+    "RUNTIME.ISOLATION",
+    "RUNTIME.TRUST",
+    "INTERACTION",
+    "INTERACTION.BOUNDARY",
+    "INTERACTION.ADAPTERS",
+    "INTERACTION.TRANSCRIPT",
+    "INTERACTION.ENTROPY",
+    "INTERACTION.MOUNTS",
+    "INTERACTION.FAIL.CLOSED",
+    "WORLD",
+    "WORLD.MODEL",
+    "WORLD.ORDERING",
+    "WORLD.LIFECYCLE",
+    "WORLD.QUIESCENCE",
+    "WORLD.REPLAY",
+    "SIMULATION",
+    "SIMULATION.HARNESS",
+    "SIMULATION.BACKENDS",
+    "SIMULATION.NETWORK",
+    "SIMULATION.STORAGE",
+    "SIMULATION.SCENARIOS",
+    "SIMULATION.ORACLES",
+    "SIMULATION.REPLAY",
+    "CAMPAIGN",
+    "CAMPAIGN.SELECTION",
+    "CAMPAIGN.EXECUTION",
+    "CAMPAIGN.FAILURE",
+    "CAMPAIGN.COVERAGE",
+    "CAMPAIGN.SUCCESS",
+    "CAMPAIGN.GUIDANCE",
+    "CAMPAIGN.CHOICE.FRONTIER",
+    "CAMPAIGN.COMBINED.FRONTIER",
+    "EVIDENCE",
+    "EVIDENCE.RECORD",
+    "EVIDENCE.ARTIFACT",
+    "EVIDENCE.INSPECTION",
+    "EVIDENCE.REPLAY",
+    "EVIDENCE.MINIMIZATION",
+    "DURABILITY",
+    "DURABILITY.LIFECYCLE",
+    "DURABILITY.JOURNAL",
+    "DURABILITY.RESUME",
+    "DURABILITY.RECOVERY",
+    "DURABILITY.COMPATIBILITY",
+    "DISTRIBUTION",
+    "DISTRIBUTION.PLAN",
+    "DISTRIBUTION.SHARD",
+    "DISTRIBUTION.MERGE",
+    "QUALIFICATION",
+    "QUALIFICATION.REPETITION",
+    "QUALIFICATION.SET",
+    "QUALIFICATION.COMPARISON",
+    "QUALIFICATION.CONFORMANCE",
+    "COMMAND",
+    "COMMAND.GOMAD",
+    "COMMAND.GOMAD.DOCTOR",
+    "COMMAND.GOMAD.ANALYZE",
+    "COMMAND.GOMAD.EXPLORE",
+    "COMMAND.GOMAD.QUALIFY",
+    "COMMAND.GOMAD.QUALIFY.SET",
+    "COMMAND.GOMAD.MERGE.SET",
+    "COMMAND.GOMAD.COMPARE.SUPPORT",
+    "COMMAND.GOMAD.PLAN",
+    "COMMAND.GOMAD.EXECUTE.SHARD",
+    "COMMAND.GOMAD.MERGE",
+    "COMMAND.GOMAD.INSPECT",
+    "COMMAND.GOMAD.REPLAY",
+    "COMMAND.GOMAD.MINIMIZE",
+    "COMMAND.GOMAD.RECOVER",
+    "COMMAND.GOMAD.RESUME",
+    "COMMAND.OUTPUT",
+    "COMMAND.STATUS",
+    "MAINTENANCE",
+    "MAINTENANCE.GOVERNANCE",
+    "MAINTENANCE.COMPATIBILITY",
+    "MAINTENANCE.UPGRADE",
+    "COMMAND.GOMADTOOL",
+    "COMMAND.GOMADTOOL.TOOLCHAIN.BUILD",
+    "COMMAND.GOMADTOOL.BUILD.KEY",
+    "COMMAND.GOMADTOOL.PATCH.MATERIALIZE",
+    "COMMAND.GOMADTOOL.PATCH.REGENERATE",
+    "COMMAND.GOMADTOOL.PATCH.VALIDATE",
+    "COMMAND.GOMADTOOL.VERSION.GENERATE",
+    "COMMAND.GOMADTOOL.BOUNDARY.GENERATE",
+    "COMMAND.GOMADTOOL.PROTOCOL.GENERATE",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK",
+    "COMMAND.GOMADTOOL.SCRIPT.VALIDATE",
+    "COMMAND.GOMADTOOL.CHECKED.RUN",
+    "COMMAND.GOMADTOOL.TEST",
+    "COMMAND.GOMADTOOL.UPGRADE.DOSSIER",
+    "FAILURE",
+    "FAILURE.CLASSIFICATION",
+    "FAILURE.BOUNDS",
+    "FAILURE.INTEGRITY",
+    "FAILURE.CANCELLATION",
+    "VERIFICATION",
+    "VERIFICATION.TRACEABILITY",
+    "VERIFICATION.CHANGE"
+  ],
+  "current_semantic_identifiers": [
+    "PRODUCT",
+    "PRODUCT.PURPOSE",
+    "PRODUCT.SCOPE",
+    "PRODUCT.VOCABULARY",
+    "PRODUCT.VOCABULARY.EXECUTION",
+    "PRODUCT.VOCABULARY.EVIDENCE",
+    "PRODUCT.VOCABULARY.MODELING",
+    "PRODUCT.VOCABULARY.DURABILITY",
+    "PRODUCT.VOCABULARY.SUPPORT",
+    "PRODUCT.VOCABULARY.FAILURE",
+    "PLATFORM",
+    "PLATFORM.SUPPORT",
+    "PLATFORM.TOOLCHAIN",
+    "PLATFORM.INSTALLATION",
+    "PLATFORM.IDENTITY",
+    "TARGET",
+    "TARGET.KINDS",
+    "TARGET.PREPARATION",
+    "TARGET.CAPABILITY",
+    "TARGET.PROVENANCE",
+    "RUNTIME",
+    "RUNTIME.ACTIVATION",
+    "RUNTIME.SCHEDULING",
+    "RUNTIME.TIME",
+    "RUNTIME.CHOICES",
+    "RUNTIME.ISOLATION",
+    "RUNTIME.TRUST",
+    "INTERACTION",
+    "INTERACTION.BOUNDARY",
+    "INTERACTION.ADAPTERS",
+    "INTERACTION.TRANSCRIPT",
+    "INTERACTION.ENTROPY",
+    "INTERACTION.MOUNTS",
+    "INTERACTION.FAIL.CLOSED",
+    "WORLD",
+    "WORLD.MODEL",
+    "WORLD.ORDERING",
+    "WORLD.LIFECYCLE",
+    "WORLD.QUIESCENCE",
+    "WORLD.REPLAY",
+    "SIMULATION",
+    "SIMULATION.HARNESS",
+    "SIMULATION.BACKENDS",
+    "SIMULATION.NETWORK",
+    "SIMULATION.STORAGE",
+    "SIMULATION.SCENARIOS",
+    "SIMULATION.ORACLES",
+    "SIMULATION.REPLAY",
+    "CAMPAIGN",
+    "CAMPAIGN.SELECTION",
+    "CAMPAIGN.EXECUTION",
+    "CAMPAIGN.FAILURE",
+    "CAMPAIGN.COVERAGE",
+    "CAMPAIGN.SUCCESS",
+    "CAMPAIGN.GUIDANCE",
+    "CAMPAIGN.CHOICE.FRONTIER",
+    "CAMPAIGN.COMBINED.FRONTIER",
+    "EVIDENCE",
+    "EVIDENCE.RECORD",
+    "EVIDENCE.ARTIFACT",
+    "EVIDENCE.INSPECTION",
+    "EVIDENCE.REPLAY",
+    "EVIDENCE.MINIMIZATION",
+    "DURABILITY",
+    "DURABILITY.LIFECYCLE",
+    "DURABILITY.JOURNAL",
+    "DURABILITY.RESUME",
+    "DURABILITY.RECOVERY",
+    "DURABILITY.COMPATIBILITY",
+    "DISTRIBUTION",
+    "DISTRIBUTION.PLAN",
+    "DISTRIBUTION.SHARD",
+    "DISTRIBUTION.MERGE",
+    "QUALIFICATION",
+    "QUALIFICATION.REPETITION",
+    "QUALIFICATION.SET",
+    "QUALIFICATION.COMPARISON",
+    "QUALIFICATION.CONFORMANCE",
+    "COMMAND",
+    "COMMAND.GOMAD",
+    "COMMAND.GOMAD.DOCTOR",
+    "COMMAND.GOMAD.ANALYZE",
+    "COMMAND.GOMAD.EXPLORE",
+    "COMMAND.GOMAD.QUALIFY",
+    "COMMAND.GOMAD.QUALIFY.SET",
+    "COMMAND.GOMAD.MERGE.SET",
+    "COMMAND.GOMAD.COMPARE.SUPPORT",
+    "COMMAND.GOMAD.PLAN",
+    "COMMAND.GOMAD.EXECUTE.SHARD",
+    "COMMAND.GOMAD.MERGE",
+    "COMMAND.GOMAD.INSPECT",
+    "COMMAND.GOMAD.REPLAY",
+    "COMMAND.GOMAD.MINIMIZE",
+    "COMMAND.GOMAD.RECOVER",
+    "COMMAND.GOMAD.RESUME",
+    "COMMAND.OUTPUT",
+    "COMMAND.STATUS",
+    "MAINTENANCE",
+    "MAINTENANCE.GOVERNANCE",
+    "MAINTENANCE.COMPATIBILITY",
+    "MAINTENANCE.UPGRADE",
+    "COMMAND.GOMADTOOL",
+    "COMMAND.GOMADTOOL.TOOLCHAIN.BUILD",
+    "COMMAND.GOMADTOOL.BUILD.KEY",
+    "COMMAND.GOMADTOOL.PATCH.MATERIALIZE",
+    "COMMAND.GOMADTOOL.PATCH.REGENERATE",
+    "COMMAND.GOMADTOOL.PATCH.VALIDATE",
+    "COMMAND.GOMADTOOL.VERSION.GENERATE",
+    "COMMAND.GOMADTOOL.BOUNDARY.GENERATE",
+    "COMMAND.GOMADTOOL.PROTOCOL.GENERATE",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK",
+    "COMMAND.GOMADTOOL.SCRIPT.VALIDATE",
+    "COMMAND.GOMADTOOL.CHECKED.RUN",
+    "COMMAND.GOMADTOOL.TEST",
+    "COMMAND.GOMADTOOL.UPGRADE.DOSSIER",
+    "FAILURE",
+    "FAILURE.CLASSIFICATION",
+    "FAILURE.BOUNDS",
+    "FAILURE.INTEGRITY",
+    "FAILURE.CANCELLATION",
+    "VERIFICATION",
+    "VERIFICATION.TRACEABILITY",
+    "VERIFICATION.CHANGE"
+  ],
+  "original_identifier_count": 123,
+  "current_identifier_count": 123,
+  "identifiers_preserved_in_order": true,
+  "original_glossary_terms": [
+    "Gomad Toolchain",
+    "Runner",
+    "Target",
+    "Campaign",
+    "Execution",
+    "Seed",
+    "Choice",
+    "Choice Trace",
+    "Choice Replay Plan",
+    "Deterministic I/O Contract",
+    "Captured Read-Only Input",
+    "World Model",
+    "Cluster",
+    "Node",
+    "Incarnation",
+    "Boot Identity",
+    "Simulation Backend",
+    "Simulation Model Fidelity",
+    "Hard Isolation Fidelity",
+    "Parity Case",
+    "Execution Record",
+    "Artifact",
+    "Replay",
+    "Corpus",
+    "Qualification Set"
+  ],
+  "current_terms_missing": [],
+  "navigation": [
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../.plans/GOMAD_MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_MILESTONES.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "ARCHITECTURE.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_NEXT.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../.plans/GOMAD_MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "ARCHITECTURE.md",
+      "exists": true
+    }
+  ],
+  "commands": {
+    "gomad": [
+      "doctor",
+      "analyze",
+      "explore",
+      "inspect",
+      "replay",
+      "minimize",
+      "qualify",
+      "qualify-set",
+      "merge-set",
+      "compare-support",
+      "plan",
+      "execute-shard",
+      "merge",
+      "recover",
+      "resume"
+    ],
+    "gomadtool": [
+      "toolchain-build",
+      "build-key",
+      "patch-validate",
+      "patch-materialize",
+      "patch-regenerate",
+      "version-generate",
+      "protocol-generate",
+      "qualification-manifest-generate",
+      "boundary-generate",
+      "compatibility-pack",
+      "script-validate",
+      "checked-run",
+      "test",
+      "upgrade-dossier"
+    ]
+  },
+  "actual_help": [
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "doctor",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-doctor.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "analyze",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "build-tag",
+        "capability-mode",
+        "format",
+        "timeout",
+        "toolchain-root",
+        "working-dir"
+      ],
+      "output_file": "gomad-analyze.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "explore",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-explore.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "inspect",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "choices",
+        "json"
+      ],
+      "output_file": "gomad-inspect.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "replay",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "observed",
+        "toolchain-root",
+        "verify-only"
+      ],
+      "output_file": "gomad-replay.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "minimize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "attempt-budget",
+        "json",
+        "max-bytes",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-minimize.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choices",
+        "clock-tick",
+        "env",
+        "execution-timeout",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "output-limit",
+        "overall-timeout",
+        "repeat",
+        "replay-successes",
+        "require-probe",
+        "seed",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-qualify.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "qualify-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "check",
+        "format",
+        "manifest",
+        "min-free-bytes",
+        "output",
+        "prune-qualified-artifacts",
+        "shard",
+        "working-dir"
+      ],
+      "output_file": "gomad-qualify-set.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "merge-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "format",
+        "manifest",
+        "output"
+      ],
+      "output_file": "gomad-merge-set.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "compare-support",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline",
+        "candidate",
+        "format"
+      ],
+      "output_file": "gomad-compare-support.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "plan",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-plan.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "execute-shard",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "shard",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-execute-shard.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "merge",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json",
+        "output",
+        "partial"
+      ],
+      "output_file": "gomad-merge.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "recover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json"
+      ],
+      "output_file": "gomad-recover.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "resume",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-resume.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "toolchain-build",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "bootstrap-go",
+        "build-bash",
+        "overlay",
+        "patch",
+        "root",
+        "toolchain-root"
+      ],
+      "output_file": "gomadtool-toolchain-build.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "build-key",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive-sha256",
+        "bash-path",
+        "bash-version",
+        "bootstrap-version",
+        "build-path",
+        "go-version",
+        "host-arch",
+        "host-os",
+        "overlay",
+        "patch",
+        "recipe-version"
+      ],
+      "output_file": "gomadtool-build-key.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "patch-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "output_file": "gomadtool-patch-validate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "patch-materialize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root",
+        "source-root"
+      ],
+      "output_file": "gomadtool-patch-materialize.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "patch-regenerate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive",
+        "bootstrap-go",
+        "candidate-root",
+        "gofmt",
+        "output",
+        "root",
+        "toolchain-root"
+      ],
+      "output_file": "gomadtool-patch-regenerate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "version-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "output_file": "gomadtool-version-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "protocol-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "output_file": "gomadtool-protocol-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "qualification-manifest-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "output",
+        "root",
+        "spec"
+      ],
+      "output_file": "gomadtool-qualification-manifest-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "boundary-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "check-compiler-tests",
+        "compiler-test-overlay",
+        "discover",
+        "goroot",
+        "qualify",
+        "refresh",
+        "root"
+      ],
+      "output_file": "gomadtool-boundary-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "compatibility-pack",
+        "discover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "output_file": "gomadtool-compatibility-pack-discover.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "compatibility-pack",
+        "review",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "output",
+        "request",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-review.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "compatibility-pack",
+        "generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-review",
+        "compatibility-root",
+        "request",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "compatibility-pack",
+        "check",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-check.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "output_file": "gomadtool-compatibility-pack-qualify.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "script-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "root"
+      ],
+      "output_file": "gomadtool-script-validate.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "checked-run",
+        "-h"
+      ],
+      "status": 125,
+      "flags": [],
+      "output_file": "gomadtool-checked-run.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "test",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compiler",
+        "go",
+        "mode",
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "output_file": "gomadtool-test.help.txt"
+    },
+    {
+      "argv": [
+        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "upgrade-dossier",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline-ref",
+        "corpus-report",
+        "output",
+        "root"
+      ],
+      "output_file": "gomadtool-upgrade-dossier.help.txt"
+    }
+  ],
+  "documented_flags": [
+    "approve-boundary-diff",
+    "approve-review",
+    "artifacts",
+    "attempt-budget",
+    "baseline",
+    "baseline-ref",
+    "build-tag",
+    "candidate",
+    "candidate-root",
+    "capability-mode",
+    "check",
+    "check-compiler-tests",
+    "choice-bytes",
+    "choices",
+    "clock-tick",
+    "compatibility-root",
+    "corpus",
+    "corpus-report",
+    "count",
+    "coverage",
+    "discover",
+    "execution-timeout",
+    "failure-budget",
+    "format",
+    "go",
+    "guide",
+    "io-transcript-bytes",
+    "json",
+    "keep-successes",
+    "manifest",
+    "max-choice-depth",
+    "max-crash-decisions",
+    "max-executions",
+    "max-exploration-bytes",
+    "max-exploration-result-bytes",
+    "max-fault-decisions",
+    "max-forced-decisions",
+    "max-network-decisions",
+    "max-runtime-decisions",
+    "max-scenario-decisions",
+    "max-storage-decisions",
+    "mode",
+    "on-failure",
+    "output",
+    "output-limit",
+    "overall-timeout",
+    "parallel",
+    "partial",
+    "provenance",
+    "qualify",
+    "refresh",
+    "repeat",
+    "replay-successes",
+    "request",
+    "require-probe",
+    "root",
+    "seed",
+    "seeds",
+    "shard",
+    "source-root",
+    "spec",
+    "strategy",
+    "success-bytes",
+    "success-limit",
+    "timeout",
+    "verify-only",
+    "working-dir"
+  ],
+  "unknown_documented_flags": [],
+  "whitespace_argv": [
+    "git",
+    "diff",
+    "--check",
+    "29917069e089dc0739ec091b18e99161245b9bd5",
+    "--",
+    "tools/gomad3/SPEC.md",
+    "tools/gomad3/ARCHITECTURE.md",
+    "tools/gomad3/CLI.md",
+    "tools/gomad3/TUTORIAL.md",
+    "tools/gomad3/README.md"
+  ],
+  "whitespace_status": 0,
+  "errors": []
+}

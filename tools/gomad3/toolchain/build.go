@@ -422,9 +422,9 @@ func copyTree(sourceRoot, destinationRoot string) error {
 
 func treeFiles(root string) ([]string, error) {
 	var files []string
-	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if path == root || entry.IsDir() {
 			return nil

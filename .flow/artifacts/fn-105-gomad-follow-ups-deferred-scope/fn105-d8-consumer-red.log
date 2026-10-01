@@ -1,0 +1,5 @@
+--- FAIL: TestHashicorpMetricsAdapterConsumer (0.10s)
+    hashicorpmetrics_adapter_test.go:33: metrics fixture adapters = []deterministicio.BuildAdapter{}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	0.644s
+FAIL

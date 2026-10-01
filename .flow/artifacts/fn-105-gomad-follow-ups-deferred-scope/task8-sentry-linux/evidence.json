@@ -1,0 +1,141 @@
+{
+  "module": "github.com/getsentry/sentry-go",
+  "version": "v0.46.0",
+  "sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=",
+  "image_id": "sha256:ecb923204467d17aa269ee9b123c80892bcd202eae287617a8baeb6afbd42a5e",
+  "repo_digest": "golang@sha256:e0174e51e81218523251d85d248a90d24c3d5e81543b4f07a5d66229397db190",
+  "platform": "linux/amd64",
+  "build_tags": [
+    "test_dep",
+    "integration",
+    "hashicorpmetrics",
+    "gomad"
+  ],
+  "actual_package_json_sha256": "sha256:4b73e100fd92cead14bcb1fccb18c0b62fdb06ddb0f1ce5030eb1baf628d4d8e",
+  "prepared_source_set_sha256": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
+  "sources": [
+    {
+      "name": "baggage.go",
+      "sha256": "sha256:1039ee53547172b1519645f56fd0fe3d5757fedd3d96ea93e7ef6f9a5bf3e94b"
+    },
+    {
+      "name": "batch_processor.go",
+      "sha256": "sha256:393f44e5645b1671eda87b5f959a4227097ce350ef155d50f50456900095e204"
+    },
+    {
+      "name": "check_in.go",
+      "sha256": "sha256:f56532f1ae8688f3ccde033319da7a9d24d04bb9f460177eb1eaf639a70d003a"
+    },
+    {
+      "name": "client.go",
+      "sha256": "sha256:b67a248bc00b3901a063f36aa8757100a8ab85a7ff414270f199cbc276d4c0f3"
+    },
+    {
+      "name": "doc.go",
+      "sha256": "sha256:fa0f9349372b23d53dc41a9b0bbd2421cfa7973c1fe4096c9b3af0296e0d7883"
+    },
+    {
+      "name": "dsn.go",
+      "sha256": "sha256:51527323436b84d8f49d4253b6c5662f5e1cc221d8b9c9dab794de2bc2c87a82"
+    },
+    {
+      "name": "dynamic_sampling_context.go",
+      "sha256": "sha256:33bfb0c9af619d0cbd292d468ea729b42f8958f1c9fbec42d382cce71c7407e2"
+    },
+    {
+      "name": "exception.go",
+      "sha256": "sha256:ca34fd062c8077467ffd3dd2c9ef336e2914ed80326ae124c48b3ca22ba01d5d"
+    },
+    {
+      "name": "hub.go",
+      "sha256": "sha256:e5599a081d681315785a15e49798c3eae6f865122956db3225a7567bb1da53e6"
+    },
+    {
+      "name": "integrations.go",
+      "sha256": "sha256:56732cc7de8ea0aa4d60407aa91ea2caa2f5feac9d7c7c2887da6eee43ea2fae"
+    },
+    {
+      "name": "interfaces.go",
+      "sha256": "sha256:abf9a21ea87311398d77291bebd7393497f5a29dfa676c5fc8c04fc8c3005459"
+    },
+    {
+      "name": "log.go",
+      "sha256": "sha256:1023adfdf2e1ab398a53619dbee6745a4a4a18e951bb5d61f272d425aa1187c7"
+    },
+    {
+      "name": "log_batch_processor.go",
+      "sha256": "sha256:1b18a71d8f89d537f80e475623b6bc0473f1fd9f94d9b94e4df5558f264baba3"
+    },
+    {
+      "name": "log_fallback.go",
+      "sha256": "sha256:8a9272eb9c7bd203360c62fb009372b6c08c8e7e0f2b95b13edd0651f3d5d4f9"
+    },
+    {
+      "name": "metric_batch_processor.go",
+      "sha256": "sha256:2c7d00a8630a7d3e30aced812d133bb6c985a706b56065fb5a86cd4627fcc8d8"
+    },
+    {
+      "name": "metrics.go",
+      "sha256": "sha256:526b9b3a9cd6a58ffcccb6730069aff518445c2aab8339d8d62bc47482b436d4"
+    },
+    {
+      "name": "mocks.go",
+      "sha256": "sha256:96314dbef766144ba4de35ee8edb7827d0adf82a15fe1f712a2a10788aa96367"
+    },
+    {
+      "name": "propagation_context.go",
+      "sha256": "sha256:2a17243d57b79e3afb01dc0d74a2cee210c0d5e7420969937035b04c47f00ffb"
+    },
+    {
+      "name": "scope.go",
+      "sha256": "sha256:9349deb2c1085871d173c695e83ab989f2225e0746f51dec46f6df2fdcbb8a02"
+    },
+    {
+      "name": "sentry.go",
+      "sha256": "sha256:0167d54e80a2df8374157c31ee77767824bac5ac33e07383ca48d08362f78380"
+    },
+    {
+      "name": "sourcereader.go",
+      "sha256": "sha256:85e9ed30a66a19987a68a351a944ae0dbe73bc86d7d691788db8d49e2283ebb7"
+    },
+    {
+      "name": "span_recorder.go",
+      "sha256": "sha256:26768403e7bc241182e89670697b21106f312e63bd24f4e40095c4c81184894d"
+    },
+    {
+      "name": "stacktrace.go",
+      "sha256": "sha256:b0862fed22d425261616c120d6343e3d63a2fdb612bebe56954016bd32fb0a98"
+    },
+    {
+      "name": "traces_sampler.go",
+      "sha256": "sha256:b89f6df8554b9f70ed4daeea17ab3117005d5947d80e12f2823d11d5077d3896"
+    },
+    {
+      "name": "tracing.go",
+      "sha256": "sha256:36a90ddef0165070af5df58815aa146f2f10715eee9b1d46c75ba97c4ef200ec"
+    },
+    {
+      "name": "transport.go",
+      "sha256": "sha256:0197a0ba1a9e5ccc4d0cf8456326c9d4ac145ce062f2c1f0d9d931a5330ee23f"
+    },
+    {
+      "name": "util.go",
+      "sha256": "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe"
+    }
+  ],
+  "adapter": {
+    "Module": "github.com/getsentry/sentry-go",
+    "Version": "v0.46.0",
+    "Sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=",
+    "BuildModFile": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/gomad.mod",
+    "Source": "/Users/stephan/go/pkg/mod/github.com/getsentry/sentry-go@v0.46.0/util.go",
+    "ReplacementRoot": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/sentry-go",
+    "Replacement": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/sentry-go/util.go",
+    "PreparedPackage": "github.com/getsentry/sentry-go",
+    "SourceSHA256": "sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91",
+    "ReplacementSHA256": "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe",
+    "OriginalSourceInventorySHA256": "sha256:d8028d24e1a6c27fc5619d349fa58685d2855629a76877cb639a23afbbf67cde",
+    "ReplacementSourceInventorySHA256": "sha256:b60d63bd862365df7195c5dcf6ae7fa70a97916f3538809773fe42241ab61c32",
+    "PreparedSourceSetSHA256": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb"
+  }
+}

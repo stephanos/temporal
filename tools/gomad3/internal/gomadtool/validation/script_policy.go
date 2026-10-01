@@ -29,9 +29,9 @@ func Validate(root string) error {
 		return errors.Join(errors.New("gomad3 script-policy root must be an absolute non-root directory"), err)
 	}
 	var paths []string
-	err = filepath.WalkDir(absolute, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err = filepath.WalkDir(absolute, func(path string, entry fs.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if entry.IsDir() {
 			if path != absolute && (entry.Name() == ".git" || entry.Name() == ".toolchain") {

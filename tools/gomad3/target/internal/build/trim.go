@@ -51,13 +51,13 @@ func TrimCache(cache string, maximumBytes uint64) (retErr error) {
 	}
 	var entries []entry
 	var total uint64
-	err = filepath.WalkDir(cache, func(path string, item os.DirEntry, walkErr error) error {
+	err = filepath.WalkDir(cache, func(path string, item os.DirEntry, visitErr error) error {
 		// The go command trims its own long-unused entries too.
-		if errors.Is(walkErr, os.ErrNotExist) {
+		if errors.Is(visitErr, os.ErrNotExist) {
 			return nil
 		}
-		if walkErr != nil {
-			return walkErr
+		if visitErr != nil {
+			return visitErr
 		}
 		if !item.Type().IsRegular() {
 			return nil

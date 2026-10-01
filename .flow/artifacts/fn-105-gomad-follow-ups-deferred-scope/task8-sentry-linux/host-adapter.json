@@ -1,0 +1,15 @@
+{
+  "Module": "github.com/getsentry/sentry-go",
+  "Version": "v0.46.0",
+  "Sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=",
+  "BuildModFile": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/gomad.mod",
+  "Source": "/Users/stephan/go/pkg/mod/github.com/getsentry/sentry-go@v0.46.0/util.go",
+  "ReplacementRoot": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/sentry-go",
+  "Replacement": "/private/tmp/fn105-d8-sentry-linux/host-preparation/.io-adapter/sentry-go/util.go",
+  "PreparedPackage": "github.com/getsentry/sentry-go",
+  "SourceSHA256": "sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91",
+  "ReplacementSHA256": "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe",
+  "OriginalSourceInventorySHA256": "sha256:d8028d24e1a6c27fc5619d349fa58685d2855629a76877cb639a23afbbf67cde",
+  "ReplacementSourceInventorySHA256": "sha256:b60d63bd862365df7195c5dcf6ae7fa70a97916f3538809773fe42241ab61c32",
+  "PreparedSourceSetSHA256": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb"
+}

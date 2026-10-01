@@ -2,7 +2,7 @@
 
 package compatibility
 
-var generatedPackMutationInventory = []generatedPackMutation{
+var generatedPackMutationInventory = []struct{ PackID, Mutation string }{
 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "approval"},
 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "arbitrary_local_replacement"},
 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "availability"},

@@ -1193,9 +1193,9 @@ func digestAdapterSourceInventory(root string, maximumFiles int, maximumBytes ui
 	_, _ = hasher.Write([]byte("gomad3.adapter-source-inventory/v1\x00"))
 	files := 0
 	total := uint64(0)
-	err := filepath.WalkDir(root, func(filePath string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err := filepath.WalkDir(root, func(filePath string, entry fs.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if entry.IsDir() {
 			return nil

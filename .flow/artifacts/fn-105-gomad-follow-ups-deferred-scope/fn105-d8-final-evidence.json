@@ -1,0 +1,75 @@
+{
+  "implementation_version": "gomad3.deterministic-io/v1/implementation-v13",
+  "source_inventory": "/private/tmp/fn105-d8-source-identities.json",
+  "source_count": 18,
+  "production_freeze": "/private/tmp/fn105-d8-production-freeze.json",
+  "commands": "/private/tmp/fn105-d8-commands.json",
+  "profile_goldens": "/private/tmp/fn105-d8-sentry-profile-goldens.json",
+  "prior_metrics_review_fixes": "/private/tmp/fn105-d8-review-fixes-evidence.json",
+  "sentry_worker_receipt": "/private/tmp/fn107-sentry-source-identities.json",
+  "lint_baseline": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "unchanged_full_lint_issues": 17,
+  "baseline_proof": "/private/tmp/fn105-d8-lint-baseline.json",
+  "introduced_lint_issues": 0,
+  "actual_linux_stock_go": "go1.27.1 linux/amd64",
+  "source_only_complete": true,
+  "final_target_patched_toolchain_analysis": "parent-owned pending",
+  "logs": [
+    {
+      "path": "/private/tmp/fn105-d8-sentry-registry-red.log",
+      "sha256": "sha256:79693ee161a2b40264a9ed8d9fb33a9040f1735be16fc423aa88eff17dd4b406"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-profile-red.log",
+      "sha256": "sha256:8225c407fa96b84436091e297fa9fc001c40fe402ce7b68ef0ca7e5ebf77b847"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-integration-green.log",
+      "sha256": "sha256:cc7dd919824d992e274e4b59e50b9b201ea0b0449c28edea583e32452f43b232"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-config-drift-green.log",
+      "sha256": "sha256:145ce66f6e5ab89f8dea56aeabdaefb674ebe829800998ec35348653cccb78d6"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-final-native-affected.log",
+      "sha256": "sha256:4a8e7189f320848e78d6a97002b1985219398e9c9d50fd604f9601028a5a8fdd"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-lint-green.log",
+      "sha256": "sha256:e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-generator-check.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/fn107-sentry-cold-red.log",
+      "sha256": "sha256:c3afeedd5d78689779abac69d7ba2e2d1f6d35a029d5f5395064c84bc7ac6e3a"
+    },
+    {
+      "path": "/private/tmp/fn107-sentry-cold-green.log",
+      "sha256": "sha256:f2a07dc570ab190ed587885defc17e66d79324401bae3ea96b21bbf15b41a06f"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-linux/consumer.log",
+      "sha256": "sha256:eac657b8b7c0b6d91d56df982ce7c764d5d394b87c3daa82ae20467b15cc0b13"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-linux/profile-green.log",
+      "sha256": "sha256:5efa391ece4ae97d3ecde3def9ed49dae8ac0810964828c51a4c752c95e9bc99"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-linux/evidence.json",
+      "sha256": "sha256:c5039e520773c7a63f4e2773008e0773db8cc6055fb89b3333c729dbf9430e79"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-linux/list-package.json",
+      "sha256": "sha256:4b73e100fd92cead14bcb1fccb18c0b62fdb06ddb0f1ce5030eb1baf628d4d8e"
+    },
+    {
+      "path": "/private/tmp/fn105-d8-sentry-linux/review.json",
+      "sha256": "sha256:6f718a49ad77d64d3a66ac0bb5b425ea2999ed9eeb941d381e74ffa6d5992b2d"
+    }
+  ]
+}

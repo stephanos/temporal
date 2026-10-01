@@ -1,0 +1,11 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r . --tags test_dep,integration,hashi…
+Adding "storage"
+Adding "localcell/gomad"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad...
+[testrunner] 2026/09/30 15:20:26 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-399ebee8-90f1-4e5d-a183-eb4e14e5c785-junit.xml -- -tags test_dep,integration,hashicorpmetrics -race -cover -run TestStorageWorkflow -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-task4-native-final_0.cover.out ./smoke
+✓  smoke (1m44.025s)
+
+DONE 2 tests in 104.025s
+[testrunner] 2026/09/30 15:22:29 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-task4-native-final.junit.xml
+[testrunner] 2026/09/30 15:22:29 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-task4-native-final.junit.xml

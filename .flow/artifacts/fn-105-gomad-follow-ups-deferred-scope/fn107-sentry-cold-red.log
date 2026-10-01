@@ -1,0 +1,16 @@
+go: downloading golang.org/x/mod v0.37.0
+=== RUN   TestSentryAdapterConsumer
+    sentry_adapter_test.go:45: resolve pinned github.com/getsentry/sentry-go module: lstat /private/tmp/fn107-sentry-cold-red.4IjMst/github.com: no such file or directory
+--- FAIL: TestSentryAdapterConsumer (0.07s)
+=== RUN   TestSentryRewriteRejectsDrift
+    sentry_adapter_test.go:131: pinned github.com/getsentry/sentry-go source is not a regular file: util.go
+--- FAIL: TestSentryRewriteRejectsDrift (0.05s)
+=== RUN   TestSentryRewritePreservesComments
+    sentry_adapter_test.go:158: pinned github.com/getsentry/sentry-go source is not a regular file: util.go
+--- FAIL: TestSentryRewritePreservesComments (0.03s)
+=== RUN   TestSentryRejectsUnrewrittenInventoryDrift
+    sentry_adapter_test.go:191: copy deterministic I/O adapter module: lstat /private/tmp/fn107-sentry-cold-red.4IjMst/github.com/getsentry/sentry-go@v0.46.0: no such file or directory
+--- FAIL: TestSentryRejectsUnrewrittenInventoryDrift (0.03s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	0.714s
+FAIL

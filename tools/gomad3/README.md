@@ -335,7 +335,7 @@ lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 and the direct modernc/libc file boundary. The aggregate and all evidence are
 retained below `.toolchain/core-qualification*`.
 
-The checked Temporal corpus holds fifteen tier 2 package workloads and three
+The checked Temporal corpus holds fifteen tier 2 package workloads and thirteen
 tier 3 functional suites. On darwin/arm64 all fifteen package workloads
 qualify; nine of them build with the `gomad` tag. On linux/amd64 five qualify and ten retain
 exact unsupported analyses (the amd64 xxhash assembly), because the packs that
@@ -639,12 +639,14 @@ Under the default `strict` tick policy every `time.Now` within one busy stretch
 returns the same instant. `--clock-tick=forward` on `explore` and `qualify`
 (`"clock_tick": "forward"` on a `qualify-set` workload) advances the clock at
 every `time.Now` by 1 to 1024 nanoseconds, drawn from a stream derived from the
-seed and separate from the scheduling choices, so two reads never tie the way
-they cannot on a real clock, and one seed repeats exactly. The advance
-accumulates in an offset that only `time.Now` observes: timers, sleeps,
-deadlines, the scheduler, and simulation time keep the idle-driven clock, so
-`time.Now` runs ahead of it by the sum of the draws and scheduling is
-unchanged. Runtime-internal clock reads do not tick. The
+seed and separate from the scheduling choices, so consecutive reads advance
+even while work remains runnable. The advance accumulates in an offset that
+only `time.Now` observes: native timers, sleeps, runtime clock reads, and
+simulation time keep the idle-driven clock. Application calculations that
+derive deadlines or durations from `time.Now` can observe the offset and
+change behavior. Repeatability and exact replay remain workload qualification
+claims; the [milestones](../../.plans/GOMAD_MILESTONES.md#open-findings) record
+remaining divergence. Runtime-internal clock reads do not tick. The
 policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence
 identity; `strict` is recorded as the entry's absence, so its identities are

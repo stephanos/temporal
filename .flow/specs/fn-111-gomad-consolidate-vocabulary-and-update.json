@@ -1,11 +1,82 @@
 {
   "branch_name": "fn-111-gomad-consolidate-vocabulary-and-update",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-30T19:30:49.980509Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-111-gomad-consolidate-vocabulary-and-update",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ab3579877f63e23464a437f93629757455bdd08ea8e848b729cc75ba07f08ed2",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "failure_class": "dispatch_error",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "outcome": "transport_failure",
+      "output_bytes": 51,
+      "output_sha256": "a373cada18fc31a0916e65305ff6296a21df1f1e3d36f224ec8a2f28c44ed0cb",
+      "reservation_id": "4ac8691620dc48748aa6b946c9a34976",
+      "round_consumed": false,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-01T00:40:32.422366Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "ab3579877f63e23464a437f93629757455bdd08ea8e848b729cc75ba07f08ed2",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "71aa7bd8c34343fbbb94079dfe352c60",
+      "round_consumed": false,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-01T00:40:53.810769Z",
+      "verdict": null
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 2
+  },
   "spec_path": ".flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md",
   "status": "open",
   "title": "Gomad: consolidate vocabulary and update documentation",
@@ -20,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T19:30:50.001660Z"
+  "updated_at": "2026-10-01T00:40:53.811205Z"
 }

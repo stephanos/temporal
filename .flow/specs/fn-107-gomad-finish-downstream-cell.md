@@ -4,7 +4,7 @@
 
 ## Goal & Context
 
-Run a Walker-backed Temporal cell in one process under Gomad, with matching
+Run a Storage-backed Temporal cell in one process under Gomad, with matching
 same-seed executions and exact replay on `darwin/arm64` and `linux/amd64`.
 This spec owns the remaining implementation and qualification work described
 in [GOMAD_CLOUD.md](../../.plans/GOMAD_CLOUD.md).
@@ -18,7 +18,7 @@ the downstream smoke test to pass and replay; recording an unsupported outcome
 does not satisfy its completion criteria.
 
 Implementation spans the Temporal Gomad repository and the consuming
-`saas-temporal` repository, including its nested `walker` module. Flow tracking
+`downstream` repository, including its nested `storage` module. Flow tracking
 lives here; downstream source, configuration, workloads, and dependency packs
 belong in the consuming repository. Implementation was authorized by the request to work through fn-107.
 
@@ -34,29 +34,29 @@ obligations instead of creating duplicate implementation tasks.
 ### Downstream execution profile
 
 Provide an opt-in configuration for the localcell harness that runs Temporal,
-Walker datanodes, walkabouts, bimmers, and the smoke workload in one process.
+Storage datanodes, walkabouts, bimmers, and the smoke workload in one process.
 Use the existing localcluster lifecycle, storage interfaces, and configuration
 injection points. A small profile constructor should supply the filesystem,
 membership transport, capacity policy, providers, and explicit addresses;
 those implementations must be testable independently of cluster startup.
 Keep defaults and production behavior unchanged and preserve existing comments.
 
-Select the smallest configuration that exercises Walker-backed execution and
+Select the smallest configuration that exercises Storage-backed execution and
 history persistence. Add a dedicated downstream smoke entry point if the
-existing `TestLocalCell_Walker` requires unrelated external services. Reuse
+existing `TestLocalCell_Storage` requires unrelated external services. Reuse
 the harness and real storage/control-plane services rather than duplicating
-their implementation or substituting a success-only fake for Walker.
+their implementation or substituting a success-only fake for Storage.
 Document every external dependency the selected configuration removes or
 substitutes. Any required substitute is in-process and supplied through an
 explicit downstream interface; the support claim covers only that configuration.
 
 ### Resolved persistence composition
 
-The dedicated `saas-temporal/localcell/gomad` package uses the actual Walker
+The dedicated `downstream/localcell/gomad` package uses the actual Storage
 `localcluster` services and Temporal `testcore` cluster factory. It avoids the
 root localcell chaos and server-tooling closure. Supply CDS's existing
 `WedgeShardController` and `ExecutionStoreWrapper` with the real per-shard
-Walker provider; direct Walker leaf stores do not implement the OSS execution
+Storage provider; direct Storage leaf stores do not implement the OSS execution
 store contract. Expose existing conversion/interceptor wiring through a small
 constructor rather than duplicating it.
 
@@ -64,7 +64,7 @@ Inject process-local CDS shard, metadata, watermark and WAL dependencies with
 stateful records, ownership/CAS, stream reads and writes. SQL supplies OSS
 namespace, cluster metadata, matching task/fair task, queue/QueueV2 and Nexus
 stores. CDS supplies OSS shard ownership and execution/history stores so
-acquisition activates and recovers Walker-backed shards. The SQL backing must
+acquisition activates and recovers Storage-backed shards. The SQL backing must
 be the same one seeded by testcore before its additional server options are
 applied. The profile owns these resources and closes them with the cluster.
 The injected per-history factory borrows testcore's SQL factory. It owns its
@@ -74,7 +74,7 @@ factory. Testcore retains that base factory's lifecycle. Profile cleanup is a
 backstop for owned resources, including constructor failures. Cassandra,
 etcd/SMS, BOSS WAL proxies and cloud object stores are excluded from
 this support profile. A negative workload must show that denying or stopping
-Walker prevents workflow persistence; a SQL-only workflow cannot qualify.
+Storage prevents workflow persistence; a SQL-only workflow cannot qualify.
 
 ### Task ownership
 
@@ -113,21 +113,21 @@ remains limited to `localhost`; configured IP literals avoid other lookups.
 ### Dependency preparation and qualification
 
 The dedicated smoke package owns an opt-in `localcell/gomad/go.mod`. Its main
-module replacements link the consuming root and Walker modules to these
+module replacements link the consuming root and Storage modules to these
 checkouts and link the server to the sibling Gomad checkout. Mirror required
 fork/pin replacements from the consuming root because replacements in dependency
 modules do not propagate. This keeps the published dependency defaults in the
-root and Walker modules intact. The native repository test driver already
+root and Storage modules intact. The native repository test driver already
 discovers arbitrary nested modules; invoke it from the repository root. The
 Gomad CLI uses the smoke module as its working directory with `GOWORK=off`.
-The smoke uses the existing Walker `hashicorpmetrics` build tag in both native
+The smoke uses the existing Storage `hashicorpmetrics` build tag in both native
 and Gomad runs. Record it with `test_dep`, `integration` and, for Gomad,
 `gomad`; do not combine it with `armonmetrics`. Fresh closure evidence determines
 which metrics library needs an exact signal-refusal adapter.
 
 Prepare the dedicated smoke module through `--working-dir`. Its checked main
 `go.mod` owns the effective local replacements for the Gomad server checkout
-and the consuming root and Walker modules. A workspace file is not a replacement
+and the consuming root and Storage modules. A workspace file is not a replacement
 for that graph because the Runner uses `GOWORK=off`. Keep configuration/schema inputs in recorded read-only mounts or
 deterministically initialized model state. Export required private-module
 settings for host-side preparation.
@@ -194,8 +194,8 @@ remain visible failures and cannot satisfy a `qualified` expectation.
 ## Acceptance Criteria
 
 - **R1:** A reproducible downstream smoke target runs the actual Temporal and
-  Walker services in-process, starts and completes a workflow through
-  Walker-backed execution/history persistence, and verifies the result and
+  Storage services in-process, starts and completes a workflow through
+  Storage-backed execution/history persistence, and verifies the result and
   recorded history. Its configuration names every external dependency removed
   or substituted. Errors: required external services, missing providers,
   subprocess mode, and invalid configuration fail visibly; boot-only or

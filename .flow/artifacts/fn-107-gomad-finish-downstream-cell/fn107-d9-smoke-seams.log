@@ -1,0 +1,11 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r '^TestStorageWorkflow$' '--tags=test…
+Adding "storage"
+Adding "localcell/gomad"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/localcell/gomad...
+[testrunner] 2026/09/30 15:56:30 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-4fac60fb-cb0e-40e7-b27c-ecbccdecb5af-junit.xml -- -tags test_dep,integration,hashicorpmetrics,gomad -race -cover -run ^TestStorageWorkflow$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-smoke-seams-unit_0.cover.out ./smoke
+✓  smoke (51.682s)
+
+DONE 1 tests in 51.691s
+[testrunner] 2026/09/30 15:57:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-smoke-seams-unit.junit.xml
+[testrunner] 2026/09/30 15:57:46 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-smoke-seams-unit.junit.xml

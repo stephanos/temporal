@@ -1,0 +1,4 @@
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	41.005s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	(cached)
+ok  	go.temporal.io/server/tools/gomad3/target	57.022s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	1.438s

@@ -1,0 +1,24 @@
+{
+  "schema": "fn107-sandbox-gate-evidence/v1",
+  "platform": "darwin/arm64",
+  "builds_completed": true,
+  "doctor_available": true,
+  "adapter_count": 15,
+  "doctor_check_count": 19,
+  "runner_build": "sha256:8086a5d6d5fa1984ba0b9ebe1feb47c1f913955020c86fa8e8a275bba64c2232",
+  "io_implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+  "prepare_exit_status": 1,
+  "preparation_failure": "inspect target capability closure: inspect target capability closure: exit status 1: go: can't load test package: ../../common/tlsconfig/config.go:8:2: open /Users/stephan/Library/Caches/go-build/38/38bcd5ea160fdac0c64d9c1fdab178dcbadb1d57f922a90a0d7eb1399a43a06b-a: operation not permitted",
+  "support_analysis_completed": false,
+  "application_qualification_completed": false,
+  "replay_completed": false,
+  "logs": {
+    "bootstrap-build-final.log": "sha256:735eadddf7af043c2469f4d96fe1206e0974f37eec17fdca47da3da95c3dc0f4",
+    "bootstrap-build-sandbox.log": "sha256:ed84d2a5bead4df9d0e4552239b8e6d66913ce57f5ccf25a1e50792d7adda7cc",
+    "runner-build-sandbox.log": "sha256:0d1bd857abc24662b42d5dafdea2e361e54c975a4e0ae99a44ef467c9824f738",
+    "helper-build-sandbox.log": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "doctor.json": "sha256:22b463022e3f75ba2b8726244eec29f85dfefbbf1d35b8a74abf2ce6f2262d5d",
+    "doctor.stderr.log": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prepare.stderr.log": "sha256:4621f1d29a08f74ce5fa0a5676a98eaa6a72586b559f04226a1bba63b3b8b41b"
+  }
+}

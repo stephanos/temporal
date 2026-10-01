@@ -1,0 +1,4 @@
+=== RUN   TestDeterministicProfileCompatibilityGolden
+--- PASS: TestDeterministicProfileCompatibilityGolden (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.048s

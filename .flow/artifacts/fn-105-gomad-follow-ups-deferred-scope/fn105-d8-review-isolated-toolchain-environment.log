@@ -1,0 +1,137 @@
+go: downloading golang.org/x/mod v0.37.0
+# internal/goarch
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/unsafeheader
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/byteorder
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/coverage/rtcov
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/godebugs
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/goexperiment
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/cpu
+flag provided but not defined: -std
+usage: asm [options] file.s ...
+Flags:
+  -D value
+    	predefined symbol with optional simple value -D=identifier=value; can be set multiple times
+  -I value
+    	include directory; can be set multiple times
+  -S	print assembly and machine code
+  -V	print version and exit
+  -d value
+    	enable debugging settings; try -d help
+  -debug
+    	dump instructions as they are parsed
+  -dynlink
+    	support references to Go symbols defined in other shared libraries
+  -e	no limit on number of errors reported
+  -gensymabis
+    	write symbol ABI information to output file, don't assemble
+  -linkshared
+    	generate code that will be linked against Go shared libraries
+  -o string
+    	output file; default foo.o for /a/b/c/foo.s as first argument
+  -p string
+    	set expected package import to path (default "<unlinkable>")
+  -shared
+    	generate code that can be linked into a shared library
+  -spectre list
+    	enable spectre mitigations in list (all, ret)
+  -trimpath string
+    	remove prefix from recorded source file paths
+  -v	print debug output
+# internal/goos
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/profilerecord
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/trace/tracev2
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# sync/atomic
+flag provided but not defined: -std
+usage: asm [options] file.s ...
+Flags:
+  -D value
+    	predefined symbol with optional simple value -D=identifier=value; can be set multiple times
+  -I value
+    	include directory; can be set multiple times
+  -S	print assembly and machine code
+  -V	print version and exit
+  -d value
+    	enable debugging settings; try -d help
+  -debug
+    	dump instructions as they are parsed
+  -dynlink
+    	support references to Go symbols defined in other shared libraries
+  -e	no limit on number of errors reported
+  -gensymabis
+    	write symbol ABI information to output file, don't assemble
+  -linkshared
+    	generate code that will be linked against Go shared libraries
+  -o string
+    	output file; default foo.o for /a/b/c/foo.s as first argument
+  -p string
+    	set expected package import to path (default "<unlinkable>")
+  -shared
+    	generate code that can be linked into a shared library
+  -spectre list
+    	enable spectre mitigations in list (all, ret)
+  -trimpath string
+    	remove prefix from recorded source file paths
+  -v	print debug output
+# unicode/utf8
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# cmp
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# math/bits
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/asan
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/itoa
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# internal/msan
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# unicode
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# encoding
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# crypto/internal/fips140/alias
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+# crypto/internal/boring/sig
+flag provided but not defined: -std
+usage: asm [options] file.s ...
+Flags:
+  -D value
+    	predefined symbol with optional simple value -D=identifier=value; can be set multiple times
+  -I value
+    	include directory; can be set multiple times
+  -S	print assembly and machine code
+  -V	print version and exit
+  -d value
+    	enable debugging settings; try -d help
+  -debug
+    	dump instructions as they are parsed
+  -dynlink
+    	support references to Go symbols defined in other shared libraries
+  -e	no limit on number of errors reported
+  -gensymabis
+    	write symbol ABI information to output file, don't assemble
+  -linkshared
+    	generate code that will be linked against Go shared libraries
+  -o string
+    	output file; default foo.o for /a/b/c/foo.s as first argument
+  -p string
+    	set expected package import to path (default "<unlinkable>")
+  -shared
+    	generate code that can be linked into a shared library
+  -spectre list
+    	enable spectre mitigations in list (all, ret)
+  -trimpath string
+    	remove prefix from recorded source file paths
+  -v	print debug output
+# unicode/utf16
+compile: version "go1.25.8" does not match go tool version "go1.27.1"
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio [build failed]
+FAIL

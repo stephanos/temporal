@@ -1,0 +1,12 @@
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/upstream-edit
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/missing-anchor
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/ambiguous-anchor
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift/replacement-edit
+--- PASS: TestHashicorpMetricsRewriteRejectsDrift (0.62s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/upstream-edit (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/missing-anchor (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/ambiguous-anchor (0.00s)
+    --- PASS: TestHashicorpMetricsRewriteRejectsDrift/replacement-edit (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	1.160s

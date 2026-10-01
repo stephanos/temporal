@@ -1,0 +1,30 @@
+{
+  "scope": "fn107 implementation checkpoint; final qualification remains incomplete",
+  "files": {
+    "fn105-d8-v14-source-freeze.json": "sha256:041cb8837dd96e8da84bf07163a2b2617a013361da570bfeca6c0968b88e1a74",
+    "fn107-d9-v14-temporal-seams-freeze.json": "sha256:a9776cdf99cfbd2de9e218dc4ec78efd8e983e1ba5f3c6596aed242f18f8440f",
+    "fn107-d9-v14-consumer-source-freeze.json": "sha256:c5bc68dd9565e65b5355f0447eeeb8ae748199fa58954f7765b51a75efbe8002",
+    "fn105-d8-v14-native-affected.log": "sha256:7e229c49661df8f604c07aed70d6bb14f4e6f0c1c04cf397f194cd28aef7d340",
+    "fn105-d8-v14-native-deterministicio-green.log": "sha256:7f779ae7652626f47f76766483bee6a20fffacfec0cf950e4a91087ea235a769",
+    "fn105-d8-v14-lint-green-final.log": "sha256:e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn107-d9-v14-registry-profile-doctor-green-final.log": "sha256:f1c24d11d0377d3224c1710d8a5d137a63352fb531fad8ffff542b475b0413ad",
+    "fn107-d9-pack-generator-red.log": "sha256:c314412c8305210907f195dc76616d673bdb30222c46f84d040c80396bba3d91",
+    "fn107-d9-pack-generator-green.log": "sha256:606df02eda607eed3ccfdb1d83539af0cfa1361763aed919eb7b3bdf998b3c19",
+    "fn107-d9-pack-generator-regression.log": "sha256:95c902f871211e2040a362774eed3953f9656034018219c7d79797ad7ab64e1c",
+    "fn107-d9-wal-dns-gomad-green.log": "sha256:b5f0fa4d2a2b9a3631232e16a1b535d7f54db672bf007dddbc214db6a47149db",
+    "fn107-d9-wal-dns-native-green.log": "sha256:69bc4a163b3fa548d08a5400077e85bc5c2efff27731bd85a3fdee3d16cbf78b",
+    "fn107-d9-localip-gomad-focused-green.log": "sha256:4b32d1eb176ce0bfee26a23c1c4a7774541d3d477792bf168727a826eabc1de0",
+    "fn107-d9-localip-lint.log": "sha256:e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn107-d9-wal-dns-lint.log": "sha256:e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+    "fn107-d9-storage-bind-review-green.log": "sha256:3a21bf3f6314fda9f9191eeebc714b57243cdfd7e24929e86b48e078aefaa863",
+    "blocked-darwin-gate-evidence.json": "sha256:c8eaa7eae2e552fbbd4d708877c747462c7b8d856f64a28fe0d01bcf28ad1b26",
+    "blocked-linux-gate-evidence.json": "sha256:ee0c3f2d84db27ce5d803a9ed74840380876d4252ebbf778522ab2278d1b70c7"
+  },
+  "source_revision": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "final_support_analysis_verified": false,
+  "dual_platform_workflow_qualification_verified": false,
+  "success_replays_verified": false,
+  "darwin_status": "fresh v14 binaries and doctor available; capability preparation denied host Go cache access",
+  "linux_status": "all 79 source hashes verified; fresh v14 rebuild blocked by Docker socket access",
+  "review_status": "expanded source and final qualification reviews remain required"
+}

@@ -1,8 +1,8 @@
 mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
 [test] $ ./scripts/go-test.sh --failfast -r . -t3m --tags test_dep,gomad,hashic…
-Adding "walker"
-Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker...
-[testrunner] 2026/09/30 14:45:04 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-1f6486d1-b98e-4dd1-b83e-f63e2844809c-junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run TestInProcess|TestCluster_InjectedProfile|TestTCPTransport|TestGomad|TestIUBuffer_InjectedFilesystem|TestVolumeRegistry_InjectedInventory|TestCheckpointDirSize_InjectedFilesystem|TestReplicaRestorer_InjectedStagingCleanup|TestServiceInstance_ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./localcluster ./testutil ./replication ./storage ./bimmer/operations ./serviceinstance
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/storage...
+[testrunner] 2026/09/30 14:45:04 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-1f6486d1-b98e-4dd1-b83e-f63e2844809c-junit.xml -- -tags test_dep,gomad,hashicorpmetrics -race -cover -run TestInProcess|TestCluster_InjectedProfile|TestTCPTransport|TestGomad|TestIUBuffer_InjectedFilesystem|TestVolumeRegistry_InjectedInventory|TestCheckpointDirSize_InjectedFilesystem|TestReplicaRestorer_InjectedStagingCleanup|TestServiceInstance_ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test_0.cover.out ./localcluster ./testutil ./replication ./storage ./bimmer/operations ./serviceinstance
 ✓  testutil (7.496s) (coverage: 19.7% of statements)
 ✓  replication (2.017s) (coverage: 11.8% of statements)
 ✓  storage (1.992s) (coverage: 2.3% of statements)
@@ -11,5 +11,5 @@ Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/walker.
 ✓  localcluster (1m38.97s) (coverage: 62.7% of statements)
 
 DONE 44 tests in 98.971s
-[testrunner] 2026/09/30 14:47:03 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
-[testrunner] 2026/09/30 14:47:03 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:47:03 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
+[testrunner] 2026/09/30 14:47:03 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml

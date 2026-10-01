@@ -1,0 +1,12 @@
+=== RUN   TestReleaseWithoutGit
+--- PASS: TestReleaseWithoutGit (0.01s)
+=== RUN   TestReleaseSelectionSurvives
+=== RUN   TestReleaseSelectionSurvives/explicit
+=== RUN   TestReleaseSelectionSurvives/sentry-environment
+=== RUN   TestReleaseSelectionSurvives/build-environment
+--- PASS: TestReleaseSelectionSurvives (0.00s)
+    --- PASS: TestReleaseSelectionSurvives/explicit (0.00s)
+    --- PASS: TestReleaseSelectionSurvives/sentry-environment (0.00s)
+    --- PASS: TestReleaseSelectionSurvives/build-environment (0.00s)
+PASS
+ok  	gomad3.adapter.sentry	0.056s

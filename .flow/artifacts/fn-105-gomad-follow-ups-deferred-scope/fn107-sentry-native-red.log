@@ -1,0 +1,6 @@
+=== RUN   TestReleaseWithoutGit
+    sentry_test.go:41: optional release = "host-git-release"; fake Git executed = true; want unknown release without subprocess
+--- FAIL: TestReleaseWithoutGit (0.18s)
+FAIL
+FAIL	gomad3.adapter.sentry	0.742s
+FAIL

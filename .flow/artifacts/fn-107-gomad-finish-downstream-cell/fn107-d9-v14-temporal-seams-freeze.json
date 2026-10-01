@@ -1,0 +1,37 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "files": [
+    {
+      "path": "common/config/localip.go",
+      "sha256": "sha256:d5b420e0eaa625991c520d572e17713e2f05a4380e1872c8b421294d57e9cd4c"
+    },
+    {
+      "path": "common/config/localip_native.go",
+      "sha256": "sha256:df157e674ae362a36bca059d83612b7c743190e7136a6cc7f9b982f660e4c7e0"
+    },
+    {
+      "path": "common/config/localip_gomad.go",
+      "sha256": "sha256:c8a994268f4c44249ade86bb4d1d60d0b073c8af59d32476409f48b1106a7f09"
+    },
+    {
+      "path": "common/config/localip_gomad_test.go",
+      "sha256": "sha256:0c2711e8b6647337518ac778fc7718ade792b0e48ef9da994d4a1991a43e8009"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/generate.go",
+      "sha256": "sha256:a7046e7742ad6cb0d9bf42e0a71b6dc2a38afcf1725f74bd0dd7eca94e47d1a5"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go",
+      "sha256": "sha256:be67fb10b55f5930df0283777403f4579ca0861d5c056a4b1d681540f3b91416"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs_generated_test.go",
+      "sha256": "sha256:58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/generation.json",
+      "sha256": "sha256:246ae499292568ba6eaae46e7de5efb367ac935ba11de80a174df535b881e8d1"
+    }
+  ]
+}

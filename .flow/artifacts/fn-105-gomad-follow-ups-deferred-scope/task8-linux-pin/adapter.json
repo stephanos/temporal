@@ -1,0 +1,15 @@
+{
+  "Module": "github.com/hashicorp/go-sockaddr",
+  "Version": "v1.0.7",
+  "Sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=",
+  "BuildModFile": "/private/tmp/fn105-d8-linux-pin/prepared/.io-adapter/gomad.mod",
+  "Source": "/Users/stephan/go/pkg/mod/github.com/hashicorp/go-sockaddr@v1.0.7/route_info_bsd.go",
+  "ReplacementRoot": "/private/tmp/fn105-d8-linux-pin/prepared/.io-adapter/go-sockaddr",
+  "Replacement": "/private/tmp/fn105-d8-linux-pin/prepared/.io-adapter/go-sockaddr/route_info_bsd.go",
+  "PreparedPackage": "github.com/hashicorp/go-sockaddr",
+  "SourceSHA256": "sha256:729003d9a6d1bf3ee2b59bc181f5d5737db07688cb53e8ba854a62bb64af8903",
+  "ReplacementSHA256": "sha256:05d693058b991d8ad6c33bcfcfdde27e7bbe8cfe2aa744833aee1d3582179284",
+  "OriginalSourceInventorySHA256": "sha256:ffbeb087a82c83f3e04f3c7f85317e40096a21854b6ce86ce3edc9c5809357c1",
+  "ReplacementSourceInventorySHA256": "sha256:8b26b980151c28eb5fbfdc1e2cde5ef7cb213d36e37271cccd0fa2304ac6087b",
+  "PreparedSourceSetSHA256": "sha256:fc302a373437ca8cef4fe978e6fe963222b0cb6393728d71d43603f119741954"
+}

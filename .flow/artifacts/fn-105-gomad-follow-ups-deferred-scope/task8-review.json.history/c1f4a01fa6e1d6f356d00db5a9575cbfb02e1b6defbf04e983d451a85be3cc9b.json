@@ -1,0 +1,99 @@
+{
+  "base": "HEAD",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f47b-f744-7d32-8ab1-fceeddea08c3",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f47b-f782-7a83-9d45-44ef8af22643",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a0f47b-f744-7f91-93e6-bbb246c7c3fa",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+    "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "path": "tools/gomad3/deterministicio/profile.go",
+          "side": "head",
+          "startLine": 65
+        },
+        "body": "Registering the adapter makes `cli.Check` return nine adapters and thirteen checks. The unchanged `TestCheckReportsAvailableContract` still expects eight adapters and twelve checks (`doctor_test.go:24,28`), so it deterministically fails. The supplied native checks exclude this CLI package.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "id": "finding-32ce7025d62697d97384dade97fcdad4",
+        "lastSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "ordinal": 1,
+        "rIds": [
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Update both doctor expectations and verify `./cmd/gomad/internal/cli`.",
+        "title": "Registering the adapter makes `cli"
+      },
+      {
+        "anchor": {
+          "baseSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "headSha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+          "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+          "side": "head",
+          "startLine": 29
+        },
+        "body": "The new consumer and source-drift tests read the pinned metrics module without downloading it. `pinnedModuleCache` only locates the cache. With an installed toolchain but no cached metrics module, running only `TestHashicorpMetrics*` fails before exercising the adapter. The supplied focused run masks this dependency by running the generic inventory test, which downloads the module first.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "id": "finding-b916d7b5854c75432a7bd3f09658d701",
+        "lastSeenReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72",
+        "ordinal": 2,
+        "rIds": [
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Download the pinned module explicitly in each test that needs its sources, using the existing helper; alternatively, use `PrepareTargetBuildAdapters` for the consumer.",
+        "title": "The new consumer and source-drift tests read the pinned metrics module without downloading it"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-700b5af96b7bd72658d2b7e8389e9edc6d75e33afa846abe44bfedea5f2b4e72"
+  },
+  "focus": "Independent working-tree implementation review of fn-105 D8 Hashicorp metrics adapter. Read current files, including all untracked sources: exact 12-file source inventory /private/tmp/fn105-d8-source-identities.json; commands /private/tmp/fn105-d8-commands.json; native/focused/generator/changed-line-lint logs /private/tmp/fn105-d8-final-focused.log /private/tmp/fn105-d8-native-affected.log /private/tmp/fn105-d8-generator-check.log /private/tmp/fn105-d8-lint-stable.log and exact Linux prepared-consumer evidence /private/tmp/fn105-d8-linux-pin. Task/spec context .flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md and .flow/specs/fn-105-gomad-follow-ups-deferred-scope.md. HEAD..HEAD is intentionally empty because changes are uncommitted and unrelated user commits are concurrent; inspect actual current scoped files and use git diff HEAD -- listed tracked files and direct untracked contents; fixed preimplementation baseline 5b77480876c8262a8c882882a7f1ecffcc7aa10b available. Check exact module/version/sum/inventory drift refusal; one inmem_signal.go rewrite preserves public syscall.Signal API/default SIGUSR1, all4 signal constructors deterministically refuse with panic, ordinary metrics emit correctly and no generic signal success. Review exact Darwin+Linux prepared pins, profile v12 and generated version identities, negatives/API/ownership. Final consumer packs and SUPPORTED closure analyses and activated qualifications remain external D8/D9 acceptance evidence pending and are not part of this source review; do not mark task complete. Read only, no builds/writes/commits. Ignore unrelated Flow/user modifications.",
+  "id": "branch",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Registering the adapter makes `cli\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Registering the adapter makes `cli.Check` return nine adapters and thirteen checks. The unchanged `TestCheckReportsAvailableContract` still expects eight adapters and twelve checks (`doctor_test.go:24,28`), so it deterministically fails. The supplied native checks exclude this CLI package.\n- **Suggestion**: Update both doctor expectations and verify `./cmd/gomad/internal/cli`.\n- **File:Line**: tools/gomad3/deterministicio/profile.go:65\n- **R-IDs**: R8\n\n## Issue 2\n- **Severity**: P2\n- **Title**: The new consumer and source-drift tests read the pinned metrics module without downloading it\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The new consumer and source-drift tests read the pinned metrics module without downloading it. `pinnedModuleCache` only locates the cache. With an installed toolchain but no cached metrics module, running only `TestHashicorpMetrics*` fails before exercising the adapter. The supplied focused run masks this dependency by running the generic inventory test, which downloads the module first.\n- **Suggestion**: Download the pinned module explicitly in each test that needs its sources, using the existing helper; alternatively, use `PrepareTargetBuildAdapters` for the consumer.\n- **File:Line**: tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go:29\n- **R-IDs**: R8\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "reviewed_head_sha": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "rid": "6fca7a4df658fc99bcc169e6fa450737",
+  "session_id": "01a0f47b-f744-7d32-8ab1-fceeddea08c3",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-09-30T22:46:48.288888Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

@@ -14,9 +14,44 @@
   "patch": "toolchain/runtime/go1.27.1.patch",
   "adapters": [
     {
+      "module": "github.com/Masterminds/sprig/v3",
+      "version": "v3.3.0",
+      "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+    },
+    {
+      "module": "github.com/cactus/go-statsd-client/v5",
+      "version": "v5.1.0",
+      "sum": "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="
+    },
+    {
+      "module": "github.com/cockroachdb/pebble",
+      "version": "v0.0.0-20260703021901-41f35d3cb7df",
+      "sum": "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="
+    },
+    {
+      "module": "github.com/getsentry/sentry-go",
+      "version": "v0.46.0",
+      "sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="
+    },
+    {
+      "module": "github.com/go-playground/validator/v10",
+      "version": "v10.30.1",
+      "sum": "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w="
+    },
+    {
+      "module": "github.com/hashicorp/go-metrics",
+      "version": "v0.5.4",
+      "sum": "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="
+    },
+    {
       "module": "github.com/hashicorp/go-sockaddr",
       "version": "v1.0.7",
       "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="
+    },
+    {
+      "module": "github.com/hashicorp/memberlist",
+      "version": "v0.5.4",
+      "sum": "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="
     },
     {
       "module": "go.opentelemetry.io/otel/sdk",
@@ -99,24 +134,24 @@
     "src/internal/gomadfs/simulation_volume.go",
     "src/internal/gomadfs/simulation_volume_wire.go",
     "src/internal/gomadfs/volume.go",
-	"src/internal/gomadio/anonymous.go",
-	"src/internal/gomadio/anonymous_test.go",
+    "src/internal/gomadio/anonymous.go",
+    "src/internal/gomadio/anonymous_test.go",
     "src/internal/gomadio/gomadio.go",
     "src/internal/gomadio/libc.go",
     "src/internal/gomadio/mount/client.go",
     "src/internal/gomadio/mount/client_test.go",
     "src/internal/gomadio/network.go",
-	"src/internal/gomadio/process_network.go",
+    "src/internal/gomadio/process_network.go",
     "src/internal/gomadio/simulation_network.go",
     "src/internal/gomadio/simulation_wire.go",
     "src/internal/gomadio/transcript.go",
-	"src/internal/gomadmodelwire/wire_generated.go",
-	"src/internal/gomadmodelwire/wire_generated_test.go",
-	"src/internal/gomadsim/model_transport_generated.go",
+    "src/internal/gomadmodelwire/wire_generated.go",
+    "src/internal/gomadmodelwire/wire_generated_test.go",
+    "src/internal/gomadsim/model_transport_generated.go",
     "src/internal/gomadsim/process.go",
-	"src/internal/gomadsim/process_model.go",
-	"src/internal/gomadsim/process_model_test.go",
-	"src/internal/gomadsim/process_time_test.go",
+    "src/internal/gomadsim/process_model.go",
+    "src/internal/gomadsim/process_model_test.go",
+    "src/internal/gomadsim/process_time_test.go",
     "src/internal/gomadsim/simulation.go",
     "src/internal/gomadsim/simulation_test.go",
     "src/internal/gomadtrace/trace.go",
@@ -125,7 +160,7 @@
     "src/net/gomad.go",
     "src/net/gomad_unsupported_generated.go",
     "src/os/gomad.go",
-	"src/os/gomad_simulation_test.go",
+    "src/os/gomad_simulation_test.go",
     "src/os/signal/gomad.go",
     "src/os/user/gomad.go",
     "src/runtime/gomad.go",

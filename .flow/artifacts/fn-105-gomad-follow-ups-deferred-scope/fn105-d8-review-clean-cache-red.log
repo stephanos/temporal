@@ -1,0 +1,14 @@
+go: downloading go1.27.1 (darwin/arm64)
+go: downloading golang.org/x/mod v0.37.0
+=== RUN   TestHashicorpMetricsAdapterConsumer
+    hashicorpmetrics_adapter_test.go:34: resolve pinned github.com/hashicorp/go-metrics module: lstat /private/tmp/fn105-d8-clean-module-cache-red/github.com: no such file or directory
+--- FAIL: TestHashicorpMetricsAdapterConsumer (0.08s)
+=== RUN   TestHashicorpMetricsRewriteRejectsDrift
+    hashicorpmetrics_adapter_test.go:80: pinned github.com/hashicorp/go-metrics source is not a regular file: inmem_signal.go
+--- FAIL: TestHashicorpMetricsRewriteRejectsDrift (0.03s)
+=== RUN   TestHashicorpMetricsRejectsUnrewrittenInventoryDrift
+    hashicorpmetrics_adapter_test.go:122: copy deterministic I/O adapter module: lstat /private/tmp/fn105-d8-clean-module-cache-red/github.com/hashicorp/go-metrics@v0.5.4: no such file or directory
+--- FAIL: TestHashicorpMetricsRejectsUnrewrittenInventoryDrift (0.03s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	0.633s
+FAIL

@@ -1,0 +1,14 @@
+=== RUN   TestSignalServicesRefuse
+=== RUN   TestSignalServicesRefuse/root
+=== RUN   TestSignalServicesRefuse/root-default
+=== RUN   TestSignalServicesRefuse/compat
+=== RUN   TestSignalServicesRefuse/compat-default
+--- PASS: TestSignalServicesRefuse (0.00s)
+    --- PASS: TestSignalServicesRefuse/root (0.00s)
+    --- PASS: TestSignalServicesRefuse/root-default (0.00s)
+    --- PASS: TestSignalServicesRefuse/compat (0.00s)
+    --- PASS: TestSignalServicesRefuse/compat-default (0.00s)
+=== RUN   TestOrdinaryMetricsEmissionSurvives
+--- PASS: TestOrdinaryMetricsEmissionSurvives (0.00s)
+PASS
+ok  	gomad3.adapter.hashicorpmetrics	0.037s

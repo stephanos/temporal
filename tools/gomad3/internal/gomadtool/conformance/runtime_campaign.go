@@ -135,9 +135,9 @@ func (campaign *runtimeCampaign) validateInstallation() error {
 	if overlayRoot == "" {
 		overlayRoot = filepath.Join(campaign.config.Root, "toolchain", "runtime", "overlay")
 	}
-	return filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	return filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		if entry.IsDir() {
 			return nil

@@ -1,0 +1,24 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r '^TestServiceInstance_GomadBindFail…
+Adding "localcell/gomad"
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/storage...
+[testrunner] 2026/09/30 15:53:16 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-9c82ef83-17e1-4e5d-b848-1e65fef233b9-junit.xml -- -tags gomad,integration,test_dep -race -cover -run ^TestServiceInstance_GomadBindFailureReturnsImmediately$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-bind-red-unit_0.cover.out ./serviceinstance
+✖  serviceinstance (6.222s) (coverage: 2.7% of statements)
+
+=== Failed
+=== FAIL: serviceinstance TestServiceInstance_GomadBindFailureReturnsImmediately (5.01s)
+    listen_gomad_test.go:24: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/downstream/storage/serviceinstance/listen_gomad_test.go:24
+        	Error:      	"5.008180167s" is not less than "500ms"
+        	Test:       	TestServiceInstance_GomadBindFailureReturnsImmediately
+
+DONE 1 tests, 1 failure in 6.222s
+[testrunner] 2026/09/30 15:53:52 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-bind-red-unit.junit.xml
+[testrunner] 2026/09/30 15:53:52 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-bind-red-unit.junit.xml
+[testrunner] 2026/09/30 15:53:52 exiting with failure after running 1 attempt(s)
+exit status 1
+2026/09/30 15:53:52 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/downstream/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-bind-red-unit.junit.xml -- -tags gomad,integration,test_dep -race -cover -run ^TestServiceInstance_GomadBindFailureReturnsImmediately$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-bind-red-unit.cover.out ./serviceinstance]
+2026/09/30 15:53:52 test failed: test failed: exit status 1
+exit status 1
+[test] ERROR task failed

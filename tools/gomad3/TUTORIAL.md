@@ -223,11 +223,11 @@ data, `TZ=UTC`, and only values explicitly supplied with `--env`. Ambient
 credentials, proxy settings, and other shell state therefore do not accidentally
 become replay inputs.
 
-The supervisor is there because deterministic programs can still go wrong in
-very ordinary ways. It drains stdout and stderr, enforces a wall-time watchdog,
-and cleans up the complete process group with `SIGTERM` followed by `SIGKILL` if
-necessary. Output is bounded for storage, but Gomad continues reading and hashes
-the complete streams.
+The Runner drains stdout and stderr, continues reading beyond the storage
+bound, and hashes the complete streams. The supervisor is there because
+deterministic programs can still go wrong in very ordinary ways. It enforces
+a wall-time watchdog and cleans up the complete process group with `SIGTERM`
+followed by `SIGKILL` if necessary.
 
 This is containment for trusted tests, not a security sandbox. Code that
 deliberately bypasses the reviewed boundary with raw syscalls is outside the

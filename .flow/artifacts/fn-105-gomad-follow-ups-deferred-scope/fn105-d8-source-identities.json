@@ -1,0 +1,77 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "files": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+      "sha256": "sha256:691b361c742dbfd16a5c818e8ee43eb8ec416c33de9ba38eef49147a7c6ec4ec"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "sha256:f2fdca6c1807d147515ca0fb3409702097931143fe07a871b3f085ddf0e085ca"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "sha256:b580335ed899f739d3a57fd35053ba70a49eb84dee81c487feed8e0d01c72489"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+      "sha256": "sha256:3c437d7f4598a75bba1d003e159767721be256331d090ea1c92ef8b06a560c84"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "sha256": "sha256:5f5bbbfb804a681a20a405dd13144a2088825f3fcc0a635a1cc451a0cb36b587"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "sha256:a7211001fc46a4981582ffd64339f6f60edb510e312f9fdfae8a09e432b85c32"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "sha256": "sha256:d8a6a6f6b1dc57157b609c508ed07e0eb17789282945a467000f5c432e06f905"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter.go",
+      "sha256": "sha256:0174c04933cb7e97e1ff18f9990df36b422969bc59a3ba9a5912bf47244cc062"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter_test.go",
+      "sha256": "sha256:c3f685863240737952af1c0752ba63e048bf1bdfe1297b986f721fc74b644f50"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_adapter.go",
+      "sha256": "sha256:6af34f2505b7e95d73d81b1b18df87c9d72486b29081e2c6d5725fd7f2708b54"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.mod",
+      "sha256": "sha256:e56d89158f6595cc294e052f8bfcdf66cfe87ba90dd68a178ee676d01c0550a3"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.sum",
+      "sha256": "sha256:5ead8ce35c14f9e796f77e8aae46b18202e885935e665e751edcab8a60f77e67"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/metrics_test.go",
+      "sha256": "sha256:21aa88c348d91edd5aa0b3575274174ebf74a9f83860b6926bcda8569c2098c2"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/go.mod",
+      "sha256": "sha256:a942f8db44ab9e4cd90f0e6807fa1411efd96b1e3ee4c16aafdc9cb6267525a0"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/go.sum",
+      "sha256": "sha256:a9b3992ed47b910937f53b44622b0e119d08fa64e7ca35c043d7f631b87ca07b"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/sentry_test.go",
+      "sha256": "sha256:78b2dd34ac3c5b9ca5d7fd8586e448a0462b46973a1e9b5adb1bed010faca480"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/generated.go",
+      "sha256": "sha256:e4a38aae0ce1af9d35d624bbbc131aeda28a1b04c509167029399613a22e6cdb"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "sha256:8957604b5c676588fc210d383002c4b9f1aaf452e478fdcc3337df0e0b4cf925"
+    }
+  ]
+}

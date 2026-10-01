@@ -1,0 +1,5 @@
+go: downloading golang.org/x/mod v0.37.0
+=== RUN   TestHashicorpMetricsRejectsUnrewrittenInventoryDrift
+--- PASS: TestHashicorpMetricsRejectsUnrewrittenInventoryDrift (0.49s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	1.003s

@@ -9,7 +9,14 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 - supported platforms: `darwin/arm64`, `linux/amd64`
 - boundary manifest: `go1.27.1-v1`
 - patch: [`../../toolchain/runtime/go1.27.1.patch`](../../toolchain/runtime/go1.27.1.patch)
+- adapter: `github.com/Masterminds/sprig/v3@v3.3.0` (`h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=`)
+- adapter: `github.com/cactus/go-statsd-client/v5@v5.1.0` (`h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=`)
+- adapter: `github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df` (`h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=`)
+- adapter: `github.com/getsentry/sentry-go@v0.46.0` (`h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=`)
+- adapter: `github.com/go-playground/validator/v10@v10.30.1` (`h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=`)
+- adapter: `github.com/hashicorp/go-metrics@v0.5.4` (`h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=`)
 - adapter: `github.com/hashicorp/go-sockaddr@v1.0.7` (`h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=`)
+- adapter: `github.com/hashicorp/memberlist@v0.5.4` (`h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=`)
 - adapter: `go.opentelemetry.io/otel/sdk@v1.44.0` (`h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=`)
 - adapter: `go.temporal.io/sdk@v1.48.0` (`h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=`)
 - adapter: `go.uber.org/fx@v1.24.0` (`h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=`)

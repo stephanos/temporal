@@ -1,0 +1,53 @@
+go: downloading golang.org/x/mod v0.37.0
+=== RUN   TestSentryAdapterConsumer
+    sentry_adapter_test.go:67: prepared stock Sentry consumer:
+        go: downloading golang.org/x/text v0.14.0
+        === RUN   TestReleaseWithoutGit
+        --- PASS: TestReleaseWithoutGit (0.00s)
+        === RUN   TestReleaseSelectionSurvives
+        === RUN   TestReleaseSelectionSurvives/explicit
+        === RUN   TestReleaseSelectionSurvives/sentry-environment
+        === RUN   TestReleaseSelectionSurvives/build-environment
+        --- PASS: TestReleaseSelectionSurvives (0.00s)
+            --- PASS: TestReleaseSelectionSurvives/explicit (0.00s)
+            --- PASS: TestReleaseSelectionSurvives/sentry-environment (0.00s)
+            --- PASS: TestReleaseSelectionSurvives/build-environment (0.00s)
+        PASS
+        ok  	gomad3.adapter.sentry	0.561s
+    sentry_adapter_test.go:69: prepared upstream build-info tests:
+        go: downloading github.com/go-errors/errors v1.4.2
+        go: downloading github.com/pkg/errors v0.9.1
+        go: downloading github.com/pingcap/errors v0.11.4
+        go: downloading github.com/google/go-cmp v0.5.9
+        go: downloading github.com/stretchr/testify v1.8.4
+        go: downloading go.uber.org/goleak v1.3.0
+        go: downloading gopkg.in/yaml.v3 v3.0.1
+        go: downloading github.com/pmezard/go-difflib v1.0.0
+        go: downloading github.com/davecgh/go-spew v1.1.1
+        === RUN   TestRevisionFromBuildInfo
+        --- PASS: TestRevisionFromBuildInfo (0.00s)
+        === RUN   TestRevisionFromBuildInfoNoVcsInformation
+        --- PASS: TestRevisionFromBuildInfoNoVcsInformation (0.00s)
+        PASS
+        ok  	github.com/getsentry/sentry-go	0.654s
+    sentry_adapter_test.go:112: prepared darwin/arm64 source set sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb; Sentry subprocess imports and execabs closure absent
+    sentry_adapter_test.go:112: prepared linux/amd64 source set sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb; Sentry subprocess imports and execabs closure absent
+--- PASS: TestSentryAdapterConsumer (7.17s)
+=== RUN   TestSentryRejectsChangedIdentity
+--- PASS: TestSentryRejectsChangedIdentity (0.00s)
+=== RUN   TestSentryRewriteRejectsDrift
+=== RUN   TestSentryRewriteRejectsDrift/upstream-file
+=== RUN   TestSentryRewriteRejectsDrift/missing-anchor
+=== RUN   TestSentryRewriteRejectsDrift/ambiguous-anchor
+=== RUN   TestSentryRewriteRejectsDrift/replacement-digest
+--- PASS: TestSentryRewriteRejectsDrift (0.07s)
+    --- PASS: TestSentryRewriteRejectsDrift/upstream-file (0.00s)
+    --- PASS: TestSentryRewriteRejectsDrift/missing-anchor (0.00s)
+    --- PASS: TestSentryRewriteRejectsDrift/ambiguous-anchor (0.00s)
+    --- PASS: TestSentryRewriteRejectsDrift/replacement-digest (0.00s)
+=== RUN   TestSentryRewritePreservesComments
+--- PASS: TestSentryRewritePreservesComments (0.07s)
+=== RUN   TestSentryRejectsUnrewrittenInventoryDrift
+--- PASS: TestSentryRejectsUnrewrittenInventoryDrift (0.14s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	7.967s

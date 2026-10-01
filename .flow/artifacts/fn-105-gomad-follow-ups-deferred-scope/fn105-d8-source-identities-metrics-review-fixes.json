@@ -1,0 +1,57 @@
+{
+  "source_root": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "files": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+      "sha256": "sha256:6c670990eeca0d68f58b4c6e3abbe3cd56991b8710c728c8d4e2df99eab17e6c"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "sha256:bb1c97e50f296375021942d0edb606ff3190c478155a312ca918b8e69b23e447"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "sha256:cc1e3d21fb554ce963fd41d5f3cce2d693ec6ec2496c41d4043a1aefcb621ca1"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+      "sha256": "sha256:3c437d7f4598a75bba1d003e159767721be256331d090ea1c92ef8b06a560c84"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "sha256": "sha256:5f5bbbfb804a681a20a405dd13144a2088825f3fcc0a635a1cc451a0cb36b587"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "sha256:d47881a1160349bfadddd1d1b3ba47b9e4f7121fae024519b8a2efd0f87d27e9"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "sha256": "sha256:63c1f44f0ad134171532a22c52ad6ee380f7c8edfd986de15a8d866f97b3db5c"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_adapter.go",
+      "sha256": "sha256:6af34f2505b7e95d73d81b1b18df87c9d72486b29081e2c6d5725fd7f2708b54"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.mod",
+      "sha256": "sha256:e56d89158f6595cc294e052f8bfcdf66cfe87ba90dd68a178ee676d01c0550a3"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.sum",
+      "sha256": "sha256:5ead8ce35c14f9e796f77e8aae46b18202e885935e665e751edcab8a60f77e67"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/metrics_test.go",
+      "sha256": "sha256:21aa88c348d91edd5aa0b3575274174ebf74a9f83860b6926bcda8569c2098c2"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/generated.go",
+      "sha256": "sha256:5866a8d37148198b14ec208bf001dfd3f2739f0e92209b350e4bd5d5fe9cc6ba"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "sha256:c37438eaf7942c1b0902081fb37433af63a1510fb24b87741ba74b081fd1ca39"
+    }
+  ]
+}

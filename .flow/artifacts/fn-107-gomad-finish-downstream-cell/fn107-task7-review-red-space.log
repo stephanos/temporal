@@ -1,21 +1,21 @@
-Adding "walker"
-Running tests in /Users/stephan/Workspace/skunkworks/gomad/saas-temporal...
-[testrunner] 2026/09/30 14:39:19 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-f1e3175f-f095-46ee-a550-8209df13e05b-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test_0.cover.out ./cds/export/cds
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream...
+[testrunner] 2026/09/30 14:39:19 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-f1e3175f-f095-46ee-a550-8209df13e05b-junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedStorageFactoryRejectsMatchingInvalidShardspace$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test_0.cover.out ./cds/export/cds
 ✖  cds/export/cds (2.713s) (coverage: 2.6% of statements)
 
 === Failed
-=== FAIL: cds/export/cds TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace (0.00s)
+=== FAIL: cds/export/cds TestInjectedStorageFactoryRejectsMatchingInvalidShardspace (0.00s)
     injected_factory_test.go:138: 
-        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cds/export/cds/injected_factory_test.go:138
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/downstream/cds/export/cds/injected_factory_test.go:138
         	Error:      	An error is expected but got nil.
         	            	expected: *serviceerror.InvalidArgument
-        	Test:       	TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace
+        	Test:       	TestInjectedStorageFactoryRejectsMatchingInvalidShardspace
 
 DONE 1 tests, 1 failure in 2.713s
-[testrunner] 2026/09/30 14:39:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
-[testrunner] 2026/09/30 14:39:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml
+[testrunner] 2026/09/30 14:39:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
+[testrunner] 2026/09/30 14:39:47 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml
 [testrunner] 2026/09/30 14:39:47 exiting with failure after running 1 attempt(s)
 exit status 1
-2026/09/30 14:39:47 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/saas-temporal/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedWalkerFactoryRejectsMatchingInvalidShardspace$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/saas-temporal/unit-test.cover.out ./cds/export/cds]
+2026/09/30 14:39:47 Command was go [run /Users/stephan/Workspace/skunkworks/gomad/downstream/cmd/tools/test-runner test --gotestsum-path=/Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.junit.xml -- -tags test_dep,hashicorpmetrics -race -cover -run ^TestInjectedStorageFactoryRejectsMatchingInvalidShardspace$ -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/unit-test.cover.out ./cds/export/cds]
 2026/09/30 14:39:47 test failed: test failed: exit status 1
 exit status 1

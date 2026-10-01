@@ -1,12 +1,12 @@
 {
   "commits": [],
   "tests": [
-    "mise run test -t 3m ./walker/storage ./walker/replication (292 tests, two existing skips; /private/tmp/fn107-storage-replication-native.log)",
-    "mise run test --tags test_dep,gomad -t 3m -r \"^TestInjectedFS_|^TestCapacityFS_|^TestDiscoverVolumes_RequiresConfigurationUnderGomad$|^TestCheckpointBlobStoreSuite/TestInjectedFSUploadDownload$\" ./walker/storage ./walker/replication (11 tests; /private/tmp/fn107-storage-replication-gomad-tag.log)",
-    "mise run test -t 3m -r \"^TestCapacityFS_Root$\" ./walker/storage (verified red then green; /private/tmp/fn107-capacity-root-red.log and -green.log)",
-    "mise run test -t 3m ./walker/storage (72 tests, two existing skips after review fix; /private/tmp/fn107-capacity-root-storage-quick.log)",
-    "mise run test -t 3m ./walker/replication (223 tests after review fix; /private/tmp/fn107-post-review-replication.log)",
-    "mise exec -- golangci-lint run --timeout 2m ./storage/... ./replication/... (walker cwd; zero issues; /private/tmp/fn107-capacity-root-lint.log)",
+    "mise run test -t 3m ./storage/storage ./storage/replication (292 tests, two existing skips; /private/tmp/fn107-storage-replication-native.log)",
+    "mise run test --tags test_dep,gomad -t 3m -r \"^TestInjectedFS_|^TestCapacityFS_|^TestDiscoverVolumes_RequiresConfigurationUnderGomad$|^TestCheckpointBlobStoreSuite/TestInjectedFSUploadDownload$\" ./storage/storage ./storage/replication (11 tests; /private/tmp/fn107-storage-replication-gomad-tag.log)",
+    "mise run test -t 3m -r \"^TestCapacityFS_Root$\" ./storage/storage (verified red then green; /private/tmp/fn107-capacity-root-red.log and -green.log)",
+    "mise run test -t 3m ./storage/storage (72 tests, two existing skips after review fix; /private/tmp/fn107-capacity-root-storage-quick.log)",
+    "mise run test -t 3m ./storage/replication (223 tests after review fix; /private/tmp/fn107-post-review-replication.log)",
+    "mise exec -- golangci-lint run --timeout 2m ./storage/... ./replication/... (storage cwd; zero issues; /private/tmp/fn107-capacity-root-lint.log)",
     "git diff --check",
     "Flow Codex three-axis review and resumed review: SHIP"
   ],

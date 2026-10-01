@@ -1,0 +1,5 @@
+Usage of gomadtool version-generate:
+  -check
+    	check generated files without changing them
+  -root string
+    	Gomad v3 module root (default ".")

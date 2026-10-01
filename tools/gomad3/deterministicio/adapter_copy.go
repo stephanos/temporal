@@ -69,9 +69,9 @@ func copyAdapterModule(source, destination string, replacements map[string][]byt
 		}
 		return writeExclusive(targetPath, contents)
 	}
-	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
 		}
 		relative, err := filepath.Rel(source, path)
 		if err != nil {

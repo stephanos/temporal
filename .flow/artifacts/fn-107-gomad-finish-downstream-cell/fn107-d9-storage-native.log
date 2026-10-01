@@ -1,0 +1,12 @@
+mise WARN  deprecated [tera_template_task_args]: Task 'test' uses deprecated Tera template functions (arg(), option(), flag()) in run scripts. Use the 'usage' field instead. See https://mise.en.dev/tasks/task-arguments.html This will be removed in mise 2027.5.0.
+[test] $ ./scripts/go-test.sh --failfast -r '^(TestServiceInstance_|TestTCPTran…
+Adding "localcell/gomad"
+Adding "storage"
+Running tests in /Users/stephan/Workspace/skunkworks/gomad/downstream/storage...
+[testrunner] 2026/09/30 15:55:48 starting test attempt #1: /Users/stephan/.local/share/mise/installs/github-gotestyourself-gotestsum/1.13.0/gotestsum --junitfile=/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/temporalio-temporal-c1301eaa-c28a-4ae8-926a-107c1a9983f1-junit.xml -- -tags integration,test_dep -race -cover -run ^(TestServiceInstance_|TestTCPTransport_) -timeout 3m -failfast -coverprofile=/Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-native-unit_0.cover.out ./serviceinstance ./testutil
+✓  serviceinstance (2.229s) (coverage: 12.4% of statements)
+✓  testutil (7.365s) (coverage: 19.3% of statements)
+
+DONE 13 tests in 7.365s
+[testrunner] 2026/09/30 15:56:10 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-native-unit.junit.xml
+[testrunner] 2026/09/30 15:56:10 wrote junit report to /Users/stephan/Workspace/skunkworks/gomad/downstream/fn107-d9-storage-native-unit.junit.xml

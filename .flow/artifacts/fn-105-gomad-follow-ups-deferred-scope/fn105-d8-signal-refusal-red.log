@@ -1,0 +1,12 @@
+--- FAIL: TestSignalServicesRefuse (0.00s)
+    --- FAIL: TestSignalServicesRefuse/root (0.00s)
+        metrics_test.go:28: signal service refusal = <nil>
+    --- FAIL: TestSignalServicesRefuse/root-default (0.00s)
+        metrics_test.go:28: signal service refusal = <nil>
+    --- FAIL: TestSignalServicesRefuse/compat (0.00s)
+        metrics_test.go:28: signal service refusal = <nil>
+    --- FAIL: TestSignalServicesRefuse/compat-default (0.00s)
+        metrics_test.go:28: signal service refusal = <nil>
+FAIL
+FAIL	gomad3.adapter.hashicorpmetrics	0.470s
+FAIL
