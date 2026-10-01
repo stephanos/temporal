@@ -19,6 +19,8 @@ Findings the Go port must match:
 Checks: counts equal the pins (6/12/25, 192/23/1152, 158 reachable, 96 ends, 316 states and 1,468 rows for the composition); targets equal `CallerExploratoryCoverage.json`; two runs are byte-identical. `dump.sh` writes to a scratch directory and fails without touching committed dumps on a Lean error.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+stage: status-replay - ran (2026-09-30: this task's runtime status was recorded in a checkout that no longer exists, so it read todo here; the status is replayed from the summary above. Verified in this checkout: `go test -tags test_dep ./model/scalav2/... ./model/go/...`, `make umpire-check-scala`, `make lint-scala` and `model/scala/run.sh --no-prove` pass, with the Lean-dump comparisons skipped because the git-ignored dumps are absent and the Lean toolchain was removed.)
 ## Evidence
 - Commits:
 - Tests: experiments/umpire-go/lean/dump.sh (twice, diff -r identical)

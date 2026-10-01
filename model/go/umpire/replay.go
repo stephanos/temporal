@@ -96,8 +96,8 @@ func (t *Table) replay(w *Trace) ([]edge, error) {
 		if err := t.bindsStep(i+1, step); err != nil {
 			return nil, err
 		}
-		row, ok := rowOf(t, state, step.Action.Value)
-		if !ok {
+		enabled, row, _ := t.pair(state, step.Action.Value)
+		if enabled != pairEnabled {
 			return nil, errorf(t.Machine, "step %d takes %s, which is not enabled at '%s'", i+1, step.Action.Value, state)
 		}
 		k := slices.IndexFunc(row.Results, func(r Result) bool { return step.matches(r) })
@@ -161,7 +161,7 @@ func (q *Query) Replay(a Answer) error {
 	}
 	path, err := s.t.replay(a.Witness)
 	if err != nil {
-		return errorf(q.decl(), "%v", err)
+		return wrapError(q.decl(), err)
 	}
 	if a.Witness.Initial.Value != q.Scenario.Start {
 		return errorf(q.decl(), "the witness starts at '%s', and %s starts at '%s'",
@@ -174,7 +174,10 @@ func (q *Query) Replay(a Answer) error {
 			return errorf(q.decl(), "step %d takes %s, which %s does not schedule there", i+1, row.Action, q.Scenario.Name)
 		}
 		n, err := s.step(i, row, e.result)
-		if err != nil {
+		// A witness may end on a step some Monitor could not be read on, when what was read of the
+		// step already answers the Query.
+		ends := i == len(path)-1 && s.q.Unknown != nil
+		if err != nil && (!ends || !s.q.Unknown(err) || !s.answers(n)) {
 			return err
 		}
 		s.nodes = append(s.nodes, n)

@@ -36,6 +36,10 @@ type Group struct {
 //
 // Only the whole-state, outcome and fact readings are ported: the one-field reading a composed
 // claim needs is not, because no realized Query in this repository reads a composition.
+//
+// A Property over a table's keys lowers the same way, its predicate asked about results by their
+// keys. Such a predicate may fail to answer; a step it cannot be read on is not a step it rejects,
+// so the Property is then not lowered and the error is the predicate's.
 func (p *PropertyDecl) Lower() ([]Group, error) {
 	if p.IsTransition() {
 		return nil, errorf("property "+p.Name, "a transition claim is searched and verified, never realized")
@@ -44,6 +48,10 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 	if err != nil {
 		return nil, err
 	}
+	if t.alter.state == nil {
+		return nil, errorf("property "+p.Name, "a claim of a composition is searched and verified, never realized")
+	}
+	ask := &asking{p: p}
 	var groups []Group
 	for _, action := range t.Actions {
 		if !p.Triggers(action) {
@@ -60,7 +68,10 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 			return nil, errorf("property "+p.Name, "no step of this machine is admitted at %s, so the "+
 				"predicate has nothing to hold on", trigger)
 		}
-		reqs, err := p.fixedRequirements(t, results)
+		reqs, err := ask.fixedRequirements(t, results)
+		if ask.unread != nil {
+			return nil, wrapError("property "+p.Name, ask.unread)
+		}
 		if err != nil {
 			return nil, errorf("property "+p.Name, "%s at %s", err, trigger)
 		}
@@ -73,10 +84,30 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 	return groups, nil
 }
 
-func (p *PropertyDecl) accepts(step Result) bool { return p.holds(step.Step) }
+// asking asks a Property about steps while it is lowered. A typed predicate always answers. One over
+// a table's keys may fail: the first failure is kept as unread, and nothing asked after it counts.
+type asking struct {
+	p      *PropertyDecl
+	unread error
+}
+
+func (p *asking) accepts(step Result) bool {
+	if p.p.keyHolds == nil {
+		return p.p.holds(step.Step)
+	}
+	if p.unread != nil {
+		return false
+	}
+	held, err := p.p.keyHolds(step)
+	if err != nil {
+		p.unread = err
+		return false
+	}
+	return held
+}
 
 // fixedRequirements is `fixedRequirements` without the field reading.
-func (p *PropertyDecl) fixedRequirements(t *Table, results []Result) ([]Requirement, error) {
+func (p *asking) fixedRequirements(t *Table, results []Result) ([]Requirement, error) {
 	var accepted []Result
 	for _, r := range results {
 		if p.accepts(r) {
@@ -144,4 +175,29 @@ type alterer struct {
 
 func (t *Table) alterer() alterer {
 	return t.alter
+}
+
+// keyAlterer rebuilds a result of a table over keys with its state, outcome or one fact changed. The
+// result is its keys alone: it carries no step, since no step was taken to it.
+func keyAlterer() alterer {
+	keyed := func(r Result) Result {
+		return Result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts), Because: r.Because}
+	}
+	return alterer{
+		state: func(r Result, key string) Result {
+			out := keyed(r)
+			out.State = key
+			return out
+		},
+		outcome: func(r Result, key string) Result {
+			out := keyed(r)
+			out.Outcome = key
+			return out
+		},
+		without: func(r Result, key string) Result {
+			out := keyed(r)
+			out.Facts = slices.DeleteFunc(out.Facts, func(f string) bool { return f == key })
+			return out
+		},
+	}
 }

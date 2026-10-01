@@ -91,6 +91,11 @@ func checkQuery(q *Query) []error {
 	if a.Outcome != want {
 		return []error{errorf(q.decl(), "%s", a)}
 	}
+	if a.Incomplete() {
+		first := a.Unknown[0]
+		return []error{errorf(q.decl(), "%s is incomplete: the search explored %d unknown, the first the %s '%s'",
+			a, len(a.Unknown), first.Kind, first.Row)}
+	}
 	return nil
 }
 

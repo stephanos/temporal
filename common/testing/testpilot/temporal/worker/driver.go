@@ -28,6 +28,7 @@ type Driver struct {
 	sessions          map[string]*Session
 	tombstones        []*Session
 	workflowRoutes    map[delivery.WorkflowBinding][]*Session
+	activityRoutes    map[delivery.ActivityBinding][]*Session
 	nexusRoutes       map[nexusRouteIndex][]*Session
 	routeAssociations int
 	nextSession       atomic.Uint64
@@ -43,6 +44,10 @@ type hostOptions struct {
 	requestBytes  int64
 	now           func() time.Time
 	completion    *completionTransport
+	// activityClosed asks the server for the outcome of the standalone activity run and returns the
+	// run the server reports closed. It is the only evidence that no further attempt of the activity
+	// will be issued; nil means there is none.
+	activityClosed func(ctx context.Context, namespace, activityID, activityRunID string) (string, error)
 }
 
 func New(options Options) (*Driver, error) {
@@ -63,12 +68,13 @@ func New(options Options) (*Driver, error) {
 		sessions:       make(map[string]*Session),
 		tombstones:     make([]*Session, 0, diagnostics),
 		workflowRoutes: make(map[delivery.WorkflowBinding][]*Session),
+		activityRoutes: make(map[delivery.ActivityBinding][]*Session),
 		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
 		options: hostOptions{
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
 			workerOptions: worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
 			maximum:       maximum, diagnostics: diagnostics, requestBytes: limits.GetMaxRequestBytes(),
-			now: time.Now, completion: completion,
+			now: time.Now, completion: completion, activityClosed: pollActivityClosed(options.Client),
 		},
 	}
 	h.registry = newWorkerRegistry(maximum, h.newSDKWorker)
@@ -222,7 +228,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limi
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
-	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
+	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), queueActivities: make(map[string]map[string]struct{})}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}
@@ -272,6 +278,13 @@ func (h *Driver) boundEntry(plan testpilot.EntrypointPlan, roles map[string]test
 		}
 		entry.workflowType = binding.GetWorkflowType()
 		workerRole, queueRole = binding.GetWorkerRoleId(), binding.GetTaskQueueRoleId()
+	case testpilot.ActivityEntrypoint:
+		binding := activation.GetActivity()
+		if binding == nil {
+			return entryDefinition{}, false, ErrInvalid
+		}
+		entry.activityType = binding.GetActivityType()
+		workerRole, queueRole = binding.GetWorkerRoleId(), binding.GetTaskQueueRoleId()
 	case testpilot.NexusHandlerEntrypoint:
 		binding := activation.GetNexusHandler()
 		if binding == nil {
@@ -310,6 +323,16 @@ func (d *programDefinition) addEntry(entry entryDefinition, queueNexus map[strin
 			return ErrRegistrationConflict
 		}
 		d.queueWorkflows[entry.queue][entry.workflowType] = struct{}{}
+		return nil
+	}
+	if entry.activityType != "" {
+		if d.queueActivities[entry.queue] == nil {
+			d.queueActivities[entry.queue] = make(map[string]struct{})
+		}
+		if _, duplicate := d.queueActivities[entry.queue][entry.activityType]; duplicate {
+			return ErrRegistrationConflict
+		}
+		d.queueActivities[entry.queue][entry.activityType] = struct{}{}
 		return nil
 	}
 	if queueNexus[entry.queue] == nil {
@@ -378,20 +401,31 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 		return ErrInvalid
 	}
 	workerRole := roles[h.options.workerRoleID]
+	// An activity is delivered only through the request that started it, so its reservation rides on
+	// StartActivityExecution alone, and that request carries no other activation.
+	reservations := instruction.Reservations()
+	for _, reservation := range reservations {
+		if (reservation.Kind == testpilot.ActivityEntrypoint) != (invoke.GetMethod() == delivery.StartActivityPath) {
+			return ErrInvalid
+		}
+	}
 	switch invoke.GetMethod() {
 	case primitive.StartWorkflowPath:
 		queueRole, ok := reservedWorkflowQueueRole(instruction, program)
 		if !ok {
 			return ErrInvalid
 		}
-		queue, ok := roles[queueRole]
-		if !ok || queue.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE || queue.NamespaceBindingID != workerRole.NamespaceBindingID {
+		return validateStartBindings(invoke, roles, workerRole, queueRole)
+	case delivery.StartActivityPath:
+		// A start that reserves no activation runs no script here and stays an ordinary call.
+		if len(reservations) == 0 {
+			return nil
+		}
+		queueRole, ok := reservedActivityQueueRole(instruction, program)
+		if !ok {
 			return ErrInvalid
 		}
-		if !assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"namespace"}, workerRole.NamespaceBindingID) ||
-			!assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"task_queue", "name"}, queue.ResourceBindingID) {
-			return ErrInvalid
-		}
+		return validateStartBindings(invoke, roles, workerRole, queueRole)
 	case getHistoryMethod:
 		if !assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"namespace"}, workerRole.NamespaceBindingID) {
 			return ErrInvalid
@@ -402,30 +436,52 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 	return nil
 }
 
+// validateStartBindings checks that a carried start names the worker's namespace and the reserved
+// entrypoint's task queue by the binding identities the worker itself is bound through.
+func validateStartBindings(invoke *testpilotspb.InvokeRpc, roles map[string]testpilot.PreparedRole, workerRole testpilot.PreparedRole, queueRole string) error {
+	queue, ok := roles[queueRole]
+	if !ok || queue.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE || queue.NamespaceBindingID != workerRole.NamespaceBindingID {
+		return ErrInvalid
+	}
+	if !assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"namespace"}, workerRole.NamespaceBindingID) ||
+		!assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"task_queue", "name"}, queue.ResourceBindingID) {
+		return ErrInvalid
+	}
+	return nil
+}
+
+// A workflow start activates its workflow once; an activity start reserves one activation per
+// attempt of the activity it starts.
 func reservedWorkflowQueueRole(instruction testpilot.InstructionPlan, program *testpilotspb.Program) (string, bool) {
-	entrypointID := ""
+	return reservedQueueRole(instruction, program, func(reservation testpilot.ReservationTopology, entrypoint *testpilotspb.Entrypoint) (string, bool) {
+		return entrypoint.GetWorkflow().GetTaskQueueRoleId(), reservation.Count == 1 && entrypoint.GetWorkflow() != nil
+	})
+}
+
+func reservedActivityQueueRole(instruction testpilot.InstructionPlan, program *testpilotspb.Program) (string, bool) {
+	return reservedQueueRole(instruction, program, func(_ testpilot.ReservationTopology, entrypoint *testpilotspb.Entrypoint) (string, bool) {
+		return entrypoint.GetActivity().GetTaskQueueRoleId(), entrypoint.GetActivity() != nil
+	})
+}
+
+// reservedQueueRole is the task-queue role of the one entrypoint queueRole selects among those the
+// instruction reserves; none or more than one is no answer.
+func reservedQueueRole(instruction testpilot.InstructionPlan, program *testpilotspb.Program, queueRole func(testpilot.ReservationTopology, *testpilotspb.Entrypoint) (string, bool)) (string, bool) {
+	result, found := "", false
 	for _, reservation := range instruction.Reservations() {
-		if reservation.Count != 1 {
-			continue
-		}
 		for _, entrypoint := range program.GetEntrypoints() {
-			if entrypoint.GetEntrypointId() == reservation.EntrypointID && entrypoint.GetWorkflow() != nil {
-				if entrypointID != "" {
+			if entrypoint.GetEntrypointId() != reservation.EntrypointID {
+				continue
+			}
+			if role, selected := queueRole(reservation, entrypoint); selected {
+				if found {
 					return "", false
 				}
-				entrypointID = entrypoint.GetEntrypointId()
+				result, found = role, true
 			}
 		}
 	}
-	if entrypointID == "" {
-		return "", false
-	}
-	for _, entrypoint := range program.GetEntrypoints() {
-		if entrypoint.GetEntrypointId() == entrypointID {
-			return entrypoint.GetWorkflow().GetTaskQueueRoleId(), true
-		}
-	}
-	return "", false
+	return result, found
 }
 
 func assignmentUsesBinding(assignments []*testpilotspb.RequestAssignment, fields []string, bindingID string) bool {
@@ -454,11 +510,14 @@ func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegi
 	for queue := range d.queueWorkflows {
 		queues[queue] = struct{}{}
 	}
+	for queue := range d.queueActivities {
+		queues[queue] = struct{}{}
+	}
 	for queue := range queueNexus {
 		queues[queue] = struct{}{}
 	}
 	for queue := range queues {
-		registration, err := (queueRegistration{queue: queue, workflows: slices.AppendSeq(make([]string, 0, len(d.queueWorkflows[queue])), maps.Keys(d.queueWorkflows[queue])), nexus: slices.AppendSeq(make([]nexusRegistration, 0, len(queueNexus[queue])), maps.Keys(queueNexus[queue]))}).canonical()
+		registration, err := (queueRegistration{queue: queue, workflows: slices.AppendSeq(make([]string, 0, len(d.queueWorkflows[queue])), maps.Keys(d.queueWorkflows[queue])), activities: slices.Collect(maps.Keys(d.queueActivities[queue])), nexus: slices.AppendSeq(make([]nexusRegistration, 0, len(queueNexus[queue])), maps.Keys(queueNexus[queue]))}).canonical()
 		if err != nil {
 			return err
 		}

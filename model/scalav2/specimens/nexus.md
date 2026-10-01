@@ -387,7 +387,10 @@ The evaluation point is after step 3:
   assessment instead of a hang.
 - The free search (`six`) returns the same shape, with failed as the outcome (61 states).
 - `ackOnlyWhenKept` holds in this design (61 states), because a permanent rejection is not an
-  acknowledgment. The two controls are caught by different promises.
+  acknowledgment. The two controls are caught by different promises. That is the Property alone:
+  in the lifted fixture the design also names the `retainedOutcome` monitor, which watches the same
+  search and is violated where the outcome is lost, so the Query `rejectAfterClose.any.ackOnlyWhenKept`
+  is a counterexample that names that monitor, while the Property fails on no step.
 
 **N1′, the corrected design.** Design `retainAndRoute`, same schedule:
 

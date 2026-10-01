@@ -989,8 +989,10 @@ func (x *WorkflowActivation) GetTaskQueueRoleId() string {
 	return ""
 }
 
-// ActivityActivation activates the entrypoint for each activity of this type the worker role runs
-// on the task-queue role.
+// ActivityActivation activates the entrypoint for each attempt of a standalone activity of this type
+// the worker role runs on the task-queue role. The entrypoint's instructions are the activity's
+// attempts in order: the attempt Temporal numbers N performs the Nth one, and a reservation carrier
+// reserves one activation per instruction.
 type ActivityActivation struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ActivityType    string                 `protobuf:"bytes,1,opt,name=activity_type,json=activityType,proto3" json:"activity_type,omitempty"`

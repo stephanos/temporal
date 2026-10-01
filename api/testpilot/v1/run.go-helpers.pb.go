@@ -192,6 +192,43 @@ func (this *InstructionOutcome) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ActivityAttempt to the protobuf v3 wire format
+func (val *ActivityAttempt) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ActivityAttempt from the protobuf v3 wire format
+func (val *ActivityAttempt) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ActivityAttempt) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ActivityAttempt values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ActivityAttempt) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ActivityAttempt
+	switch t := that.(type) {
+	case *ActivityAttempt:
+		that1 = t
+	case ActivityAttempt:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type FaultInjected to the protobuf v3 wire format
 func (val *FaultInjected) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -375,6 +412,28 @@ func (this *RuleVerdict) Equal(that interface{}) bool {
 	}
 
 	return proto.Equal(this, that1)
+}
+
+var (
+	ActivityAttemptResponse_shorthandValue = map[string]int32{
+		"Unspecified":               0,
+		"OfferedCompleted":          1,
+		"OfferedFailedRetryable":    2,
+		"OfferedFailedNonRetryable": 3,
+		"Refused":                   4,
+		"NotNeeded":                 5,
+	}
+)
+
+// ActivityAttemptResponseFromString parses a ActivityAttemptResponse value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ActivityAttemptResponse
+func ActivityAttemptResponseFromString(s string) (ActivityAttemptResponse, error) {
+	if v, ok := ActivityAttemptResponse_value[s]; ok {
+		return ActivityAttemptResponse(v), nil
+	} else if v, ok := ActivityAttemptResponse_shorthandValue[s]; ok {
+		return ActivityAttemptResponse(v), nil
+	}
+	return ActivityAttemptResponse(0), fmt.Errorf("%s is not a valid ActivityAttemptResponse", s)
 }
 
 var (

@@ -52,10 +52,14 @@ type assembler struct {
 
 func (a *assembler) onPath(action string) bool { return slices.Contains(a.p.schedule, action) }
 
-// performing reports whether the path performs a class one of the keys names.
+// performing reports whether the path performs a class one of the keys names: a class a binding
+// performs, under the id the binding resolved to, or a class of the Model no binding performs, such
+// as a step of the system.
 func (a *assembler) performing(keys []string) bool {
 	return slices.ContainsFunc(a.bindings, func(b ActionBinding) bool {
 		return slices.Contains(keys, b.Key) && a.onPath(b.Action)
+	}) || slices.ContainsFunc(keys, func(key string) bool {
+		return slices.Contains(a.p.t.Actions, key) && a.onPath(a.p.t.ActionAtom(key).ID)
 	})
 }
 

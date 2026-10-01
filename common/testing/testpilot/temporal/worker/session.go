@@ -20,35 +20,44 @@ import (
 type programDefinition struct {
 	snapshot *testpilotspb.Program
 	// limits is the Profile's Program ceilings the Program was prepared under.
-	limits         *testpilotspb.ProgramLimits
-	entries        map[string]entryDefinition
-	registrations  []queueRegistration
-	endpoints      map[string]string
-	queueWorkflows map[string]map[string]struct{}
-	outages        OutagePlan
-	hasAsync       bool
+	limits          *testpilotspb.ProgramLimits
+	entries         map[string]entryDefinition
+	registrations   []queueRegistration
+	endpoints       map[string]string
+	queueWorkflows  map[string]map[string]struct{}
+	queueActivities map[string]map[string]struct{}
+	outages         OutagePlan
+	hasAsync        bool
 }
 
 type entryDefinition struct {
 	plan                testpilot.EntrypointPlan
 	namespace           string
 	queue, workflowType string
+	activityType        string
 	service, operation  string
 }
 
 type Session struct {
-	host               *Driver
-	mu                 primitive.Mutex
-	closeMu            primitive.Mutex
-	runID              string
-	id                 string
-	definition         programDefinition
-	ledger             *delivery.Ledger
-	options            SessionOptions
-	reservations       map[string]*reservation
-	carriers           map[testpilot.Coordinate]*Carrier
-	nexusResults       map[string]*nexusResult
+	host            *Driver
+	mu              primitive.Mutex
+	closeMu         primitive.Mutex
+	runID           string
+	id              string
+	definition      programDefinition
+	ledger          *delivery.Ledger
+	options         SessionOptions
+	reservations    map[string]*reservation
+	carriers        map[testpilot.Coordinate]*Carrier
+	nexusResults    map[string]*nexusResult
+	activityAnswers map[string]*activityAnswer
+	activityScripts map[activityScriptKey]*activityScript
+	activityWatches map[activityScriptKey]struct{}
+	// watching ends with the Session and bounds what the Session waits on the server for.
+	watching           context.Context
+	stopWatching       context.CancelFunc
 	workflowKeys       map[delivery.WorkflowBinding]struct{}
+	activityKeys       map[delivery.ActivityBinding]struct{}
 	nexusKeys          map[nexusRouteIndex]struct{}
 	nexusDispatch      map[nexusDispatchKey]nexus.Header
 	workflowAdmissions map[workflowAdmissionKey]*workflowAdmission
@@ -75,9 +84,12 @@ func newSession(host *Driver, runID, sessionID string, definition programDefinit
 	if err != nil {
 		return nil, err
 	}
+	watching, stopWatching := context.WithCancel(context.Background())
 	return &Session{host: host, mu: primitive.NewMutex(), closeMu: primitive.NewMutex(), runID: runID, id: sessionID, definition: definition, ledger: ledger, options: options,
 		reservations: make(map[string]*reservation), carriers: make(map[testpilot.Coordinate]*Carrier), nexusResults: make(map[string]*nexusResult),
-		workflowKeys: make(map[delivery.WorkflowBinding]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
+		activityAnswers: make(map[string]*activityAnswer), activityScripts: make(map[activityScriptKey]*activityScript),
+		activityWatches: make(map[activityScriptKey]struct{}), watching: watching, stopWatching: stopWatching,
+		workflowKeys: make(map[delivery.WorkflowBinding]struct{}), activityKeys: make(map[delivery.ActivityBinding]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
 		workflowAdmissions: make(map[workflowAdmissionKey]*workflowAdmission), nexusAdmissions: make(map[nexusRouteIndex]nexusAdmission)}, nil
 }
 
@@ -86,7 +98,7 @@ func (s *Session) Reserve(ctx context.Context, request testpilot.ReservationRequ
 		return nil, ErrInvalid
 	}
 	entry, exists := s.definition.entries[request.EntrypointID]
-	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint && entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
+	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint && entry.plan.Kind() != testpilot.ActivityEntrypoint && entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
 		return nil, ErrInvalid
 	}
 	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
@@ -297,6 +309,7 @@ func (s *Session) Close(ctx context.Context) error {
 	s.closed = true
 	outage := s.outage
 	s.mu.Unlock()
+	s.stopWatching()
 	if !s.stopComplete {
 		if _, err := s.ledger.Stop(ctx); err != nil {
 			return err
@@ -380,6 +393,83 @@ func (s *Session) finishActivation(activation delivery.Activation, outcome *test
 	raw, lookupErr := s.rawReservation(activation.Reservation().ID)
 	if lookupErr == nil {
 		raw.finish(testpilot.EffectResult{Outcome: outcome}, err)
+	}
+}
+
+// watchActivityClosure asks the server, once per started activity, to say when the activity run
+// closes, and then settles every declared attempt still reserved after the last one delivered as
+// not needed. What the worker offered is not evidence of that: the SDK sends the answer afterwards,
+// the send can fail, and the server can time the attempt out and issue the next, which must then
+// find its reservation. Nothing is watched while no later attempt is reserved.
+func (s *Session) watchActivityClosure(input delivery.ActivityDelivery, settled delivery.Activation) {
+	closed := s.host.options.activityClosed
+	if closed == nil {
+		return
+	}
+	own := settled.Reservation()
+	key := activityScriptKey{origin: own.Origin, entrypointID: own.EntrypointID}
+	if err := s.mu.LockContext(s.watching, ErrInvalid); err != nil {
+		return
+	}
+	_, watched := s.activityWatches[key]
+	reserved := false
+	for _, raw := range s.reservations {
+		if raw.identity.Origin == own.Origin && raw.identity.EntrypointID == own.EntrypointID && raw.identity.Ordinal > own.Ordinal && !raw.settled() {
+			reserved = true
+		}
+	}
+	if s.closed || watched || !reserved {
+		s.mu.Unlock()
+		return
+	}
+	s.activityWatches[key] = struct{}{}
+	s.mu.Unlock()
+	go func() {
+		activityRunID := settled.TemporalRunID()
+		closedRunID, err := closed(s.watching, input.Namespace, input.ActivityID, activityRunID)
+		switch {
+		case s.watching.Err() != nil:
+		case err != nil:
+			s.diagnoseClosure("activity_closure_unobserved", fmt.Sprintf("activity run %q: %v", activityRunID, err))
+		case closedRunID != activityRunID:
+			// The outcome of another run says nothing about this one, whose later attempts may
+			// still come.
+			s.diagnoseClosure("activity_closure_crossed", fmt.Sprintf("activity run %q: the server reported the outcome of run %q", activityRunID, closedRunID))
+		default:
+			s.releaseActivityAttempts(settled)
+		}
+	}()
+}
+
+// diagnoseClosure tells the Run that the server did not say whether an activity closed, so its
+// later declared attempts stay reserved. It is best effort.
+func (s *Session) diagnoseClosure(code, detail string) {
+	notify, cancel := context.WithTimeout(s.watching, defaultCleanupTimeout)
+	defer cancel()
+	_ = s.Diagnose(notify, s.runID, &testpilotspb.RunDiagnostic{
+		DiagnosticId: fmt.Sprintf("activity-closure-%d", s.next.Add(1)),
+		Kind:         testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT,
+		Code:         code,
+		Detail:       boundedText(detail),
+	})
+}
+
+// releaseActivityAttempts settles, as not needed, the declared attempts of a closed activity that
+// no attempt was delivered for. Each records the activity run and neither an SDK attempt nor a
+// delivery: Temporal may never have created an attempt for the position.
+func (s *Session) releaseActivityAttempts(of delivery.Activation) {
+	released, err := s.ledger.ReleaseActivityAttempts(s.watching, of)
+	if err != nil {
+		return
+	}
+	for _, identity := range released {
+		raw, err := s.rawReservation(identity.ID)
+		if err != nil {
+			continue
+		}
+		raw.finish(testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED, ActivityAttempt: &testpilotspb.ActivityAttempt{
+			ActivityRunId: of.TemporalRunID(), Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED,
+		}}}, nil)
 	}
 }
 

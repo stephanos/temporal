@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"maps"
 	"slices"
@@ -9,6 +11,9 @@ import (
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/temporal"
@@ -26,7 +31,27 @@ func (h *Driver) newSDKWorker(key, queue string, registration queueRegistration)
 	options.Interceptors = append(options.Interceptors, &sdkWorkerInterceptor{host: h, queue: queue, registration: registration})
 	options.OnFatalError = func(err error) { h.registry.fail(key, err) }
 	worker := sdkworker.New(h.options.client, queue, options)
+	if err := h.register(worker, queue, registration); err != nil {
+		return nil, err
+	}
+	return &sdkManagedWorker{Worker: worker}, nil
+}
+
+// sdkRegistrar is the part of an SDK worker a queue's registration is written to.
+type sdkRegistrar interface {
+	RegisterDynamicWorkflow(w interface{}, options workflow.DynamicRegisterOptions)
+	RegisterDynamicActivity(a interface{}, options activity.DynamicRegisterOptions)
+	RegisterNexusService(service *nexus.Service)
+}
+
+// register writes one queue's registration to its SDK worker before the worker starts. A queue
+// that names no activity type registers no activity, so its worker still has no implementation for
+// an activity task it is handed.
+func (h *Driver) register(worker sdkRegistrar, queue string, registration queueRegistration) error {
 	worker.RegisterDynamicWorkflow(h.dynamicWorkflow, workflow.DynamicRegisterOptions{})
+	if len(registration.activities) > 0 {
+		worker.RegisterDynamicActivity(h.dynamicActivity, activity.DynamicRegisterOptions{})
+	}
 	services := make(map[string]*nexus.Service)
 	for _, signature := range registration.nexus {
 		service := services[signature.service]
@@ -35,13 +60,13 @@ func (h *Driver) newSDKWorker(key, queue string, registration queueRegistration)
 			services[signature.service] = service
 		}
 		if err := service.Register(&genericNexusOperation{queue: queue, service: signature.service, operation: signature.operation}); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	for _, service := range services {
 		worker.RegisterNexusService(service)
 	}
-	return &sdkManagedWorker{Worker: worker}, nil
+	return nil
 }
 
 type sdkWorkerInterceptor struct {
@@ -53,6 +78,10 @@ type sdkWorkerInterceptor struct {
 
 func (i *sdkWorkerInterceptor) InterceptWorkflow(_ workflow.Context, next interceptor.WorkflowInboundInterceptor) interceptor.WorkflowInboundInterceptor {
 	return &workflowInboundInterceptor{WorkflowInboundInterceptorBase: interceptor.WorkflowInboundInterceptorBase{Next: next}, worker: i}
+}
+
+func (i *sdkWorkerInterceptor) InterceptActivity(_ context.Context, next interceptor.ActivityInboundInterceptor) interceptor.ActivityInboundInterceptor {
+	return &activityInboundInterceptor{ActivityInboundInterceptorBase: interceptor.ActivityInboundInterceptorBase{Next: next}, worker: i}
 }
 
 func (i *sdkWorkerInterceptor) InterceptNexusOperation(_ context.Context, next interceptor.NexusOperationInboundInterceptor) interceptor.NexusOperationInboundInterceptor {
@@ -71,7 +100,7 @@ func (i *workflowInboundInterceptor) Init(outbound interceptor.WorkflowOutboundI
 func (i *workflowInboundInterceptor) ExecuteWorkflow(ctx workflow.Context, input *interceptor.ExecuteWorkflowInput) (interface{}, error) {
 	info := workflow.GetInfo(ctx)
 	if info == nil || info.TaskQueueName != i.worker.queue || !slices.Contains(i.worker.registration.workflows, info.WorkflowType.Name) {
-		return nil, workflowError(ErrRegistrationConflict)
+		return nil, activationError(ErrRegistrationConflict)
 	}
 	deliveryInput := delivery.WorkflowDelivery{
 		Header: &commonpb.Header{Fields: maps.Clone(interceptor.WorkflowHeader(ctx))}, Namespace: info.Namespace,
@@ -80,7 +109,7 @@ func (i *workflowInboundInterceptor) ExecuteWorkflow(ctx workflow.Context, input
 	}
 	routed, err := i.worker.host.admitWorkflow(deliveryInput)
 	if err != nil {
-		return nil, workflowError(err)
+		return nil, activationError(err)
 	}
 	ctx = workflow.WithValue(ctx, workflowRouteKey{}, routed)
 	return i.Next.ExecuteWorkflow(ctx, input)
@@ -110,13 +139,102 @@ func (i *workflowOutboundInterceptor) ExecuteNexusOperation(ctx workflow.Context
 	return i.Next.ExecuteNexusOperation(ctx, input)
 }
 
+type activityInboundInterceptor struct {
+	interceptor.ActivityInboundInterceptorBase
+	worker *sdkWorkerInterceptor
+}
+
+func (i *activityInboundInterceptor) ExecuteActivity(ctx context.Context, input *interceptor.ExecuteActivityInput) (interface{}, error) {
+	info := activity.GetInfo(ctx)
+	deliveryInput := delivery.ActivityDelivery{
+		Header: &commonpb.Header{Fields: maps.Clone(interceptor.Header(ctx))}, Namespace: info.Namespace,
+		ActivityID: info.ActivityID, ActivityType: info.ActivityType.Name, TaskQueue: info.TaskQueue,
+		ActivityRunID: info.ActivityRunID, Attempt: info.Attempt, DeliveryID: deliveryIdentity(info.TaskToken),
+	}
+	return i.worker.activateActivity(ctx, deliveryInput, func(ctx context.Context) (interface{}, error) {
+		return i.Next.ExecuteActivity(ctx, input)
+	})
+}
+
+// deliveryIdentity is the bounded opaque name of one delivery of an activity attempt: a digest of
+// the task token the server issued for it, which is itself unbounded and the server's to read.
+func deliveryIdentity(taskToken []byte) string {
+	digest := sha256.Sum256(taskToken)
+	return hex.EncodeToString(digest[:])
+}
+
+// activateActivity runs one delivered activity task as the activation its start reserved. The first
+// delivery of an attempt admits it against the reservation of its number, runs the entrypoint under
+// a context the reservation's cancellation ends, and settles the reservation; any other delivery of
+// that attempt waits for that answer and returns it, so nothing runs or settles twice.
+//
+// The reservation records, as a typed fact, which attempt this was and what the worker offers
+// Temporal for it. That is the worker's answer and not the server's acceptance of it, so no later
+// attempt's reservation is touched here: only the server closing the activity releases them. An attempt that did what its script said, completing or failing as declared, is a
+// succeeded activation, and the declared failure goes to the SDK as it is, retryable or not as the
+// script says. Anything else, a disabled instruction, a cancellation by the Run, an SDK or Driver
+// error, is answered with the Driver's own non-retryable application failure, and that refusal,
+// with its cause as detail, is the recorded outcome. The reservation settles with no error of its
+// own, so the outcome is what the Run is given.
+func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input delivery.ActivityDelivery, run func(context.Context) (interface{}, error)) (interface{}, error) {
+	if input.TaskQueue != i.queue || !slices.Contains(i.registration.activities, input.ActivityType) {
+		return nil, activationError(ErrRegistrationConflict)
+	}
+	activationCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	routed, err := i.host.admitActivity(activationCtx, input, cancel)
+	if err != nil {
+		return nil, activationError(err)
+	}
+	answer := routed.answer
+	if routed.activation.Replay() {
+		select {
+		case <-ctx.Done():
+			return nil, activationError(ctx.Err())
+		case <-answer.done:
+			return answer.result, answer.err
+		}
+	}
+	defer close(answer.done)
+	func() {
+		defer func() {
+			if recover() != nil {
+				answer.result, answer.err = nil, errors.New("activity activation panicked")
+			}
+		}()
+		answer.result, answer.err = run(context.WithValue(activationCtx, activityRouteKey{}, routed))
+	}()
+	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ActivityAttempt: &testpilotspb.ActivityAttempt{
+		ActivityRunId: routed.activation.TemporalRunID(), SdkAttempt: routed.activation.Attempt(), DeliveryId: routed.activation.DeliveryID(),
+		Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+	}}
+	var declared *declaredFailure
+	switch {
+	case answer.err == nil:
+	case errors.As(answer.err, &declared):
+		answer.result, answer.err = nil, declared.failure
+		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE
+		if declared.nonRetryable {
+			outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE
+		}
+	default:
+		cause := answer.err
+		answer.result, answer.err = nil, activationError(cause)
+		outcome.Status, outcome.SdkFailureCode, outcome.Detail = testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, activationErrorType, boundedText(cause.Error())
+		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED
+	}
+	routed.session.finishActivation(routed.activation, outcome, nil)
+	routed.session.watchActivityClosure(input, routed.activation)
+	return answer.result, answer.err
+}
+
 type failedNexusFuture struct{ workflow.Future }
 
 func (f failedNexusFuture) GetNexusOperationExecution() workflow.Future { return f.Future }
 
 func failedNexusOperationFuture(ctx workflow.Context, err error) workflow.NexusOperationFuture {
 	future, settable := workflow.NewFuture(ctx)
-	settable.SetError(workflowError(err))
+	settable.SetError(activationError(err))
 	return failedNexusFuture{Future: future}
 }
 
@@ -185,6 +303,7 @@ func (*genericNexusOperation) Cancel(context.Context, string, nexus.CancelOperat
 
 type workflowRouteKey struct{}
 type workflowSourceKey struct{}
+type activityRouteKey struct{}
 type nexusRouteKey struct{}
 
 type routedWorkflow struct {
@@ -194,16 +313,56 @@ type routedWorkflow struct {
 	replay     bool
 }
 
+type routedActivity struct {
+	session    *Session
+	activation delivery.Activation
+	answer     *activityAnswer
+}
+
+// activityAnswer is what one admitted activity attempt answers the SDK with. It is written once,
+// by the delivery that was admitted, before done closes, and read by every later delivery of the
+// attempt.
+type activityAnswer struct {
+	done   chan struct{}
+	result interface{}
+	err    error
+}
+
 type routedNexus struct {
 	session    *Session
 	activation delivery.Activation
 	replay     bool
 }
 
+// pollActivityClosed long-polls the server for the outcome of a standalone activity run and returns
+// the run the outcome is of, as the server names it. The server answers an expired poll with no
+// outcome, which invites the next one.
+func pollActivityClosed(sdk client.Client) func(context.Context, string, string, string) (string, error) {
+	return func(ctx context.Context, namespace, activityID, activityRunID string) (string, error) {
+		for {
+			response, err := sdk.WorkflowService().PollActivityExecution(ctx, &workflowservice.PollActivityExecutionRequest{Namespace: namespace, ActivityId: activityID, RunId: activityRunID})
+			if err != nil {
+				return "", err
+			}
+			if response.GetOutcome() != nil {
+				return response.GetRunId(), nil
+			}
+		}
+	}
+}
+
+func (h *Driver) dynamicActivity(ctx context.Context, _ converter.EncodedValues) (*testpilotspb.Value, error) {
+	routed, ok := ctx.Value(activityRouteKey{}).(routedActivity)
+	if !ok {
+		return nil, ErrInvalid
+	}
+	return routed.session.executeActivity(ctx, routed.activation)
+}
+
 func (h *Driver) dynamicWorkflow(ctx workflow.Context, _ converter.EncodedValues) (*testpilotspb.Value, error) {
 	routed, ok := ctx.Value(workflowRouteKey{}).(routedWorkflow)
 	if !ok {
-		return nil, workflowError(ErrInvalid)
+		return nil, activationError(ErrInvalid)
 	}
 	result, err := routed.session.executeWorkflow(ctx, routed.activation)
 	err = routed.session.completeWorkflow(routed.admission, routed.activation, err)
@@ -232,8 +391,14 @@ func (s *Session) completeWorkflow(admission *workflowAdmission, activation deli
 	return executionErr
 }
 
-func workflowError(err error) error {
-	return temporal.NewNonRetryableApplicationError("testpilot worker activation", "umpire_worker", err)
+// activationErrorType is the application failure type the Driver answers the SDK with for an
+// activation it refuses or fails itself.
+const activationErrorType = "umpire_worker"
+
+// activationError is what the SDK is answered with when an activation is refused or fails: an
+// application error it does not retry, carrying the cause.
+func activationError(err error) error {
+	return temporal.NewNonRetryableApplicationError("testpilot worker activation", activationErrorType, err)
 }
 
 func nexusError(err error) error {

@@ -25,6 +25,10 @@ Carrier takes the reservation topology preparation compiled as admitted, checks 
 binding against the reserved workflow entrypoint and each reservation handle against the topology,
 bounds the bundle by its route limit, injects only the reserved delivery header, checks the final
 request size, and pins the returned Temporal Run ID.
+A reserved `StartActivityExecution` call passes through a `Carrier` the same way: it carries the
+activations of the one standalone activity it starts, one per attempt the activity's script
+declares, checks the physical activity binding against the reserved activity entrypoint, and pins
+the returned activity run ID.
 Calls without a declared carrier retain ordinary RPC request and response behavior.
 
 The SDK's system callback identifier is resolved only against the trusted
@@ -44,7 +48,9 @@ correlated satisfied Contract; the binding fingerprints and Driver identities di
 `DeriveProfile` reads one Case and returns the minimal `ProfileSpec` it implies: the roles it
 declares, the methods it invokes, a reservation carrier for each `StartWorkflowExecution` an ordinary
 controller invokes whose shapes admit one activation of each workflow and Nexus-handler entrypoint the
-Program declares (preparation derives the reservations from those shapes), the capabilities its
+Program declares, a reservation carrier for each `StartActivityExecution` it invokes whose shape admits
+one activation per instruction of the Program's activity entrypoints (preparation derives the
+reservations from those shapes), the capabilities its
 opcodes require, and the environment values of the bindings it references
 (`testpilot.EnvironmentBindingIDs`) through the roles that name them. It never widens beyond what the
 Case references, and it rejects a method the catalog does not know, an undeclared role kind, an unset

@@ -24,6 +24,7 @@ type routeKind string
 const (
 	workflowRoute routeKind = "workflow"
 	nexusRoute    routeKind = "nexus"
+	activityRoute routeKind = "activity"
 )
 
 // WorkflowBinding is the physical Temporal workflow a reservation carrier starts. It is the route
@@ -35,6 +36,17 @@ type WorkflowBinding struct {
 	TaskQueue    string `json:"task_queue"`
 }
 
+// ActivityBinding is the physical standalone activity a reservation carrier starts. It is the route
+// key of an activity route, and its JSON tags are the route's wire format.
+type ActivityBinding struct {
+	Namespace    string `json:"namespace"`
+	ActivityID   string `json:"activity_id"`
+	ActivityType string `json:"activity_type"`
+	TaskQueue    string `json:"task_queue"`
+}
+
+// A route names exactly one started entity: a workflow or Nexus route its workflow binding, an
+// activity route its activity binding. The other binding is absent from the wire.
 type route struct {
 	Version             int                           `json:"version"`
 	Kind                routeKind                     `json:"kind"`
@@ -42,12 +54,13 @@ type route struct {
 	RunID               string                        `json:"run_id"`
 	Origin              testpilot.Coordinate          `json:"origin"`
 	Reservation         testpilot.ReservationIdentity `json:"reservation"`
-	Binding             WorkflowBinding               `json:"binding"`
+	Binding             WorkflowBinding               `json:"binding,omitzero"`
 	WorkflowReservation string                        `json:"workflow_reservation,omitempty"`
 	WorkflowEntrypoint  string                        `json:"workflow_entrypoint,omitempty"`
 	WorkflowOrdinal     int64                         `json:"workflow_ordinal"`
 	WorkflowRunID       string                        `json:"workflow_run_id,omitempty"`
 	SourceInstructionID string                        `json:"source_instruction_id,omitempty"`
+	Activity            ActivityBinding               `json:"activity,omitzero"`
 }
 
 type routeCodec struct{ maximumBytes int }
@@ -110,14 +123,17 @@ func requireEOF(decoder *json.Decoder) error {
 }
 
 func validRoute(value route) bool {
-	if !validRouteText(value.SessionID) || !validRouteText(value.RunID) || value.Origin.RunID != value.RunID || !validCoordinate(value.Origin) || value.Reservation.Origin != value.Origin || !validReservation(value.Reservation) || !validBinding(value.Binding) {
+	if !validRouteText(value.SessionID) || !validRouteText(value.RunID) || value.Origin.RunID != value.RunID || !validCoordinate(value.Origin) || value.Reservation.Origin != value.Origin || !validReservation(value.Reservation) {
 		return false
 	}
+	unsourced := value.WorkflowReservation == "" && value.WorkflowEntrypoint == "" && value.WorkflowOrdinal == 0 && value.WorkflowRunID == "" && value.SourceInstructionID == ""
 	switch value.Kind {
 	case workflowRoute:
-		return value.WorkflowReservation == "" && value.WorkflowEntrypoint == "" && value.WorkflowOrdinal == 0 && value.WorkflowRunID == "" && value.SourceInstructionID == ""
+		return validBinding(value.Binding) && value.Activity == ActivityBinding{} && unsourced
 	case nexusRoute:
-		return validRouteText(value.WorkflowReservation) && validRouteText(value.WorkflowEntrypoint) && value.WorkflowOrdinal >= 0 && validRouteText(value.WorkflowRunID) && validRouteText(value.SourceInstructionID)
+		return validBinding(value.Binding) && value.Activity == ActivityBinding{} && validRouteText(value.WorkflowReservation) && validRouteText(value.WorkflowEntrypoint) && value.WorkflowOrdinal >= 0 && validRouteText(value.WorkflowRunID) && validRouteText(value.SourceInstructionID)
+	case activityRoute:
+		return value.Binding == WorkflowBinding{} && validActivityBinding(value.Activity) && unsourced
 	default:
 		return false
 	}
@@ -133,6 +149,10 @@ func validReservation(value testpilot.ReservationIdentity) bool {
 
 func validBinding(value WorkflowBinding) bool {
 	return validRouteText(value.Namespace) && validRouteText(value.WorkflowID) && validRouteText(value.WorkflowType) && validRouteText(value.TaskQueue)
+}
+
+func validActivityBinding(value ActivityBinding) bool {
+	return validRouteText(value.Namespace) && validRouteText(value.ActivityID) && validRouteText(value.ActivityType) && validRouteText(value.TaskQueue)
 }
 
 func validRouteText(value string) bool { return len(value) > 0 && len(value) <= 256 }

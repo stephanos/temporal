@@ -12,7 +12,12 @@ func (q *Query) Answer() (Answer, error) {
 	if err != nil {
 		return Answer{}, err
 	}
-	return s.run()
+	a, err := s.run()
+	if err != nil {
+		return Answer{}, err
+	}
+	a.Unknown, a.Expanded = s.unknown, s.expanded
+	return a, nil
 }
 
 // searcher checks the Query and prepares one search of it.
@@ -66,6 +71,9 @@ func (q *Query) checkRefined(t *Table, ref *Refinement) error {
 		return errorf(q.decl(), "%s is declared on %s, and the refinement reads %s as %s",
 			p.Name, p.Machine.Name(), ref.Machine, ref.Product)
 	}
+	if err := q.checkKeyRefined(t, ref); err != nil {
+		return err
+	}
 	if p.when == nil {
 		return nil
 	}
@@ -94,6 +102,9 @@ type node struct {
 	parent int
 	row    string
 	result Result
+	// terminal marks a node the search does not continue past: a step some Monitor could not be read
+	// on, kept because what was read of it answers the Query.
+	terminal bool
 }
 
 type productKey struct {
@@ -121,6 +132,11 @@ type searcher struct {
 	monRead        []bool
 	// exceeded is set when a new state would take the search past its limit.
 	exceeded bool
+	// unknown is the unknowns the search explored, noted once each; expanded counts the nodes whose
+	// successors it read.
+	unknown  []UnknownReach
+	noted    map[[2]string]bool
+	expanded int
 }
 
 func (s *searcher) free() bool { return s.q.Scenario.free }
@@ -184,15 +200,20 @@ func (s *searcher) expand(i int) ([]int, error) {
 	if n.pos >= s.depth() {
 		return nil, nil
 	}
+	s.expanded++
+	s.noteUnknownRows(i)
 	var added []int
 	for _, row := range s.t.RowsFrom(n.state) {
 		if !s.scheduled(n, row) {
 			continue
 		}
 		for _, res := range row.Results {
-			next, err := s.step(i, row, res)
+			next, kept, err := s.successor(i, row, res)
 			if err != nil {
 				return nil, err
+			}
+			if !kept {
+				continue
 			}
 			key := s.keyOf(next)
 			if s.visited[key] {
@@ -211,7 +232,9 @@ func (s *searcher) expand(i int) ([]int, error) {
 			if s.found >= 0 {
 				return added, nil
 			}
-			added = append(added, j)
+			if !next.terminal {
+				added = append(added, j)
+			}
 		}
 	}
 	return added, nil
@@ -226,12 +249,50 @@ func (s *searcher) initial() node {
 }
 
 // scheduled reports whether the Scenario admits a row as the next step after n.
-func (s *searcher) scheduled(n node, row Row) bool {
-	return s.free() || row.Action == s.q.Scenario.Actions[n.pos]
+func (s *searcher) scheduled(n node, row Row) bool { return s.admits(n, row.Action) }
+
+// admits reports whether the Scenario admits an action class as the next step after n.
+func (s *searcher) admits(n node, action string) bool {
+	return s.free() || action == s.q.Scenario.Actions[n.pos]
+}
+
+// successor is the node one result of a row leads to from node i, and whether the search keeps it.
+// An error of the Property's or a Monitor's function that the Query does not class as unknown fails
+// the search. One it does is reported, and the search does not continue through the step, since the
+// claim's or a Monitor's state past it is unknown; the step is kept all the same, as a terminal
+// node, when what was read of it already answers the Query.
+func (s *searcher) successor(i int, row Row, res Result) (node, bool, error) {
+	next, err := s.step(i, row, res)
+	if err == nil {
+		return next, true, nil
+	}
+	if s.q.Unknown == nil || !s.q.Unknown(err) {
+		return node{}, false, err
+	}
+	s.noteUnknown(UnknownClaim, i, row.Key, row.Action, err)
+	next.terminal = true
+	return next, s.answers(next), nil
+}
+
+// answers reports whether what was read of a step some Monitor could not be read on answers the
+// Query: a Monitor is passive, so one that is unknown takes away neither a violation the Property or
+// an earlier Monitor established on the step nor a find's witness. A step the Property could not be
+// read on is no node, and answers nothing.
+func (s *searcher) answers(n node) bool {
+	if n.row == "" {
+		return false
+	}
+	if s.q.Form == VerifyForm {
+		return s.fails(n)
+	}
+	return s.realizes(n)
 }
 
 // step is the node one result of a row leads to from node i: the Property monitor and every
 // watching Monitor advanced over it.
+// With an error of a Monitor's function, the node is the step as far as it was read: the Property
+// and the Monitors before that one advanced, that one marked unknown in its state before the step,
+// and the ones after it as they were. With an error of the Property's, there is no node.
 func (s *searcher) step(i int, row Row, res Result) (node, error) {
 	n := s.nodes[i]
 	mon, err := s.observe(n, row, res)
@@ -241,23 +302,45 @@ func (s *searcher) step(i int, row Row, res Result) (node, error) {
 	before, _ := s.t.StateValue(n.state)
 	mons := make([]monitorState, len(n.mons))
 	for k, m := range s.q.monitors {
-		ms := n.mons[k]
-		if ms.key, err = m.Next(ms.key, before, res); err != nil {
-			return node{}, errorf(s.q.decl(), "%v", err)
-		}
-		if m.At.reads(res, s.ends) {
-			ms.read, s.monRead[k] = true, true
-			ms.violated = ms.violated || m.Violated(ms.key)
+		ms, err := s.watch(k, m, n, before, res)
+		if err != nil {
+			copy(mons[k:], n.mons[k:])
+			mons[k].unknown = true
+			return node{state: res.State, pos: n.pos + 1, mon: mon, mons: mons, parent: i, row: row.Key, result: res},
+				wrapError(s.q.decl(), err)
 		}
 		mons[k] = ms
 	}
 	return node{state: res.State, pos: n.pos + 1, mon: mon, mons: mons, parent: i, row: row.Key, result: res}, nil
 }
 
+// watch advances one watching Monitor over a step from n, reading its verdict where its evaluation
+// point says.
+func (s *searcher) watch(k int, m *Monitor, n node, before any, res Result) (monitorState, error) {
+	ms := n.mons[k]
+	var err error
+	if ms.key, err = m.next(ms.key, n.state, before, res); err != nil {
+		return ms, err
+	}
+	reads, err := m.At.reads(res, s.ends)
+	if err != nil || !reads {
+		return ms, err
+	}
+	violated, err := m.violated(ms.key)
+	if err != nil {
+		return ms, err
+	}
+	ms.read, s.monRead[k] = true, true
+	ms.violated = ms.violated || violated
+	return ms, nil
+}
+
 // observe advances the Property monitor over one step.
 func (s *searcher) observe(n node, row Row, res Result) (monitor, error) {
 	p, mon := s.q.Property, n.mon
 	switch {
+	case p.keyLevel():
+		return s.observeKeys(n, row, res)
 	case p.IsTransition():
 		before, err := s.readState(n.state)
 		if err != nil {

@@ -1,6 +1,7 @@
 package temporal_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,6 +9,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/common/testing/testpilot/temporal/worker"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -139,4 +141,191 @@ func TestDeriveProfileAuthorizesTheMethodAReadDeclarationPolls(t *testing.T) {
 	source.Program.Evidence[0].Source = &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: "nexus_operation_started_event_attributes"}}
 	_, err = temporal.DeriveProfile(source, catalog, environment)
 	require.ErrorIs(t, err, temporal.ErrInvalid)
+}
+
+const (
+	startWorkflowExecution = "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
+	startActivityExecution = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
+)
+
+func environmentReference(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
+}
+
+func textLiteral(value string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
+}
+
+// startCall is a controller call of method on the workflow service that names the bound namespace
+// and task queue, as a carried start must.
+func startCall(id, method string, assignments ...*testpilotspb.RequestAssignment) *testpilotspb.InstructionNode {
+	return &testpilotspb.InstructionNode{
+		InstructionId: id,
+		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "workflow-service", Method: method, RequestAssignments: append([]*testpilotspb.RequestAssignment{
+			{Target: "namespace", Value: environmentReference("namespace")},
+			{Target: "task_queue.name", Value: environmentReference("task-queue")},
+		}, assignments...)}}},
+	}
+}
+
+// activityCase is commandCase's workflow beside a standalone activity: a controller starts the
+// workflow, then the activity, whose entrypoint is the one Finish an activity script lowers to.
+func activityCase() *testpilotspb.Case {
+	source := commandCase(&commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION,
+		Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+			Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", ScheduleToCloseTimeout: durationpb.New(2000000000),
+		}},
+	})
+	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT})
+	handler := &testpilotspb.Entrypoint{
+		EntrypointId: "handler",
+		Activation:   &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+	}
+	activity := &testpilotspb.Entrypoint{
+		EntrypointId: "activity",
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}}},
+	}
+	controller := &testpilotspb.Entrypoint{
+		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
+		Instructions: []*testpilotspb.InstructionNode{
+			startCall("start-workflow", startWorkflowExecution, &testpilotspb.RequestAssignment{Target: "workflow_type.name", Value: textLiteral("workflow-type")}, &testpilotspb.RequestAssignment{Target: "workflow_id", Value: textLiteral("workflow-id")}),
+			startCall("start-activity", startActivityExecution, &testpilotspb.RequestAssignment{Target: "activity_type.name", Value: textLiteral("activity-type")}, &testpilotspb.RequestAssignment{Target: "activity_id", Value: textLiteral("activity-id")}),
+		},
+	}
+	source.Program.Entrypoints = []*testpilotspb.Entrypoint{controller, source.Program.Entrypoints[0], handler, activity}
+	return source
+}
+
+func endpointPolicy(t *testing.T, profile testpilot.ProfileSpec) testpilot.RolePolicy {
+	t.Helper()
+	for _, role := range profile.Roles {
+		if role.ID == "workflow-service" {
+			return role
+		}
+	}
+	require.FailNow(t, "the derived Profile has no workflow-service role")
+	return testpilot.RolePolicy{}
+}
+
+// DeriveProfile names each start the carrier of what the Temporal Driver delivers through it: a
+// workflow start carries the workflow and the Nexus handlers it reaches, exactly as it did before a
+// Program could run an activity, and an activity start carries the activity alone.
+func TestDeriveProfileNamesEachStartTheCarrierOfWhatItActivates(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	environment := temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"}
+	workflowCarrier := testpilot.ReservationCarrierPolicy{Method: startWorkflowExecution, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.WorkflowEntrypoint, MaximumCount: 1}, {Kind: testpilot.NexusHandlerEntrypoint, MaximumCount: 1}}}
+	activityCarrier := testpilot.ReservationCarrierPolicy{Method: startActivityExecution, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 1}}}
+	// An activity is activated once per attempt its script declares, so its carrier admits that many.
+	retriedCarrier := testpilot.ReservationCarrierPolicy{Method: startActivityExecution, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 2}}}
+	retried := func(program *testpilotspb.Program) {
+		script := program.Entrypoints[3]
+		script.Instructions = append([]*testpilotspb.InstructionNode{attemptFailure("first-attempt", "transient", false)}, script.Instructions...)
+	}
+
+	for name, test := range map[string]struct {
+		mutate func(*testpilotspb.Program)
+		want   testpilot.RolePolicy
+		plans  map[string]testpilot.ReservationCarrierPlan
+	}{
+		"a workflow and a standalone activity": {
+			mutate: func(*testpilotspb.Program) {},
+			want: testpilot.RolePolicy{ID: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				Methods:             []string{startWorkflowExecution, startActivityExecution},
+				ReservationCarriers: []testpilot.ReservationCarrierPolicy{workflowCarrier, activityCarrier}},
+			plans: map[string]testpilot.ReservationCarrierPlan{
+				"start-workflow": {EndpointRoleID: "workflow-service", Method: startWorkflowExecution,
+					Reservations: []testpilot.ReservationTopology{{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 1}, {EntrypointID: "handler", Kind: testpilot.NexusHandlerEntrypoint, Count: 1}},
+					Routes:       []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", SourceInstructionID: "command", HandlerEntrypointID: "handler"}}},
+				"start-activity": {EndpointRoleID: "workflow-service", Method: startActivityExecution,
+					Reservations: []testpilot.ReservationTopology{{EntrypointID: "activity", Kind: testpilot.ActivityEntrypoint, Count: 1}}},
+			},
+		},
+		"an activity whose script declares a retry": {
+			mutate: retried,
+			want: testpilot.RolePolicy{ID: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				Methods:             []string{startWorkflowExecution, startActivityExecution},
+				ReservationCarriers: []testpilot.ReservationCarrierPolicy{workflowCarrier, retriedCarrier}},
+			plans: map[string]testpilot.ReservationCarrierPlan{
+				"start-workflow": {EndpointRoleID: "workflow-service", Method: startWorkflowExecution,
+					Reservations: []testpilot.ReservationTopology{{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 1}, {EntrypointID: "handler", Kind: testpilot.NexusHandlerEntrypoint, Count: 1}},
+					Routes:       []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", SourceInstructionID: "command", HandlerEntrypointID: "handler"}}},
+				"start-activity": {EndpointRoleID: "workflow-service", Method: startActivityExecution,
+					Reservations: []testpilot.ReservationTopology{{EntrypointID: "activity", Kind: testpilot.ActivityEntrypoint, Count: 2}}},
+			},
+		},
+		"the workflow alone, as before": {
+			mutate: func(program *testpilotspb.Program) {
+				program.Entrypoints[0].Instructions = program.Entrypoints[0].Instructions[:1]
+				program.Entrypoints = program.Entrypoints[:3]
+			},
+			want: testpilot.RolePolicy{ID: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
+				Methods:             []string{startWorkflowExecution},
+				ReservationCarriers: []testpilot.ReservationCarrierPolicy{workflowCarrier}},
+			plans: map[string]testpilot.ReservationCarrierPlan{
+				"start-workflow": {EndpointRoleID: "workflow-service", Method: startWorkflowExecution,
+					Reservations: []testpilot.ReservationTopology{{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 1}, {EntrypointID: "handler", Kind: testpilot.NexusHandlerEntrypoint, Count: 1}},
+					Routes:       []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", SourceInstructionID: "command", HandlerEntrypointID: "handler"}}},
+			},
+		},
+		// The Case starts an activity it runs no script for, so nothing is reserved and the start
+		// stays an ordinary call.
+		"an activity the Case only observes": {
+			mutate: func(program *testpilotspb.Program) {
+				program.Entrypoints[0].Instructions = program.Entrypoints[0].Instructions[1:]
+				program.Entrypoints = program.Entrypoints[:1]
+				program.Roles = program.Roles[3:]
+			},
+			want:  testpilot.RolePolicy{ID: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{startActivityExecution}},
+			plans: map[string]testpilot.ReservationCarrierPlan{},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := activityCase()
+			test.mutate(source.Program)
+			if name == "an activity the Case only observes" {
+				for _, assignment := range source.Program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().RequestAssignments[:2] {
+					assignment.Value = textLiteral("literal")
+				}
+			}
+			profile, err := temporal.DeriveProfile(source, catalog, environment)
+			require.NoError(t, err)
+			require.Equal(t, test.want, endpointPolicy(t, profile))
+			// Failing an attempt is its own instruction, authorized only where the Case uses it.
+			require.Equal(t, name == "an activity whose script declares a retry", slices.Contains(profile.Opcodes, testpilot.ActivityAttemptFailure))
+			prepared, err := testpilot.Prepare(source, profile)
+			require.NoError(t, err)
+			program := facadetest.Capture(t, prepared)
+			plans := map[string]testpilot.ReservationCarrierPlan{}
+			for _, instruction := range source.Program.Entrypoints[0].Instructions {
+				if plan, carried := program.ReservationCarrier("controller", instruction.InstructionId); carried {
+					plans[instruction.InstructionId] = plan
+				}
+			}
+			require.Equal(t, test.plans, plans)
+		})
+	}
+}
+
+// A Profile that authorizes the activity start as an ordinary call but names it no carrier, as a
+// consumer without an SDK activity worker would, cannot activate the Case's activity script, and
+// preparation says so before any Driver exists.
+func TestPrepareRejectsAnActivityScriptUnderAProfileWithoutItsCarrier(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	source := activityCase()
+	profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"})
+	require.NoError(t, err)
+	for index, role := range profile.Roles {
+		if role.ID == "workflow-service" {
+			profile.Roles[index].ReservationCarriers = role.ReservationCarriers[:1]
+		}
+	}
+	_, err = testpilot.Prepare(source, profile)
+	var diagnostic *testpilot.PreparationError
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, testpilot.PreparationUnavailable, diagnostic.Category)
+	require.Equal(t, "activity", diagnostic.Path)
 }

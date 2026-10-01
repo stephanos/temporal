@@ -1,12 +1,12 @@
 package delivery
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"slices"
 	"sync/atomic"
 
-	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 )
@@ -33,11 +33,15 @@ type Config struct {
 	Limits           Limits
 }
 
+// A Ledger keeps each activity bundle in operations, under the reservation its route names on the
+// wire, for as long as the bundle lives: the attempts' own routes leave routes as their
+// reservations end.
 type Ledger struct {
 	mu            primitive.Mutex
 	config        Config
 	bundles       map[uint64]*bundleState
 	routes        map[string]*routeState
+	operations    map[string]*bundleState
 	retained      map[string]*retainedReservation
 	nextBundle    uint64
 	activeRoutes  int
@@ -60,7 +64,9 @@ type bundleState struct {
 	origin          testpilot.Coordinate
 	plan            testpilot.ReservationCarrierPlan
 	binding         WorkflowBinding
+	activityBinding ActivityBinding
 	workflow        *routeState
+	attempts        []*routeState
 	nexus           map[sourceKey]*routeState
 	routes          []*routeState
 	responseRunID   string
@@ -70,6 +76,31 @@ type bundleState struct {
 	parentReleased  bool
 	parentCanceled  []*routeState
 	active          int
+}
+
+// started is the route the carrier's own start request names. The bundle of a carrier that starts
+// a standalone activity holds activityBinding and attempts, one route per attempt its script
+// declares in attempt order, where any other holds binding and workflow; an activity start names
+// its first attempt's route, which stands for the whole operation on the wire.
+func (b *bundleState) started() *routeState {
+	if len(b.attempts) > 0 {
+		return b.attempts[0]
+	}
+	return b.workflow
+}
+
+// startedRunID is the run a delivery already admitted for the started entity: the workflow's, or
+// the activity run every admitted attempt belongs to.
+func (b *bundleState) startedRunID() string {
+	for _, attempt := range b.attempts {
+		if attempt.activation.temporalRunID != "" {
+			return attempt.activation.temporalRunID
+		}
+	}
+	if b.workflow != nil {
+		return b.workflow.activation.temporalRunID
+	}
+	return ""
 }
 
 type sourceKey struct {
@@ -88,10 +119,14 @@ type routeState struct {
 	activation activationData
 }
 
+// An activity attempt's activationData also holds its SDK identities: attempt is the server's
+// attempt number, and deliveryID the delivery that first carried it.
 type activationData struct {
 	coordinate    testpilot.Coordinate
 	temporalRunID string
 	requestID     string
+	attempt       int32
+	deliveryID    string
 }
 
 type Bundle struct {
@@ -118,6 +153,8 @@ func (a Activation) Reservation() testpilot.ReservationIdentity {
 }
 func (a Activation) TemporalRunID() string { return a.data.temporalRunID }
 func (a Activation) RequestID() string     { return a.data.requestID }
+func (a Activation) Attempt() int32        { return a.data.attempt }
+func (a Activation) DeliveryID() string    { return a.data.deliveryID }
 func (a Activation) Replay() bool          { return a.replay }
 
 type Release struct{ unused int }
@@ -159,7 +196,7 @@ func New(config Config) (*Ledger, error) {
 	if !validRouteText(config.RunID) || !validRouteText(config.SessionID) || limits.MaxRoutes <= 0 || limits.MaxRoutes > 100000 || limits.MaxHeaderBytes <= 0 || limits.MaxHeaderBytes > 16<<20 || limits.MaxHandles <= 0 || limits.MaxHandles > 100000 || limits.MaxDiagnostics <= 0 || limits.MaxDiagnostics > 100000 {
 		return nil, ErrInvalid
 	}
-	return &Ledger{mu: primitive.NewMutex(), config: config, bundles: make(map[uint64]*bundleState), routes: make(map[string]*routeState), retained: make(map[string]*retainedReservation)}, nil
+	return &Ledger{mu: primitive.NewMutex(), config: config, bundles: make(map[uint64]*bundleState), routes: make(map[string]*routeState), operations: make(map[string]*bundleState), retained: make(map[string]*retainedReservation)}, nil
 }
 
 // RetainReservation attaches lifecycle accounting before the handle is returned from Session.Reserve.
@@ -196,12 +233,53 @@ func (l *Ledger) RetainReservation(ctx context.Context, handle testpilot.Reserva
 	return retained.proxy, nil
 }
 
+// startBinding is the physical entity a carrier's start request names, by the kind of route that
+// start activates: a workflow, or a standalone activity.
+type startBinding struct {
+	kind     routeKind
+	workflow WorkflowBinding
+	activity ActivityBinding
+}
+
+// carries reports whether plan is one the start can carry: a workflow start carries workflows and
+// the Nexus handlers they reach, and an activity start the activations of the one activity it
+// starts, one per attempt.
+func (b startBinding) carries(plan testpilot.ReservationCarrierPlan) bool {
+	switch b.kind {
+	case workflowRoute:
+		if plan.Method != primitive.StartWorkflowPath || !validBinding(b.workflow) {
+			return false
+		}
+		for _, reservation := range plan.Reservations {
+			if reservation.Kind != testpilot.WorkflowEntrypoint && reservation.Kind != testpilot.NexusHandlerEntrypoint {
+				return false
+			}
+		}
+		return true
+	case activityRoute:
+		return plan.Method == StartActivityPath && validActivityBinding(b.activity) && len(plan.Routes) == 0 &&
+			len(plan.Reservations) == 1 && plan.Reservations[0].Kind == testpilot.ActivityEntrypoint && plan.Reservations[0].Count >= 1
+	default:
+		return false
+	}
+}
+
 func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding WorkflowBinding, handles []testpilot.ReservationHandle) (Bundle, error) {
+	return l.createBundle(ctx, origin, plan, startBinding{kind: workflowRoute, workflow: workflowBinding}, handles)
+}
+
+// CreateActivityBundle is CreateBundle for a carrier that starts a standalone activity. Its
+// reservations are the activity's own attempts, so the bundle holds one route per attempt.
+func (l *Ledger) CreateActivityBundle(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, activityBinding ActivityBinding, handles []testpilot.ReservationHandle) (Bundle, error) {
+	return l.createBundle(ctx, origin, plan, startBinding{kind: activityRoute, activity: activityBinding}, handles)
+}
+
+func (l *Ledger) createBundle(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, start startBinding, handles []testpilot.ReservationHandle) (Bundle, error) {
 	cleanup := cleanupBundle(handles)
 	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return cleanup, err
 	}
-	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, workflowBinding, handles, l.config.Limits)
+	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, start, handles, l.config.Limits)
 	if err != nil {
 		return cleanup, err
 	}
@@ -230,17 +308,21 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 		proxies = append(proxies, proxy)
 	}
 	l.nextBundle++
-	state := &bundleState{id: l.nextBundle, origin: origin, plan: clonePlan(plan), binding: workflowBinding, nexus: make(map[sourceKey]*routeState), active: len(ordered)}
+	state := &bundleState{id: l.nextBundle, origin: origin, plan: clonePlan(plan), binding: start.workflow, activityBinding: start.activity, nexus: make(map[sourceKey]*routeState), active: len(ordered)}
 	byIdentity := make(map[reservationKey]*routeState, len(ordered))
 	for _, proxy := range proxies {
 		identity := proxy.Identity()
 		routeState := &routeState{bundle: state, identity: identity, retained: proxy.retained, authority: reserved}
 		proxy.retained.route = routeState
 		entrypointKind := validated[reservationKey{entrypoint: identity.EntrypointID, ordinal: identity.Ordinal}]
-		if entrypointKind == testpilot.WorkflowEntrypoint {
+		switch entrypointKind {
+		case testpilot.WorkflowEntrypoint:
 			routeState.kind = workflowRoute
 			state.workflow = routeState
-		} else {
+		case testpilot.ActivityEntrypoint:
+			routeState.kind = activityRoute
+			state.attempts = append(state.attempts, routeState)
+		default:
 			routeState.kind = nexusRoute
 		}
 		state.routes = append(state.routes, routeState)
@@ -252,6 +334,10 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 		handler := byIdentity[reservationKey{entrypoint: route.HandlerEntrypointID, ordinal: route.HandlerOrdinal}]
 		handler.source = key
 		state.nexus[key] = handler
+	}
+	if len(state.attempts) > 0 {
+		slices.SortFunc(state.attempts, func(left, right *routeState) int { return cmp.Compare(left.identity.Ordinal, right.identity.Ordinal) })
+		l.operations[state.attempts[0].identity.ID] = state
 	}
 	l.bundles[state.id] = state
 	l.activeRoutes += len(ordered)
@@ -267,8 +353,8 @@ type reservationKey struct {
 	ordinal    int64
 }
 
-func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding WorkflowBinding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
-	if origin.RunID != runID || !validCoordinate(origin) || plan.Method != primitive.StartWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
+func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, start startBinding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
+	if origin.RunID != runID || !validCoordinate(origin) || !start.carries(plan) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
 		return nil, nil, ErrInvalid
 	}
 	expected, err := expectedHandles(plan, limits)
@@ -342,7 +428,11 @@ func cleanupBundle(handles []testpilot.ReservationHandle) Bundle {
 	return result
 }
 
-func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *workflowservice.StartWorkflowExecutionResponse) error {
+// StartResponse is what a carried start answers with: the run it started, of a workflow or of a
+// standalone activity.
+type StartResponse interface{ GetRunId() string }
+
+func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response StartResponse) error {
 	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
 		return err
 	}
@@ -362,7 +452,7 @@ func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *
 		return ErrRouteStale
 	}
 	runID := response.GetRunId()
-	if state.responseRunID != "" && state.responseRunID != runID || state.workflow.activation.temporalRunID != "" && state.workflow.activation.temporalRunID != runID {
+	if state.responseRunID != "" && state.responseRunID != runID || state.startedRunID() != "" && state.startedRunID() != runID {
 		return ErrRouteConflict
 	}
 	state.responseRunID = runID
@@ -575,6 +665,9 @@ func (l *Ledger) activationLocked(activation Activation, kind routeKind) (*route
 func (l *Ledger) retireBundleLocked(state *bundleState) {
 	if state.triggerFinal && state.active == 0 && l.bundles[state.id] == state {
 		delete(l.bundles, state.id)
+		if len(state.attempts) > 0 {
+			delete(l.operations, state.attempts[0].identity.ID)
+		}
 	}
 }
 

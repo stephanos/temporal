@@ -108,13 +108,29 @@ func TestAReplacingMemberStandsInForTheOpaqueProvider(t *testing.T) {
 	require.Equal(t, []umpire.Assumption{doorIsOiled, keyIsOpaque}, withOpaque.Assumptions)
 }
 
-func TestAReplacementDischargesOnlyTheReplacingMembersAssumptions(t *testing.T) {
+func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 	opaque := opaqueKey()
 	inherits := detailedKey("detailedKey", false).Assumes(keyIsOpaque).Refines(opaque, keyOfWorn)
 	tb := tableOf(t, umpire.Compose[wornHouse]("test.door", "house").
 		Member("door", newDoor("door").Assumes(doorIsOiled)).Member("key", inherits).Replaces("key", opaque).
 		Sync("lock", "door.lock", "key.useKey"))
-	require.Equal(t, []umpire.Assumption{doorIsOiled}, tb.Assumptions, "the replacing member no longer relies on it")
+	require.Equal(t, []umpire.Assumption{doorIsOiled, keyIsOpaque}, tb.Assumptions,
+		"the replacing member declares it itself, whatever the machine it replaces names")
+	shuts := umpire.NewProgress("shuts", func(h wornHouse) bool { return h.Door.Phase == open },
+		func(h wornHouse) bool { return h.Door.Phase == closed }, 1)
+	a, err := umpire.CheckProgress(tb, shuts, wide)
+	require.NoError(t, err)
+	require.Equal(t, []string{"doorIsOiled", "keyIsOpaque"}, a.Assumptions, "a check of the composition names it")
+
+	// The replaced machine names the assumption with no fair action; the member's own declaration of
+	// it, fair for the key's use, is the one the composition carries.
+	keyIsFair := umpire.Assumption{Name: "keyIsOpaque", Fair: []string{"useKey"}}
+	opaque = opaqueKey()
+	fair := detailedKey("detailedKey", false).Assumes(keyIsFair).Refines(opaque, keyOfWorn)
+	tb = tableOf(t, umpire.Compose[wornHouse]("test.door", "house").
+		Member("door", newDoor("door")).Member("key", fair).Replaces("key", opaque).
+		Sync("lock", "door.lock", "key.useKey"))
+	require.Equal(t, []umpire.Assumption{{Name: "keyIsOpaque", Fair: []string{"lock"}}}, tb.Assumptions)
 
 	opaque = opaqueKey()
 	inherits = detailedKey("detailedKey", false).Assumes(keyIsOpaque).Refines(opaque, keyOfWorn)

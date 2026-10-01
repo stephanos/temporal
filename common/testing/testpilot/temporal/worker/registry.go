@@ -17,9 +17,10 @@ type managedWorker interface {
 type workerFactory func(key, queue string, registration queueRegistration) (managedWorker, error)
 
 type queueRegistration struct {
-	queue     string
-	workflows []string
-	nexus     []nexusRegistration
+	queue      string
+	workflows  []string
+	activities []string
+	nexus      []nexusRegistration
 }
 
 type nexusRegistration struct {
@@ -29,6 +30,10 @@ type nexusRegistration struct {
 func (r queueRegistration) canonical() (queueRegistration, error) {
 	var err error
 	r.workflows, err = sortedUnique(r.workflows)
+	if err != nil {
+		return queueRegistration{}, err
+	}
+	r.activities, err = sortedUnique(r.activities)
 	if err != nil {
 		return queueRegistration{}, err
 	}
@@ -67,7 +72,7 @@ func (r queueRegistration) compatible(other queueRegistration) bool {
 	if err != nil {
 		return false
 	}
-	return left.queue == right.queue && slices.Equal(left.workflows, right.workflows) && slices.Equal(left.nexus, right.nexus)
+	return left.queue == right.queue && slices.Equal(left.workflows, right.workflows) && slices.Equal(left.activities, right.activities) && slices.Equal(left.nexus, right.nexus)
 }
 
 type workerRegistry struct {
@@ -314,7 +319,7 @@ func canonicalRequirements(requirements []queueRegistration) ([]queueRegistratio
 		if err != nil {
 			return nil, err
 		}
-		if canonical[i].queue == "" || len(canonical[i].workflows)+len(canonical[i].nexus) == 0 {
+		if canonical[i].queue == "" || len(canonical[i].workflows)+len(canonical[i].activities)+len(canonical[i].nexus) == 0 {
 			return nil, ErrInvalid
 		}
 		if _, duplicate := seen[canonical[i].queue]; duplicate {

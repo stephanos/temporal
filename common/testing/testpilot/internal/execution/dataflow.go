@@ -14,12 +14,14 @@ import (
 )
 
 // opcodeRow is everything the runtime knows about one Opcode: the Instruction oneof arm that
-// declares it, the entrypoint kind it runs in, whether its outcome carries a protocol code, how
-// admission binds the instruction and its dataflow, and how the scheduler accepts its effect. A
-// nil dataflow binds no Program expression; a nil accept is an instruction no controller runs.
+// declares it, the entrypoint kind it runs in, whether an activity entrypoint runs it as well,
+// whether its outcome carries a protocol code, how admission binds the instruction and its
+// dataflow, and how the scheduler accepts its effect. A nil dataflow binds no Program expression; a
+// nil accept is an instruction no controller runs.
 type opcodeRow struct {
 	arm          protoreflect.Name
 	context      contract.EntrypointKind
+	activity     bool
 	protocolCode bool
 	bind         func(a *admission, g *graph, i int, n *node) error
 	dataflow     func(a *admission, g *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error
@@ -57,7 +59,7 @@ func init() {
 			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindAwait(g, n) },
 		},
 		contract.Finish: {
-			arm: "finish", context: contract.WorkflowEntrypoint,
+			arm: "finish", context: contract.WorkflowEntrypoint, activity: true,
 			bind: func(a *admission, g *graph, _ int, n *node) error { return a.bindFinish(g, n) },
 			dataflow: func(_ *admission, _ *graph, n *node, scope map[ir.Reference]ir.Binding, bind scopedBind) error {
 				var err error
@@ -97,7 +99,17 @@ func init() {
 			},
 			accept: (*scheduler).acceptReadEvidence,
 		},
+		contract.ActivityAttemptFailure: {
+			arm: "activity_attempt_failure", context: contract.ActivityEntrypoint,
+			bind: func(_ *admission, g *graph, _ int, n *node) error { return bindAttemptFailure(g, n) },
+		},
 	}
+}
+
+// runsIn reports whether an entrypoint of the kind runs the Opcode: an activity's script ends the
+// way a workflow's does, so the one instruction that ends a workflow also completes an activity attempt.
+func (r opcodeRow) runsIn(kind contract.EntrypointKind) bool {
+	return r.context == kind || r.activity && kind == contract.ActivityEntrypoint
 }
 
 var instructionArms = (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
@@ -146,7 +158,7 @@ func (a *admission) bindInstructions() error {
 func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	n.opcode = InstructionOpcode(n.source.Instruction)
 	row := opcodes[n.opcode]
-	if n.opcode == 0 || row.context != g.context || !a.opcodes[n.opcode] {
+	if n.opcode == 0 || !row.runsIn(g.context) || !a.opcodes[n.opcode] {
 		return ir.Invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
 	}
 	if err := a.bindNodeBounds(g, n); err != nil {
@@ -171,10 +183,29 @@ func (a *admission) bindAwaitSlotDataflow(g *graph, n *node) error {
 }
 
 func (a *admission) bindFinish(g *graph, n *node) error {
-	if n.source.Instruction.GetFinish() == nil {
+	finish := n.source.Instruction.GetFinish()
+	if finish == nil {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 	}
 	return nil
+}
+
+// bindAttemptFailure admits the failure an activity attempt fails with. The worker answers through
+// the SDK, which reports an activity's own failure as an application failure, retried unless that
+// failure says otherwise, so a failure of any other kind, or one carrying a field the Driver
+// cannot set, rejects naming the field.
+func bindAttemptFailure(g *graph, n *node) error {
+	path := expressionPath(g, n, "instruction.activity_attempt_failure.failure")
+	failure := n.source.Instruction.GetActivityAttemptFailure().GetFailure()
+	if failure == nil {
+		return ir.Invalid(ir.Malformed, path, "an attempt failure carries the failure")
+	}
+	if failure.GetFailureInfo() != nil && failure.GetApplicationFailureInfo() == nil {
+		reflection := failure.ProtoReflect()
+		info := reflection.WhichOneof(reflection.Descriptor().Oneofs().ByName("failure_info"))
+		return ir.Invalid(ir.Unsupported, path+"."+string(info.Name()), "an activity attempt fails with an application failure")
+	}
+	return checkReach(failure, path)
 }
 
 // bindAwait admits an Await of an earlier Nexus start of the same entrypoint. A scheduled command's

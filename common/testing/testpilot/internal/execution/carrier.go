@@ -9,8 +9,12 @@ import (
 
 // deriveReservations gives each reservation carrier its reservations. An ordinary controller
 // instruction invoking a method the Profile names as a carrier on that endpoint reserves one activation
-// of each workflow or Nexus-handler entrypoint whose kind the carrier's shapes admit. One entrypoint's
-// activation has one carrier, so two instructions that could both carry it reject.
+// of each workflow or Nexus-handler entrypoint whose kind the carrier's shapes admit, and one
+// activation per instruction of each activity entrypoint they admit: an activity is delivered once
+// per attempt, and its script declares its attempts in order. One entrypoint's activation has one
+// carrier, so two instructions that could both carry it reject. An activity is delivered only
+// through the carrier that started it, so an activity entrypoint that carries a script no carrier
+// reserves names a capability the Profile lacks and rejects here, before any target I/O.
 func (a *admission) deriveReservations() error {
 	carriedBy := map[string]*node{}
 	for _, controller := range a.prepared.graphs {
@@ -37,12 +41,23 @@ func (a *admission) deriveReservations() error {
 				if err := a.charge(1); err != nil {
 					return err
 				}
+				count := int64(1)
+				if target.context == contract.ActivityEntrypoint {
+					if count = int64(len(target.nodes)); count == 0 {
+						continue
+					}
+				}
 				if previous, claimed := carriedBy[target.id]; claimed {
 					return ir.Invalid(ir.Unsupported, nodePath(controller, carrierNode), fmt.Sprintf("instructions %s and %s both carry the reservation of entrypoint %s", previous.source.InstructionId, carrierNode.source.InstructionId, target.id))
 				}
 				carriedBy[target.id] = carrierNode
-				carrierNode.reservations = append(carrierNode.reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: 1})
+				carrierNode.reservations = append(carrierNode.reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: count})
 			}
+		}
+	}
+	for _, target := range a.prepared.graphs {
+		if _, carried := carriedBy[target.id]; target.context == contract.ActivityEntrypoint && len(target.nodes) > 0 && !carried {
+			return ir.Invalid(ir.Unavailable, target.id, "no reservation carrier of the Profile activates the activity entrypoint")
 		}
 	}
 	return nil

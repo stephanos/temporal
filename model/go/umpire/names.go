@@ -1,6 +1,7 @@
 package umpire
 
 import (
+	"slices"
 	"sync"
 )
 
@@ -31,10 +32,24 @@ func (n *claimNames) duplicates(machine string) []error {
 	defer n.mu.Unlock()
 	var errs []error
 	for _, key := range n.twice {
-		errs = append(errs, errorf("machine "+machine,
-			"%s is declared twice, and both declarations would share one Definition ID; rename one", key))
+		errs = append(errs, declaredTwice(machine, key))
 	}
 	return errs
+}
+
+// duplicate is the error of one name a kind declares twice, or nil.
+func (n *claimNames) duplicate(machine, kind, name string) error {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	if key := kind + " " + name; slices.Contains(n.twice, key) {
+		return declaredTwice(machine, key)
+	}
+	return nil
+}
+
+func declaredTwice(machine, key string) error {
+	return errorf("machine "+machine,
+		"%s is declared twice, and both declarations would share one Definition ID; rename one", key)
 }
 
 type claimNamer interface {

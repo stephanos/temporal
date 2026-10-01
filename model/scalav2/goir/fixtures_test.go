@@ -19,7 +19,7 @@ func lifted(t *testing.T, name string) *modelirspb.Model {
 }
 
 func TestLiftedModelsAreAdmitted(t *testing.T) {
-	for _, name := range []string{"admission", "channels", "closereset", "declarations", "presence"} {
+	for _, name := range []string{"admission", "channels", "closereset", "declarations", "presence", "realizations"} {
 		t.Run(name, func(t *testing.T) {
 			lifted(t, name)
 		})

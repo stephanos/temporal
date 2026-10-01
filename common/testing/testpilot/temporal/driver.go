@@ -134,6 +134,7 @@ type workerSession interface {
 
 type carrierSession interface {
 	CreateCarrier(context.Context, testpilot.Coordinate, testpilot.ReservationCarrierPlan, delivery.WorkflowBinding, []testpilot.ReservationHandle) (*workerhost.Carrier, error)
+	CreateActivityCarrier(context.Context, testpilot.Coordinate, testpilot.ReservationCarrierPlan, delivery.ActivityBinding, []testpilot.ReservationHandle) (*workerhost.Carrier, error)
 }
 
 type compositeSession struct {
@@ -175,14 +176,10 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	if !ok || method == nil || primitive.NilValue(request) {
 		return nil, ErrInvalid
 	}
-	binding, err := carrierBinding(request)
-	if err != nil {
-		return nil, err
-	}
 	s.mu.Lock()
 	handles := append([]testpilot.ReservationHandle(nil), s.reservations[coordinate]...)
 	s.mu.Unlock()
-	carrier, err := worker.CreateCarrier(ctx, coordinate, plan, binding, handles)
+	carrier, err := createCarrier(ctx, worker, coordinate, plan, request, handles)
 	if err != nil {
 		return nil, err
 	}
@@ -202,6 +199,37 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	s.mu.Unlock()
 	cleanupTimeout := time.Duration(s.program.Limits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
 	return &carrierEffect{EffectHandle: handle, carrier: carrier, cleanupTimeout: cleanupTimeout}, nil
+}
+
+// createCarrier makes the worker carrier of the start the plan names: a StartActivityExecution
+// carries the activation of the standalone activity it starts, and any other carrier is a
+// StartWorkflow request.
+func createCarrier(ctx context.Context, worker carrierSession, coordinate testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, request proto.Message, handles []testpilot.ReservationHandle) (*workerhost.Carrier, error) {
+	if plan.Method == delivery.StartActivityPath {
+		binding, err := activityCarrierBinding(request)
+		if err != nil {
+			return nil, err
+		}
+		return worker.CreateActivityCarrier(ctx, coordinate, plan, binding, handles)
+	}
+	binding, err := carrierBinding(request)
+	if err != nil {
+		return nil, err
+	}
+	return worker.CreateCarrier(ctx, coordinate, plan, binding, handles)
+}
+
+// activityCarrierBinding is the activity binding a carried StartActivityExecution request names;
+// every field of it must be set.
+func activityCarrierBinding(request proto.Message) (delivery.ActivityBinding, error) {
+	binding, _, err := delivery.ActivityStartBinding(request.ProtoReflect())
+	if err != nil {
+		return delivery.ActivityBinding{}, errors.Join(ErrInvalid, err)
+	}
+	if binding.Namespace == "" || binding.ActivityID == "" || binding.ActivityType == "" || binding.TaskQueue == "" {
+		return delivery.ActivityBinding{}, ErrInvalid
+	}
+	return binding, nil
 }
 
 // carrierBinding is the workflow binding a carried StartWorkflow request names; every field of it
@@ -259,7 +287,7 @@ type carrierEffect struct {
 	mu             sync.Mutex
 	finished       bool
 	disposition    delivery.TriggerStatus
-	response       *workflowservice.StartWorkflowExecutionResponse
+	response       delivery.StartResponse
 }
 
 func (e *carrierEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
@@ -282,13 +310,13 @@ func (e *carrierEffect) Drain(ctx context.Context) error {
 }
 
 type terminalCarrier interface {
-	PinStartResponse(context.Context, *workflowservice.StartWorkflowExecutionResponse) error
+	PinStartResponse(context.Context, delivery.StartResponse) error
 	TriggerTerminal(context.Context, delivery.TriggerStatus) (int, error)
 }
 
 func (e *carrierEffect) finish(result testpilot.EffectResult, waitErr error) error {
 	disposition := delivery.TriggerUncertain
-	var response *workflowservice.StartWorkflowExecutionResponse
+	var response delivery.StartResponse
 	var responseErr error
 	if waitErr == nil && result.Outcome != nil {
 		switch result.Outcome.GetStatus() {
@@ -310,7 +338,7 @@ func (e *carrierEffect) trigger(disposition delivery.TriggerStatus) error {
 	return e.finalize(disposition, nil)
 }
 
-func (e *carrierEffect) finalize(disposition delivery.TriggerStatus, response *workflowservice.StartWorkflowExecutionResponse) error {
+func (e *carrierEffect) finalize(disposition delivery.TriggerStatus, response delivery.StartResponse) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.finished {
@@ -322,7 +350,7 @@ func (e *carrierEffect) finalize(disposition delivery.TriggerStatus, response *w
 		disposition = e.disposition
 	}
 	if response != nil {
-		e.response = proto.CloneOf(response)
+		e.response = response
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), e.cleanupTimeout)
 	defer cancel()
@@ -341,19 +369,32 @@ func (e *carrierEffect) finalize(disposition delivery.TriggerStatus, response *w
 	return err
 }
 
-func startResponse(response proto.Message) (*workflowservice.StartWorkflowExecutionResponse, error) {
+// startResponse decodes what a carried start answered with, a StartWorkflowExecution or a
+// StartActivityExecution response, into the run it started. The response is its own copy.
+func startResponse(response proto.Message) (delivery.StartResponse, error) {
 	if response == nil {
+		return nil, ErrInvalid
+	}
+	var start interface {
+		proto.Message
+		delivery.StartResponse
+	}
+	switch response.ProtoReflect().Descriptor().FullName() {
+	case (&workflowservice.StartWorkflowExecutionResponse{}).ProtoReflect().Descriptor().FullName():
+		start = &workflowservice.StartWorkflowExecutionResponse{}
+	case (&workflowservice.StartActivityExecutionResponse{}).ProtoReflect().Descriptor().FullName():
+		start = &workflowservice.StartActivityExecutionResponse{}
+	default:
 		return nil, ErrInvalid
 	}
 	wire, err := proto.Marshal(response)
 	if err != nil {
 		return nil, err
 	}
-	var start workflowservice.StartWorkflowExecutionResponse
-	if err := proto.Unmarshal(wire, &start); err != nil || start.GetRunId() == "" {
+	if err := proto.Unmarshal(wire, start); err != nil || start.GetRunId() == "" {
 		return nil, ErrInvalid
 	}
-	return &start, nil
+	return start, nil
 }
 
 func quarantineWorkerHandle(ctx context.Context, handle testpilot.EffectHandle, complete func()) error {

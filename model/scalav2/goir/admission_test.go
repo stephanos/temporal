@@ -647,12 +647,23 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 		{"when_action the machine does not bind", "declarations", func(m *modelirspb.Model) {
 			admProperty(m, "disk", "putAccepted").When = &modelirspb.Property_WhenAction{WhenAction: "nothing"}
 		}, admDeclaredAt + "139: disk.putAccepted: disk binds no action nothing"},
-		{"when_action on a composition", "declarations", func(m *modelirspb.Model) {
+		// putBoth takes each member's put, so the composition has no class of an action put, and none
+		// of front's put either.
+		{"when_action of no class of a composition", "declarations", func(m *modelirspb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenAction{WhenAction: "put"}
-		}, admDeclaredAt + "143: detailedPair.frontHeld: a Property of a composition is about every step"},
-		{"when_class on a composition", "declarations", func(m *modelirspb.Model) {
+		}, admDeclaredAt + "143: detailedPair.frontHeld: detailedPair has no class of the action put"},
+		{"when_action of a synced member action of a composition", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenAction{WhenAction: "front_put"}
+		}, admDeclaredAt + "143: detailedPair.frontHeld: detailedPair has no class of the action front_put"},
+		{"when_action of an action no member binds on a composition", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenAction{WhenAction: "front_flush"}
+		}, admDeclaredAt + "143: detailedPair.frontHeld: detailedPair has no class of the action front_flush"},
+		{"when_class of no class of a composition", "declarations", func(m *modelirspb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenClass{WhenClass: &modelirspb.ActionClass{Action: put}}
-		}, admDeclaredAt + "143: detailedPair.frontHeld: a Property of a composition is about every step"},
+		}, admDeclaredAt + "143: detailedPair.frontHeld: detailedPair has no class put"},
+		{"when_class of an undeclared action on a composition", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenClass{WhenClass: &modelirspb.ActionClass{Action: "nowhere"}}
+		}, admDeclaredAt + "143: no action nowhere"},
 		{"scenario input the action does not take", "declarations", func(m *modelirspb.Model) {
 			admScenario(m, "store", "putOnce").GetActions()[0].Inputs = []*modelirspb.Value{admIntValue(1)}
 		}, admDeclaredAt + "148: store.putOnce: " + put + " takes 0 inputs, not 1"},
@@ -678,6 +689,10 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 		{"composition scenario key of an action its member does not bind", "declarations", func(m *modelirspb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Keys = []string{"front_flush"}
 		}, admDeclaredAt + "152: detailedPair.bothPut: detailedPair has no class front_flush"},
+		// putBoth takes front's put, so front has no put class of its own.
+		{"composition scenario of a synced member action", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "detailedPair", "bothPut").Keys = []string{"front_put"}
+		}, admDeclaredAt + "152: detailedPair.bothPut: detailedPair has no class front_put"},
 		{"composition scenario of actions", "declarations", func(m *modelirspb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Actions = []*modelirspb.ActionClass{{Action: put}}
 		}, admDeclaredAt + "152: detailedPair.bothPut: a Scenario of a composition schedules its class keys, not actions"},
@@ -689,9 +704,40 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 
 func TestAdmissionAdmitsWellAddressedSelectors(t *testing.T) {
 	m := admFixture(t, "declarations")
-	admScenario(m, "detailedPair", "bothPut").Keys = []string{"putBoth", "front_put", "back_flush", "back_crash"}
+	admScenario(m, "detailedPair", "bothPut").Keys = []string{"putBoth", "back_flush", "back_crash"}
 	require.NoError(t, Validate(m))
 	m = admFixture(t, "channels")
 	admTallyScenario(m, 2)
 	require.NoError(t, Validate(m))
+}
+
+// A Property of a composition may be about some of its steps: the classes of a sync, by the sync's
+// name, the classes of a member's own action, by its composed name, and one class, by its key.
+func TestAdmissionAdmitsAWhenOverComposedClasses(t *testing.T) {
+	for _, action := range []string{"putBoth", "back_flush", "back_crash"} {
+		m := admFixture(t, "declarations")
+		admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenAction{WhenAction: action}
+		require.NoError(t, Validate(m), action)
+	}
+	// standaloneActivity's sync attemptStart is named as the activity's action it takes, so that
+	// action's one class is keyed as the sync's step is.
+	m := proto.Clone(activityModel(t)).(*modelirspb.Model)
+	var attemptStart string
+	for _, a := range m.GetActions() {
+		if a.GetName() == "attemptStart" {
+			attemptStart = a.GetId()
+		}
+	}
+	require.NotEmpty(t, attemptStart)
+	started := admProperty(m, "standaloneActivity", "startedByPollingWorker")
+	require.NotNil(t, started)
+	started.When = &modelirspb.Property_WhenClass{WhenClass: &modelirspb.ActionClass{Action: attemptStart}}
+	require.NoError(t, Validate(m))
+	// The activity's own control has a class for each of its inputs, and the action names them all.
+	started.When = &modelirspb.Property_WhenAction{WhenAction: "activity_control"}
+	require.NoError(t, Validate(m))
+	started.When = &modelirspb.Property_WhenAction{WhenAction: "activity_control-pause"}
+	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class of the action activity_control-pause")
+	started.When = &modelirspb.Property_WhenClass{WhenClass: &modelirspb.ActionClass{Action: attemptStart, Inputs: []*modelirspb.Value{admIntValue(1)}}}
+	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class attemptStart-1")
 }

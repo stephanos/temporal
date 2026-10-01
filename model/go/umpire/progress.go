@@ -30,6 +30,10 @@ type Progress struct {
 	Within      int
 	Assumptions []Assumption
 	from, to    func(t *Table, state string) (bool, error)
+	// Unknown says which errors of from and to leave a state unknown rather than fail the check: the
+	// state is reported, the check does not continue through it, and a kind of violation it rules out
+	// is incomplete. Nil lets every such error fail the check.
+	Unknown func(error) bool
 }
 
 // NewProgress declares a progress claim over a machine whose state type is S.
@@ -51,6 +55,16 @@ func NewProgress[S any](name string, from, to func(S) bool, within int, assumpti
 func KeyProgress(name string, from, to func(state string) bool, within int, assumptions ...Assumption) *Progress {
 	keyed := func(f func(string) bool) func(*Table, string) (bool, error) {
 		return func(_ *Table, key string) (bool, error) { return f(key), nil }
+	}
+	return &Progress{Name: name, Within: within, Assumptions: assumptions, from: keyed(from), to: keyed(to)}
+}
+
+// KeyProgressFunc declares a progress claim over state keys whose from and to may fail, such as on
+// a state the claim cannot be read at: the error fails the check and keeps its type.
+func KeyProgressFunc(name string, from, to func(state string) (bool, error), within int,
+	assumptions ...Assumption) *Progress {
+	keyed := func(f func(string) (bool, error)) func(*Table, string) (bool, error) {
+		return func(_ *Table, key string) (bool, error) { return f(key) }
 	}
 	return &Progress{Name: name, Within: within, Assumptions: assumptions, from: keyed(from), to: keyed(to)}
 }
@@ -94,6 +108,21 @@ type ProgressAnswer struct {
 	Deadline    ProgressVerdict
 	From        int
 	Explored    int
+	// Unknown lists the unknown pairs at the states the check read the steps of, in the order it met
+	// them. An unknown pair is not a step and not a disabled pair: a state whose only pairs are
+	// unknown is no deadlock, and a cycle is no fair one while a fair class it does not take may be
+	// enabled throughout it.
+	// A state the claim could not be read at, by an error its Unknown accepts, is listed too, as an
+	// UnknownClaim with no row: the check explores no step from it, and it belongs to no path a
+	// violation is found on.
+	Unknown []UnknownReach
+}
+
+// Incomplete reports that some kind of violation was ruled out while the check read an unknown
+// pair, behind which one may lie. A violation found stands whatever was unknown.
+func (a ProgressAnswer) Incomplete() bool {
+	verified := func(v ProgressVerdict) bool { return v.Outcome == VerifiedWithinLimits }
+	return len(a.Unknown) > 0 && (verified(a.Deadlock) || verified(a.Cycle) || verified(a.Deadline))
 }
 
 // CheckProgress checks a progress claim of a table within limits. Steps bounds the depth explored
@@ -117,6 +146,7 @@ func CheckProgress(t *Table, p *Progress, limits Limits) (ProgressAnswer, error)
 	deadline, cut := c.deadline(parts)
 	a.Deadline = c.verdict(DeadlineKind, deadline, cut)
 	a.Explored = c.budget.used
+	a.Unknown = c.unknown
 	return a, nil
 }
 
@@ -156,6 +186,11 @@ type progressChecker struct {
 	inRegion     map[string]bool
 	regionParent map[string]edgeFrom
 	dead         *violation
+	// unknown is the unknown pairs at the states whose steps the check read, noted once each.
+	unknown []UnknownReach
+	noted   map[string]bool
+	// unread is the states the claim could not be read at.
+	unread map[string]bool
 }
 
 type edgeFrom struct {
@@ -170,6 +205,9 @@ type fairClass struct {
 
 func newProgressChecker(t *Table, p *Progress, limits Limits) (*progressChecker, error) {
 	decl := "progress " + p.Name
+	if t.err != nil {
+		return nil, t.err
+	}
 	if p.Within < 1 {
 		return nil, errorf(decl, "within %d steps is fewer than one", p.Within)
 	}
@@ -178,7 +216,7 @@ func newProgressChecker(t *Table, p *Progress, limits Limits) (*progressChecker,
 	}
 	c := &progressChecker{t: t, p: p, limits: limits, budget: budget{limit: limits.Search},
 		parent: map[string]edgeFrom{}, isTo: map[string]bool{}, inRegion: map[string]bool{},
-		regionParent: map[string]edgeFrom{}}
+		regionParent: map[string]edgeFrom{}, noted: map[string]bool{}, unread: map[string]bool{}}
 	for _, a := range c.assumptions() {
 		for _, f := range a.Fair {
 			found := false
@@ -226,10 +264,13 @@ func (c *progressChecker) explore() error {
 			c.exceeded = true
 			return nil
 		}
-		if err := c.discover(s, edgeFrom{}); err != nil {
+		read, err := c.discover(s, edgeFrom{})
+		if err != nil {
 			return err
 		}
-		frontier = append(frontier, s)
+		if read {
+			frontier = append(frontier, s)
+		}
 	}
 	for depth := 0; len(frontier) > 0 && !c.exceeded; depth++ {
 		if depth == c.limits.Steps {
@@ -250,6 +291,7 @@ func (c *progressChecker) explore() error {
 func (c *progressChecker) expand(frontier []string) ([]string, error) {
 	var next []string
 	for _, s := range frontier {
+		c.noteUnknown(s)
 		for _, row := range c.t.RowsFrom(s) {
 			for _, res := range row.Results {
 				via := edgeFrom{s, edge{row.Key, res}}
@@ -261,10 +303,13 @@ func (c *progressChecker) expand(frontier []string) ([]string, error) {
 					c.exceeded = true
 					return next, nil
 				}
-				if err := c.discover(res.State, via); err != nil {
+				read, err := c.discover(res.State, via)
+				if err != nil {
 					return nil, err
 				}
-				next = append(next, res.State)
+				if read {
+					next = append(next, res.State)
+				}
 			}
 		}
 	}
@@ -273,30 +318,55 @@ func (c *progressChecker) expand(frontier []string) ([]string, error) {
 
 // discover explores a state: it evaluates the claim there and joins the region as a source, the
 // states From accepts and To does not, or through the step that reached it.
-func (c *progressChecker) discover(s string, via edgeFrom) error {
+// It reports whether the claim was read there: a state it could not be read at is explored no
+// further.
+func (c *progressChecker) discover(s string, via edgeFrom) (bool, error) {
 	c.parent[s] = via
 	c.order = append(c.order, s)
 	from, err := c.p.from(c.t, s)
 	if err != nil {
-		return err
+		return false, c.unreadAt(s, err)
 	}
 	to, err := c.p.to(c.t, s)
 	if err != nil {
-		return err
+		return false, c.unreadAt(s, err)
 	}
 	c.isTo[s] = to
 	if from && !to {
 		c.sources = append(c.sources, s)
 		c.join(s, edgeFrom{})
-		return nil
+		return true, nil
 	}
 	c.enter(s, via)
+	return true, nil
+}
+
+// unreadAt notes a state the claim could not be read at, when the claim classes the error as leaving
+// it unknown, and is the error otherwise. Whether such a state is a From or a To state is not known,
+// so it joins no region and no path through it is a witness.
+func (c *progressChecker) unreadAt(s string, err error) error {
+	if c.p.Unknown == nil || !c.p.Unknown(err) {
+		return err
+	}
+	c.unread[s] = true
+	start, path := c.pathFromStart(s)
+	c.unknown = append(c.unknown, UnknownReach{Kind: UnknownClaim, Source: s, Depth: len(path),
+		Prefix: c.t.trace(start, path), Cause: err})
 	return nil
+}
+
+// pathFromStart is the shortest explored path from a start to a state.
+func (c *progressChecker) pathFromStart(s string) (string, []edge) {
+	var path []edge
+	for ; c.parent[s].source != ""; s = c.parent[s].source {
+		path = append([]edge{c.parent[s].edge}, path...)
+	}
+	return s, path
 }
 
 // enter joins an explored state to the region through a step from a region state.
 func (c *progressChecker) enter(s string, via edgeFrom) {
-	if via.source != "" && c.inRegion[via.source] && !c.isTo[s] && !c.inRegion[s] {
+	if via.source != "" && c.inRegion[via.source] && !c.isTo[s] && !c.unread[s] && !c.inRegion[s] {
 		c.join(s, via)
 	}
 }
@@ -314,7 +384,8 @@ func (c *progressChecker) join(s string, via edgeFrom) {
 		c.inRegion[u] = true
 		c.regionParent[u] = v
 		c.region = append(c.region, u)
-		if c.dead == nil && len(c.t.RowsFrom(u)) == 0 {
+		c.noteUnknown(u)
+		if c.dead == nil && c.t.steps(u) == pairDisabled {
 			start, path := c.regionPath(u)
 			c.dead = &violation{start: start, path: path, loop: -1,
 				why: fmt.Sprintf("'%s' has no step and %s does not hold there", u, c.p.Name)}
@@ -325,6 +396,20 @@ func (c *progressChecker) join(s string, via edgeFrom) {
 				pending = append(pending, edgeFrom{u, x})
 			}
 		}
+	}
+}
+
+// noteUnknown records the unknown pairs at a state whose steps the check reads, each once, with the
+// shortest explored path from a start to the state.
+func (c *progressChecker) noteUnknown(s string) {
+	for _, u := range c.t.UnknownFrom(s) {
+		if c.noted[u.Row] {
+			continue
+		}
+		c.noted[u.Row] = true
+		start, path := c.pathFromStart(s)
+		c.unknown = append(c.unknown, UnknownReach{Kind: UnknownRow, Row: u.Row, Source: s, Action: u.Action,
+			Depth: len(path), Prefix: c.t.trace(start, path), Cause: u.Cause})
 	}
 }
 
@@ -341,11 +426,12 @@ func (c *progressChecker) leavesExplored(s string) bool {
 }
 
 // inside lists the steps from an explored state to an explored state no To accepts.
+// A step to a state the claim could not be read at is none of them.
 func (c *progressChecker) inside(s string) []edge {
 	var out []edge
 	for _, row := range c.t.RowsFrom(s) {
 		for _, res := range row.Results {
-			if _, explored := c.parent[res.State]; explored && !c.isTo[res.State] {
+			if _, explored := c.parent[res.State]; explored && !c.isTo[res.State] && !c.unread[res.State] {
 				out = append(out, edge{row.Key, res})
 			}
 		}
@@ -477,7 +563,7 @@ func (c *progressChecker) cycle(parts *regionParts) (*violation, bool) {
 func (c *progressChecker) required(members []string, steps map[string][]edge) ([]edge, bool) {
 	var out []edge
 	for _, f := range c.fair {
-		if slices.ContainsFunc(members, func(s string) bool { return !c.enabled(s, f.class) }) {
+		if slices.ContainsFunc(members, func(s string) bool { return c.disabled(s, f.class) }) {
 			continue
 		}
 		x, ok := c.takes(members, steps, f.class)
@@ -490,7 +576,15 @@ func (c *progressChecker) required(members []string, steps map[string][]edge) ([
 }
 
 func (c *progressChecker) enabled(s, class string) bool {
-	return slices.ContainsFunc(c.t.RowsFrom(s), func(r Row) bool { return r.Action == class })
+	status, _, _ := c.t.pair(s, class)
+	return status == pairEnabled
+}
+
+// disabled reports whether a class has no step at a state for certain: an unknown pair is not a
+// disabled one, so a class with one may be enabled there.
+func (c *progressChecker) disabled(s, class string) bool {
+	status, _, _ := c.t.pair(s, class)
+	return status == pairDisabled
 }
 
 // takes is the first step inside a component of one class.
@@ -711,7 +805,7 @@ func (p *Progress) Replay(t *Table, kind ProgressKind, v ProgressVerdict) error 
 	}
 	path, err := t.replay(v.Witness)
 	if err != nil {
-		return errorf(decl, "%v", err)
+		return wrapError(decl, err)
 	}
 	if !slices.Contains(t.Starts, v.Witness.Initial.Value) {
 		return errorf(decl, "the witness starts at '%s', which is not a start of %s", v.Witness.Initial.Value, t.Machine)
@@ -743,9 +837,7 @@ func (p *Progress) Replay(t *Table, kind ProgressKind, v ProgressVerdict) error 
 	last := states[len(states)-1]
 	switch kind {
 	case DeadlockKind:
-		if len(t.RowsFrom(last)) > 0 {
-			return errorf(decl, "the witness ends at '%s', which has a step", last)
-		}
+		return deadlockAt(decl, t, last)
 	case DeadlineKind:
 		lasso := v.Loop >= source && v.Loop < len(path) && states[v.Loop] == last
 		if len(path)-source < p.Within && !lasso {
@@ -763,13 +855,30 @@ func (p *Progress) Replay(t *Table, kind ProgressKind, v ProgressVerdict) error 
 	return nil
 }
 
+// deadlockAt checks that a witness ends where the table has no step for certain: no row, and no
+// unknown pair that may be one.
+func deadlockAt(decl string, t *Table, last string) error {
+	status := t.steps(last)
+	if status == pairEnabled {
+		return errorf(decl, "the witness ends at '%s', which has a step", last)
+	}
+	if status == pairUnknown {
+		return errorf(decl, "the witness ends at '%s', where a pair is unknown, so it may have a step", last)
+	}
+	return nil
+}
+
 // fairOn checks that a cycle takes every fair class enabled at all of its states.
 func (c *progressChecker) fairOn(states []string, cycle []edge) error {
 	for _, f := range c.fair {
-		if slices.ContainsFunc(states, func(s string) bool { return !c.enabled(s, f.class) }) {
+		if slices.ContainsFunc(states, func(s string) bool { return c.disabled(s, f.class) }) {
 			continue
 		}
 		if !slices.ContainsFunc(cycle, func(x edge) bool { return c.t.Rows[c.t.rowIndex(x.row)].Action == f.class }) {
+			if slices.ContainsFunc(states, func(s string) bool { return !c.enabled(s, f.class) }) {
+				return errorf("progress "+c.p.Name, "%s may stay enabled on the cycle, where a pair of it is unknown, "+
+					"and is never taken, which %s forbids", f.class, f.assumption)
+			}
 			return errorf("progress "+c.p.Name, "%s stays enabled on the cycle and is never taken, which %s forbids",
 				f.class, f.assumption)
 		}

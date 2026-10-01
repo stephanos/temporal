@@ -16,6 +16,8 @@ Parity checks along the way (parity/canonical_test.go): the 590 KB target semant
 Scope notes: the port covers what the Nexus caller set exercises (one instance, same-step Properties, no field relations, no outage-order rule, no structural model-value keys). Those paths reject by name rather than guess. The Model's Lean source path is reused in provenance so bytes can match.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+stage: status-replay - ran (2026-09-30: this task's runtime status was recorded in a checkout that no longer exists, so it read todo here; the status is replayed from the summary above. Verified in this checkout: `go test -tags test_dep ./model/scalav2/... ./model/go/...`, `make umpire-check-scala`, `make lint-scala` and `model/scala/run.sh --no-prove` pass, with the Lean-dump comparisons skipped because the git-ignored dumps are absent and the Lean toolchain was removed.)
 ## Evidence
 - Commits:
 - Tests: go test -tags test_dep ./experiments/umpire-go/nexuscaller/ -run 'TestCasesAreByteIdenticalToTheFixtures|TestProducedCasesPrepareUnderTheirDerivedProfile', experiments/umpire-go/run.sh

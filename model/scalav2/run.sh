@@ -3,8 +3,8 @@
 # and tested, the lifter reads their typed trees and emits the IR, and Go interprets the IR and checks
 # every table, identity and fingerprint against the Lean Model. Exits non-zero on the first failure.
 #
-#   model/scalav2/run.sh           lift, require ir/nexus-caller.json to be current, test
-#   model/scalav2/run.sh --update  lift and rewrite ir/nexus-caller.json
+#   model/scalav2/run.sh           lift, require ir/nexus-caller.json, ir/nexus-close.json and ir/activity*.json to be current, test
+#   model/scalav2/run.sh --update  lift and rewrite ir/nexus-caller.json, ir/nexus-close.json and ir/activity*.json
 #
 # The lifter's fixtures under lifter/testdata are built and lifted too: the Models it must lift,
 # compared with the IR in lifter/testdata/lifts/expected, which --update rewrites as well, and the
@@ -63,11 +63,37 @@ refuses() {
   done
   grep -F "[error] ./model/scalav2/lifter/testdata/$fixture/" <<<"$refused"
 }
+# The functional Queries and the realization that runs them are roots beside the machines: Go lowers
+# each Query's witness through the realization into a Testpilot Case (goir/testpilot).
 roots=('temporal.nexuscaller.Model$package$.nexusProduct' 'temporal.nexuscaller.Model$package$.nexusProtocol'
-  'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling')
+  'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling'
+  'temporal.nexuscaller.Claims$package$.functionalQueries' 'temporal.nexuscaller.NexusRealization$.asyncNexus')
+
+# The standalone activity Model as model/go/standaloneactivity has it: ir/activity.json. Its
+# cross-entity Query, stoppedWorkerStartsNothing, carries the composition and its claim.
+activity='temporal.standaloneactivity.Model$package$.'
+activity_claims='temporal.standaloneactivity.Claims$package$.'
+activity_roots=("${activity}standaloneActivity" "${activity}activityProduct" "${activity_claims}functionalQueries"
+  "${activity_claims}terminalHolds" "${activity_claims}pauseHolds" "${activity_claims}cancelRequest"
+  "${activity_claims}stoppedWorkerStartsNothing")
+# Its system contract, the admission designs and the dispatch queue's providers: ir/activity-system.json.
+# A composition no Query runs over is a root of its own.
+activity_system_roots=(currentQueries staleQueries competingTimers matchingQueueQueries forgetfulQueueQueries
+  volatileQueueQueries lossyMatchingQueueQueries storageLossQuery currentOverQueueQueries staleOverQueueQueries
+  currentOverMatchingQueries staleOverMatchingQueries currentOverLossyMatchingQueries currentOverForgetful
+  currentOverVolatile)
+
+# The Nexus caller close and reset designs: ir/nexus-close.json. Each design's Queries are a root, and
+# so is each progress claim.
+nexus_close_roots=(rejectAfterCloseQueries ackByOriginalQueries retainAndRouteQueries forgetsCancelOnResetQueries
+  truncatesOnResetQueries retainAndRouteBoundedRetryQueries rejectAfterCloseWithDeadlineQueries
+  ackByOriginalWithDeadlineQueries retainAndRouteWithDeadlineQueries rejectAfterCloseProgress ackByOriginalProgress
+  retainAndRouteProgress retainAndRouteBoundedRetryProgress rejectAfterCloseWithDeadlineProgress
+  ackByOriginalWithDeadlineProgress retainAndRouteWithDeadlineProgress retainedReachesOwner
+  retainedWaitsWithoutRecovery retainedReachesOwnerBoundedRetry)
 
 schema="$root/proto/internal/temporal/server/api/modelir/v1/ir.proto"
-echo "== generate the IR's and the Testpilot protos' Java classes when their inputs changed"
+echo "== generate the IR's Java classes when their inputs changed"
 "$here/gen.sh" --if-stale
 [[ api/modelir/v1/ir.pb.go -nt "$schema" ]] || { echo "run.sh: api/modelir/v1 is older than the IR schema; run make protoc" >&2; exit 1; }
 
@@ -96,7 +122,8 @@ lift "$here/gen/model-scala.jar=$scala/" "$here/gen/model-scala.classpath" "$lif
 if $update; then
   cp "$lifted" "$here/ir/nexus-caller.json"
 elif ! diff -q "$here/ir/nexus-caller.json" "$lifted" >/dev/null; then
-  diff "$here/ir/nexus-caller.json" "$lifted" | head -20
+  # diff exits 1 on a difference, which under pipefail would stop the script before it says why.
+  diff "$here/ir/nexus-caller.json" "$lifted" | head -20 || true
   echo "run.sh: ir/nexus-caller.json is stale; rerun with --update" >&2
   exit 1
 fi
@@ -111,8 +138,7 @@ expected='lift: model/scalav2/lifter/testdata/unsupported/Unsupported.scala.fixt
 [[ "$refused" == "$expected"* ]] || { echo "run.sh: expected '$expected ...', got '$refused'" >&2; exit 1; }
 echo "$refused"
 
-echo "== lift the fixtures, compare them with lifter/testdata/lifts/expected, and lift the activity Models"
-fixtures="$here/lifter/testdata/lifts"
+echo "== lift the fixtures, the activity Models and the Nexus close designs, and compare them with lifter/testdata/lifts/expected and ir"
 scala_build --power package --library "$(materialize lifts)" -f -o "$here/gen/lifts.jar"
 jars="$here/gen/lifts.jar=$(stored lifts),$here/gen/model-scala.jar=$scala/"
 rm -rf "$here/gen/lifts" && mkdir -p "$here/gen/lifts"
@@ -135,32 +161,42 @@ lift_into admission "$jars" 'fixture.specimens.admission.Admission$package$.curr
 lift_into closereset "$jars" 'fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries' \
   'fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries' \
   'fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries' &
+lift_into realizations "$jars" 'fixture.realizations.Realizations$package$.learnedRun' \
+  'temporal.nexuscaller.Claims$package$.syncCompletion' 'fixture.realizations.Realizations$package$.pauseRace' \
+  'fixture.realizations.Realizations$package$.pauseRaceQuery' \
+  'fixture.realizations.Realizations$package$.doorRealization' 'fixture.realizations.Realizations$package$.doorOpens' &
 rejected=(unbounded waiting doubled listening counter crossedRead negative watched unrefined misplaced noSuchRoot
   unrefinedOutcomes counting batching shuffling guessing)
 lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &
-lift_into activity "$here/gen/model-scala.jar=$scala/" 'temporal.standaloneactivity.Model$package$.standaloneActivity' \
-  'temporal.standaloneactivity.Model$package$.activityProduct' &
+lift_into activity "$here/gen/model-scala.jar=$scala/" "${activity_roots[@]}" &
+lift_into activity-system "$here/gen/model-scala.jar=$scala/" \
+  "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" &
+lift_into nexus-close "$here/gen/model-scala.jar=$scala/" \
+  "${nexus_close_roots[@]/#/temporal.nexuscaller.closepolicy.Claims\$package\$.}" &
 wait
-for name in presence channels declarations admission closereset activity; do
+for name in presence channels declarations admission closereset realizations activity activity-system nexus-close; do
   [[ "$(cat "$here/gen/lifts/$name.status")" == 0 ]] \
     || { grep -v '^WARNING' "$here/gen/lifts/$name.log" >&2; echo "run.sh: the $name fixture did not lift" >&2; exit 1; }
 done
 grep '^lift:' "$here/gen/lifts/rejects.log" > "$here/gen/lifts/rejects.txt" || true
 [[ "$(cat "$here/gen/lifts/rejects.status")" != 0 && ! -f "$here/gen/lifts/rejects.json" ]] \
   || { echo "run.sh: the lifter wrote the rejected declarations' IR" >&2; exit 1; }
-# The activity Models lift; model/scalav2/ir holds no IR of theirs to compare with yet.
-for name in presence channels declarations admission closereset rejects; do
+for name in presence channels declarations admission closereset realizations rejects activity activity-system nexus-close; do
   file="$name.json"
   [[ "$name" == rejects ]] && file=rejects.txt
+  # The activity Models' IR and the Nexus close designs' are checked in beside the Nexus caller's; the
+  # fixtures' beside their sources.
+  expected="lifter/testdata/lifts/expected/$file"
+  [[ "$name" == activity* || "$name" == nexus-close ]] && expected="ir/$file"
   if $update; then
-    cp "$here/gen/lifts/$file" "$fixtures/expected/$file"
-  elif ! diff -q "$fixtures/expected/$file" "$here/gen/lifts/$file" >/dev/null 2>&1; then
-    diff "$fixtures/expected/$file" "$here/gen/lifts/$file" | head -20
-    echo "run.sh: lifter/testdata/lifts/expected/$file is stale; rerun with --update" >&2
+    cp "$here/gen/lifts/$file" "$here/$expected"
+  elif ! diff -q "$here/$expected" "$here/gen/lifts/$file" >/dev/null 2>&1; then
+    diff "$here/$expected" "$here/gen/lifts/$file" | head -20 || true
+    echo "run.sh: $expected is stale; rerun with --update" >&2
     exit 1
   fi
 done
-echo "lifted presence, channels, declarations, admission, closereset and activity; refused $(wc -l < "$here/gen/lifts/rejects.txt" | tr -d ' ') declarations"
+echo "lifted presence, channels, declarations, admission, closereset, realizations, the activity Models and the Nexus close designs; refused $(wc -l < "$here/gen/lifts/rejects.txt" | tr -d ' ') declarations"
 
 echo "== a declaration's identity does not move with its line"
 shifted="$(mktemp -d)"

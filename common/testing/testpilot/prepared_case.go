@@ -18,6 +18,9 @@ import (
 // the recorded events rather than searched for.
 type Evaluation struct {
 	Violations []RuleViolation
+	// Assessment is what a fresh Assessor concludes from the recorded Run, when an AssessedCase
+	// evaluated it; it is not part of the Verdict.
+	Assessment *Assessment
 }
 
 // RuleViolation names what violated one rule. A monitor rule carries the observation ids of the
@@ -42,9 +45,24 @@ func (p *PreparedCase) Evaluate(ctx context.Context, run *testpilotspb.Run) (*te
 }
 
 func (p *PreparedCase) Run(ctx context.Context, driver Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+	return p.run(ctx, driver, nil)
+}
+
+// run is Run with observer, when there is one, beside the Contract's Monitor. open creates it once
+// the Run is admitted and before the Driver is opened.
+func (p *PreparedCase) run(ctx context.Context, driver Driver, open func() (execution.EventObserver, error)) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	executionDriver, monitor, err := p.preflight(ctx, driver)
 	if err != nil {
 		return nil, nil, err
+	}
+	if open != nil {
+		observer, err := open()
+		if err != nil {
+			return nil, nil, err
+		}
+		if monitor, err = execution.Observed(monitor, observer); err != nil {
+			return nil, nil, err
+		}
 	}
 	return execution.Run(ctx, p.program, executionDriver, monitor, RunIDPrefix+uuid.NewString(), p.source.GetCaseId())
 }

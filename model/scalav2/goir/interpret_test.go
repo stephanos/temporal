@@ -547,3 +547,36 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 	require.ErrorContains(t, err, "Presence.scala.fixture:74: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
 		"which is outside the state domain")
 }
+
+// ends, visible and visibleOutcomes each made to return 3: a located error, never a state that is no
+// end or a fact the product does not see.
+func TestEndsAndVisibleMustReturnABoolean(t *testing.T) {
+	three := func(at *modelirspb.Expr) *modelirspb.Expr { return admLiteral(at, admIntValue(3)) }
+	for name, c := range map[string]struct {
+		mutate func(m *modelirspb.Model)
+		want   string
+	}{
+		"ends": {func(m *modelirspb.Model) {
+			ends := admMachine(m, "disk").GetEnds().GetLambda()
+			ends.Body = three(ends.GetBody())
+		}, "disk: ends is 3 at empty, not a Boolean"},
+		"visible": {func(m *modelirspb.Model) {
+			f := function(m, "disk.visible")
+			f.Body = three(f.GetBody())
+		}, "disk: disk.visible is 3 for stored, not a Boolean"},
+		"visibleOutcomes": {func(m *modelirspb.Model) {
+			f := function(m, "disk.visibleOutcomes")
+			f.Body = three(f.GetBody())
+		}, "disk: disk.visibleOutcomes is 3 for accepted, not a Boolean"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := proto.Clone(lifted(t, "declarations")).(*modelirspb.Model)
+			c.mutate(m)
+			_, err := Build(m)
+			var located *Error
+			require.ErrorAs(t, err, &located)
+			require.NotEmpty(t, located.Position)
+			require.Equal(t, c.want, located.Message)
+		})
+	}
+}

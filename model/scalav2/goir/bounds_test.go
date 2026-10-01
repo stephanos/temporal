@@ -61,9 +61,10 @@ func TestAdmissionLeavesRowsPastTheCeilingToBuild(t *testing.T) {
 	require.Equal(t, LimitError{Machine: "m", Resource: "evaluations", Ceiling: 3, Needed: 4}, *limit)
 }
 
-// A composition whose Scenario reads its keys: with b_c and c each given an input of 0..9, its members
-// have 10 classes each and its sync 10 × 10, 120 keys in all. Under a ceiling of 50 admission refuses
-// it explicitly with that count, rather than listing them or admitting the Scenario's keys unchecked.
+// A composition whose Scenario reads its keys: with b_c and c each given an input of 0..9, the sync
+// that takes both has 10 × 10 classes and its members none of their own, 100 keys in all. Under a
+// ceiling of 50 admission refuses it explicitly with that count, rather than listing them or admitting
+// the Scenario's keys unchecked.
 func TestComposedKeysAreCountedBeforeTheyAreListed(t *testing.T) {
 	m := compositionModel("a", "d", "both")
 	for _, a := range m.GetActions() {
@@ -78,5 +79,26 @@ func TestComposedKeysAreCountedBeforeTheyAreListed(t *testing.T) {
 	v.schedules(m, v.composedClasses(m))
 	var limit *LimitError
 	require.ErrorAs(t, errors.Join(v.errs...), &limit)
-	require.Equal(t, LimitError{Machine: "p", Resource: "classes", Ceiling: 50, Needed: 120}, *limit)
+	require.Equal(t, LimitError{Machine: "p", Resource: "classes", Ceiling: 50, Needed: 100}, *limit)
+}
+
+// The same composition with a Property about one of its classes: the keys that Property is checked
+// against are refused at the same count, at the Property.
+func TestComposedKeysAreCountedBeforeAPropertyReadsThem(t *testing.T) {
+	m := compositionModel("a", "d", "both")
+	for _, a := range m.GetActions() {
+		a.Inputs = []*modelirspb.Param{{Name: "n", Type: upTo(9)}}
+	}
+	for _, f := range m.GetFunctions() {
+		f.Params = append(f.Params, &modelirspb.Param{Name: "n", Type: upTo(9)})
+	}
+	m.Properties = []*modelirspb.Property{{Machine: "p", Name: "each", Position: at(50),
+		When: &modelirspb.Property_WhenAction{WhenAction: "both"}}}
+	v := newValidator(m)
+	v.in.ceilings = Ceilings{Members: 50, Evaluations: 1 << 20}
+	v.selectors(m, v.composedClasses(m))
+	require.EqualError(t, errors.Join(v.errs...), "generic:50: p.each: its classes: p needs 100 classes, above the ceiling of 50")
+	var limit *LimitError
+	require.ErrorAs(t, errors.Join(v.errs...), &limit)
+	require.Equal(t, LimitError{Machine: "p", Resource: "classes", Ceiling: 50, Needed: 100}, *limit)
 }

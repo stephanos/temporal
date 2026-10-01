@@ -8,6 +8,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 )
@@ -104,12 +105,13 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, a reservation carrier for each StartWorkflowExecution an ordinary controller
-// invokes when the Program has workflow or Nexus-handler entrypoints to reserve, the opcodes its
-// instructions require, the environment values its referenced bindings resolve to, and the dynamic
-// configuration the environment runs under. Nothing is widened beyond what the Case references, and
-// anything the Case names that the catalog does not know is an error rather than a silently
-// authorized surface. Its resource ceilings are DefaultCeilings and its instruction defaults
-// DefaultInstructionLimits.
+// invokes when the Program has workflow or Nexus-handler entrypoints to reserve and for each
+// StartActivityExecution it invokes when the Program has activity entrypoints to reserve, the
+// opcodes its instructions require, the environment values its referenced bindings resolve to, and
+// the dynamic configuration the environment runs under. Nothing is widened beyond what the Case
+// references, and anything the Case names that the catalog does not know is an error rather than a
+// silently authorized surface. Its resource ceilings are DefaultCeilings and its instruction
+// defaults DefaultInstructionLimits.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -182,7 +184,9 @@ type programUsage struct {
 	shapes       map[carrierKey]map[testpilot.EntrypointKind]int64
 	opcodes      map[testpilot.Opcode]bool
 	commandTypes map[enumspb.CommandType]bool
-	// reservable counts the workflow and Nexus-handler entrypoints a carrier reserves one activation of.
+	// reservable counts the activations a carrier reserves: one of each workflow and Nexus-handler
+	// entrypoint, and one per instruction of each activity entrypoint, whose script declares its
+	// attempts.
 	reservable map[testpilot.EntrypointKind]int64
 	// evidence is the Program's declarations, which give a ReadEvidence poll its method.
 	evidence map[string]*testpilotspb.EvidenceDeclaration
@@ -223,9 +227,13 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		reservable:   map[testpilot.EntrypointKind]int64{},
 		evidence:     map[string]*testpilotspb.EvidenceDeclaration{},
 	}
-	for _, kind := range contexts {
-		if kind == testpilot.WorkflowEntrypoint || kind == testpilot.NexusHandlerEntrypoint {
+	for _, entrypoint := range program.GetEntrypoints() {
+		switch kind := contexts[entrypoint.GetEntrypointId()]; kind {
+		case testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint:
 			usage.reservable[kind]++
+		case testpilot.ActivityEntrypoint:
+			usage.reservable[kind] += int64(len(entrypoint.GetInstructions()))
+		default:
 		}
 	}
 	for _, declaration := range program.GetEvidence() {
@@ -247,9 +255,18 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 	return usage, nil
 }
 
-// add records one instruction. An ordinary controller's StartWorkflowExecution is a reservation
-// carrier, and preparation derives its reservations from the carrier's shapes: one activation of each
-// entrypoint of an admitted kind.
+// carried names the reservation carriers the Temporal Driver realizes and the entrypoint kinds each
+// delivers: a workflow start carries the reservations of the workflow it starts and of the Nexus
+// handlers that workflow reaches, and an activity start the reservations of the activity it starts,
+// one per attempt.
+var carried = map[string][]testpilot.EntrypointKind{
+	primitive.StartWorkflowPath: {testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint},
+	delivery.StartActivityPath:  {testpilot.ActivityEntrypoint},
+}
+
+// add records one instruction. An ordinary controller's StartWorkflowExecution or
+// StartActivityExecution is a reservation carrier, and preparation derives its reservations from
+// the carrier's shapes: one activation of each entrypoint of an admitted kind.
 func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller bool, catalog *testpilot.Catalog) error {
 	opcode := testpilot.InstructionOpcode(instruction.GetInstruction())
 	if opcode == 0 {
@@ -278,13 +295,19 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		u.methodSeen[key] = true
 		u.methods[key.role] = append(u.methods[key.role], key.method)
 	}
-	// StartWorkflowExecution is the one reservation carrier the Temporal Driver realizes: the start
-	// request carries the reservations of the workflow it starts and of the Nexus handlers that workflow
-	// reaches.
-	if !controller || key.method != primitive.StartWorkflowPath || len(u.reservable) == 0 || u.shapes[key] != nil {
+	if !controller || u.shapes[key] != nil {
 		return nil
 	}
-	u.shapes[key] = u.reservable
+	shapes := map[testpilot.EntrypointKind]int64{}
+	for _, kind := range carried[key.method] {
+		if count := u.reservable[kind]; count > 0 {
+			shapes[kind] = count
+		}
+	}
+	if len(shapes) == 0 {
+		return nil
+	}
+	u.shapes[key] = shapes
 	u.carrierOrder[key.role] = append(u.carrierOrder[key.role], key.method)
 	return nil
 }

@@ -46,9 +46,18 @@ The user's wrap-up request explicitly authorizes committing and pushing this che
 
 
 ## Done summary
-Blocked:
-Independent implementation review has no verdict. Flow launched three reviewer draws in each attempt; the native Codex CLI exits before session initialization with `failed to initialize in-process app-server client: Operation not permitted (os error 1)`. The initial unsupported inherited `CODEX_SANDBOX=seatbelt` value was resolved by explicitly selecting read-only review. Native transport failures remain recorded; no counters were reset and no sandbox was widened. Implementation and test evidence are saved, but task 16 must remain unfinished until native review succeeds. The user explicitly authorized committing and pushing the current work on 2026-09-30.
+Scala v2 owns its framework, selected activity and Nexus Models, compiler helper and generated jars under `model/scalav2`; the eleven task-2 legacy paths were restored. The implementation is commit `e1d0753f41`.
+
+The Codex implementation review found one defect: composition admission in `goir/load.go` keyed and counted a member action that a sync consumes as a class of its own, unlike `model/go/umpire` composition. It is fixed (`syncedActions`), with tests for a sync named like the class it takes, a Scenario that schedules a synced member action, and the corrected key count (100, not 120). The re-review in the same session returned SHIP with no findings.
+
+Isolation was re-run on 2026-09-30 in a snapshot with `model/scala` absent and no v2 jars: `make umpire-check-scala`, `make lint-scala` and `make umpire-gen-scala` exit 0, regeneration leaves every checked-in IR file byte-identical, and no IR source position names `model/scala/`. Not re-run: the saved pre-isolation gate failing in that snapshot, and the legacy gate with v2 absent; their earlier logs were lost with the previous checkout. The Lean-dump parity comparisons skip here because the dumps and the Lean toolchain are gone.
+
+The review fix is uncommitted; the owner makes the commits.
+
+stage: implement - ran (earlier session; commit e1d0753f41)
+stage: impl-review - ran (codex; round 1 NEEDS_WORK by gpt-6-astra at high, the flowctl default, not the routed gpt-5.6-sol; round 2 SHIP in the same session 01a0f4fe-a647-7e30-9565-2359a77932c7 over the uncommitted fix diff)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e1d0753f417ab0791d94a018f0148b0390f1b350
+- Tests: CC=/usr/bin/clang mise exec -- go test -tags test_dep -count=1 ./model/scalav2/... ./model/go/... (rc 0; Lean-dump comparisons skipped), GOFLAGS=-tags=test_dep make umpire-check-scala (rc 0), make lint-scala (rc 0), GOFLAGS=-tags=test_dep make lint-code LINT_CODE_TARGETS=./model/scalav2/goir (rc 0, 0 issues), isolated snapshot without model/scala and v2 jars: umpire-check-scala, lint-scala, umpire-gen-scala rc 0; IR byte-identical (.flow/tmp/fn-107/task16/iso.log), codex impl-review: .flow/tmp/fn-107/task16/review-16-r1.json (NEEDS_WORK), review-16-r2.md (SHIP), review-16-fix1.diff
 - PRs:

@@ -392,6 +392,315 @@ func (Query_Form) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{52, 0}
 }
 
+type Role_Kind int32
+
+const (
+	Role_KIND_UNSPECIFIED Role_Kind = 0
+	Role_KIND_ENDPOINT    Role_Kind = 1
+	Role_KIND_WORKER      Role_Kind = 2
+	Role_KIND_TASK_QUEUE  Role_Kind = 3
+	Role_KIND_PARTICIPANT Role_Kind = 4
+)
+
+// Enum value maps for Role_Kind.
+var (
+	Role_Kind_name = map[int32]string{
+		0: "KIND_UNSPECIFIED",
+		1: "KIND_ENDPOINT",
+		2: "KIND_WORKER",
+		3: "KIND_TASK_QUEUE",
+		4: "KIND_PARTICIPANT",
+	}
+	Role_Kind_value = map[string]int32{
+		"KIND_UNSPECIFIED": 0,
+		"KIND_ENDPOINT":    1,
+		"KIND_WORKER":      2,
+		"KIND_TASK_QUEUE":  3,
+		"KIND_PARTICIPANT": 4,
+	}
+)
+
+func (x Role_Kind) Enum() *Role_Kind {
+	p := new(Role_Kind)
+	*p = x
+	return p
+}
+
+func (x Role_Kind) String() string {
+	switch x {
+	case Role_KIND_UNSPECIFIED:
+		return "RoleKindUnspecified"
+	case Role_KIND_ENDPOINT:
+		return "RoleKindEndpoint"
+	case Role_KIND_WORKER:
+		return "RoleKindWorker"
+	case Role_KIND_TASK_QUEUE:
+		return "RoleKindTaskQueue"
+	case Role_KIND_PARTICIPANT:
+		return "RoleKindParticipant"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (Role_Kind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_modelir_v1_ir_proto_enumTypes[5].Descriptor()
+}
+
+func (Role_Kind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_modelir_v1_ir_proto_enumTypes[5]
+}
+
+func (x Role_Kind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Role_Kind.Descriptor instead.
+func (Role_Kind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{56, 0}
+}
+
+type Learned_Kind int32
+
+const (
+	Learned_KIND_UNSPECIFIED Learned_Kind = 0
+	Learned_KIND_TEXT        Learned_Kind = 1
+	Learned_KIND_HANDLE      Learned_Kind = // An effect handle the system issues, which only a command that completes the effect reads.
+	2
+)
+
+// Enum value maps for Learned_Kind.
+var (
+	Learned_Kind_name = map[int32]string{
+		0: "KIND_UNSPECIFIED",
+		1: "KIND_TEXT",
+		2: "KIND_HANDLE",
+	}
+	Learned_Kind_value = map[string]int32{
+		"KIND_UNSPECIFIED": 0,
+		"KIND_TEXT":        1,
+		"KIND_HANDLE":      2,
+	}
+)
+
+func (x Learned_Kind) Enum() *Learned_Kind {
+	p := new(Learned_Kind)
+	*p = x
+	return p
+}
+
+func (x Learned_Kind) String() string {
+	switch x {
+	case Learned_KIND_UNSPECIFIED:
+		return "LearnedKindUnspecified"
+	case Learned_KIND_TEXT:
+		return "LearnedKindText"
+	case Learned_KIND_HANDLE:
+		return "LearnedKindHandle"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (Learned_Kind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_modelir_v1_ir_proto_enumTypes[6].Descriptor()
+}
+
+func (Learned_Kind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_modelir_v1_ir_proto_enumTypes[6]
+}
+
+func (x Learned_Kind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Learned_Kind.Descriptor instead.
+func (Learned_Kind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{57, 0}
+}
+
+type Evidence_Commitment int32
+
+const (
+	Evidence_COMMITMENT_UNSPECIFIED Evidence_Commitment = 0
+	Evidence_COMMITMENT_REPORTED    Evidence_Commitment = // What a caller was told: a response or a recorded event it can read back.
+	1
+	Evidence_COMMITMENT_DURABLE Evidence_Commitment = // A durable commit of the receiver, which no response implies.
+	2
+)
+
+// Enum value maps for Evidence_Commitment.
+var (
+	Evidence_Commitment_name = map[int32]string{
+		0: "COMMITMENT_UNSPECIFIED",
+		1: "COMMITMENT_REPORTED",
+		2: "COMMITMENT_DURABLE",
+	}
+	Evidence_Commitment_value = map[string]int32{
+		"COMMITMENT_UNSPECIFIED": 0,
+		"COMMITMENT_REPORTED":    1,
+		"COMMITMENT_DURABLE":     2,
+	}
+)
+
+func (x Evidence_Commitment) Enum() *Evidence_Commitment {
+	p := new(Evidence_Commitment)
+	*p = x
+	return p
+}
+
+func (x Evidence_Commitment) String() string {
+	switch x {
+	case Evidence_COMMITMENT_UNSPECIFIED:
+		return "EvidenceCommitmentUnspecified"
+	case Evidence_COMMITMENT_REPORTED:
+		return "EvidenceCommitmentReported"
+	case Evidence_COMMITMENT_DURABLE:
+		return "EvidenceCommitmentDurable"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (Evidence_Commitment) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_modelir_v1_ir_proto_enumTypes[7].Descriptor()
+}
+
+func (Evidence_Commitment) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_modelir_v1_ir_proto_enumTypes[7]
+}
+
+func (x Evidence_Commitment) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Evidence_Commitment.Descriptor instead.
+func (Evidence_Commitment) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{59, 0}
+}
+
+type ResponseRead_Cardinality int32
+
+const (
+	ResponseRead_CARDINALITY_UNSPECIFIED ResponseRead_Cardinality = 0
+	ResponseRead_CARDINALITY_ONE         ResponseRead_Cardinality = 1
+	ResponseRead_CARDINALITY_EACH        ResponseRead_Cardinality = // One value per element of a repeated path.
+	2
+)
+
+// Enum value maps for ResponseRead_Cardinality.
+var (
+	ResponseRead_Cardinality_name = map[int32]string{
+		0: "CARDINALITY_UNSPECIFIED",
+		1: "CARDINALITY_ONE",
+		2: "CARDINALITY_EACH",
+	}
+	ResponseRead_Cardinality_value = map[string]int32{
+		"CARDINALITY_UNSPECIFIED": 0,
+		"CARDINALITY_ONE":         1,
+		"CARDINALITY_EACH":        2,
+	}
+)
+
+func (x ResponseRead_Cardinality) Enum() *ResponseRead_Cardinality {
+	p := new(ResponseRead_Cardinality)
+	*p = x
+	return p
+}
+
+func (x ResponseRead_Cardinality) String() string {
+	switch x {
+	case ResponseRead_CARDINALITY_UNSPECIFIED:
+		return "ResponseReadCardinalityUnspecified"
+	case ResponseRead_CARDINALITY_ONE:
+		return "ResponseReadCardinalityOne"
+	case ResponseRead_CARDINALITY_EACH:
+		return "ResponseReadCardinalityEach"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ResponseRead_Cardinality) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_modelir_v1_ir_proto_enumTypes[8].Descriptor()
+}
+
+func (ResponseRead_Cardinality) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_modelir_v1_ir_proto_enumTypes[8]
+}
+
+func (x ResponseRead_Cardinality) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ResponseRead_Cardinality.Descriptor instead.
+func (ResponseRead_Cardinality) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{74, 0}
+}
+
+type Fault_Kind int32
+
+const (
+	Fault_KIND_UNSPECIFIED   Fault_Kind = 0
+	Fault_KIND_WORKER_STOP   Fault_Kind = 1
+	Fault_KIND_WORKER_RESUME Fault_Kind = 2
+)
+
+// Enum value maps for Fault_Kind.
+var (
+	Fault_Kind_name = map[int32]string{
+		0: "KIND_UNSPECIFIED",
+		1: "KIND_WORKER_STOP",
+		2: "KIND_WORKER_RESUME",
+	}
+	Fault_Kind_value = map[string]int32{
+		"KIND_UNSPECIFIED":   0,
+		"KIND_WORKER_STOP":   1,
+		"KIND_WORKER_RESUME": 2,
+	}
+)
+
+func (x Fault_Kind) Enum() *Fault_Kind {
+	p := new(Fault_Kind)
+	*p = x
+	return p
+}
+
+func (x Fault_Kind) String() string {
+	switch x {
+	case Fault_KIND_UNSPECIFIED:
+		return "FaultKindUnspecified"
+	case Fault_KIND_WORKER_STOP:
+		return "FaultKindWorkerStop"
+	case Fault_KIND_WORKER_RESUME:
+		return "FaultKindWorkerResume"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (Fault_Kind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_modelir_v1_ir_proto_enumTypes[9].Descriptor()
+}
+
+func (Fault_Kind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_modelir_v1_ir_proto_enumTypes[9]
+}
+
+func (x Fault_Kind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Fault_Kind.Descriptor instead.
+func (Fault_Kind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{78, 0}
+}
+
 // A Model: its types, its pure functions, its actions, and its machines.
 // It also carries the declarations checks read over them.
 type Model struct {
@@ -414,6 +723,7 @@ type Model struct {
 	Scenarios     []*Scenario    `protobuf:"bytes,13,rep,name=scenarios,proto3" json:"scenarios,omitempty"`
 	Queries       []*Query       `protobuf:"bytes,14,rep,name=queries,proto3" json:"queries,omitempty"`
 	Progress      []*Progress    `protobuf:"bytes,15,rep,name=progress,proto3" json:"progress,omitempty"`
+	Realizations  []*Realization `protobuf:"bytes,16,rep,name=realizations,proto3" json:"realizations,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -549,6 +859,13 @@ func (x *Model) GetQueries() []*Query {
 func (x *Model) GetProgress() []*Progress {
 	if x != nil {
 		return x.Progress
+	}
+	return nil
+}
+
+func (x *Model) GetRealizations() []*Realization {
+	if x != nil {
+		return x.Realizations
 	}
 	return nil
 }
@@ -4733,11 +5050,2977 @@ func (x *Progress) GetAssumptions() []string {
 	return nil
 }
 
+// A realization: how the find Queries of one machine run against a system. It declares the roles a
+// run addresses, the values a run learns, what it observes and reads as evidence, the controls it
+// needs, and the scripts its controller and its workers follow. It carries no Case: a reader lowers
+// one Query's witness through it (model/scalav2/SEMANTICS.md, Realizations).
+type Realization struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The key the IR names it by: the front end's qualified name.
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name     string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Position *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	// The machine whose find Queries it realizes, by name.
+	Machine string `protobuf:"bytes,4,opt,name=machine,proto3" json:"machine,omitempty"`
+	// Who lowers it, as a Case's provenance names its producer.
+	Producer        string       `protobuf:"bytes,5,opt,name=producer,proto3" json:"producer,omitempty"`
+	ProducerVersion string       `protobuf:"bytes,6,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
+	Roles           []*Role      `protobuf:"bytes,7,rep,name=roles,proto3" json:"roles,omitempty"`
+	Learned         []*Learned   `protobuf:"bytes,8,rep,name=learned,proto3" json:"learned,omitempty"`
+	Observations    []*Observed  `protobuf:"bytes,9,rep,name=observations,proto3" json:"observations,omitempty"`
+	Evidence        []*Evidence  `protobuf:"bytes,10,rep,name=evidence,proto3" json:"evidence,omitempty"`
+	Correlation     *Correlation `protobuf:"bytes,11,opt,name=correlation,proto3" json:"correlation,omitempty"`
+	Controls        []*Control   `protobuf:"bytes,12,rep,name=controls,proto3" json:"controls,omitempty"`
+	Scripts         []*Script    `protobuf:"bytes,13,rep,name=scripts,proto3" json:"scripts,omitempty"`
+	// The id a run's coordinates give the cleanup it always attempts.
+	Cleanup       string `protobuf:"bytes,14,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Realization) Reset() {
+	*x = Realization{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Realization) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Realization) ProtoMessage() {}
+
+func (x *Realization) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Realization.ProtoReflect.Descriptor instead.
+func (*Realization) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *Realization) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Realization) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Realization) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Realization) GetMachine() string {
+	if x != nil {
+		return x.Machine
+	}
+	return ""
+}
+
+func (x *Realization) GetProducer() string {
+	if x != nil {
+		return x.Producer
+	}
+	return ""
+}
+
+func (x *Realization) GetProducerVersion() string {
+	if x != nil {
+		return x.ProducerVersion
+	}
+	return ""
+}
+
+func (x *Realization) GetRoles() []*Role {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *Realization) GetLearned() []*Learned {
+	if x != nil {
+		return x.Learned
+	}
+	return nil
+}
+
+func (x *Realization) GetObservations() []*Observed {
+	if x != nil {
+		return x.Observations
+	}
+	return nil
+}
+
+func (x *Realization) GetEvidence() []*Evidence {
+	if x != nil {
+		return x.Evidence
+	}
+	return nil
+}
+
+func (x *Realization) GetCorrelation() *Correlation {
+	if x != nil {
+		return x.Correlation
+	}
+	return nil
+}
+
+func (x *Realization) GetControls() []*Control {
+	if x != nil {
+		return x.Controls
+	}
+	return nil
+}
+
+func (x *Realization) GetScripts() []*Script {
+	if x != nil {
+		return x.Scripts
+	}
+	return nil
+}
+
+func (x *Realization) GetCleanup() string {
+	if x != nil {
+		return x.Cleanup
+	}
+	return ""
+}
+
+// A symbolic participant commands and activations address. Its bindings name the environment
+// resources a run supplies.
+type Role struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	Kind     Role_Kind              `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.modelir.v1.Role_Kind" json:"kind,omitempty"`
+	// The environment binding of a worker's or a task queue's namespace, or empty.
+	Namespace string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// The environment binding of the role's resource, or empty.
+	Resource      string `protobuf:"bytes,5,opt,name=resource,proto3" json:"resource,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Role) Reset() {
+	*x = Role{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Role) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Role) ProtoMessage() {}
+
+func (x *Role) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Role.ProtoReflect.Descriptor instead.
+func (*Role) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *Role) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Role) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Role) GetKind() Role_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Role_KIND_UNSPECIFIED
+}
+
+func (x *Role) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *Role) GetResource() string {
+	if x != nil {
+		return x.Resource
+	}
+	return ""
+}
+
+// A value a run learns: bound once, by one command, and read by the commands that depend on it.
+type Learned struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position      *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	Kind          Learned_Kind           `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.modelir.v1.Learned_Kind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Learned) Reset() {
+	*x = Learned{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Learned) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Learned) ProtoMessage() {}
+
+func (x *Learned) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Learned.ProtoReflect.Descriptor instead.
+func (*Learned) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *Learned) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Learned) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Learned) GetKind() Learned_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Learned_KIND_UNSPECIFIED
+}
+
+// A typed value a run records for its checks: one protobuf message.
+type Observed struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// The message's fully qualified protobuf name.
+	Message       string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Observed) Reset() {
+	*x = Observed{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Observed) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Observed) ProtoMessage() {}
+
+func (x *Observed) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Observed.ProtoReflect.Descriptor instead.
+func (*Observed) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *Observed) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Observed) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Observed) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// One kind of evidence: the recorded data that confirms the facts a machine's evidence function
+// names `records`, the field that keys it to its operation, and what it commits to.
+type Evidence struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// The name the machine's evidence function gives the facts this kind confirms.
+	Records string `protobuf:"bytes,3,opt,name=records,proto3" json:"records,omitempty"`
+	// The evidence source identity this kind's evidence is counted in.
+	Source string `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	// Types that are valid to be assigned to From:
+	//
+	//	*Evidence_History
+	//	*Evidence_Read
+	From isEvidence_From `protobuf_oneof:"from"`
+	// The field path, in the recorded message, of the key that names the operation.
+	Operation     string              `protobuf:"bytes,7,opt,name=operation,proto3" json:"operation,omitempty"`
+	Commitment    Evidence_Commitment `protobuf:"varint,8,opt,name=commitment,proto3,enum=temporal.server.api.modelir.v1.Evidence_Commitment" json:"commitment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Evidence) Reset() {
+	*x = Evidence{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Evidence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Evidence) ProtoMessage() {}
+
+func (x *Evidence) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Evidence.ProtoReflect.Descriptor instead.
+func (*Evidence) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *Evidence) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Evidence) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Evidence) GetRecords() string {
+	if x != nil {
+		return x.Records
+	}
+	return ""
+}
+
+func (x *Evidence) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *Evidence) GetFrom() isEvidence_From {
+	if x != nil {
+		return x.From
+	}
+	return nil
+}
+
+func (x *Evidence) GetHistory() string {
+	if x != nil {
+		if x, ok := x.From.(*Evidence_History); ok {
+			return x.History
+		}
+	}
+	return ""
+}
+
+func (x *Evidence) GetRead() *ReadSource {
+	if x != nil {
+		if x, ok := x.From.(*Evidence_Read); ok {
+			return x.Read
+		}
+	}
+	return nil
+}
+
+func (x *Evidence) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *Evidence) GetCommitment() Evidence_Commitment {
+	if x != nil {
+		return x.Commitment
+	}
+	return Evidence_COMMITMENT_UNSPECIFIED
+}
+
+type isEvidence_From interface {
+	isEvidence_From()
+}
+
+type Evidence_History struct {
+	// The attributes member of temporal.api.history.v1.HistoryEvent a history read lifts.
+	History string `protobuf:"bytes,5,opt,name=history,proto3,oneof"`
+}
+
+type Evidence_Read struct {
+	Read *ReadSource `protobuf:"bytes,6,opt,name=read,proto3,oneof"`
+}
+
+func (*Evidence_History) isEvidence_From() {}
+
+func (*Evidence_Read) isEvidence_From() {}
+
+// One element of the repeated field at `path` in the response of a unary method.
+type ReadSource struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The full method name, "/package.Service/Method".
+	Method        string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadSource) Reset() {
+	*x = ReadSource{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadSource) ProtoMessage() {}
+
+func (x *ReadSource) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadSource.ProtoReflect.Descriptor instead.
+func (*ReadSource) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *ReadSource) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ReadSource) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+// How a run's evidence is keyed into operations, and the window a check of it keeps.
+type Correlation struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Position *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	// The Definition ID of the projection.
+	Projection string `protobuf:"bytes,2,opt,name=projection,proto3" json:"projection,omitempty"`
+	// The field that scopes every evidence identity to its run.
+	Run string `protobuf:"bytes,3,opt,name=run,proto3" json:"run,omitempty"`
+	// The field that names the operation.
+	Operation string `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
+	// The observation, of the correlated evidence message, that carries lifted evidence.
+	Observation   string `protobuf:"bytes,5,opt,name=observation,proto3" json:"observation,omitempty"`
+	Events        int64  `protobuf:"varint,6,opt,name=events,proto3" json:"events,omitempty"`
+	Buffered      int64  `protobuf:"varint,7,opt,name=buffered,proto3" json:"buffered,omitempty"`
+	Keys          int64  `protobuf:"varint,8,opt,name=keys,proto3" json:"keys,omitempty"`
+	Support       int64  `protobuf:"varint,9,opt,name=support,proto3" json:"support,omitempty"`
+	Work          int64  `protobuf:"varint,10,opt,name=work,proto3" json:"work,omitempty"`
+	EventSize     int64  `protobuf:"varint,11,opt,name=event_size,json=eventSize,proto3" json:"event_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Correlation) Reset() {
+	*x = Correlation{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Correlation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Correlation) ProtoMessage() {}
+
+func (x *Correlation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Correlation.ProtoReflect.Descriptor instead.
+func (*Correlation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *Correlation) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Correlation) GetProjection() string {
+	if x != nil {
+		return x.Projection
+	}
+	return ""
+}
+
+func (x *Correlation) GetRun() string {
+	if x != nil {
+		return x.Run
+	}
+	return ""
+}
+
+func (x *Correlation) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *Correlation) GetObservation() string {
+	if x != nil {
+		return x.Observation
+	}
+	return ""
+}
+
+func (x *Correlation) GetEvents() int64 {
+	if x != nil {
+		return x.Events
+	}
+	return 0
+}
+
+func (x *Correlation) GetBuffered() int64 {
+	if x != nil {
+		return x.Buffered
+	}
+	return 0
+}
+
+func (x *Correlation) GetKeys() int64 {
+	if x != nil {
+		return x.Keys
+	}
+	return 0
+}
+
+func (x *Correlation) GetSupport() int64 {
+	if x != nil {
+		return x.Support
+	}
+	return 0
+}
+
+func (x *Correlation) GetWork() int64 {
+	if x != nil {
+		return x.Work
+	}
+	return 0
+}
+
+func (x *Correlation) GetEventSize() int64 {
+	if x != nil {
+		return x.EventSize
+	}
+	return 0
+}
+
+// An actuator a run needs beyond its commands: a reader that cannot supply it refuses the
+// realization rather than run without it.
+type Control struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*Control_HoldDelivery
+	Kind          isControl_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Control) Reset() {
+	*x = Control{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Control) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Control) ProtoMessage() {}
+
+func (x *Control) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Control.ProtoReflect.Descriptor instead.
+func (*Control) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *Control) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Control) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Control) GetKind() isControl_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *Control) GetHoldDelivery() string {
+	if x != nil {
+		if x, ok := x.Kind.(*Control_HoldDelivery); ok {
+			return x.HoldDelivery
+		}
+	}
+	return ""
+}
+
+type isControl_Kind interface {
+	isControl_Kind()
+}
+
+type Control_HoldDelivery struct {
+	// Holds the deliveries of a channel, by the channel's id, until a command releases them.
+	HoldDelivery string `protobuf:"bytes,3,opt,name=hold_delivery,json=holdDelivery,proto3,oneof"`
+}
+
+func (*Control_HoldDelivery) isControl_Kind() {}
+
+// One ordered list of commands and who runs it: the controller, or a worker for each workflow,
+// Nexus operation or activity it is activated by.
+type Script struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// Types that are valid to be assigned to Activation:
+	//
+	//	*Script_Controller
+	//	*Script_Workflow
+	//	*Script_NexusHandler
+	//	*Script_Activity
+	Activation    isScript_Activation `protobuf_oneof:"activation"`
+	Items         []*Item             `protobuf:"bytes,7,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Script) Reset() {
+	*x = Script{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Script) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Script) ProtoMessage() {}
+
+func (x *Script) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Script.ProtoReflect.Descriptor instead.
+func (*Script) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *Script) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Script) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Script) GetActivation() isScript_Activation {
+	if x != nil {
+		return x.Activation
+	}
+	return nil
+}
+
+func (x *Script) GetController() *Empty {
+	if x != nil {
+		if x, ok := x.Activation.(*Script_Controller); ok {
+			return x.Controller
+		}
+	}
+	return nil
+}
+
+func (x *Script) GetWorkflow() *WorkflowActivation {
+	if x != nil {
+		if x, ok := x.Activation.(*Script_Workflow); ok {
+			return x.Workflow
+		}
+	}
+	return nil
+}
+
+func (x *Script) GetNexusHandler() *NexusHandlerActivation {
+	if x != nil {
+		if x, ok := x.Activation.(*Script_NexusHandler); ok {
+			return x.NexusHandler
+		}
+	}
+	return nil
+}
+
+func (x *Script) GetActivity() *ActivityActivation {
+	if x != nil {
+		if x, ok := x.Activation.(*Script_Activity); ok {
+			return x.Activity
+		}
+	}
+	return nil
+}
+
+func (x *Script) GetItems() []*Item {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type isScript_Activation interface {
+	isScript_Activation()
+}
+
+type Script_Controller struct {
+	Controller *Empty `protobuf:"bytes,3,opt,name=controller,proto3,oneof"`
+}
+
+type Script_Workflow struct {
+	Workflow *WorkflowActivation `protobuf:"bytes,4,opt,name=workflow,proto3,oneof"`
+}
+
+type Script_NexusHandler struct {
+	NexusHandler *NexusHandlerActivation `protobuf:"bytes,5,opt,name=nexus_handler,json=nexusHandler,proto3,oneof"`
+}
+
+type Script_Activity struct {
+	Activity *ActivityActivation `protobuf:"bytes,6,opt,name=activity,proto3,oneof"`
+}
+
+func (*Script_Controller) isScript_Activation() {}
+
+func (*Script_Workflow) isScript_Activation() {}
+
+func (*Script_NexusHandler) isScript_Activation() {}
+
+func (*Script_Activity) isScript_Activation() {}
+
+type WorkflowActivation struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowType *Name                  `protobuf:"bytes,1,opt,name=workflow_type,json=workflowType,proto3" json:"workflow_type,omitempty"`
+	// Roles, by id.
+	Worker        string `protobuf:"bytes,2,opt,name=worker,proto3" json:"worker,omitempty"`
+	TaskQueue     string `protobuf:"bytes,3,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowActivation) Reset() {
+	*x = WorkflowActivation{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowActivation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowActivation) ProtoMessage() {}
+
+func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowActivation.ProtoReflect.Descriptor instead.
+func (*WorkflowActivation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *WorkflowActivation) GetWorkflowType() *Name {
+	if x != nil {
+		return x.WorkflowType
+	}
+	return nil
+}
+
+func (x *WorkflowActivation) GetWorker() string {
+	if x != nil {
+		return x.Worker
+	}
+	return ""
+}
+
+func (x *WorkflowActivation) GetTaskQueue() string {
+	if x != nil {
+		return x.TaskQueue
+	}
+	return ""
+}
+
+type NexusHandlerActivation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Service       string                 `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	Operation     string                 `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	Worker        string                 `protobuf:"bytes,3,opt,name=worker,proto3" json:"worker,omitempty"`
+	TaskQueue     string                 `protobuf:"bytes,4,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NexusHandlerActivation) Reset() {
+	*x = NexusHandlerActivation{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NexusHandlerActivation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NexusHandlerActivation) ProtoMessage() {}
+
+func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NexusHandlerActivation.ProtoReflect.Descriptor instead.
+func (*NexusHandlerActivation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *NexusHandlerActivation) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *NexusHandlerActivation) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *NexusHandlerActivation) GetWorker() string {
+	if x != nil {
+		return x.Worker
+	}
+	return ""
+}
+
+func (x *NexusHandlerActivation) GetTaskQueue() string {
+	if x != nil {
+		return x.TaskQueue
+	}
+	return ""
+}
+
+type ActivityActivation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActivityType  *Name                  `protobuf:"bytes,1,opt,name=activity_type,json=activityType,proto3" json:"activity_type,omitempty"`
+	Worker        string                 `protobuf:"bytes,2,opt,name=worker,proto3" json:"worker,omitempty"`
+	TaskQueue     string                 `protobuf:"bytes,3,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActivityActivation) Reset() {
+	*x = ActivityActivation{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivityActivation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivityActivation) ProtoMessage() {}
+
+func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivityActivation.ProtoReflect.Descriptor instead.
+func (*ActivityActivation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *ActivityActivation) GetActivityType() *Name {
+	if x != nil {
+		return x.ActivityType
+	}
+	return nil
+}
+
+func (x *ActivityActivation) GetWorker() string {
+	if x != nil {
+		return x.Worker
+	}
+	return ""
+}
+
+func (x *ActivityActivation) GetTaskQueue() string {
+	if x != nil {
+		return x.TaskQueue
+	}
+	return ""
+}
+
+// A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
+// set, then the suffix.
+type Name struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Prefix        string                 `protobuf:"bytes,1,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	Fixture       bool                   `protobuf:"varint,2,opt,name=fixture,proto3" json:"fixture,omitempty"`
+	Suffix        string                 `protobuf:"bytes,3,opt,name=suffix,proto3" json:"suffix,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Name) Reset() {
+	*x = Name{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Name) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Name) ProtoMessage() {}
+
+func (x *Name) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Name.ProtoReflect.Descriptor instead.
+func (*Name) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *Name) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *Name) GetFixture() bool {
+	if x != nil {
+		return x.Fixture
+	}
+	return false
+}
+
+func (x *Name) GetSuffix() string {
+	if x != nil {
+		return x.Suffix
+	}
+	return ""
+}
+
+// One item of a script: a command every Case carries, a command only the Cases whose path performs
+// one of the `when` classes carry, or the place the path's steps of the classes `performs` binds
+// land, in path order, each as the command bound to its class.
+type Item struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	Command       *Command               `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
+	When          []*ActionClass         `protobuf:"bytes,3,rep,name=when,proto3" json:"when,omitempty"`
+	Performs      []*Performance         `protobuf:"bytes,4,rep,name=performs,proto3" json:"performs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Item) Reset() {
+	*x = Item{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Item) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Item) ProtoMessage() {}
+
+func (x *Item) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Item.ProtoReflect.Descriptor instead.
+func (*Item) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *Item) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Item) GetCommand() *Command {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+func (x *Item) GetWhen() []*ActionClass {
+	if x != nil {
+		return x.When
+	}
+	return nil
+}
+
+func (x *Item) GetPerforms() []*Performance {
+	if x != nil {
+		return x.Performs
+	}
+	return nil
+}
+
+// The command that performs one class of an action.
+type Performance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	Step          *ActionClass           `protobuf:"bytes,2,opt,name=step,proto3" json:"step,omitempty"`
+	Command       *Command               `protobuf:"bytes,3,opt,name=command,proto3" json:"command,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Performance) Reset() {
+	*x = Performance{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Performance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Performance) ProtoMessage() {}
+
+func (x *Performance) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Performance.ProtoReflect.Descriptor instead.
+func (*Performance) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *Performance) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Performance) GetStep() *ActionClass {
+	if x != nil {
+		return x.Step
+	}
+	return nil
+}
+
+func (x *Performance) GetCommand() *Command {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+// One command of a script: what it does, the commands it runs after, and its bounds.
+type Command struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// The commands of its script it runs after. Unset, it runs after the command before it.
+	After *After `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
+	// Its deadline in milliseconds, or 0 for the run's default.
+	TimeoutMs int64 `protobuf:"varint,4,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	// Whether it runs whatever became of the commands it runs after.
+	Regardless bool `protobuf:"varint,5,opt,name=regardless,proto3" json:"regardless,omitempty"`
+	// Types that are valid to be assigned to Instruction:
+	//
+	//	*Command_Rpc
+	//	*Command_Poll
+	//	*Command_AwaitLearned
+	//	*Command_AwaitCommand
+	//	*Command_Finish
+	//	*Command_Fault
+	//	*Command_WorkflowCommand
+	//	*Command_NexusReply
+	//	*Command_NexusCompletion
+	//	*Command_Hold
+	//	*Command_Release
+	Instruction   isCommand_Instruction `protobuf_oneof:"instruction"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Command) Reset() {
+	*x = Command{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Command) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Command) ProtoMessage() {}
+
+func (x *Command) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Command.ProtoReflect.Descriptor instead.
+func (*Command) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{70}
+}
+
+func (x *Command) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Command) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Command) GetAfter() *After {
+	if x != nil {
+		return x.After
+	}
+	return nil
+}
+
+func (x *Command) GetTimeoutMs() int64 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+func (x *Command) GetRegardless() bool {
+	if x != nil {
+		return x.Regardless
+	}
+	return false
+}
+
+func (x *Command) GetInstruction() isCommand_Instruction {
+	if x != nil {
+		return x.Instruction
+	}
+	return nil
+}
+
+func (x *Command) GetRpc() *Rpc {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Rpc); ok {
+			return x.Rpc
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetPoll() *Poll {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Poll); ok {
+			return x.Poll
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetAwaitLearned() string {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_AwaitLearned); ok {
+			return x.AwaitLearned
+		}
+	}
+	return ""
+}
+
+func (x *Command) GetAwaitCommand() string {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_AwaitCommand); ok {
+			return x.AwaitCommand
+		}
+	}
+	return ""
+}
+
+func (x *Command) GetFinish() *Finish {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Finish); ok {
+			return x.Finish
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetFault() *Fault {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Fault); ok {
+			return x.Fault
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetWorkflowCommand() *WorkflowCommand {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_WorkflowCommand); ok {
+			return x.WorkflowCommand
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetNexusReply() *NexusReply {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_NexusReply); ok {
+			return x.NexusReply
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetNexusCompletion() *NexusCompletion {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_NexusCompletion); ok {
+			return x.NexusCompletion
+		}
+	}
+	return nil
+}
+
+func (x *Command) GetHold() string {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Hold); ok {
+			return x.Hold
+		}
+	}
+	return ""
+}
+
+func (x *Command) GetRelease() string {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_Release); ok {
+			return x.Release
+		}
+	}
+	return ""
+}
+
+type isCommand_Instruction interface {
+	isCommand_Instruction()
+}
+
+type Command_Rpc struct {
+	Rpc *Rpc `protobuf:"bytes,6,opt,name=rpc,proto3,oneof"`
+}
+
+type Command_Poll struct {
+	Poll *Poll `protobuf:"bytes,7,opt,name=poll,proto3,oneof"`
+}
+
+type Command_AwaitLearned struct {
+	// Waits until a learned value, by id, is bound.
+	AwaitLearned string `protobuf:"bytes,8,opt,name=await_learned,json=awaitLearned,proto3,oneof"`
+}
+
+type Command_AwaitCommand struct {
+	// Waits for the operation an earlier command of its script, by id, started.
+	AwaitCommand string `protobuf:"bytes,9,opt,name=await_command,json=awaitCommand,proto3,oneof"`
+}
+
+type Command_Finish struct {
+	Finish *Finish `protobuf:"bytes,10,opt,name=finish,proto3,oneof"`
+}
+
+type Command_Fault struct {
+	Fault *Fault `protobuf:"bytes,11,opt,name=fault,proto3,oneof"`
+}
+
+type Command_WorkflowCommand struct {
+	WorkflowCommand *WorkflowCommand `protobuf:"bytes,12,opt,name=workflow_command,json=workflowCommand,proto3,oneof"`
+}
+
+type Command_NexusReply struct {
+	NexusReply *NexusReply `protobuf:"bytes,13,opt,name=nexus_reply,json=nexusReply,proto3,oneof"`
+}
+
+type Command_NexusCompletion struct {
+	NexusCompletion *NexusCompletion `protobuf:"bytes,14,opt,name=nexus_completion,json=nexusCompletion,proto3,oneof"`
+}
+
+type Command_Hold struct {
+	// Starts holding what a control, by id, holds; and lets it go.
+	Hold string `protobuf:"bytes,15,opt,name=hold,proto3,oneof"`
+}
+
+type Command_Release struct {
+	Release string `protobuf:"bytes,16,opt,name=release,proto3,oneof"`
+}
+
+func (*Command_Rpc) isCommand_Instruction() {}
+
+func (*Command_Poll) isCommand_Instruction() {}
+
+func (*Command_AwaitLearned) isCommand_Instruction() {}
+
+func (*Command_AwaitCommand) isCommand_Instruction() {}
+
+func (*Command_Finish) isCommand_Instruction() {}
+
+func (*Command_Fault) isCommand_Instruction() {}
+
+func (*Command_WorkflowCommand) isCommand_Instruction() {}
+
+func (*Command_NexusReply) isCommand_Instruction() {}
+
+func (*Command_NexusCompletion) isCommand_Instruction() {}
+
+func (*Command_Hold) isCommand_Instruction() {}
+
+func (*Command_Release) isCommand_Instruction() {}
+
+type After struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Commands      []string               `protobuf:"bytes,1,rep,name=commands,proto3" json:"commands,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *After) Reset() {
+	*x = After{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *After) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*After) ProtoMessage() {}
+
+func (x *After) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use After.ProtoReflect.Descriptor instead.
+func (*After) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *After) GetCommands() []string {
+	if x != nil {
+		return x.Commands
+	}
+	return nil
+}
+
+// A unary call on an endpoint role: the request its assignments build, and what it reads out of the
+// response.
+type Rpc struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Role  string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	// The full method name, "/package.Service/Method".
+	Method        string          `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Assign        []*Assignment   `protobuf:"bytes,3,rep,name=assign,proto3" json:"assign,omitempty"`
+	Reads         []*ResponseRead `protobuf:"bytes,4,rep,name=reads,proto3" json:"reads,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Rpc) Reset() {
+	*x = Rpc{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Rpc) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rpc) ProtoMessage() {}
+
+func (x *Rpc) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rpc.ProtoReflect.Descriptor instead.
+func (*Rpc) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *Rpc) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *Rpc) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *Rpc) GetAssign() []*Assignment {
+	if x != nil {
+		return x.Assign
+	}
+	return nil
+}
+
+func (x *Rpc) GetReads() []*ResponseRead {
+	if x != nil {
+		return x.Reads
+	}
+	return nil
+}
+
+type Assignment struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A field path of the request.
+	Target        string   `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Value         *Operand `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Assignment) Reset() {
+	*x = Assignment{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Assignment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Assignment) ProtoMessage() {}
+
+func (x *Assignment) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Assignment.ProtoReflect.Descriptor instead.
+func (*Assignment) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *Assignment) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *Assignment) GetValue() *Operand {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type ResponseRead struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A field path of the response.
+	Path          string                   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Cardinality   ResponseRead_Cardinality `protobuf:"varint,2,opt,name=cardinality,proto3,enum=temporal.server.api.modelir.v1.ResponseRead_Cardinality" json:"cardinality,omitempty"`
+	Targets       []*Target                `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResponseRead) Reset() {
+	*x = ResponseRead{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResponseRead) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseRead) ProtoMessage() {}
+
+func (x *ResponseRead) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseRead.ProtoReflect.Descriptor instead.
+func (*ResponseRead) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *ResponseRead) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *ResponseRead) GetCardinality() ResponseRead_Cardinality {
+	if x != nil {
+		return x.Cardinality
+	}
+	return ResponseRead_CARDINALITY_UNSPECIFIED
+}
+
+func (x *ResponseRead) GetTargets() []*Target {
+	if x != nil {
+		return x.Targets
+	}
+	return nil
+}
+
+// Where a read value goes.
+type Target struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Target:
+	//
+	//	*Target_Observe
+	//	*Target_Bind
+	//	*Target_Lift
+	Target        isTarget_Target `protobuf_oneof:"target"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Target) Reset() {
+	*x = Target{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Target) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Target) ProtoMessage() {}
+
+func (x *Target) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Target.ProtoReflect.Descriptor instead.
+func (*Target) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *Target) GetTarget() isTarget_Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *Target) GetObserve() string {
+	if x != nil {
+		if x, ok := x.Target.(*Target_Observe); ok {
+			return x.Observe
+		}
+	}
+	return ""
+}
+
+func (x *Target) GetBind() string {
+	if x != nil {
+		if x, ok := x.Target.(*Target_Bind); ok {
+			return x.Bind
+		}
+	}
+	return ""
+}
+
+func (x *Target) GetLift() string {
+	if x != nil {
+		if x, ok := x.Target.(*Target_Lift); ok {
+			return x.Lift
+		}
+	}
+	return ""
+}
+
+type isTarget_Target interface {
+	isTarget_Target()
+}
+
+type Target_Observe struct {
+	// An observation, by id.
+	Observe string `protobuf:"bytes,1,opt,name=observe,proto3,oneof"`
+}
+
+type Target_Bind struct {
+	// A learned value, by id, which this read binds.
+	Bind string `protobuf:"bytes,2,opt,name=bind,proto3,oneof"`
+}
+
+type Target_Lift struct {
+	// The evidence kinds a history read confirms, lifted into the observation of this id.
+	Lift string `protobuf:"bytes,3,opt,name=lift,proto3,oneof"`
+}
+
+func (*Target_Observe) isTarget_Target() {}
+
+func (*Target_Bind) isTarget_Target() {}
+
+func (*Target_Lift) isTarget_Target() {}
+
+// Polls the read an evidence kind names until an element satisfies `until`.
+type Poll struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// An Evidence, by id.
+	Evidence      string        `protobuf:"bytes,1,opt,name=evidence,proto3" json:"evidence,omitempty"`
+	Role          string        `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	Assign        []*Assignment `protobuf:"bytes,3,rep,name=assign,proto3" json:"assign,omitempty"`
+	Until         *Operand      `protobuf:"bytes,4,opt,name=until,proto3" json:"until,omitempty"`
+	IntervalMs    int64         `protobuf:"varint,5,opt,name=interval_ms,json=intervalMs,proto3" json:"interval_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Poll) Reset() {
+	*x = Poll{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Poll) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Poll) ProtoMessage() {}
+
+func (x *Poll) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Poll.ProtoReflect.Descriptor instead.
+func (*Poll) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *Poll) GetEvidence() string {
+	if x != nil {
+		return x.Evidence
+	}
+	return ""
+}
+
+func (x *Poll) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *Poll) GetAssign() []*Assignment {
+	if x != nil {
+		return x.Assign
+	}
+	return nil
+}
+
+func (x *Poll) GetUntil() *Operand {
+	if x != nil {
+		return x.Until
+	}
+	return nil
+}
+
+func (x *Poll) GetIntervalMs() int64 {
+	if x != nil {
+		return x.IntervalMs
+	}
+	return 0
+}
+
+// Completes the workflow a workflow script runs in.
+type Finish struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Result        *Operand               `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Finish) Reset() {
+	*x = Finish{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[77]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Finish) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Finish) ProtoMessage() {}
+
+func (x *Finish) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[77]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Finish.ProtoReflect.Descriptor instead.
+func (*Finish) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{77}
+}
+
+func (x *Finish) GetResult() *Operand {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+// A deliberate outage of the worker that polls a task-queue role.
+type Fault struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	Kind          Fault_Kind             `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.modelir.v1.Fault_Kind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Fault) Reset() {
+	*x = Fault{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Fault) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Fault) ProtoMessage() {}
+
+func (x *Fault) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Fault.ProtoReflect.Descriptor instead.
+func (*Fault) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *Fault) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *Fault) GetKind() Fault_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Fault_KIND_UNSPECIFIED
+}
+
+// A workflow command, as the message the SDK would emit.
+type WorkflowCommand struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Command       *Proto                 `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowCommand) Reset() {
+	*x = WorkflowCommand{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowCommand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowCommand) ProtoMessage() {}
+
+func (x *WorkflowCommand) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowCommand.ProtoReflect.Descriptor instead.
+func (*WorkflowCommand) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *WorkflowCommand) GetCommand() *Proto {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+// A Nexus handler's answer: a start response or a handler error.
+type NexusReply struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Reply *Proto                 `protobuf:"bytes,1,opt,name=reply,proto3" json:"reply,omitempty"`
+	// The handle, a learned value by id, an asynchronous answer binds; or empty.
+	Binds         string `protobuf:"bytes,2,opt,name=binds,proto3" json:"binds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NexusReply) Reset() {
+	*x = NexusReply{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NexusReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NexusReply) ProtoMessage() {}
+
+func (x *NexusReply) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NexusReply.ProtoReflect.Descriptor instead.
+func (*NexusReply) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *NexusReply) GetReply() *Proto {
+	if x != nil {
+		return x.Reply
+	}
+	return nil
+}
+
+func (x *NexusReply) GetBinds() string {
+	if x != nil {
+		return x.Binds
+	}
+	return ""
+}
+
+// Completes the asynchronous Nexus operation a handle names, with a payload or a failure.
+type NexusCompletion struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A learned value, by id.
+	Handle        string `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	Result        *Proto `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NexusCompletion) Reset() {
+	*x = NexusCompletion{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NexusCompletion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NexusCompletion) ProtoMessage() {}
+
+func (x *NexusCompletion) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NexusCompletion.ProtoReflect.Descriptor instead.
+func (*NexusCompletion) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{81}
+}
+
+func (x *NexusCompletion) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *NexusCompletion) GetResult() *Proto {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+// A value a command computes when it runs.
+type Operand struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Position *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*Operand_Literal
+	//	*Operand_Environment
+	//	*Operand_Run
+	//	*Operand_LearnedValue
+	//	*Operand_Projected
+	//	*Operand_Path
+	//	*Operand_Present
+	//	*Operand_Equal
+	Kind          isOperand_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Operand) Reset() {
+	*x = Operand{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Operand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Operand) ProtoMessage() {}
+
+func (x *Operand) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Operand.ProtoReflect.Descriptor instead.
+func (*Operand) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *Operand) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Operand) GetKind() isOperand_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *Operand) GetLiteral() *ProtoValue {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Literal); ok {
+			return x.Literal
+		}
+	}
+	return nil
+}
+
+func (x *Operand) GetEnvironment() string {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Environment); ok {
+			return x.Environment
+		}
+	}
+	return ""
+}
+
+func (x *Operand) GetRun() *Empty {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Run); ok {
+			return x.Run
+		}
+	}
+	return nil
+}
+
+func (x *Operand) GetLearnedValue() string {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_LearnedValue); ok {
+			return x.LearnedValue
+		}
+	}
+	return ""
+}
+
+func (x *Operand) GetProjected() *Empty {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Projected); ok {
+			return x.Projected
+		}
+	}
+	return nil
+}
+
+func (x *Operand) GetPath() *PathOf {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Path); ok {
+			return x.Path
+		}
+	}
+	return nil
+}
+
+func (x *Operand) GetPresent() *Present {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Present); ok {
+			return x.Present
+		}
+	}
+	return nil
+}
+
+func (x *Operand) GetEqual() *Equal {
+	if x != nil {
+		if x, ok := x.Kind.(*Operand_Equal); ok {
+			return x.Equal
+		}
+	}
+	return nil
+}
+
+type isOperand_Kind interface {
+	isOperand_Kind()
+}
+
+type Operand_Literal struct {
+	Literal *ProtoValue `protobuf:"bytes,2,opt,name=literal,proto3,oneof"`
+}
+
+type Operand_Environment struct {
+	// An environment binding's value.
+	Environment string `protobuf:"bytes,3,opt,name=environment,proto3,oneof"`
+}
+
+type Operand_Run struct {
+	// The run's own id.
+	Run *Empty `protobuf:"bytes,4,opt,name=run,proto3,oneof"`
+}
+
+type Operand_LearnedValue struct {
+	// A learned value, by id.
+	LearnedValue string `protobuf:"bytes,5,opt,name=learned_value,json=learnedValue,proto3,oneof"`
+}
+
+type Operand_Projected struct {
+	// The value a poll is looking at.
+	Projected *Empty `protobuf:"bytes,6,opt,name=projected,proto3,oneof"`
+}
+
+type Operand_Path struct {
+	Path *PathOf `protobuf:"bytes,7,opt,name=path,proto3,oneof"`
+}
+
+type Operand_Present struct {
+	Present *Present `protobuf:"bytes,8,opt,name=present,proto3,oneof"`
+}
+
+type Operand_Equal struct {
+	Equal *Equal `protobuf:"bytes,9,opt,name=equal,proto3,oneof"`
+}
+
+func (*Operand_Literal) isOperand_Kind() {}
+
+func (*Operand_Environment) isOperand_Kind() {}
+
+func (*Operand_Run) isOperand_Kind() {}
+
+func (*Operand_LearnedValue) isOperand_Kind() {}
+
+func (*Operand_Projected) isOperand_Kind() {}
+
+func (*Operand_Path) isOperand_Kind() {}
+
+func (*Operand_Present) isOperand_Kind() {}
+
+func (*Operand_Equal) isOperand_Kind() {}
+
+type PathOf struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Of            *Operand               `protobuf:"bytes,1,opt,name=of,proto3" json:"of,omitempty"`
+	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PathOf) Reset() {
+	*x = PathOf{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[83]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PathOf) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PathOf) ProtoMessage() {}
+
+func (x *PathOf) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[83]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PathOf.ProtoReflect.Descriptor instead.
+func (*PathOf) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{83}
+}
+
+func (x *PathOf) GetOf() *Operand {
+	if x != nil {
+		return x.Of
+	}
+	return nil
+}
+
+func (x *PathOf) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+type Present struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Of            *Operand               `protobuf:"bytes,1,opt,name=of,proto3" json:"of,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Present) Reset() {
+	*x = Present{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[84]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Present) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Present) ProtoMessage() {}
+
+func (x *Present) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[84]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Present.ProtoReflect.Descriptor instead.
+func (*Present) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{84}
+}
+
+func (x *Present) GetOf() *Operand {
+	if x != nil {
+		return x.Of
+	}
+	return nil
+}
+
+type Equal struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Left          *Operand               `protobuf:"bytes,1,opt,name=left,proto3" json:"left,omitempty"`
+	Right         *Operand               `protobuf:"bytes,2,opt,name=right,proto3" json:"right,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Equal) Reset() {
+	*x = Equal{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[85]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Equal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Equal) ProtoMessage() {}
+
+func (x *Equal) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[85]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Equal.ProtoReflect.Descriptor instead.
+func (*Equal) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{85}
+}
+
+func (x *Equal) GetLeft() *Operand {
+	if x != nil {
+		return x.Left
+	}
+	return nil
+}
+
+func (x *Equal) GetRight() *Operand {
+	if x != nil {
+		return x.Right
+	}
+	return nil
+}
+
+// A protobuf message written out: its fully qualified name and the fields it sets. A field it does
+// not name stays unset.
+type Proto struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Fields        []*ProtoField          `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Proto) Reset() {
+	*x = Proto{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[86]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Proto) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Proto) ProtoMessage() {}
+
+func (x *Proto) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[86]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Proto.ProtoReflect.Descriptor instead.
+func (*Proto) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{86}
+}
+
+func (x *Proto) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Proto) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *Proto) GetFields() []*ProtoField {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+type ProtoField struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The field's protobuf name.
+	Name          string      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Value         *ProtoValue `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProtoField) Reset() {
+	*x = ProtoField{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProtoField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProtoField) ProtoMessage() {}
+
+func (x *ProtoField) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProtoField.ProtoReflect.Descriptor instead.
+func (*ProtoField) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{87}
+}
+
+func (x *ProtoField) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ProtoField) GetValue() *ProtoValue {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type ProtoValue struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*ProtoValue_Text
+	//	*ProtoValue_Flag
+	//	*ProtoValue_Number
+	//	*ProtoValue_EnumName
+	//	*ProtoValue_Utf8
+	//	*ProtoValue_Message
+	//	*ProtoValue_Mapping
+	//	*ProtoValue_RoleId
+	//	*ProtoValue_Named
+	Kind          isProtoValue_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProtoValue) Reset() {
+	*x = ProtoValue{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProtoValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProtoValue) ProtoMessage() {}
+
+func (x *ProtoValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProtoValue.ProtoReflect.Descriptor instead.
+func (*ProtoValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{88}
+}
+
+func (x *ProtoValue) GetKind() isProtoValue_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *ProtoValue) GetText() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Text); ok {
+			return x.Text
+		}
+	}
+	return ""
+}
+
+func (x *ProtoValue) GetFlag() bool {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Flag); ok {
+			return x.Flag
+		}
+	}
+	return false
+}
+
+func (x *ProtoValue) GetNumber() int64 {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Number); ok {
+			return x.Number
+		}
+	}
+	return 0
+}
+
+func (x *ProtoValue) GetEnumName() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_EnumName); ok {
+			return x.EnumName
+		}
+	}
+	return ""
+}
+
+func (x *ProtoValue) GetUtf8() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Utf8); ok {
+			return x.Utf8
+		}
+	}
+	return ""
+}
+
+func (x *ProtoValue) GetMessage() *Proto {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Message); ok {
+			return x.Message
+		}
+	}
+	return nil
+}
+
+func (x *ProtoValue) GetMapping() *ProtoMap {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Mapping); ok {
+			return x.Mapping
+		}
+	}
+	return nil
+}
+
+func (x *ProtoValue) GetRoleId() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_RoleId); ok {
+			return x.RoleId
+		}
+	}
+	return ""
+}
+
+func (x *ProtoValue) GetNamed() *Name {
+	if x != nil {
+		if x, ok := x.Kind.(*ProtoValue_Named); ok {
+			return x.Named
+		}
+	}
+	return nil
+}
+
+type isProtoValue_Kind interface {
+	isProtoValue_Kind()
+}
+
+type ProtoValue_Text struct {
+	Text string `protobuf:"bytes,1,opt,name=text,proto3,oneof"`
+}
+
+type ProtoValue_Flag struct {
+	Flag bool `protobuf:"varint,2,opt,name=flag,proto3,oneof"`
+}
+
+type ProtoValue_Number struct {
+	Number int64 `protobuf:"varint,3,opt,name=number,proto3,oneof"`
+}
+
+type ProtoValue_EnumName struct {
+	// An enum value, by name.
+	EnumName string `protobuf:"bytes,4,opt,name=enum_name,json=enumName,proto3,oneof"`
+}
+
+type ProtoValue_Utf8 struct {
+	// Bytes, as the UTF-8 text they encode.
+	Utf8 string `protobuf:"bytes,5,opt,name=utf8,proto3,oneof"`
+}
+
+type ProtoValue_Message struct {
+	Message *Proto `protobuf:"bytes,6,opt,name=message,proto3,oneof"`
+}
+
+type ProtoValue_Mapping struct {
+	Mapping *ProtoMap `protobuf:"bytes,7,opt,name=mapping,proto3,oneof"`
+}
+
+type ProtoValue_RoleId struct {
+	// A role, by id, where a field names the role a run resolves.
+	RoleId string `protobuf:"bytes,8,opt,name=role_id,json=roleId,proto3,oneof"`
+}
+
+type ProtoValue_Named struct {
+	Named *Name `protobuf:"bytes,9,opt,name=named,proto3,oneof"`
+}
+
+func (*ProtoValue_Text) isProtoValue_Kind() {}
+
+func (*ProtoValue_Flag) isProtoValue_Kind() {}
+
+func (*ProtoValue_Number) isProtoValue_Kind() {}
+
+func (*ProtoValue_EnumName) isProtoValue_Kind() {}
+
+func (*ProtoValue_Utf8) isProtoValue_Kind() {}
+
+func (*ProtoValue_Message) isProtoValue_Kind() {}
+
+func (*ProtoValue_Mapping) isProtoValue_Kind() {}
+
+func (*ProtoValue_RoleId) isProtoValue_Kind() {}
+
+func (*ProtoValue_Named) isProtoValue_Kind() {}
+
+type ProtoMap struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*ProtoEntry          `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProtoMap) Reset() {
+	*x = ProtoMap{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[89]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProtoMap) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProtoMap) ProtoMessage() {}
+
+func (x *ProtoMap) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[89]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProtoMap.ProtoReflect.Descriptor instead.
+func (*ProtoMap) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{89}
+}
+
+func (x *ProtoMap) GetEntries() []*ProtoEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type ProtoEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         *ProtoValue            `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProtoEntry) Reset() {
+	*x = ProtoEntry{}
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[90]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProtoEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProtoEntry) ProtoMessage() {}
+
+func (x *ProtoEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_modelir_v1_ir_proto_msgTypes[90]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProtoEntry.ProtoReflect.Descriptor instead.
+func (*ProtoEntry) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP(), []int{90}
+}
+
+func (x *ProtoEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ProtoEntry) GetValue() *ProtoValue {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
 var File_temporal_server_api_modelir_v1_ir_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_modelir_v1_ir_proto_rawDesc = "" +
 	"\n" +
-	"'temporal/server/api/modelir/v1/ir.proto\x12\x1etemporal.server.api.modelir.v1\"\xc2\a\n" +
+	"'temporal/server/api/modelir/v1/ir.proto\x12\x1etemporal.server.api.modelir.v1\"\x93\b\n" +
 	"\x05Model\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12:\n" +
 	"\x05types\x18\x02 \x03(\v2$.temporal.server.api.modelir.v1.TypeR\x05types\x12F\n" +
@@ -4756,7 +8039,8 @@ const file_temporal_server_api_modelir_v1_ir_proto_rawDesc = "" +
 	"properties\x12F\n" +
 	"\tscenarios\x18\r \x03(\v2(.temporal.server.api.modelir.v1.ScenarioR\tscenarios\x12?\n" +
 	"\aqueries\x18\x0e \x03(\v2%.temporal.server.api.modelir.v1.QueryR\aqueries\x12D\n" +
-	"\bprogress\x18\x0f \x03(\v2(.temporal.server.api.modelir.v1.ProgressR\bprogress\"2\n" +
+	"\bprogress\x18\x0f \x03(\v2(.temporal.server.api.modelir.v1.ProgressR\bprogress\x12O\n" +
+	"\frealizations\x18\x10 \x03(\v2+.temporal.server.api.modelir.v1.RealizationR\frealizations\"2\n" +
 	"\bPosition\x12\x12\n" +
 	"\x04file\x18\x01 \x01(\tR\x04file\x12\x12\n" +
 	"\x04line\x18\x02 \x01(\x05R\x04line\"\xe7\x01\n" +
@@ -5086,7 +8370,247 @@ const file_temporal_server_api_modelir_v1_ir_proto_rawDesc = "" +
 	"\x04from\x18\x04 \x01(\tR\x04from\x12\x0e\n" +
 	"\x02to\x18\x05 \x01(\tR\x02to\x12\x16\n" +
 	"\x06within\x18\x06 \x01(\x05R\x06within\x12 \n" +
-	"\vassumptions\x18\a \x03(\tR\vassumptionsBS\n" +
+	"\vassumptions\x18\a \x03(\tR\vassumptions\"\xdb\x05\n" +
+	"\vRealization\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12D\n" +
+	"\bposition\x18\x03 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12\x18\n" +
+	"\amachine\x18\x04 \x01(\tR\amachine\x12\x1a\n" +
+	"\bproducer\x18\x05 \x01(\tR\bproducer\x12)\n" +
+	"\x10producer_version\x18\x06 \x01(\tR\x0fproducerVersion\x12:\n" +
+	"\x05roles\x18\a \x03(\v2$.temporal.server.api.modelir.v1.RoleR\x05roles\x12A\n" +
+	"\alearned\x18\b \x03(\v2'.temporal.server.api.modelir.v1.LearnedR\alearned\x12L\n" +
+	"\fobservations\x18\t \x03(\v2(.temporal.server.api.modelir.v1.ObservedR\fobservations\x12D\n" +
+	"\bevidence\x18\n" +
+	" \x03(\v2(.temporal.server.api.modelir.v1.EvidenceR\bevidence\x12M\n" +
+	"\vcorrelation\x18\v \x01(\v2+.temporal.server.api.modelir.v1.CorrelationR\vcorrelation\x12C\n" +
+	"\bcontrols\x18\f \x03(\v2'.temporal.server.api.modelir.v1.ControlR\bcontrols\x12@\n" +
+	"\ascripts\x18\r \x03(\v2&.temporal.server.api.modelir.v1.ScriptR\ascripts\x12\x18\n" +
+	"\acleanup\x18\x0e \x01(\tR\acleanup\"\xc2\x02\n" +
+	"\x04Role\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12=\n" +
+	"\x04kind\x18\x03 \x01(\x0e2).temporal.server.api.modelir.v1.Role.KindR\x04kind\x12\x1c\n" +
+	"\tnamespace\x18\x04 \x01(\tR\tnamespace\x12\x1a\n" +
+	"\bresource\x18\x05 \x01(\tR\bresource\"k\n" +
+	"\x04Kind\x12\x14\n" +
+	"\x10KIND_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rKIND_ENDPOINT\x10\x01\x12\x0f\n" +
+	"\vKIND_WORKER\x10\x02\x12\x13\n" +
+	"\x0fKIND_TASK_QUEUE\x10\x03\x12\x14\n" +
+	"\x10KIND_PARTICIPANT\x10\x04\"\xdf\x01\n" +
+	"\aLearned\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12@\n" +
+	"\x04kind\x18\x03 \x01(\x0e2,.temporal.server.api.modelir.v1.Learned.KindR\x04kind\"<\n" +
+	"\x04Kind\x12\x14\n" +
+	"\x10KIND_UNSPECIFIED\x10\x00\x12\r\n" +
+	"\tKIND_TEXT\x10\x01\x12\x0f\n" +
+	"\vKIND_HANDLE\x10\x02\"z\n" +
+	"\bObserved\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\xc6\x03\n" +
+	"\bEvidence\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12\x18\n" +
+	"\arecords\x18\x03 \x01(\tR\arecords\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12\x1a\n" +
+	"\ahistory\x18\x05 \x01(\tH\x00R\ahistory\x12@\n" +
+	"\x04read\x18\x06 \x01(\v2*.temporal.server.api.modelir.v1.ReadSourceH\x00R\x04read\x12\x1c\n" +
+	"\toperation\x18\a \x01(\tR\toperation\x12S\n" +
+	"\n" +
+	"commitment\x18\b \x01(\x0e23.temporal.server.api.modelir.v1.Evidence.CommitmentR\n" +
+	"commitment\"Y\n" +
+	"\n" +
+	"Commitment\x12\x1a\n" +
+	"\x16COMMITMENT_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13COMMITMENT_REPORTED\x10\x01\x12\x16\n" +
+	"\x12COMMITMENT_DURABLE\x10\x02B\x06\n" +
+	"\x04from\"8\n" +
+	"\n" +
+	"ReadSource\x12\x16\n" +
+	"\x06method\x18\x01 \x01(\tR\x06method\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"\xda\x02\n" +
+	"\vCorrelation\x12D\n" +
+	"\bposition\x18\x01 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12\x1e\n" +
+	"\n" +
+	"projection\x18\x02 \x01(\tR\n" +
+	"projection\x12\x10\n" +
+	"\x03run\x18\x03 \x01(\tR\x03run\x12\x1c\n" +
+	"\toperation\x18\x04 \x01(\tR\toperation\x12 \n" +
+	"\vobservation\x18\x05 \x01(\tR\vobservation\x12\x16\n" +
+	"\x06events\x18\x06 \x01(\x03R\x06events\x12\x1a\n" +
+	"\bbuffered\x18\a \x01(\x03R\bbuffered\x12\x12\n" +
+	"\x04keys\x18\b \x01(\x03R\x04keys\x12\x18\n" +
+	"\asupport\x18\t \x01(\x03R\asupport\x12\x12\n" +
+	"\x04work\x18\n" +
+	" \x01(\x03R\x04work\x12\x1d\n" +
+	"\n" +
+	"event_size\x18\v \x01(\x03R\teventSize\"\x8e\x01\n" +
+	"\aControl\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12%\n" +
+	"\rhold_delivery\x18\x03 \x01(\tH\x00R\fholdDeliveryB\x06\n" +
+	"\x04kind\"\xf4\x03\n" +
+	"\x06Script\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12G\n" +
+	"\n" +
+	"controller\x18\x03 \x01(\v2%.temporal.server.api.modelir.v1.EmptyH\x00R\n" +
+	"controller\x12P\n" +
+	"\bworkflow\x18\x04 \x01(\v22.temporal.server.api.modelir.v1.WorkflowActivationH\x00R\bworkflow\x12]\n" +
+	"\rnexus_handler\x18\x05 \x01(\v26.temporal.server.api.modelir.v1.NexusHandlerActivationH\x00R\fnexusHandler\x12P\n" +
+	"\bactivity\x18\x06 \x01(\v22.temporal.server.api.modelir.v1.ActivityActivationH\x00R\bactivity\x12:\n" +
+	"\x05items\x18\a \x03(\v2$.temporal.server.api.modelir.v1.ItemR\x05itemsB\f\n" +
+	"\n" +
+	"activation\"\x96\x01\n" +
+	"\x12WorkflowActivation\x12I\n" +
+	"\rworkflow_type\x18\x01 \x01(\v2$.temporal.server.api.modelir.v1.NameR\fworkflowType\x12\x16\n" +
+	"\x06worker\x18\x02 \x01(\tR\x06worker\x12\x1d\n" +
+	"\n" +
+	"task_queue\x18\x03 \x01(\tR\ttaskQueue\"\x87\x01\n" +
+	"\x16NexusHandlerActivation\x12\x18\n" +
+	"\aservice\x18\x01 \x01(\tR\aservice\x12\x1c\n" +
+	"\toperation\x18\x02 \x01(\tR\toperation\x12\x16\n" +
+	"\x06worker\x18\x03 \x01(\tR\x06worker\x12\x1d\n" +
+	"\n" +
+	"task_queue\x18\x04 \x01(\tR\ttaskQueue\"\x96\x01\n" +
+	"\x12ActivityActivation\x12I\n" +
+	"\ractivity_type\x18\x01 \x01(\v2$.temporal.server.api.modelir.v1.NameR\factivityType\x12\x16\n" +
+	"\x06worker\x18\x02 \x01(\tR\x06worker\x12\x1d\n" +
+	"\n" +
+	"task_queue\x18\x03 \x01(\tR\ttaskQueue\"P\n" +
+	"\x04Name\x12\x16\n" +
+	"\x06prefix\x18\x01 \x01(\tR\x06prefix\x12\x18\n" +
+	"\afixture\x18\x02 \x01(\bR\afixture\x12\x16\n" +
+	"\x06suffix\x18\x03 \x01(\tR\x06suffix\"\x99\x02\n" +
+	"\x04Item\x12D\n" +
+	"\bposition\x18\x01 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12A\n" +
+	"\acommand\x18\x02 \x01(\v2'.temporal.server.api.modelir.v1.CommandR\acommand\x12?\n" +
+	"\x04when\x18\x03 \x03(\v2+.temporal.server.api.modelir.v1.ActionClassR\x04when\x12G\n" +
+	"\bperforms\x18\x04 \x03(\v2+.temporal.server.api.modelir.v1.PerformanceR\bperforms\"\xd7\x01\n" +
+	"\vPerformance\x12D\n" +
+	"\bposition\x18\x01 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12?\n" +
+	"\x04step\x18\x02 \x01(\v2+.temporal.server.api.modelir.v1.ActionClassR\x04step\x12A\n" +
+	"\acommand\x18\x03 \x01(\v2'.temporal.server.api.modelir.v1.CommandR\acommand\"\xeb\x06\n" +
+	"\aCommand\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12D\n" +
+	"\bposition\x18\x02 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12;\n" +
+	"\x05after\x18\x03 \x01(\v2%.temporal.server.api.modelir.v1.AfterR\x05after\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x04 \x01(\x03R\ttimeoutMs\x12\x1e\n" +
+	"\n" +
+	"regardless\x18\x05 \x01(\bR\n" +
+	"regardless\x127\n" +
+	"\x03rpc\x18\x06 \x01(\v2#.temporal.server.api.modelir.v1.RpcH\x00R\x03rpc\x12:\n" +
+	"\x04poll\x18\a \x01(\v2$.temporal.server.api.modelir.v1.PollH\x00R\x04poll\x12%\n" +
+	"\rawait_learned\x18\b \x01(\tH\x00R\fawaitLearned\x12%\n" +
+	"\rawait_command\x18\t \x01(\tH\x00R\fawaitCommand\x12@\n" +
+	"\x06finish\x18\n" +
+	" \x01(\v2&.temporal.server.api.modelir.v1.FinishH\x00R\x06finish\x12=\n" +
+	"\x05fault\x18\v \x01(\v2%.temporal.server.api.modelir.v1.FaultH\x00R\x05fault\x12\\\n" +
+	"\x10workflow_command\x18\f \x01(\v2/.temporal.server.api.modelir.v1.WorkflowCommandH\x00R\x0fworkflowCommand\x12M\n" +
+	"\vnexus_reply\x18\r \x01(\v2*.temporal.server.api.modelir.v1.NexusReplyH\x00R\n" +
+	"nexusReply\x12\\\n" +
+	"\x10nexus_completion\x18\x0e \x01(\v2/.temporal.server.api.modelir.v1.NexusCompletionH\x00R\x0fnexusCompletion\x12\x14\n" +
+	"\x04hold\x18\x0f \x01(\tH\x00R\x04hold\x12\x1a\n" +
+	"\arelease\x18\x10 \x01(\tH\x00R\areleaseB\r\n" +
+	"\vinstruction\"#\n" +
+	"\x05After\x12\x1a\n" +
+	"\bcommands\x18\x01 \x03(\tR\bcommands\"\xb9\x01\n" +
+	"\x03Rpc\x12\x12\n" +
+	"\x04role\x18\x01 \x01(\tR\x04role\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12B\n" +
+	"\x06assign\x18\x03 \x03(\v2*.temporal.server.api.modelir.v1.AssignmentR\x06assign\x12B\n" +
+	"\x05reads\x18\x04 \x03(\v2,.temporal.server.api.modelir.v1.ResponseReadR\x05reads\"c\n" +
+	"\n" +
+	"Assignment\x12\x16\n" +
+	"\x06target\x18\x01 \x01(\tR\x06target\x12=\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x05value\"\x97\x02\n" +
+	"\fResponseRead\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12Z\n" +
+	"\vcardinality\x18\x02 \x01(\x0e28.temporal.server.api.modelir.v1.ResponseRead.CardinalityR\vcardinality\x12@\n" +
+	"\atargets\x18\x03 \x03(\v2&.temporal.server.api.modelir.v1.TargetR\atargets\"U\n" +
+	"\vCardinality\x12\x1b\n" +
+	"\x17CARDINALITY_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fCARDINALITY_ONE\x10\x01\x12\x14\n" +
+	"\x10CARDINALITY_EACH\x10\x02\"Z\n" +
+	"\x06Target\x12\x1a\n" +
+	"\aobserve\x18\x01 \x01(\tH\x00R\aobserve\x12\x14\n" +
+	"\x04bind\x18\x02 \x01(\tH\x00R\x04bind\x12\x14\n" +
+	"\x04lift\x18\x03 \x01(\tH\x00R\x04liftB\b\n" +
+	"\x06target\"\xda\x01\n" +
+	"\x04Poll\x12\x1a\n" +
+	"\bevidence\x18\x01 \x01(\tR\bevidence\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role\x12B\n" +
+	"\x06assign\x18\x03 \x03(\v2*.temporal.server.api.modelir.v1.AssignmentR\x06assign\x12=\n" +
+	"\x05until\x18\x04 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x05until\x12\x1f\n" +
+	"\vinterval_ms\x18\x05 \x01(\x03R\n" +
+	"intervalMs\"I\n" +
+	"\x06Finish\x12?\n" +
+	"\x06result\x18\x01 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x06result\"\xa7\x01\n" +
+	"\x05Fault\x12\x12\n" +
+	"\x04role\x18\x01 \x01(\tR\x04role\x12>\n" +
+	"\x04kind\x18\x02 \x01(\x0e2*.temporal.server.api.modelir.v1.Fault.KindR\x04kind\"J\n" +
+	"\x04Kind\x12\x14\n" +
+	"\x10KIND_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10KIND_WORKER_STOP\x10\x01\x12\x16\n" +
+	"\x12KIND_WORKER_RESUME\x10\x02\"R\n" +
+	"\x0fWorkflowCommand\x12?\n" +
+	"\acommand\x18\x01 \x01(\v2%.temporal.server.api.modelir.v1.ProtoR\acommand\"_\n" +
+	"\n" +
+	"NexusReply\x12;\n" +
+	"\x05reply\x18\x01 \x01(\v2%.temporal.server.api.modelir.v1.ProtoR\x05reply\x12\x14\n" +
+	"\x05binds\x18\x02 \x01(\tR\x05binds\"h\n" +
+	"\x0fNexusCompletion\x12\x16\n" +
+	"\x06handle\x18\x01 \x01(\tR\x06handle\x12=\n" +
+	"\x06result\x18\x02 \x01(\v2%.temporal.server.api.modelir.v1.ProtoR\x06result\"\xae\x04\n" +
+	"\aOperand\x12D\n" +
+	"\bposition\x18\x01 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12F\n" +
+	"\aliteral\x18\x02 \x01(\v2*.temporal.server.api.modelir.v1.ProtoValueH\x00R\aliteral\x12\"\n" +
+	"\venvironment\x18\x03 \x01(\tH\x00R\venvironment\x129\n" +
+	"\x03run\x18\x04 \x01(\v2%.temporal.server.api.modelir.v1.EmptyH\x00R\x03run\x12%\n" +
+	"\rlearned_value\x18\x05 \x01(\tH\x00R\flearnedValue\x12E\n" +
+	"\tprojected\x18\x06 \x01(\v2%.temporal.server.api.modelir.v1.EmptyH\x00R\tprojected\x12<\n" +
+	"\x04path\x18\a \x01(\v2&.temporal.server.api.modelir.v1.PathOfH\x00R\x04path\x12C\n" +
+	"\apresent\x18\b \x01(\v2'.temporal.server.api.modelir.v1.PresentH\x00R\apresent\x12=\n" +
+	"\x05equal\x18\t \x01(\v2%.temporal.server.api.modelir.v1.EqualH\x00R\x05equalB\x06\n" +
+	"\x04kind\"U\n" +
+	"\x06PathOf\x127\n" +
+	"\x02of\x18\x01 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x02of\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"B\n" +
+	"\aPresent\x127\n" +
+	"\x02of\x18\x01 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x02of\"\x83\x01\n" +
+	"\x05Equal\x12;\n" +
+	"\x04left\x18\x01 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x04left\x12=\n" +
+	"\x05right\x18\x02 \x01(\v2'.temporal.server.api.modelir.v1.OperandR\x05right\"\xab\x01\n" +
+	"\x05Proto\x12D\n" +
+	"\bposition\x18\x01 \x01(\v2(.temporal.server.api.modelir.v1.PositionR\bposition\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12B\n" +
+	"\x06fields\x18\x03 \x03(\v2*.temporal.server.api.modelir.v1.ProtoFieldR\x06fields\"b\n" +
+	"\n" +
+	"ProtoField\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12@\n" +
+	"\x05value\x18\x02 \x01(\v2*.temporal.server.api.modelir.v1.ProtoValueR\x05value\"\xf1\x02\n" +
+	"\n" +
+	"ProtoValue\x12\x14\n" +
+	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x12\x14\n" +
+	"\x04flag\x18\x02 \x01(\bH\x00R\x04flag\x12\x18\n" +
+	"\x06number\x18\x03 \x01(\x03H\x00R\x06number\x12\x1d\n" +
+	"\tenum_name\x18\x04 \x01(\tH\x00R\benumName\x12\x14\n" +
+	"\x04utf8\x18\x05 \x01(\tH\x00R\x04utf8\x12A\n" +
+	"\amessage\x18\x06 \x01(\v2%.temporal.server.api.modelir.v1.ProtoH\x00R\amessage\x12D\n" +
+	"\amapping\x18\a \x01(\v2(.temporal.server.api.modelir.v1.ProtoMapH\x00R\amapping\x12\x19\n" +
+	"\arole_id\x18\b \x01(\tH\x00R\x06roleId\x12<\n" +
+	"\x05named\x18\t \x01(\v2$.temporal.server.api.modelir.v1.NameH\x00R\x05namedB\x06\n" +
+	"\x04kind\"P\n" +
+	"\bProtoMap\x12D\n" +
+	"\aentries\x18\x01 \x03(\v2*.temporal.server.api.modelir.v1.ProtoEntryR\aentries\"`\n" +
+	"\n" +
+	"ProtoEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12@\n" +
+	"\x05value\x18\x02 \x01(\v2*.temporal.server.api.modelir.v1.ProtoValueR\x05valueBS\n" +
 	"!io.temporal.server.api.modelir.v1P\x01Z,go.temporal.io/server/api/modelir/v1;modelirb\x06proto3"
 
 var (
@@ -5101,198 +8625,313 @@ func file_temporal_server_api_modelir_v1_ir_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_modelir_v1_ir_proto_rawDescData
 }
 
-var file_temporal_server_api_modelir_v1_ir_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_temporal_server_api_modelir_v1_ir_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
+var file_temporal_server_api_modelir_v1_ir_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
+var file_temporal_server_api_modelir_v1_ir_proto_msgTypes = make([]protoimpl.MessageInfo, 91)
 var file_temporal_server_api_modelir_v1_ir_proto_goTypes = []any{
-	(Unary_Op)(0),        // 0: temporal.server.api.modelir.v1.Unary.Op
-	(Binary_Op)(0),       // 1: temporal.server.api.modelir.v1.Binary.Op
-	(Inbox_Op)(0),        // 2: temporal.server.api.modelir.v1.Inbox.Op
-	(Channel_Order)(0),   // 3: temporal.server.api.modelir.v1.Channel.Order
-	(Query_Form)(0),      // 4: temporal.server.api.modelir.v1.Query.Form
-	(*Model)(nil),        // 5: temporal.server.api.modelir.v1.Model
-	(*Position)(nil),     // 6: temporal.server.api.modelir.v1.Position
-	(*Type)(nil),         // 7: temporal.server.api.modelir.v1.Type
-	(*Enum)(nil),         // 8: temporal.server.api.modelir.v1.Enum
-	(*Case)(nil),         // 9: temporal.server.api.modelir.v1.Case
-	(*Record)(nil),       // 10: temporal.server.api.modelir.v1.Record
-	(*Field)(nil),        // 11: temporal.server.api.modelir.v1.Field
-	(*TypeRef)(nil),      // 12: temporal.server.api.modelir.v1.TypeRef
-	(*IntRange)(nil),     // 13: temporal.server.api.modelir.v1.IntRange
-	(*Empty)(nil),        // 14: temporal.server.api.modelir.v1.Empty
-	(*Function)(nil),     // 15: temporal.server.api.modelir.v1.Function
-	(*Param)(nil),        // 16: temporal.server.api.modelir.v1.Param
-	(*Expr)(nil),         // 17: temporal.server.api.modelir.v1.Expr
-	(*FieldAccess)(nil),  // 18: temporal.server.api.modelir.v1.FieldAccess
-	(*Call)(nil),         // 19: temporal.server.api.modelir.v1.Call
-	(*Construct)(nil),    // 20: temporal.server.api.modelir.v1.Construct
-	(*Copy)(nil),         // 21: temporal.server.api.modelir.v1.Copy
-	(*NamedExpr)(nil),    // 22: temporal.server.api.modelir.v1.NamedExpr
-	(*Unary)(nil),        // 23: temporal.server.api.modelir.v1.Unary
-	(*Binary)(nil),       // 24: temporal.server.api.modelir.v1.Binary
-	(*If)(nil),           // 25: temporal.server.api.modelir.v1.If
-	(*Match)(nil),        // 26: temporal.server.api.modelir.v1.Match
-	(*MatchCase)(nil),    // 27: temporal.server.api.modelir.v1.MatchCase
-	(*Pattern)(nil),      // 28: temporal.server.api.modelir.v1.Pattern
-	(*Bind)(nil),         // 29: temporal.server.api.modelir.v1.Bind
-	(*CasePattern)(nil),  // 30: temporal.server.api.modelir.v1.CasePattern
-	(*Alternatives)(nil), // 31: temporal.server.api.modelir.v1.Alternatives
-	(*Let)(nil),          // 32: temporal.server.api.modelir.v1.Let
-	(*ListOf)(nil),       // 33: temporal.server.api.modelir.v1.ListOf
-	(*Inbox)(nil),        // 34: temporal.server.api.modelir.v1.Inbox
-	(*Lambda)(nil),       // 35: temporal.server.api.modelir.v1.Lambda
-	(*Value)(nil),        // 36: temporal.server.api.modelir.v1.Value
-	(*EnumValue)(nil),    // 37: temporal.server.api.modelir.v1.EnumValue
-	(*RecordValue)(nil),  // 38: temporal.server.api.modelir.v1.RecordValue
-	(*ListValue)(nil),    // 39: temporal.server.api.modelir.v1.ListValue
-	(*Action)(nil),       // 40: temporal.server.api.modelir.v1.Action
-	(*Example)(nil),      // 41: temporal.server.api.modelir.v1.Example
-	(*Machine)(nil),      // 42: temporal.server.api.modelir.v1.Machine
-	(*StepBinding)(nil),  // 43: temporal.server.api.modelir.v1.StepBinding
-	(*Refinement)(nil),   // 44: temporal.server.api.modelir.v1.Refinement
-	(*Channel)(nil),      // 45: temporal.server.api.modelir.v1.Channel
-	(*Monitor)(nil),      // 46: temporal.server.api.modelir.v1.Monitor
-	(*Assumption)(nil),   // 47: temporal.server.api.modelir.v1.Assumption
-	(*Hole)(nil),         // 48: temporal.server.api.modelir.v1.Hole
-	(*Composition)(nil),  // 49: temporal.server.api.modelir.v1.Composition
-	(*Member)(nil),       // 50: temporal.server.api.modelir.v1.Member
-	(*Sync)(nil),         // 51: temporal.server.api.modelir.v1.Sync
-	(*SyncMove)(nil),     // 52: temporal.server.api.modelir.v1.SyncMove
-	(*ActionClass)(nil),  // 53: temporal.server.api.modelir.v1.ActionClass
-	(*Property)(nil),     // 54: temporal.server.api.modelir.v1.Property
-	(*Scenario)(nil),     // 55: temporal.server.api.modelir.v1.Scenario
-	(*ClaimRef)(nil),     // 56: temporal.server.api.modelir.v1.ClaimRef
-	(*Query)(nil),        // 57: temporal.server.api.modelir.v1.Query
-	(*Limits)(nil),       // 58: temporal.server.api.modelir.v1.Limits
-	(*Progress)(nil),     // 59: temporal.server.api.modelir.v1.Progress
+	(Unary_Op)(0),                  // 0: temporal.server.api.modelir.v1.Unary.Op
+	(Binary_Op)(0),                 // 1: temporal.server.api.modelir.v1.Binary.Op
+	(Inbox_Op)(0),                  // 2: temporal.server.api.modelir.v1.Inbox.Op
+	(Channel_Order)(0),             // 3: temporal.server.api.modelir.v1.Channel.Order
+	(Query_Form)(0),                // 4: temporal.server.api.modelir.v1.Query.Form
+	(Role_Kind)(0),                 // 5: temporal.server.api.modelir.v1.Role.Kind
+	(Learned_Kind)(0),              // 6: temporal.server.api.modelir.v1.Learned.Kind
+	(Evidence_Commitment)(0),       // 7: temporal.server.api.modelir.v1.Evidence.Commitment
+	(ResponseRead_Cardinality)(0),  // 8: temporal.server.api.modelir.v1.ResponseRead.Cardinality
+	(Fault_Kind)(0),                // 9: temporal.server.api.modelir.v1.Fault.Kind
+	(*Model)(nil),                  // 10: temporal.server.api.modelir.v1.Model
+	(*Position)(nil),               // 11: temporal.server.api.modelir.v1.Position
+	(*Type)(nil),                   // 12: temporal.server.api.modelir.v1.Type
+	(*Enum)(nil),                   // 13: temporal.server.api.modelir.v1.Enum
+	(*Case)(nil),                   // 14: temporal.server.api.modelir.v1.Case
+	(*Record)(nil),                 // 15: temporal.server.api.modelir.v1.Record
+	(*Field)(nil),                  // 16: temporal.server.api.modelir.v1.Field
+	(*TypeRef)(nil),                // 17: temporal.server.api.modelir.v1.TypeRef
+	(*IntRange)(nil),               // 18: temporal.server.api.modelir.v1.IntRange
+	(*Empty)(nil),                  // 19: temporal.server.api.modelir.v1.Empty
+	(*Function)(nil),               // 20: temporal.server.api.modelir.v1.Function
+	(*Param)(nil),                  // 21: temporal.server.api.modelir.v1.Param
+	(*Expr)(nil),                   // 22: temporal.server.api.modelir.v1.Expr
+	(*FieldAccess)(nil),            // 23: temporal.server.api.modelir.v1.FieldAccess
+	(*Call)(nil),                   // 24: temporal.server.api.modelir.v1.Call
+	(*Construct)(nil),              // 25: temporal.server.api.modelir.v1.Construct
+	(*Copy)(nil),                   // 26: temporal.server.api.modelir.v1.Copy
+	(*NamedExpr)(nil),              // 27: temporal.server.api.modelir.v1.NamedExpr
+	(*Unary)(nil),                  // 28: temporal.server.api.modelir.v1.Unary
+	(*Binary)(nil),                 // 29: temporal.server.api.modelir.v1.Binary
+	(*If)(nil),                     // 30: temporal.server.api.modelir.v1.If
+	(*Match)(nil),                  // 31: temporal.server.api.modelir.v1.Match
+	(*MatchCase)(nil),              // 32: temporal.server.api.modelir.v1.MatchCase
+	(*Pattern)(nil),                // 33: temporal.server.api.modelir.v1.Pattern
+	(*Bind)(nil),                   // 34: temporal.server.api.modelir.v1.Bind
+	(*CasePattern)(nil),            // 35: temporal.server.api.modelir.v1.CasePattern
+	(*Alternatives)(nil),           // 36: temporal.server.api.modelir.v1.Alternatives
+	(*Let)(nil),                    // 37: temporal.server.api.modelir.v1.Let
+	(*ListOf)(nil),                 // 38: temporal.server.api.modelir.v1.ListOf
+	(*Inbox)(nil),                  // 39: temporal.server.api.modelir.v1.Inbox
+	(*Lambda)(nil),                 // 40: temporal.server.api.modelir.v1.Lambda
+	(*Value)(nil),                  // 41: temporal.server.api.modelir.v1.Value
+	(*EnumValue)(nil),              // 42: temporal.server.api.modelir.v1.EnumValue
+	(*RecordValue)(nil),            // 43: temporal.server.api.modelir.v1.RecordValue
+	(*ListValue)(nil),              // 44: temporal.server.api.modelir.v1.ListValue
+	(*Action)(nil),                 // 45: temporal.server.api.modelir.v1.Action
+	(*Example)(nil),                // 46: temporal.server.api.modelir.v1.Example
+	(*Machine)(nil),                // 47: temporal.server.api.modelir.v1.Machine
+	(*StepBinding)(nil),            // 48: temporal.server.api.modelir.v1.StepBinding
+	(*Refinement)(nil),             // 49: temporal.server.api.modelir.v1.Refinement
+	(*Channel)(nil),                // 50: temporal.server.api.modelir.v1.Channel
+	(*Monitor)(nil),                // 51: temporal.server.api.modelir.v1.Monitor
+	(*Assumption)(nil),             // 52: temporal.server.api.modelir.v1.Assumption
+	(*Hole)(nil),                   // 53: temporal.server.api.modelir.v1.Hole
+	(*Composition)(nil),            // 54: temporal.server.api.modelir.v1.Composition
+	(*Member)(nil),                 // 55: temporal.server.api.modelir.v1.Member
+	(*Sync)(nil),                   // 56: temporal.server.api.modelir.v1.Sync
+	(*SyncMove)(nil),               // 57: temporal.server.api.modelir.v1.SyncMove
+	(*ActionClass)(nil),            // 58: temporal.server.api.modelir.v1.ActionClass
+	(*Property)(nil),               // 59: temporal.server.api.modelir.v1.Property
+	(*Scenario)(nil),               // 60: temporal.server.api.modelir.v1.Scenario
+	(*ClaimRef)(nil),               // 61: temporal.server.api.modelir.v1.ClaimRef
+	(*Query)(nil),                  // 62: temporal.server.api.modelir.v1.Query
+	(*Limits)(nil),                 // 63: temporal.server.api.modelir.v1.Limits
+	(*Progress)(nil),               // 64: temporal.server.api.modelir.v1.Progress
+	(*Realization)(nil),            // 65: temporal.server.api.modelir.v1.Realization
+	(*Role)(nil),                   // 66: temporal.server.api.modelir.v1.Role
+	(*Learned)(nil),                // 67: temporal.server.api.modelir.v1.Learned
+	(*Observed)(nil),               // 68: temporal.server.api.modelir.v1.Observed
+	(*Evidence)(nil),               // 69: temporal.server.api.modelir.v1.Evidence
+	(*ReadSource)(nil),             // 70: temporal.server.api.modelir.v1.ReadSource
+	(*Correlation)(nil),            // 71: temporal.server.api.modelir.v1.Correlation
+	(*Control)(nil),                // 72: temporal.server.api.modelir.v1.Control
+	(*Script)(nil),                 // 73: temporal.server.api.modelir.v1.Script
+	(*WorkflowActivation)(nil),     // 74: temporal.server.api.modelir.v1.WorkflowActivation
+	(*NexusHandlerActivation)(nil), // 75: temporal.server.api.modelir.v1.NexusHandlerActivation
+	(*ActivityActivation)(nil),     // 76: temporal.server.api.modelir.v1.ActivityActivation
+	(*Name)(nil),                   // 77: temporal.server.api.modelir.v1.Name
+	(*Item)(nil),                   // 78: temporal.server.api.modelir.v1.Item
+	(*Performance)(nil),            // 79: temporal.server.api.modelir.v1.Performance
+	(*Command)(nil),                // 80: temporal.server.api.modelir.v1.Command
+	(*After)(nil),                  // 81: temporal.server.api.modelir.v1.After
+	(*Rpc)(nil),                    // 82: temporal.server.api.modelir.v1.Rpc
+	(*Assignment)(nil),             // 83: temporal.server.api.modelir.v1.Assignment
+	(*ResponseRead)(nil),           // 84: temporal.server.api.modelir.v1.ResponseRead
+	(*Target)(nil),                 // 85: temporal.server.api.modelir.v1.Target
+	(*Poll)(nil),                   // 86: temporal.server.api.modelir.v1.Poll
+	(*Finish)(nil),                 // 87: temporal.server.api.modelir.v1.Finish
+	(*Fault)(nil),                  // 88: temporal.server.api.modelir.v1.Fault
+	(*WorkflowCommand)(nil),        // 89: temporal.server.api.modelir.v1.WorkflowCommand
+	(*NexusReply)(nil),             // 90: temporal.server.api.modelir.v1.NexusReply
+	(*NexusCompletion)(nil),        // 91: temporal.server.api.modelir.v1.NexusCompletion
+	(*Operand)(nil),                // 92: temporal.server.api.modelir.v1.Operand
+	(*PathOf)(nil),                 // 93: temporal.server.api.modelir.v1.PathOf
+	(*Present)(nil),                // 94: temporal.server.api.modelir.v1.Present
+	(*Equal)(nil),                  // 95: temporal.server.api.modelir.v1.Equal
+	(*Proto)(nil),                  // 96: temporal.server.api.modelir.v1.Proto
+	(*ProtoField)(nil),             // 97: temporal.server.api.modelir.v1.ProtoField
+	(*ProtoValue)(nil),             // 98: temporal.server.api.modelir.v1.ProtoValue
+	(*ProtoMap)(nil),               // 99: temporal.server.api.modelir.v1.ProtoMap
+	(*ProtoEntry)(nil),             // 100: temporal.server.api.modelir.v1.ProtoEntry
 }
 var file_temporal_server_api_modelir_v1_ir_proto_depIdxs = []int32{
-	7,   // 0: temporal.server.api.modelir.v1.Model.types:type_name -> temporal.server.api.modelir.v1.Type
-	15,  // 1: temporal.server.api.modelir.v1.Model.functions:type_name -> temporal.server.api.modelir.v1.Function
-	40,  // 2: temporal.server.api.modelir.v1.Model.actions:type_name -> temporal.server.api.modelir.v1.Action
-	42,  // 3: temporal.server.api.modelir.v1.Model.machines:type_name -> temporal.server.api.modelir.v1.Machine
-	45,  // 4: temporal.server.api.modelir.v1.Model.channels:type_name -> temporal.server.api.modelir.v1.Channel
-	46,  // 5: temporal.server.api.modelir.v1.Model.monitors:type_name -> temporal.server.api.modelir.v1.Monitor
-	47,  // 6: temporal.server.api.modelir.v1.Model.assumptions:type_name -> temporal.server.api.modelir.v1.Assumption
-	48,  // 7: temporal.server.api.modelir.v1.Model.holes:type_name -> temporal.server.api.modelir.v1.Hole
-	49,  // 8: temporal.server.api.modelir.v1.Model.compositions:type_name -> temporal.server.api.modelir.v1.Composition
-	54,  // 9: temporal.server.api.modelir.v1.Model.properties:type_name -> temporal.server.api.modelir.v1.Property
-	55,  // 10: temporal.server.api.modelir.v1.Model.scenarios:type_name -> temporal.server.api.modelir.v1.Scenario
-	57,  // 11: temporal.server.api.modelir.v1.Model.queries:type_name -> temporal.server.api.modelir.v1.Query
-	59,  // 12: temporal.server.api.modelir.v1.Model.progress:type_name -> temporal.server.api.modelir.v1.Progress
-	6,   // 13: temporal.server.api.modelir.v1.Type.position:type_name -> temporal.server.api.modelir.v1.Position
-	8,   // 14: temporal.server.api.modelir.v1.Type.enum:type_name -> temporal.server.api.modelir.v1.Enum
-	10,  // 15: temporal.server.api.modelir.v1.Type.record:type_name -> temporal.server.api.modelir.v1.Record
-	9,   // 16: temporal.server.api.modelir.v1.Enum.cases:type_name -> temporal.server.api.modelir.v1.Case
-	11,  // 17: temporal.server.api.modelir.v1.Case.fields:type_name -> temporal.server.api.modelir.v1.Field
-	11,  // 18: temporal.server.api.modelir.v1.Record.fields:type_name -> temporal.server.api.modelir.v1.Field
-	12,  // 19: temporal.server.api.modelir.v1.Field.type:type_name -> temporal.server.api.modelir.v1.TypeRef
-	14,  // 20: temporal.server.api.modelir.v1.TypeRef.bool:type_name -> temporal.server.api.modelir.v1.Empty
-	13,  // 21: temporal.server.api.modelir.v1.TypeRef.int_range:type_name -> temporal.server.api.modelir.v1.IntRange
-	12,  // 22: temporal.server.api.modelir.v1.TypeRef.list:type_name -> temporal.server.api.modelir.v1.TypeRef
-	14,  // 23: temporal.server.api.modelir.v1.TypeRef.int:type_name -> temporal.server.api.modelir.v1.Empty
-	6,   // 24: temporal.server.api.modelir.v1.Function.position:type_name -> temporal.server.api.modelir.v1.Position
-	16,  // 25: temporal.server.api.modelir.v1.Function.params:type_name -> temporal.server.api.modelir.v1.Param
-	17,  // 26: temporal.server.api.modelir.v1.Function.body:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 27: temporal.server.api.modelir.v1.Function.requires:type_name -> temporal.server.api.modelir.v1.Expr
-	12,  // 28: temporal.server.api.modelir.v1.Param.type:type_name -> temporal.server.api.modelir.v1.TypeRef
-	6,   // 29: temporal.server.api.modelir.v1.Expr.position:type_name -> temporal.server.api.modelir.v1.Position
-	36,  // 30: temporal.server.api.modelir.v1.Expr.literal:type_name -> temporal.server.api.modelir.v1.Value
-	18,  // 31: temporal.server.api.modelir.v1.Expr.field:type_name -> temporal.server.api.modelir.v1.FieldAccess
-	19,  // 32: temporal.server.api.modelir.v1.Expr.call:type_name -> temporal.server.api.modelir.v1.Call
-	20,  // 33: temporal.server.api.modelir.v1.Expr.construct:type_name -> temporal.server.api.modelir.v1.Construct
-	21,  // 34: temporal.server.api.modelir.v1.Expr.copy:type_name -> temporal.server.api.modelir.v1.Copy
-	23,  // 35: temporal.server.api.modelir.v1.Expr.unary:type_name -> temporal.server.api.modelir.v1.Unary
-	24,  // 36: temporal.server.api.modelir.v1.Expr.binary:type_name -> temporal.server.api.modelir.v1.Binary
-	25,  // 37: temporal.server.api.modelir.v1.Expr.if:type_name -> temporal.server.api.modelir.v1.If
-	26,  // 38: temporal.server.api.modelir.v1.Expr.match:type_name -> temporal.server.api.modelir.v1.Match
-	32,  // 39: temporal.server.api.modelir.v1.Expr.let:type_name -> temporal.server.api.modelir.v1.Let
-	33,  // 40: temporal.server.api.modelir.v1.Expr.list:type_name -> temporal.server.api.modelir.v1.ListOf
-	35,  // 41: temporal.server.api.modelir.v1.Expr.lambda:type_name -> temporal.server.api.modelir.v1.Lambda
-	34,  // 42: temporal.server.api.modelir.v1.Expr.inbox:type_name -> temporal.server.api.modelir.v1.Inbox
-	17,  // 43: temporal.server.api.modelir.v1.FieldAccess.base:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 44: temporal.server.api.modelir.v1.Call.args:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 45: temporal.server.api.modelir.v1.Construct.args:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 46: temporal.server.api.modelir.v1.Copy.base:type_name -> temporal.server.api.modelir.v1.Expr
-	22,  // 47: temporal.server.api.modelir.v1.Copy.updates:type_name -> temporal.server.api.modelir.v1.NamedExpr
-	17,  // 48: temporal.server.api.modelir.v1.NamedExpr.value:type_name -> temporal.server.api.modelir.v1.Expr
-	0,   // 49: temporal.server.api.modelir.v1.Unary.op:type_name -> temporal.server.api.modelir.v1.Unary.Op
-	17,  // 50: temporal.server.api.modelir.v1.Unary.operand:type_name -> temporal.server.api.modelir.v1.Expr
-	1,   // 51: temporal.server.api.modelir.v1.Binary.op:type_name -> temporal.server.api.modelir.v1.Binary.Op
-	17,  // 52: temporal.server.api.modelir.v1.Binary.left:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 53: temporal.server.api.modelir.v1.Binary.right:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 54: temporal.server.api.modelir.v1.If.condition:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 55: temporal.server.api.modelir.v1.If.then:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 56: temporal.server.api.modelir.v1.If.else:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 57: temporal.server.api.modelir.v1.Match.scrutinee:type_name -> temporal.server.api.modelir.v1.Expr
-	27,  // 58: temporal.server.api.modelir.v1.Match.cases:type_name -> temporal.server.api.modelir.v1.MatchCase
-	28,  // 59: temporal.server.api.modelir.v1.MatchCase.pattern:type_name -> temporal.server.api.modelir.v1.Pattern
-	17,  // 60: temporal.server.api.modelir.v1.MatchCase.guard:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 61: temporal.server.api.modelir.v1.MatchCase.body:type_name -> temporal.server.api.modelir.v1.Expr
-	14,  // 62: temporal.server.api.modelir.v1.Pattern.wildcard:type_name -> temporal.server.api.modelir.v1.Empty
-	29,  // 63: temporal.server.api.modelir.v1.Pattern.bind:type_name -> temporal.server.api.modelir.v1.Bind
-	36,  // 64: temporal.server.api.modelir.v1.Pattern.literal:type_name -> temporal.server.api.modelir.v1.Value
-	30,  // 65: temporal.server.api.modelir.v1.Pattern.case:type_name -> temporal.server.api.modelir.v1.CasePattern
-	31,  // 66: temporal.server.api.modelir.v1.Pattern.alternatives:type_name -> temporal.server.api.modelir.v1.Alternatives
-	28,  // 67: temporal.server.api.modelir.v1.Bind.pattern:type_name -> temporal.server.api.modelir.v1.Pattern
-	28,  // 68: temporal.server.api.modelir.v1.CasePattern.fields:type_name -> temporal.server.api.modelir.v1.Pattern
-	28,  // 69: temporal.server.api.modelir.v1.Alternatives.patterns:type_name -> temporal.server.api.modelir.v1.Pattern
-	17,  // 70: temporal.server.api.modelir.v1.Let.value:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 71: temporal.server.api.modelir.v1.Let.body:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 72: temporal.server.api.modelir.v1.ListOf.items:type_name -> temporal.server.api.modelir.v1.Expr
-	2,   // 73: temporal.server.api.modelir.v1.Inbox.op:type_name -> temporal.server.api.modelir.v1.Inbox.Op
-	17,  // 74: temporal.server.api.modelir.v1.Inbox.contents:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 75: temporal.server.api.modelir.v1.Inbox.message:type_name -> temporal.server.api.modelir.v1.Expr
-	16,  // 76: temporal.server.api.modelir.v1.Lambda.params:type_name -> temporal.server.api.modelir.v1.Param
-	17,  // 77: temporal.server.api.modelir.v1.Lambda.body:type_name -> temporal.server.api.modelir.v1.Expr
-	37,  // 78: temporal.server.api.modelir.v1.Value.enum:type_name -> temporal.server.api.modelir.v1.EnumValue
-	38,  // 79: temporal.server.api.modelir.v1.Value.record:type_name -> temporal.server.api.modelir.v1.RecordValue
-	39,  // 80: temporal.server.api.modelir.v1.Value.list:type_name -> temporal.server.api.modelir.v1.ListValue
-	36,  // 81: temporal.server.api.modelir.v1.EnumValue.fields:type_name -> temporal.server.api.modelir.v1.Value
-	36,  // 82: temporal.server.api.modelir.v1.RecordValue.fields:type_name -> temporal.server.api.modelir.v1.Value
-	36,  // 83: temporal.server.api.modelir.v1.ListValue.items:type_name -> temporal.server.api.modelir.v1.Value
-	6,   // 84: temporal.server.api.modelir.v1.Action.position:type_name -> temporal.server.api.modelir.v1.Position
-	16,  // 85: temporal.server.api.modelir.v1.Action.inputs:type_name -> temporal.server.api.modelir.v1.Param
-	41,  // 86: temporal.server.api.modelir.v1.Action.examples:type_name -> temporal.server.api.modelir.v1.Example
-	36,  // 87: temporal.server.api.modelir.v1.Example.value:type_name -> temporal.server.api.modelir.v1.Value
-	6,   // 88: temporal.server.api.modelir.v1.Machine.position:type_name -> temporal.server.api.modelir.v1.Position
-	17,  // 89: temporal.server.api.modelir.v1.Machine.starts:type_name -> temporal.server.api.modelir.v1.Expr
-	17,  // 90: temporal.server.api.modelir.v1.Machine.ends:type_name -> temporal.server.api.modelir.v1.Expr
-	43,  // 91: temporal.server.api.modelir.v1.Machine.steps:type_name -> temporal.server.api.modelir.v1.StepBinding
-	44,  // 92: temporal.server.api.modelir.v1.Machine.refines:type_name -> temporal.server.api.modelir.v1.Refinement
-	6,   // 93: temporal.server.api.modelir.v1.StepBinding.position:type_name -> temporal.server.api.modelir.v1.Position
-	6,   // 94: temporal.server.api.modelir.v1.Channel.position:type_name -> temporal.server.api.modelir.v1.Position
-	12,  // 95: temporal.server.api.modelir.v1.Channel.message:type_name -> temporal.server.api.modelir.v1.TypeRef
-	3,   // 96: temporal.server.api.modelir.v1.Channel.order:type_name -> temporal.server.api.modelir.v1.Channel.Order
-	6,   // 97: temporal.server.api.modelir.v1.Monitor.position:type_name -> temporal.server.api.modelir.v1.Position
-	12,  // 98: temporal.server.api.modelir.v1.Monitor.state:type_name -> temporal.server.api.modelir.v1.TypeRef
-	17,  // 99: temporal.server.api.modelir.v1.Monitor.initial:type_name -> temporal.server.api.modelir.v1.Expr
-	14,  // 100: temporal.server.api.modelir.v1.Monitor.every_step:type_name -> temporal.server.api.modelir.v1.Empty
-	14,  // 101: temporal.server.api.modelir.v1.Monitor.at_ends:type_name -> temporal.server.api.modelir.v1.Empty
-	6,   // 102: temporal.server.api.modelir.v1.Assumption.position:type_name -> temporal.server.api.modelir.v1.Position
-	6,   // 103: temporal.server.api.modelir.v1.Hole.position:type_name -> temporal.server.api.modelir.v1.Position
-	6,   // 104: temporal.server.api.modelir.v1.Composition.position:type_name -> temporal.server.api.modelir.v1.Position
-	50,  // 105: temporal.server.api.modelir.v1.Composition.members:type_name -> temporal.server.api.modelir.v1.Member
-	51,  // 106: temporal.server.api.modelir.v1.Composition.syncs:type_name -> temporal.server.api.modelir.v1.Sync
-	17,  // 107: temporal.server.api.modelir.v1.Composition.ends:type_name -> temporal.server.api.modelir.v1.Expr
-	52,  // 108: temporal.server.api.modelir.v1.Sync.first:type_name -> temporal.server.api.modelir.v1.SyncMove
-	52,  // 109: temporal.server.api.modelir.v1.Sync.second:type_name -> temporal.server.api.modelir.v1.SyncMove
-	36,  // 110: temporal.server.api.modelir.v1.ActionClass.inputs:type_name -> temporal.server.api.modelir.v1.Value
-	6,   // 111: temporal.server.api.modelir.v1.Property.position:type_name -> temporal.server.api.modelir.v1.Position
-	53,  // 112: temporal.server.api.modelir.v1.Property.when_class:type_name -> temporal.server.api.modelir.v1.ActionClass
-	6,   // 113: temporal.server.api.modelir.v1.Scenario.position:type_name -> temporal.server.api.modelir.v1.Position
-	17,  // 114: temporal.server.api.modelir.v1.Scenario.start:type_name -> temporal.server.api.modelir.v1.Expr
-	53,  // 115: temporal.server.api.modelir.v1.Scenario.actions:type_name -> temporal.server.api.modelir.v1.ActionClass
-	6,   // 116: temporal.server.api.modelir.v1.Query.position:type_name -> temporal.server.api.modelir.v1.Position
-	4,   // 117: temporal.server.api.modelir.v1.Query.form:type_name -> temporal.server.api.modelir.v1.Query.Form
-	56,  // 118: temporal.server.api.modelir.v1.Query.property:type_name -> temporal.server.api.modelir.v1.ClaimRef
-	56,  // 119: temporal.server.api.modelir.v1.Query.scenario:type_name -> temporal.server.api.modelir.v1.ClaimRef
-	58,  // 120: temporal.server.api.modelir.v1.Query.limits:type_name -> temporal.server.api.modelir.v1.Limits
-	6,   // 121: temporal.server.api.modelir.v1.Progress.position:type_name -> temporal.server.api.modelir.v1.Position
-	122, // [122:122] is the sub-list for method output_type
-	122, // [122:122] is the sub-list for method input_type
-	122, // [122:122] is the sub-list for extension type_name
-	122, // [122:122] is the sub-list for extension extendee
-	0,   // [0:122] is the sub-list for field type_name
+	12,  // 0: temporal.server.api.modelir.v1.Model.types:type_name -> temporal.server.api.modelir.v1.Type
+	20,  // 1: temporal.server.api.modelir.v1.Model.functions:type_name -> temporal.server.api.modelir.v1.Function
+	45,  // 2: temporal.server.api.modelir.v1.Model.actions:type_name -> temporal.server.api.modelir.v1.Action
+	47,  // 3: temporal.server.api.modelir.v1.Model.machines:type_name -> temporal.server.api.modelir.v1.Machine
+	50,  // 4: temporal.server.api.modelir.v1.Model.channels:type_name -> temporal.server.api.modelir.v1.Channel
+	51,  // 5: temporal.server.api.modelir.v1.Model.monitors:type_name -> temporal.server.api.modelir.v1.Monitor
+	52,  // 6: temporal.server.api.modelir.v1.Model.assumptions:type_name -> temporal.server.api.modelir.v1.Assumption
+	53,  // 7: temporal.server.api.modelir.v1.Model.holes:type_name -> temporal.server.api.modelir.v1.Hole
+	54,  // 8: temporal.server.api.modelir.v1.Model.compositions:type_name -> temporal.server.api.modelir.v1.Composition
+	59,  // 9: temporal.server.api.modelir.v1.Model.properties:type_name -> temporal.server.api.modelir.v1.Property
+	60,  // 10: temporal.server.api.modelir.v1.Model.scenarios:type_name -> temporal.server.api.modelir.v1.Scenario
+	62,  // 11: temporal.server.api.modelir.v1.Model.queries:type_name -> temporal.server.api.modelir.v1.Query
+	64,  // 12: temporal.server.api.modelir.v1.Model.progress:type_name -> temporal.server.api.modelir.v1.Progress
+	65,  // 13: temporal.server.api.modelir.v1.Model.realizations:type_name -> temporal.server.api.modelir.v1.Realization
+	11,  // 14: temporal.server.api.modelir.v1.Type.position:type_name -> temporal.server.api.modelir.v1.Position
+	13,  // 15: temporal.server.api.modelir.v1.Type.enum:type_name -> temporal.server.api.modelir.v1.Enum
+	15,  // 16: temporal.server.api.modelir.v1.Type.record:type_name -> temporal.server.api.modelir.v1.Record
+	14,  // 17: temporal.server.api.modelir.v1.Enum.cases:type_name -> temporal.server.api.modelir.v1.Case
+	16,  // 18: temporal.server.api.modelir.v1.Case.fields:type_name -> temporal.server.api.modelir.v1.Field
+	16,  // 19: temporal.server.api.modelir.v1.Record.fields:type_name -> temporal.server.api.modelir.v1.Field
+	17,  // 20: temporal.server.api.modelir.v1.Field.type:type_name -> temporal.server.api.modelir.v1.TypeRef
+	19,  // 21: temporal.server.api.modelir.v1.TypeRef.bool:type_name -> temporal.server.api.modelir.v1.Empty
+	18,  // 22: temporal.server.api.modelir.v1.TypeRef.int_range:type_name -> temporal.server.api.modelir.v1.IntRange
+	17,  // 23: temporal.server.api.modelir.v1.TypeRef.list:type_name -> temporal.server.api.modelir.v1.TypeRef
+	19,  // 24: temporal.server.api.modelir.v1.TypeRef.int:type_name -> temporal.server.api.modelir.v1.Empty
+	11,  // 25: temporal.server.api.modelir.v1.Function.position:type_name -> temporal.server.api.modelir.v1.Position
+	21,  // 26: temporal.server.api.modelir.v1.Function.params:type_name -> temporal.server.api.modelir.v1.Param
+	22,  // 27: temporal.server.api.modelir.v1.Function.body:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 28: temporal.server.api.modelir.v1.Function.requires:type_name -> temporal.server.api.modelir.v1.Expr
+	17,  // 29: temporal.server.api.modelir.v1.Param.type:type_name -> temporal.server.api.modelir.v1.TypeRef
+	11,  // 30: temporal.server.api.modelir.v1.Expr.position:type_name -> temporal.server.api.modelir.v1.Position
+	41,  // 31: temporal.server.api.modelir.v1.Expr.literal:type_name -> temporal.server.api.modelir.v1.Value
+	23,  // 32: temporal.server.api.modelir.v1.Expr.field:type_name -> temporal.server.api.modelir.v1.FieldAccess
+	24,  // 33: temporal.server.api.modelir.v1.Expr.call:type_name -> temporal.server.api.modelir.v1.Call
+	25,  // 34: temporal.server.api.modelir.v1.Expr.construct:type_name -> temporal.server.api.modelir.v1.Construct
+	26,  // 35: temporal.server.api.modelir.v1.Expr.copy:type_name -> temporal.server.api.modelir.v1.Copy
+	28,  // 36: temporal.server.api.modelir.v1.Expr.unary:type_name -> temporal.server.api.modelir.v1.Unary
+	29,  // 37: temporal.server.api.modelir.v1.Expr.binary:type_name -> temporal.server.api.modelir.v1.Binary
+	30,  // 38: temporal.server.api.modelir.v1.Expr.if:type_name -> temporal.server.api.modelir.v1.If
+	31,  // 39: temporal.server.api.modelir.v1.Expr.match:type_name -> temporal.server.api.modelir.v1.Match
+	37,  // 40: temporal.server.api.modelir.v1.Expr.let:type_name -> temporal.server.api.modelir.v1.Let
+	38,  // 41: temporal.server.api.modelir.v1.Expr.list:type_name -> temporal.server.api.modelir.v1.ListOf
+	40,  // 42: temporal.server.api.modelir.v1.Expr.lambda:type_name -> temporal.server.api.modelir.v1.Lambda
+	39,  // 43: temporal.server.api.modelir.v1.Expr.inbox:type_name -> temporal.server.api.modelir.v1.Inbox
+	22,  // 44: temporal.server.api.modelir.v1.FieldAccess.base:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 45: temporal.server.api.modelir.v1.Call.args:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 46: temporal.server.api.modelir.v1.Construct.args:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 47: temporal.server.api.modelir.v1.Copy.base:type_name -> temporal.server.api.modelir.v1.Expr
+	27,  // 48: temporal.server.api.modelir.v1.Copy.updates:type_name -> temporal.server.api.modelir.v1.NamedExpr
+	22,  // 49: temporal.server.api.modelir.v1.NamedExpr.value:type_name -> temporal.server.api.modelir.v1.Expr
+	0,   // 50: temporal.server.api.modelir.v1.Unary.op:type_name -> temporal.server.api.modelir.v1.Unary.Op
+	22,  // 51: temporal.server.api.modelir.v1.Unary.operand:type_name -> temporal.server.api.modelir.v1.Expr
+	1,   // 52: temporal.server.api.modelir.v1.Binary.op:type_name -> temporal.server.api.modelir.v1.Binary.Op
+	22,  // 53: temporal.server.api.modelir.v1.Binary.left:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 54: temporal.server.api.modelir.v1.Binary.right:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 55: temporal.server.api.modelir.v1.If.condition:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 56: temporal.server.api.modelir.v1.If.then:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 57: temporal.server.api.modelir.v1.If.else:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 58: temporal.server.api.modelir.v1.Match.scrutinee:type_name -> temporal.server.api.modelir.v1.Expr
+	32,  // 59: temporal.server.api.modelir.v1.Match.cases:type_name -> temporal.server.api.modelir.v1.MatchCase
+	33,  // 60: temporal.server.api.modelir.v1.MatchCase.pattern:type_name -> temporal.server.api.modelir.v1.Pattern
+	22,  // 61: temporal.server.api.modelir.v1.MatchCase.guard:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 62: temporal.server.api.modelir.v1.MatchCase.body:type_name -> temporal.server.api.modelir.v1.Expr
+	19,  // 63: temporal.server.api.modelir.v1.Pattern.wildcard:type_name -> temporal.server.api.modelir.v1.Empty
+	34,  // 64: temporal.server.api.modelir.v1.Pattern.bind:type_name -> temporal.server.api.modelir.v1.Bind
+	41,  // 65: temporal.server.api.modelir.v1.Pattern.literal:type_name -> temporal.server.api.modelir.v1.Value
+	35,  // 66: temporal.server.api.modelir.v1.Pattern.case:type_name -> temporal.server.api.modelir.v1.CasePattern
+	36,  // 67: temporal.server.api.modelir.v1.Pattern.alternatives:type_name -> temporal.server.api.modelir.v1.Alternatives
+	33,  // 68: temporal.server.api.modelir.v1.Bind.pattern:type_name -> temporal.server.api.modelir.v1.Pattern
+	33,  // 69: temporal.server.api.modelir.v1.CasePattern.fields:type_name -> temporal.server.api.modelir.v1.Pattern
+	33,  // 70: temporal.server.api.modelir.v1.Alternatives.patterns:type_name -> temporal.server.api.modelir.v1.Pattern
+	22,  // 71: temporal.server.api.modelir.v1.Let.value:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 72: temporal.server.api.modelir.v1.Let.body:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 73: temporal.server.api.modelir.v1.ListOf.items:type_name -> temporal.server.api.modelir.v1.Expr
+	2,   // 74: temporal.server.api.modelir.v1.Inbox.op:type_name -> temporal.server.api.modelir.v1.Inbox.Op
+	22,  // 75: temporal.server.api.modelir.v1.Inbox.contents:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 76: temporal.server.api.modelir.v1.Inbox.message:type_name -> temporal.server.api.modelir.v1.Expr
+	21,  // 77: temporal.server.api.modelir.v1.Lambda.params:type_name -> temporal.server.api.modelir.v1.Param
+	22,  // 78: temporal.server.api.modelir.v1.Lambda.body:type_name -> temporal.server.api.modelir.v1.Expr
+	42,  // 79: temporal.server.api.modelir.v1.Value.enum:type_name -> temporal.server.api.modelir.v1.EnumValue
+	43,  // 80: temporal.server.api.modelir.v1.Value.record:type_name -> temporal.server.api.modelir.v1.RecordValue
+	44,  // 81: temporal.server.api.modelir.v1.Value.list:type_name -> temporal.server.api.modelir.v1.ListValue
+	41,  // 82: temporal.server.api.modelir.v1.EnumValue.fields:type_name -> temporal.server.api.modelir.v1.Value
+	41,  // 83: temporal.server.api.modelir.v1.RecordValue.fields:type_name -> temporal.server.api.modelir.v1.Value
+	41,  // 84: temporal.server.api.modelir.v1.ListValue.items:type_name -> temporal.server.api.modelir.v1.Value
+	11,  // 85: temporal.server.api.modelir.v1.Action.position:type_name -> temporal.server.api.modelir.v1.Position
+	21,  // 86: temporal.server.api.modelir.v1.Action.inputs:type_name -> temporal.server.api.modelir.v1.Param
+	46,  // 87: temporal.server.api.modelir.v1.Action.examples:type_name -> temporal.server.api.modelir.v1.Example
+	41,  // 88: temporal.server.api.modelir.v1.Example.value:type_name -> temporal.server.api.modelir.v1.Value
+	11,  // 89: temporal.server.api.modelir.v1.Machine.position:type_name -> temporal.server.api.modelir.v1.Position
+	22,  // 90: temporal.server.api.modelir.v1.Machine.starts:type_name -> temporal.server.api.modelir.v1.Expr
+	22,  // 91: temporal.server.api.modelir.v1.Machine.ends:type_name -> temporal.server.api.modelir.v1.Expr
+	48,  // 92: temporal.server.api.modelir.v1.Machine.steps:type_name -> temporal.server.api.modelir.v1.StepBinding
+	49,  // 93: temporal.server.api.modelir.v1.Machine.refines:type_name -> temporal.server.api.modelir.v1.Refinement
+	11,  // 94: temporal.server.api.modelir.v1.StepBinding.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 95: temporal.server.api.modelir.v1.Channel.position:type_name -> temporal.server.api.modelir.v1.Position
+	17,  // 96: temporal.server.api.modelir.v1.Channel.message:type_name -> temporal.server.api.modelir.v1.TypeRef
+	3,   // 97: temporal.server.api.modelir.v1.Channel.order:type_name -> temporal.server.api.modelir.v1.Channel.Order
+	11,  // 98: temporal.server.api.modelir.v1.Monitor.position:type_name -> temporal.server.api.modelir.v1.Position
+	17,  // 99: temporal.server.api.modelir.v1.Monitor.state:type_name -> temporal.server.api.modelir.v1.TypeRef
+	22,  // 100: temporal.server.api.modelir.v1.Monitor.initial:type_name -> temporal.server.api.modelir.v1.Expr
+	19,  // 101: temporal.server.api.modelir.v1.Monitor.every_step:type_name -> temporal.server.api.modelir.v1.Empty
+	19,  // 102: temporal.server.api.modelir.v1.Monitor.at_ends:type_name -> temporal.server.api.modelir.v1.Empty
+	11,  // 103: temporal.server.api.modelir.v1.Assumption.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 104: temporal.server.api.modelir.v1.Hole.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 105: temporal.server.api.modelir.v1.Composition.position:type_name -> temporal.server.api.modelir.v1.Position
+	55,  // 106: temporal.server.api.modelir.v1.Composition.members:type_name -> temporal.server.api.modelir.v1.Member
+	56,  // 107: temporal.server.api.modelir.v1.Composition.syncs:type_name -> temporal.server.api.modelir.v1.Sync
+	22,  // 108: temporal.server.api.modelir.v1.Composition.ends:type_name -> temporal.server.api.modelir.v1.Expr
+	57,  // 109: temporal.server.api.modelir.v1.Sync.first:type_name -> temporal.server.api.modelir.v1.SyncMove
+	57,  // 110: temporal.server.api.modelir.v1.Sync.second:type_name -> temporal.server.api.modelir.v1.SyncMove
+	41,  // 111: temporal.server.api.modelir.v1.ActionClass.inputs:type_name -> temporal.server.api.modelir.v1.Value
+	11,  // 112: temporal.server.api.modelir.v1.Property.position:type_name -> temporal.server.api.modelir.v1.Position
+	58,  // 113: temporal.server.api.modelir.v1.Property.when_class:type_name -> temporal.server.api.modelir.v1.ActionClass
+	11,  // 114: temporal.server.api.modelir.v1.Scenario.position:type_name -> temporal.server.api.modelir.v1.Position
+	22,  // 115: temporal.server.api.modelir.v1.Scenario.start:type_name -> temporal.server.api.modelir.v1.Expr
+	58,  // 116: temporal.server.api.modelir.v1.Scenario.actions:type_name -> temporal.server.api.modelir.v1.ActionClass
+	11,  // 117: temporal.server.api.modelir.v1.Query.position:type_name -> temporal.server.api.modelir.v1.Position
+	4,   // 118: temporal.server.api.modelir.v1.Query.form:type_name -> temporal.server.api.modelir.v1.Query.Form
+	61,  // 119: temporal.server.api.modelir.v1.Query.property:type_name -> temporal.server.api.modelir.v1.ClaimRef
+	61,  // 120: temporal.server.api.modelir.v1.Query.scenario:type_name -> temporal.server.api.modelir.v1.ClaimRef
+	63,  // 121: temporal.server.api.modelir.v1.Query.limits:type_name -> temporal.server.api.modelir.v1.Limits
+	11,  // 122: temporal.server.api.modelir.v1.Progress.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 123: temporal.server.api.modelir.v1.Realization.position:type_name -> temporal.server.api.modelir.v1.Position
+	66,  // 124: temporal.server.api.modelir.v1.Realization.roles:type_name -> temporal.server.api.modelir.v1.Role
+	67,  // 125: temporal.server.api.modelir.v1.Realization.learned:type_name -> temporal.server.api.modelir.v1.Learned
+	68,  // 126: temporal.server.api.modelir.v1.Realization.observations:type_name -> temporal.server.api.modelir.v1.Observed
+	69,  // 127: temporal.server.api.modelir.v1.Realization.evidence:type_name -> temporal.server.api.modelir.v1.Evidence
+	71,  // 128: temporal.server.api.modelir.v1.Realization.correlation:type_name -> temporal.server.api.modelir.v1.Correlation
+	72,  // 129: temporal.server.api.modelir.v1.Realization.controls:type_name -> temporal.server.api.modelir.v1.Control
+	73,  // 130: temporal.server.api.modelir.v1.Realization.scripts:type_name -> temporal.server.api.modelir.v1.Script
+	11,  // 131: temporal.server.api.modelir.v1.Role.position:type_name -> temporal.server.api.modelir.v1.Position
+	5,   // 132: temporal.server.api.modelir.v1.Role.kind:type_name -> temporal.server.api.modelir.v1.Role.Kind
+	11,  // 133: temporal.server.api.modelir.v1.Learned.position:type_name -> temporal.server.api.modelir.v1.Position
+	6,   // 134: temporal.server.api.modelir.v1.Learned.kind:type_name -> temporal.server.api.modelir.v1.Learned.Kind
+	11,  // 135: temporal.server.api.modelir.v1.Observed.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 136: temporal.server.api.modelir.v1.Evidence.position:type_name -> temporal.server.api.modelir.v1.Position
+	70,  // 137: temporal.server.api.modelir.v1.Evidence.read:type_name -> temporal.server.api.modelir.v1.ReadSource
+	7,   // 138: temporal.server.api.modelir.v1.Evidence.commitment:type_name -> temporal.server.api.modelir.v1.Evidence.Commitment
+	11,  // 139: temporal.server.api.modelir.v1.Correlation.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 140: temporal.server.api.modelir.v1.Control.position:type_name -> temporal.server.api.modelir.v1.Position
+	11,  // 141: temporal.server.api.modelir.v1.Script.position:type_name -> temporal.server.api.modelir.v1.Position
+	19,  // 142: temporal.server.api.modelir.v1.Script.controller:type_name -> temporal.server.api.modelir.v1.Empty
+	74,  // 143: temporal.server.api.modelir.v1.Script.workflow:type_name -> temporal.server.api.modelir.v1.WorkflowActivation
+	75,  // 144: temporal.server.api.modelir.v1.Script.nexus_handler:type_name -> temporal.server.api.modelir.v1.NexusHandlerActivation
+	76,  // 145: temporal.server.api.modelir.v1.Script.activity:type_name -> temporal.server.api.modelir.v1.ActivityActivation
+	78,  // 146: temporal.server.api.modelir.v1.Script.items:type_name -> temporal.server.api.modelir.v1.Item
+	77,  // 147: temporal.server.api.modelir.v1.WorkflowActivation.workflow_type:type_name -> temporal.server.api.modelir.v1.Name
+	77,  // 148: temporal.server.api.modelir.v1.ActivityActivation.activity_type:type_name -> temporal.server.api.modelir.v1.Name
+	11,  // 149: temporal.server.api.modelir.v1.Item.position:type_name -> temporal.server.api.modelir.v1.Position
+	80,  // 150: temporal.server.api.modelir.v1.Item.command:type_name -> temporal.server.api.modelir.v1.Command
+	58,  // 151: temporal.server.api.modelir.v1.Item.when:type_name -> temporal.server.api.modelir.v1.ActionClass
+	79,  // 152: temporal.server.api.modelir.v1.Item.performs:type_name -> temporal.server.api.modelir.v1.Performance
+	11,  // 153: temporal.server.api.modelir.v1.Performance.position:type_name -> temporal.server.api.modelir.v1.Position
+	58,  // 154: temporal.server.api.modelir.v1.Performance.step:type_name -> temporal.server.api.modelir.v1.ActionClass
+	80,  // 155: temporal.server.api.modelir.v1.Performance.command:type_name -> temporal.server.api.modelir.v1.Command
+	11,  // 156: temporal.server.api.modelir.v1.Command.position:type_name -> temporal.server.api.modelir.v1.Position
+	81,  // 157: temporal.server.api.modelir.v1.Command.after:type_name -> temporal.server.api.modelir.v1.After
+	82,  // 158: temporal.server.api.modelir.v1.Command.rpc:type_name -> temporal.server.api.modelir.v1.Rpc
+	86,  // 159: temporal.server.api.modelir.v1.Command.poll:type_name -> temporal.server.api.modelir.v1.Poll
+	87,  // 160: temporal.server.api.modelir.v1.Command.finish:type_name -> temporal.server.api.modelir.v1.Finish
+	88,  // 161: temporal.server.api.modelir.v1.Command.fault:type_name -> temporal.server.api.modelir.v1.Fault
+	89,  // 162: temporal.server.api.modelir.v1.Command.workflow_command:type_name -> temporal.server.api.modelir.v1.WorkflowCommand
+	90,  // 163: temporal.server.api.modelir.v1.Command.nexus_reply:type_name -> temporal.server.api.modelir.v1.NexusReply
+	91,  // 164: temporal.server.api.modelir.v1.Command.nexus_completion:type_name -> temporal.server.api.modelir.v1.NexusCompletion
+	83,  // 165: temporal.server.api.modelir.v1.Rpc.assign:type_name -> temporal.server.api.modelir.v1.Assignment
+	84,  // 166: temporal.server.api.modelir.v1.Rpc.reads:type_name -> temporal.server.api.modelir.v1.ResponseRead
+	92,  // 167: temporal.server.api.modelir.v1.Assignment.value:type_name -> temporal.server.api.modelir.v1.Operand
+	8,   // 168: temporal.server.api.modelir.v1.ResponseRead.cardinality:type_name -> temporal.server.api.modelir.v1.ResponseRead.Cardinality
+	85,  // 169: temporal.server.api.modelir.v1.ResponseRead.targets:type_name -> temporal.server.api.modelir.v1.Target
+	83,  // 170: temporal.server.api.modelir.v1.Poll.assign:type_name -> temporal.server.api.modelir.v1.Assignment
+	92,  // 171: temporal.server.api.modelir.v1.Poll.until:type_name -> temporal.server.api.modelir.v1.Operand
+	92,  // 172: temporal.server.api.modelir.v1.Finish.result:type_name -> temporal.server.api.modelir.v1.Operand
+	9,   // 173: temporal.server.api.modelir.v1.Fault.kind:type_name -> temporal.server.api.modelir.v1.Fault.Kind
+	96,  // 174: temporal.server.api.modelir.v1.WorkflowCommand.command:type_name -> temporal.server.api.modelir.v1.Proto
+	96,  // 175: temporal.server.api.modelir.v1.NexusReply.reply:type_name -> temporal.server.api.modelir.v1.Proto
+	96,  // 176: temporal.server.api.modelir.v1.NexusCompletion.result:type_name -> temporal.server.api.modelir.v1.Proto
+	11,  // 177: temporal.server.api.modelir.v1.Operand.position:type_name -> temporal.server.api.modelir.v1.Position
+	98,  // 178: temporal.server.api.modelir.v1.Operand.literal:type_name -> temporal.server.api.modelir.v1.ProtoValue
+	19,  // 179: temporal.server.api.modelir.v1.Operand.run:type_name -> temporal.server.api.modelir.v1.Empty
+	19,  // 180: temporal.server.api.modelir.v1.Operand.projected:type_name -> temporal.server.api.modelir.v1.Empty
+	93,  // 181: temporal.server.api.modelir.v1.Operand.path:type_name -> temporal.server.api.modelir.v1.PathOf
+	94,  // 182: temporal.server.api.modelir.v1.Operand.present:type_name -> temporal.server.api.modelir.v1.Present
+	95,  // 183: temporal.server.api.modelir.v1.Operand.equal:type_name -> temporal.server.api.modelir.v1.Equal
+	92,  // 184: temporal.server.api.modelir.v1.PathOf.of:type_name -> temporal.server.api.modelir.v1.Operand
+	92,  // 185: temporal.server.api.modelir.v1.Present.of:type_name -> temporal.server.api.modelir.v1.Operand
+	92,  // 186: temporal.server.api.modelir.v1.Equal.left:type_name -> temporal.server.api.modelir.v1.Operand
+	92,  // 187: temporal.server.api.modelir.v1.Equal.right:type_name -> temporal.server.api.modelir.v1.Operand
+	11,  // 188: temporal.server.api.modelir.v1.Proto.position:type_name -> temporal.server.api.modelir.v1.Position
+	97,  // 189: temporal.server.api.modelir.v1.Proto.fields:type_name -> temporal.server.api.modelir.v1.ProtoField
+	98,  // 190: temporal.server.api.modelir.v1.ProtoField.value:type_name -> temporal.server.api.modelir.v1.ProtoValue
+	96,  // 191: temporal.server.api.modelir.v1.ProtoValue.message:type_name -> temporal.server.api.modelir.v1.Proto
+	99,  // 192: temporal.server.api.modelir.v1.ProtoValue.mapping:type_name -> temporal.server.api.modelir.v1.ProtoMap
+	77,  // 193: temporal.server.api.modelir.v1.ProtoValue.named:type_name -> temporal.server.api.modelir.v1.Name
+	100, // 194: temporal.server.api.modelir.v1.ProtoMap.entries:type_name -> temporal.server.api.modelir.v1.ProtoEntry
+	98,  // 195: temporal.server.api.modelir.v1.ProtoEntry.value:type_name -> temporal.server.api.modelir.v1.ProtoValue
+	196, // [196:196] is the sub-list for method output_type
+	196, // [196:196] is the sub-list for method input_type
+	196, // [196:196] is the sub-list for extension type_name
+	196, // [196:196] is the sub-list for extension extendee
+	0,   // [0:196] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_modelir_v1_ir_proto_init() }
@@ -5353,13 +8992,65 @@ func file_temporal_server_api_modelir_v1_ir_proto_init() {
 		(*Property_WhenClass)(nil),
 		(*Property_WhenAction)(nil),
 	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[59].OneofWrappers = []any{
+		(*Evidence_History)(nil),
+		(*Evidence_Read)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[62].OneofWrappers = []any{
+		(*Control_HoldDelivery)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[63].OneofWrappers = []any{
+		(*Script_Controller)(nil),
+		(*Script_Workflow)(nil),
+		(*Script_NexusHandler)(nil),
+		(*Script_Activity)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[70].OneofWrappers = []any{
+		(*Command_Rpc)(nil),
+		(*Command_Poll)(nil),
+		(*Command_AwaitLearned)(nil),
+		(*Command_AwaitCommand)(nil),
+		(*Command_Finish)(nil),
+		(*Command_Fault)(nil),
+		(*Command_WorkflowCommand)(nil),
+		(*Command_NexusReply)(nil),
+		(*Command_NexusCompletion)(nil),
+		(*Command_Hold)(nil),
+		(*Command_Release)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[75].OneofWrappers = []any{
+		(*Target_Observe)(nil),
+		(*Target_Bind)(nil),
+		(*Target_Lift)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[82].OneofWrappers = []any{
+		(*Operand_Literal)(nil),
+		(*Operand_Environment)(nil),
+		(*Operand_Run)(nil),
+		(*Operand_LearnedValue)(nil),
+		(*Operand_Projected)(nil),
+		(*Operand_Path)(nil),
+		(*Operand_Present)(nil),
+		(*Operand_Equal)(nil),
+	}
+	file_temporal_server_api_modelir_v1_ir_proto_msgTypes[88].OneofWrappers = []any{
+		(*ProtoValue_Text)(nil),
+		(*ProtoValue_Flag)(nil),
+		(*ProtoValue_Number)(nil),
+		(*ProtoValue_EnumName)(nil),
+		(*ProtoValue_Utf8)(nil),
+		(*ProtoValue_Message)(nil),
+		(*ProtoValue_Mapping)(nil),
+		(*ProtoValue_RoleId)(nil),
+		(*ProtoValue_Named)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_modelir_v1_ir_proto_rawDesc), len(file_temporal_server_api_modelir_v1_ir_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   55,
+			NumEnums:      10,
+			NumMessages:   91,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

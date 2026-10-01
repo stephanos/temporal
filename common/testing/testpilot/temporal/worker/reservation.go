@@ -134,6 +134,12 @@ func (r *reservation) sendCancellation(ctx context.Context, cancel cancelActivat
 	return err
 }
 
+func (r *reservation) settled() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.completed
+}
+
 func (r *reservation) finish(result testpilot.EffectResult, err error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

@@ -1,9 +1,12 @@
 package execution
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,14 +17,16 @@ import (
 )
 
 type scheduler struct {
-	values           *valueStore
-	recorder         *recorder
-	session          contract.Session
-	mu               sync.Mutex
-	started          bool
-	owned            []contract.EffectHandle
-	cancellations    []context.CancelFunc
-	reservations     map[string]bool
+	values        *valueStore
+	recorder      *recorder
+	session       contract.Session
+	mu            sync.Mutex
+	started       bool
+	owned         []contract.EffectHandle
+	cancellations []context.CancelFunc
+	reservations  map[string]bool
+	// attemptFacts holds, per activity a carrier started, its latest recorded attempt.
+	attemptFacts     map[string]priorAttempt
 	attempts         int64
 	completions      chan schedulerCompletion
 	waits            sync.WaitGroup
@@ -73,7 +78,7 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
+	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, attemptFacts: map[string]priorAttempt{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
 }
 
 // performsNothing reports whether the named entrypoint of the source Program carries no instruction
@@ -87,6 +92,117 @@ func (s *scheduler) performsNothing(entrypointID string) bool {
 	}
 	return false
 }
+
+// entrypointKind is the kind of the named entrypoint of the source Program, read from the source for
+// the reason performsNothing gives.
+func (s *scheduler) entrypointKind(entrypointID string) contract.EntrypointKind {
+	for _, entrypoint := range s.values.program.source.GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == entrypointID {
+			return contract.EntrypointKindOf(entrypoint)
+		}
+	}
+	return 0
+}
+
+// reservationVerdict is what the Run does with the outcome a reservation settles with.
+type reservationVerdict uint8
+
+const (
+	// reservationRejected fails the Run and records nothing: no Driver may report the outcome.
+	reservationRejected reservationVerdict = iota
+	reservationRecorded
+	// reservationRecordedThenFailed records the outcome and then makes the Run incomplete, so the
+	// record is never replaced by the failure it caused.
+	reservationRecordedThenFailed
+)
+
+// attemptFact says what an outcome must say about an activity attempt.
+type attemptFact uint8
+
+const (
+	// noAttempt outcomes carry no activity attempt.
+	noAttempt attemptFact = iota
+	// deliveredAttempt outcomes name the activity run, the SDK attempt of the reservation's position
+	// and the delivery the worker ran.
+	deliveredAttempt
+	// undeliveredAttempt outcomes name the activity run alone, and follow a recorded attempt of the
+	// same activity in the same run: Temporal may never have created an attempt for the position.
+	undeliveredAttempt
+)
+
+// priorAttempt is the latest recorded attempt of one activity: the source of its Run Event, and the
+// activity run it named, which every later outcome of the activity must name too.
+type priorAttempt struct {
+	source        string
+	activityRunID string
+}
+
+type reservationOutcome struct {
+	kind     contract.EntrypointKind
+	status   testpilotspb.InstructionOutcomeStatus
+	response testpilotspb.ActivityAttemptResponse
+}
+
+type reservationRule struct {
+	verdict reservationVerdict
+	attempt attemptFact
+	// unusedOnly admits the outcome only of an entrypoint that performs nothing: the Program
+	// reserved it because its carrier can activate the entrypoint, not because the Case needs it to
+	// run, so the reservation released unconsumed when its parent finished is recorded as canceled
+	// rather than failing the Run.
+	unusedOnly bool
+}
+
+// reservationOutcomes is every outcome a reservation may settle with, by the kind of entrypoint it
+// activates. Anything absent, an unset or unknown enum value included, is rejected.
+var reservationOutcomes = map[reservationOutcome]reservationRule{
+	{kind: contract.WorkflowEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}:     {verdict: reservationRecorded},
+	{kind: contract.WorkflowEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED}:      {verdict: reservationRecorded, unusedOnly: true},
+	{kind: contract.NexusHandlerEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}: {verdict: reservationRecorded},
+	{kind: contract.NexusHandlerEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED}:  {verdict: reservationRecorded, unusedOnly: true},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED}: {
+		verdict: reservationRecordedThenFailed, attempt: deliveredAttempt,
+	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED}: {
+		verdict: reservationRecorded, attempt: undeliveredAttempt,
+	},
+}
+
+// judgeReservation reads reservationOutcomes for the outcome of the reservation at ordinal of an
+// entrypoint of the kind. unused says the entrypoint performs nothing, and priorRun is the activity
+// run the attempts of the same activity recorded so far named, empty when none is recorded. One
+// started activity is one run, so an outcome that names another is crossed and rejected.
+func judgeReservation(kind contract.EntrypointKind, unused bool, ordinal int64, priorRun string, outcome *testpilotspb.InstructionOutcome) reservationVerdict {
+	attempt := outcome.GetActivityAttempt()
+	// An outcome the table does not list reads as the zero rule, whose verdict is rejection.
+	rule := reservationOutcomes[reservationOutcome{kind: kind, status: outcome.GetStatus(), response: attempt.GetResponse()}]
+	if rule.unusedOnly && !unused {
+		return reservationRejected
+	}
+	var valid bool
+	switch rule.attempt {
+	case deliveredAttempt:
+		valid = attempt.GetActivityRunId() != "" && (priorRun == "" || attempt.GetActivityRunId() == priorRun) && int64(attempt.GetSdkAttempt()) == ordinal+1 && attempt.GetDeliveryId() != ""
+	case undeliveredAttempt:
+		valid = priorRun != "" && attempt.GetActivityRunId() == priorRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == ""
+	default:
+		valid = attempt == nil
+	}
+	if !valid {
+		return reservationRejected
+	}
+	return rule.verdict
+}
+
 func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -597,12 +713,14 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 }
 
 func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context.CancelFunc, task scheduledNode, effect contract.EffectHandle, bridge contract.HandleBridge, reservations []scheduledReservation, cleanup bool) {
-	for _, reservation := range reservations {
+	for _, group := range s.waitGroups(reservations) {
 		s.waits.Add(1)
 		go func() {
 			defer s.waits.Done()
-			result, err := reservation.handle.Wait(ctx)
-			s.deliverCompletion(schedulerCompletion{reservation: &reservation, result: result, err: err, cleanup: cleanup})
+			for _, reservation := range group {
+				result, err := reservation.handle.Wait(ctx)
+				s.deliverCompletion(schedulerCompletion{reservation: &reservation, result: result, err: err, cleanup: cleanup})
+			}
 		}()
 	}
 	s.waits.Add(1)
@@ -616,6 +734,31 @@ func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context
 		}
 		s.deliverCompletion(schedulerCompletion{node: &task, result: result, err: err, cleanup: cleanup})
 	}()
+}
+
+// waitGroups splits an instruction's reservations into the groups observed independently. The
+// reservations of one activity entrypoint are its attempts in order, and what a later attempt was
+// depends on the earlier ones, so one waiter observes them in that order and their Run Events keep
+// it. Every other reservation is a group of its own.
+func (s *scheduler) waitGroups(reservations []scheduledReservation) [][]scheduledReservation {
+	var groups [][]scheduledReservation
+	attempts := map[string]int{}
+	for _, reservation := range reservations {
+		entrypointID := reservation.identity.EntrypointID
+		index, grouped := attempts[entrypointID]
+		if s.entrypointKind(entrypointID) != contract.ActivityEntrypoint || !grouped {
+			attempts[entrypointID] = len(groups)
+			groups = append(groups, []scheduledReservation{reservation})
+			continue
+		}
+		groups[index] = append(groups[index], reservation)
+	}
+	for _, group := range groups {
+		slices.SortFunc(group, func(left, right scheduledReservation) int {
+			return cmp.Compare(left.identity.Ordinal, right.identity.Ordinal)
+		})
+	}
+	return groups
 }
 
 // prepareInput builds an RPC node's request, or evaluates any other node's guard: only a worker's
@@ -771,20 +914,30 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if completion.reservation != nil {
 		reservation := completion.reservation
 		id := reservation.identity
-		status := completion.result.Outcome.GetStatus()
-		// A reserved activation whose entrypoint performs nothing may go undelivered: the Program
-		// reserved it because its carrier can activate the entrypoint, not because the Case needs it
-		// to run, so the reservation released unconsumed when its parent finished is recorded as
-		// canceled rather than failing the Run.
-		unused := status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED && s.performsNothing(id.EntrypointID)
-		if completion.result.Outcome == nil || status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && !unused || !ir.IsNil(completion.result.Response) || completion.result.Outcome.Value != nil {
+		outcome := completion.result.Outcome
+		// The attempts of one activity share every part of their source but the ordinal.
+		activity := reservation.source[:strings.LastIndex(reservation.source, ".")]
+		prior := s.attemptFacts[activity]
+		verdict := judgeReservation(s.entrypointKind(id.EntrypointID), s.performsNothing(id.EntrypointID), id.Ordinal, prior.activityRunID, outcome)
+		if verdict == reservationRejected || !ir.IsNil(completion.result.Response) || outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
+		}
+		causes := []string{reservation.cause}
+		if attempt := outcome.GetActivityAttempt(); attempt.GetDeliveryId() != "" {
+			s.attemptFacts[activity] = priorAttempt{source: reservation.source, activityRunID: attempt.GetActivityRunId()}
+		} else if attempt != nil {
+			// An attempt that was never delivered is what it is because of the attempt before it.
+			causes = append(causes, prior.source)
 		}
 		publish := s.recorder.publish
 		if completion.cleanup {
 			publish = s.recorder.publishCleanup
 		}
-		return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: []string{reservation.cause}, Coordinates: eventCoordinates(id.Origin), Payload: &testpilotspb.RunEvent_Outcome{Outcome: completion.result.Outcome}}}, nil)
+		decision, err := publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: causes, Coordinates: eventCoordinates(id.Origin), Payload: &testpilotspb.RunEvent_Outcome{Outcome: outcome}}}, nil)
+		if err != nil || decision == Stop || verdict != reservationRecordedThenFailed {
+			return decision, err
+		}
+		return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed"))
 	}
 	task := *completion.node
 	a := task.activation.values

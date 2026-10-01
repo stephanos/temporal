@@ -48,6 +48,7 @@ const (
 	NexusHandlerReply        = contract.NexusHandlerReply
 	NexusOperationCompletion = contract.NexusOperationCompletion
 	ReadEvidence             = contract.ReadEvidence
+	ActivityAttemptFailure   = contract.ActivityAttemptFailure
 	MaxOpcode                = contract.MaxOpcode
 )
 

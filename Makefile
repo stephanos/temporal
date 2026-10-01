@@ -1177,7 +1177,7 @@ lint-yaml: $(YAMLFMT)
 
 # Scala model tooling, run through scala-cli: scalafmt formats the whole tree (.scalafmt.conf) and
 # scalafix lints each scala-cli project, i.e. every directory with a project.scala (.scalafix.conf).
-# Scalafix compiles each project, so the IR and Testpilot jars they link against are generated first.
+# Scalafix compiles each project, so the IR jar the lifter links against is generated first.
 # Not part of `fmt`/`lint` yet: those run in CI, which has no JVM.
 .PHONY: fmt-scala lint-scala fix-scala umpire-check-scala umpire-gen-scala
 SCALA_ROOT := model/scalav2
@@ -1187,15 +1187,11 @@ SCALAFIX = $(SCALA_CLI) --power fix --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(SCALA_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 
-SCALA_PROTO_JARS := $(SCALA_ROOT)/gen/ir-proto.jar $(SCALA_ROOT)/gen/testpilot-proto.jar
+SCALA_PROTO_JARS := $(SCALA_ROOT)/gen/ir-proto.jar
 
 $(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/modelir/v1/ir.proto $(SCALA_ROOT)/gen.sh
 	@printf $(COLOR) "Package Scala model IR classes..."
 	@$(SCALA_ROOT)/gen.sh ir
-
-$(SCALA_ROOT)/gen/testpilot-proto.jar: $(wildcard proto/internal/temporal/server/api/testpilot/v1/*.proto) $(API_BINPB) $(SCALA_ROOT)/gen.sh
-	@printf $(COLOR) "Package Scala model Testpilot classes..."
-	@$(SCALA_ROOT)/gen.sh testpilot
 
 fmt-scala:
 	@printf $(COLOR) "Formatting Scala files..."
@@ -1217,8 +1213,12 @@ fix-scala: $(SCALA_PROTO_JARS)
 	done
 
 # The model/scalav2 gate (see run.sh): compile and test the Scala Models, lift them to the IR, require
-# ir/nexus-caller.json to be current, and check the IR against the Lean Model in Go. umpire-gen-scala
-# rewrites the IR.
+# the checked-in IR to be current, and check the IR against the Lean Model in Go. umpire-gen-scala
+# rewrites the IR:
+#   ir/nexus-caller.json     the Nexus caller and worker machines
+#   ir/activity.json         the standalone activity Model, as model/go/standaloneactivity has it
+#   ir/activity-system.json  the standalone activity's system contract and its dispatch queue
+#   ir/nexus-close.json      the Nexus caller close and reset designs
 umpire-check-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Check Scala model IR..."
 	@$(SCALA_ROOT)/run.sh
@@ -1226,6 +1226,19 @@ umpire-check-scala: $(SCALA_PROTO_JARS)
 umpire-gen-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Generate Scala model IR..."
 	@$(SCALA_ROOT)/run.sh --update
+
+# Deletes what the Scala and model gates regenerate, all of it git-ignored: the generated jars and
+# lifted scratch under gen/, scala-cli's build and BSP directories, and the Go build and test caches,
+# which grow without bound over many gate runs. Every path is spelled out here, so nothing else can
+# be deleted by it.
+.PHONY: umpire-clean
+umpire-clean:
+	@printf $(COLOR) "Delete regenerable Umpire build output..."
+	@rm -rf model/scalav2/gen \
+		model/scalav2/scala/.scala-build model/scalav2/scala/.bsp \
+		model/scalav2/lifter/.scala-build model/scalav2/lifter/.bsp \
+		model/scala/.scala-build model/scala/.bsp
+	@mise exec -- go clean -cache -testcache
 
 # Nil-safety analysis. Override NILAWAY_SCOPE to widen coverage as more packages
 # are made nil-clean; every path below is derived from it. -include-pkgs restricts

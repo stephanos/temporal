@@ -5,13 +5,16 @@ queue registrations alive across Runs, while each `Session` owns its prepared en
 reservation-delivery ledger, completion bridge, failure state, and bounded diagnostics.
 
 At construction, the Driver freezes the Profile binding snapshot. `Validate` compares the prepared binding
-IDs for StartWorkflow, GetHistory, and StartNexus carriers before any registry or target effect;
+IDs for StartWorkflow, StartActivity, GetHistory, and StartNexus carriers before any registry or target effect;
 equal resolved strings reached through different IDs still reject. `Open` derives the physical
 namespace, queues, and named Nexus routes from the validated prepared roles. The SDK client and
 worker lifecycle configuration remain caller-owned physical inputs.
 
 Task-queue registrations are complete before a worker starts. A registration consists of the
-allowlisted workflow types and Nexus service/operation pairs assigned to that physical queue.
+allowlisted workflow types, activity types and Nexus service/operation pairs assigned to that
+physical queue. Two Runs share a worker only when all three agree, so a Program that runs an
+activity never shares the worker of one that runs none, and a queue that names no activity type
+registers no activity implementation.
 
 A Program that declares no `InjectFault` shares compatible registrations across Runs, as above.
 Deliberate outages belong to the registry's `outage` module. Definition preparation calls
@@ -50,15 +53,103 @@ Nexus operation reads its input as a `RawValue`, since a schedule command carrie
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
 then rejects workflow types outside that allowlist before reservation admission.
 
+An activity entrypoint (`ActivityActivation`) runs as a standalone activity: the one a controller's
+`StartActivityExecution` starts. Its script is the activity's attempts in order, one instruction
+per attempt. A `Finish` completes its attempt with its result, whatever value that is, and the
+activity closes when the server accepts that completion. An `ActivityAttemptFailure` fails its attempt with the application failure it
+carries, which the server retries unless the failure says otherwise. Preparation reserves one
+activation per instruction, so every attempt is its own activation under its own reservation, and
+the script's values carry across the attempts as a Nexus handler's do across its deliveries, so a
+later attempt's guard reads what an earlier one admitted.
+
+A queue that names activity types registers one dynamic activity. The inbound activity interceptor
+rejects a type outside the allowlist and admits the task against the reservations its start request
+carried. Three identities stay apart and are recorded together. The activity run the start answered
+with is the logical operation, pinned against the delivery in either order, and every attempt
+belongs to it. The SDK attempt is the server's number, never the coordinate's attempt, which is the
+carrying instruction's. The delivery identity is the SHA-256 digest of the task token, a bounded
+opaque name of the first delivery of the attempt. The attempt Temporal numbers N is the activation
+of the Nth reservation and performs the Nth instruction, whatever order the attempts reach the
+worker in, and an attempt interprets nothing until every earlier attempt has settled.
+
+Each declared attempt's reservation settles with an outcome whose `activity_attempt` says what the
+worker did, and the Run's reservation event carries it. `response` is the answer the worker offered
+Temporal, never the server's acceptance of it: the worker hands its answer to the SDK, which sends
+it afterwards, and the send can fail. The outcome's status says whether the activation did what the
+Program declared, so the two are read together.
+
+#### The lifecycle of one declared attempt
+
+A started activity has one reservation per attempt its script declares, in attempt order. Each is in
+exactly one of these states, and settles at most once:
+
+| State | Meaning | Recorded in the Run |
+| --- | --- | --- |
+| reserved | no delivery of the attempt has reached the worker | nothing yet |
+| admitted | the first delivery consumed the reservation and the attempt is under way | nothing yet |
+| offered-completed | its `Finish` ran and the worker offered the completion | succeeded, `OFFERED_COMPLETED`, run, SDK attempt, delivery |
+| offered-failed-retryable | its `ActivityAttemptFailure` ran and the worker offered a failure the server may retry | succeeded, `OFFERED_FAILED_RETRYABLE`, run, SDK attempt, delivery |
+| offered-failed-non-retryable | the same, with a failure the server does not retry | succeeded, `OFFERED_FAILED_NON_RETRYABLE`, run, SDK attempt, delivery |
+| refused | the worker performed nothing declared and offered its own non-retryable failure | SDK failure `umpire_worker` with the cause, `REFUSED`, run, SDK attempt, delivery; then the Run is incomplete |
+| released-not-needed | the server reported the activity closed before any attempt was delivered for it | canceled, `NOT_NEEDED`, the run only, caused by the last recorded attempt |
+| never-seen | the Run released the reservation while nothing was delivered for it and the server had said nothing | canceled with no attempt fact, which fails the Run unrecorded |
+
+The allowed transitions, and what brings each about:
+
+| From | To | Cause |
+| --- | --- | --- |
+| reserved | admitted | the first delivery of the SDK attempt whose number is the reservation's position, in the activity run the start answered with |
+| admitted | offered-completed, offered-failed-retryable, offered-failed-non-retryable | the attempt's instruction ran, after every earlier attempt of the activity settled |
+| admitted | refused | the instruction is disabled, the Run canceled the reservation, the delivery's context ended, or the SDK or the Driver failed |
+| reserved | released-not-needed | the server answered the worker's long poll for the activity's outcome, and the reservation is after the last attempt admitted |
+| reserved | never-seen | the Run canceled the reservation |
+
+Everything else is refused and changes no state:
+
+- A delivery of an attempt already admitted or settled, under whatever delivery identity, runs
+  nothing and settles nothing. It waits for the first delivery's answer and returns the same one.
+- An offered answer releases nothing, whichever it is. Only the server closing the activity does.
+  If the server loses the answer and redelivers the attempt, the worker answers again; if it timed
+  the attempt out and issues the next, that attempt finds its reservation and runs its instruction.
+- A reservation before the last admitted attempt is never released as not needed. The activity
+  closing does not explain an attempt the worker never saw.
+- An attempt delivered for a released or never-seen reservation is refused non-retryably.
+- An attempt past the last one the script declares has no reservation. It is refused
+  non-retryably and never answered from another attempt's record, and the Session reports it as
+  the Driver diagnostic `activity_attempt_undeclared`, which is its only trace.
+- An attempt that names another activity run than the one the start answered with, or than the one
+  an earlier attempt named, is refused as a conflict before anything is consumed or replayed, and
+  the Session reports the Driver diagnostic `activity_run_crossed`.
+
+The worker asks the server once per started activity, and only while a later attempt is still
+reserved after an attempt settled: `PollActivityExecution` by the activity's namespace, ID and run,
+repeated while it returns no outcome, until the Session closes. The answer counts only when the
+run it names is the run that was asked about. If it names another, the later reservations stay
+reserved and the Session reports the Driver diagnostic `activity_closure_crossed`; if the poll
+fails, they stay reserved and it reports `activity_closure_unobserved`.
+
+The Run records the attempts of one activity in attempt order however their reservations settle,
+because the scheduler observes them with one waiter in that order.
+
+The worker refuses with a non-retryable application failure of type `umpire_worker` whose cause is
+the reason. Canceling a reservation cancels the attempt's own context and sends Temporal no
+cancellation request, so the worker offers a failure, never a cancellation, and the Run says the
+same. `Validate` rejects, with no I/O, an activity reservation carried by
+anything but `StartActivityExecution`, a start that carries anything beside the one activity it
+starts, and a start that does not name the worker's namespace and the entrypoint's task queue by
+their binding identities. No instruction makes an attempt heartbeat or wait, and an activity a
+workflow schedules is not realized: its task names no activity run and is refused.
+
 Controller code reserves worker activations before dispatch and creates a `Carrier` from the
-prepared carrier plan. `Carrier` delegates route injection, start-response pinning and trigger
+prepared carrier plan, `CreateCarrier` for a workflow start and `CreateActivityCarrier` for an
+activity start. `Carrier` delegates route injection, start-response pinning and trigger
 terminal release to the delivery ledger. The worker
 validates callback URLs, resolves the SDK system callback against the trusted configured base, and
 builds the protocol completion effect. Only that generic effect crosses the package boundary through
 `HandleFactory`; its callback data remains opaque and the resulting opaque handle is published
 through the Run's handle bridge.
 
-Each actual workflow or Nexus-handler interpretation constructs a fresh private
+Each actual workflow, activity or Nexus-handler interpretation constructs a fresh private
 `temporal/internal/activation.State` from its prepared entrypoint. `Evaluate` owns guard/input
 reference resolution; `Admit` validates and atomically retains owned outcome fields. Both operations
 consume the public plan methods' returned work, including failure charges, within the prepared

@@ -176,22 +176,61 @@ func compositionModel(first, second string, syncs ...string) *modelirspb.Model {
 }
 
 func TestAWellKeyedCompositionIsAdmitted(t *testing.T) {
-	m := compositionModel("a", "d", "both")
-	m.Scenarios = []*modelirspb.Scenario{{Machine: "p", Name: "each", Position: at(50), Keys: []string{"a_b_c", "d_c", "both"},
-		Start: &modelirspb.Expr{Position: at(50), Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Record{
-			Record: &modelirspb.RecordValue{Type: "P", Fields: []*modelirspb.Value{caseOf("S", "a"), caseOf("S", "a")}}}}}}}}
-	require.NoError(t, Validate(m))
+	for name, c := range map[string]struct {
+		model *modelirspb.Model
+		keys  []string
+	}{
+		"no sync": {compositionModel("a", "d"), []string{"a_b_c", "d_c"}},
+		"a sync":  {compositionModel("a", "d", "both"), []string{"both"}},
+		// Member d's action c steps only as the sync, so the sync alone keys d_c.
+		"a sync named like the class it takes": {compositionModel("a", "d", "d_c"), []string{"d_c"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c.model.Scenarios = []*modelirspb.Scenario{compositionScenario(c.keys...)}
+			require.NoError(t, Validate(c.model))
+		})
+	}
 }
 
-// Member a's class b_c and member a_b's class c both key a_b_c; member d's class c and the sync d_c
-// both key d_c. Either would be one class of p under two owners.
+// A member's action a sync names is no class of the composition, so a Scenario cannot schedule it.
+func TestAScenarioCannotScheduleASyncedMemberAction(t *testing.T) {
+	for _, key := range []string{"a_b_c", "d_c"} {
+		t.Run(key, func(t *testing.T) {
+			m := compositionModel("a", "d", "both")
+			m.Scenarios = []*modelirspb.Scenario{compositionScenario(key)}
+			require.ErrorContains(t, Validate(m), "p has no class "+key)
+		})
+	}
+}
+
+// compositionScenario is a Scenario of compositionModel's p scheduling these class keys.
+func compositionScenario(keys ...string) *modelirspb.Scenario {
+	return &modelirspb.Scenario{Machine: "p", Name: "each", Position: at(50), Keys: keys,
+		Start: &modelirspb.Expr{Position: at(50), Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Record{
+			Record: &modelirspb.RecordValue{Type: "P", Fields: []*modelirspb.Value{caseOf("S", "a"), caseOf("S", "a")}}}}}}}
+}
+
+// alsoBinds gives compositionModel's m2 a second action, which no sync of the fixture names.
+func alsoBinds(m *modelirspb.Model, action string) *modelirspb.Model {
+	m.Actions = append(m.Actions, &modelirspb.Action{Id: "generic." + action, Name: action, Position: at(30), Party: "generic"})
+	m.Functions = append(m.Functions, &modelirspb.Function{Name: "generic.step." + action, Position: at(31),
+		Params: []*modelirspb.Param{{Name: "s", Type: named("S")}},
+		Body: &modelirspb.Expr{Position: at(31), Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{
+			Kind: &modelirspb.Value_List{List: &modelirspb.ListValue{}}}}}})
+	m.Machines[1].Steps = append(m.Machines[1].Steps,
+		&modelirspb.StepBinding{Action: "generic." + action, Function: "generic.step." + action, Position: at(33)})
+	return m
+}
+
+// Member a's class b_c and member a_b's class c both key a_b_c; member d's class x, which no sync
+// takes, and the sync d_x both key d_x. Either would be one class of p under two owners.
 func TestComposedClassesSharingAKeyAreRefused(t *testing.T) {
 	for name, c := range map[string]struct {
 		model *modelirspb.Model
 		want  string
 	}{
 		"two members":         {compositionModel("a", "a_b"), `generic:40: composition p: member a's class b_c and member a_b's class c share the key "a_b_c"`},
-		"a member and a sync": {compositionModel("a", "d", "d_c"), `generic:40: composition p: member d's class c and sync d_c of a.b_c and d.c share the key "d_c"`},
+		"a member and a sync": {alsoBinds(compositionModel("a", "d", "d_x"), "x"), `generic:40: composition p: member d's class x and sync d_x of a.b_c and d.c share the key "d_x"`},
 		"two syncs of one name": {compositionModel("a", "d", "both", "rev:both"),
 			`generic:40: composition p: sync both of a.b_c and d.c and sync both of d.c and a.b_c share the key "both"`},
 	} {

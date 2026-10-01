@@ -74,6 +74,46 @@ message InstructionOutcome {
   string detail = 4;
   // The result on success, when the outcome declares VALUE.
   Value value = 5;
+  // Set on the outcome of an activity activation: which attempt it was and what the worker offered
+  // Temporal for it.
+  ActivityAttempt activity_attempt = 6;
+}
+
+// ActivityAttempt is what a worker reports about one attempt a standalone activity's script declares.
+// It records what the worker did, never that the server accepted it: the worker hands its answer to
+// the SDK, which sends it afterwards. The status of the outcome that carries it says whether the
+// activation did what the Program declared.
+message ActivityAttempt {
+  // The run of the activity the attempt belongs to, as the server named it when the activity started.
+  string activity_run_id = 1;
+  // The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
+  // no attempt was delivered: the Run Event's source then names the reserved position alone, and
+  // Temporal may never have created an attempt for it.
+  int32 sdk_attempt = 2;
+  // The delivery of the attempt the worker ran, a digest of its task token. Unset when no attempt
+  // was delivered.
+  string delivery_id = 3;
+  ActivityAttemptResponse response = 4;
+}
+
+// ActivityAttemptResponse is the answer a worker offered Temporal for one declared activity attempt,
+// or why it offered none. An offered answer is not the server's acceptance of it.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ActivityAttemptResponse {
+  ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED = 0;
+  // The worker offered the completion the attempt's instruction declared.
+  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED = 1;
+  // The worker offered the failure the attempt's instruction declared, which the server may retry.
+  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE = 2;
+  // The worker offered the failure the attempt's instruction declared, which the server does not
+  // retry.
+  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE = 3;
+  // The worker refused the attempt: it performed nothing the Program declared and offered its own
+  // non-retryable failure.
+  ACTIVITY_ATTEMPT_RESPONSE_REFUSED = 4;
+  // No attempt was delivered for this declared position, and the server reported the activity closed
+  // after an earlier attempt, so none will be.
+  ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED = 5;
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.

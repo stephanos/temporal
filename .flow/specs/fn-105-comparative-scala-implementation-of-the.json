@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-105-comparative-scala-implementation-of-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Comparative Scala implementation of the Umpire model layer",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T06:22:25.595992Z"
+  "updated_at": "2026-10-01T01:04:22.190792Z"
 }

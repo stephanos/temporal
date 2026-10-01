@@ -138,11 +138,16 @@ the carrier can activate the entrypoint, not because the path needs it to.
 Workers retain their own replay-local DAG state and emit no per-SDK-instruction central stream.
 
 Reservation carrier authority is separate from ordinary endpoint method authorization. Each endpoint
-policy names unary carrier methods plus maximum counts for supported workflow and Nexus-handler target
+policy names unary carrier methods plus maximum counts for supported workflow, activity and Nexus-handler target
 contexts. A Case declares no reservations: an ordinary controller instruction invoking a carrier method
 on that endpoint reserves one activation of each workflow and Nexus-handler entrypoint whose kind the
 carrier's shapes admit, in entrypoint declaration order, and two instructions that could carry the
-same entrypoint reject `unsupported` naming both. Admission checks those reservations against the
+same entrypoint reject `unsupported` naming both. An activity entrypoint's instructions are its
+attempts in order, so a carrier whose shapes admit activities reserves one activation per instruction
+of each, and none for an activity entrypoint that carries no instruction. An activity is delivered
+only through its carrier, so an activity entrypoint with instructions that no carrier reserves rejects
+`unavailable` at the entrypoint; a workflow or Nexus-handler entrypoint no carrier reserves still
+prepares. Admission checks those reservations against the
 carrier's maximum counts and compiles their order once. Every potential Nexus schedule command, including guarded sources, maps to
 one explicitly reserved handler by service and operation. Route order follows the prepared workflow
 node order, then workflow ordinal; handler ordinals count within the declared handler reservation.
@@ -168,7 +173,7 @@ Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionP
 `EvaluateInput`, `ValidateOutcome`, `TimeoutMilliseconds`, `MaxAttempts` and
 `Reservations`. An instruction's outcome fields are derived from it: every instruction has a status and
 a detail, `InvokeRpc` and `NexusOperationCompletion` a protocol code, a
-workflow or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its operation's
+workflow, activity or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its operation's
 result as VALUE: the handler's payload as an `Any`, carried back from the `WorkflowCommand` that
 scheduled the operation.
 `ValidateOutcome` checks an outcome against those derived fields and returns an activation-owned
@@ -176,6 +181,35 @@ scheduled the operation.
 cannot mutate the plan or a subsequent validation result. An RPC response is read only through
 response reads, the SDK future a schedule command starts is an opaque runtime handle, and a Finish
 result or a `NexusHandlerReply` ends its activation, so none of them has a VALUE.
+
+An activity entrypoint runs two instructions. `Finish`, the one that ends a workflow, completes an
+attempt with its result, whatever the value. `ActivityAttemptFailure`, which only an activity
+entrypoint runs and a Profile authorizes as its own Opcode, fails an attempt. Admission reads its
+failure against the Driver-reach table and admits only one with application failure info or none,
+naming the field of any other under
+`program.entrypoints[<id>].instructions[<id>].instruction.activity_attempt_failure.failure`.
+
+A reservation's outcome is recorded as a diagnostic Run Event under the instruction that carried
+it. One table, `reservationOutcomes` in `scheduler.go`, lists every outcome a reservation may settle
+with, by the kind of entrypoint it activates, its status and its activity attempt response;
+`judgeReservation` reads it and rejects everything else, an unset or unknown enum value included. A
+rejected outcome fails the Run with `activation_failed` and is not recorded.
+
+| Entrypoint | Status | `activity_attempt` | Verdict |
+| --- | --- | --- | --- |
+| workflow, Nexus handler | succeeded | absent | recorded |
+| workflow, Nexus handler | canceled | absent | recorded, only when the entrypoint performs nothing |
+| activity | succeeded | `OFFERED_COMPLETED`, `OFFERED_FAILED_RETRYABLE` or `OFFERED_FAILED_NON_RETRYABLE` | recorded |
+| activity | SDK failure | `REFUSED` | recorded, then the Run is incomplete with `activation_failed` |
+| activity | canceled | `NOT_NEEDED` | recorded |
+
+An offered or refused attempt must name its activity run, a delivery, and the SDK attempt of its
+own position. A `NOT_NEEDED` one names the run alone and must follow a recorded attempt of the same
+activity; its event is caused by that attempt as well as by the carrying instruction. One started
+activity is one run: the scheduler keeps the run the first recorded attempt named with that
+attempt's source, and rejects any later outcome of the activity that names another. The
+reservations of one activity entrypoint are observed by one waiter in position order, so their
+events keep attempt order; every other reservation is observed on its own.
 
 A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard is true builds the evidence value

@@ -15,5 +15,5 @@ import (
 func TestWorkflowServiceCatalogIdentityGolden(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	require.Equal(t, "1f757edd4c18a3f52fcb0205bee2ea3da389517b6048bc79e49a136ab3ebdb57", catalog.Identity())
+	require.Equal(t, "4e41615e5510bc43dc2ea7bbbfcd27543238ee9fcfce5ad45e2a30f95353ba2e", catalog.Identity())
 }

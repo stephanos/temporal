@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"sync"
 	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
@@ -127,6 +128,128 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 		outcome.Value = result
 	}
 	return i.state.Admit(context.Background(), index, outcome)
+}
+
+// activityScriptKey names the script of one started activity: the instruction whose start carried
+// its reservations, and the entrypoint they activate.
+type activityScriptKey struct {
+	origin       testpilot.Coordinate
+	entrypointID string
+}
+
+// activityScript carries one activity's script across its attempts, as a Nexus handler's activation
+// is carried across its deliveries: the values earlier attempts admitted, which later guards read.
+// Attempts interpret it one at a time.
+type activityScript struct {
+	mu    sync.Mutex
+	state *activation.State
+}
+
+// declaredFailure is the failure a script's instruction fails its attempt with, as the error the
+// SDK reports for it. The attempt performed its instruction, so it is not an activation failure.
+type declaredFailure struct {
+	failure      error
+	nonRetryable bool
+}
+
+func (f *declaredFailure) Error() string { return f.failure.Error() }
+func (f *declaredFailure) Unwrap() error { return f.failure }
+
+var errAttemptDisabled = errors.New("the activity attempt's instruction is disabled")
+
+func (s *Session) scriptOf(delivered delivery.Activation) (*activityScript, error) {
+	if err := s.mu.LockContext(context.Background(), ErrInvalid); err != nil {
+		return nil, err
+	}
+	defer s.mu.Unlock()
+	key := activityScriptKey{origin: delivered.Reservation().Origin, entrypointID: delivered.Coordinate().EntrypointID}
+	script := s.activityScripts[key]
+	if script == nil {
+		script = &activityScript{}
+		s.activityScripts[key] = script
+	}
+	return script, nil
+}
+
+// awaitEarlierAttempts blocks an attempt until every earlier attempt of its activity has settled.
+// Temporal starts an attempt only after the one before it ended, but the worker may be handed them
+// in another order, and an attempt's guard reads what the earlier ones admitted.
+func (s *Session) awaitEarlierAttempts(ctx context.Context, delivered delivery.Activation) error {
+	own := delivered.Reservation()
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return err
+	}
+	var earlier []*reservation
+	for _, raw := range s.reservations {
+		if raw.identity.Origin == own.Origin && raw.identity.EntrypointID == own.EntrypointID && raw.identity.Ordinal < own.Ordinal {
+			earlier = append(earlier, raw)
+		}
+	}
+	s.mu.Unlock()
+	for _, raw := range earlier {
+		if err := raw.Drain(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// executeActivity interprets an activity entrypoint for one admitted attempt. The script declares
+// the activity's attempts in order and the attempt's reservation is the one of its number, so the
+// attempt performs the instruction at its reservation's ordinal and no other, under the attempt's
+// context, whose cancellation fails the evaluation. A Finish completes the attempt with its result,
+// whatever that value is, and an ActivityAttemptFailure fails it with the failure it carries. An
+// attempt whose instruction is disabled has nothing declared for it and is a failed activation.
+func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
+	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
+	if !exists || entry.plan.Kind() != testpilot.ActivityEntrypoint {
+		return nil, ErrInvalid
+	}
+	if err := s.awaitEarlierAttempts(ctx, delivered); err != nil {
+		return nil, err
+	}
+	script, err := s.scriptOf(delivered)
+	if err != nil {
+		return nil, err
+	}
+	script.mu.Lock()
+	defer script.mu.Unlock()
+	if script.state == nil {
+		state, err := activation.New(entry.plan)
+		if err != nil {
+			return nil, err
+		}
+		script.state = state
+	}
+	index := entry.plan.Order()[delivered.Reservation().Ordinal]
+	instruction := entry.plan.Instructions()[index]
+	input, enabled, err := script.state.Evaluate(ctx, index)
+	if err != nil {
+		return nil, err
+	}
+	if !enabled {
+		return nil, errAttemptDisabled
+	}
+	switch instruction.Opcode() {
+	case testpilot.Finish:
+		// The server may never accept the completion and issue the next attempt, whose guard reads
+		// this instruction's outcome.
+		if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+			return nil, err
+		}
+		return proto.CloneOf(input), nil
+	case testpilot.ActivityAttemptFailure:
+		if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+			return nil, err
+		}
+		failure := instruction.Source().GetInstruction().GetActivityAttemptFailure().GetFailure()
+		return nil, &declaredFailure{
+			failure:      temporal.GetDefaultFailureConverter().FailureToError(failure),
+			nonRetryable: failure.GetApplicationFailureInfo().GetNonRetryable(),
+		}
+	default:
+		return nil, ErrInvalid
+	}
 }
 
 // terminalOutcome is the outcome of a Finish or a NexusHandlerReply that ended its activation. Its result is

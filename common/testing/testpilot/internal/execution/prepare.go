@@ -215,7 +215,7 @@ func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy,
 	seen := map[contract.EntrypointKind]bool{}
 	var total int64
 	for _, shape := range carrier.Shapes {
-		if shape.Kind != contract.WorkflowEntrypoint && shape.Kind != contract.NexusHandlerEntrypoint {
+		if shape.Kind != contract.WorkflowEntrypoint && shape.Kind != contract.ActivityEntrypoint && shape.Kind != contract.NexusHandlerEntrypoint {
 			return ir.Invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
 		}
 		if seen[shape.Kind] {

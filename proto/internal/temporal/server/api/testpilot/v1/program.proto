@@ -126,8 +126,10 @@ message WorkflowActivation {
   string task_queue_role_id = 3;
 }
 
-// ActivityActivation activates the entrypoint for each activity of this type the worker role runs
-// on the task-queue role.
+// ActivityActivation activates the entrypoint for each attempt of a standalone activity of this type
+// the worker role runs on the task-queue role. The entrypoint's instructions are the activity's
+// attempts in order: the attempt Temporal numbers N performs the Nth one, and a reservation carrier
+// reserves one activation per instruction.
 message ActivityActivation {
   string activity_type = 1;
   string worker_role_id = 2;

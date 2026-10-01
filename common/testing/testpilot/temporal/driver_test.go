@@ -17,8 +17,10 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
 )
 
 func TestCompositeSessionKeepsControllerAndWorkerAuthoritySeparate(t *testing.T) {
@@ -180,16 +182,16 @@ func TestCarrierEffectDrainFinalizesCompletedResult(t *testing.T) {
 }
 
 type recordingTerminalCarrier struct {
-	failures       int
-	admissible     bool
-	dispositions   []delivery.TriggerStatus
-	contextErrors  []error
-	pinnedResponse *workflowservice.StartWorkflowExecutionResponse
+	failures      int
+	admissible    bool
+	dispositions  []delivery.TriggerStatus
+	contextErrors []error
+	pinnedRunID   string
 }
 
-func (c *recordingTerminalCarrier) PinStartResponse(ctx context.Context, response *workflowservice.StartWorkflowExecutionResponse) error {
+func (c *recordingTerminalCarrier) PinStartResponse(ctx context.Context, response delivery.StartResponse) error {
 	c.contextErrors = append(c.contextErrors, ctx.Err())
-	c.pinnedResponse = proto.CloneOf(response)
+	c.pinnedRunID = response.GetRunId()
 	return nil
 }
 func (c *recordingTerminalCarrier) TriggerTerminal(ctx context.Context, disposition delivery.TriggerStatus) (int, error) {
@@ -211,4 +213,132 @@ func (*recordingBridge) Publish(context.Context, testpilot.Coordinate, string, t
 func (*recordingBridge) Await(context.Context, string) error { return nil }
 func (*recordingBridge) Consume(context.Context, string) (testpilot.OpaqueHandle, error) {
 	return struct{}{}, nil
+}
+
+// A carried StartActivityExecution request names its whole binding, as a carried StartWorkflow
+// request does.
+func TestActivityCarrierBindingRejectsIncompleteStartRequests(t *testing.T) {
+	complete := func() *workflowservice.StartActivityExecutionRequest {
+		return &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity-id", ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "task-queue"}}
+	}
+	binding, err := activityCarrierBinding(complete())
+	require.NoError(t, err)
+	require.Equal(t, delivery.ActivityBinding{Namespace: "namespace", ActivityID: "activity-id", ActivityType: "activity-type", TaskQueue: "task-queue"}, binding)
+
+	for name, mutate := range map[string]func(*workflowservice.StartActivityExecutionRequest){
+		"namespace":             func(request *workflowservice.StartActivityExecutionRequest) { request.Namespace = "" },
+		"activity id":           func(request *workflowservice.StartActivityExecutionRequest) { request.ActivityId = "" },
+		"activity type name":    func(request *workflowservice.StartActivityExecutionRequest) { request.ActivityType.Name = "" },
+		"task queue name":       func(request *workflowservice.StartActivityExecutionRequest) { request.TaskQueue.Name = "" },
+		"missing activity type": func(request *workflowservice.StartActivityExecutionRequest) { request.ActivityType = nil },
+	} {
+		t.Run(name, func(t *testing.T) {
+			request := complete()
+			mutate(request)
+			_, err := activityCarrierBinding(request)
+			require.ErrorIs(t, err, ErrInvalid)
+		})
+	}
+	_, err = activityCarrierBinding(&workflowservice.StartWorkflowExecutionRequest{})
+	require.ErrorIs(t, err, ErrInvalid)
+}
+
+// The run a carried start started is read from the response of whichever start it was, and from no
+// other message.
+func TestStartResponseReadsTheRunOfEitherStart(t *testing.T) {
+	for name, test := range map[string]struct {
+		response proto.Message
+		runID    string
+	}{
+		"a workflow start":            {&workflowservice.StartWorkflowExecutionResponse{RunId: "workflow-run", Started: true}, "workflow-run"},
+		"an activity start":           {&workflowservice.StartActivityExecutionResponse{RunId: "activity-run", Started: true}, "activity-run"},
+		"a workflow start, no run":    {&workflowservice.StartWorkflowExecutionResponse{Started: true}, ""},
+		"an activity start, no run":   {&workflowservice.StartActivityExecutionResponse{Started: true}, ""},
+		"another response with a run": {&workflowservice.SignalWithStartWorkflowExecutionResponse{RunId: "signal-run"}, ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			wire, err := proto.Marshal(test.response)
+			require.NoError(t, err)
+			dynamicResponse := dynamicpb.NewMessage(test.response.ProtoReflect().Descriptor())
+			require.NoError(t, proto.Unmarshal(wire, dynamicResponse))
+			started, err := startResponse(dynamicResponse)
+			if test.runID == "" {
+				require.ErrorIs(t, err, ErrInvalid)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, test.runID, started.GetRunId())
+		})
+	}
+	_, err := startResponse(nil)
+	require.ErrorIs(t, err, ErrInvalid)
+}
+
+// carrierRecorder is a worker Session that records which carrier the composite asks for and
+// refuses to make it, so the test sees the request the composite built and no dispatch follows.
+type carrierRecorder struct {
+	testsupport.Session
+	workflows  []delivery.WorkflowBinding
+	activities []delivery.ActivityBinding
+	handles    [][]testpilot.ReservationHandle
+}
+
+var errCarrierRecorded = errors.New("carrier recorded")
+
+func (r *carrierRecorder) CreateCarrier(_ context.Context, _ testpilot.Coordinate, _ testpilot.ReservationCarrierPlan, binding delivery.WorkflowBinding, handles []testpilot.ReservationHandle) (*workerhost.Carrier, error) {
+	r.workflows, r.handles = append(r.workflows, binding), append(r.handles, handles)
+	return nil, errCarrierRecorded
+}
+
+func (r *carrierRecorder) CreateActivityCarrier(_ context.Context, _ testpilot.Coordinate, _ testpilot.ReservationCarrierPlan, binding delivery.ActivityBinding, handles []testpilot.ReservationHandle) (*workerhost.Carrier, error) {
+	r.activities, r.handles = append(r.activities, binding), append(r.handles, handles)
+	return nil, errCarrierRecorded
+}
+
+// The composite hands a carried StartActivityExecution to the worker as an activity carrier, with
+// the reservations of that instruction and the binding the request names, and dispatches nothing
+// when the worker refuses or the request names no whole binding.
+func TestCompositeSessionCarriesAnActivityStartAsAnActivityCarrier(t *testing.T) {
+	prepared := facadetest.RuntimeCase(t, facadetest.SyncReply, workerhost.CommandTypes(), func(profile *testpilot.ProfileSpec) {
+		profile.Roles[0].Methods = append(profile.Roles[0].Methods, delivery.StartActivityPath)
+		profile.Roles[0].ReservationCarriers = append(profile.Roles[0].ReservationCarriers, testpilot.ReservationCarrierPolicy{Method: delivery.StartActivityPath, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 1}}})
+	}, func(program *testpilotspb.Program) {
+		program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().Method = delivery.StartActivityPath
+		program.Entrypoints = append(program.Entrypoints[:1], &testpilotspb.Entrypoint{
+			EntrypointId: "activity",
+			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+			Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: facadetest.Text("done")}}}}},
+		})
+	})
+	program := facadetest.Capture(t, prepared)
+	method := program.Entrypoints()[0].Instructions()[0].Method()
+	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+	reserved := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "activity", ID: "reservation"})
+	dynamicRequest := func(request *workflowservice.StartActivityExecutionRequest) proto.Message {
+		wire, err := proto.Marshal(request)
+		require.NoError(t, err)
+		message := dynamicpb.NewMessage(method.Input())
+		require.NoError(t, proto.Unmarshal(wire, message))
+		return message
+	}
+
+	controller := &testsupport.Session{HandleBridge: &recordingBridge{}, OnInvokeRPC: completedRPC}
+	workers := &carrierRecorder{}
+	workers.OnReserve = func(context.Context, testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
+		return []testpilot.ReservationHandle{reserved}, nil
+	}
+	session := newPreparedCompositeSession(controller, workers, program)
+	_, err := session.Reserve(t.Context(), testpilot.ReservationRequest{Origin: origin, EntrypointID: "activity", Count: 1})
+	require.NoError(t, err)
+
+	_, err = session.InvokeRPC(t.Context(), origin, "endpoint", method, dynamicRequest(&workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "task-queue"}}))
+	require.ErrorIs(t, err, ErrInvalid)
+	require.Empty(t, workers.activities)
+
+	_, err = session.InvokeRPC(t.Context(), origin, "endpoint", method, dynamicRequest(&workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity-id", ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "task-queue"}}))
+	require.ErrorIs(t, err, errCarrierRecorded)
+	require.Equal(t, []delivery.ActivityBinding{{Namespace: "namespace", ActivityID: "activity-id", ActivityType: "activity-type", TaskQueue: "task-queue"}}, workers.activities)
+	require.Equal(t, [][]testpilot.ReservationHandle{{reserved}}, workers.handles)
+	require.Empty(t, workers.workflows)
+	require.Zero(t, controller.Calls("InvokeRPC"))
 }

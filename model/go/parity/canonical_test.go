@@ -1,9 +1,6 @@
 package parity
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -50,8 +47,7 @@ func requireSameString(t *testing.T, what, want, got string) {
 }
 
 func TestTargetFingerprint(t *testing.T) {
-	encoded, err := os.ReadFile(filepath.Join("testdata", "lean", "canonical-target-nexusProtocol.txt"))
-	require.NoError(t, err)
+	encoded := leanDump(t, "canonical-target-nexusProtocol.txt")
 	tb, err := nexuscaller.NexusProtocol.Table()
 	require.NoError(t, err)
 	requireSameString(t, "target semantic", semanticOf(t, strings.TrimSpace(string(encoded))), tb.TargetSemantic())
@@ -63,10 +59,7 @@ func TestScenarioPropertyAndQueryFingerprints(t *testing.T) {
 	require.NoError(t, err)
 	for _, q := range nexuscaller.FunctionalQueries {
 		t.Run(q.Name, func(t *testing.T) {
-			var want map[string]string
-			encoded, err := os.ReadFile(filepath.Join("testdata", "lean", "canonical-"+q.Name+".json"))
-			require.NoError(t, err)
-			require.NoError(t, json.Unmarshal(encoded, &want))
+			want := readLean[map[string]string](t, "canonical-"+q.Name+".json")
 
 			scenario := q.Scenario.ScenarioSemantic(tb)
 			requireSameString(t, "scenario semantic", semanticOf(t, want["scenario"]), scenario)

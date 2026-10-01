@@ -34,6 +34,8 @@ func Load(path string) (*modelirspb.Model, error) {
 // It also rejects the rest of model/scalav2/SEMANTICS.md's Admission list: an unknown version or a
 // construct of no known kind, crossed types, duplicate keys, catalogs that are not finite, bounds,
 // misused channels, readings without a refinement, and recursion.
+// A realization is checked as a whole of its own: what it names it declares, once, and its commands
+// depend on each other without a cycle.
 func Validate(m *modelirspb.Model) error {
 	v := newValidator(m)
 	if m.GetVersion() != 0 {
@@ -79,9 +81,14 @@ func Validate(m *modelirspb.Model) error {
 	for _, p := range m.GetProgress() {
 		v.progress(p)
 	}
+	for _, r := range m.GetRealizations() {
+		v.realization(r)
+	}
 	v.catalogs(m)
 	if len(v.errs) == 0 {
-		v.schedules(m, v.composedClasses(m))
+		composed := v.composedClasses(m)
+		v.schedules(m, composed)
+		v.selectors(m, composed)
 		v.identities(m)
 	}
 	return errors.Join(v.errs...)
@@ -214,6 +221,7 @@ func (v *validator) action(a *modelirspb.Action) {
 	for _, p := range a.GetInputs() {
 		v.typeRef(p.GetType(), a.GetPosition())
 	}
+	v.examples(a)
 	for _, use := range []struct{ verb, channel string }{{"delivers", a.GetDelivers()}, {"loses", a.GetLoses()}} {
 		c, ok := v.channels[use.channel]
 		switch {
@@ -230,6 +238,28 @@ func (v *validator) action(a *modelirspb.Action) {
 	}
 	if a.GetDelivers() != "" && a.GetLoses() != "" {
 		v.report(a.GetPosition(), "%s %s; an action does one", a.GetId(), bothRoles(a))
+	}
+}
+
+// examples checks an action's Abstraction Claims: an example is of one class of a one-input action,
+// so its value is a member of that input's type.
+func (v *validator) examples(a *modelirspb.Action) {
+	for _, ex := range a.GetExamples() {
+		switch before := len(v.errs); {
+		case len(a.GetInputs()) != 1:
+			v.report(a.GetPosition(), "%s gives an example and takes %d inputs; an example is of one class of a one-input action",
+				a.GetId(), len(a.GetInputs()))
+		case ex.GetValue().GetKind() == nil:
+			v.report(a.GetPosition(), "%s gives an example of no value", a.GetId())
+		default:
+			v.value(ex.GetValue(), a.GetPosition())
+			if len(v.errs) != before {
+				continue
+			}
+			if x := v.in.literal(ex.GetValue()); !v.in.conforms(x, a.GetInputs()[0].GetType()) {
+				v.report(a.GetPosition(), "%s gives an example of %s, which is no %s", a.GetId(), x.Key(), spell(a.GetInputs()[0].GetType()))
+			}
+		}
 	}
 }
 
@@ -967,8 +997,13 @@ func (v *validator) property(p *modelirspb.Property) {
 	switch {
 	case p.GetWhen() == nil:
 	case mm == nil:
-		if v.compositions[p.GetMachine()] != nil {
-			v.report(at, "%s: a Property of a composition is about every step", owner)
+		// A composition's Property names composed classes, which selectors checks once they can be
+		// listed. What a class is spelled from is checked here.
+		if c := p.GetWhenClass(); c != nil {
+			v.actionRefs(at, []string{c.GetAction()})
+			for _, x := range c.GetInputs() {
+				v.value(x, at)
+			}
 		}
 	case p.GetWhenClass() != nil:
 		v.actionClass(owner, mm, p.GetWhenClass(), at)
@@ -1045,20 +1080,71 @@ func (v *validator) schedules(m *modelirspb.Model, composed map[string]classKeys
 		if c == nil || len(s.GetKeys()) == 0 {
 			continue
 		}
-		keys := composed[c.GetName()]
-		var limit *LimitError
-		if errors.As(keys.err, &limit) {
-			v.errs = append(v.errs, fmt.Errorf("%s: %s: its classes: %w", where(at), owner, keys.err))
-		}
-		if keys.err != nil {
+		keys, ok := v.readable(at, owner, composed[c.GetName()])
+		if !ok {
 			continue
 		}
 		for _, k := range s.GetKeys() {
-			if _, ok := keys.owners[k]; !ok {
+			if _, ok := keys[k]; !ok {
 				v.report(at, "%s: %s has no class %s", owner, c.GetName(), k)
 			}
 		}
 	}
+}
+
+// readable is a composition's class keys for a claim that names some of them, and whether they are
+// known. Keys past a ceiling were not listed, which is the claim's error at its own position; two
+// classes that share a key were reported where the composition is declared.
+func (v *validator) readable(at *modelirspb.Position, owner string, keys classKeys) (map[string]string, bool) {
+	var limit *LimitError
+	if errors.As(keys.err, &limit) {
+		v.errs = append(v.errs, fmt.Errorf("%s: %s: its classes: %w", where(at), owner, keys.err))
+	}
+	return keys.owners, keys.err == nil
+}
+
+// selectors checks the steps a composition's Property is about against the composition's classes:
+// one class by its key, and an action by the classes its name begins, a sync's name or
+// `<field>_<action>` for a member's own. A member's action a sync takes has no class of its own, so
+// neither names it. It runs once the rest of the Model admits, as schedules does.
+func (v *validator) selectors(m *modelirspb.Model, composed map[string]classKeys) {
+	for _, p := range m.GetProperties() {
+		c := v.compositions[p.GetMachine()]
+		if c == nil || p.GetWhen() == nil {
+			continue
+		}
+		at, owner := p.GetPosition(), p.GetMachine()+"."+p.GetName()
+		keys, ok := v.readable(at, owner, composed[c.GetName()])
+		if !ok {
+			continue
+		}
+		switch w := p.GetWhen().(type) {
+		case *modelirspb.Property_WhenClass:
+			if key := classKey(v.in, v.actions, w.WhenClass); !hasKey(keys, key) {
+				v.report(at, "%s: %s has no class %s", owner, c.GetName(), key)
+			}
+		case *modelirspb.Property_WhenAction:
+			if !hasAction(keys, w.WhenAction) {
+				v.report(at, "%s: %s has no class of the action %s", owner, c.GetName(), w.WhenAction)
+			}
+		default:
+		}
+	}
+}
+
+func hasKey(keys map[string]string, key string) bool {
+	_, ok := keys[key]
+	return ok
+}
+
+// hasAction is whether some class of these keys is of the action of this name.
+func hasAction(keys map[string]string, action string) bool {
+	for key := range keys {
+		if actionOf(key) == action {
+			return true
+		}
+	}
+	return false
 }
 
 // identities lists each machine's state, outcome and fact catalogs and its classes, and refuses two
@@ -1121,7 +1207,8 @@ func (v *validator) composedClasses(m *modelirspb.Model) map[string]classKeys {
 }
 
 // composedKeys is every class key of a composition: `<field>_<class>` for a member's own class, and a
-// sync's name followed by the inputs of each of its classes.
+// sync's name followed by the inputs of each of its classes. A member's action a sync names steps
+// only with its pair, so it has no class of its own.
 // A key two classes spell alike, as `_` in a field or an action name and a sync named like a
 // member's class allow, is refused where the composition is declared.
 func (v *validator) composedKeys(c *modelirspb.Composition) (map[string]string, error) {
@@ -1129,10 +1216,11 @@ func (v *validator) composedKeys(c *modelirspb.Composition) (map[string]string, 
 		return nil, err
 	}
 	keys := &owned{composition: c, owners: map[string]string{}}
+	synced := syncedActions(c)
 	members := map[string]*modelirspb.Machine{}
 	for _, mb := range c.GetMembers() {
 		members[mb.GetField()] = v.machines[mb.GetMachine()]
-		if err := v.memberKeys(keys, mb, members[mb.GetField()]); err != nil {
+		if err := v.memberKeys(keys, mb, members[mb.GetField()], synced); err != nil {
 			return nil, err
 		}
 	}
@@ -1144,18 +1232,40 @@ func (v *validator) composedKeys(c *modelirspb.Composition) (map[string]string, 
 	return keys.owners, nil
 }
 
-// composedCount counts a composition's class keys, its members' classes and each sync's pairs of
-// them, refusing them past the Members ceiling before any is made.
+// syncedActions is the member actions a composition's syncs name, each as its member's field and the
+// action's name.
+func syncedActions(c *modelirspb.Composition) map[[2]string]bool {
+	synced := map[[2]string]bool{}
+	for _, s := range c.GetSyncs() {
+		for _, move := range []*modelirspb.SyncMove{s.GetFirst(), s.GetSecond()} {
+			synced[[2]string{move.GetMember(), move.GetAction()}] = true
+		}
+	}
+	return synced
+}
+
+// composedCount counts a composition's class keys, its members' classes no sync names and each
+// sync's pairs of them, refusing them past the Members ceiling before any is made.
 func (v *validator) composedCount(c *modelirspb.Composition) error {
 	var n count
+	synced := syncedActions(c)
 	members := map[string]*modelirspb.Machine{}
 	for _, mb := range c.GetMembers() {
 		members[mb.GetField()] = v.machines[mb.GetMachine()]
-		k, err := v.in.classCount(members[mb.GetField()], v.actions)
-		if err != nil {
-			return err
+		for _, b := range members[mb.GetField()].GetSteps() {
+			a, ok := v.actions[b.GetAction()]
+			if !ok {
+				return errorAt(b.GetPosition(), "no action %s", b.GetAction())
+			}
+			if synced[[2]string{mb.GetField(), a.GetName()}] {
+				continue
+			}
+			k, err := v.in.sizeOfProduct(inputFields(a))
+			if err != nil {
+				return err
+			}
+			n = n.plus(k)
 		}
-		n = n.plus(k)
 	}
 	for _, s := range c.GetSyncs() {
 		first, err := v.actionCount(members[s.GetFirst().GetMember()], s.GetFirst().GetAction())
@@ -1196,8 +1306,11 @@ func (o *owned) own(key, owner string) error {
 	return nil
 }
 
-func (v *validator) memberKeys(keys *owned, mb *modelirspb.Member, mm *modelirspb.Machine) error {
+func (v *validator) memberKeys(keys *owned, mb *modelirspb.Member, mm *modelirspb.Machine, synced map[[2]string]bool) error {
 	for _, b := range mm.GetSteps() {
+		if synced[[2]string{mb.GetField(), v.actions[b.GetAction()].GetName()}] {
+			continue
+		}
 		classes, err := v.inputKeys(v.actions[b.GetAction()])
 		if err != nil {
 			return err
@@ -1362,4 +1475,628 @@ func (v *validator) query(q *modelirspb.Query) {
 			v.report(q.GetPosition(), "query %s limits %s to %d, below 0", q.GetName(), limit.name, limit.bound)
 		}
 	}
+}
+
+// realizing is one realization being admitted: what it declares, by id, and what its commands bind,
+// read and perform.
+type realizing struct {
+	v *validator
+	r *modelirspb.Realization
+	// label is what scopes the realization's declarations, and owner what a diagnostic calls it: its
+	// name, its id where it has no name, or where it was written where it has neither.
+	label        string
+	owner        string
+	roles        map[string]*modelirspb.Role
+	learned      map[string]*modelirspb.Learned
+	observations map[string]bool
+	evidence     map[string]*modelirspb.Evidence
+	controls     map[string]bool
+	// bound and performed name the command that binds a learned value and that performs a class;
+	// read holds the learned values some command reads.
+	bound     map[string]string
+	performed map[string]string
+	read      map[string]bool
+}
+
+var (
+	roleKinds    = map[modelirspb.Role_Kind]string{modelirspb.Role_KIND_ENDPOINT: "an endpoint", modelirspb.Role_KIND_WORKER: "a worker", modelirspb.Role_KIND_TASK_QUEUE: "a task queue", modelirspb.Role_KIND_PARTICIPANT: "a participant"}
+	learnedKinds = map[modelirspb.Learned_Kind]string{modelirspb.Learned_KIND_TEXT: "a text", modelirspb.Learned_KIND_HANDLE: "a handle"}
+)
+
+// realization checks that a realization names what it declares, declares each thing once, binds each
+// learned value and performs each class once, crosses no kind and no correlation, and orders its
+// commands without a cycle. It is named by its id and by its name, and one that lacks either, or
+// names no machine of the Model, is still read whole: only its classes, which are read against the
+// machine, are left unchecked.
+func (v *validator) realization(r *modelirspb.Realization) {
+	at := r.GetPosition()
+	a := &realizing{v: v, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*modelirspb.Role{},
+		learned: map[string]*modelirspb.Learned{}, observations: map[string]bool{}, evidence: map[string]*modelirspb.Evidence{},
+		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{}}
+	switch {
+	case r.GetName() != "":
+		v.once(at, "realizations named", r.GetName())
+	case r.GetId() != "":
+		v.report(at, "a realization has no name")
+		a.label, a.owner = r.GetId(), "realization "+r.GetId()
+	default:
+		v.report(at, "a realization has no name")
+		a.label, a.owner = fmt.Sprintf("at %s", where(at)), "a realization"
+	}
+	if r.GetId() == "" {
+		v.report(at, "%s has no id", a.owner)
+	} else {
+		v.once(at, "realizations with id", r.GetId())
+	}
+	mm, ok := v.machines[r.GetMachine()]
+	if !ok {
+		a.report(at, "no machine %s", r.GetMachine())
+	}
+	if r.GetProducer() == "" {
+		a.report(at, "it names no producer")
+	}
+	a.declarations()
+	a.correlation()
+	for _, s := range r.GetScripts() {
+		a.script(mm, s)
+	}
+	for _, l := range r.GetLearned() {
+		switch _, bound := a.bound[l.GetId()]; {
+		case l.GetId() == "" || bound:
+		case a.read[l.GetId()]:
+			a.report(l.GetPosition(), "learned value %s is read and no command binds it", l.GetId())
+		default:
+			a.report(l.GetPosition(), "learned value %s is neither bound nor read", l.GetId())
+		}
+	}
+}
+
+func (a *realizing) report(at *modelirspb.Position, format string, args ...any) {
+	if at.GetFile() == "" {
+		at = a.r.GetPosition()
+	}
+	a.v.report(at, a.owner+": "+format, args...)
+}
+
+// declared reports a declaration with no id, and one whose id an earlier one of its kind took. It is
+// whether the declaration can be named.
+func (a *realizing) declared(at *modelirspb.Position, kind, plural, id string) bool {
+	if id == "" {
+		a.report(at, "%s has no id", kind)
+		return false
+	}
+	if at.GetFile() == "" {
+		at = a.r.GetPosition()
+	}
+	return !a.v.once(at, plural+" with id", id, "of realization", a.label)
+}
+
+func (a *realizing) declarations() {
+	for _, role := range a.r.GetRoles() {
+		if a.declared(role.GetPosition(), "a role", "roles", role.GetId()) {
+			a.roles[role.GetId()] = role
+		}
+		if !known(modelirspb.Role_Kind_name, int32(role.GetKind())) {
+			a.report(role.GetPosition(), "role %s is of no known kind", role.GetId())
+		}
+	}
+	for _, l := range a.r.GetLearned() {
+		if a.declared(l.GetPosition(), "a learned value", "learned values", l.GetId()) {
+			a.learned[l.GetId()] = l
+		}
+		if !known(modelirspb.Learned_Kind_name, int32(l.GetKind())) {
+			a.report(l.GetPosition(), "learned value %s is of no known kind", l.GetId())
+		}
+	}
+	for _, o := range a.r.GetObservations() {
+		if a.declared(o.GetPosition(), "an observation", "observations", o.GetId()) {
+			a.observations[o.GetId()] = true
+		}
+		if o.GetMessage() == "" {
+			a.report(o.GetPosition(), "observation %s names no message", o.GetId())
+		}
+	}
+	for _, e := range a.r.GetEvidence() {
+		a.evidenceKind(e)
+	}
+	for _, c := range a.r.GetControls() {
+		if a.declared(c.GetPosition(), "a control", "controls", c.GetId()) {
+			a.controls[c.GetId()] = true
+		}
+		switch k := c.GetKind().(type) {
+		case *modelirspb.Control_HoldDelivery:
+			if _, ok := a.v.channels[k.HoldDelivery]; !ok {
+				a.report(c.GetPosition(), "control %s: no channel %s", c.GetId(), k.HoldDelivery)
+			}
+		default:
+			a.report(c.GetPosition(), "control %s is of no known kind", c.GetId())
+		}
+	}
+}
+
+func (a *realizing) evidenceKind(e *modelirspb.Evidence) {
+	at, id := e.GetPosition(), e.GetId()
+	if a.declared(at, "a kind of evidence", "kinds of evidence", id) {
+		a.evidence[id] = e
+	}
+	if e.GetRecords() == "" {
+		a.report(at, "evidence %s names no recorded kind", id)
+	} else {
+		a.v.once(at, "kinds of evidence recording", e.GetRecords(), "of realization", a.label)
+	}
+	if e.GetSource() == "" {
+		a.report(at, "evidence %s names no source", id)
+	}
+	if e.GetOperation() == "" {
+		a.report(at, "evidence %s names no field that keys its operation", id)
+	}
+	switch from := e.GetFrom().(type) {
+	case *modelirspb.Evidence_History:
+		if from.History == "" {
+			a.report(at, "evidence %s names no history event", id)
+		}
+	case *modelirspb.Evidence_Read:
+		if from.Read.GetMethod() == "" || from.Read.GetPath() == "" {
+			a.report(at, "evidence %s reads no method or no path", id)
+		}
+	default:
+		a.report(at, "evidence %s is recorded nowhere", id)
+	}
+	if !known(modelirspb.Evidence_Commitment_name, int32(e.GetCommitment())) {
+		a.report(at, "evidence %s is of no known commitment", id)
+	}
+}
+
+// correlation checks that evidence is keyed by two different fields and carried by one declared
+// observation, within a window that keeps something.
+func (a *realizing) correlation() {
+	c := a.r.GetCorrelation()
+	if c == nil {
+		a.v.report(a.r.GetPosition(), "%s declares no correlation", a.owner)
+		return
+	}
+	at := c.GetPosition()
+	if c.GetProjection() == "" || c.GetRun() == "" || c.GetOperation() == "" {
+		a.report(at, "the correlation names no projection, no run field or no operation field")
+	} else if c.GetRun() == c.GetOperation() {
+		a.report(at, "the correlation keys its runs and its operations by one field, %s", c.GetRun())
+	}
+	if !a.observations[c.GetObservation()] {
+		a.report(at, "the correlation: no observation %s", c.GetObservation())
+	}
+	for _, bound := range []struct {
+		name string
+		n    int64
+	}{{"events", c.GetEvents()}, {"buffered", c.GetBuffered()}, {"keys", c.GetKeys()}, {"support", c.GetSupport()},
+		{"work", c.GetWork()}, {"event size", c.GetEventSize()}} {
+		if bound.n < 1 {
+			a.report(at, "the correlation keeps %d %s; a window keeps at least one", bound.n, bound.name)
+		}
+	}
+}
+
+// commandOf is one command of a script with what a diagnostic calls it.
+type commandOf struct {
+	c    *modelirspb.Command
+	name string
+	at   *modelirspb.Position
+}
+
+func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
+	at := s.GetPosition()
+	if !a.declared(at, "a script", "scripts", s.GetId()) && s.GetId() == "" {
+		return
+	}
+	a.activation(s)
+	a.items(mm, s)
+	fixed, all := map[string]bool{}, map[string]*modelirspb.Command{}
+	var commands []commandOf
+	note := func(c *modelirspb.Command, performs bool) {
+		pos := c.GetPosition()
+		if pos.GetFile() == "" {
+			pos = at
+		}
+		if c.GetId() == "" {
+			a.report(pos, "a command of script %s has no id", s.GetId())
+			return
+		}
+		switch {
+		case !performs:
+			a.v.once(pos, "commands with id", c.GetId(), "of script", s.GetId(), "of realization", a.label)
+			fixed[c.GetId()] = true
+		case fixed[c.GetId()]:
+			a.report(pos, "two commands with id %s of script %s", c.GetId(), s.GetId())
+		default:
+		}
+		all[c.GetId()] = c
+		commands = append(commands, commandOf{c, fmt.Sprintf("%s of script %s", c.GetId(), s.GetId()), pos})
+	}
+	for _, item := range s.GetItems() {
+		if item.GetCommand() != nil && len(item.GetPerforms()) == 0 {
+			note(item.GetCommand(), false)
+		}
+	}
+	for _, item := range s.GetItems() {
+		for _, p := range item.GetPerforms() {
+			if p.GetCommand() == nil {
+				a.report(p.GetPosition(), "script %s performs a class with no command", s.GetId())
+				continue
+			}
+			note(p.GetCommand(), true)
+			a.performs(mm, s, p)
+		}
+	}
+	for _, c := range commands {
+		a.command(s, c, all)
+	}
+	a.cycles(s, all)
+}
+
+// items checks that each item of a script is a command, with the classes it is carried for, or the
+// place steps are performed, and not both.
+func (a *realizing) items(mm *modelirspb.Machine, s *modelirspb.Script) {
+	for _, item := range s.GetItems() {
+		pos := item.GetPosition()
+		if pos.GetFile() == "" {
+			pos = s.GetPosition()
+		}
+		switch {
+		case item.GetCommand() == nil && len(item.GetPerforms()) == 0:
+			a.report(pos, "script %s has an item that is neither a command nor the place steps are performed", s.GetId())
+		case item.GetCommand() != nil && len(item.GetPerforms()) > 0:
+			a.report(pos, "script %s has an item that is both a command and the place steps are performed", s.GetId())
+		case item.GetCommand() != nil && mm != nil:
+			for _, c := range item.GetWhen() {
+				a.v.actionClass(a.owner+": script "+s.GetId(), mm, c, pos)
+			}
+		case item.GetCommand() != nil:
+		case len(item.GetWhen()) > 0:
+			a.report(pos, "script %s performs steps under a condition; the path decides which are performed", s.GetId())
+		default:
+		}
+	}
+}
+
+// performs checks the class a performance binds, and that no other performance of the realization
+// binds it.
+func (a *realizing) performs(mm *modelirspb.Machine, s *modelirspb.Script, p *modelirspb.Performance) {
+	if mm == nil {
+		return
+	}
+	before := len(a.v.errs)
+	a.v.actionClass(a.owner+": script "+s.GetId(), mm, p.GetStep(), p.GetPosition())
+	if len(a.v.errs) != before {
+		return
+	}
+	key := classKey(a.v.in, a.v.actions, p.GetStep())
+	by := fmt.Sprintf("%s of script %s", p.GetCommand().GetId(), s.GetId())
+	if other, ok := a.performed[key]; ok {
+		a.report(p.GetPosition(), "class %s is performed by %s and by %s; a class is performed once", key, other, by)
+		return
+	}
+	a.performed[key] = by
+}
+
+// role checks that a role is declared and of the kind its use needs.
+func (a *realizing) role(at *modelirspb.Position, where, id string, kind modelirspb.Role_Kind) {
+	switch role, ok := a.roles[id]; {
+	case !ok:
+		a.report(at, "%s: no role %s", where, id)
+	case role.GetKind() != kind && known(modelirspb.Role_Kind_name, int32(role.GetKind())):
+		a.report(at, "%s: role %s is %s, not %s", where, id, roleKinds[role.GetKind()], roleKinds[kind])
+	default:
+	}
+}
+
+func (a *realizing) activation(s *modelirspb.Script) {
+	at, where := s.GetPosition(), "script "+s.GetId()
+	worker := func(name *modelirspb.Name, workerRole, queue string) {
+		if name != nil && name.GetPrefix() == "" && name.GetSuffix() == "" && !name.GetFixture() {
+			a.report(at, "%s is activated by a type with no name", where)
+		}
+		a.role(at, where, workerRole, modelirspb.Role_KIND_WORKER)
+		a.role(at, where, queue, modelirspb.Role_KIND_TASK_QUEUE)
+	}
+	switch act := s.GetActivation().(type) {
+	case *modelirspb.Script_Controller:
+	case *modelirspb.Script_Workflow:
+		worker(act.Workflow.GetWorkflowType(), act.Workflow.GetWorker(), act.Workflow.GetTaskQueue())
+	case *modelirspb.Script_Activity:
+		worker(act.Activity.GetActivityType(), act.Activity.GetWorker(), act.Activity.GetTaskQueue())
+	case *modelirspb.Script_NexusHandler:
+		if act.NexusHandler.GetService() == "" || act.NexusHandler.GetOperation() == "" {
+			a.report(at, "%s answers no service or no operation", where)
+		}
+		worker(nil, act.NexusHandler.GetWorker(), act.NexusHandler.GetTaskQueue())
+	default:
+		a.report(at, "%s names no activation", where)
+	}
+}
+
+// binds records the one command that binds a learned value of the kind the binding gives it.
+func (a *realizing) binds(c commandOf, id string, kind modelirspb.Learned_Kind) {
+	if !a.reads(c, id, kind) {
+		return
+	}
+	if other, ok := a.bound[id]; ok {
+		a.report(c.at, "learned value %s is bound by %s and by %s; a learned value is bound once", id, other, c.name)
+		return
+	}
+	a.bound[id] = c.name
+}
+
+// reads checks that a learned value is declared and of the kind its reader needs, any kind when kind
+// is unspecified, and is whether it is declared.
+func (a *realizing) reads(c commandOf, id string, kind modelirspb.Learned_Kind) bool {
+	l, ok := a.learned[id]
+	switch {
+	case !ok:
+		a.report(c.at, "command %s: no learned value %s", c.name, id)
+		return false
+	case kind != modelirspb.Learned_KIND_UNSPECIFIED && l.GetKind() != kind && known(modelirspb.Learned_Kind_name, int32(l.GetKind())):
+		a.report(c.at, "command %s: learned value %s is %s, not %s", c.name, id, learnedKinds[l.GetKind()], learnedKinds[kind])
+	default:
+	}
+	return true
+}
+
+func (a *realizing) command(s *modelirspb.Script, c commandOf, all map[string]*modelirspb.Command) {
+	named := func(id string) {
+		if _, ok := all[id]; !ok {
+			a.report(c.at, "command %s: no command %s of script %s", c.name, id, s.GetId())
+		}
+	}
+	for _, id := range c.c.GetAfter().GetCommands() {
+		named(id)
+	}
+	if c.c.GetTimeoutMs() < 0 {
+		a.report(c.at, "command %s has a deadline of %d milliseconds", c.name, c.c.GetTimeoutMs())
+	}
+	switch in := c.c.GetInstruction().(type) {
+	case *modelirspb.Command_Rpc:
+		a.rpc(c, in.Rpc)
+	case *modelirspb.Command_Poll:
+		a.poll(c, in.Poll)
+	case *modelirspb.Command_AwaitLearned:
+		if a.reads(c, in.AwaitLearned, modelirspb.Learned_KIND_UNSPECIFIED) {
+			a.read[in.AwaitLearned] = true
+		}
+	case *modelirspb.Command_AwaitCommand:
+		named(in.AwaitCommand)
+	case *modelirspb.Command_Finish:
+		a.operand(c, in.Finish.GetResult(), false)
+	case *modelirspb.Command_Fault:
+		a.role(c.at, "command "+c.name, in.Fault.GetRole(), modelirspb.Role_KIND_TASK_QUEUE)
+		if !known(modelirspb.Fault_Kind_name, int32(in.Fault.GetKind())) {
+			a.report(c.at, "command %s is a fault of no known kind", c.name)
+		}
+	case *modelirspb.Command_WorkflowCommand:
+		a.message(c, in.WorkflowCommand.GetCommand())
+	case *modelirspb.Command_NexusReply:
+		a.message(c, in.NexusReply.GetReply())
+		if in.NexusReply.GetBinds() != "" {
+			a.binds(c, in.NexusReply.GetBinds(), modelirspb.Learned_KIND_HANDLE)
+		}
+	case *modelirspb.Command_NexusCompletion:
+		if a.reads(c, in.NexusCompletion.GetHandle(), modelirspb.Learned_KIND_HANDLE) {
+			a.read[in.NexusCompletion.GetHandle()] = true
+		}
+		a.message(c, in.NexusCompletion.GetResult())
+	case *modelirspb.Command_Hold:
+		a.control(c, in.Hold)
+	case *modelirspb.Command_Release:
+		a.control(c, in.Release)
+	default:
+		a.report(c.at, "command %s names no instruction", c.name)
+	}
+}
+
+func (a *realizing) control(c commandOf, id string) {
+	if !a.controls[id] {
+		a.report(c.at, "command %s: no control %s", c.name, id)
+	}
+}
+
+func (a *realizing) assignments(c commandOf, assign []*modelirspb.Assignment, polls bool) {
+	targets := map[string]bool{}
+	for _, as := range assign {
+		if as.GetTarget() == "" {
+			a.report(c.at, "command %s assigns a value to no field", c.name)
+		} else if targets[as.GetTarget()] {
+			a.report(c.at, "command %s assigns %s twice", c.name, as.GetTarget())
+		}
+		targets[as.GetTarget()] = true
+		a.operand(c, as.GetValue(), polls)
+	}
+}
+
+func (a *realizing) rpc(c commandOf, rpc *modelirspb.Rpc) {
+	a.role(c.at, "command "+c.name, rpc.GetRole(), modelirspb.Role_KIND_ENDPOINT)
+	if rpc.GetMethod() == "" {
+		a.report(c.at, "command %s calls no method", c.name)
+	}
+	a.assignments(c, rpc.GetAssign(), false)
+	held := a.r.GetCorrelation().GetObservation()
+	for _, read := range rpc.GetReads() {
+		if !known(modelirspb.ResponseRead_Cardinality_name, int32(read.GetCardinality())) {
+			a.report(c.at, "command %s reads %s at no known cardinality", c.name, read.GetPath())
+		}
+		for _, target := range read.GetTargets() {
+			switch tg := target.GetTarget().(type) {
+			case *modelirspb.Target_Observe:
+				switch {
+				case !a.observations[tg.Observe]:
+					a.report(c.at, "command %s: no observation %s", c.name, tg.Observe)
+				case tg.Observe == held:
+					a.report(c.at, "command %s observes a value into %s, which holds the correlation's evidence", c.name, held)
+				default:
+				}
+			case *modelirspb.Target_Bind:
+				if read.GetCardinality() == modelirspb.ResponseRead_CARDINALITY_EACH {
+					a.report(c.at, "command %s binds %s from each element of %s; a learned value is one value", c.name, tg.Bind, read.GetPath())
+				}
+				a.binds(c, tg.Bind, modelirspb.Learned_KIND_TEXT)
+			case *modelirspb.Target_Lift:
+				if tg.Lift != held {
+					a.report(c.at, "command %s lifts evidence into %s, and the correlation reads %s", c.name, tg.Lift, held)
+				}
+			default:
+				a.report(c.at, "command %s reads %s into nothing", c.name, read.GetPath())
+			}
+		}
+	}
+}
+
+func (a *realizing) poll(c commandOf, poll *modelirspb.Poll) {
+	a.role(c.at, "command "+c.name, poll.GetRole(), modelirspb.Role_KIND_ENDPOINT)
+	switch e, ok := a.evidence[poll.GetEvidence()]; {
+	case !ok:
+		a.report(c.at, "command %s: no evidence %s", c.name, poll.GetEvidence())
+	case e.GetRead() == nil && e.GetFrom() != nil:
+		a.report(c.at, "command %s: evidence %s is a history event, which a poll does not read", c.name, poll.GetEvidence())
+	default:
+	}
+	a.assignments(c, poll.GetAssign(), false)
+	a.operand(c, poll.GetUntil(), true)
+	if poll.GetIntervalMs() < 1 {
+		a.report(c.at, "command %s polls every %d milliseconds", c.name, poll.GetIntervalMs())
+	}
+}
+
+// operand checks a value a command computes. Only a poll's condition reads the value the poll is
+// looking at.
+func (a *realizing) operand(c commandOf, o *modelirspb.Operand, polls bool) {
+	switch k := o.GetKind().(type) {
+	case *modelirspb.Operand_Literal:
+		switch k.Literal.GetKind().(type) {
+		case *modelirspb.ProtoValue_Text, *modelirspb.ProtoValue_Flag, *modelirspb.ProtoValue_Number,
+			*modelirspb.ProtoValue_EnumName, *modelirspb.ProtoValue_Named:
+		default:
+			a.report(c.at, "command %s: a literal operand is a text, a flag, a number, an enum value or a name", c.name)
+		}
+	case *modelirspb.Operand_Environment:
+		if k.Environment == "" {
+			a.report(c.at, "command %s reads an environment binding with no id", c.name)
+		}
+	case *modelirspb.Operand_Run:
+	case *modelirspb.Operand_LearnedValue:
+		if a.reads(c, k.LearnedValue, modelirspb.Learned_KIND_TEXT) {
+			a.read[k.LearnedValue] = true
+		}
+		if c.c.GetRegardless() {
+			a.report(c.at, "command %s runs whatever became of the commands before it, and reads learned value %s, which is read only once it is bound",
+				c.name, k.LearnedValue)
+		}
+	case *modelirspb.Operand_Projected:
+		if !polls {
+			a.report(c.at, "command %s reads the value a poll is looking at, and is no poll's condition", c.name)
+		}
+	case *modelirspb.Operand_Path:
+		a.operand(c, k.Path.GetOf(), polls)
+	case *modelirspb.Operand_Present:
+		a.operand(c, k.Present.GetOf(), polls)
+	case *modelirspb.Operand_Equal:
+		a.operand(c, k.Equal.GetLeft(), polls)
+		a.operand(c, k.Equal.GetRight(), polls)
+	default:
+		a.report(c.at, "command %s: an operand of no known kind", c.name)
+	}
+}
+
+// message checks a protobuf message written out: it names its type, sets no field twice, and every
+// value it sets is of a known kind.
+func (a *realizing) message(c commandOf, m *modelirspb.Proto) {
+	if m.GetMessage() == "" {
+		a.report(c.at, "command %s: a message with no name", c.name)
+		return
+	}
+	set := map[string]bool{}
+	for _, f := range m.GetFields() {
+		if set[f.GetName()] {
+			a.report(c.at, "command %s: %s sets %s twice", c.name, m.GetMessage(), f.GetName())
+		}
+		set[f.GetName()] = true
+		a.protoValue(c, m.GetMessage()+"."+f.GetName(), f.GetValue())
+	}
+}
+
+func (a *realizing) protoValue(c commandOf, field string, value *modelirspb.ProtoValue) {
+	switch k := value.GetKind().(type) {
+	case *modelirspb.ProtoValue_Text, *modelirspb.ProtoValue_Flag, *modelirspb.ProtoValue_Number,
+		*modelirspb.ProtoValue_EnumName, *modelirspb.ProtoValue_Utf8, *modelirspb.ProtoValue_Named:
+	case *modelirspb.ProtoValue_Message:
+		a.message(c, k.Message)
+	case *modelirspb.ProtoValue_Mapping:
+		keys := map[string]bool{}
+		for _, e := range k.Mapping.GetEntries() {
+			if keys[e.GetKey()] {
+				a.report(c.at, "command %s: %s has the key %s twice", c.name, field, e.GetKey())
+			}
+			keys[e.GetKey()] = true
+			a.protoValue(c, field, e.GetValue())
+		}
+	case *modelirspb.ProtoValue_RoleId:
+		if _, ok := a.roles[k.RoleId]; !ok {
+			a.report(c.at, "command %s: no role %s", c.name, k.RoleId)
+		}
+	default:
+		a.report(c.at, "command %s: %s is set to a value of no known kind", c.name, field)
+	}
+}
+
+// cycles reports each command of a script that runs after itself. A command with no `after` runs
+// after the item before it, which is earlier in the script and so closes no cycle of its own.
+func (a *realizing) cycles(s *modelirspb.Script, all map[string]*modelirspb.Command) {
+	reported := map[string]bool{}
+	for _, item := range s.GetItems() {
+		ids := []string{item.GetCommand().GetId()}
+		for _, p := range item.GetPerforms() {
+			ids = append(ids, p.GetCommand().GetId())
+		}
+		for _, start := range ids {
+			through, cyclic := runsAfterItself(all, start)
+			if all[start] == nil || reported[start] || !cyclic {
+				continue
+			}
+			reported[start] = true
+			for _, id := range through {
+				reported[id] = true
+			}
+			at := all[start].GetPosition()
+			if at.GetFile() == "" {
+				at = s.GetPosition()
+			}
+			if len(through) == 0 {
+				a.report(at, "script %s: command %s runs after itself", s.GetId(), start)
+			} else {
+				a.report(at, "script %s: command %s runs after itself, through %s", s.GetId(), start, strings.Join(through, ", "))
+			}
+		}
+	}
+}
+
+// runsAfterItself is whether following the commands a command runs after leads back to it, and the
+// commands the way back goes through.
+func runsAfterItself(all map[string]*modelirspb.Command, start string) ([]string, bool) {
+	var path []string
+	seen := map[string]bool{}
+	var visit func(id string) bool
+	visit = func(id string) bool {
+		for _, next := range all[id].GetAfter().GetCommands() {
+			if next == start {
+				return true
+			}
+			if all[next] == nil || seen[next] {
+				continue
+			}
+			seen[next] = true
+			path = append(path, next)
+			if visit(next) {
+				return true
+			}
+			path = path[:len(path)-1]
+		}
+		return false
+	}
+	return path, visit(start)
 }

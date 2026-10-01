@@ -12,10 +12,15 @@ object Lean:
   /** The repository root, found by walking up from the working directory. */
   lazy val root: Path =
     Iterator.iterate(Paths.get("").toAbsolutePath)(_.getParent).takeWhile(_ != null)
-      .find(p => Files.isDirectory(p.resolve("model/go/parity/testdata/lean")))
-      .getOrElse(sys.error("no model/go/parity/testdata/lean above the working directory"))
+      .find(p => Files.isDirectory(p.resolve("model/go/parity")))
+      .getOrElse(sys.error("no model/go/parity above the working directory"))
 
-  def text(name: String): String = Files.readString(root.resolve("model/go/parity/testdata/lean").resolve(name))
+  /** The dumps are git-ignored and only a Lean build regenerates them, so a checkout without them
+    * skips the test that reads one; a dump missing from a present directory still fails. */
+  def text(name: String): String =
+    val dumps = root.resolve("model/go/parity/testdata/lean")
+    munit.Assertions.assume(Files.isDirectory(dumps), s"no Lean dumps in $dumps; model/go/leandump/dump.sh writes them")
+    Files.readString(dumps.resolve(name))
   def json(name: String): JsonElement = JsonParser.parseString(text(name))
 
   extension (e: JsonElement)

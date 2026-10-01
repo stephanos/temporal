@@ -177,7 +177,8 @@ Verdict and admission.
    of `EvidenceDeclaration.source`, bound there, lifted where its data appears (`liftRunEvents` for
    a recorded event, the instruction's response reads for a read), and listed in the Lean catalog
    the `evidence:` line resolves against (`Temporal.Case.Catalog`, with `EventKind` and `ReadKind`). A workflow instruction also runs in `workflowInterpreter.execute`
-   (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`. An
+   (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`; an
+   activity instruction in `Session.executeActivity`. An
    instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
    which the carrier route derivation and `bindAwait` read, and by the worker's
    `startsNexusOperation` and `addInstructionBindings`, which prepare its dispatch route and

@@ -248,7 +248,33 @@ func newProduction(q *umpire.Query, identity Identity, r *Realization, source So
 	return p, nil
 }
 
-func (p *production) produce() (*testpilotspb.Case, error) {
+// Preflight decides everything Produce decides for a Query and writes no Case: that the Query has a
+// witness, which evidence confirms each step, which clauses the Property lowers to, and where the
+// path's actions land in the Program. It reports what Produce would refuse, by the same steps.
+func Preflight(q *umpire.Query, identity Identity, r *Realization) error {
+	p, err := newProduction(q, identity, r, Source{})
+	if err != nil {
+		return err
+	}
+	_, err = p.decide()
+	return err
+}
+
+// decided is what a production decides before it writes a Case.
+type decided struct {
+	silentGaps          []*testpilotspb.KnownGap
+	groups              []umpire.Group
+	clauses             []clause
+	propertyID          string
+	propertyFingerprint string
+	plan                projectionPlan
+	contract            *testpilotspb.CorrelatedContract
+	program             *testpilotspb.Program
+}
+
+// decide resolves the witness's evidence, lowers the Property and assembles the Program: every step of
+// a production that can refuse the Query.
+func (p *production) decide() (*decided, error) {
 	witnessRules, silentGaps, err := p.resolveEvidence(p.derivedEvidence())
 	if err != nil {
 		return nil, err
@@ -277,6 +303,17 @@ func (p *production) produce() (*testpilotspb.Case, error) {
 	if err != nil {
 		return nil, err
 	}
+	return &decided{silentGaps: silentGaps, groups: groups, clauses: clauses, propertyID: propertyID,
+		propertyFingerprint: propertyFingerprint, plan: plan, contract: contract, program: program}, nil
+}
+
+func (p *production) produce() (*testpilotspb.Case, error) {
+	d, err := p.decide()
+	if err != nil {
+		return nil, err
+	}
+	silentGaps, groups, clauses, propertyID := d.silentGaps, d.groups, d.clauses, d.propertyID
+	propertyFingerprint, plan, contract, program := d.propertyFingerprint, d.plan, d.contract, d.program
 	scenarioSemantic := p.q.Scenario.ScenarioSemantic(p.t)
 	propertySemantic := p.t.PropertySemantic(propertyID, groups)
 	queryFingerprint := umpire.Fingerprint(p.q.QueryCanonical(p.t, umpire.Fingerprint(propertySemantic)))

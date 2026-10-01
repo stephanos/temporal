@@ -25,6 +25,33 @@ type Refinement struct {
 	// MapValue reads a refining state key as the typed product state.
 	MapValue func(string) (any, error)
 	stepOfFn func(state any, outcome string, facts []string) (any, error)
+	// source and product are the tables RefineTables checked, which a Query over keys reads through.
+	source, product *Table
+}
+
+// keyLevel reports whether the refinement reads keys only: RefineTables checked it and no machine
+// gave it typed states.
+func (r *Refinement) keyLevel() bool { return r.stepOfFn == nil }
+
+// checkKeyRefined rejects a refined Query that reads a Property over keys through typed states, or
+// a typed one through keys, and a refinement over keys of other tables than the Query's.
+func (q *Query) checkKeyRefined(t *Table, ref *Refinement) error {
+	p := q.Property
+	switch {
+	case p.keyLevel() && !ref.keyLevel():
+		return errorf(q.decl(), "%s reads keys, and the refinement of %s by %s reads typed states",
+			p.Name, ref.Product, ref.Machine)
+	case !p.keyLevel() && ref.keyLevel():
+		return errorf(q.decl(), "%s reads typed states, and the refinement of %s by %s reads keys",
+			p.Name, ref.Product, ref.Machine)
+	case !p.keyLevel():
+		return nil
+	case ref.source != t || ref.product == nil || ref.product.model != p.Machine:
+		return errorf(q.decl(), "the refinement of %s by %s is not the one checked of the table %s runs on by "+
+			"the table %s is declared on", ref.Product, ref.Machine, q.Scenario.Name, p.Name)
+	default:
+		return nil
+	}
 }
 
 // RefinementRow pairs one row result with its product action, "" for a stutter.
@@ -200,6 +227,9 @@ const (
 	// RefinementVisibleStutter is a stutter that records a fact or an outcome the refined machine
 	// sees.
 	RefinementVisibleStutter RefinementFailure = "visible-stutter"
+	// RefinementIncomplete is a reachable state with an unknown pair, whose steps are not shown to
+	// refine anything.
+	RefinementIncomplete RefinementFailure = "incomplete"
 )
 
 // RefinementError is a refinement that does not hold. Witness is the shortest path of the refining
@@ -212,9 +242,34 @@ type RefinementError struct {
 	Kind           RefinementFailure
 	Witness        *Trace
 	ProductWitness *Trace
+	cause          error
 }
 
 func (e *RefinementError) Error() string { return e.Declaration + ": " + e.Message }
+
+// Unwrap is what left a pair unknown, for a refinement that is incomplete, so its type survives.
+func (e *RefinementError) Unwrap() error { return e.cause }
+
+// reachableUnknown is the failure of a refinement by a table some start of which reaches an unknown
+// pair: the steps the pair stands for are not shown to refine anything, so the refinement does not
+// hold on the rows alone. Witness is the shortest path to the pair's state. An unknown pair no start
+// reaches changes nothing.
+func (t *Table) reachableUnknown(decl string, dst *Table) error {
+	for _, u := range t.Unknown {
+		if !slices.Contains(t.Reachable, u.Source) {
+			continue
+		}
+		start, path, _ := t.pathTo(u.Source)
+		message := fmt.Sprintf("%s reaches '%s', where the pair '%s' is unknown, so no step it takes there is "+
+			"shown to be a step of %s or a stutter", t.Machine, u.Source, u.Row, dst.Machine)
+		if u.Cause != nil {
+			message += ": " + u.Cause.Error()
+		}
+		return &RefinementError{Declaration: decl, Message: message, Kind: RefinementIncomplete,
+			Witness: t.trace(start, path), cause: u.Cause}
+	}
+	return nil
+}
 
 // RefineTables checks that src refines dst under the rule `Umpire.Command.deriveRefinement` applies,
 // narrowed by the spec's projection (SEMANTICS.md, Machines 6): every outcome reads as a product
@@ -227,19 +282,27 @@ func RefineTables(src, dst *Table, spec RefinementSpec) (*Refinement, error) {
 	fail := func(kind RefinementFailure, witness *Trace, format string, args ...any) error {
 		return &RefinementError{Declaration: decl, Message: fmt.Sprintf(format, args...), Kind: kind, Witness: witness}
 	}
-	ref := &Refinement{Machine: src.Machine, Product: dst.Machine, MapState: spec.MapState}
+	for _, t := range []*Table{src, dst} {
+		if t.err != nil {
+			return nil, t.err
+		}
+	}
+	if spec.MapState == nil {
+		return nil, errorf(decl, "a refinement names how a state reads as a state of %s", dst.Machine)
+	}
+	ref := &Refinement{Machine: src.Machine, Product: dst.Machine, MapState: spec.MapState, source: src, product: dst}
 	if err := checkRefinementCatalogs(decl, src, dst, spec); err != nil {
 		return nil, err
 	}
 	for _, row := range src.Rows {
 		from, err := spec.MapState(row.Source)
 		if err != nil {
-			return nil, errorf(decl, "%v", err)
+			return nil, wrapError(decl, err)
 		}
 		for _, res := range row.Results {
 			to, err := spec.MapState(res.State)
 			if err != nil {
-				return nil, errorf(decl, "%v", err)
+				return nil, wrapError(decl, err)
 			}
 			seen := spec.seen(res)
 			carrier, ok := carrierOf(dst, row, res, from, to, seen)
@@ -263,6 +326,9 @@ func RefineTables(src, dst *Table, spec RefinementSpec) (*Refinement, error) {
 					res.Outcome, strings.Join(res.Facts, ", "), dst.Machine)
 			}
 		}
+	}
+	if err := src.reachableUnknown(decl, dst); err != nil {
+		return nil, err
 	}
 	return ref, nil
 }
@@ -320,7 +386,7 @@ func checkRefinementCatalogs(decl string, src, dst *Table, spec RefinementSpec) 
 	for _, s := range src.Starts {
 		mapped, err := spec.MapState(s)
 		if err != nil {
-			return errorf(decl, "%v", err)
+			return wrapError(decl, err)
 		}
 		if !slices.Contains(dst.Starts, mapped) {
 			return &RefinementError{Declaration: decl, Kind: RefinementInitial, Witness: src.trace(s, nil),

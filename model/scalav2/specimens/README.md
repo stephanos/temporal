@@ -134,7 +134,7 @@ are:
 | `ReadEvidence` polling; history and read evidence sources | `proto/internal/temporal/server/api/testpilot/v1/program.proto:28-61` | Status reads, history events |
 | CorrelatedEvidence: scope, operation key, parents, dense ordinals | `proto/internal/temporal/server/api/testpilot/v1/correlated.proto:213-232`, `common/testing/testpilot/internal/verification/correlated.go:125-226` | Correlating operation, attempt and run evidence |
 | `WORKER_STOP` / `WORKER_RESUME` faults and one `FAULT_INJECTED` event each | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:111-118`, `common/testing/testpilot/internal/execution/scheduler.go:810-814` | The one realized fault that R8 requires, if a worker fault suffices |
-| Handle slots, `NexusHandlerReply`, `NexusOperationCompletion` | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:140-147` | Nexus sync and async completion (`../../scala/temporal/nexuscaller/Realization.scala:173-205`) |
+| Handle slots, `NexusHandlerReply`, `NexusOperationCompletion` | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:140-147` | Nexus sync and async completion (`../../scala/temporal/nexuscaller/Realization.scala:286-306`) |
 | Offline `Evaluate` through the same `Observe` | `common/testing/testpilot/prepared_case.go:33-42`, `common/testing/testpilot/internal/verification/evaluator.go:503-541` | Offline replay of a live assessment |
 | Canary build-tag seams and `runWith` | `tools/canary/cmd/umpire-canary/seams_harness.go`, `tools/canary/controller/run.go:176-196` | Starting point for the test-only Case/Profile binding |
 
@@ -161,7 +161,7 @@ scala-cli 1.17.1, a warm Bloop server, on the same working tree. Logs are under
 | --- | --- |
 | Existing activity Model and Claims (`../../scala/temporal/standaloneactivity/`) | 600 / 357 |
 | Existing Nexus caller Model, Claims, kernel and action dispatch (`../../scala/temporal/nexuscaller/`) | 697 / 375 |
-| Existing Nexus realization (`Realization.scala`) | 291 / 202 |
+| Nexus realization (`Realization.scala`), remeasured on 2026-10-01 after fn-107 task 6 rewrote it as declarations the lifter emits; it was 291 / 202 as producer calls | 496 / 400 |
 | Existing Go activity model and claims (`../../go/standaloneactivity/`) | 869 / 586 |
 | Existing Go Nexus model and claims (`../../go/nexuscaller/`) | 835 / 504 |
 | Activity sketch, supported block ([activity.md](activity.md)) | 173 / 119 |

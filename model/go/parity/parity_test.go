@@ -17,12 +17,23 @@ import (
 	"go.temporal.io/server/model/go/worker"
 )
 
+// leanDump reads one dump. The dumps are git-ignored and only a Lean build regenerates them, so a
+// checkout without them skips the comparison; a dump missing from a present directory still fails.
+func leanDump(t *testing.T, name string) []byte {
+	t.Helper()
+	dir := filepath.Join("testdata", "lean")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		t.Skipf("no Lean dumps in %s; model/go/leandump/dump.sh writes them", dir)
+	}
+	encoded, err := os.ReadFile(filepath.Join(dir, name))
+	require.NoError(t, err)
+	return encoded
+}
+
 func readLean[T any](t *testing.T, name string) T {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("testdata", "lean", name))
-	require.NoError(t, err)
 	var v T
-	require.NoError(t, json.Unmarshal(encoded, &v))
+	require.NoError(t, json.Unmarshal(leanDump(t, name), &v))
 	return v
 }
 

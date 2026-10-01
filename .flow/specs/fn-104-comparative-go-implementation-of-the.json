@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-104-comparative-go-implementation-of-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Comparative Go implementation of the Umpire model layer",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T03:53:10.902784Z"
+  "updated_at": "2026-10-01T01:04:20.056525Z"
 }

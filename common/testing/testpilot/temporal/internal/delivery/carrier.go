@@ -18,6 +18,7 @@ import (
 const (
 	reservedWorkflowHeader = "temporal-testpilot-reserved-workflow-v1"
 	reservedNexusHeader    = "temporal-testpilot-reserved-nexus-v1"
+	reservedActivityHeader = "temporal-testpilot-reserved-activity-v1"
 	workflowRouteEncoding  = "binary/temporal-testpilot-reservation-route"
 )
 
@@ -49,17 +50,30 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 	if carrier == nil {
 		return request, nil
 	}
-	if primitive.NilValue(method) || primitive.NilValue(request) || maximumBytes <= 0 || method.IsStreamingClient() || method.IsStreamingServer() || primitive.MethodPath(method) != primitive.StartWorkflowPath || request.ProtoReflect().Descriptor() != method.Input() {
+	if primitive.NilValue(method) || primitive.NilValue(request) || maximumBytes <= 0 || method.IsStreamingClient() || method.IsStreamingServer() || request.ProtoReflect().Descriptor() != method.Input() {
 		return nil, ErrInvalid
 	}
-	binding, header, err := StartBinding(request.ProtoReflect())
+	var start startBinding
+	var header protoreflect.Message
+	var reserved string
+	var err error
+	switch primitive.MethodPath(method) {
+	case primitive.StartWorkflowPath:
+		start.kind, reserved = workflowRoute, reservedWorkflowHeader
+		start.workflow, header, err = StartBinding(request.ProtoReflect())
+	case StartActivityPath:
+		start.kind, reserved = activityRoute, reservedActivityHeader
+		start.activity, header, err = ActivityStartBinding(request.ProtoReflect())
+	default:
+		return nil, ErrInvalid
+	}
 	if err != nil {
 		return nil, err
 	}
-	if hasReservedWorkflowHeader(header) {
+	if hasReservedHeader(header, reserved) {
 		return nil, ErrReservedHeader
 	}
-	route, err := l.prepareWorkflowRoute(ctx, *carrier, role, method, binding)
+	route, err := l.prepareStartedRoute(ctx, *carrier, role, method, start)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +82,7 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 		return nil, err
 	}
 	prepared := proto.Clone(request)
-	if err := injectWorkflowHeader(prepared.ProtoReflect(), encoded); err != nil {
+	if err := injectReservedHeader(prepared.ProtoReflect(), reserved, encoded); err != nil {
 		return nil, err
 	}
 	if int64(proto.Size(prepared)) > maximumBytes {
@@ -77,35 +91,36 @@ func (l *Ledger) PrepareRPC(ctx context.Context, carrier *Bundle, role string, m
 	return prepared, nil
 }
 
-func (l *Ledger) prepareWorkflowRoute(ctx context.Context, carrier Bundle, role string, method protoreflect.MethodDescriptor, binding WorkflowBinding) (route, error) {
+// prepareStartedRoute is the route of the entity the carrier's start request names. A carrier
+// prepares only the start its plan names, on the role its plan names, for the binding it reserved.
+func (l *Ledger) prepareStartedRoute(ctx context.Context, carrier Bundle, role string, method protoreflect.MethodDescriptor, start startBinding) (route, error) {
 	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
 		return route{}, err
 	}
+	defer l.mu.Unlock()
 	state, err := l.bundleLocked(carrier)
 	if err != nil {
-		l.mu.Unlock()
 		return route{}, err
 	}
-	if l.stopped || state.workflow.authority == canceled || state.workflow.authority == terminal {
+	started := state.started()
+	if l.stopped || started.authority == canceled || started.authority == terminal {
 		l.diagnoseLocked()
-		l.mu.Unlock()
 		return route{}, ErrRouteStale
 	}
 	if role != state.plan.EndpointRoleID || primitive.MethodPath(method) != state.plan.Method {
-		l.mu.Unlock()
 		return route{}, ErrRouteCrossed
 	}
-	if binding != state.binding {
-		l.mu.Unlock()
+	if start.workflow != state.binding || start.activity != state.activityBinding {
 		return route{}, ErrBindingMismatch
 	}
-	route := l.workflowRoute(state.workflow)
-	l.mu.Unlock()
-	return route, nil
+	if started.kind == activityRoute {
+		return l.activityRoute(started), nil
+	}
+	return l.workflowRoute(started), nil
 }
 
 func (l *Ledger) AdmitWorkflow(ctx context.Context, delivery WorkflowDelivery) (Activation, error) {
-	encoded, err := decodeWorkflowHeader(delivery.Header, l.config.Limits.MaxHeaderBytes)
+	encoded, err := decodeReservedHeader(delivery.Header, reservedWorkflowHeader, l.config.Limits.MaxHeaderBytes)
 	if err != nil {
 		return Activation{}, err
 	}
@@ -327,15 +342,15 @@ func StartBinding(message protoreflect.Message) (WorkflowBinding, protoreflect.M
 	return binding, headerMessage, nil
 }
 
-func hasReservedWorkflowHeader(header protoreflect.Message) bool {
+func hasReservedHeader(header protoreflect.Message, name string) bool {
 	if header == nil || !header.IsValid() {
 		return false
 	}
 	fields := header.Descriptor().Fields().ByName("fields")
-	return fields != nil && header.Get(fields).Map().Has(protoreflect.ValueOfString(reservedWorkflowHeader).MapKey())
+	return fields != nil && header.Get(fields).Map().Has(protoreflect.ValueOfString(name).MapKey())
 }
 
-func injectWorkflowHeader(message protoreflect.Message, encoded []byte) error {
+func injectReservedHeader(message protoreflect.Message, name string, encoded []byte) error {
 	headerField := message.Descriptor().Fields().ByName("header")
 	if headerField == nil {
 		return ErrInvalid
@@ -358,15 +373,15 @@ func injectWorkflowHeader(message protoreflect.Message, encoded []byte) error {
 	}
 	payload.Mutable(metadataField).Map().Set(protoreflect.ValueOfString("encoding").MapKey(), protoreflect.ValueOfBytes([]byte(workflowRouteEncoding)))
 	payload.Set(dataField, protoreflect.ValueOfBytes(bytes.Clone(encoded)))
-	header.Mutable(fieldsField).Map().Set(protoreflect.ValueOfString(reservedWorkflowHeader).MapKey(), protoreflect.ValueOfMessage(payload))
+	header.Mutable(fieldsField).Map().Set(protoreflect.ValueOfString(name).MapKey(), protoreflect.ValueOfMessage(payload))
 	return nil
 }
 
-func decodeWorkflowHeader(header *commonpb.Header, maximumBytes int) ([]byte, error) {
+func decodeReservedHeader(header *commonpb.Header, name string, maximumBytes int) ([]byte, error) {
 	if header == nil {
 		return nil, ErrRouteMissing
 	}
-	payload, exists := header.Fields[reservedWorkflowHeader]
+	payload, exists := header.Fields[name]
 	if !exists {
 		return nil, ErrRouteMissing
 	}

@@ -97,66 +97,69 @@ val startToCloseFires: Property[ProtocolState] =
 
 import Timeout.{expires, unset}
 
-private def path(name: String, classes: ClassRef*): Scenario[ProtocolState] =
-  activityProtocol.scenario(name).starts(unstarted).actions(classes*)
-
 val completed: Scenario[ProtocolState] =
-  path(
-    "completed",
+  activityProtocol
+    .scenario("completed")
+    .starts(unstarted)
+    .actions(start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.completed))
+
+val nonRetryable: Scenario[ProtocolState] =
+  activityProtocol
+    .scenario("nonRetryable")
+    .starts(unstarted)
+    .actions(start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(false)))
+
+val retriedThenCompleted: Scenario[ProtocolState] = activityProtocol
+  .scenario("retriedThenCompleted")
+  .starts(unstarted)
+  .actions(
     start(unset, unset, unset),
+    attemptStart,
+    attemptResult(AttemptResult.failed(true)),
+    backoff,
     attemptStart,
     attemptResult(AttemptResult.completed)
   )
 
-val nonRetryable: Scenario[ProtocolState] =
-  path(
-    "nonRetryable",
+val cancelRequestedThenCanceled: Scenario[ProtocolState] = activityProtocol
+  .scenario("cancelRequestedThenCanceled")
+  .starts(unstarted)
+  .actions(
     start(unset, unset, unset),
     attemptStart,
-    attemptResult(AttemptResult.failed(false))
+    control(Control.requestCancel),
+    attemptResult(AttemptResult.canceled)
   )
-
-val retriedThenCompleted: Scenario[ProtocolState] = path(
-  "retriedThenCompleted",
-  start(unset, unset, unset),
-  attemptStart,
-  attemptResult(AttemptResult.failed(true)),
-  backoff,
-  attemptStart,
-  attemptResult(AttemptResult.completed)
-)
-
-val cancelRequestedThenCanceled: Scenario[ProtocolState] = path(
-  "cancelRequestedThenCanceled",
-  start(unset, unset, unset),
-  attemptStart,
-  control(Control.requestCancel),
-  attemptResult(AttemptResult.canceled)
-)
 
 /** The worker stops before the start, so no attempt is in flight when the caller terminates. */
 val terminatedWhileScheduled: Scenario[ProtocolState] =
-  path(
-    "terminatedWhileScheduled",
+  activityProtocol
+    .scenario("terminatedWhileScheduled")
+    .starts(unstarted)
+    .actions(start(unset, unset, unset), workerStop, control(Control.terminate))
+
+val pausedThenCompleted: Scenario[ProtocolState] = activityProtocol
+  .scenario("pausedThenCompleted")
+  .starts(unstarted)
+  .actions(
     start(unset, unset, unset),
-    workerStop,
-    control(Control.terminate)
+    control(Control.pause),
+    control(Control.unpause),
+    attemptStart,
+    attemptResult(AttemptResult.completed)
   )
 
-val pausedThenCompleted: Scenario[ProtocolState] = path(
-  "pausedThenCompleted",
-  start(unset, unset, unset),
-  control(Control.pause),
-  control(Control.unpause),
-  attemptStart,
-  attemptResult(AttemptResult.completed)
-)
-
 val scheduleToStartExpires: Scenario[ProtocolState] =
-  path("scheduleToStartExpires", start(unset, expires, unset), workerStop, scheduleToStart)
+  activityProtocol
+    .scenario("scheduleToStartExpires")
+    .starts(unstarted)
+    .actions(start(unset, expires, unset), workerStop, scheduleToStart)
 
 val startToCloseExpires: Scenario[ProtocolState] =
-  path("startToCloseExpires", start(unset, unset, expires), attemptStart, startToClose)
+  activityProtocol
+    .scenario("startToCloseExpires")
+    .starts(unstarted)
+    .actions(start(unset, unset, expires), attemptStart, startToClose)
 
 val three: Limits = Limits("three", steps = 3, actions = 3, search = 4096)
 val four: Limits = Limits("four", steps = 4, actions = 4, search = 32768)
@@ -178,6 +181,13 @@ val scheduleToStartTimeout: Query =
   query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three
 val startToCloseTimeout: Query =
   query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three
+
+/**
+ * Asks the one Property no Query of the sets asks, over the path that takes a cancel request. It is
+ * in no set: it is what carries the Property into the lifted Model, where it is compared with Go's.
+ */
+val cancelRequest: Query =
+  query("cancelRequest") find cancelRequestedWhileStarted in cancelRequestedThenCanceled limits four
 
 val terminalHolds: Query = query("terminalHolds") verify terminalIsFinal in completed limits three
 val pauseHolds: Query =
@@ -242,12 +252,12 @@ val stoppedBeforeRetry: Scenario[StandaloneActivityState] = standaloneActivity
   .scenario("stoppedBeforeRetry")
   .starts(StandaloneActivityState(unstarted, WorkerState(WorkerPhase.polling)))
   .actionKeys(
-    standaloneActivity.own("activity", start(unset, expires, unset)),
+    "activity_start-unset-expires-unset",
     "attemptStart",
-    standaloneActivity.own("activity", attemptResult(AttemptResult.failed(true))),
-    standaloneActivity.own("activity", backoff),
+    "activity_attemptResult-failed-true",
+    "activity_backoff",
     "workerStop",
-    standaloneActivity.own("activity", scheduleToStart)
+    "activity_scheduleToStart"
   )
 
 /** The cross-entity claim, verified over that path. */

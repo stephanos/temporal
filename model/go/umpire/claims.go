@@ -20,10 +20,13 @@ type PropertyDecl struct {
 	whenLabel string
 	holds     func(step any) bool
 	holds2    func(before, after any) bool
+	// keyHolds and keyHolds2 are the claim of a Property declared over a table's keys.
+	keyHolds  func(step Result) (bool, error)
+	keyHolds2 func(before string, step Result) (bool, error)
 }
 
 // IsTransition reports whether the Property relates a step to the state before it.
-func (p *PropertyDecl) IsTransition() bool { return p.holds2 != nil }
+func (p *PropertyDecl) IsTransition() bool { return p.holds2 != nil || p.keyHolds2 != nil }
 
 // Triggers reports whether a same-step Property is about the step of this action class.
 func (p *PropertyDecl) Triggers(action string) bool { return p.when == nil || p.when(action) }
@@ -163,6 +166,10 @@ type Query struct {
 	Limits     Limits
 	refinement func() (*Refinement, error)
 	monitors   []*Monitor
+	// Unknown says which errors of a Property's or a Monitor's functions leave a step unknown rather
+	// than fail the search: the step is reported, the search does not continue through it, and an
+	// answer with no witness is incomplete. Nil lets every such error fail the search.
+	Unknown func(error) bool
 }
 
 // Find asks for a trace of the Scenario on which p holds. p and the Scenario share the state type
@@ -244,6 +251,12 @@ type Answer struct {
 	Monitor string
 	// Monitors are the watching Monitors' verdicts, in the order the Query names them.
 	Monitors []MonitorVerdict
+	// Unknown lists the unknown pairs and steps the search explored, in the order it met them. A pair
+	// past the step bound, one the Scenario does not schedule, and one at a state the search never
+	// expanded are not explored.
+	Unknown []UnknownReach
+	// Expanded is how many product states the search read the successors of.
+	Expanded int
 }
 
 func (q *Query) decl() string { return "query " + q.Name }
@@ -252,6 +265,9 @@ func (q *Query) decl() string { return "query " + q.Name }
 func (q *Query) check() error {
 	if q.Property == nil || q.Scenario == nil {
 		return errorf(q.decl(), "a Query names a Property and a Scenario")
+	}
+	if err := q.checkKeyClaims(); err != nil {
+		return err
 	}
 	if q.Form == FindForm && q.Property.IsTransition() {
 		return errorf(q.decl(), "find names %s, a transition claim; a find realizes a same-step claim",

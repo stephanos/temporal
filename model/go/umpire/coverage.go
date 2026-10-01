@@ -46,7 +46,8 @@ func CoverageTargets(model Model, goals []CoverageGoal, budget Limits) ([]Covera
 	}
 	var rows []Row
 	for _, r := range t.Rows {
-		if inSources[r.Source] {
+		// A row with no result is a disabled pair, which no exploration takes.
+		if inSources[r.Source] && len(r.Results) > 0 {
 			rows = append(rows, r)
 		}
 	}

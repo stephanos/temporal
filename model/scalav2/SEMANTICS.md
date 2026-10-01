@@ -163,6 +163,35 @@ nothing.
 incomplete and names the row, and no declaration accounts for it. A malformed Model is never a hole:
 what a reader rejects before any check is listed under [Admission](#admission).
 
+A hole reached inside a function a claim reads, a Property's `holds`, a monitor's `next`, `violated` or
+`after`, or a progress claim's `from` or `to`, is unknown evidence of the step or the state it was read
+on: the claim neither holds nor fails there. A search does not continue through such a step, a
+progress check explores no step from such a state and counts it in no path, and the result is
+incomplete unless it found a witness elsewhere. A hole reached outside any step leaves unknown what
+it was reached in: a start, an `ends` or the evidence of a machine leaves that machine without a
+table, and a refinement's map or what it names visible leaves that refinement neither held nor
+rejected. The results of what depends on it, the machine's own claims, the compositions it is a
+member of and the Queries that read through its refinement, are incomplete. Every other machine is
+checked as if the hole were not there.
+
+What a refinement names visible only narrows which steps carry a row and which rows are stutters. A
+refinement rejected with a fact or an outcome of unknown visibility read as unseen is therefore
+rejected whatever the hole hides, and the rejection stands with the hole beside it. One that holds
+only that way is incomplete, and a Query reads through it as through one a hole row leaves unknown.
+
+A declaration read at one value after another, an `ends` at each state or what a refinement names
+visible at each fact, is read on past a hole. A result at a later value that makes the Model malformed
+is the declaration's error whatever hole came before it, and a result names every hole reached.
+A machine's starts, its `ends` and its evidence are one such reading, and so are a refinement's map
+and what it names visible, as far as the check reads them. A composition reads every member: a
+malformed member is its error, then a member's rejected replacement, then a ceiling, and only then
+the holes of its members, all of them.
+
+A refinement by a machine whose starts reach a hole row is incomplete, not held: the steps the hole
+stands for are not shown to refine anything. A rejection found on its rows stands. A Query that reads
+through such a refinement is answered over the machine's rows; a violation it finds stands, and
+otherwise its result is incomplete by those holes.
+
 ## Monitors
 
 A monitor declares a finite state type `M`, an initial value, a function `next` from its state, the
@@ -180,6 +209,8 @@ state type the function's second parameter is.
   function accepts. It is violated where `violated(μ)` holds there, and a path on which it is never
   read gives it no verdict.
 - Two monitors of one Model do not share a name.
+- Whether a member machine's monitors watch a composition is not defined. A reader refuses a Query over
+  a composition a member of which names monitors as unsupported, rather than answer it unwatched.
 
 ## Assumptions
 
@@ -200,9 +231,19 @@ composed state is keyed by its members' state keys joined by `_`; only the rows 
 members' starts belong to it; its `ends` is a predicate over the composed state; and its Definition
 IDs hang off the owner `compose-<name>`.
 
+Its starts are the product of every member's starts in member order, the last member varying fastest.
+A claim of a composition reads a composed step as a step record whose `state` is the composition's
+state record, one member state per field, and whose `outcome` and `facts` are strings: the composed
+keys `<field>_<key>`.
+
 A member that `replaces` a machine stands in for it within this composition: a detailed provider in
 place of an opaque one. Its machine declares a refinement of the replaced machine (Machines 6) that
-holds, and a check of the composition relies on none of the replaced machine's assumptions.
+holds, and a check of the composition relies on none of the replaced machine's assumptions. Within
+the composition that refinement also reads every start of the replaced machine: a start of it that no
+start of the member reads as is a behavior the member does not provide. The member's own assumptions,
+and every other member's, stay: an assumption the member declares is the composition's also where the
+replaced machine declares one of the same name, since the replaced machine is no member and none of
+its assumptions is read.
 
 ## Claims
 
@@ -210,6 +251,12 @@ A Property belongs to a machine or a composition. A same-step Property holds of 
 each step it is about: every step, the steps of one class (`when_class`), or the steps of every class
 of one action (`when_action`). A transition Property (`transition`) holds of the state before a step
 and the step record.
+
+A Property of a composition is about composed classes. Its `when_class` is the class keyed by the
+action's name followed by the inputs, which a sync named as the action it takes spells; its
+`when_action` is every class whose key begins with that name, a sync's name or `<field>_<action>` for a
+member's own action. A member's action a sync takes steps only with its pair, so it has no class of its
+own and neither names it.
 
 A Scenario belongs to a machine or a composition: a start state and a pinned schedule of classes, of
 composed class keys for a composition, or `free`, any action at every step.
@@ -222,6 +269,15 @@ Property of the machine the Scenario's machine refines through that refinement: 
 an outcome and facts by name. Two Properties, Scenarios or Queries under one key would share a
 Definition ID.
 
+A Query with `through` is answered only where that refinement holds: over a refinement that is
+rejected its result is the rejection. Only a `verify` reads through a refinement, and a transition
+Property is about every step, so a `find` with `through` and a transition Property with a `when` are
+unsupported.
+
+A Property's and a Scenario's Definition ID is formed from the family and the name alone, so two
+machines of one family that each declare a claim of one name share it. A result names a claim by its
+family, the machine or composition it is declared on, and its name, which keeps the two apart.
+
 ## Progress
 
 A progress claim of a machine says that from every reachable state `from` accepts, a state `to`
@@ -232,6 +288,108 @@ fair that is enabled throughout the cycle is taken on it (a fair non-progress cy
 `within` steps from such a state with no `to` state after it (the deadline missed). These are reported
 apart. A search that stops at a Limit before a witness is complete establishes none of them: a finite
 prefix that ends open is not a counterexample.
+
+A hole row is not a step and not a disabled pair: a state whose only pairs are hole rows is no
+deadlock, and a cycle is no fair one while a fair class it does not take has a hole row at one of its
+states. A kind of violation ruled out while the check read a hole row is incomplete.
+
+## Realizations
+
+A realization says how the find Queries of one machine run against a system. It declares:
+
+- **roles**, the participants commands and activations address, with the environment bindings a run
+  supplies for them;
+- **learned values**, each a text or a handle, bound once by one command and read by the commands
+  that depend on it;
+- **observations**, each one protobuf message a run records;
+- **kinds of evidence**, each the recorded data that confirms the facts the machine's evidence
+  function names: a member of the history event's attributes, or the elements of a repeated field a
+  unary method returns; the field path that keys it to its operation; and what it commits to, what a
+  caller was told or a durable commit of the receiver;
+- a **correlation**: the fields that scope evidence to its run and name its operation, the
+  observation that carries it, and the window a check keeps;
+- **controls**, the actuators a run needs beyond its commands;
+- **scripts**, each an ordered list of items run by the controller or by a worker for each workflow,
+  Nexus operation or activity that activates it.
+
+A script item is a command every Case carries, a command with `when` classes, or a list of
+performances, each the command that performs one class of an action. A command names what it does,
+the commands of its script it runs after, a deadline, and whether it runs whatever became of those
+commands. Without `after` it runs after the item before it; with it, commands that name the same
+predecessors and not each other are independent branches. A message a command writes out names its
+protobuf type and the fields it sets, and a field it does not name stays unset.
+
+A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
+through it is the same for every realization:
+
+1. The Query's witness is the path: the classes its pinned Scenario lists, with the steps the search
+   found.
+2. A script becomes one entrypoint. A plain command is carried by every Case; a command with `when`
+   by the Cases whose path takes one of those classes; a performance by the Cases whose path takes
+   its class, once per step that takes it, in path order, a class taken again under its ordinal. A
+   step of the path that a party takes and no performance binds is refused; a step of the system
+   needs no command.
+3. A command that reads a learned text runs only where every one it reads is bound.
+4. A kind of evidence is carried where a step of the path, or another result of a row the path takes,
+   records a fact the machine's evidence function gives its name. A step that records nothing the
+   evidence names is confirmed with the next step that does, and listed as a Known Gap.
+5. The Property is lowered to the clauses that say the same thing over the machine's table: over the
+   steps its `when` admits, a state, an outcome and facts are fixed where every accepted step carries
+   them and the predicate rejects every accepted step with them changed. Each clause is due within as
+   many of the operation's transitions as the Scenario places before the Property's action. A
+   predicate the clauses cannot carry exactly, and a transition Property, are refused.
+6. The Contract's transition table is the machine's rows under the actions the evidence confirms,
+   from the Scenario's start.
+
+A verify Query is searched and realizes nothing. A find Query whose machine declares no realization
+has none to be lowered through. A Query with no witness is no Case.
+
+A reader lowers a realization only into what its runtime can run. What a realization declares that
+the runtime has no primitive for is reported with the declaration's position, and the Query has no
+Case: nothing is lowered around it. A realization and a path are read whole first: what is wrong with
+either is an error, every one of them, and is reported before any such gap: what the realization
+writes against its descriptors, a step no command performs, a Query with no witness, a Property
+that does not lower, and, of a realization sound in itself, everything the producer decides before
+it writes a Case, such as a fact of the path no kind of evidence records. A Property whose
+predicate cannot be read on a step, because it reaches a hole there, is not lowered: a step it cannot
+be read on is not a step it rejects.
+
+## Results
+
+A check's result is one of these, which are kept apart:
+
+- `admission-error`: the Model is rejected before any check ([Admission](#admission));
+- `declaration-error`: a declaration cannot be read as the IR says it is. A function a declaration
+  reads as a Boolean, a machine's or a composition's `ends`, a refinement's `visible` or
+  `visible_outcomes`, or a claim's function, that returns another value is one, at that declaration,
+  and so is a monitor state outside the monitor's state type. It is never read as `false`;
+- `resource-limit`: a ceiling of the scope refused the work before any of it was done;
+- `limit-reached`: a search's `search` Limit cut it; `unresolved`: a progress check's depth left
+  reachable states unexplored. Neither proves anything;
+- `refinement-rejected`: a refinement does not hold, with the rule it breaks and a witness;
+- `counterexample`, and `found` for a `find`: a witness, which holes the check also read do not take
+  away;
+- `verified-within-limits`, and `not-found` for a `find`: the claim holds on everything the scope
+  reaches, and the check read no hole;
+- `incomplete`: the check found no witness and read a hole, which it names with the row. A hole no
+  explored path reaches, one past the step bound and one a pinned Scenario does not schedule are not
+  read;
+- `unsupported`: the reader does not check the declaration. It is listed, and is no check;
+- `replay-failed`: a witness did not replay through a second interpretation of the Model. It is an
+  error, whatever the result said.
+
+A result names the table it read by its Definition ID and Behavior Fingerprint, the limits it ran
+within, the assumptions it relies on, and the work it took. No source position enters a result but in
+where it points.
+
+Where one declaration's result is made of several, the members of a composition, a search and the
+refinement it reads through, a result and the replay of its witnesses, it is the one of the highest
+precedence, the first of several: an error (`replay-failed`, `admission-error`, `declaration-error`),
+then a violation (`refinement-rejected`, `counterexample`), then a limit (`resource-limit`,
+`limit-reached`, `unresolved`), then `found`, then `incomplete`, then `unsupported`, then what held. It
+names every hole any of them read and keeps every witness, and a `verified-within-limits` or
+`not-found` beside a hole is `incomplete`. A `found` witness is realized and is not undone that way: it
+stands beside a result a hole leaves incomplete, with that hole named.
 
 ## Admission
 
@@ -246,13 +404,34 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   finite catalog, a state type that holds one channel in two fields, a delivery or loss of a channel the machine's state does not hold, a lossy channel whose
   holder binds no loss, or a loss of a reliable channel;
 - declares Limits below 0, or a progress claim within fewer than one step;
+- gives an example to an action that takes other than one input, or an example that is no member of
+  that input's type;
 - names the facts or the outcomes a refined machine sees on a machine that refines none, or a member replacement that
   names no member or whose member does not declare a refinement of what it replaces;
 - pairs a Property with a Scenario of another machine, other than through the Scenario machine's
   declared refinement of the Property's machine;
+- declares a Property of a composition about a class, or about an action, that no class of the
+  composition is of, or a Scenario of a composition over a key that is none of its classes;
 - declares two monitors of one name, or two different declarations under one Property, Scenario,
   Query or progress key;
-- contains a function that calls itself, directly or through others.
+- contains a function that calls itself, directly or through others;
+- declares a realization with no id or no name, two under one id or one name, one of a machine it
+  does not declare, or one with no correlation; a
+  role, learned value, observation, kind of evidence, control, script or command with no id, or two
+  of one kind under one id; a kind of evidence that names no recorded kind, no source, no operation
+  key, nowhere it is recorded or no commitment, or two kinds for one recorded kind;
+- names, in a realization, a role, learned value, observation, kind of evidence, control, channel or
+  command it does not declare, a role of another kind than its use needs, or a class the
+  realization's machine does not bind;
+- binds a learned value by two commands or by none, reads a text as a handle or a handle as a text,
+  reads a learned value in a command that runs whatever became of the commands before it, or
+  performs one class by two commands;
+- keys a realization's runs and operations by one field, lifts evidence into an observation the
+  correlation does not read, or observes a value into the one it does;
+- orders the commands of a script in a cycle;
+- declares a script item that is neither a command nor performances, or both; a command with no
+  instruction or a deadline below 0; an operand or a written value of no known kind; or a written
+  message with no name or a field set twice.
 
 The lifter refuses the ones it can see at the Scala line that declares them; a Model written some
 other way meets the same rules at its reader.
@@ -262,14 +441,29 @@ other way meets the same rules at its reader.
 The rules for the [fn-107 specimens](specimens/README.md)' constructs are above: channels and the
 redeliveries derived from them, monitors, assumptions, holes, scoped replacement in a composition, the
 visible projection of a refinement, Claims and progress. An internal action (`internal`) is a step of
-the system that is not a timer. `goir/` implements Values through Machines 6 without the visible
-projection. It refuses a Model that reaches a hole or holds a channel, as an expression or a type of
-no known kind, and it still reads a Model's monitors, assumptions, compositions, Claims and progress
-claims without applying them, which Versions forbids a conforming reader; task 3 of fn-107 implements
-or refuses them. Of the [Admission](#admission) rules, goir's `Validate` checks only that names are
-declared and bound and that arities match; the version, finite catalogs, bounds, duplicates and the
-rest are checked by the lifter at the Scala source, and a Model written another way meets them only
-once task 3 adds them to goir.
+the system that is not a timer. `goir/` implements all of them: `Build` interprets Values through
+Machines, Channels and Holes, `Validate` applies the [Admission](#admission) rules, and `Check` binds
+monitors, assumptions, compositions, Claims and progress claims to model/go's `umpire` checker and
+gives each declaration one of the [Results](#results). What `Check` does not answer it reports as
+`unsupported`: a Query over a composition a member of which names monitors, a `find` with `through`,
+and a transition Property with a `when`.
+
+`goir/testpilot` lowers a find Query through its [realization](#realizations) into a Testpilot Case
+with model/go's `caseproducer.Produce`. The Query it gives the producer is the one `Check` answers,
+from the same binding (`goir.Realizer`): one Property read on one step record, its explanation
+included, over the machine's table with its hole rows as unknown pairs. That table also carries the
+state fields and Abstraction Claims. The realization is translated declaration for declaration. It checks what a realization writes and reads against the protobuf
+descriptors it names, at the declaration: a message, field, enum value or method the descriptors do not have, a
+value of another kind than its field, a message written where another belongs, a path that does not
+resolve, and a value observed into an observation of another message. It reads the path selectors
+`field`, `field[*]` and `oneof<member>` and refuses the others. It lowers no realization that
+declares an activity's script, a durable-commit kind of evidence, a control, or a machine that names
+monitors: Testpilot has no primitive for them yet, and each is named with the fn-107 task that owns
+it. A Case is over one operation.
+
+The Scala framework's own composition starts from each member's first start only. `goir` composes
+every start, as model/go does and as [Compositions](#compositions) says; bringing the front end in line
+is future work.
 
 Two narrowings came from the specimens' evidence in `specimens/README.md`:
 

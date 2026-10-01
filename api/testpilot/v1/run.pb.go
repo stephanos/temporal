@@ -23,6 +23,91 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ActivityAttemptResponse is the answer a worker offered Temporal for one declared activity attempt,
+// or why it offered none. An offered answer is not the server's acceptance of it.
+// (-- api-linter: core::0191::file-layout=disabled --)
+type ActivityAttemptResponse int32
+
+const (
+	ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED ActivityAttemptResponse = 0
+	// The worker offered the completion the attempt's instruction declared.
+	ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED ActivityAttemptResponse = 1
+	// The worker offered the failure the attempt's instruction declared, which the server may retry.
+	ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE ActivityAttemptResponse = 2
+	// The worker offered the failure the attempt's instruction declared, which the server does not
+	// retry.
+	ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE ActivityAttemptResponse = 3
+	// The worker refused the attempt: it performed nothing the Program declared and offered its own
+	// non-retryable failure.
+	ACTIVITY_ATTEMPT_RESPONSE_REFUSED ActivityAttemptResponse = 4
+	// No attempt was delivered for this declared position, and the server reported the activity closed
+	// after an earlier attempt, so none will be.
+	ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED ActivityAttemptResponse = 5
+)
+
+// Enum value maps for ActivityAttemptResponse.
+var (
+	ActivityAttemptResponse_name = map[int32]string{
+		0: "ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED",
+		1: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED",
+		2: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE",
+		3: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE",
+		4: "ACTIVITY_ATTEMPT_RESPONSE_REFUSED",
+		5: "ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED",
+	}
+	ActivityAttemptResponse_value = map[string]int32{
+		"ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED":                  0,
+		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED":            1,
+		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE":     2,
+		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE": 3,
+		"ACTIVITY_ATTEMPT_RESPONSE_REFUSED":                      4,
+		"ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED":                   5,
+	}
+)
+
+func (x ActivityAttemptResponse) Enum() *ActivityAttemptResponse {
+	p := new(ActivityAttemptResponse)
+	*p = x
+	return p
+}
+
+func (x ActivityAttemptResponse) String() string {
+	switch x {
+	case ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED:
+		return "Unspecified"
+	case ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED:
+		return "OfferedCompleted"
+	case ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE:
+		return "OfferedFailedRetryable"
+	case ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE:
+		return "OfferedFailedNonRetryable"
+	case ACTIVITY_ATTEMPT_RESPONSE_REFUSED:
+		return "Refused"
+	case ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED:
+		return "NotNeeded"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ActivityAttemptResponse) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0].Descriptor()
+}
+
+func (ActivityAttemptResponse) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0]
+}
+
+func (x ActivityAttemptResponse) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ActivityAttemptResponse.Descriptor instead.
+func (ActivityAttemptResponse) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
+}
+
 // RunDisposition says how a Run ended: it completed, the Monitor stopped it, or execution became
 // incomplete.
 // Result and lifecycle enums use the public Testpilot Status vocabulary.
@@ -77,11 +162,11 @@ func (x RunDisposition) String() string {
 }
 
 func (RunDisposition) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1].Descriptor()
 }
 
 func (RunDisposition) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1]
 }
 
 func (x RunDisposition) Number() protoreflect.EnumNumber {
@@ -90,7 +175,7 @@ func (x RunDisposition) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RunDisposition.Descriptor instead.
 func (RunDisposition) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
 }
 
 // CleanupStatus is the result of the cleanup graph and the Driver session close.
@@ -143,11 +228,11 @@ func (x CleanupStatus) String() string {
 }
 
 func (CleanupStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2].Descriptor()
 }
 
 func (CleanupStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2]
 }
 
 func (x CleanupStatus) Number() protoreflect.EnumNumber {
@@ -156,7 +241,7 @@ func (x CleanupStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CleanupStatus.Descriptor instead.
 func (CleanupStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
 }
 
 // RunDiagnosticKind names the component or contract a diagnostic reports on.
@@ -228,11 +313,11 @@ func (x RunDiagnosticKind) String() string {
 }
 
 func (RunDiagnosticKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3].Descriptor()
 }
 
 func (RunDiagnosticKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3]
 }
 
 func (x RunDiagnosticKind) Number() protoreflect.EnumNumber {
@@ -241,7 +326,7 @@ func (x RunDiagnosticKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RunDiagnosticKind.Descriptor instead.
 func (RunDiagnosticKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{3}
 }
 
 // VerdictStatus is violated when any rule is violated, satisfied only when every rule is satisfied on
@@ -295,11 +380,11 @@ func (x VerdictStatus) String() string {
 }
 
 func (VerdictStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[4].Descriptor()
 }
 
 func (VerdictStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[4]
 }
 
 func (x VerdictStatus) Number() protoreflect.EnumNumber {
@@ -308,7 +393,7 @@ func (x VerdictStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use VerdictStatus.Descriptor instead.
 func (VerdictStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
 }
 
 // RuleVerdictStatus is one rule's conclusion; a rule that reaches no terminal state is inconclusive.
@@ -366,11 +451,11 @@ func (x RuleVerdictStatus) String() string {
 }
 
 func (RuleVerdictStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[4].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[5].Descriptor()
 }
 
 func (RuleVerdictStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[4]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[5]
 }
 
 func (x RuleVerdictStatus) Number() protoreflect.EnumNumber {
@@ -379,7 +464,7 @@ func (x RuleVerdictStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RuleVerdictStatus.Descriptor instead.
 func (RuleVerdictStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
 }
 
 // Run is the authoritative append-only record of one attempted Program execution.
@@ -818,9 +903,12 @@ type InstructionOutcome struct {
 	// Bounded error text.
 	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
 	// The result on success, when the outcome declares VALUE.
-	Value         *Value `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Value *Value `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	// Set on the outcome of an activity activation: which attempt it was and what the worker offered
+	// Temporal for it.
+	ActivityAttempt *ActivityAttempt `protobuf:"bytes,6,opt,name=activity_attempt,json=activityAttempt,proto3" json:"activity_attempt,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *InstructionOutcome) Reset() {
@@ -888,6 +976,91 @@ func (x *InstructionOutcome) GetValue() *Value {
 	return nil
 }
 
+func (x *InstructionOutcome) GetActivityAttempt() *ActivityAttempt {
+	if x != nil {
+		return x.ActivityAttempt
+	}
+	return nil
+}
+
+// ActivityAttempt is what a worker reports about one attempt a standalone activity's script declares.
+// It records what the worker did, never that the server accepted it: the worker hands its answer to
+// the SDK, which sends it afterwards. The status of the outcome that carries it says whether the
+// activation did what the Program declared.
+type ActivityAttempt struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The run of the activity the attempt belongs to, as the server named it when the activity started.
+	ActivityRunId string `protobuf:"bytes,1,opt,name=activity_run_id,json=activityRunId,proto3" json:"activity_run_id,omitempty"`
+	// The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
+	// no attempt was delivered: the Run Event's source then names the reserved position alone, and
+	// Temporal may never have created an attempt for it.
+	SdkAttempt int32 `protobuf:"varint,2,opt,name=sdk_attempt,json=sdkAttempt,proto3" json:"sdk_attempt,omitempty"`
+	// The delivery of the attempt the worker ran, a digest of its task token. Unset when no attempt
+	// was delivered.
+	DeliveryId    string                  `protobuf:"bytes,3,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
+	Response      ActivityAttemptResponse `protobuf:"varint,4,opt,name=response,proto3,enum=temporal.server.api.testpilot.v1.ActivityAttemptResponse" json:"response,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActivityAttempt) Reset() {
+	*x = ActivityAttempt{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivityAttempt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivityAttempt) ProtoMessage() {}
+
+func (x *ActivityAttempt) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivityAttempt.ProtoReflect.Descriptor instead.
+func (*ActivityAttempt) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ActivityAttempt) GetActivityRunId() string {
+	if x != nil {
+		return x.ActivityRunId
+	}
+	return ""
+}
+
+func (x *ActivityAttempt) GetSdkAttempt() int32 {
+	if x != nil {
+		return x.SdkAttempt
+	}
+	return 0
+}
+
+func (x *ActivityAttempt) GetDeliveryId() string {
+	if x != nil {
+		return x.DeliveryId
+	}
+	return ""
+}
+
+func (x *ActivityAttempt) GetResponse() ActivityAttemptResponse {
+	if x != nil {
+		return x.Response
+	}
+	return ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED
+}
+
 // FaultInjected is the recorded fact that a Driver realized one requested outage.
 type FaultInjected struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -899,7 +1072,7 @@ type FaultInjected struct {
 
 func (x *FaultInjected) Reset() {
 	*x = FaultInjected{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -911,7 +1084,7 @@ func (x *FaultInjected) String() string {
 func (*FaultInjected) ProtoMessage() {}
 
 func (x *FaultInjected) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -924,7 +1097,7 @@ func (x *FaultInjected) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FaultInjected.ProtoReflect.Descriptor instead.
 func (*FaultInjected) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FaultInjected) GetRoleId() string {
@@ -953,7 +1126,7 @@ type CleanupOutcome struct {
 
 func (x *CleanupOutcome) Reset() {
 	*x = CleanupOutcome{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -965,7 +1138,7 @@ func (x *CleanupOutcome) String() string {
 func (*CleanupOutcome) ProtoMessage() {}
 
 func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -978,7 +1151,7 @@ func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupOutcome.ProtoReflect.Descriptor instead.
 func (*CleanupOutcome) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CleanupOutcome) GetStatus() CleanupStatus {
@@ -1014,7 +1187,7 @@ type RunDiagnostic struct {
 
 func (x *RunDiagnostic) Reset() {
 	*x = RunDiagnostic{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1026,7 +1199,7 @@ func (x *RunDiagnostic) String() string {
 func (*RunDiagnostic) ProtoMessage() {}
 
 func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1039,7 +1212,7 @@ func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDiagnostic.ProtoReflect.Descriptor instead.
 func (*RunDiagnostic) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RunDiagnostic) GetDiagnosticId() string {
@@ -1110,7 +1283,7 @@ type Verdict struct {
 
 func (x *Verdict) Reset() {
 	*x = Verdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1295,7 @@ func (x *Verdict) String() string {
 func (*Verdict) ProtoMessage() {}
 
 func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1308,7 @@ func (x *Verdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
 func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Verdict) GetStatus() VerdictStatus {
@@ -1174,7 +1347,7 @@ type RuleVerdict struct {
 
 func (x *RuleVerdict) Reset() {
 	*x = RuleVerdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1186,7 +1359,7 @@ func (x *RuleVerdict) String() string {
 func (*RuleVerdict) ProtoMessage() {}
 
 func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1199,7 +1372,7 @@ func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RuleVerdict.ProtoReflect.Descriptor instead.
 func (*RuleVerdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RuleVerdict) GetRuleId() string {
@@ -1268,13 +1441,21 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
 	"\x11ObservationResult\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\x8e\x02\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xec\x02\n" +
 	"\x12InstructionOutcome\x12R\n" +
 	"\x06status\x18\x01 \x01(\x0e2:.temporal.server.api.testpilot.v1.InstructionOutcomeStatusR\x06status\x12#\n" +
 	"\rprotocol_code\x18\x02 \x01(\tR\fprotocolCode\x12(\n" +
 	"\x10sdk_failure_code\x18\x03 \x01(\tR\x0esdkFailureCode\x12\x16\n" +
 	"\x06detail\x18\x04 \x01(\tR\x06detail\x12=\n" +
-	"\x05value\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"i\n" +
+	"\x05value\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\x12\\\n" +
+	"\x10activity_attempt\x18\x06 \x01(\v21.temporal.server.api.testpilot.v1.ActivityAttemptR\x0factivityAttempt\"\xd2\x01\n" +
+	"\x0fActivityAttempt\x12&\n" +
+	"\x0factivity_run_id\x18\x01 \x01(\tR\ractivityRunId\x12\x1f\n" +
+	"\vsdk_attempt\x18\x02 \x01(\x05R\n" +
+	"sdkAttempt\x12\x1f\n" +
+	"\vdelivery_id\x18\x03 \x01(\tR\n" +
+	"deliveryId\x12U\n" +
+	"\bresponse\x18\x04 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityAttemptResponseR\bresponse\"i\n" +
 	"\rFaultInjected\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +
@@ -1296,7 +1477,14 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12K\n" +
 	"\x06status\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RuleVerdictStatusR\x06status\x12*\n" +
 	"\x11terminal_state_id\x18\x03 \x01(\tR\x0fterminalStateId\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences*\x98\x01\n" +
+	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences*\xba\x02\n" +
+	"\x17ActivityAttemptResponse\x12)\n" +
+	"%ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED\x10\x00\x12/\n" +
+	"+ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED\x10\x01\x126\n" +
+	"2ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE\x10\x02\x12:\n" +
+	"6ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE\x10\x03\x12%\n" +
+	"!ACTIVITY_ATTEMPT_RESPONSE_REFUSED\x10\x04\x12(\n" +
+	"$ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED\x10\x05*\x98\x01\n" +
 	"\x0eRunDisposition\x12\x1f\n" +
 	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +
@@ -1340,54 +1528,58 @@ func file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
-	(RunDisposition)(0),           // 0: temporal.server.api.testpilot.v1.RunDisposition
-	(CleanupStatus)(0),            // 1: temporal.server.api.testpilot.v1.CleanupStatus
-	(RunDiagnosticKind)(0),        // 2: temporal.server.api.testpilot.v1.RunDiagnosticKind
-	(VerdictStatus)(0),            // 3: temporal.server.api.testpilot.v1.VerdictStatus
-	(RuleVerdictStatus)(0),        // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
-	(*Run)(nil),                   // 5: temporal.server.api.testpilot.v1.Run
-	(*RunEvent)(nil),              // 6: temporal.server.api.testpilot.v1.RunEvent
-	(*RunEventCoordinates)(nil),   // 7: temporal.server.api.testpilot.v1.RunEventCoordinates
-	(*ObservationResult)(nil),     // 8: temporal.server.api.testpilot.v1.ObservationResult
-	(*InstructionOutcome)(nil),    // 9: temporal.server.api.testpilot.v1.InstructionOutcome
-	(*FaultInjected)(nil),         // 10: temporal.server.api.testpilot.v1.FaultInjected
-	(*CleanupOutcome)(nil),        // 11: temporal.server.api.testpilot.v1.CleanupOutcome
-	(*RunDiagnostic)(nil),         // 12: temporal.server.api.testpilot.v1.RunDiagnostic
-	(*Verdict)(nil),               // 13: temporal.server.api.testpilot.v1.Verdict
-	(*RuleVerdict)(nil),           // 14: temporal.server.api.testpilot.v1.RuleVerdict
-	(RunEventKind)(0),             // 15: temporal.server.api.testpilot.v1.RunEventKind
-	(*Value)(nil),                 // 16: temporal.server.api.testpilot.v1.Value
-	(InstructionOutcomeStatus)(0), // 17: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	(FaultKind)(0),                // 18: temporal.server.api.testpilot.v1.FaultKind
+	(ActivityAttemptResponse)(0),  // 0: temporal.server.api.testpilot.v1.ActivityAttemptResponse
+	(RunDisposition)(0),           // 1: temporal.server.api.testpilot.v1.RunDisposition
+	(CleanupStatus)(0),            // 2: temporal.server.api.testpilot.v1.CleanupStatus
+	(RunDiagnosticKind)(0),        // 3: temporal.server.api.testpilot.v1.RunDiagnosticKind
+	(VerdictStatus)(0),            // 4: temporal.server.api.testpilot.v1.VerdictStatus
+	(RuleVerdictStatus)(0),        // 5: temporal.server.api.testpilot.v1.RuleVerdictStatus
+	(*Run)(nil),                   // 6: temporal.server.api.testpilot.v1.Run
+	(*RunEvent)(nil),              // 7: temporal.server.api.testpilot.v1.RunEvent
+	(*RunEventCoordinates)(nil),   // 8: temporal.server.api.testpilot.v1.RunEventCoordinates
+	(*ObservationResult)(nil),     // 9: temporal.server.api.testpilot.v1.ObservationResult
+	(*InstructionOutcome)(nil),    // 10: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*ActivityAttempt)(nil),       // 11: temporal.server.api.testpilot.v1.ActivityAttempt
+	(*FaultInjected)(nil),         // 12: temporal.server.api.testpilot.v1.FaultInjected
+	(*CleanupOutcome)(nil),        // 13: temporal.server.api.testpilot.v1.CleanupOutcome
+	(*RunDiagnostic)(nil),         // 14: temporal.server.api.testpilot.v1.RunDiagnostic
+	(*Verdict)(nil),               // 15: temporal.server.api.testpilot.v1.Verdict
+	(*RuleVerdict)(nil),           // 16: temporal.server.api.testpilot.v1.RuleVerdict
+	(RunEventKind)(0),             // 17: temporal.server.api.testpilot.v1.RunEventKind
+	(*Value)(nil),                 // 18: temporal.server.api.testpilot.v1.Value
+	(InstructionOutcomeStatus)(0), // 19: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(FaultKind)(0),                // 20: temporal.server.api.testpilot.v1.FaultKind
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
-	6,  // 0: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
-	0,  // 1: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
-	11, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
-	13, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
-	12, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	15, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	7,  // 6: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
-	8,  // 7: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
-	9,  // 8: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
-	10, // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
-	16, // 10: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
-	17, // 11: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	16, // 12: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> temporal.server.api.testpilot.v1.Value
-	18, // 13: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	1,  // 14: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
-	2,  // 15: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
-	3,  // 16: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
-	14, // 17: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
-	4,  // 18: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	7,  // 0: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
+	1,  // 1: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
+	13, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
+	15, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
+	14, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
+	17, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	8,  // 6: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
+	9,  // 7: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
+	10, // 8: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
+	12, // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
+	18, // 10: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
+	19, // 11: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	18, // 12: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> temporal.server.api.testpilot.v1.Value
+	11, // 13: temporal.server.api.testpilot.v1.InstructionOutcome.activity_attempt:type_name -> temporal.server.api.testpilot.v1.ActivityAttempt
+	0,  // 14: temporal.server.api.testpilot.v1.ActivityAttempt.response:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptResponse
+	20, // 15: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	2,  // 16: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
+	3,  // 17: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
+	4,  // 18: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
+	16, // 19: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
+	5,  // 20: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1405,7 +1597,7 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 		(*RunEvent_Outcome)(nil),
 		(*RunEvent_FaultInjected)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8].OneofWrappers = []any{
 		(*RunDiagnostic_SupportingEventSequence)(nil),
 	}
 	type x struct{}
@@ -1413,8 +1605,8 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_run_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_run_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   10,
+			NumEnums:      6,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -7,7 +7,9 @@
     "fn-107-scala-umpire-prototype-for-standalone.4",
     "fn-107-scala-umpire-prototype-for-standalone.5",
     "fn-107-scala-umpire-prototype-for-standalone.6",
-    "fn-107-scala-umpire-prototype-for-standalone.13"
+    "fn-107-scala-umpire-prototype-for-standalone.13",
+    "fn-107-scala-umpire-prototype-for-standalone.18",
+    "fn-107-scala-umpire-prototype-for-standalone.19"
   ],
   "id": "fn-107-scala-umpire-prototype-for-standalone.9",
   "priority": null,
@@ -15,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.9.md",
   "status": "todo",
   "title": "Run shared activity and Nexus Cases through existing consumers",
-  "updated_at": "2026-09-30T16:46:54.798065Z"
+  "updated_at": "2026-10-01T14:48:08.486418Z"
 }

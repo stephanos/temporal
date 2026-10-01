@@ -7,8 +7,9 @@ import (
 
 // Evaluation is where a Monitor's verdict is read.
 type Evaluation struct {
-	kind  evaluationKind
-	after func(Result) bool
+	kind     evaluationKind
+	after    func(Result) bool
+	afterKey func(Result) (bool, error)
 }
 
 type evaluationKind int
@@ -40,6 +41,24 @@ type Monitor struct {
 	Violated func(monitor string) bool
 	At       Evaluation
 	err      error
+	// keyNext and keyViolated are the functions of a Monitor declared over a table's keys.
+	keyNext     func(monitor, before string, step Result) (string, error)
+	keyViolated func(monitor string) (bool, error)
+}
+
+// next is the Monitor's state after a step from the state keyed state, whose typed value is before.
+func (m *Monitor) next(key, state string, before any, res Result) (string, error) {
+	if m.keyNext != nil {
+		return m.keyNext(key, state, res)
+	}
+	return m.Next(key, before, res)
+}
+
+func (m *Monitor) violated(key string) (bool, error) {
+	if m.keyViolated != nil {
+		return m.keyViolated(key)
+	}
+	return m.Violated(key), nil
 }
 
 // NewMonitor declares a Monitor with a finite state type M over a machine whose steps have type
@@ -79,6 +98,9 @@ func (m *Monitor) check() error {
 	if m.err != nil {
 		return m.err
 	}
+	if m.keyNext != nil && m.keyViolated != nil {
+		return nil
+	}
 	if m.Next == nil || m.Violated == nil {
 		return errorf("monitor "+m.Name, "a Monitor names its next and violated functions")
 	}
@@ -87,14 +109,17 @@ func (m *Monitor) check() error {
 
 // reads reports whether the verdict is read after a step into res from a table whose ends are
 // ends.
-func (e Evaluation) reads(res Result, ends map[string]bool) bool {
+func (e Evaluation) reads(res Result, ends map[string]bool) (bool, error) {
 	switch e.kind {
 	case atEnds:
-		return ends[res.State]
+		return ends[res.State], nil
 	case afterSteps:
-		return e.after(res)
+		if e.afterKey != nil {
+			return e.afterKey(res)
+		}
+		return e.after(res), nil
 	default:
-		return true
+		return true, nil
 	}
 }
 
@@ -106,6 +131,8 @@ const (
 	MonitorViolated Verdict = "violated"
 	// MonitorUnread is a Monitor whose evaluation point the path never reaches: no verdict.
 	MonitorUnread Verdict = "unread"
+	// MonitorUnknown is a Monitor whose functions could not be read on the witness's last step.
+	MonitorUnknown Verdict = "unknown"
 )
 
 // MonitorVerdict is one Monitor's verdict on a witness, with the state the witness leaves it in. A
@@ -121,12 +148,17 @@ type MonitorVerdict struct {
 type monitorState struct {
 	key            string
 	read, violated bool
+	// unknown marks a Monitor whose functions could not be read on the step into this state: key is
+	// its state before that step.
+	unknown bool
 }
 
 func (m monitorState) verdict() Verdict {
 	switch {
 	case m.violated:
 		return MonitorViolated
+	case m.unknown:
+		return MonitorUnknown
 	case m.read:
 		return MonitorHeld
 	default:
@@ -140,6 +172,9 @@ func identity(mons []monitorState) string {
 	var b strings.Builder
 	for _, m := range mons {
 		fmt.Fprintf(&b, "%d:%s%s%s", len(m.key), m.key, bit(m.read), bit(m.violated))
+		if m.unknown {
+			b.WriteString("?")
+		}
 	}
 	return b.String()
 }
@@ -169,7 +204,7 @@ func (q *Query) checkMonitors() error {
 		}
 		seen[m.Name] = true
 		if err := m.check(); err != nil {
-			return errorf(q.decl(), "%v", err)
+			return wrapError(q.decl(), err)
 		}
 	}
 	return nil

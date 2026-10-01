@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
 	"slices"
 	"sync"
@@ -84,6 +85,17 @@ func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*S
 		}
 	}
 	return slices.AppendSeq(make([]*Session, 0, len(candidates)), maps.Keys(candidates)), nil
+}
+
+func (h *Driver) activityCandidates(ctx context.Context, input delivery.ActivityDelivery) ([]*Session, error) {
+	if h == nil || ctx == nil {
+		return nil, ErrInvalid
+	}
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return nil, err
+	}
+	defer h.mu.Unlock()
+	return append([]*Session(nil), h.activityRoutes[input.Binding()]...), nil
 }
 
 func (h *Driver) admitWorkflow(input delivery.WorkflowDelivery) (routedWorkflow, error) {
@@ -300,6 +312,88 @@ func (s *Session) admitNexus(ctx context.Context, input delivery.NexusDelivery, 
 	return activation, false, nil
 }
 
+// admitActivity routes one activity task to the Session whose carrier started it. Several Runs may
+// start the same physical binding, so every Session indexed under it is offered the task and the
+// route the task carries picks its owner.
+func (h *Driver) admitActivity(ctx context.Context, input delivery.ActivityDelivery, cancel context.CancelFunc) (routedActivity, error) {
+	if cancel == nil {
+		return routedActivity{}, ErrInvalid
+	}
+	candidates, err := h.activityCandidates(ctx, input)
+	if err != nil {
+		return routedActivity{}, err
+	}
+	return admitFirst(ctx, candidates, "activity_delivery_late", func(session *Session) (routedActivity, error) {
+		activation, answer, err := session.admitActivity(ctx, input, cancel)
+		if errors.Is(err, delivery.ErrAttemptUndeclared) {
+			session.diagnoseRefusedAttempt(ctx, "activity_attempt_undeclared", fmt.Sprintf("activity run %q delivered attempt %d, which its script does not declare", input.ActivityRunID, input.Attempt))
+		} else if errors.Is(err, delivery.ErrRouteConflict) {
+			session.diagnoseRefusedAttempt(ctx, "activity_run_crossed", fmt.Sprintf("attempt %d names activity run %q, which is not the run its start reserved", input.Attempt, input.ActivityRunID))
+		}
+		return routedActivity{session: session, activation: activation, answer: answer}, err
+	})
+}
+
+// diagnoseRefusedAttempt tells the Run that Temporal delivered an attempt the Session refused for
+// what it names: an attempt its activity's script does not declare, or one of another activity
+// run. No reservation is consumed for such an attempt, so it has no outcome to record and this
+// diagnostic is the only trace of it. It is best effort, on a context the attempt's own
+// cancellation cannot end.
+func (s *Session) diagnoseRefusedAttempt(ctx context.Context, code, detail string) {
+	notify, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
+	defer cancel()
+	_ = s.Diagnose(notify, s.runID, &testpilotspb.RunDiagnostic{
+		DiagnosticId: fmt.Sprintf("activity-attempt-%d", s.next.Add(1)),
+		Kind:         testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT,
+		Code:         code,
+		Detail:       boundedText(detail),
+	})
+}
+
+// admitActivity admits one delivery of an activity attempt. An attempt the worker has not seen
+// consumes the reservation of its number and binds its cancellation to the attempt's own context,
+// so canceling the reservation ends that attempt and nothing else. A delivery of an attempt already
+// admitted is handed the answer that admission gives, to wait for instead of running anything.
+func (s *Session) admitActivity(ctx context.Context, input delivery.ActivityDelivery, cancel context.CancelFunc) (delivery.Activation, *activityAnswer, error) {
+	if err := s.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return delivery.Activation{}, nil, err
+	}
+	defer s.mu.Unlock()
+	if s.closed || s.failure != nil {
+		return delivery.Activation{}, nil, errors.Join(delivery.ErrRouteStale, s.failure)
+	}
+	activation, err := s.ledger.AdmitActivity(ctx, input)
+	if err != nil {
+		return delivery.Activation{}, nil, err
+	}
+	id := activation.Reservation().ID
+	if activation.Replay() {
+		answer := s.activityAnswers[id]
+		if answer == nil {
+			return delivery.Activation{}, nil, ErrClosed
+		}
+		return activation, answer, nil
+	}
+	raw := s.reservations[id]
+	if raw == nil {
+		return delivery.Activation{}, nil, ErrClosed
+	}
+	deliveryID := activation.DeliveryID()
+	err = raw.bindCancellation("", "", deliveryID, func(_ context.Context, workflowID, runID, boundDeliveryID string) error {
+		if workflowID != "" || runID != "" || boundDeliveryID != deliveryID {
+			return ErrInvalid
+		}
+		cancel()
+		return nil
+	})
+	if err != nil {
+		return delivery.Activation{}, nil, err
+	}
+	answer := &activityAnswer{done: make(chan struct{})}
+	s.activityAnswers[id] = answer
+	return activation, answer, nil
+}
+
 func (s *Session) nexusAdmissionKeyLocked(header nexus.Header) (nexusRouteIndex, error) {
 	var result nexusRouteIndex
 	matched := false
@@ -335,6 +429,25 @@ func (h *Driver) addWorkflowRouteLocked(session *Session, key delivery.WorkflowB
 	}
 	h.workflowRoutes[key] = append(h.workflowRoutes[key], session)
 	session.workflowKeys[key] = struct{}{}
+	h.routeAssociations++
+}
+
+func (h *Driver) checkActivityRouteCapacityLocked(session *Session, key delivery.ActivityBinding) error {
+	if slices.Contains(h.activityRoutes[key], session) {
+		return nil
+	}
+	return h.ensureRouteCapacityLocked(1)
+}
+
+func (h *Driver) addActivityRouteLocked(session *Session, key delivery.ActivityBinding) {
+	if slices.Contains(h.activityRoutes[key], session) {
+		return
+	}
+	if h.activityRoutes == nil {
+		h.activityRoutes = make(map[delivery.ActivityBinding][]*Session)
+	}
+	h.activityRoutes[key] = append(h.activityRoutes[key], session)
+	session.activityKeys[key] = struct{}{}
 	h.routeAssociations++
 }
 
@@ -391,6 +504,13 @@ func (h *Driver) removeRouteIndexesLocked(session *Session) {
 		h.workflowRoutes[key] = slices.DeleteFunc(h.workflowRoutes[key], func(candidate *Session) bool { return candidate == session })
 		if len(h.workflowRoutes[key]) == 0 {
 			delete(h.workflowRoutes, key)
+		}
+		h.routeAssociations--
+	}
+	for key := range session.activityKeys {
+		h.activityRoutes[key] = slices.DeleteFunc(h.activityRoutes[key], func(candidate *Session) bool { return candidate == session })
+		if len(h.activityRoutes[key]) == 0 {
+			delete(h.activityRoutes, key)
 		}
 		h.routeAssociations--
 	}

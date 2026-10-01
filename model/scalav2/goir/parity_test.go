@@ -25,9 +25,15 @@ func machines(t *testing.T) map[string]*Machine {
 	return built
 }
 
+// readLean reads one dump. The dumps are git-ignored and only a Lean build regenerates them, so a
+// checkout without them skips the comparison; a dump missing from a present directory still fails.
 func readLean[T any](t *testing.T, name string) T {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("..", "..", "go", "parity", "testdata", "lean", name))
+	dir := filepath.Join("..", "..", "go", "parity", "testdata", "lean")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		t.Skipf("no Lean dumps in %s; model/go/leandump/dump.sh writes them", dir)
+	}
+	encoded, err := os.ReadFile(filepath.Join(dir, name))
 	require.NoError(t, err)
 	var v T
 	require.NoError(t, json.Unmarshal(encoded, &v))

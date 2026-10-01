@@ -228,38 +228,63 @@ func Build(m *modelirspb.Model) (map[string]*Machine, error) {
 }
 
 func (in *Interpreter) build(m *modelirspb.Model) (map[string]*Machine, error) {
+	out := in.interpret(m)
+	for _, failures := range []map[string]error{out.failed, out.unrefined} {
+		for _, decl := range m.GetMachines() {
+			if err := failures[decl.GetName()]; err != nil {
+				return nil, err
+			}
+		}
+	}
+	return out.machines, nil
+}
+
+// interpretation is a Model's machines interpreted one by one, so that what one machine's
+// declarations leave unread does not take the others with it: failed is why a machine has no table,
+// and unrefined why a refining machine that has one has no refinement, neither held nor rejected.
+type interpretation struct {
+	machines  map[string]*Machine
+	failed    map[string]error
+	unrefined map[string]error
+}
+
+func (in *Interpreter) interpret(m *modelirspb.Model) interpretation {
 	actions := map[string]*modelirspb.Action{}
 	for _, a := range m.GetActions() {
 		actions[a.GetId()] = a
 	}
-	out := map[string]*Machine{}
+	out := interpretation{machines: map[string]*Machine{}, failed: map[string]error{}, unrefined: map[string]error{}}
 	for _, decl := range m.GetMachines() {
 		mm, err := in.machine(decl, actions)
 		var limit *LimitError
 		if errors.As(err, &limit) && limit.Machine == "" {
 			limit.Machine = decl.GetName()
 		}
+		if err == nil {
+			err = declarations(m, mm)
+		}
 		if err != nil {
-			return nil, err
+			out.failed[decl.GetName()] = err
+			continue
 		}
-		if err := declarations(m, mm); err != nil {
-			return nil, err
-		}
-		out[decl.GetName()] = mm
+		out.machines[decl.GetName()] = mm
 	}
 	for _, decl := range m.GetMachines() {
-		mm := out[decl.GetName()]
-		if r := decl.GetRefines(); r != nil {
-			product, ok := out[r.GetProduct()]
-			if !ok {
-				return nil, errorAt(decl.GetPosition(), "%s refines %s, which the Model does not declare", decl.GetName(), r.GetProduct())
-			}
-			if err := in.refinement(mm, product); err != nil {
-				return nil, err
-			}
+		mm, r := out.machines[decl.GetName()], decl.GetRefines()
+		if mm == nil || r == nil {
+			continue
+		}
+		product, ok := out.machines[r.GetProduct()]
+		switch {
+		case ok:
+			out.unrefined[decl.GetName()] = in.refinement(mm, product)
+		case out.failed[r.GetProduct()] != nil:
+			out.unrefined[decl.GetName()] = out.failed[r.GetProduct()]
+		default:
+			out.unrefined[decl.GetName()] = errorAt(decl.GetPosition(), "%s refines %s, which the Model does not declare", decl.GetName(), r.GetProduct())
 		}
 	}
-	return out, nil
+	return out
 }
 
 // declarations resolves the monitors and assumptions a machine names.
@@ -323,7 +348,10 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 	if err = in.rows(mm, states, &spec); err != nil {
 		return nil, err
 	}
-	if spec.Starts, spec.Ends, err = in.startsAndEnds(decl, states, mm.states); err != nil {
+	// The starts, the ends and the evidence are read one after another past any hole, so that a hole
+	// in one hides neither a hole nor an error of the Model in the next.
+	var unread unknowns
+	if spec.Starts, spec.Ends, err = in.startsAndEnds(decl, states, mm.states, &unread); err != nil {
 		return nil, err
 	}
 	names, _ := in.fieldNames(decl.GetStateType(), "")
@@ -333,7 +361,10 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 		// machine (`Umpire.Command.refinedProperty`).
 		spec.StateFields = append(spec.StateFields, r.GetProduct())
 	}
-	if spec.Evidence, err = in.evidence(decl, facts); err != nil {
+	if spec.Evidence, err = in.evidence(decl, facts, &unread); err != nil {
+		return nil, err
+	}
+	if err := unread.err(); err != nil {
 		return nil, err
 	}
 	mm.Table = umpire.NewTable(spec)
@@ -541,18 +572,58 @@ func (in *Interpreter) stepList(decl *modelirspb.Machine, c Class, v Value) ([]V
 	return v.Items, nil
 }
 
-func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, domain map[string]Value) (starts, ends []string, err error) {
+// unknowns collects the holes a declaration reaches as it is read at one value after another, each
+// once. The reading goes on past a hole, so that an error of the Model at a later value is not lost
+// behind it, and every hole it reaches is reported.
+type unknowns struct{ holes []*Hole }
+
+// note keeps a hole, for which it is nil, and is any other error itself.
+func (u *unknowns) note(err error) error {
+	var hole *Hole
+	if !errors.As(err, &hole) {
+		return err
+	}
+	if !slices.ContainsFunc(u.holes, func(h *Hole) bool { return *h == *hole }) {
+		u.holes = append(u.holes, hole)
+	}
+	return nil
+}
+
+// err is the holes reached, as why the declaration is not read, or nil when it reached none.
+func (u *unknowns) err() error {
+	errs := holeErrors(u.holes)
+	if len(errs) == 1 {
+		return errs[0]
+	}
+	return errors.Join(errs...)
+}
+
+func holeErrors(holes []*Hole) []error {
+	errs := make([]error, len(holes))
+	for i, h := range holes {
+		errs[i] = h
+	}
+	return errs
+}
+
+// startsAndEnds reads a machine's starts and the states it may end in. A hole either reaches is noted
+// in unread and read past, and is no error here: the caller has no table for a machine with one.
+func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, domain map[string]Value, unread *unknowns) (
+	starts, ends []string, err error) {
 	for _, x := range decl.GetStarts() {
 		v, err := in.Eval(x)
 		if err != nil {
-			return nil, nil, err
+			if err = unread.note(err); err != nil {
+				return nil, nil, err
+			}
+			continue
 		}
 		if _, ok := domain[v.Key()]; !ok {
 			return nil, nil, errorAt(x.GetPosition(), "start %s is outside the state domain", v.Key())
 		}
 		starts = append(starts, v.Key())
 	}
-	if len(starts) == 0 {
+	if len(starts) == 0 && len(unread.holes) == 0 {
 		return nil, nil, errorAt(decl.GetPosition(), "%s declares no start", decl.GetName())
 	}
 	if decl.GetEnds() == nil {
@@ -560,12 +631,18 @@ func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, d
 	}
 	end, evalErr := in.Eval(decl.GetEnds())
 	if evalErr != nil {
-		return nil, nil, evalErr
+		return starts, nil, unread.note(evalErr)
 	}
 	for _, s := range states {
 		v, err := in.Apply(end, []Value{s})
 		if err != nil {
-			return nil, nil, err
+			if err = unread.note(err); err != nil {
+				return nil, nil, err
+			}
+			continue
+		}
+		if v.Kind != BoolValue {
+			return nil, nil, errorAt(decl.GetEnds().GetPosition(), "%s: ends is %s at %s, not a Boolean", decl.GetName(), v.Key(), s.Key())
 		}
 		if v.Bool {
 			ends = append(ends, s.Key())
@@ -576,7 +653,8 @@ func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, d
 
 // evidence is one line per fact constructor, in catalog order: the constructor, and the recorded
 // event or observation the evidence function names for it.
-func (in *Interpreter) evidence(decl *modelirspb.Machine, facts []Value) ([][2]string, error) {
+// It notes a hole in unread and reads past it, as startsAndEnds does.
+func (in *Interpreter) evidence(decl *modelirspb.Machine, facts []Value, unread *unknowns) ([][2]string, error) {
 	if decl.GetEvidence() == "" {
 		return nil, nil
 	}
@@ -584,7 +662,10 @@ func (in *Interpreter) evidence(decl *modelirspb.Machine, facts []Value) ([][2]s
 	for _, f := range facts {
 		v, err := in.Call(decl.GetEvidence(), []Value{f}, decl.GetPosition())
 		if err != nil {
-			return nil, err
+			if err = unread.note(err); err != nil {
+				return nil, err
+			}
+			continue
 		}
 		if !slices.ContainsFunc(out, func(l [2]string) bool { return l[0] == f.Case }) {
 			out = append(out, [2]string{f.Case, v.Text})
@@ -675,6 +756,9 @@ func (in *Interpreter) seen(mm *Machine, dst *umpire.Table, step Value) ([]strin
 			return false, nil
 		}
 		b, err := in.Call(function, []Value{v}, mm.Decl.GetPosition())
+		if err == nil && b.Kind != BoolValue {
+			return false, errorAt(mm.Decl.GetPosition(), "%s: %s is %s for %s, not a Boolean", mm.Decl.GetName(), function, b.Key(), v.Key())
+		}
 		return b.Bool, err
 	}
 	var facts []string
